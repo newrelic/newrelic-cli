@@ -1,0 +1,20 @@
+version: 2.1
+
+orbs:
+  snyk: snyk/snyk@0.0.8
+
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.13
+
+    working_directory: /go/src/github.com/newrelic/newrelic-cli
+    steps:
+      - checkout
+
+      - run: make build-ci
+      - snyk/scan:
+          severity-threshold: high
+          fail-on-issues: false
+          monitor-on-build: true
+

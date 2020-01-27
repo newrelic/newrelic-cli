@@ -1,0 +1,7 @@
+tmp/*
+bin/*
+coverage/*
+vendor/*
+
+.vscode/
+.DS_Store
