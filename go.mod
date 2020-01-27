@@ -1,4 +1,4 @@
-module github.com/newrelic/newrelic-client-go
+module github.com/newrelic/newrelic-cli
 
 go 1.13
 
