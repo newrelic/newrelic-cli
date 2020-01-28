@@ -1,40 +1,16 @@
 package main
 
 import (
-	"fmt"
-
-	log "github.com/sirupsen/logrus"
-
+	// Main entry point is cmd
 	"github.com/newrelic/newrelic-cli/internal/cmd"
-	"github.com/newrelic/newrelic-cli/pkg/config"
 
-	// Commands
+	// Commands to import, init will run and register with cmd
 	_ "github.com/newrelic/newrelic-cli/internal/entities"
 )
 
-const (
-	cmdName = "nr"
-	appName = "New Relic CLI"
-)
-
-var (
-	// Version of this command
-	Version = "dev"
-)
+// Version of the CLI
+var Version = "dev"
 
 func main() {
-	fmt.Printf("%s version: '%s'\n", appName, Version)
-
-	cfg, err := config.Load("", "debug")
-	if err != nil {
-		fmt.Printf("%v\n", err)
-	}
-
-	lvl, err := log.ParseLevel(cfg.LogLevel)
-	if err == nil {
-		log.SetLevel(lvl)
-	}
-
-	// Main entry point for the CLI
-	cmd.Execute()
+	cmd.Execute(Version)
 }

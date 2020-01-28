@@ -10,7 +10,6 @@ require (
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.7.1
 	github.com/remyoudompheng/go-misc v0.0.0-20190427085024-2d6ac652a50e
 	github.com/sirupsen/logrus v1.4.2
