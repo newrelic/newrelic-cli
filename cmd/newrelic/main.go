@@ -11,6 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
+	"github.com/newrelic/newrelic-cli/internal/plugins"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
 
@@ -28,6 +29,12 @@ func init() {
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(workload.Command)
+	Command.AddCommand(plugins.Command)
+
+	// Bind plugin sub-commands
+	for _, c := range plugins.PluginRootCommands {
+		Command.AddCommand(c)
+	}
 }
 
 func main() {
