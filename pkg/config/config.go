@@ -14,8 +14,9 @@ const defaultEnvPrefix = "newrelic"
 
 // Config contains the main CLI configuration
 type Config struct {
-	SendUsageData string `mapstructure:"sendusagedata"` // SendUsageData enables sending usage statistics to New Relic
+	LogLevel      string `mapstructure:"loglevel"`      // LogLevel for verbose output
 	PluginDir     string `mapstructure:"plugindir"`     // PluginDir is the directory where plugins will be installed
+	SendUsageData string `mapstructure:"sendusagedata"` // SendUsageData enables sending usage statistics to New Relic
 }
 
 // Load initializes the cli configuration
@@ -75,6 +76,10 @@ func Load(cfgFile string, logLevel string) (*Config, error) {
 func (c *Config) Validate() error {
 	if c == nil {
 		return nil
+	}
+
+	if c.LogLevel == "" {
+		c.LogLevel = "info"
 	}
 
 	switch c.SendUsageData {
