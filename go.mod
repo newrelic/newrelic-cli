@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/client9/misspell v0.3.4
+	github.com/fatih/color v1.7.0
 	github.com/fzipp/gocyclo v0.0.0-20150627053110-6acd4345c835
 	github.com/git-chglog/git-chglog v0.0.0-20190923122001-6050f20bcdb0
 	github.com/golangci/golangci-lint v1.21.0

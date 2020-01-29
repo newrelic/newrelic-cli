@@ -54,6 +54,9 @@ func main() {
 	// Configure commands that need it
 	entities.SetClient(nrClient)
 
+	profile.SetConfig(globalConfig)
+	profile.SetCredentials(creds)
+
 	if err := root.Execute(AppName, Version); err != nil {
 		log.Fatal(err)
 	}

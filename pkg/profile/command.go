@@ -3,15 +3,27 @@ package profile
 import (
 	"fmt"
 
-	//log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	//"github.com/newrelic/newrelic-cli/internal/cmd"
+
+	"github.com/newrelic/newrelic-cli/pkg/config"
 )
 
 var (
+	cfg   *config.Config
+	creds *Credentials
 	// Display keys when printing output
 	showKeys bool
 )
+
+// SetConfig takes a pointer to the loaded config for later reference
+func SetConfig(c *config.Config) {
+	cfg = c
+}
+
+// SetCredentials takes a pointer to the loaded creds for later reference
+func SetCredentials(c *Credentials) {
+	creds = c
+}
 
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
@@ -19,34 +31,53 @@ var Command = &cobra.Command{
 	Short: "profile management",
 }
 
-var profileListCmd = &cobra.Command{
+var cmdAdd = &cobra.Command{
+	Use:   "add",
+	Short: "add a new profile",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("profiles add has not been implemented")
+	},
+}
+
+var cmdDefault = &cobra.Command{
+	Use:   "default",
+	Short: "set the default profile",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("profiles default has not been implemented")
+	},
+}
+
+var cmdList = &cobra.Command{
 	Use:   "list",
 	Short: "list profiles",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("listing profiles")
-		//fmt.Printf("%+v\n\n", root.Profiles())
-		//	params := entities.SearchEntitiesParams{
-		//		Name: entityName,
-		//	}
-		//	entities, err := root.Client.Entities.SearchEntities(params)
+		if creds != nil {
+			creds.List()
+		} else {
+			fmt.Println("No profiles found")
+		}
+	},
+}
 
-		//	if err != nil {
-		//		log.Fatal(err)
-		//	}
-
-		//	json, err := prettyjson.Marshal(entities)
-
-		//	if err != nil {
-		//		log.Fatal(err)
-		//	}
-
-		//	fmt.Println(string(json))
+var cmdRemove = &cobra.Command{
+	Use:   "remove",
+	Short: "delete a profile",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("profiles remove has not been implemented")
 	},
 }
 
 func init() {
-	//cmd.RootCmd.AddCommand(profileCmd)
+	// Add
+	Command.AddCommand(cmdAdd)
 
-	Command.AddCommand(profileListCmd)
-	profileListCmd.Flags().BoolVarP(&showKeys, "show-keys", "s", false, "list the profiles on your keychain")
+	// Default
+	Command.AddCommand(cmdDefault)
+
+	// List
+	Command.AddCommand(cmdList)
+	cmdList.Flags().BoolVarP(&showKeys, "show-keys", "s", false, "list the profiles on your keychain")
+
+	// Remove
+	Command.AddCommand(cmdRemove)
 }
