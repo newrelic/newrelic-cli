@@ -57,6 +57,9 @@ var cmdList = &cobra.Command{
 			fmt.Println("No profiles found")
 		}
 	},
+	Aliases: []string{
+		"ls",
+	},
 }
 
 var cmdRemove = &cobra.Command{
@@ -64,6 +67,9 @@ var cmdRemove = &cobra.Command{
 	Short: "delete a profile",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("profiles remove has not been implemented")
+	},
+	Aliases: []string{
+		"rm",
 	},
 }
 
