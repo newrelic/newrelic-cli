@@ -40,6 +40,7 @@ func Load(cfg *config.Config) (*map[string]Profile, error) {
 
 	credViper := viper.New()
 	credViper.SetConfigName(DefaultCredentialsFile)
+	credViper.SetConfigType(config.DefaultConfigType)
 	credViper.SetEnvPrefix(config.DefaultEnvPrefix)
 	credViper.AddConfigPath(config.DefaultConfigDirectory) // adding home directory as first search path
 	credViper.AddConfigPath(".")                           // current directory to search path

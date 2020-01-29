@@ -44,7 +44,7 @@ func Execute(appName, version string) error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is $HOME/.newrelic/config.json)")
+	RootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is "+config.DefaultConfigFile()+")")
 	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug,Trace]")
 }
 

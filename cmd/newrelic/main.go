@@ -1,6 +1,8 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	// Main entry point is cmd
 	"github.com/newrelic/newrelic-cli/internal/cmd"
 
@@ -16,5 +18,8 @@ var (
 )
 
 func main() {
-	cmd.Execute(AppName, Version)
+	err := cmd.Execute(AppName, Version)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

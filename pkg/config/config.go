@@ -16,6 +16,9 @@ const DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
 // DefaultConfigName is the default name of the global configuration file
 const DefaultConfigName = "config"
 
+// DefaultConfigType to read, though any file type supported by viper is allowed
+const DefaultConfigType = "json"
+
 // DefaultEnvPrefix is used when reading environment variables
 const DefaultEnvPrefix = "newrelic"
 
@@ -25,6 +28,11 @@ type Config struct {
 	PluginDir     string `mapstructure:"plugindir"`     // PluginDir is the directory where plugins will be installed
 	SendUsageData string `mapstructure:"sendusagedata"` // SendUsageData enables sending usage statistics to New Relic
 	ProfileName   string // ProfileName is the configured profile to use
+}
+
+// DefaultConfigFile returns the default global configuration file name
+func DefaultConfigFile() string {
+	return DefaultConfigDirectory + "/" + DefaultConfigName + "." + DefaultConfigType
 }
 
 // Load initializes the cli configuration
@@ -43,6 +51,7 @@ func Load(cfgFile string, logLevel string) (*Config, error) {
 	cfgViper := viper.New()
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
+	cfgViper.SetConfigType(DefaultConfigType)
 	cfgViper.AddConfigPath(DefaultConfigDirectory) // adding home directory as first search path
 	cfgViper.AddConfigPath(".")                    // current directory to search path
 	cfgViper.AutomaticEnv()                        // read in environment variables that match
