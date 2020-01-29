@@ -12,7 +12,7 @@ import (
 
 // LogLevel passsed into the CLI
 var configFile string
-var logLevel = "trace"
+var logLevel string
 
 var globalConfig *config.Config
 var profiles *map[string]profile.Profile
