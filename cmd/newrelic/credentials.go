@@ -4,7 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/pkg/config"
-	"github.com/newrelic/newrelic-cli/pkg/profile"
+	"github.com/newrelic/newrelic-cli/pkg/credentials"
 )
 
 // loadCredentials loads the list of profiles
@@ -18,7 +18,7 @@ func loadCredentials() error {
 	}
 
 	// Load profiles
-	creds, err = profile.Load(config.DefaultConfigDirectory, config.DefaultEnvPrefix)
+	creds, err = credentials.Load(config.DefaultConfigDirectory, config.DefaultEnvPrefix)
 	if err != nil {
 		// TODO: Don't die here, we need to be able to run the profiles command to add one!
 		return err

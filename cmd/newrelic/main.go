@@ -9,7 +9,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/entities"
 
 	"github.com/newrelic/newrelic-cli/pkg/config"
-	"github.com/newrelic/newrelic-cli/pkg/profile"
+	"github.com/newrelic/newrelic-cli/pkg/credentials"
 )
 
 var (
@@ -19,7 +19,7 @@ var (
 	Version = "dev"
 
 	globalConfig *config.Config
-	creds        *profile.Credentials
+	creds        *credentials.Credentials
 
 	// Client is an instance of the New Relic client.
 	nrClient *newrelic.NewRelic
@@ -47,15 +47,15 @@ func init() {
 
 	// Bind imported sub-commands
 	root.Command.AddCommand(entities.Command)
-	root.Command.AddCommand(profile.Command)
+	root.Command.AddCommand(credentials.Command)
 }
 
 func main() {
 	// Configure commands that need it
 	entities.SetClient(nrClient)
 
-	profile.SetConfig(globalConfig)
-	profile.SetCredentials(creds)
+	credentials.SetConfig(globalConfig)
+	credentials.SetCredentials(creds)
 
 	if err := root.Execute(AppName, Version); err != nil {
 		log.Fatal(err)
