@@ -8,9 +8,13 @@ import (
 	_ "github.com/newrelic/newrelic-cli/internal/entities"
 )
 
-// Version of the CLI
-var Version = "dev"
+var (
+	// AppName for this CMD
+	AppName = "newrelic-dev"
+	// Version of the CLI
+	Version = "dev"
+)
 
 func main() {
-	cmd.Execute(Version)
+	cmd.Execute(AppName, Version)
 }

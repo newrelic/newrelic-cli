@@ -22,7 +22,7 @@ var Client *nr.NewRelic
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:     "newrelic",
+	Use:     "newrelic-dev",
 	Short:   "The New Relic CLI",
 	Long:    `The New Relic CLI enables users to perform tasks against the New Relic APIs`,
 	Version: "dev",
@@ -30,7 +30,10 @@ var RootCmd = &cobra.Command{
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
-func Execute(version string) error {
+func Execute(appName, version string) error {
+	if appName != "" {
+		RootCmd.Use = appName
+	}
 	if version != "" {
 		RootCmd.Version = version
 	}
