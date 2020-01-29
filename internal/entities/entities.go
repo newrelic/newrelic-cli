@@ -4,42 +4,47 @@ import (
 	"fmt"
 	"log"
 
-	root "github.com/newrelic/newrelic-cli/internal/cmd"
-	"github.com/newrelic/newrelic-client-go/pkg/entities"
-	"github.com/spf13/cobra"
 	prettyjson "github.com/hokaccha/go-prettyjson"
+	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
 var (
+	nrClient   *newrelic.NewRelic
 	entityName string
 )
 
-// EntitiesCmd represents the entities command
-var entitiesCmd = &cobra.Command{
+// SetClient is the API for passing along the New Relic client to this command
+func SetClient(nr *newrelic.NewRelic) error {
+	if nr == nil {
+		return fmt.Errorf("client can not be nil")
+	}
+
+	nrClient = nr
+
+	return nil
+}
+
+// Command represents the entities command
+var Command = &cobra.Command{
 	Use:   "entities",
 	Short: "entities commands",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 }
 
 var entitiesSearchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "entities search",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		if nrClient == nil {
+			log.Fatal("missing New Relic client configuration")
+		}
+
 		params := entities.SearchEntitiesParams{
 			Name: entityName,
 		}
-		entities, err := root.Client.Entities.SearchEntities(params)
+		entities, err := nrClient.Entities.SearchEntities(params)
 
 		if err != nil {
 			log.Fatal(err)
@@ -56,8 +61,6 @@ to quickly create a Cobra application.`,
 }
 
 func init() {
-	root.RootCmd.AddCommand(entitiesCmd)
-
-	entitiesCmd.AddCommand(entitiesSearchCmd)
-	entitiesSearchCmd.PersistentFlags().StringVarP(&entityName, "name", "n", "ENTITY_NAME", "entity name")
+	Command.AddCommand(entitiesSearchCmd)
+	entitiesSearchCmd.Flags().StringVarP(&entityName, "name", "n", "ENTITY_NAME", "entity name")
 }
