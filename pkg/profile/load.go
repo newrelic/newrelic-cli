@@ -17,31 +17,8 @@ const DefaultProfileFile = "default-profile"
 
 const defaultConfigType = "json"
 
-// Profile contains data required for connecting to New Relic
-type Profile struct {
-	PersonalAPIKey string `mapstructure:"apiKey"` // PersonalAPIKey for accessing New Relic
-	Region         string `mapstructure:"Region"` // Region to use when accessing New Relic
-}
-
-// Profiles is the metadata around all configured profiles
-type Profiles struct {
-	DefaultName string
-	List        map[string]Profile
-}
-
-// Default returns the default profile
-func (p *Profiles) Default() *Profile {
-	if p.DefaultName != "" {
-		if val, ok := p.List[p.DefaultName]; ok {
-			return &val
-		}
-	}
-
-	return nil
-}
-
 // Load reads all profile information from configuration files
-func Load(configDir, configEnvPrefix string) (*Profiles, error) {
+func Load(configDir, configEnvPrefix string) (*Credentials, error) {
 	credViper := viper.New()
 	credViper.SetConfigName(DefaultCredentialsFile)
 	credViper.SetConfigType(defaultConfigType)
@@ -63,8 +40,8 @@ func Load(configDir, configEnvPrefix string) (*Profiles, error) {
 	log.Debugf("loaded profiles from: %v", credViper.ConfigFileUsed())
 
 	// Read the profiles
-	profiles := Profiles{}
-	err = credViper.Unmarshal(&profiles.List)
+	creds := Credentials{}
+	err = credViper.Unmarshal(&creds.Profiles)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal profile config with error: %v", err)
 	}
@@ -86,14 +63,14 @@ func Load(configDir, configEnvPrefix string) (*Profiles, error) {
 				return nil, err
 			}
 
-			err = json.Unmarshal(byteValue, &profiles.DefaultName)
+			err = json.Unmarshal(byteValue, &creds.DefaultProfile)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	log.Debugf("default profile: '%s'", profiles.DefaultName)
+	log.Debugf("default profile: '%s'", creds.DefaultProfile)
 
-	return &profiles, nil
+	return &creds, nil
 }

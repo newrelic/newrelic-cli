@@ -19,7 +19,7 @@ var (
 	Version = "dev"
 
 	globalConfig *config.Config
-	profiles     *profile.Profiles
+	creds        *profile.Credentials
 
 	// Client is an instance of the New Relic client.
 	nrClient *newrelic.NewRelic
@@ -33,7 +33,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	if err := loadProfiles(); err != nil {
+	if err := loadCredentials(); err != nil {
 		log.Fatal(err)
 	}
 

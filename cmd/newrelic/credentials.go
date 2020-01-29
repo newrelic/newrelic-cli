@@ -7,8 +7,8 @@ import (
 	"github.com/newrelic/newrelic-cli/pkg/profile"
 )
 
-// loadProfiles loads the list of profiles
-func loadProfiles() error {
+// loadCredentials loads the list of profiles
+func loadCredentials() error {
 	var err error
 
 	if globalConfig == nil {
@@ -18,13 +18,13 @@ func loadProfiles() error {
 	}
 
 	// Load profiles
-	profiles, err = profile.Load(config.DefaultConfigDirectory, config.DefaultEnvPrefix)
+	creds, err = profile.Load(config.DefaultConfigDirectory, config.DefaultEnvPrefix)
 	if err != nil {
 		// TODO: Don't die here, we need to be able to run the profiles command to add one!
 		return err
 	}
 
-	log.Tracef("profiles: %+v\n", profiles)
+	log.Tracef("profiles: %+v\n", creds)
 
 	return nil
 }

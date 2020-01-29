@@ -14,19 +14,19 @@ func createNRClient() error {
 		region string
 	)
 
-	if profiles == nil {
-		if err = loadProfiles(); err != nil {
+	if creds == nil {
+		if err = loadCredentials(); err != nil {
 			return err
 		}
 	}
 
 	// Create the New Relic Client
-	defProfile := profiles.Default()
+	defProfile := creds.Default()
 	if defProfile != nil {
 		apiKey = defProfile.PersonalAPIKey
 		region = defProfile.Region
 	} else {
-		return fmt.Errorf("invalid profile name: '%s'", profiles.DefaultName)
+		return fmt.Errorf("invalid profile name: '%s'", creds.DefaultProfile)
 	}
 
 	nrClient, err = newrelic.New(newrelic.ConfigPersonalAPIKey(apiKey), newrelic.ConfigLogLevel(globalConfig.LogLevel), newrelic.ConfigRegion(region))
