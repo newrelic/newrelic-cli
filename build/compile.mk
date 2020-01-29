@@ -4,7 +4,7 @@
 
 GO         ?= go
 BUILD_DIR  ?= ./bin/
-LDFLAGS    ?= '-X main.Version=$(PROJECT_VER)'
+LDFLAGS    ?= "-X main.Version=$(PROJECT_VER) -X main.AppName=$$b" # $b replaced by the binary name in the compile loop
 SRCDIR     ?= .
 
 # Determine commands by looking into cmd/*

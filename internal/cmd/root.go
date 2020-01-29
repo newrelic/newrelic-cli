@@ -1,90 +1,100 @@
 package cmd
 
 import (
-	"fmt"
-	"log"
-	"os"
-
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	nr "github.com/newrelic/newrelic-client-go/newrelic"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/pkg/config"
+	"github.com/newrelic/newrelic-cli/pkg/profile"
 )
 
-var cfgFile string
+// LogLevel passsed into the CLI
+var configFile string
+var logLevel string
+
+var globalConfig *config.Config
+var profiles *map[string]profile.Profile
 
 // Client is an instance of the New Relic client.
 var Client *nr.NewRelic
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "newrelic-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Use:     "newrelic-dev",
+	Short:   "The New Relic CLI",
+	Long:    `The New Relic CLI enables users to perform tasks against the New Relic APIs`,
+	Version: "dev",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
-func Execute() {
-	if err := RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+func Execute(appName, version string) error {
+	if appName != "" {
+		RootCmd.Use = appName
 	}
+	if version != "" {
+		RootCmd.Version = version
+	}
+
+	return RootCmd.Execute()
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	var err error
-	Client, err = nr.New(nr.ConfigPersonalAPIKey(os.Getenv("NEWRELIC_PERSONAL_API_KEY")))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.newrelic-cli.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
+	RootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is "+config.DefaultConfigFile()+")")
+	RootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug,Trace]")
 }
 
-// initConfig reads in config file and ENV variables if set.
+// initConfig will be run ONLY after a valid command is called
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	var (
+		err    error
+		apiKey string
+		region string
+	)
 
-		// Search config in home directory with name ".newrelic-cli" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".newrelic-cli")
+	if logLevel != "" {
+		lvl, err := log.ParseLevel(logLevel)
+		if err == nil {
+			log.SetLevel(lvl)
+		}
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	globalConfig, err = config.Load(configFile, logLevel)
+	if err != nil {
+		log.Fatalf("unable to load config with error: %s\n", err)
+	}
 
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	// Load profiles
+	profiles, err = profile.Load(globalConfig)
+	if err != nil {
+		// TODO: Don't die here, we need to be able to run the profiles command to add one!
+		log.Fatalf("unable to load profiles with error: %s\n", err)
+	}
+
+	log.Tracef("config: %+v\n", globalConfig)
+	log.Tracef("profiles: %+v\n", profiles)
+
+	if globalConfig == nil {
+		log.Fatal("configuration required")
+	}
+	if profiles == nil {
+		log.Fatal("at least one profile is required")
+	}
+
+	// Create the New Relic Client
+	if val, ok := (*profiles)[globalConfig.ProfileName]; ok {
+		apiKey = val.PersonalAPIKey
+		region = val.Region
+	} else {
+		log.Fatalf("invalid profile name: '%s'", globalConfig.ProfileName)
+	}
+
+	Client, err = nr.New(nr.ConfigPersonalAPIKey(apiKey), nr.ConfigLogLevel(globalConfig.LogLevel), nr.ConfigRegion(region))
+	if err != nil {
+		log.Fatalf("unable to create New Relic client with error: %s", err)
 	}
 }
