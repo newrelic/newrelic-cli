@@ -91,5 +91,5 @@ func init() {
 
 	Command.AddCommand(entitiesDescribeTags)
 	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity guid")
-	entitiesDescribeTags.MarkPersistentFlagRequired("guid")
+	entitiesDescribeTags.MarkFlagRequired("guid")
 }
