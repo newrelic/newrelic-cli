@@ -14,6 +14,7 @@ import (
 var (
 	nrClient   *newrelic.NewRelic
 	entityName string
+	entityGUID string
 )
 
 // SetClient is the API for passing along the New Relic client to this command
@@ -60,7 +61,35 @@ var entitiesSearchCmd = &cobra.Command{
 	},
 }
 
+var entitiesDescribeTags = &cobra.Command{
+	Use:   "describe-tags",
+	Short: "describe tags",
+	Run: func(cmd *cobra.Command, args []string) {
+		if nrClient == nil {
+			log.Fatal("missing New Relic client configuration")
+		}
+
+		tags, err := nrClient.Entities.ListTags(entityGUID)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json, err := prettyjson.Marshal(tags)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(string(json))
+	},
+}
+
 func init() {
 	Command.AddCommand(entitiesSearchCmd)
 	entitiesSearchCmd.Flags().StringVarP(&entityName, "name", "n", "ENTITY_NAME", "entity name")
+
+	Command.AddCommand(entitiesDescribeTags)
+	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity guid")
+	entitiesDescribeTags.MarkPersistentFlagRequired("guid")
 }
