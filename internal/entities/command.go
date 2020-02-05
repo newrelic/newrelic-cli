@@ -108,27 +108,103 @@ var entitiesDeleteTagValues = &cobra.Command{
 			log.Fatal("missing New Relic client configuration")
 		}
 
-		var tagValues []entities.TagValue
-
-		for _, x := range entityValues {
-			if !strings.Contains(x, ":") {
-				log.Fatal("Tag values must be specified as colon seperated key:value pairs")
-			}
-
-			v := strings.SplitN(x, ":", 2)
-
-			tv := entities.TagValue{
-				Key:   v[0],
-				Value: v[1],
-			}
-			tagValues = append(tagValues, tv)
+		tagValues, err := assembleTagValues(entityValues)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		err := nrClient.Entities.DeleteTagValues(entityGUID, tagValues)
+		err = nrClient.Entities.DeleteTagValues(entityGUID, tagValues)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
+}
+
+var entitiesCreateTags = &cobra.Command{
+	Use:   "create-tags",
+	Short: "create-tags",
+	Run: func(cmd *cobra.Command, args []string) {
+		if nrClient == nil {
+			log.Fatal("missing New Relic client configuration")
+		}
+
+		tags, err := assembleTags(entityTags)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = nrClient.Entities.AddTags(entityGUID, tags)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
+var entitiesReplaceTags = &cobra.Command{
+	Use:   "replace-tags",
+	Short: "replace-tags",
+	Run: func(cmd *cobra.Command, args []string) {
+		if nrClient == nil {
+			log.Fatal("missing New Relic client configuration")
+		}
+
+		tags, err := assembleTags(entityTags)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = nrClient.Entities.ReplaceTags(entityGUID, tags)
+		if err != nil {
+			log.Fatal(err)
+		}
+	},
+}
+
+func assembleTags(tags []string) ([]entities.Tag, error) {
+	var t []entities.Tag
+
+	tagBuilder := make(map[string][]string)
+
+	for _, x := range tags {
+		if !strings.Contains(x, ":") {
+			return []entities.Tag{}, fmt.Errorf("Tags must be specified as colon seperated key:value pairs")
+		}
+
+		v := strings.SplitN(x, ":", 2)
+
+		tagBuilder[v[0]] = append(tagBuilder[v[0]], v[1])
+	}
+
+	for k, v := range tagBuilder {
+		tag := entities.Tag{
+			Key:    k,
+			Values: v,
+		}
+
+		t = append(t, tag)
+	}
+
+	return t, nil
+}
+
+func assembleTagValues(values []string) ([]entities.TagValue, error) {
+	var tagValues []entities.TagValue
+
+	for _, x := range values {
+		if !strings.Contains(x, ":") {
+			return []entities.TagValue{}, fmt.Errorf("Tag values must be specified as colon seperated key:value pairs")
+		}
+
+		v := strings.SplitN(x, ":", 2)
+
+		tv := entities.TagValue{
+			Key:   v[0],
+			Value: v[1],
+		}
+		tagValues = append(tagValues, tv)
+	}
+
+	return tagValues, nil
 }
 
 func init() {
@@ -141,13 +217,25 @@ func init() {
 
 	Command.AddCommand(entitiesDeleteTags)
 	entitiesDeleteTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tags on")
-	entitiesDeleteTags.Flags().StringSliceVarP(&entityTags, "tags", "t", []string{}, "tag names to delete from the entity")
+	entitiesDeleteTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to delete from the entity")
 	entitiesDeleteTags.MarkFlagRequired("guid")
-	entitiesDeleteTags.MarkFlagRequired("tags")
+	entitiesDeleteTags.MarkFlagRequired("tag")
 
 	Command.AddCommand(entitiesDeleteTagValues)
 	entitiesDeleteTagValues.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
 	entitiesDeleteTagValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "keyy:value tags to delete from the entity")
 	entitiesDeleteTagValues.MarkFlagRequired("guid")
 	entitiesDeleteTagValues.MarkFlagRequired("value")
+
+	Command.AddCommand(entitiesCreateTags)
+	entitiesCreateTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
+	entitiesCreateTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to add to the entity")
+	entitiesCreateTags.MarkFlagRequired("guid")
+	entitiesCreateTags.MarkFlagRequired("tag")
+
+	Command.AddCommand(entitiesReplaceTags)
+	entitiesReplaceTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
+	entitiesReplaceTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to replace on the entity")
+	entitiesReplaceTags.MarkFlagRequired("guid")
+	entitiesReplaceTags.MarkFlagRequired("tag")
 }
