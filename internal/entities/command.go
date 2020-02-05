@@ -40,6 +40,13 @@ var Command = &cobra.Command{
 var entitiesSearchCmd = &cobra.Command{
 	Use:   "search",
 	Short: "entities search",
+	Long: `Search for New Relic entities
+
+The search command performs a search for New Relic eitities. Optionally, the
+--name flag can be used to limit results to those that match the the given
+name.
+`,
+	Example: "newrelic entities search -n test",
 	Run: func(cmd *cobra.Command, args []string) {
 		if nrClient == nil {
 			log.Fatal("missing New Relic client configuration")
@@ -65,7 +72,13 @@ var entitiesSearchCmd = &cobra.Command{
 
 var entitiesDescribeTags = &cobra.Command{
 	Use:   "describe-tags",
-	Short: "describe tags",
+	Short: "describe-tags",
+	Long: `Describe the tags for a given entity
+
+The describe-tags command returns JSON output of the tags for the requested
+entity.
+`,
+	Example: "newrelic entities describe-tags --guid <guid>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if nrClient == nil {
 			log.Fatal("missing New Relic client configuration")
@@ -87,7 +100,13 @@ var entitiesDescribeTags = &cobra.Command{
 
 var entitiesDeleteTags = &cobra.Command{
 	Use:   "delete-tags",
-	Short: "delete tags",
+	Short: "delete-tags",
+	Long: `Delete the given tags for the given entity
+
+The delete-tags command performs a delete operation on the entity for the
+specified tag keys.
+`,
+	Example: "newrelic entities delete-tags --guid <guid> --tag tag1 --tag tag2 --tag tag3,tag4",
 	Run: func(cmd *cobra.Command, args []string) {
 		if nrClient == nil {
 			log.Fatal("missing New Relic client configuration")
@@ -103,6 +122,12 @@ var entitiesDeleteTags = &cobra.Command{
 var entitiesDeleteTagValues = &cobra.Command{
 	Use:   "delete-tag-values",
 	Short: "delete-tag-values",
+	Long: `Delete the given tag/value pairs from the given entitiy
+
+The delete-tag-values command performs a delete operation on the entity for the
+specified tag:value pairs.
+`,
+	Example: "newrelic entities delete-tag-values --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		if nrClient == nil {
 			log.Fatal("missing New Relic client configuration")
@@ -123,6 +148,11 @@ var entitiesDeleteTagValues = &cobra.Command{
 var entitiesCreateTags = &cobra.Command{
 	Use:   "create-tags",
 	Short: "create-tags",
+	Long: `Create tag:value pairs for the given entitiy
+
+The create-tags command adds tag:value pairs for the given entity.
+`,
+	Example: "newrelic entities create-tags --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		if nrClient == nil {
 			log.Fatal("missing New Relic client configuration")
@@ -143,6 +173,12 @@ var entitiesCreateTags = &cobra.Command{
 var entitiesReplaceTags = &cobra.Command{
 	Use:   "replace-tags",
 	Short: "replace-tags",
+	Long: `Repaces tag:value pairs for the given entitiy
+
+The replace-tags command replaces any existing tag:value pairs with those
+provided for the given entity.
+`,
+	Example: "newrelic entities replace-tags --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		if nrClient == nil {
 			log.Fatal("missing New Relic client configuration")
@@ -209,7 +245,7 @@ func assembleTagValues(values []string) ([]entities.TagValue, error) {
 
 func init() {
 	Command.AddCommand(entitiesSearchCmd)
-	entitiesSearchCmd.Flags().StringVarP(&entityName, "name", "n", "ENTITY_NAME", "name of the entity to search")
+	entitiesSearchCmd.Flags().StringVarP(&entityName, "name", "n", "ENTITY_NAME", "search for results matching the given name")
 
 	Command.AddCommand(entitiesDescribeTags)
 	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to describe")
