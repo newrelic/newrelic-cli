@@ -8,6 +8,7 @@ import (
 	root "github.com/newrelic/newrelic-cli/internal/cmd"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 
+	"github.com/newrelic/newrelic-cli/pkg/apm"
 	"github.com/newrelic/newrelic-cli/pkg/config"
 	"github.com/newrelic/newrelic-cli/pkg/credentials"
 )
@@ -48,11 +49,13 @@ func init() {
 	// Bind imported sub-commands
 	root.Command.AddCommand(entities.Command)
 	root.Command.AddCommand(credentials.Command)
+	root.Command.AddCommand(apm.Command)
 }
 
 func main() {
 	// Configure commands that need it
 	entities.SetClient(nrClient)
+	apm.SetClient(nrClient)
 
 	credentials.SetConfig(globalConfig)
 	credentials.SetCredentials(creds)

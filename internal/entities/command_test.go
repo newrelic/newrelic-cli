@@ -101,7 +101,7 @@ func TestEntitiesAssembleTags(t *testing.T) {
 		{
 			[]string{"one"},
 			[]entities.Tag{},
-			fmt.Errorf("Tags must be specified as colon seperated key:value pairs"),
+			fmt.Errorf("Tags must be specified as colon separated key:value pairs"),
 		},
 		{
 			[]string{"tag1:value1", "tag1:value2", "tag2:value1"},
@@ -130,7 +130,7 @@ func TestEntitiesAssembleTagValues(t *testing.T) {
 		{
 			[]string{"one"},
 			[]entities.TagValue{},
-			fmt.Errorf("Tag values must be specified as colon seperated key:value pairs"),
+			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
 		},
 		{
 			[]string{"tag1:value1", "tag1:value2", "tag2:value1"},
