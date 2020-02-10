@@ -10,8 +10,6 @@ import (
 func TestAPMCommand(t *testing.T) {
 	assert.NotEmptyf(t, Command.Use, "Need to set Command.%s on Command %s", "Use", Command.CalledAs())
 	assert.NotEmptyf(t, Command.Short, "Need to set Command.%s on Command %s", "Short", Command.CalledAs())
-	// assert.NotEmptyf(t, Command.Long, "Need to set Command.%s on Command %s", "Long", Command.CalledAs())
-	// assert.NotEmptyf(t, Command.Example, "Need to set Command.%s on Command %s", "Example", Command.CalledAs())
 
 	for _, c := range Command.Commands() {
 		assert.NotEmptyf(t, c.Use, "Need to set Command.%s on Command %s", "Use", c.CommandPath())

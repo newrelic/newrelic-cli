@@ -14,8 +14,9 @@ const (
 
 // Profile contains data of a single profile
 type Profile struct {
-	PersonalAPIKey string `mapstructure:"apiKey"` // PersonalAPIKey for accessing New Relic
-	Region         string `mapstructure:"Region"` // Region to use when accessing New Relic
+	AdminAPIKey    string `mapstructure:"adminAPIKey"` // AdminAPIKey for accessing New Relic (Rest v2)
+	PersonalAPIKey string `mapstructure:"apiKey"`      // PersonalAPIKey for accessing New Relic
+	Region         string `mapstructure:"Region"`      // Region to use when accessing New Relic
 }
 
 // Credentials is the metadata around all configured profiles
