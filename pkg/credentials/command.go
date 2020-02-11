@@ -31,7 +31,7 @@ var Command = &cobra.Command{
 	Short: "profile management",
 }
 
-var cmdAdd = &cobra.Command{
+var credentialsAdd = &cobra.Command{
 	Use:   "add",
 	Short: "add a new profile",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -39,7 +39,7 @@ var cmdAdd = &cobra.Command{
 	},
 }
 
-var cmdDefault = &cobra.Command{
+var credentialsDefault = &cobra.Command{
 	Use:   "default",
 	Short: "set the default profile",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -47,7 +47,7 @@ var cmdDefault = &cobra.Command{
 	},
 }
 
-var cmdList = &cobra.Command{
+var credentialsList = &cobra.Command{
 	Use:   "list",
 	Short: "list profiles",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -62,7 +62,7 @@ var cmdList = &cobra.Command{
 	},
 }
 
-var cmdRemove = &cobra.Command{
+var credentialsRemove = &cobra.Command{
 	Use:   "remove",
 	Short: "delete a profile",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -75,15 +75,15 @@ var cmdRemove = &cobra.Command{
 
 func init() {
 	// Add
-	Command.AddCommand(cmdAdd)
+	Command.AddCommand(credentialsAdd)
 
 	// Default
-	Command.AddCommand(cmdDefault)
+	Command.AddCommand(credentialsDefault)
 
 	// List
-	Command.AddCommand(cmdList)
-	cmdList.Flags().BoolVarP(&showKeys, "show-keys", "s", false, "list the profiles on your keychain")
+	Command.AddCommand(credentialsList)
+	credentialsList.Flags().BoolVarP(&showKeys, "show-keys", "s", false, "list the profiles on your keychain")
 
 	// Remove
-	Command.AddCommand(cmdRemove)
+	Command.AddCommand(credentialsRemove)
 }
