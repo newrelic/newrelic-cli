@@ -203,7 +203,7 @@ func assembleTags(tags []string) ([]entities.Tag, error) {
 
 	for _, x := range tags {
 		if !strings.Contains(x, ":") {
-			return []entities.Tag{}, fmt.Errorf("Tags must be specified as colon seperated key:value pairs")
+			return []entities.Tag{}, fmt.Errorf("Tags must be specified as colon separated key:value pairs")
 		}
 
 		v := strings.SplitN(x, ":", 2)
@@ -228,7 +228,7 @@ func assembleTagValues(values []string) ([]entities.TagValue, error) {
 
 	for _, x := range values {
 		if !strings.Contains(x, ":") {
-			return []entities.TagValue{}, fmt.Errorf("Tag values must be specified as colon seperated key:value pairs")
+			return []entities.TagValue{}, fmt.Errorf("Tag values must be specified as colon separated key:value pairs")
 		}
 
 		v := strings.SplitN(x, ":", 2)
