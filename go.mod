@@ -7,10 +7,13 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/fzipp/gocyclo v0.0.0-20150627053110-6acd4345c835
 	github.com/git-chglog/git-chglog v0.0.0-20190923122001-6050f20bcdb0
+	github.com/go-openapi/strfmt v0.19.4 // indirect
 	github.com/golangci/golangci-lint v1.21.0
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
+	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
+	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/newrelic/newrelic-client-go v0.7.1
 	github.com/remyoudompheng/go-misc v0.0.0-20190427085024-2d6ac652a50e
 	github.com/sirupsen/logrus v1.4.2
