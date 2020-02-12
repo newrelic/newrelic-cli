@@ -30,12 +30,6 @@ var (
 )
 
 func init() {
-	// TODO Here too we should probably return the client rather than reaching
-	// into the global.
-	if err := createNRClient(); err != nil {
-		log.Fatal(err)
-	}
-
 	// We want to track these at the global level, but need them here...
 	root.Command.PersistentFlags().StringVar(&configFile, "config", "", "config file (default: $HOME/.newrelic/config.json)")
 	root.Command.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug,Trace]")
@@ -44,14 +38,30 @@ func init() {
 	root.Command.AddCommand(entities.Command)
 	root.Command.AddCommand(credentials.Command)
 	root.Command.AddCommand(apm.Command)
+	root.Command.AddCommand(config.Command)
 }
 
 func main() {
+	if err := loadConfig(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := loadCredentials(); err != nil {
+		log.Fatal(err)
+	}
+
+	// TODO Here too we should probably return the client rather than reaching
+	// into the global.
+	if err := createNRClient(); err != nil {
+		log.Fatal(err)
+	}
+
 	// Configure commands that need it
 	entities.SetClient(nrClient)
 	apm.SetClient(nrClient)
 
 	credentials.SetConfig(globalConfig)
+	config.SetConfig(globalConfig)
 	credentials.SetCredentials(creds)
 
 	if err := root.Execute(AppName, Version); err != nil {

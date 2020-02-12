@@ -2,7 +2,12 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"reflect"
 
+	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -24,10 +29,18 @@ const DefaultEnvPrefix = "newrelic"
 
 // Config contains the main CLI configuration
 type Config struct {
-	LogLevel      string `mapstructure:"loglevel"`      // LogLevel for verbose output
-	PluginDir     string `mapstructure:"plugindir"`     // PluginDir is the directory where plugins will be installed
-	SendUsageData string `mapstructure:"sendusagedata"` // SendUsageData enables sending usage statistics to New Relic
-	ProfileName   string // ProfileName is the configured profile to use
+	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
+	PluginDir     string `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
+	SendUsageData string `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
+	ProfileName   string `mapstructure:"profileName"`   // ProfileName is the configured profile to use
+}
+
+// DefaultConfig represents the configuration default values.
+var DefaultConfig = Config{
+	LogLevel:      "DEBUG",
+	PluginDir:     DefaultPluginDirectory,
+	SendUsageData: "NOT ASKED",
+	ProfileName:   "",
 }
 
 // LoadConfig loads the configuration
@@ -126,4 +139,69 @@ func (c *Config) Validate() error {
 	}
 
 	return nil
+}
+
+// List outputs a list of all the configuration values
+func (c *Config) List() {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(table.Row{"Key", "Value", "Origin"})
+	t.AppendRows(c.toRows())
+	t.SetStyle(table.Style{
+		Name: "nr-cli-table",
+		Box: table.BoxStyle{
+			MiddleHorizontal: "-",
+			MiddleSeparator:  " ",
+			MiddleVertical:   " ",
+		},
+		Color: table.ColorOptions{
+			Header: text.Colors{text.Bold},
+		},
+		Options: table.Options{
+			DrawBorder:      false,
+			SeparateColumns: true,
+			SeparateHeader:  true,
+		},
+	})
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{
+			Name:   "Value",
+			Colors: text.Colors{text.FgHiCyan},
+		},
+		{
+			Name:   "Origin",
+			Colors: text.Colors{text.FgHiBlack},
+		},
+	})
+
+	t.Render()
+
+	bold := color.New(color.Bold).SprintFunc()
+	fmt.Printf("\n\nRun %s for more info.\n", bold("\"newrelic config get --key KEY\""))
+}
+
+func (c *Config) toRows() []table.Row {
+	t := reflect.TypeOf(*c)
+	v := reflect.ValueOf(*c)
+	d := reflect.ValueOf(DefaultConfig)
+
+	o := make([]table.Row, t.NumField())
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if name, ok := field.Tag.Lookup("mapstructure"); ok {
+			value := v.Field(i).Interface().(string)
+			defaultValue := d.Field(i).Interface().(string)
+
+			origin := "Default"
+			if defaultValue != value {
+				origin = "User config"
+			}
+
+			out := table.Row{name, value, origin}
+			o = append(o, out)
+		}
+	}
+
+	return o
 }
