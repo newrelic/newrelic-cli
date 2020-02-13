@@ -2,12 +2,9 @@ package config
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 
-	"github.com/fatih/color"
-	"github.com/jedib0t/go-pretty/table"
-	"github.com/jedib0t/go-pretty/text"
+	"github.com/imdario/mergo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -27,6 +24,14 @@ const DefaultConfigType = "json"
 // DefaultEnvPrefix is used when reading environment variables
 const DefaultEnvPrefix = "newrelic"
 
+// DefaultLogLevel is the default log level
+const DefaultLogLevel = "INFO"
+
+// DefaultSendUsageData is the default value for sendUsageData
+const DefaultSendUsageData = "NOT_ASKED"
+
+var renderer = TableRenderer{}
+
 // Config contains the main CLI configuration
 type Config struct {
 	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
@@ -35,11 +40,23 @@ type Config struct {
 	ProfileName   string `mapstructure:"profileName"`   // ProfileName is the configured profile to use
 }
 
-// DefaultConfig represents the configuration default values.
-var DefaultConfig = Config{
-	LogLevel:      "DEBUG",
+// Value represents an instance of a configuration field.
+type Value struct {
+	Name    string
+	Value   interface{}
+	Default interface{}
+}
+
+// IsDefault returns tru if the field's value is the default value.
+func (c *Value) IsDefault() bool {
+	return c.Value == c.Default
+}
+
+// defaultConfig represents the configuration default values.
+var defaultConfig = Config{
+	LogLevel:      DefaultLogLevel,
 	PluginDir:     DefaultPluginDirectory,
-	SendUsageData: "NOT ASKED",
+	SendUsageData: DefaultSendUsageData,
 	ProfileName:   "",
 }
 
@@ -53,19 +70,188 @@ func LoadConfig(configFile string, logLevel string) (*Config, error) {
 	return config, nil
 }
 
-// Load initializes the cli configuration
-func Load(cfgFile string, logLevel string) (*Config, error) {
-	if logLevel != "" {
-		lvl, err := log.ParseLevel(logLevel)
-		if err != nil {
-			return nil, err
-		}
+// List outputs a list of all the configuration values
+func (c *Config) List() {
+	renderer.List(c)
+}
 
-		log.SetLevel(lvl)
+// Delete deletes a config value.
+// This has the effect of reverting the value back to its default.
+func (c *Config) Delete(key string) error {
+	defaultValue, err := c.getDefaultValue(key)
+	if err != nil {
+		return err
 	}
 
+	err = c.set(key, defaultValue)
+	if err != nil {
+		return err
+	}
+
+	renderer.Delete(key)
+	return nil
+}
+
+// Get retrieves a config value.
+func (c *Config) Get(key string) {
+	renderer.Get(c, key)
+}
+
+// Set sets a config value.
+func (c *Config) Set(key string, value string) error {
+	err := c.set(key, value)
+	if err != nil {
+		return err
+	}
+
+	renderer.Set(key, value)
+	return nil
+}
+
+// Load initializes the cli configuration
+func Load() (*Config, error) {
 	log.Debug("loading config file")
 
+	cfgViper, err := readConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	allScopes, err := unmarshalAllScopes(cfgViper)
+
+	if err != nil {
+		return nil, err
+	}
+
+	config, ok := (*allScopes)["*"]
+	if !ok {
+		return nil, fmt.Errorf("failed to locate global config")
+	}
+
+	err = config.setDefaults()
+
+	return &config, err
+}
+
+func (c *Config) get(key string) []Value {
+	return c.getAll(key)
+}
+
+func (c *Config) getAll(key string) []Value {
+	values := []Value{}
+
+	c.visitAllConfigFields(func(v *Value) {
+		// Return early if name was supplied and doesn't match
+		if key != "" && key != v.Name {
+			return
+		}
+
+		values = append(values, *v)
+	})
+
+	return values
+}
+
+func (c *Config) set(key string, value interface{}) error {
+	cfgViper, err := readConfig()
+
+	if err != nil {
+		return err
+	}
+
+	cfgViper.Set("*."+key, value)
+	allScopes, err := unmarshalAllScopes(cfgViper)
+
+	if err != nil {
+		return err
+	}
+
+	config, ok := (*allScopes)["*"]
+	if !ok {
+		return fmt.Errorf("failed to locate global config")
+	}
+
+	err = config.validate()
+
+	if err != nil {
+		return err
+	}
+
+	cfgViper.WriteConfig()
+
+	return nil
+}
+
+func (c *Config) getDefaultValue(key string) (interface{}, error) {
+	var dv interface{}
+	var found bool
+	c.visitAllConfigFields(func(v *Value) {
+		if key == v.Name {
+			dv = v.Default
+			found = true
+			return
+		}
+	})
+
+	if found {
+		return dv, nil
+	}
+
+	return nil, fmt.Errorf("failed to locate default value for %s", key)
+}
+
+func (c *Config) setDefaults() error {
+	log.Debug("setting config default")
+
+	if c == nil {
+		return nil
+	}
+
+	if err := mergo.Merge(c, &defaultConfig); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Config) validate() error {
+	// TODO: implement this
+	return nil
+}
+
+func (c *Config) visitAllConfigFields(f func(*Value)) {
+	cfgType := reflect.TypeOf(*c)
+	cfgValue := reflect.ValueOf(*c)
+	defaultCfgValue := reflect.ValueOf(defaultConfig)
+
+	// Iterate through the fields in the struct
+	for i := 0; i < cfgType.NumField(); i++ {
+		field := cfgType.Field(i)
+		name := field.Tag.Get("mapstructure")
+		value := cfgValue.Field(i).Interface()
+		defaultValue := defaultCfgValue.Field(i).Interface()
+
+		f(&Value{
+			Name:    name,
+			Value:   value,
+			Default: defaultValue,
+		})
+	}
+}
+
+func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {
+	cfgMap := map[string]Config{}
+	err := cfgViper.Unmarshal(&cfgMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config with error: %v", err)
+	}
+
+	log.Debugf("loaded config from: %v", cfgViper.ConfigFileUsed())
+
+	return &cfgMap, nil
+}
+
+func readConfig() (*viper.Viper, error) {
 	cfgViper := viper.New()
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
@@ -74,134 +260,14 @@ func Load(cfgFile string, logLevel string) (*Config, error) {
 	cfgViper.AddConfigPath(".")                    // current directory to search path
 	cfgViper.AutomaticEnv()                        // read in environment variables that match
 
-	if cfgFile != "" {
-		cfgViper.SetConfigFile(cfgFile)
-	}
-
-	// Read in config
 	err := cfgViper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			log.Debug("no config file found, using defaults")
-			cfg := Config{}
-			cfg.Validate()
-			return &cfg, nil
 		} else if e, ok := err.(viper.ConfigParseError); ok {
 			return nil, fmt.Errorf("error parsing config file: %v", e)
 		}
 	}
 
-	log.Debugf("loaded config from: %v", cfgViper.ConfigFileUsed())
-
-	// For legacy reasons the config has a scope level, default scope is '*'
-	cfgMap := map[string]Config{}
-	err = cfgViper.Unmarshal(&cfgMap)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal config with error: %v", err)
-	}
-	config, ok := cfgMap["*"]
-	if !ok {
-		return nil, fmt.Errorf("failed to locate global config")
-	}
-
-	if config.LogLevel == "" {
-		config.LogLevel = logLevel
-	}
-
-	err = config.Validate()
-
-	return &config, err
-}
-
-// Validate the configuration, set defaults if needed
-func (c *Config) Validate() error {
-	log.Debug("validating config")
-
-	if c == nil {
-		return nil
-	}
-
-	if c.LogLevel == "" {
-		c.LogLevel = "info"
-	}
-
-	switch c.SendUsageData {
-	case "ALLOW", "DISALLOW", "NOT_ASKED":
-		break
-	default:
-		c.SendUsageData = "NOT_ASKED"
-	}
-
-	if c.PluginDir == "" {
-		c.PluginDir = DefaultPluginDirectory
-	} else {
-		// TODO: Validate the dir exists
-	}
-
-	return nil
-}
-
-// List outputs a list of all the configuration values
-func (c *Config) List() {
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(table.Row{"Key", "Value", "Origin"})
-	t.AppendRows(c.toRows())
-	t.SetStyle(table.Style{
-		Name: "nr-cli-table",
-		Box: table.BoxStyle{
-			MiddleHorizontal: "-",
-			MiddleSeparator:  " ",
-			MiddleVertical:   " ",
-		},
-		Color: table.ColorOptions{
-			Header: text.Colors{text.Bold},
-		},
-		Options: table.Options{
-			DrawBorder:      false,
-			SeparateColumns: true,
-			SeparateHeader:  true,
-		},
-	})
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{
-			Name:   "Value",
-			Colors: text.Colors{text.FgHiCyan},
-		},
-		{
-			Name:   "Origin",
-			Colors: text.Colors{text.FgHiBlack},
-		},
-	})
-
-	t.Render()
-
-	bold := color.New(color.Bold).SprintFunc()
-	fmt.Printf("\n\nRun %s for more info.\n", bold("\"newrelic config get --key KEY\""))
-}
-
-func (c *Config) toRows() []table.Row {
-	t := reflect.TypeOf(*c)
-	v := reflect.ValueOf(*c)
-	d := reflect.ValueOf(DefaultConfig)
-
-	o := make([]table.Row, t.NumField())
-
-	for i := 0; i < t.NumField(); i++ {
-		field := t.Field(i)
-		if name, ok := field.Tag.Lookup("mapstructure"); ok {
-			value := v.Field(i).Interface().(string)
-			defaultValue := d.Field(i).Interface().(string)
-
-			origin := "Default"
-			if defaultValue != value {
-				origin = "User config"
-			}
-
-			out := table.Row{name, value, origin}
-			o = append(o, out)
-		}
-	}
-
-	return o
+	return cfgViper, nil
 }

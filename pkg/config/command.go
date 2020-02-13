@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -10,6 +8,8 @@ var (
 	cfg *Config
 	// Display keys when printing output
 	showKeys bool
+	key      string
+	value    string
 )
 
 // SetConfig takes a pointer to the loaded config for later reference
@@ -25,29 +25,40 @@ var Command = &cobra.Command{
 
 var cmdSet = &cobra.Command{
 	Use:   "set",
-	Short: "set a new configuration value",
+	Short: "set a configuration value",
+	Long: `Set a configuration value
+
+The set command sets a persistent configuration value for the New Relic CLI.
+`,
+	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("config set has not been implemented")
+		cfg.Set(key, value)
 	},
 }
 
 var cmdGet = &cobra.Command{
 	Use:   "get",
 	Short: "get a configuration value",
+	Long: `Get a configuration value
+
+The get command gets a persistent configuration value for the New Relic CLI.
+`,
+	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("config get has not been implemented")
+		cfg.Get(key)
 	},
 }
 
 var cmdList = &cobra.Command{
 	Use:   "list",
 	Short: "list configuration values",
+	Long: `List the current configuration values
+
+The list command lists all persistent configuration values for the New Relic CLI.
+`,
+	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		if cfg != nil {
-			cfg.List()
-		} else {
-			fmt.Println("no configuration values found")
-		}
+		cfg.List()
 	},
 	Aliases: []string{
 		"ls",
@@ -57,8 +68,14 @@ var cmdList = &cobra.Command{
 var cmdDelete = &cobra.Command{
 	Use:   "delete",
 	Short: "delete a configuration value",
+	Long: `Delete a configuration value
+
+The delete command deletes a persistent configuration value for the New Relic CLI.
+This will have the effect of resetting the value to its default.
+`,
+	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("config delete has not been implemented")
+		cfg.Delete(key)
 	},
 	Aliases: []string{
 		"rm",
@@ -66,8 +83,19 @@ var cmdDelete = &cobra.Command{
 }
 
 func init() {
-	Command.AddCommand(cmdSet)
-	Command.AddCommand(cmdGet)
 	Command.AddCommand(cmdList)
+
+	Command.AddCommand(cmdSet)
+	cmdSet.Flags().StringVarP(&key, "key", "k", "", "the key to set")
+	cmdSet.Flags().StringVarP(&value, "value", "v", "", "the value to be set")
+	cmdSet.MarkFlagRequired("key")
+	cmdSet.MarkFlagRequired("value")
+
+	Command.AddCommand(cmdGet)
+	cmdGet.Flags().StringVarP(&key, "key", "k", "", "the key to get")
+	cmdGet.MarkFlagRequired("key")
+
 	Command.AddCommand(cmdDelete)
+	cmdDelete.Flags().StringVarP(&key, "key", "k", "", "the key to delete")
+	cmdDelete.MarkFlagRequired("key")
 }

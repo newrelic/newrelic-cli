@@ -11,6 +11,7 @@ require (
 	github.com/golangci/golangci-lint v1.21.0
 	github.com/gordonklaus/ineffassign v0.0.0-20190601041439-ed7b1b5ee0f8
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
+	github.com/imdario/mergo v0.3.8
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mattn/go-runewidth v0.0.8 // indirect
