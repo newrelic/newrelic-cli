@@ -30,9 +30,14 @@ type Config struct {
 	ProfileName   string // ProfileName is the configured profile to use
 }
 
-// DefaultConfigFile returns the default global configuration file name
-func DefaultConfigFile() string {
-	return DefaultConfigDirectory + "/" + DefaultConfigName + "." + DefaultConfigType
+// LoadConfig loads the configuration
+func LoadConfig(configFile string, logLevel string) (*Config, error) {
+	config, err := Load(configFile, logLevel)
+	if err != nil {
+		return &Config{}, err
+	}
+
+	return config, nil
 }
 
 // Load initializes the cli configuration

@@ -112,20 +112,10 @@ func (c *Credentials) RemoveProfile(profileName string) error {
 }
 
 // SetDefaultProfile modifies the profile name to use by default.
-func (c *Credentials) SetDefaultProfile(name string) error {
+func (c *Credentials) SetDefaultProfile(profileName string) error {
 
-	profileExists := func(n string) bool {
-		for k := range c.Profiles {
-			if k == n {
-				return true
-			}
-		}
-
-		return false
-	}(name)
-
-	if !profileExists {
-		return fmt.Errorf("the specified profile does not exist: %s", name)
+	if !c.profileExists(profileName) {
+		return fmt.Errorf("Profile with name %s not found", profileName)
 	}
 
 	if c.ConfigDirectory == "" {
@@ -143,7 +133,7 @@ func (c *Credentials) SetDefaultProfile(name string) error {
 		}
 	}
 
-	content := fmt.Sprintf("\"%s\"", name)
+	content := fmt.Sprintf("\"%s\"", profileName)
 
 	err = ioutil.WriteFile(defaultProfileFileName, []byte(content), 0)
 	if err != nil {
