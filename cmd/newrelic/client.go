@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/newrelic/newrelic-cli/pkg/config"
+	"github.com/newrelic/newrelic-cli/pkg/credentials"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
@@ -15,10 +17,20 @@ func createNRClient() error {
 		region         string
 	)
 
-	if creds == nil {
-		if err = loadCredentials(); err != nil {
+	if globalConfig == nil {
+		c1, err := config.LoadConfig(configFile, logLevel)
+		if err != nil {
 			return err
 		}
+		globalConfig = c1
+	}
+
+	if creds == nil {
+		c2, err := credentials.LoadCredentials(config.DefaultConfigDirectory, config.DefaultEnvPrefix)
+		if err != nil {
+			return err
+		}
+		creds = c2
 	}
 
 	// Create the New Relic Client

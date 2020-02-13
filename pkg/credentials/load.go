@@ -39,8 +39,11 @@ func Load(configDir, configEnvPrefix string) (*Credentials, error) {
 
 	log.Debugf("loaded profiles from: %v", credViper.ConfigFileUsed())
 
+	creds := Credentials{
+		ConfigDirectory: configDir,
+	}
+
 	// Read the profiles
-	creds := Credentials{}
 	err = credViper.Unmarshal(&creds.Profiles)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal profile config with error: %v", err)
