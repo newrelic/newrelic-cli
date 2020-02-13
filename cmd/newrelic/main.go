@@ -35,14 +35,6 @@ func init() {
 }
 
 func main() {
-	if err := loadConfig(); err != nil {
-		log.Fatal(err)
-	}
-
-	if err := loadCredentials(); err != nil {
-		log.Fatal(err)
-	}
-
 	// TODO Here too we should probably return the client rather than reaching
 	// into the global.
 	if err := createNRClient(); err != nil {
