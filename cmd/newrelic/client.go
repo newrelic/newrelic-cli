@@ -18,7 +18,7 @@ func createNRClient() error {
 	)
 
 	if globalConfig == nil {
-		c1, err := config.LoadConfig(configFile, logLevel)
+		c1, err := config.LoadConfig()
 		if err != nil {
 			return err
 		}

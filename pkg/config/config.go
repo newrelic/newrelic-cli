@@ -61,8 +61,8 @@ var defaultConfig = Config{
 }
 
 // LoadConfig loads the configuration
-func LoadConfig(configFile string, logLevel string) (*Config, error) {
-	config, err := Load(configFile, logLevel)
+func LoadConfig() (*Config, error) {
+	config, err := Load()
 	if err != nil {
 		return &Config{}, err
 	}
