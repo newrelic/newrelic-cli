@@ -24,16 +24,9 @@ var (
 
 	// Client is an instance of the New Relic client.
 	nrClient *newrelic.NewRelic
-
-	configFile string
-	logLevel   string
 )
 
 func init() {
-	// We want to track these at the global level, but need them here...
-	root.Command.PersistentFlags().StringVar(&configFile, "config", "", "config file (default: $HOME/.newrelic/config.json)")
-	root.Command.PersistentFlags().StringVar(&logLevel, "log-level", "", "log level [Panic,Fatal,Error,Warn,Info,Debug,Trace]")
-
 	// Bind imported sub-commands
 	root.Command.AddCommand(entities.Command)
 	root.Command.AddCommand(credentials.Command)
