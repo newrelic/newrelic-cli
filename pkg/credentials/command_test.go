@@ -23,7 +23,7 @@ func TestCredentialsAdd(t *testing.T) {
 	command := credentialsAdd
 	assert.Equal(t, "add", command.Name())
 
-	requiredFlags := []string{}
+	requiredFlags := []string{"profileName", "region"}
 
 	for _, r := range requiredFlags {
 		x := command.Flag(r)
@@ -40,7 +40,7 @@ func TestCredentialsDefault(t *testing.T) {
 	command := credentialsDefault
 	assert.Equal(t, "default", command.Name())
 
-	requiredFlags := []string{}
+	requiredFlags := []string{"profileName"}
 
 	for _, r := range requiredFlags {
 		x := command.Flag(r)
@@ -74,7 +74,7 @@ func TestCredentialsRemove(t *testing.T) {
 	command := credentialsRemove
 	assert.Equal(t, "remove", command.Name())
 
-	requiredFlags := []string{}
+	requiredFlags := []string{"profileName"}
 
 	for _, r := range requiredFlags {
 		x := command.Flag(r)
