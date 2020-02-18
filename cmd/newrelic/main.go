@@ -5,12 +5,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	// Commands
-	root "github.com/newrelic/newrelic-cli/internal/cmd"
+	"github.com/newrelic/newrelic-cli/internal/apm"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/entities"
-
-	"github.com/newrelic/newrelic-cli/pkg/apm"
-	"github.com/newrelic/newrelic-cli/pkg/config"
-	"github.com/newrelic/newrelic-cli/pkg/credentials"
 )
 
 var (
@@ -28,10 +26,10 @@ var (
 
 func init() {
 	// Bind imported sub-commands
-	root.Command.AddCommand(entities.Command)
-	root.Command.AddCommand(credentials.Command)
-	root.Command.AddCommand(apm.Command)
-	root.Command.AddCommand(config.Command)
+	Command.AddCommand(entities.Command)
+	Command.AddCommand(credentials.Command)
+	Command.AddCommand(apm.Command)
+	Command.AddCommand(config.Command)
 }
 
 func main() {
@@ -49,7 +47,7 @@ func main() {
 	config.SetConfig(globalConfig)
 	credentials.SetCredentials(creds)
 
-	if err := root.Execute(AppName, Version); err != nil {
+	if err := Execute(AppName, Version); err != nil {
 		log.Fatal(err)
 	}
 }

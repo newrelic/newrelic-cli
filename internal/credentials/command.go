@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-cli/pkg/config"
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 var (
