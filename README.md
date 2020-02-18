@@ -20,6 +20,36 @@ New Relic hosts and moderates an online forum where customers can interact with 
 
 Keep in mind that when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
 
+## Usage Overview
+
+### Installation
+
+TBD
+
+### Getting Help
+
+In order to get help about what commands are available, the trusty `--help`
+flag is here to assist.
+
+```
+newrelic --help
+```
+
+Help is also available for the nested sub-commands.  For example, the with the
+following command, you can retrieve help for the `apm` sub-command.
+
+```
+newrelic apm --help
+```
+
+Using the CLI in this way, users are able to inspect what commands are
+available, with some instruction on their usage.
+
+### Patterns
+
+Throughout the help, you may notice common patterns.  The term `describe` is
+used to perform list or get operations, while the `create` and `delete` terms
+are used to construct or destroy an item, respectively.
 
 ## Development
 
