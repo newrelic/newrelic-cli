@@ -8,7 +8,6 @@ import (
 )
 
 func TestSetDefaultProfile(t *testing.T) {
-
 	c := Credentials{
 		Profiles: make(map[string]Profile),
 	}
@@ -31,4 +30,22 @@ func TestSetDefaultProfile(t *testing.T) {
 
 	err = c.SetDefaultProfile("testCase")
 	assert.NoError(t, err)
+}
+
+func TestCredentialsAddRemove(t *testing.T) {
+	c := Credentials{
+		Profiles: make(map[string]Profile),
+	}
+	c.ConfigDirectory = "/tmp/newrelic"
+	os.Mkdir(c.ConfigDirectory, 0700)
+	defer os.RemoveAll(c.ConfigDirectory)
+
+	err := c.AddProfile("newProfile", "us", "randomStringGoesHere", "")
+	assert.NoError(t, err)
+
+	err = c.RemoveProfile("newProfile")
+	assert.NoError(t, err)
+
+	err = c.RemoveProfile("newProfile")
+	assert.Error(t, err)
 }
