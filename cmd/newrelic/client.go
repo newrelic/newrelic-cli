@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/newrelic/newrelic-cli/pkg/config"
-	"github.com/newrelic/newrelic-cli/pkg/credentials"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
