@@ -26,7 +26,7 @@ func createNRClient() error {
 	}
 
 	if creds == nil {
-		c2, err := credentials.LoadCredentials(config.DefaultConfigDirectory, config.DefaultEnvPrefix)
+		c2, err := credentials.LoadCredentials()
 		if err != nil {
 			return err
 		}

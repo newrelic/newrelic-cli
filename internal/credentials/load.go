@@ -18,7 +18,7 @@ const DefaultProfileFile = "default-profile"
 const defaultConfigType = "json"
 
 // Load reads all profile information from configuration files
-func Load(configDir, configEnvPrefix string) (*Credentials, error) {
+func LoadOld(configDir, configEnvPrefix string) (*Credentials, error) {
 	credViper := viper.New()
 	credViper.SetConfigName(DefaultCredentialsFile)
 	credViper.SetConfigType(defaultConfigType)

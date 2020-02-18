@@ -4,11 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/spf13/viper"
 )
+
+// DefaultCredentialsFile is the default place to load profiles from
+const DefaultCredentialsFile = "credentials"
+
+// DefaultProfileFile is the configuration file containing the default profile name
+const DefaultProfileFile = "default-profile"
+
+const defaultConfigType = "json"
 
 const (
 	defaultProfileString = " (default)"
@@ -18,8 +28,8 @@ const (
 // Profile contains data of a single profile
 type Profile struct {
 	AdminAPIKey    string `mapstructure:"adminAPIKey" json:"adminAPIKey"` // For accessing New Relic (Rest v2)
-	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey"`           // For accessing New Relic GraphQL resources
-	Region         string `mapstructure:"region" json:"region"`           // Region to use for New Relic resources
+	PersonalAPIKey string `mapstructure:"apiKey"      json:"apiKey"`      // For accessing New Relic GraphQL resources
+	Region         string `mapstructure:"region"      json:"region"`      // Region to use for New Relic resources
 }
 
 // Credentials is the metadata around all configured profiles
@@ -30,16 +40,64 @@ type Credentials struct {
 }
 
 // LoadCredentials loads the list of profiles
-func LoadCredentials(configDirectory string, envPrefix string) (*Credentials, error) {
+func LoadCredentials() (*Credentials, error) {
 	var err error
 
 	// Load profiles
-	creds, err := Load(configDirectory, envPrefix)
+	creds, err := Load()
 	if err != nil {
 		return &Credentials{}, err
 	}
 
 	return creds, nil
+}
+
+func Load() (*map[string]Credentials, error) {
+	log.Debug("loading credentials file")
+
+	cfgViper, err := readCredentails()
+	if err != nil {
+		return nil, err
+	}
+
+	creds, err := unmarshalCredentials(cfgViper)
+	if err != nil {
+		return nil, err
+	}
+
+	return &creds
+}
+
+func readCredentials() (*viper.Viper, error) {
+	credViper := viper.New()
+	credViper.SetConfigName(DefaultCredentialsFile)
+	credViper.SetConfigType(defaultConfigType)
+	credViper.SetEnvPrefix(configEnvPrefix)
+	credViper.AddConfigPath(configDir) // adding home directory as first search path
+	credViper.AddConfigPath(".")       // current directory to search path
+	credViper.AutomaticEnv()           // read in environment variables that match
+
+	// Read in config
+	err := credViper.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			return nil, fmt.Errorf("no profile configuration found")
+		} else if e, ok := err.(viper.ConfigParseError); ok {
+			return nil, fmt.Errorf("error parsing profile config file: %v", e)
+		}
+	}
+}
+
+func unmarshalCredentials(cfgViper *viper.Viper) (*map[string]Credentials, error) {
+	cfgMap := map[string]Credentials{}
+	err := cfgViper.Unmarshal(&cfgMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal credentials with error: %v", err)
+	}
+
+	log.Debugf("loaded credentials from: %v", cfgViper.ConfigFileUsed())
+
+	return &cfgMap, nil
 }
 
 // Default returns the default profile
@@ -61,6 +119,50 @@ func (c *Credentials) profileExists(profileName string) bool {
 	}
 
 	return false
+}
+
+func (c *Credentials) Set(profileName string, key string, value string) error {
+	err := c.set(profileName, key, value)
+	if err != nil {
+		return err
+	}
+
+	renderer.Set(key, value)
+	return nil
+}
+
+func (c *Credentials) set(profileName string, key string, value interface{}) error {
+	cfgViper, err := readCredentials()
+	if err != nil {
+		return err
+	}
+
+	setPath := fmt.Sprintf("%s.%s", profileName, key)
+	cfgViper.Set(setPath, value)
+
+	allCreds, err := unmarshalCredentials(cfgViper)
+	if err != nil {
+		return err
+	}
+
+	creds, ok := (*allCreds)[profileName]
+	if !ok {
+		return fmt.Errorf("failed to locate global credentials")
+	}
+
+	err = creds.validate()
+	if err != nil {
+		return err
+	}
+
+	cfgViper.WriteConfig()
+
+	return nil
+}
+
+func (c *Credentials) validate() error {
+	// TODO: implement this
+	return nil
 }
 
 // AddProfile adds a new profile to the credentials file.
