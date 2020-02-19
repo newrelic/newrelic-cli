@@ -1,51 +1,50 @@
 package credentials
 
 import (
-	"os"
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSetDefaultProfile(t *testing.T) {
-	c := Credentials{
-		Profiles: make(map[string]Profile),
-	}
+func TestCredentials(t *testing.T) {
+	f, err := ioutil.TempDir("/tmp", "newrelic")
+	assert.NoError(t, err)
+	// defer os.RemoveAll(f)
 
-	c.Profiles["testCase"] = Profile{}
+	// Initialize the new configuration directory
+	c, err := LoadCredentials(f)
+	assert.NoError(t, err)
+	assert.Equal(t, len(c.Profiles), 0)
 
-	err := c.SetDefaultProfile("notTestCase")
-	assert.Error(t, err, "no profile found")
+	// Create an initial profile to work with
+	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere", "anotherApiKeyGoesHere")
+	assert.NoError(t, err)
+	assert.Equal(t, len(c.Profiles), 1)
 
-	err = c.SetDefaultProfile("testCase")
-	assert.Error(t, err, "credential ConfigDirectory is empty")
+	// Set the default profile to the only one we've got
+	err = c.SetDefaultProfile("testCase1")
+	assert.NoError(t, err)
+	assert.Equal(t, c.DefaultProfile, "testCase1")
 
-	c.ConfigDirectory = "/tmp/newrelic"
-
-	err = c.SetDefaultProfile("testCase")
+	// Adding a profile with the same name should result in an error
+	err = c.AddProfile("testCase1", "us", "foot", "hand")
 	assert.Error(t, err)
+	assert.Equal(t, len(c.Profiles), 1)
 
-	os.Mkdir(c.ConfigDirectory, 0700)
-	defer os.RemoveAll(c.ConfigDirectory)
-
-	err = c.SetDefaultProfile("testCase")
+	// Create a second profile to work with
+	err = c.AddProfile("testCase2", "us", "apiKeyGoesHere", "anotherApiKeyGoesHere")
 	assert.NoError(t, err)
-}
+	assert.Equal(t, len(c.Profiles), 2)
 
-func TestCredentialsAddRemove(t *testing.T) {
-	c := Credentials{
-		Profiles: make(map[string]Profile),
-	}
-	c.ConfigDirectory = "/tmp/newrelic"
-	os.Mkdir(c.ConfigDirectory, 0700)
-	defer os.RemoveAll(c.ConfigDirectory)
-
-	err := c.AddProfile("newProfile", "us", "randomStringGoesHere", "")
+	// Set the default profile to the new one
+	err = c.SetDefaultProfile("testCase2")
 	assert.NoError(t, err)
+	assert.Equal(t, c.DefaultProfile, "testCase2")
 
-	err = c.RemoveProfile("newProfile")
+	// Delete the initial profile
+	err = c.RemoveProfile("testCase1")
 	assert.NoError(t, err)
+	assert.Equal(t, len(c.Profiles), 1)
 
-	err = c.RemoveProfile("newProfile")
-	assert.Error(t, err)
 }

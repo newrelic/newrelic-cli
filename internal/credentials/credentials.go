@@ -29,22 +29,24 @@ type Credentials struct {
 }
 
 // LoadCredentials loads the list of profiles
-func LoadCredentials() (*Credentials, error) {
-	var err error
+func LoadCredentials(configDir string) (*Credentials, error) {
+	if configDir == "" {
+		configDir = config.DefaultConfigDirectory
+	}
 
 	// Load profiles
-	profiles, err := LoadProfiles()
+	profiles, err := LoadProfiles(configDir)
 	if err != nil {
 		return &Credentials{}, err
 	}
 
-	defaultProfile, err := LoadDefaultProfile()
+	defaultProfile, err := LoadDefaultProfile(configDir)
 	if err != nil {
-		return &Credentials{}, err
+		log.Warnf("No default configuration set.  Please set one with ... TBD")
 	}
 
 	creds := &Credentials{
-		ConfigDirectory: config.DefaultConfigDirectory,
+		ConfigDirectory: configDir,
 		Profiles:        *profiles,
 		DefaultProfile:  defaultProfile,
 	}
@@ -86,7 +88,7 @@ func (c *Credentials) Set(profileName string, key string, value string) error {
 }
 
 func (c *Credentials) set(profileName string, key string, value interface{}) error {
-	cfgViper, err := readCredentials()
+	cfgViper, err := readCredentials(c.ConfigDirectory)
 	if err != nil {
 		return err
 	}
@@ -121,7 +123,6 @@ func (c *Credentials) validate() error {
 
 // AddProfile adds a new profile to the credentials file.
 func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string) error {
-
 	if c.profileExists(profileName) {
 		return fmt.Errorf("Profile with name %s already exists", profileName)
 	}
@@ -188,6 +189,8 @@ func (c *Credentials) SetDefaultProfile(profileName string) error {
 			return fmt.Errorf("error creating file %s: %s", defaultProfileFileName, err)
 		}
 	}
+
+	c.DefaultProfile = profileName
 
 	content := fmt.Sprintf("\"%s\"", profileName)
 

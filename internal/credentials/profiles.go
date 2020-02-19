@@ -22,25 +22,33 @@ type Profile struct {
 }
 
 // LoadProfiles reads the credential profiles from the default path.
-func LoadProfiles() (*map[string]Profile, error) {
-	log.Debug("loading credentials file")
-
-	cfgViper, err := readCredentials()
+func LoadProfiles(configDir string) (*map[string]Profile, error) {
+	err := config.InitializeConfigDirectory(configDir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error initializing config directory %s: %s", configDir, err)
+	}
+
+	cfgViper, err := readCredentials(configDir)
+	if err != nil {
+		return nil, fmt.Errorf("error while reading credentials: %s", err)
 	}
 
 	creds, err := unmarshalProfiles(cfgViper)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error unmarshaling profiles: %s", err)
 	}
 
 	return creds, nil
 }
 
 // LoadDefaultProfile reads the profile name from the default profile file.
-func LoadDefaultProfile() (string, error) {
-	defProfile, err := readDefaultProfile()
+func LoadDefaultProfile(configDir string) (string, error) {
+	err := config.InitializeConfigDirectory(configDir)
+	if err != nil {
+		return "", fmt.Errorf("error initializing config directory %s: %s", configDir, err)
+	}
+
+	defProfile, err := readDefaultProfile(configDir)
 	if err != nil {
 		return "", err
 	}
@@ -48,13 +56,13 @@ func LoadDefaultProfile() (string, error) {
 	return defProfile, nil
 }
 
-func readDefaultProfile() (string, error) {
+func readDefaultProfile(configDir string) (string, error) {
 	var defaultProfile string
 
 	cfgViper := viper.New()
 	cfgViper.SetConfigName(DefaultProfileFile)
-	cfgViper.AddConfigPath(config.DefaultConfigDirectory) // adding home directory as first search path
-	cfgViper.AddConfigPath(".")                           // current directory to search path
+	cfgViper.SetConfigType(defaultConfigType)
+	cfgViper.AddConfigPath(configDir)
 
 	// ReadInConfig must be called here, even though we receive an error back,
 	// ConfigFileUsed() does not return the value without this call here.

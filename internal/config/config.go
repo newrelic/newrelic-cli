@@ -71,7 +71,6 @@ func LoadConfig() (*Config, error) {
 	}
 
 	allScopes, err := unmarshalAllScopes(cfgViper)
-
 	if err != nil {
 		return nil, err
 	}
