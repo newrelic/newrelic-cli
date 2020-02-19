@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
@@ -59,6 +60,27 @@ var defaultConfig = Config{
 	PluginDir:     DefaultPluginDirectory,
 	SendUsageData: DefaultSendUsageData,
 	ProfileName:   "",
+}
+
+// InitializeConfigDirectory creates the received configuration directory if it is found to not exist.
+func InitializeConfigDirectory(configDir string) error {
+	log.Debug("creating config directory")
+
+	if configDir == "" {
+		configDir = os.ExpandEnv(DefaultConfigDirectory)
+	} else {
+		configDir = os.ExpandEnv(configDir)
+	}
+
+	_, err := os.Stat(configDir)
+	if os.IsNotExist(err) {
+		err := os.Mkdir(configDir, 0700)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // LoadConfig loads the configuration

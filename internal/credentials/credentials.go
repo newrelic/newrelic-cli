@@ -9,6 +9,7 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/newrelic/newrelic-cli/internal/config"
+	log "github.com/sirupsen/logrus"
 )
 
 // DefaultCredentialsFile is the default place to load profiles from
@@ -30,8 +31,12 @@ type Credentials struct {
 
 // LoadCredentials loads the list of profiles
 func LoadCredentials(configDir string) (*Credentials, error) {
+	log.Debug("loading credentials file")
+
 	if configDir == "" {
-		configDir = config.DefaultConfigDirectory
+		configDir = os.ExpandEnv(config.DefaultConfigDirectory)
+	} else {
+		configDir = os.ExpandEnv(configDir)
 	}
 
 	// Load profiles
@@ -132,24 +137,53 @@ func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string
 		PersonalAPIKey: apiKey,
 		AdminAPIKey:    adminAPIKey,
 	}
-
 	c.Profiles[profileName] = p
-
 	file, _ := json.MarshalIndent(c.Profiles, "", "  ")
 
 	defaultCredentialsFile := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultCredentialsFile))
 
 	err := ioutil.WriteFile(defaultCredentialsFile, file, 0600)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error writing file %s: %s", file, err)
 	}
+
+	// If we only have the single profile we've just added, let's make it the default.
+	if len(c.Profiles) == 1 {
+		err = c.SetDefaultProfile(profileName)
+		if err != nil {
+			return fmt.Errorf("error setting the default profile: %s", err)
+		}
+	}
+
+	// TODO Using set() here results in key strings that are lowercased by the
+	// viper lib pending https://github.com/spf13/viper/issues/373
+
+	// if region != "" {
+	// 	err := c.set(profileName, "region", region)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+	//
+	// if apiKey != "" {
+	// 	err := c.set(profileName, "apiKey", apiKey)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+	//
+	// if adminAPIKey != "" {
+	// 	err := c.set(profileName, "adminAPIKey", adminAPIKey)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
 
 // RemoveProfile removes an existing profile from the credentials file.
 func (c *Credentials) RemoveProfile(profileName string) error {
-
 	if !c.profileExists(profileName) {
 		return fmt.Errorf("Profile with name %s not found", profileName)
 	}
@@ -170,7 +204,6 @@ func (c *Credentials) RemoveProfile(profileName string) error {
 
 // SetDefaultProfile modifies the profile name to use by default.
 func (c *Credentials) SetDefaultProfile(profileName string) error {
-
 	if !c.profileExists(profileName) {
 		return fmt.Errorf("Profile with name %s not found", profileName)
 	}

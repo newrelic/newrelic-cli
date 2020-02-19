@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
@@ -16,9 +17,9 @@ const DefaultProfileFile = "default-profile"
 
 // Profile contains data of a single profile
 type Profile struct {
-	AdminAPIKey    string `mapstructure:"adminAPIKey"` // For accessing New Relic (Rest v2)
-	PersonalAPIKey string `mapstructure:"apiKey"`      // For accessing New Relic GraphQL resources
-	Region         string `mapstructure:"region"`      // Region to use for New Relic resources
+	AdminAPIKey    string `mapstructure:"adminAPIKey" json:"adminAPIKey,omitempty"` // For accessing New Relic (Rest v2)
+	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey,omitempty"`           // For accessing New Relic GraphQL resources
+	Region         string `mapstructure:"region" json:"region,omitempty"`           // Region to use for New Relic resources
 }
 
 // LoadProfiles reads the credential profiles from the default path.
@@ -74,31 +75,38 @@ func readDefaultProfile(configDir string) (string, error) {
 	// Since Viper requires key:value, we manually read it again and unmarshal the JSON...
 	byteValue, err := ioutil.ReadFile(cfgViper.ConfigFileUsed())
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error while reading default profile file %s: %s", cfgViper.ConfigFileUsed(), err)
 	}
 	err = json.Unmarshal(byteValue, &defaultProfile)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error while unmarshaling default profile: %s", err)
 	}
 
 	return defaultProfile, nil
 }
 
-func readCredentials() (*viper.Viper, error) {
+func readCredentials(configDir string) (*viper.Viper, error) {
 	credViper := viper.New()
 	credViper.SetConfigName(DefaultCredentialsFile)
 	credViper.SetConfigType(defaultConfigType)
 	credViper.SetEnvPrefix(config.DefaultEnvPrefix)
-	credViper.AddConfigPath(config.DefaultConfigDirectory) // adding home directory as first search path
-	credViper.AddConfigPath(".")                           // current directory to search path
-	credViper.AutomaticEnv()                               // read in environment variables that match
+	credViper.AddConfigPath(configDir) // adding home directory as first search path
+	credViper.AutomaticEnv()           // read in environment variables that match
 
 	// Read in config
 	err := credViper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return nil, fmt.Errorf("no profile configuration found")
-		} else if e, ok := err.(viper.ConfigParseError); ok {
+
+			filePath := os.ExpandEnv(fmt.Sprintf("%s/%s.json", configDir, DefaultCredentialsFile))
+
+			err := credViper.WriteConfigAs(filePath)
+			if err != nil {
+				return nil, fmt.Errorf("error initializing new configuration directory %s: %s", filePath, err)
+			}
+		}
+
+		if e, ok := err.(viper.ConfigParseError); ok {
 			return nil, fmt.Errorf("error parsing profile config file: %v", e)
 		}
 	}

@@ -36,6 +36,9 @@ func TestCredentials(t *testing.T) {
 	err = c.AddProfile("testCase2", "us", "apiKeyGoesHere", "anotherApiKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 2)
+	assert.Equal(t, c.Profiles["testCase2"].Region, "us")
+	assert.Equal(t, c.Profiles["testCase2"].PersonalAPIKey, "apiKeyGoesHere")
+	assert.Equal(t, c.Profiles["testCase2"].AdminAPIKey, "anotherApiKeyGoesHere")
 
 	// Set the default profile to the new one
 	err = c.SetDefaultProfile("testCase2")
