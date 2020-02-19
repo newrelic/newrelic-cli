@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	prettyjson "github.com/hokaccha/go-prettyjson"
@@ -13,11 +14,16 @@ import (
 )
 
 var (
-	nrClient     *newrelic.NewRelic
-	entityName   string
-	entityGUID   string
-	entityTags   []string
-	entityValues []string
+	nrClient            *newrelic.NewRelic
+	entityName          string
+	entityGUID          string
+	entityTag           string
+	entityTags          []string
+	entityValues        []string
+	entityType          string
+	entityAlertSeverity string
+	entityDomain        string
+	entityReporting     string
 )
 
 // SetClient is the API for passing along the New Relic client to this command
@@ -37,14 +43,14 @@ var Command = &cobra.Command{
 	Short: "entities commands",
 }
 
-var entitiesSearchCmd = &cobra.Command{
+var entitiesSearch = &cobra.Command{
 	Use:   "search",
 	Short: "entities search",
 	Long: `Search for New Relic entities
 
-The search command performs a search for New Relic eitities. Optionally, the
---name flag can be used to limit results to those that match the the given
-name.
+The search command performs a search for New Relic eitities. Optionally, you can
+provide additional search flags as filters to narrow search results. Use --help for
+more information.
 `,
 	Example: "newrelic entities search -n test",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -52,8 +58,42 @@ name.
 			log.Fatal("missing New Relic client configuration")
 		}
 
-		params := entities.SearchEntitiesParams{
-			Name: entityName,
+		params := entities.SearchEntitiesParams{}
+
+		if entityName != "" {
+			params.Name = entityName
+		}
+
+		if entityType != "" {
+			params.Type = entities.EntityType(entityType)
+		}
+
+		if entityAlertSeverity != "" {
+			params.AlertSeverity = entities.EntityAlertSeverityType(entityAlertSeverity)
+		}
+
+		if entityDomain != "" {
+			params.Domain = entities.EntityDomainType(entityDomain)
+		}
+
+		if entityTag != "" {
+			tag, err := assembleTagValue(entityTag)
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			params.Tags = &tag
+		}
+
+		if entityReporting != "" {
+			reporting, err := strconv.ParseBool(entityReporting)
+
+			if err != nil {
+				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
+			}
+
+			params.Reporting = &reporting
 		}
 
 		entities, err := nrClient.Entities.SearchEntities(params)
@@ -227,25 +267,48 @@ func assembleTagValues(values []string) ([]entities.TagValue, error) {
 	var tagValues []entities.TagValue
 
 	for _, x := range values {
-		if !strings.Contains(x, ":") {
-			return []entities.TagValue{}, fmt.Errorf("Tag values must be specified as colon separated key:value pairs")
+		tv, err := assembleTagValue(x)
+
+		if err != nil {
+			return []entities.TagValue{}, err
 		}
 
-		v := strings.SplitN(x, ":", 2)
-
-		tv := entities.TagValue{
-			Key:   v[0],
-			Value: v[1],
-		}
 		tagValues = append(tagValues, tv)
 	}
 
 	return tagValues, nil
 }
 
+func assembleTagValue(tagValueString string) (entities.TagValue, error) {
+	tagFormatError := fmt.Errorf("Tag values must be specified as colon separated key:value pairs")
+
+	if !strings.Contains(tagValueString, ":") {
+		return entities.TagValue{}, tagFormatError
+	}
+
+	v := strings.SplitN(tagValueString, ":", 2)
+
+	// Handle incomplete tag where the value portion is empty
+	if v[1] == "" {
+		return entities.TagValue{}, tagFormatError
+	}
+
+	tv := entities.TagValue{
+		Key:   v[0],
+		Value: v[1],
+	}
+
+	return tv, nil
+}
+
 func init() {
-	Command.AddCommand(entitiesSearchCmd)
-	entitiesSearchCmd.Flags().StringVarP(&entityName, "name", "n", "ENTITY_NAME", "search for results matching the given name")
+	Command.AddCommand(entitiesSearch)
+	entitiesSearch.Flags().StringVarP(&entityName, "name", "n", "", "search for results matching the given name")
+	entitiesSearch.Flags().StringVarP(&entityType, "type", "t", "", "search for results matching the given type")
+	entitiesSearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "a", "", "search for results matching the given alert severity type")
+	entitiesSearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "search for results based on whether or not an entity is reporting (true or false)")
+	entitiesSearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for results matching the given entity domain")
+	entitiesSearch.Flags().StringVar(&entityTag, "tag", "", "search for results matching the given entity tag")
 
 	Command.AddCommand(entitiesDescribeTags)
 	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to describe")
@@ -259,12 +322,12 @@ func init() {
 
 	Command.AddCommand(entitiesDeleteTagValues)
 	entitiesDeleteTagValues.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
-	entitiesDeleteTagValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "keyy:value tags to delete from the entity")
+	entitiesDeleteTagValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "key:value tags to delete from the entity")
 	entitiesDeleteTagValues.MarkFlagRequired("guid")
 	entitiesDeleteTagValues.MarkFlagRequired("value")
 
 	Command.AddCommand(entitiesCreateTags)
-	entitiesCreateTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
+	entitiesCreateTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to create tag values on")
 	entitiesCreateTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to add to the entity")
 	entitiesCreateTags.MarkFlagRequired("guid")
 	entitiesCreateTags.MarkFlagRequired("tag")
