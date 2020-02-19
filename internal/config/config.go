@@ -63,14 +63,29 @@ var defaultConfig = Config{
 
 // LoadConfig loads the configuration
 func LoadConfig() (*Config, error) {
-	config, err := Load()
+	log.Debug("loading config file")
+
+	cfgViper, err := readConfig()
 	if err != nil {
-		return &Config{}, err
+		return nil, err
+	}
+
+	allScopes, err := unmarshalAllScopes(cfgViper)
+
+	if err != nil {
+		return nil, err
+	}
+
+	config, ok := (*allScopes)["*"]
+	if !ok {
+		return nil, fmt.Errorf("failed to locate global config")
 	}
 
 	config.setLogger()
 
-	return config, nil
+	err = config.setDefaults()
+
+	return &config, err
 }
 
 func (c *Config) setLogger() {
@@ -144,31 +159,6 @@ func (c *Config) Set(key string, value string) error {
 
 	renderer.Set(k, v)
 	return nil
-}
-
-// Load initializes the cli configuration
-func Load() (*Config, error) {
-	log.Debug("loading config file")
-
-	cfgViper, err := readConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	allScopes, err := unmarshalAllScopes(cfgViper)
-
-	if err != nil {
-		return nil, err
-	}
-
-	config, ok := (*allScopes)["*"]
-	if !ok {
-		return nil, fmt.Errorf("failed to locate global config")
-	}
-
-	err = config.setDefaults()
-
-	return &config, err
 }
 
 func (c *Config) get(key string) []Value {
