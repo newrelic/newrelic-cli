@@ -121,6 +121,19 @@ func (c *Config) Set(key string, value string) error {
 		return err
 	}
 
+	validKey := func(key string) bool {
+		for _, k := range validConfigKeys() {
+			if key == k {
+				return true
+			}
+		}
+		return false
+	}(key)
+
+	if !validKey {
+		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
+	}
+
 	renderer.Set(key, value)
 	return nil
 }
@@ -287,4 +300,17 @@ func readConfig() (*viper.Viper, error) {
 	}
 
 	return cfgViper, nil
+}
+
+func validConfigKeys() []string {
+	var keys []string
+
+	cfgType := reflect.TypeOf(Config{})
+	for i := 0; i < cfgType.NumField(); i++ {
+		field := cfgType.Field(i)
+		name := field.Tag.Get("mapstructure")
+		keys = append(keys, name)
+	}
+
+	return keys
 }
