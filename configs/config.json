@@ -1,0 +1,6 @@
+{
+  "*": {
+    "logLevel": "INFO",
+    "sendUsageData": "NOT_ASKED"
+  }
+}
