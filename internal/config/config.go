@@ -67,7 +67,24 @@ func LoadConfig() (*Config, error) {
 		return &Config{}, err
 	}
 
+	config.setLogger()
+
 	return config, nil
+}
+
+func (c *Config) setLogger() {
+	switch level := c.LogLevel; level {
+	case "Trace":
+		log.SetLevel(log.TraceLevel)
+	case "Debug":
+		log.SetLevel(log.DebugLevel)
+	case "Warn":
+		log.SetLevel(log.WarnLevel)
+	case "Error":
+		log.SetLevel(log.ErrorLevel)
+	default:
+		log.SetLevel(log.InfoLevel)
+	}
 }
 
 // List outputs a list of all the configuration values
