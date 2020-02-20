@@ -1,6 +1,8 @@
 package config
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +34,10 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg.Set(key, value)
+		err := cfg.Set(key, value)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
