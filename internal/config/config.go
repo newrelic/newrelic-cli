@@ -74,14 +74,14 @@ func LoadConfig() (*Config, error) {
 }
 
 func (c *Config) setLogger() {
-	switch level := c.LogLevel; level {
-	case "Trace":
+	switch level := strings.ToUpper(c.LogLevel); level {
+	case "TRACE":
 		log.SetLevel(log.TraceLevel)
-	case "Debug":
+	case "DEBUG":
 		log.SetLevel(log.DebugLevel)
-	case "Warn":
+	case "WARN":
 		log.SetLevel(log.WarnLevel)
-	case "Error":
+	case "ERROR":
 		log.SetLevel(log.ErrorLevel)
 	default:
 		log.SetLevel(log.InfoLevel)
@@ -134,12 +134,15 @@ func (c *Config) Set(key string, value string) error {
 		}
 	}
 
-	err := c.set(key, strings.ToUpper(value))
+	k := strings.ToLower(key)
+	v := strings.ToUpper(value)
+
+	err := c.set(k, v)
 	if err != nil {
 		return err
 	}
 
-	renderer.Set(key, value)
+	renderer.Set(k, v)
 	return nil
 }
 
