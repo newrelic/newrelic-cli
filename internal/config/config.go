@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/imdario/mergo"
 	log "github.com/sirupsen/logrus"
@@ -116,22 +117,26 @@ func (c *Config) Get(key string) {
 
 // Set sets a config value.
 func (c *Config) Set(key string, value string) error {
-	err := c.set(key, value)
-	if err != nil {
-		return err
+	if !stringInStrings(key, validConfigKeys()) {
+		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
 	}
 
-	validKey := func(key string) bool {
-		for _, k := range validConfigKeys() {
-			if key == k {
-				return true
-			}
+	switch k := strings.ToLower(key); k {
+	case "loglevel":
+		validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
+		if !stringInStrings(value, validValues) {
+			return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", value, key, validValues)
 		}
-		return false
-	}(key)
+	case "sendusagedata":
+		validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
+		if !stringInStrings(value, validValues) {
+			return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", value, key, validValues)
+		}
+	}
 
-	if !validKey {
-		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
+	err := c.set(key, strings.ToUpper(value))
+	if err != nil {
+		return err
 	}
 
 	renderer.Set(key, value)
@@ -313,4 +318,14 @@ func validConfigKeys() []string {
 	}
 
 	return keys
+}
+
+func stringInStrings(s string, ss []string) bool {
+	for _, v := range ss {
+		if strings.EqualFold(v, s) {
+			return true
+		}
+	}
+
+	return false
 }
