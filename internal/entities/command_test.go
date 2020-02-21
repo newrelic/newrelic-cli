@@ -21,6 +21,13 @@ func TestEntitiesCommand(t *testing.T) {
 	}
 }
 
+func TestEntitiesSearch(t *testing.T) {
+	command := entitiesSearch
+
+	assert.Equal(t, "search", command.Name())
+	assert.True(t, command.HasFlags())
+}
+
 func TestEntitiesDescribeTags(t *testing.T) {
 	assert.Equal(t, "describe-tags", entitiesDescribeTags.Name())
 
@@ -104,7 +111,6 @@ func TestEntitiesReplaceTags(t *testing.T) {
 }
 
 func TestEntitiesAssembleTags(t *testing.T) {
-
 	var scenarios = []struct {
 		tags     []string
 		expected []entities.Tag
@@ -145,6 +151,11 @@ func TestEntitiesAssembleTagValues(t *testing.T) {
 			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
 		},
 		{
+			[]string{"incomplete:"},
+			[]entities.TagValue{},
+			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+		},
+		{
 			[]string{"tag1:value1", "tag1:value2", "tag2:value1"},
 			[]entities.TagValue{
 				{Key: "tag1", Value: "value1"},
@@ -161,5 +172,38 @@ func TestEntitiesAssembleTagValues(t *testing.T) {
 		assert.ElementsMatch(t, s.expected, r)
 		assert.Equal(t, s.err, e)
 	}
+}
 
+func TestEntitiesAssembleTagValue(t *testing.T) {
+	var scenarios = []struct {
+		tag      string
+		expected entities.TagValue
+		err      error
+	}{
+		{
+			"invalidTag",
+			entities.TagValue{},
+			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+		},
+		{
+			"incompleteTag:",
+			entities.TagValue{},
+			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+		},
+		{
+			"validKey:validValue",
+			entities.TagValue{
+				Key:   "validKey",
+				Value: "validValue",
+			},
+			nil,
+		},
+	}
+
+	for _, s := range scenarios {
+		r, e := assembleTagValue(s.tag)
+
+		assert.Equal(t, s.expected, r)
+		assert.Equal(t, s.err, e)
+	}
 }
