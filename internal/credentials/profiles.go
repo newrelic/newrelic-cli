@@ -5,41 +5,46 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
-	"github.com/fatih/color"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
-const (
-	defaultProfileString = " (default)"
-	hiddenKeyString      = "<hidden>"
-)
+// DefaultProfileFile is the configuration file containing the default profile name
+const DefaultProfileFile = "default-profile"
 
 // Profile contains data of a single profile
 type Profile struct {
-	AdminAPIKey    string `mapstructure:"adminAPIKey" json:"adminAPIKey"` // For accessing New Relic (Rest v2)
-	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey"`           // For accessing New Relic GraphQL resources
-	Region         string `mapstructure:"region" json:"region"`           // Region to use for New Relic resources
+	AdminAPIKey    string `mapstructure:"adminAPIKey" json:"adminAPIKey,omitempty"` // For accessing New Relic (Rest v2)
+	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey,omitempty"`           // For accessing New Relic GraphQL resources
+	Region         string `mapstructure:"region" json:"region,omitempty"`           // Region to use for New Relic resources
+
 }
 
-// Credentials is the metadata around all configured profiles
-type Credentials struct {
-	DefaultProfile  string
-	Profiles        map[string]Profile
-	ConfigDirectory string
-}
-
-// LoadCredentials loads the list of profiles
-func LoadCredentials(configDirectory string, envPrefix string) (*Credentials, error) {
-	var err error
-
-	// Load profiles
-	creds, err := Load(configDirectory, envPrefix)
+// LoadProfiles reads the credential profiles from the default path.
+func LoadProfiles(configDir string) (*map[string]Profile, error) {
+	cfgViper, err := readCredentials(configDir)
 	if err != nil {
-		return &Credentials{}, err
+		return &map[string]Profile{}, fmt.Errorf("error while reading credentials: %s", err)
+	}
+
+	creds, err := unmarshalProfiles(cfgViper)
+	if err != nil {
+		return &map[string]Profile{}, fmt.Errorf("error unmarshaling profiles: %s", err)
 	}
 
 	return creds, nil
+}
+
+// LoadDefaultProfile reads the profile name from the default profile file.
+func LoadDefaultProfile(configDir string) (string, error) {
+	defProfile, err := readDefaultProfile(configDir)
+	if err != nil {
+		return "", err
+	}
+
+	return defProfile, nil
 }
 
 // Default returns the default profile
@@ -53,149 +58,71 @@ func (c *Credentials) Default() *Profile {
 	return nil
 }
 
-func (c *Credentials) profileExists(profileName string) bool {
-	for k := range c.Profiles {
-		if k == profileName {
-			return true
-		}
+func readDefaultProfile(configDir string) (string, error) {
+	var defaultProfile string
+
+	cfgViper := viper.New()
+	cfgViper.SetConfigName(DefaultProfileFile)
+	cfgViper.SetConfigType(defaultConfigType)
+	cfgViper.AddConfigPath(configDir)
+
+	// ReadInConfig must be called here, even though we receive an error back,
+	// ConfigFileUsed() does not return the value without this call here.
+	cfgViper.ReadInConfig()
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// Since Viper requires key:value, we manually read it again and unmarshal the JSON...
+	byteValue, err := ioutil.ReadFile(cfgViper.ConfigFileUsed())
+	if err != nil {
+		return "", fmt.Errorf("error while reading default profile file %s: %s", cfgViper.ConfigFileUsed(), err)
+	}
+	err = json.Unmarshal(byteValue, &defaultProfile)
+	if err != nil {
+		return "", fmt.Errorf("error while unmarshaling default profile: %s", err)
 	}
 
-	return false
+	return defaultProfile, nil
 }
 
-// AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string) error {
+func readCredentials(configDir string) (*viper.Viper, error) {
+	credViper := viper.New()
+	credViper.SetConfigName(DefaultCredentialsFile)
+	credViper.SetConfigType(defaultConfigType)
+	credViper.SetEnvPrefix(config.DefaultEnvPrefix)
+	credViper.AddConfigPath(configDir) // adding home directory as first search path
+	credViper.AutomaticEnv()           // read in environment variables that match
 
-	if c.profileExists(profileName) {
-		return fmt.Errorf("Profile with name %s already exists", profileName)
-	}
-
-	p := Profile{
-		Region:         region,
-		PersonalAPIKey: apiKey,
-		AdminAPIKey:    adminAPIKey,
-	}
-
-	c.Profiles[profileName] = p
-
-	file, _ := json.MarshalIndent(c.Profiles, "", "  ")
-
-	defaultCredentialsFile := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultCredentialsFile))
-
-	err := ioutil.WriteFile(defaultCredentialsFile, file, 0600)
+	// Read in config
+	err := credViper.ReadInConfig()
 	if err != nil {
-		return err
-	}
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 
-	return nil
-}
+			filePath := os.ExpandEnv(fmt.Sprintf("%s/%s.json", configDir, DefaultCredentialsFile))
 
-// RemoveProfile removes an existing profile from the credentials file.
-func (c *Credentials) RemoveProfile(profileName string) error {
-
-	if !c.profileExists(profileName) {
-		return fmt.Errorf("Profile with name %s not found", profileName)
-	}
-
-	delete(c.Profiles, profileName)
-
-	file, _ := json.MarshalIndent(c.Profiles, "", "  ")
-
-	defaultCredentialsFile := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultCredentialsFile))
-
-	err := ioutil.WriteFile(defaultCredentialsFile, file, 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// SetDefaultProfile modifies the profile name to use by default.
-func (c *Credentials) SetDefaultProfile(profileName string) error {
-
-	if !c.profileExists(profileName) {
-		return fmt.Errorf("Profile with name %s not found", profileName)
-	}
-
-	if c.ConfigDirectory == "" {
-		return fmt.Errorf("credential ConfigDirectory is empty: %s", c.ConfigDirectory)
-	}
-
-	defaultProfileFileName := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultProfileFile))
-
-	_, err := os.Stat(defaultProfileFileName)
-	if err != nil {
-		// TODO perhaps the create of the directory should be handled by the config package
-		_, err := os.Create(defaultProfileFileName)
-		if err != nil {
-			return fmt.Errorf("error creating file %s: %s", defaultProfileFileName, err)
-		}
-	}
-
-	content := fmt.Sprintf("\"%s\"", profileName)
-
-	err = ioutil.WriteFile(defaultProfileFileName, []byte(content), 0)
-	if err != nil {
-		return fmt.Errorf("error writing to file %s: %s", defaultProfileFileName, err)
-	}
-
-	return nil
-}
-
-// List outputs a list of all the configured Credentials
-func (c *Credentials) List() {
-	// Console colors
-	color.Set(color.Bold)
-	defer color.Unset()
-	colorMuted := color.New(color.FgHiBlack).SprintFunc()
-
-	nameLen := 4     // Name
-	keyLen := 8      // <hidden>
-	adminKeyLen := 8 // <hidden>
-	regionLen := 6   // Region
-
-	// Find lengths for pretty printing
-	for k, v := range c.Profiles {
-		x := len(k)
-		if x > nameLen {
-			nameLen = x
-		}
-
-		z := len(v.Region)
-		if z > regionLen {
-			regionLen = z
-		}
-
-		if showKeys {
-			y := len(v.PersonalAPIKey)
-			if y > keyLen {
-				keyLen = y
+			err := credViper.WriteConfigAs(filePath)
+			if err != nil {
+				return nil, fmt.Errorf("error initializing new configuration directory %s: %s", filePath, err)
 			}
 		}
+
+		if e, ok := err.(viper.ConfigParseError); ok {
+			return nil, fmt.Errorf("error parsing profile config file: %v", e)
+		}
 	}
 
-	nameLen += len(defaultProfileString)
+	return credViper, nil
+}
 
-	format := fmt.Sprintf("%%-%ds  %%-%ds  %%-%ds  %%-%ds\n", nameLen, regionLen, keyLen, adminKeyLen)
-	fmt.Printf(format, "Name", "Region", "API key", "Admin API key")
-	fmt.Printf(format, strings.Repeat("-", nameLen), strings.Repeat("-", regionLen), strings.Repeat("-", keyLen), strings.Repeat("-", adminKeyLen))
-	// Print them out
-	for k, v := range c.Profiles {
-		name := k
-		if k == c.DefaultProfile {
-			name += colorMuted(defaultProfileString)
-		}
-		key := colorMuted(hiddenKeyString)
-		if showKeys {
-			key = v.PersonalAPIKey
-		}
-
-		adminKey := colorMuted(hiddenKeyString)
-		if showKeys {
-			adminKey = v.AdminAPIKey
-		}
-		fmt.Printf(format, name, v.Region, key, adminKey)
+func unmarshalProfiles(cfgViper *viper.Viper) (*map[string]Profile, error) {
+	cfgMap := map[string]Profile{}
+	err := cfgViper.Unmarshal(&cfgMap)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal credentials with error: %v", err)
 	}
-	fmt.Println("")
+
+	log.Debugf("loaded credentials from: %v", cfgViper.ConfigFileUsed())
+
+	return &cfgMap, nil
 }

@@ -2,11 +2,11 @@ package entities
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
 	prettyjson "github.com/hokaccha/go-prettyjson"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
