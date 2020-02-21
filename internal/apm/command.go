@@ -2,11 +2,11 @@ package apm
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hokaccha/go-prettyjson"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
