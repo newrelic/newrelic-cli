@@ -35,9 +35,6 @@ var (
 	// DefaultConfigDirectory is the default location for the CLI config files
 	DefaultConfigDirectory string
 
-	// DefaultPluginDirectory is the default sub-directory containing the plugins
-	DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
-
 	renderer      = TableRenderer{}
 	defaultConfig *Config
 )
@@ -65,7 +62,6 @@ func (c *Value) IsDefault() bool {
 func init() {
 	defaultConfig = &Config{
 		LogLevel:      DefaultLogLevel,
-		PluginDir:     DefaultPluginDirectory,
 		SendUsageData: DefaultSendUsageData,
 		ProfileName:   "",
 	}
@@ -76,6 +72,7 @@ func init() {
 	}
 
 	DefaultConfigDirectory = cfgDir
+	defaultConfig.PluginDir = DefaultConfigDirectory + "/plugins"
 }
 
 // LoadConfig loads the configuration from disk, or initializes a new file
@@ -187,7 +184,7 @@ func load() (*Config, error) {
 		return nil, err
 	}
 
-	config, ok := (*allScopes)["*"]
+	config, ok := (*allScopes)[globalScopeIdentifier]
 	err = config.setDefaults()
 	if err != nil {
 		return nil, err
