@@ -25,6 +25,7 @@ type Profile struct {
 // LoadProfiles reads the credential profiles from the default path.
 func LoadProfiles(configDir string) (*map[string]Profile, error) {
 	cfgViper, err := readCredentials(configDir)
+
 	if err != nil {
 		return &map[string]Profile{}, fmt.Errorf("error while reading credentials: %s", err)
 	}

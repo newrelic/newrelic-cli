@@ -49,7 +49,7 @@ func LoadCredentials(configDir string) (*Credentials, error) {
 
 	defaultProfile, err := LoadDefaultProfile(configDir)
 	if err != nil {
-		log.Warnf("no default configuration set: see newrelic profiles --help")
+		log.Warnf("no default profile set: see newrelic profiles --help")
 	}
 
 	creds.Profiles = *profiles

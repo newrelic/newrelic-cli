@@ -1,8 +1,7 @@
 package credentials
 
 import (
-	"fmt"
-
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +35,16 @@ deployments.
 			err := creds.AddProfile(profileName, region, apiKey, adminAPIKey)
 			if err != nil {
 				log.Fatal(err)
+			}
+
+			cyan := color.New(color.FgCyan).SprintfFunc()
+			log.Infof("profile %s added", cyan(profileName))
+
+			if len(creds.Profiles) == 1 {
+				creds.SetDefaultProfile(profileName)
+
+				cyan := color.New(color.FgCyan).SprintfFunc()
+				log.Infof("setting %s as default profile", cyan(profileName))
 			}
 		})
 	},
@@ -72,7 +81,7 @@ The list command prints out the available profiles' credentials.
 			if creds != nil {
 				creds.List()
 			} else {
-				fmt.Println("No profiles found")
+				log.Info("no profiles found")
 			}
 		})
 	},
