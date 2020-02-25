@@ -2,36 +2,45 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
 	"github.com/imdario/mergo"
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-// DefaultConfigDirectory is the default location for the CLI config files
-const DefaultConfigDirectory = "$HOME/.newrelic"
+const (
+	// DefaultConfigName is the default name of the global configuration file
+	DefaultConfigName = "config"
 
-// DefaultPluginDirectory is the default sub-directory containing the plugings
-const DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
+	// DefaultConfigType to read, though any file type supported by viper is allowed
+	DefaultConfigType = "json"
 
-// DefaultConfigName is the default name of the global configuration file
-const DefaultConfigName = "config"
+	// DefaultEnvPrefix is used when reading environment variables
+	DefaultEnvPrefix = "newrelic"
 
-// DefaultConfigType to read, though any file type supported by viper is allowed
-const DefaultConfigType = "json"
+	// DefaultLogLevel is the default log level
+	DefaultLogLevel = "INFO"
 
-// DefaultEnvPrefix is used when reading environment variables
-const DefaultEnvPrefix = "newrelic"
+	// DefaultSendUsageData is the default value for sendUsageData
+	DefaultSendUsageData = "NOT_ASKED"
 
-// DefaultLogLevel is the default log level
-const DefaultLogLevel = "INFO"
+	globalScopeIdentifier = "*"
+)
 
-// DefaultSendUsageData is the default value for sendUsageData
-const DefaultSendUsageData = "NOT_ASKED"
+var (
+	// DefaultConfigDirectory is the default location for the CLI config files
+	DefaultConfigDirectory string
 
-var renderer = TableRenderer{}
+	// DefaultPluginDirectory is the default sub-directory containing the plugins
+	DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
+
+	renderer      = TableRenderer{}
+	defaultConfig *Config
+)
 
 // Config contains the main CLI configuration
 type Config struct {
@@ -53,24 +62,42 @@ func (c *Value) IsDefault() bool {
 	return c.Value == c.Default
 }
 
-// defaultConfig represents the configuration default values.
-var defaultConfig = Config{
-	LogLevel:      DefaultLogLevel,
-	PluginDir:     DefaultPluginDirectory,
-	SendUsageData: DefaultSendUsageData,
-	ProfileName:   "",
-}
-
-// LoadConfig loads the configuration
-func LoadConfig() (*Config, error) {
-	config, err := Load()
-	if err != nil {
-		return &Config{}, err
+func init() {
+	defaultConfig = &Config{
+		LogLevel:      DefaultLogLevel,
+		PluginDir:     DefaultPluginDirectory,
+		SendUsageData: DefaultSendUsageData,
+		ProfileName:   "",
 	}
 
-	config.setLogger()
+	cfgDir, err := getDefaultConfigDirectory()
+	if err != nil {
+		log.Fatalf("error building default config directory")
+	}
 
-	return config, nil
+	DefaultConfigDirectory = cfgDir
+}
+
+// LoadConfig loads the configuration from disk, or initializes a new file
+// if one doesn't currently exist.
+func LoadConfig() (*Config, error) {
+	cfg, err := load()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.setLogger()
+
+	return cfg, nil
+}
+
+func getDefaultConfigDirectory() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
 func (c *Config) setLogger() {
@@ -146,8 +173,7 @@ func (c *Config) Set(key string, value string) error {
 	return nil
 }
 
-// Load initializes the cli configuration
-func Load() (*Config, error) {
+func load() (*Config, error) {
 	log.Debug("loading config file")
 
 	cfgViper, err := readConfig()
@@ -162,13 +188,40 @@ func Load() (*Config, error) {
 	}
 
 	config, ok := (*allScopes)["*"]
-	if !ok {
-		return nil, fmt.Errorf("failed to locate global config")
+	err = config.setDefaults()
+	if err != nil {
+		return nil, err
 	}
 
-	err = config.setDefaults()
+	if !ok {
+		// Config cannot be found.  Write the file with defaults
+		err = config.createFile(cfgViper)
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	return &config, err
+	return &config, nil
+}
+
+func (c *Config) createFile(cfgViper *viper.Viper) error {
+	c.visitAllConfigFields(func(v *Value) {
+		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value.(string))
+	})
+
+	err := os.MkdirAll(DefaultConfigDirectory, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	path := fmt.Sprintf("%s/%s.%s", DefaultConfigDirectory, DefaultConfigName, DefaultConfigType)
+	fmt.Printf("path: %s\n", path)
+	err = cfgViper.WriteConfigAs(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Config) get(key string) []Value {
@@ -197,16 +250,16 @@ func (c *Config) set(key string, value interface{}) error {
 		return err
 	}
 
-	cfgViper.Set("*."+key, value)
+	cfgViper.Set(globalScopeIdentifier+"."+key, value)
 	allScopes, err := unmarshalAllScopes(cfgViper)
 
 	if err != nil {
 		return err
 	}
 
-	config, ok := (*allScopes)["*"]
+	config, ok := (*allScopes)[globalScopeIdentifier]
 	if !ok {
-		return fmt.Errorf("failed to locate global config")
+		return fmt.Errorf("failed to locate global scope")
 	}
 
 	err = config.validate()
@@ -245,7 +298,7 @@ func (c *Config) setDefaults() error {
 		return nil
 	}
 
-	if err := mergo.Merge(c, &defaultConfig); err != nil {
+	if err := mergo.Merge(c, defaultConfig); err != nil {
 		return err
 	}
 
@@ -260,7 +313,7 @@ func (c *Config) validate() error {
 func (c *Config) visitAllConfigFields(f func(*Value)) {
 	cfgType := reflect.TypeOf(*c)
 	cfgValue := reflect.ValueOf(*c)
-	defaultCfgValue := reflect.ValueOf(defaultConfig)
+	defaultCfgValue := reflect.ValueOf(*defaultConfig)
 
 	// Iterate through the fields in the struct
 	for i := 0; i < cfgType.NumField(); i++ {

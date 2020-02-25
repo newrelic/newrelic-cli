@@ -9,12 +9,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
 var (
-	nrClient            *newrelic.NewRelic
 	entityName          string
 	entityGUID          string
 	entityTag           string
@@ -25,17 +25,6 @@ var (
 	entityDomain        string
 	entityReporting     string
 )
-
-// SetClient is the API for passing along the New Relic client to this command
-func SetClient(nr *newrelic.NewRelic) error {
-	if nr == nil {
-		return fmt.Errorf("client can not be nil")
-	}
-
-	nrClient = nr
-
-	return nil
-}
 
 // Command represents the entities command
 var Command = &cobra.Command{
@@ -48,65 +37,63 @@ var entitiesSearch = &cobra.Command{
 	Short: "entities search",
 	Long: `Search for New Relic entities
 
-The search command performs a search for New Relic eitities. Optionally, you can
+The search command performs a search for New Relic entities. Optionally, you can
 provide additional search flags as filters to narrow search results. Use --help for
 more information.
 `,
 	Example: "newrelic entities search -n test",
 	Run: func(cmd *cobra.Command, args []string) {
-		if nrClient == nil {
-			log.Fatal("missing New Relic client configuration")
-		}
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			params := entities.SearchEntitiesParams{}
 
-		params := entities.SearchEntitiesParams{}
+			if entityName != "" {
+				params.Name = entityName
+			}
 
-		if entityName != "" {
-			params.Name = entityName
-		}
+			if entityType != "" {
+				params.Type = entities.EntityType(entityType)
+			}
 
-		if entityType != "" {
-			params.Type = entities.EntityType(entityType)
-		}
+			if entityAlertSeverity != "" {
+				params.AlertSeverity = entities.EntityAlertSeverityType(entityAlertSeverity)
+			}
 
-		if entityAlertSeverity != "" {
-			params.AlertSeverity = entities.EntityAlertSeverityType(entityAlertSeverity)
-		}
+			if entityDomain != "" {
+				params.Domain = entities.EntityDomainType(entityDomain)
+			}
 
-		if entityDomain != "" {
-			params.Domain = entities.EntityDomainType(entityDomain)
-		}
+			if entityTag != "" {
+				tag, err := assembleTagValue(entityTag)
 
-		if entityTag != "" {
-			tag, err := assembleTagValue(entityTag)
+				if err != nil {
+					log.Fatal(err)
+				}
 
+				params.Tags = &tag
+			}
+
+			if entityReporting != "" {
+				reporting, err := strconv.ParseBool(entityReporting)
+
+				if err != nil {
+					log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
+				}
+
+				params.Reporting = &reporting
+			}
+
+			entities, err := nrClient.Entities.SearchEntities(params)
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			params.Tags = &tag
-		}
-
-		if entityReporting != "" {
-			reporting, err := strconv.ParseBool(entityReporting)
-
+			json, err := prettyjson.Marshal(entities)
 			if err != nil {
-				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
+				log.Fatal(err)
 			}
 
-			params.Reporting = &reporting
-		}
-
-		entities, err := nrClient.Entities.SearchEntities(params)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		json, err := prettyjson.Marshal(entities)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(string(json))
+			fmt.Println(string(json))
+		})
 	},
 }
 
@@ -120,21 +107,19 @@ entity.
 `,
 	Example: "newrelic entities describe-tags --guid <guid>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if nrClient == nil {
-			log.Fatal("missing New Relic client configuration")
-		}
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			tags, err := nrClient.Entities.ListTags(entityGUID)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		tags, err := nrClient.Entities.ListTags(entityGUID)
-		if err != nil {
-			log.Fatal(err)
-		}
+			json, err := prettyjson.Marshal(tags)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		json, err := prettyjson.Marshal(tags)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(string(json))
+			fmt.Println(string(json))
+		})
 	},
 }
 
@@ -148,14 +133,12 @@ specified tag keys.
 `,
 	Example: "newrelic entities delete-tags --guid <guid> --tag tag1 --tag tag2 --tag tag3,tag4",
 	Run: func(cmd *cobra.Command, args []string) {
-		if nrClient == nil {
-			log.Fatal("missing New Relic client configuration")
-		}
-
-		err := nrClient.Entities.DeleteTags(entityGUID, entityTags)
-		if err != nil {
-			log.Fatal(err)
-		}
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			err := nrClient.Entities.DeleteTags(entityGUID, entityTags)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 }
 
@@ -169,19 +152,17 @@ specified tag:value pairs.
 `,
 	Example: "newrelic entities delete-tag-values --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
-		if nrClient == nil {
-			log.Fatal("missing New Relic client configuration")
-		}
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			tagValues, err := assembleTagValues(entityValues)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		tagValues, err := assembleTagValues(entityValues)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = nrClient.Entities.DeleteTagValues(entityGUID, tagValues)
-		if err != nil {
-			log.Fatal(err)
-		}
+			err = nrClient.Entities.DeleteTagValues(entityGUID, tagValues)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 }
 
@@ -194,19 +175,17 @@ The create-tags command adds tag:value pairs for the given entity.
 `,
 	Example: "newrelic entities create-tags --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
-		if nrClient == nil {
-			log.Fatal("missing New Relic client configuration")
-		}
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			tags, err := assembleTags(entityTags)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		tags, err := assembleTags(entityTags)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = nrClient.Entities.AddTags(entityGUID, tags)
-		if err != nil {
-			log.Fatal(err)
-		}
+			err = nrClient.Entities.AddTags(entityGUID, tags)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 }
 
@@ -220,19 +199,17 @@ provided for the given entity.
 `,
 	Example: "newrelic entities replace-tags --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
-		if nrClient == nil {
-			log.Fatal("missing New Relic client configuration")
-		}
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			tags, err := assembleTags(entityTags)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		tags, err := assembleTags(entityTags)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = nrClient.Entities.ReplaceTags(entityGUID, tags)
-		if err != nil {
-			log.Fatal(err)
-		}
+			err = nrClient.Entities.ReplaceTags(entityGUID, tags)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 }
 

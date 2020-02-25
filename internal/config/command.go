@@ -7,17 +7,11 @@ import (
 )
 
 var (
-	cfg *Config
 	// Display keys when printing output
 	showKeys bool
 	key      string
 	value    string
 )
-
-// SetConfig takes a pointer to the loaded config for later reference
-func SetConfig(c *Config) {
-	cfg = c
-}
 
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
@@ -34,10 +28,12 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := cfg.Set(key, value)
-		if err != nil {
-			log.Fatal(err)
-		}
+		WithConfig(func(cfg *Config) {
+			err := cfg.Set(key, value)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 }
 
@@ -50,7 +46,9 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg.Get(key)
+		WithConfig(func(cfg *Config) {
+			cfg.Get(key)
+		})
 	},
 }
 
@@ -63,7 +61,9 @@ The list command lists all persistent configuration values for the New Relic CLI
 `,
 	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg.List()
+		WithConfig(func(cfg *Config) {
+			cfg.List()
+		})
 	},
 	Aliases: []string{
 		"ls",
@@ -80,7 +80,9 @@ This will have the effect of resetting the value to its default.
 `,
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		cfg.Delete(key)
+		WithConfig(func(cfg *Config) {
+			cfg.Delete(key)
+		})
 	},
 	Aliases: []string{
 		"rm",

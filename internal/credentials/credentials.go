@@ -9,15 +9,14 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/prometheus/common/log"
+	log "github.com/sirupsen/logrus"
 )
 
-// DefaultCredentialsFile is the default place to load profiles from
-const DefaultCredentialsFile = "credentials"
-
-const defaultConfigType = "json"
-
 const (
+	// DefaultCredentialsFile is the default place to load profiles from
+	DefaultCredentialsFile = "credentials"
+
+	defaultConfigType    = "json"
 	defaultProfileString = " (default)"
 	hiddenKeyString      = "<hidden>"
 )
@@ -29,12 +28,12 @@ type Credentials struct {
 	ConfigDirectory string
 }
 
-// LoadCredentials loads the list of profiles
+// LoadCredentials loads the current CLI credentials from disk.
 func LoadCredentials(configDir string) (*Credentials, error) {
 	log.Debug("loading credentials file")
 
 	if configDir == "" {
-		configDir = os.ExpandEnv(config.DefaultConfigDirectory)
+		configDir = config.DefaultConfigDirectory
 	} else {
 		configDir = os.ExpandEnv(configDir)
 	}

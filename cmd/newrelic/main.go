@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	log "github.com/sirupsen/logrus"
 
 	// Commands
@@ -16,12 +15,6 @@ var (
 	AppName = "newrelic-dev"
 	// Version of the CLI
 	Version = "dev"
-
-	globalConfig *config.Config
-	creds        *credentials.Credentials
-
-	// Client is an instance of the New Relic client.
-	nrClient *newrelic.NewRelic
 )
 
 func init() {
@@ -33,20 +26,6 @@ func init() {
 }
 
 func main() {
-	// TODO Here too we should probably return the client rather than reaching
-	// into the global.
-	if err := createNRClient(); err != nil {
-		log.Fatal(err)
-	}
-
-	// Configure commands that need it
-	entities.SetClient(nrClient)
-	apm.SetClient(nrClient)
-
-	credentials.SetConfig(globalConfig)
-	config.SetConfig(globalConfig)
-	credentials.SetCredentials(creds)
-
 	if err := Execute(AppName, Version); err != nil {
 		log.Fatal(err)
 	}
