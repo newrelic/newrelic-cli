@@ -70,7 +70,7 @@ func init() {
 
 	cfgDir, err := getDefaultConfigDirectory()
 	if err != nil {
-		log.Fatalf("error building default config directory")
+		log.Fatalf("error building default config directory: %s", err)
 	}
 
 	DefaultConfigDirectory = cfgDir
