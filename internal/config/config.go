@@ -36,7 +36,7 @@ var (
 	DefaultConfigDirectory string
 
 	// DefaultPluginDirectory is the default sub-directory containing the plugins
-	DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
+	DefaultPluginDirectory string
 
 	renderer      = TableRenderer{}
 	defaultConfig *Config
@@ -76,6 +76,7 @@ func init() {
 	}
 
 	DefaultConfigDirectory = cfgDir
+	DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
 }
 
 // LoadConfig loads the configuration from disk, or initializes a new file
@@ -187,7 +188,7 @@ func load() (*Config, error) {
 		return nil, err
 	}
 
-	config, ok := (*allScopes)["*"]
+	config, ok := (*allScopes)[globalScopeIdentifier]
 	err = config.setDefaults()
 	if err != nil {
 		return nil, err
