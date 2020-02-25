@@ -86,6 +86,13 @@ func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string
 	file, _ := json.MarshalIndent(c.Profiles, "", "  ")
 	defaultCredentialsFile := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultCredentialsFile))
 
+	if _, err := os.Stat(c.ConfigDirectory); os.IsNotExist(err) {
+		err := os.MkdirAll(c.ConfigDirectory, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+
 	err := ioutil.WriteFile(defaultCredentialsFile, file, 0600)
 	if err != nil {
 		return err
