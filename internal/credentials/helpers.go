@@ -14,7 +14,7 @@ func WithCredentials(f func(c *Credentials)) {
 func WithCredentialsFrom(configDir string, f func(c *Credentials)) {
 	c, err := LoadCredentials(configDir)
 	if err != nil {
-		log.Fatal("cannot load credentials")
+		log.Fatal(err)
 	}
 
 	f(c)

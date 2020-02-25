@@ -13,7 +13,7 @@ func WithConfig(f func(c *Config)) {
 func WithConfigFrom(configDir string, f func(c *Config)) {
 	c, err := LoadConfig()
 	if err != nil {
-		log.Fatal("cannot load configuration")
+		log.Fatal(err)
 	}
 
 	f(c)

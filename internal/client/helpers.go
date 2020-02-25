@@ -18,7 +18,7 @@ func WithClientFrom(configDir string, f func(c *newrelic.NewRelic)) {
 		credentials.WithCredentialsFrom(configDir, func(creds *credentials.Credentials) {
 			nrClient, err := CreateNRClient(cfg, creds)
 			if err != nil {
-				log.Fatal("cannot initialize client")
+				log.Fatal(err)
 			}
 
 			f(nrClient)
