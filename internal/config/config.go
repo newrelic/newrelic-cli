@@ -47,7 +47,6 @@ type Config struct {
 	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
 	PluginDir     string `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
 	SendUsageData string `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
-	ProfileName   string `mapstructure:"profileName"`   // ProfileName is the configured profile to use
 }
 
 // Value represents an instance of a configuration field.
@@ -67,7 +66,6 @@ func init() {
 		LogLevel:      DefaultLogLevel,
 		PluginDir:     DefaultPluginDirectory,
 		SendUsageData: DefaultSendUsageData,
-		ProfileName:   "",
 	}
 
 	cfgDir, err := getDefaultConfigDirectory()
@@ -189,17 +187,12 @@ func load() (*Config, error) {
 	}
 
 	config, ok := (*allScopes)[globalScopeIdentifier]
+	if !ok {
+		config = Config{}
+	}
 	err = config.setDefaults()
 	if err != nil {
 		return nil, err
-	}
-
-	if !ok {
-		// Config cannot be found.  Write the file with defaults
-		err = config.createFile(cfgViper)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return &config, nil
@@ -268,7 +261,10 @@ func (c *Config) set(key string, value interface{}) error {
 		return err
 	}
 
-	cfgViper.WriteConfig()
+	err = c.createFile(cfgViper)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
