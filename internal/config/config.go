@@ -53,8 +53,12 @@ type Value struct {
 	Default interface{}
 }
 
-// IsDefault returns tru if the field's value is the default value.
+// IsDefault returns true if the field's value is the default value.
 func (c *Value) IsDefault() bool {
+	if v, ok := c.Value.(string); ok {
+		return strings.EqualFold(v, c.Default.(string))
+	}
+
 	return c.Value == c.Default
 }
 
@@ -143,28 +147,12 @@ func (c *Config) Set(key string, value string) error {
 		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
 	}
 
-	switch k := strings.ToLower(key); k {
-	case "loglevel":
-		validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
-		if !stringInStrings(value, validValues) {
-			return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", value, key, validValues)
-		}
-	case "sendusagedata":
-		validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
-		if !stringInStrings(value, validValues) {
-			return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", value, key, validValues)
-		}
-	}
-
-	k := strings.ToLower(key)
-	v := strings.ToUpper(value)
-
-	err := c.set(k, v)
+	err := c.set(key, value)
 	if err != nil {
 		return err
 	}
 
-	renderer.Set(k, v)
+	renderer.Set(key, value)
 	return nil
 }
 
@@ -195,9 +183,10 @@ func load() (*Config, error) {
 	return &config, nil
 }
 
-func (c *Config) createFile(cfgViper *viper.Viper) error {
-	c.visitAllConfigFields(func(v *Value) {
+func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
+	c.visitAllConfigFields(func(v *Value) error {
 		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value.(string))
+		return nil
 	})
 
 	err := os.MkdirAll(DefaultConfigDirectory, os.ModePerm)
@@ -205,7 +194,6 @@ func (c *Config) createFile(cfgViper *viper.Viper) error {
 		return err
 	}
 
-	path := fmt.Sprintf("%s/%s.%s", DefaultConfigDirectory, DefaultConfigName, DefaultConfigType)
 	err = cfgViper.WriteConfigAs(path)
 	if err != nil {
 		return err
@@ -221,13 +209,15 @@ func (c *Config) get(key string) []Value {
 func (c *Config) getAll(key string) []Value {
 	values := []Value{}
 
-	c.visitAllConfigFields(func(v *Value) {
+	c.visitAllConfigFields(func(v *Value) error {
 		// Return early if name was supplied and doesn't match
 		if key != "" && key != v.Name {
-			return
+			return nil
 		}
 
 		values = append(values, *v)
+
+		return nil
 	})
 
 	return values
@@ -258,9 +248,14 @@ func (c *Config) set(key string, value interface{}) error {
 		return err
 	}
 
-	err = c.createFile(cfgViper)
-	if err != nil {
-		return err
+	path := fmt.Sprintf("%s/%s.%s", DefaultConfigDirectory, DefaultConfigName, DefaultConfigType)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		createErr := c.createFile(path, cfgViper)
+		if createErr != nil {
+			return createErr
+		}
+	} else {
+		cfgViper.WriteConfig()
 	}
 
 	return nil
@@ -269,12 +264,13 @@ func (c *Config) set(key string, value interface{}) error {
 func (c *Config) getDefaultValue(key string) (interface{}, error) {
 	var dv interface{}
 	var found bool
-	c.visitAllConfigFields(func(v *Value) {
+	c.visitAllConfigFields(func(v *Value) error {
 		if key == v.Name {
 			dv = v.Default
 			found = true
-			return
 		}
+
+		return nil
 	})
 
 	if found {
@@ -299,11 +295,31 @@ func (c *Config) setDefaults() error {
 }
 
 func (c *Config) validate() error {
-	// TODO: implement this
+	err := c.visitAllConfigFields(func(v *Value) error {
+		switch k := strings.ToLower(v.Name); k {
+		case "loglevel":
+			validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
+			if !stringInStrings(v.Value.(string), validValues) {
+				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
+			}
+		case "sendusagedata":
+			validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
+			if !stringInStrings(v.Value.(string), validValues) {
+				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (c *Config) visitAllConfigFields(f func(*Value)) {
+func (c *Config) visitAllConfigFields(f func(*Value) error) error {
 	cfgType := reflect.TypeOf(*c)
 	cfgValue := reflect.ValueOf(*c)
 	defaultCfgValue := reflect.ValueOf(*defaultConfig)
@@ -315,12 +331,18 @@ func (c *Config) visitAllConfigFields(f func(*Value)) {
 		value := cfgValue.Field(i).Interface()
 		defaultValue := defaultCfgValue.Field(i).Interface()
 
-		f(&Value{
+		err := f(&Value{
 			Name:    name,
 			Value:   value,
 			Default: defaultValue,
 		})
+
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {
