@@ -215,7 +215,6 @@ func (c *Config) createFile(cfgViper *viper.Viper) error {
 	}
 
 	path := fmt.Sprintf("%s/%s.%s", DefaultConfigDirectory, DefaultConfigName, DefaultConfigType)
-	fmt.Printf("path: %s\n", path)
 	err = cfgViper.WriteConfigAs(path)
 	if err != nil {
 		return err
