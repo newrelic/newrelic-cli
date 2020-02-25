@@ -19,12 +19,12 @@ type Profile struct {
 	AdminAPIKey    string `mapstructure:"adminAPIKey" json:"adminAPIKey,omitempty"` // For accessing New Relic (Rest v2)
 	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey,omitempty"`           // For accessing New Relic GraphQL resources
 	Region         string `mapstructure:"region" json:"region,omitempty"`           // Region to use for New Relic resources
-
 }
 
 // LoadProfiles reads the credential profiles from the default path.
 func LoadProfiles(configDir string) (*map[string]Profile, error) {
 	cfgViper, err := readCredentials(configDir)
+
 	if err != nil {
 		return &map[string]Profile{}, fmt.Errorf("error while reading credentials: %s", err)
 	}

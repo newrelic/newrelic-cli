@@ -2,43 +2,48 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
 	"github.com/imdario/mergo"
+	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-// DefaultConfigDirectory is the default location for the CLI config files
-const DefaultConfigDirectory = "$HOME/.newrelic"
+const (
+	// DefaultConfigName is the default name of the global configuration file
+	DefaultConfigName = "config"
 
-// DefaultPluginDirectory is the default sub-directory containing the plugings
-const DefaultPluginDirectory = DefaultConfigDirectory + "/plugins"
+	// DefaultConfigType to read, though any file type supported by viper is allowed
+	DefaultConfigType = "json"
 
-// DefaultConfigName is the default name of the global configuration file
-const DefaultConfigName = "config"
+	// DefaultEnvPrefix is used when reading environment variables
+	DefaultEnvPrefix = "newrelic"
 
-// DefaultConfigType to read, though any file type supported by viper is allowed
-const DefaultConfigType = "json"
+	// DefaultLogLevel is the default log level
+	DefaultLogLevel = "INFO"
 
-// DefaultEnvPrefix is used when reading environment variables
-const DefaultEnvPrefix = "newrelic"
+	// DefaultSendUsageData is the default value for sendUsageData
+	DefaultSendUsageData = "NOT_ASKED"
 
-// DefaultLogLevel is the default log level
-const DefaultLogLevel = "INFO"
+	globalScopeIdentifier = "*"
+)
 
-// DefaultSendUsageData is the default value for sendUsageData
-const DefaultSendUsageData = "NOT_ASKED"
+var (
+	// DefaultConfigDirectory is the default location for the CLI config files
+	DefaultConfigDirectory string
 
-var renderer = TableRenderer{}
+	renderer      = TableRenderer{}
+	defaultConfig *Config
+)
 
 // Config contains the main CLI configuration
 type Config struct {
 	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
 	PluginDir     string `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
 	SendUsageData string `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
-	ProfileName   string `mapstructure:"profileName"`   // ProfileName is the configured profile to use
 }
 
 // Value represents an instance of a configuration field.
@@ -48,29 +53,50 @@ type Value struct {
 	Default interface{}
 }
 
-// IsDefault returns tru if the field's value is the default value.
+// IsDefault returns true if the field's value is the default value.
 func (c *Value) IsDefault() bool {
+	if v, ok := c.Value.(string); ok {
+		return strings.EqualFold(v, c.Default.(string))
+	}
+
 	return c.Value == c.Default
 }
 
-// defaultConfig represents the configuration default values.
-var defaultConfig = Config{
-	LogLevel:      DefaultLogLevel,
-	PluginDir:     DefaultPluginDirectory,
-	SendUsageData: DefaultSendUsageData,
-	ProfileName:   "",
-}
-
-// LoadConfig loads the configuration
-func LoadConfig() (*Config, error) {
-	config, err := Load()
-	if err != nil {
-		return &Config{}, err
+func init() {
+	defaultConfig = &Config{
+		LogLevel:      DefaultLogLevel,
+		SendUsageData: DefaultSendUsageData,
 	}
 
-	config.setLogger()
+	cfgDir, err := getDefaultConfigDirectory()
+	if err != nil {
+		log.Fatalf("error building default config directory: %s", err)
+	}
 
-	return config, nil
+	DefaultConfigDirectory = cfgDir
+	defaultConfig.PluginDir = DefaultConfigDirectory + "/plugins"
+}
+
+// LoadConfig loads the configuration from disk, or initializes a new file
+// if one doesn't currently exist.
+func LoadConfig() (*Config, error) {
+	cfg, err := load()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.setLogger()
+
+	return cfg, nil
+}
+
+func getDefaultConfigDirectory() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
 func (c *Config) setLogger() {
@@ -121,33 +147,16 @@ func (c *Config) Set(key string, value string) error {
 		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
 	}
 
-	switch k := strings.ToLower(key); k {
-	case "loglevel":
-		validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
-		if !stringInStrings(value, validValues) {
-			return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", value, key, validValues)
-		}
-	case "sendusagedata":
-		validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
-		if !stringInStrings(value, validValues) {
-			return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", value, key, validValues)
-		}
-	}
-
-	k := strings.ToLower(key)
-	v := strings.ToUpper(value)
-
-	err := c.set(k, v)
+	err := c.set(key, value)
 	if err != nil {
 		return err
 	}
 
-	renderer.Set(k, v)
+	renderer.Set(key, value)
 	return nil
 }
 
-// Load initializes the cli configuration
-func Load() (*Config, error) {
+func load() (*Config, error) {
 	log.Debug("loading config file")
 
 	cfgViper, err := readConfig()
@@ -161,14 +170,36 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
-	config, ok := (*allScopes)["*"]
+	config, ok := (*allScopes)[globalScopeIdentifier]
 	if !ok {
-		return nil, fmt.Errorf("failed to locate global config")
+		config = Config{}
 	}
 
 	err = config.setDefaults()
+	if err != nil {
+		return nil, err
+	}
 
-	return &config, err
+	return &config, nil
+}
+
+func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
+	c.visitAllConfigFields(func(v *Value) error {
+		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value.(string))
+		return nil
+	})
+
+	err := os.MkdirAll(DefaultConfigDirectory, os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	err = cfgViper.WriteConfigAs(path)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Config) get(key string) []Value {
@@ -178,13 +209,15 @@ func (c *Config) get(key string) []Value {
 func (c *Config) getAll(key string) []Value {
 	values := []Value{}
 
-	c.visitAllConfigFields(func(v *Value) {
+	c.visitAllConfigFields(func(v *Value) error {
 		// Return early if name was supplied and doesn't match
 		if key != "" && key != v.Name {
-			return
+			return nil
 		}
 
 		values = append(values, *v)
+
+		return nil
 	})
 
 	return values
@@ -197,16 +230,16 @@ func (c *Config) set(key string, value interface{}) error {
 		return err
 	}
 
-	cfgViper.Set("*."+key, value)
+	cfgViper.Set(globalScopeIdentifier+"."+key, value)
 	allScopes, err := unmarshalAllScopes(cfgViper)
 
 	if err != nil {
 		return err
 	}
 
-	config, ok := (*allScopes)["*"]
+	config, ok := (*allScopes)[globalScopeIdentifier]
 	if !ok {
-		return fmt.Errorf("failed to locate global config")
+		return fmt.Errorf("failed to locate global scope")
 	}
 
 	err = config.validate()
@@ -215,7 +248,15 @@ func (c *Config) set(key string, value interface{}) error {
 		return err
 	}
 
-	cfgViper.WriteConfig()
+	path := fmt.Sprintf("%s/%s.%s", DefaultConfigDirectory, DefaultConfigName, DefaultConfigType)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		createErr := c.createFile(path, cfgViper)
+		if createErr != nil {
+			return createErr
+		}
+	} else {
+		cfgViper.WriteConfig()
+	}
 
 	return nil
 }
@@ -223,12 +264,13 @@ func (c *Config) set(key string, value interface{}) error {
 func (c *Config) getDefaultValue(key string) (interface{}, error) {
 	var dv interface{}
 	var found bool
-	c.visitAllConfigFields(func(v *Value) {
+	c.visitAllConfigFields(func(v *Value) error {
 		if key == v.Name {
 			dv = v.Default
 			found = true
-			return
 		}
+
+		return nil
 	})
 
 	if found {
@@ -245,7 +287,7 @@ func (c *Config) setDefaults() error {
 		return nil
 	}
 
-	if err := mergo.Merge(c, &defaultConfig); err != nil {
+	if err := mergo.Merge(c, defaultConfig); err != nil {
 		return err
 	}
 
@@ -253,14 +295,34 @@ func (c *Config) setDefaults() error {
 }
 
 func (c *Config) validate() error {
-	// TODO: implement this
+	err := c.visitAllConfigFields(func(v *Value) error {
+		switch k := strings.ToLower(v.Name); k {
+		case "loglevel":
+			validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
+			if !stringInStrings(v.Value.(string), validValues) {
+				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
+			}
+		case "sendusagedata":
+			validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
+			if !stringInStrings(v.Value.(string), validValues) {
+				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-func (c *Config) visitAllConfigFields(f func(*Value)) {
+func (c *Config) visitAllConfigFields(f func(*Value) error) error {
 	cfgType := reflect.TypeOf(*c)
 	cfgValue := reflect.ValueOf(*c)
-	defaultCfgValue := reflect.ValueOf(defaultConfig)
+	defaultCfgValue := reflect.ValueOf(*defaultConfig)
 
 	// Iterate through the fields in the struct
 	for i := 0; i < cfgType.NumField(); i++ {
@@ -269,12 +331,18 @@ func (c *Config) visitAllConfigFields(f func(*Value)) {
 		value := cfgValue.Field(i).Interface()
 		defaultValue := defaultCfgValue.Field(i).Interface()
 
-		f(&Value{
+		err := f(&Value{
 			Name:    name,
 			Value:   value,
 			Default: defaultValue,
 		})
+
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {

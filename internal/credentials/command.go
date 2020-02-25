@@ -1,17 +1,12 @@
 package credentials
 
 import (
-	"fmt"
-
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 var (
-	cfg   *config.Config
-	creds *Credentials
 	// Display keys when printing output
 	showKeys    bool
 	profileName string
@@ -19,16 +14,6 @@ var (
 	apiKey      string
 	adminAPIKey string
 )
-
-// SetConfig takes a pointer to the loaded config for later reference
-func SetConfig(c *config.Config) {
-	cfg = c
-}
-
-// SetCredentials takes a pointer to the loaded creds for later reference
-func SetCredentials(c *Credentials) {
-	creds = c
-}
 
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
@@ -46,10 +31,22 @@ deployments.
 `,
 	Example: "newrelic credentials add -n <profileName> -r <region> --apiKey <apiKey> --adminAPIKey <adminAPIKey>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := creds.AddProfile(profileName, region, apiKey, adminAPIKey)
-		if err != nil {
-			log.Fatal(err)
-		}
+		WithCredentials(func(creds *Credentials) {
+			err := creds.AddProfile(profileName, region, apiKey, adminAPIKey)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			cyan := color.New(color.FgCyan).SprintfFunc()
+			log.Infof("profile %s added", cyan(profileName))
+
+			if len(creds.Profiles) == 1 {
+				creds.SetDefaultProfile(profileName)
+
+				cyan := color.New(color.FgCyan).SprintfFunc()
+				log.Infof("setting %s as default profile", cyan(profileName))
+			}
+		})
 	},
 }
 
@@ -62,10 +59,12 @@ The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic credentials default -n <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := creds.SetDefaultProfile(profileName)
-		if err != nil {
-			log.Fatal(err)
-		}
+		WithCredentials(func(creds *Credentials) {
+			err := creds.SetDefaultProfile(profileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 }
 
@@ -78,11 +77,13 @@ The list command prints out the available profiles' credentials.
 `,
 	Example: "newrelic credentials list",
 	Run: func(cmd *cobra.Command, args []string) {
-		if creds != nil {
-			creds.List()
-		} else {
-			fmt.Println("No profiles found")
-		}
+		WithCredentials(func(creds *Credentials) {
+			if creds != nil {
+				creds.List()
+			} else {
+				log.Info("no profiles found")
+			}
+		})
 	},
 	Aliases: []string{
 		"ls",
@@ -98,10 +99,12 @@ The remove command removes a credential profile specified by name.
 `,
 	Example: "newrelic credentials remove -n <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := creds.RemoveProfile(profileName)
-		if err != nil {
-			log.Fatal(err)
-		}
+		WithCredentials(func(creds *Credentials) {
+			err := creds.RemoveProfile(profileName)
+			if err != nil {
+				log.Fatal(err)
+			}
+		})
 	},
 	Aliases: []string{
 		"rm",

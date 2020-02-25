@@ -15,6 +15,7 @@ require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mattn/go-runewidth v0.0.8 // indirect
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.10.1
 	github.com/remyoudompheng/go-misc v0.0.0-20190427085024-2d6ac652a50e
 	github.com/sirupsen/logrus v1.4.2
@@ -23,5 +24,6 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/timakin/bodyclose v0.0.0-20190930140734-f7f2e9bca95e
 	golang.org/x/lint v0.0.0-20190313153728-d0100b6bd8b3
-	golang.org/x/tools v0.0.0-20191010075000-0337d82405ff
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
+	golang.org/x/tools v0.0.0-20191127201027-ecd32218bd7f
 )

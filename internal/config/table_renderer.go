@@ -88,7 +88,7 @@ func (tr *TableRenderer) toRows(c *Config, name string) []table.Row {
 
 	for _, v := range values {
 		origin := "Default"
-		if v.IsDefault() {
+		if !v.IsDefault() {
 			origin = "User config"
 		}
 

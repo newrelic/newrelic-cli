@@ -9,15 +9,14 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/prometheus/common/log"
+	log "github.com/sirupsen/logrus"
 )
 
-// DefaultCredentialsFile is the default place to load profiles from
-const DefaultCredentialsFile = "credentials"
-
-const defaultConfigType = "json"
-
 const (
+	// DefaultCredentialsFile is the default place to load profiles from
+	DefaultCredentialsFile = "credentials"
+
+	defaultConfigType    = "json"
 	defaultProfileString = " (default)"
 	hiddenKeyString      = "<hidden>"
 )
@@ -29,12 +28,12 @@ type Credentials struct {
 	ConfigDirectory string
 }
 
-// LoadCredentials loads the list of profiles
+// LoadCredentials loads the current CLI credentials from disk.
 func LoadCredentials(configDir string) (*Credentials, error) {
 	log.Debug("loading credentials file")
 
 	if configDir == "" {
-		configDir = os.ExpandEnv(config.DefaultConfigDirectory)
+		configDir = config.DefaultConfigDirectory
 	} else {
 		configDir = os.ExpandEnv(configDir)
 	}
@@ -50,7 +49,7 @@ func LoadCredentials(configDir string) (*Credentials, error) {
 
 	defaultProfile, err := LoadDefaultProfile(configDir)
 	if err != nil {
-		log.Warnf("no default configuration set: see newrelic profiles --help")
+		log.Warnf("no default profile set: see newrelic profiles --help")
 	}
 
 	creds.Profiles = *profiles
@@ -86,6 +85,13 @@ func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string
 
 	file, _ := json.MarshalIndent(c.Profiles, "", "  ")
 	defaultCredentialsFile := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultCredentialsFile))
+
+	if _, err := os.Stat(c.ConfigDirectory); os.IsNotExist(err) {
+		err := os.MkdirAll(c.ConfigDirectory, os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
 
 	err := ioutil.WriteFile(defaultCredentialsFile, file, 0600)
 	if err != nil {
