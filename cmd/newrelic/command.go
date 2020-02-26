@@ -64,7 +64,6 @@ var versionCmd = &cobra.Command{
 	Example: "newrelic version",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("newrelic version %s\n", Version)
-
 	},
 }
 
