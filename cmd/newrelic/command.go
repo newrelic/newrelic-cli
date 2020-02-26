@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -10,6 +13,46 @@ var Command = &cobra.Command{
 	Short:   "The New Relic CLI",
 	Long:    `The New Relic CLI enables users to perform tasks against the New Relic APIs`,
 	Version: "dev",
+}
+
+var (
+	completionShell string
+)
+
+var completionCmd = &cobra.Command{
+	Use:   "completion",
+	Short: "Generates shell completion functions",
+	Long: `To load completion run
+
+. <(newrelic completion --shell bash)
+
+To configure your shell to load the completions on start, include the following in your shell's rc file.
+
+Using bash, for example.
+
+# ~/.bashrc or ~/.profile
+. <(newrelic completion --shell bash)
+
+
+Using zsh, for example.
+
+# ~/.zshrc
+. <(newrelic completion --shell zsh)
+`,
+	Example: "newrelic completion --shell zsh",
+	Run: func(cmd *cobra.Command, args []string) {
+
+		switch shell := completionShell; shell {
+		case "bash":
+			Command.GenBashCompletion(os.Stdout)
+		case "powershell":
+			Command.GenPowerShellCompletion(os.Stdout)
+		case "zsh":
+			Command.GenZshCompletion(os.Stdout)
+		default:
+			log.Error("--shell must be one of [bash, powershell, zsh]")
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

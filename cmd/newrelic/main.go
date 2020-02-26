@@ -23,6 +23,10 @@ func init() {
 	Command.AddCommand(credentials.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(config.Command)
+
+	Command.AddCommand(completionCmd)
+	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for shell.  (bash, powershell, zsh)")
+	completionCmd.MarkFlagRequired("shell")
 }
 
 func main() {
