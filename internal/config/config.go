@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/imdario/mergo"
 	homedir "github.com/mitchellh/go-homedir"
@@ -100,11 +101,19 @@ func getDefaultConfigDirectory() (string, error) {
 }
 
 func (c *Config) setLogger() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp:          true,
+		TimestampFormat:        time.RFC3339,
+		DisableLevelTruncation: true,
+	})
+
 	switch level := strings.ToUpper(c.LogLevel); level {
 	case "TRACE":
 		log.SetLevel(log.TraceLevel)
+		log.SetReportCaller(true)
 	case "DEBUG":
 		log.SetLevel(log.DebugLevel)
+		log.SetReportCaller(true)
 	case "WARN":
 		log.SetLevel(log.WarnLevel)
 	case "ERROR":
