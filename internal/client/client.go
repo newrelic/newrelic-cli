@@ -45,7 +45,7 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 }
 
 func applyOverrides(p *credentials.Profile) *credentials.Profile {
-	envAPIKey := os.Getenv("NEWRELIC_API_KEY")
+	envAPIKey := os.Getenv("NEWRELIC_PERSONAL_API_KEY")
 	envAdminAPIKey := os.Getenv("NEWRELIC_ADMIN_API_KEY")
 	envRegion := os.Getenv("NEWRELIC_REGION")
 
