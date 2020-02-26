@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -19,6 +20,9 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 
 	// Create the New Relic Client
 	defProfile := creds.Default()
+
+	defProfile = applyOverrides(defProfile)
+
 	if defProfile != nil {
 		adminAPIKey = defProfile.AdminAPIKey
 		personalAPIKey = defProfile.PersonalAPIKey
@@ -38,4 +42,36 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	}
 
 	return nrClient, nil
+}
+
+func applyOverrides(p *credentials.Profile) *credentials.Profile {
+	envAPIKey := os.Getenv("NEWRELIC_API_KEY")
+	envAdminAPIKey := os.Getenv("NEWRELIC_ADMIN_API_KEY")
+	envRegion := os.Getenv("NEWRELIC_REGION")
+
+	if envAPIKey == "" && envAdminAPIKey == "" && envRegion == "" {
+		return p
+	}
+
+	var out credentials.Profile
+
+	if p == nil {
+		out = credentials.Profile{}
+	} else {
+		out = *p
+	}
+
+	if envAPIKey != "" {
+		out.PersonalAPIKey = envAPIKey
+	}
+
+	if envAdminAPIKey != "" {
+		out.AdminAPIKey = envAdminAPIKey
+	}
+
+	if envRegion != "" {
+		out.Region = envRegion
+	}
+
+	return &out
 }
