@@ -69,7 +69,7 @@ func (c *Credentials) profileExists(profileName string) bool {
 }
 
 // AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string) error {
+func (c *Credentials) AddProfile(profileName, region, apiKey string) error {
 
 	if c.profileExists(profileName) {
 		return fmt.Errorf("profile with name %s already exists", profileName)
@@ -78,7 +78,6 @@ func (c *Credentials) AddProfile(profileName, region, apiKey, adminAPIKey string
 	p := Profile{
 		Region:         region,
 		PersonalAPIKey: apiKey,
-		AdminAPIKey:    adminAPIKey,
 	}
 
 	c.Profiles[profileName] = p
@@ -150,10 +149,9 @@ func (c *Credentials) List() {
 	defer color.Unset()
 	colorMuted := color.New(color.FgHiBlack).SprintFunc()
 
-	nameLen := 4     // Name
-	keyLen := 8      // <hidden>
-	adminKeyLen := 8 // <hidden>
-	regionLen := 6   // Region
+	nameLen := 4   // Name
+	keyLen := 8    // <hidden>
+	regionLen := 6 // Region
 
 	// Find lengths for pretty printing
 	for k, v := range c.Profiles {
@@ -177,9 +175,9 @@ func (c *Credentials) List() {
 
 	nameLen += len(defaultProfileString)
 
-	format := fmt.Sprintf("%%-%ds  %%-%ds  %%-%ds  %%-%ds\n", nameLen, regionLen, keyLen, adminKeyLen)
-	fmt.Printf(format, "Name", "Region", "API key", "Admin API key")
-	fmt.Printf(format, strings.Repeat("-", nameLen), strings.Repeat("-", regionLen), strings.Repeat("-", keyLen), strings.Repeat("-", adminKeyLen))
+	format := fmt.Sprintf("%%-%ds  %%-%ds  %%-%ds\n", nameLen, regionLen, keyLen)
+	fmt.Printf(format, "Name", "Region", "API key")
+	fmt.Printf(format, strings.Repeat("-", nameLen), strings.Repeat("-", regionLen), strings.Repeat("-", keyLen))
 	// Print them out
 	for k, v := range c.Profiles {
 		name := k
@@ -191,11 +189,7 @@ func (c *Credentials) List() {
 			key = v.PersonalAPIKey
 		}
 
-		adminKey := colorMuted(hiddenKeyString)
-		if showKeys {
-			adminKey = v.AdminAPIKey
-		}
-		fmt.Printf(format, name, v.Region, key, adminKey)
+		fmt.Printf(format, name, v.Region, key)
 	}
 	fmt.Println("")
 }
