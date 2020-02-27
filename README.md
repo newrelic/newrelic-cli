@@ -8,23 +8,40 @@
 
 The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/)
 
+## Overview
 
-## Community
+**THIS IS AN ALPHA / PRE-RELEASE: Subject to drastic changes**
 
-New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. 
+The New Relic CLI is a project to consolidate some of the tools that New Relic
+offers for managing resources.  Current scope is limited while the framework is
+being developed, but the tool as-is does perform a subset of tasks.
 
-* [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
-* [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.
-* [Contributors Guide](CONTRIBUTING.md) - Contributions are welcome (and if you submit a Enhancement Request, expect to be invited to contribute it yourself :grin:).
-* [Community discussion board](https://discuss.newrelic.com/c/build-on-new-relic/developer-toolkit) - Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub.
+* Entity Search: Search for entities across all your New Relic accounts
+* Entity Tagging: Manage tags across all of your entities
+* Deployment Markers: Easily record an APM Application deployment within
+  New Relic.
 
-Keep in mind that when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
+### Other Resources
 
-## Usage Overview
+There are a handful of other useful tools that this does not replace.  Here are
+some useful links to other tools that you might be interested in using at this
+time.
+
+* [NR1 CLI](https://developer.newrelic.com/build-tools/new-relic-one-applications/cli):
+  Command line interface for managing development workflows for custom Nerdpacks on New Relic One.
+* [New Relic Lambda CLI](https://github.com/newrelic/newrelic-lambda-cli): A
+  CLI to install the New Relic AWS Lambda integration and layers.
+* [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
+  A utility that automatically detects common problems with New Relic agents.
+
+
+## Usage
 
 ### Installation
 
-TBD
+Today pre-release binaries have been created on the GitHub releases page.  You
+can dowload the latest release [here](https://github.com/newrelic/newrelic-cli/releases)
+
 
 ### Getting Help
 
@@ -133,6 +150,16 @@ This refers to what part of the code is the focus of the work.  For example:
 $ make docs
 ```
 
+## Community
+
+New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. 
+
+* [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
+* [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.
+* [Contributors Guide](CONTRIBUTING.md) - Contributions are welcome (and if you submit a Enhancement Request, expect to be invited to contribute it yourself :grin:).
+* [Community discussion board](https://discuss.newrelic.com/c/build-on-new-relic/developer-toolkit) - Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub.
+
+Keep in mind that when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
 
 ## Support
 
