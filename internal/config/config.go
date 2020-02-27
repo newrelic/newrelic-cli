@@ -251,6 +251,11 @@ func (c *Config) set(key string, value interface{}) error {
 		return fmt.Errorf("failed to locate global scope")
 	}
 
+	err = config.setDefaults()
+	if err != nil {
+		return err
+	}
+
 	err = config.validate()
 
 	if err != nil {

@@ -12,7 +12,6 @@ var (
 	profileName string
 	region      string
 	apiKey      string
-	adminAPIKey string
 )
 
 // Command is the base command for managing profiles
@@ -29,10 +28,10 @@ var credentialsAdd = &cobra.Command{
 The describe-deployments command performs a search for New Relic APM
 deployments.
 `,
-	Example: "newrelic credentials add -n <profileName> -r <region> --apiKey <apiKey> --adminAPIKey <adminAPIKey>",
+	Example: "newrelic credentials add -n <profileName> -r <region> --apiKey <apiKey>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
-			err := creds.AddProfile(profileName, region, apiKey, adminAPIKey)
+			err := creds.AddProfile(profileName, region, apiKey)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -117,11 +116,9 @@ func init() {
 	credentialsAdd.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to add")
 	credentialsAdd.Flags().StringVarP(&region, "region", "r", "", "us or eu region")
 	credentialsAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "Personal API key")
-	credentialsAdd.Flags().StringVarP(&adminAPIKey, "adminAPIKey", "", "", "Admin API key for REST v2")
 	credentialsAdd.MarkFlagRequired("profileName")
 	credentialsAdd.MarkFlagRequired("region")
-	// credentialsAdd.MarkFlagRequired("apiKey")
-	// credentialsAdd.MarkFlagRequired("adminAPIKey")
+	credentialsAdd.MarkFlagRequired("apiKey")
 
 	// Default
 	Command.AddCommand(credentialsDefault)

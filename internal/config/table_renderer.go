@@ -1,12 +1,12 @@
 package config
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/table"
 	"github.com/jedib0t/go-pretty/text"
+	log "github.com/sirupsen/logrus"
 )
 
 // TableRenderer represents the presentation layer for human readable command output.
@@ -31,14 +31,14 @@ func (tr *TableRenderer) List(c *Config) {
 func (tr *TableRenderer) Delete(key string) {
 	bold := color.New(color.Bold).SprintFunc()
 	green := color.New(color.FgHiGreen).SprintFunc()
-	fmt.Fprintf(os.Stderr, "%s %s removed successfully\n", green("✔"), bold(key))
+	log.Debugf("%s %s removed successfully\n", green("✔"), bold(key))
 }
 
 // Set renders output for the set command.
 func (tr *TableRenderer) Set(key string, value string) {
 	bold := color.New(color.Bold).SprintFunc()
 	cyan := color.New(color.FgHiCyan).SprintFunc()
-	fmt.Fprintf(os.Stderr, "%s set to %s\n", bold(key), cyan(value))
+	log.Debugf("%s set to %s\n", bold(key), cyan(value))
 }
 
 func (tr *TableRenderer) renderTable(c *Config, key string) {
@@ -74,9 +74,6 @@ func (tr *TableRenderer) renderTable(c *Config, key string) {
 	})
 
 	t.Render()
-
-	bold := color.New(color.Bold).SprintFunc()
-	fmt.Fprintf(os.Stderr, "\n\nRun %s for more info.\n", bold("\"newrelic config get --key KEY\""))
 }
 
 // toRows converts the config struct to go-pretty rows.
