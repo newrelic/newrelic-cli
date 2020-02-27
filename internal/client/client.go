@@ -43,8 +43,8 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 
 // applyOverrides reads Profile info out of the Environment to override config
 func applyOverrides(p *credentials.Profile) *credentials.Profile {
-	envAPIKey := os.Getenv("NEWRELIC_PERSONAL_API_KEY")
-	envRegion := os.Getenv("NEWRELIC_REGION")
+	envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
+	envRegion := os.Getenv("NEW_RELIC_REGION")
 
 	if envAPIKey == "" && envRegion == "" {
 		return p
