@@ -16,9 +16,8 @@ const DefaultProfileFile = "default-profile"
 
 // Profile contains data of a single profile
 type Profile struct {
-	AdminAPIKey    string `mapstructure:"adminAPIKey" json:"adminAPIKey,omitempty"` // For accessing New Relic (Rest v2)
-	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey,omitempty"`           // For accessing New Relic GraphQL resources
-	Region         string `mapstructure:"region" json:"region,omitempty"`           // Region to use for New Relic resources
+	PersonalAPIKey string `mapstructure:"apiKey" json:"apiKey,omitempty"` // For accessing New Relic GraphQL resources
+	Region         string `mapstructure:"region" json:"region,omitempty"` // Region to use for New Relic resources
 }
 
 // LoadProfiles reads the credential profiles from the default path.
