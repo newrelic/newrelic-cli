@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -220,7 +221,7 @@ func assembleTags(tags []string) ([]entities.Tag, error) {
 
 	for _, x := range tags {
 		if !strings.Contains(x, ":") {
-			return []entities.Tag{}, fmt.Errorf("Tags must be specified as colon separated key:value pairs")
+			return []entities.Tag{}, errors.New("tags must be specified as colon separated key:value pairs")
 		}
 
 		v := strings.SplitN(x, ":", 2)
@@ -257,7 +258,7 @@ func assembleTagValues(values []string) ([]entities.TagValue, error) {
 }
 
 func assembleTagValue(tagValueString string) (entities.TagValue, error) {
-	tagFormatError := fmt.Errorf("Tag values must be specified as colon separated key:value pairs")
+	tagFormatError := errors.New("tag values must be specified as colon separated key:value pairs")
 
 	if !strings.Contains(tagValueString, ":") {
 		return entities.TagValue{}, tagFormatError
@@ -279,6 +280,9 @@ func assembleTagValue(tagValueString string) (entities.TagValue, error) {
 }
 
 func init() {
+
+	var err error
+
 	Command.AddCommand(entitiesSearch)
 	entitiesSearch.Flags().StringVarP(&entityName, "name", "n", "", "search for results matching the given name")
 	entitiesSearch.Flags().StringVarP(&entityType, "type", "t", "", "search for results matching the given type")
@@ -289,29 +293,60 @@ func init() {
 
 	Command.AddCommand(entitiesDescribeTags)
 	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to describe")
-	entitiesDescribeTags.MarkFlagRequired("guid")
+	err = entitiesDescribeTags.MarkFlagRequired("guid")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(entitiesDeleteTags)
 	entitiesDeleteTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tags on")
 	entitiesDeleteTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to delete from the entity")
-	entitiesDeleteTags.MarkFlagRequired("guid")
-	entitiesDeleteTags.MarkFlagRequired("tag")
+	err = entitiesDeleteTags.MarkFlagRequired("guid")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = entitiesDeleteTags.MarkFlagRequired("tag")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(entitiesDeleteTagValues)
 	entitiesDeleteTagValues.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
 	entitiesDeleteTagValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "key:value tags to delete from the entity")
-	entitiesDeleteTagValues.MarkFlagRequired("guid")
-	entitiesDeleteTagValues.MarkFlagRequired("value")
+	err = entitiesDeleteTagValues.MarkFlagRequired("guid")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = entitiesDeleteTagValues.MarkFlagRequired("value")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(entitiesCreateTags)
 	entitiesCreateTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to create tag values on")
 	entitiesCreateTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to add to the entity")
-	entitiesCreateTags.MarkFlagRequired("guid")
-	entitiesCreateTags.MarkFlagRequired("tag")
+	err = entitiesCreateTags.MarkFlagRequired("guid")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = entitiesCreateTags.MarkFlagRequired("tag")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(entitiesReplaceTags)
 	entitiesReplaceTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
 	entitiesReplaceTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to replace on the entity")
-	entitiesReplaceTags.MarkFlagRequired("guid")
-	entitiesReplaceTags.MarkFlagRequired("tag")
+	err = entitiesReplaceTags.MarkFlagRequired("guid")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = entitiesReplaceTags.MarkFlagRequired("tag")
+	if err != nil {
+		log.Error(err)
+	}
 }

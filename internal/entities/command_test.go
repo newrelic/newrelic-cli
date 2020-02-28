@@ -36,7 +36,7 @@ func TestEntitiesDescribeTags(t *testing.T) {
 	for _, r := range requiredFlags {
 		x := entitiesDescribeTags.Flag(r)
 		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
+			t.Errorf("missing required flag: %s\n", r)
 			continue
 		}
 
@@ -52,7 +52,7 @@ func TestEntitiesDeleteTags(t *testing.T) {
 	for _, r := range requiredFlags {
 		x := entitiesDeleteTags.Flag(r)
 		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
+			t.Errorf("missing required flag: %s\n", r)
 			continue
 		}
 
@@ -68,7 +68,7 @@ func TestEntitiesDeleteTagValues(t *testing.T) {
 	for _, r := range requiredFlags {
 		x := entitiesDeleteTagValues.Flag(r)
 		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
+			t.Errorf("missing required flag: %s\n", r)
 			continue
 		}
 
@@ -85,7 +85,7 @@ func TestEntitiesCreateTags(t *testing.T) {
 	for _, r := range requiredFlags {
 		x := cur.Flag(r)
 		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
+			t.Errorf("missing required flag: %s\n", r)
 			continue
 		}
 
@@ -102,7 +102,7 @@ func TestEntitiesReplaceTags(t *testing.T) {
 	for _, r := range requiredFlags {
 		x := cur.Flag(r)
 		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
+			t.Errorf("missing required flag: %s\n", r)
 			continue
 		}
 
@@ -119,7 +119,7 @@ func TestEntitiesAssembleTags(t *testing.T) {
 		{
 			[]string{"one"},
 			[]entities.Tag{},
-			fmt.Errorf("Tags must be specified as colon separated key:value pairs"),
+			fmt.Errorf("tags must be specified as colon separated key:value pairs"),
 		},
 		{
 			[]string{"tag1:value1", "tag1:value2", "tag2:value1"},
@@ -148,12 +148,12 @@ func TestEntitiesAssembleTagValues(t *testing.T) {
 		{
 			[]string{"one"},
 			[]entities.TagValue{},
-			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+			fmt.Errorf("tag values must be specified as colon separated key:value pairs"),
 		},
 		{
 			[]string{"incomplete:"},
 			[]entities.TagValue{},
-			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+			fmt.Errorf("tag values must be specified as colon separated key:value pairs"),
 		},
 		{
 			[]string{"tag1:value1", "tag1:value2", "tag2:value1"},
@@ -183,12 +183,12 @@ func TestEntitiesAssembleTagValue(t *testing.T) {
 		{
 			"invalidTag",
 			entities.TagValue{},
-			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+			fmt.Errorf("tag values must be specified as colon separated key:value pairs"),
 		},
 		{
 			"incompleteTag:",
 			entities.TagValue{},
-			fmt.Errorf("Tag values must be specified as colon separated key:value pairs"),
+			fmt.Errorf("tag values must be specified as colon separated key:value pairs"),
 		},
 		{
 			"validKey:validValue",

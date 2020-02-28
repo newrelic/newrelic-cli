@@ -8,9 +8,8 @@ import (
 
 var (
 	// Display keys when printing output
-	showKeys bool
-	key      string
-	value    string
+	key   string
+	value string
 )
 
 // Command is the base command for managing profiles
@@ -81,7 +80,11 @@ This will have the effect of resetting the value to its default.
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithConfig(func(cfg *Config) {
-			cfg.Delete(key)
+			err := cfg.Delete(key)
+			if err != nil {
+				log.Error(err)
+			}
+
 		})
 	},
 	Aliases: []string{
@@ -90,19 +93,33 @@ This will have the effect of resetting the value to its default.
 }
 
 func init() {
+	var err error
+
 	Command.AddCommand(cmdList)
 
 	Command.AddCommand(cmdSet)
 	cmdSet.Flags().StringVarP(&key, "key", "k", "", "the key to set")
 	cmdSet.Flags().StringVarP(&value, "value", "v", "", "the value to be set")
-	cmdSet.MarkFlagRequired("key")
-	cmdSet.MarkFlagRequired("value")
+	err = cmdSet.MarkFlagRequired("key")
+	if err != nil {
+		log.Error(err)
+	}
+	err = cmdSet.MarkFlagRequired("value")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(cmdGet)
 	cmdGet.Flags().StringVarP(&key, "key", "k", "", "the key to get")
-	cmdGet.MarkFlagRequired("key")
+	err = cmdGet.MarkFlagRequired("key")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(cmdDelete)
 	cmdDelete.Flags().StringVarP(&key, "key", "k", "", "the key to delete")
-	cmdDelete.MarkFlagRequired("key")
+	err = cmdDelete.MarkFlagRequired("key")
+	if err != nil {
+		log.Error(err)
+	}
 }

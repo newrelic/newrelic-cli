@@ -22,7 +22,10 @@ func init() {
 
 	Command.AddCommand(completionCmd)
 	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for shell.  (bash, powershell, zsh)")
-	completionCmd.MarkFlagRequired("shell")
+	err := completionCmd.MarkFlagRequired("shell")
+	if err != nil {
+		log.Error(err)
+	}
 
 	// Bind imported sub-commands
 	Command.AddCommand(entities.Command)

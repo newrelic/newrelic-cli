@@ -106,19 +106,38 @@ deployment.
 }
 
 func init() {
+	var err error
+
 	Command.AddCommand(apmDescribeDeployments)
 	apmDescribeDeployments.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given name")
-	apmDescribeDeployments.MarkFlagRequired("applicationID")
+	err = apmDescribeDeployments.MarkFlagRequired("applicationID")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(apmCreateDeployment)
 	apmCreateDeployment.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given name")
 	apmCreateDeployment.Flags().StringVarP(&deploymentRevision, "revision", "r", "", "the code revision to set for the deployment")
-	apmCreateDeployment.MarkFlagRequired("applicationID")
-	apmCreateDeployment.MarkFlagRequired("revision")
+	err = apmCreateDeployment.MarkFlagRequired("applicationID")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = apmCreateDeployment.MarkFlagRequired("revision")
+	if err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(apmDeleteDeployment)
 	apmDeleteDeployment.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given name")
 	apmDeleteDeployment.Flags().IntVarP(&deploymentID, "deploymentID", "d", 0, "search for results matching the given name")
-	apmDeleteDeployment.MarkFlagRequired("applicationID")
-	apmDeleteDeployment.MarkFlagRequired("deploymentID")
+	err = apmDeleteDeployment.MarkFlagRequired("applicationID")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = apmDeleteDeployment.MarkFlagRequired("deploymentID")
+	if err != nil {
+		log.Error(err)
+	}
 }

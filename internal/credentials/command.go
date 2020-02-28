@@ -40,7 +40,10 @@ deployments.
 			log.Infof("profile %s added", cyan(profileName))
 
 			if len(creds.Profiles) == 1 {
-				creds.SetDefaultProfile(profileName)
+				err := creds.SetDefaultProfile(profileName)
+				if err != nil {
+					log.Fatal(err)
+				}
 
 				cyan := color.New(color.FgCyan).SprintfFunc()
 				log.Infof("setting %s as default profile", cyan(profileName))
@@ -111,19 +114,35 @@ The remove command removes a credential profile specified by name.
 }
 
 func init() {
+	var err error
+
 	// Add
 	Command.AddCommand(credentialsAdd)
 	credentialsAdd.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to add")
 	credentialsAdd.Flags().StringVarP(&region, "region", "r", "", "us or eu region")
 	credentialsAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "Personal API key")
-	credentialsAdd.MarkFlagRequired("profileName")
-	credentialsAdd.MarkFlagRequired("region")
-	credentialsAdd.MarkFlagRequired("apiKey")
+	err = credentialsAdd.MarkFlagRequired("profileName")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = credentialsAdd.MarkFlagRequired("region")
+	if err != nil {
+		log.Error(err)
+	}
+
+	err = credentialsAdd.MarkFlagRequired("apiKey")
+	if err != nil {
+		log.Error(err)
+	}
 
 	// Default
 	Command.AddCommand(credentialsDefault)
 	credentialsDefault.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to set as default")
-	credentialsDefault.MarkFlagRequired("profileName")
+	err = credentialsDefault.MarkFlagRequired("profileName")
+	if err != nil {
+		log.Error(err)
+	}
 
 	// List
 	Command.AddCommand(credentialsList)
@@ -132,5 +151,8 @@ func init() {
 	// Remove
 	Command.AddCommand(credentialsRemove)
 	credentialsRemove.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to remove")
-	credentialsRemove.MarkFlagRequired("profileName")
+	err = credentialsRemove.MarkFlagRequired("profileName")
+	if err != nil {
+		log.Error(err)
+	}
 }
