@@ -6,6 +6,7 @@ GO         ?= go
 BUILD_DIR  ?= ./bin/
 LDFLAGS    ?= "-s -w -X main.Version=$(PROJECT_VER) -X main.AppName=$$b" # $b replaced by the binary name in the compile loop, -s/w remove debug symbols
 SRCDIR     ?= .
+COMPILE_OS ?= darwin linux windows
 
 # Determine commands by looking into cmd/*
 COMMANDS   ?= $(wildcard ${SRCDIR}/cmd/*)
@@ -19,6 +20,17 @@ clean-compile:
 	@rm -rfv $(BUILD_DIR)/*
 
 compile: deps compile-only
+
+compile-all: deps-only
+	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
+	@mkdir -p $(BUILD_DIR)/$(GOOS)
+	@for b in $(BINS); do \
+		for os in $(COMPILE_OS); do \
+			echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)$$os/$$b"; \
+			BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
+			GOOS=$$os $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$$os/$$b $$BUILD_FILES ; \
+		done \
+	done
 
 compile-only: deps-only
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
