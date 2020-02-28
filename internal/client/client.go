@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -12,9 +13,9 @@ import (
 // CreateNRClient initializes the New Relic client.
 func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, error) {
 	var (
-		err            error
-		personalAPIKey string
-		region         string
+		err    error
+		apiKey string
+		region string
 	)
 
 	// Create the New Relic Client
@@ -23,14 +24,16 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	defProfile = applyOverrides(defProfile)
 
 	if defProfile != nil {
-		personalAPIKey = defProfile.PersonalAPIKey
+		apiKey = defProfile.APIKey
 		region = defProfile.Region
-	} else {
-		return nil, fmt.Errorf("invalid profile name: '%s'", creds.DefaultProfile)
+	}
+
+	if apiKey == "" {
+		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
 	}
 
 	nrClient, err := newrelic.New(
-		newrelic.ConfigPersonalAPIKey(personalAPIKey),
+		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
 		newrelic.ConfigRegion(region),
 	)
@@ -59,7 +62,7 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 	}
 
 	if envAPIKey != "" {
-		out.PersonalAPIKey = envAPIKey
+		out.APIKey = envAPIKey
 	}
 
 	if envRegion != "" {
