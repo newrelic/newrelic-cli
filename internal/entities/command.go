@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -220,7 +221,7 @@ func assembleTags(tags []string) ([]entities.Tag, error) {
 
 	for _, x := range tags {
 		if !strings.Contains(x, ":") {
-			return []entities.Tag{}, fmt.Errorf("Tags must be specified as colon separated key:value pairs")
+			return []entities.Tag{}, errors.New("tags must be specified as colon separated key:value pairs")
 		}
 
 		v := strings.SplitN(x, ":", 2)
@@ -257,7 +258,7 @@ func assembleTagValues(values []string) ([]entities.TagValue, error) {
 }
 
 func assembleTagValue(tagValueString string) (entities.TagValue, error) {
-	tagFormatError := fmt.Errorf("Tag values must be specified as colon separated key:value pairs")
+	tagFormatError := errors.New("tag values must be specified as colon separated key:value pairs")
 
 	if !strings.Contains(tagValueString, ":") {
 		return entities.TagValue{}, tagFormatError

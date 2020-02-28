@@ -100,7 +100,7 @@ func readCredentials(configDir string) (*viper.Viper, error) {
 
 			filePath := os.ExpandEnv(fmt.Sprintf("%s/%s.json", configDir, DefaultCredentialsFile))
 
-			err := credViper.WriteConfigAs(filePath)
+			err = credViper.WriteConfigAs(filePath)
 			if err != nil {
 				return nil, fmt.Errorf("error initializing new configuration directory %s: %s", filePath, err)
 			}
