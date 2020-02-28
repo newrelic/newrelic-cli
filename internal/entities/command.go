@@ -30,12 +30,12 @@ var (
 // Command represents the entities command
 var Command = &cobra.Command{
 	Use:   "entities",
-	Short: "entities commands",
+	Short: "Subcommands to interact with New Relic entities",
 }
 
 var entitiesSearch = &cobra.Command{
 	Use:   "search",
-	Short: "entities search",
+	Short: "Search for New Relic entities",
 	Long: `Search for New Relic entities
 
 The search command performs a search for New Relic entities. Optionally, you can
@@ -100,7 +100,7 @@ more information.
 
 var entitiesDescribeTags = &cobra.Command{
 	Use:   "describe-tags",
-	Short: "describe-tags",
+	Short: "Describe the tags for a given entity",
 	Long: `Describe the tags for a given entity
 
 The describe-tags command returns JSON output of the tags for the requested
@@ -126,7 +126,7 @@ entity.
 
 var entitiesDeleteTags = &cobra.Command{
 	Use:   "delete-tags",
-	Short: "delete-tags",
+	Short: "Delete the given tags for the given entity",
 	Long: `Delete the given tags for the given entity
 
 The delete-tags command performs a delete operation on the entity for the
@@ -145,7 +145,7 @@ specified tag keys.
 
 var entitiesDeleteTagValues = &cobra.Command{
 	Use:   "delete-tag-values",
-	Short: "delete-tag-values",
+	Short: "Delete the given tag/value pairs from the given entitiy",
 	Long: `Delete the given tag/value pairs from the given entitiy
 
 The delete-tag-values command performs a delete operation on the entity for the
@@ -169,7 +169,7 @@ specified tag:value pairs.
 
 var entitiesCreateTags = &cobra.Command{
 	Use:   "create-tags",
-	Short: "create-tags",
+	Short: "Create tag:value pairs for the given entitiy",
 	Long: `Create tag:value pairs for the given entitiy
 
 The create-tags command adds tag:value pairs for the given entity.
@@ -192,7 +192,7 @@ The create-tags command adds tag:value pairs for the given entity.
 
 var entitiesReplaceTags = &cobra.Command{
 	Use:   "replace-tags",
-	Short: "replace-tags",
+	Short: "Replace tag:value pairs for the given entitiy",
 	Long: `Repaces tag:value pairs for the given entitiy
 
 The replace-tags command replaces any existing tag:value pairs with those

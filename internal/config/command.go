@@ -15,12 +15,12 @@ var (
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
 	Use:   "config",
-	Short: "configuration management",
+	Short: "Subcommands to manage the configuration of this tool",
 }
 
 var cmdSet = &cobra.Command{
 	Use:   "set",
-	Short: "set a configuration value",
+	Short: "Set a configuration value",
 	Long: `Set a configuration value
 
 The set command sets a persistent configuration value for the New Relic CLI.
@@ -38,7 +38,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 
 var cmdGet = &cobra.Command{
 	Use:   "get",
-	Short: "get a configuration value",
+	Short: "Get a configuration value",
 	Long: `Get a configuration value
 
 The get command gets a persistent configuration value for the New Relic CLI.
@@ -53,7 +53,7 @@ The get command gets a persistent configuration value for the New Relic CLI.
 
 var cmdList = &cobra.Command{
 	Use:   "list",
-	Short: "list configuration values",
+	Short: "List the current configuration values",
 	Long: `List the current configuration values
 
 The list command lists all persistent configuration values for the New Relic CLI.
@@ -71,7 +71,7 @@ The list command lists all persistent configuration values for the New Relic CLI
 
 var cmdDelete = &cobra.Command{
 	Use:   "delete",
-	Short: "delete a configuration value",
+	Short: "Delete a configuration value",
 	Long: `Delete a configuration value
 
 The delete command deletes a persistent configuration value for the New Relic CLI.
