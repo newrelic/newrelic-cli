@@ -193,12 +193,15 @@ func load() (*Config, error) {
 }
 
 func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
-	c.visitAllConfigFields(func(v *Value) error {
+	err := c.visitAllConfigFields(func(v *Value) error {
 		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value.(string))
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
-	err := os.MkdirAll(DefaultConfigDirectory, os.ModePerm)
+	err = os.MkdirAll(DefaultConfigDirectory, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -211,14 +214,10 @@ func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
 	return nil
 }
 
-func (c *Config) get(key string) []Value {
-	return c.getAll(key)
-}
-
 func (c *Config) getAll(key string) []Value {
 	values := []Value{}
 
-	c.visitAllConfigFields(func(v *Value) error {
+	err := c.visitAllConfigFields(func(v *Value) error {
 		// Return early if name was supplied and doesn't match
 		if key != "" && key != v.Name {
 			return nil
@@ -228,6 +227,9 @@ func (c *Config) getAll(key string) []Value {
 
 		return nil
 	})
+	if err != nil {
+		log.Error(err)
+	}
 
 	return values
 }
@@ -269,7 +271,10 @@ func (c *Config) set(key string, value interface{}) error {
 			return createErr
 		}
 	} else {
-		cfgViper.WriteConfig()
+		err = cfgViper.WriteConfig()
+		if err != nil {
+			log.Error(err)
+		}
 	}
 
 	return nil
@@ -278,7 +283,8 @@ func (c *Config) set(key string, value interface{}) error {
 func (c *Config) getDefaultValue(key string) (interface{}, error) {
 	var dv interface{}
 	var found bool
-	c.visitAllConfigFields(func(v *Value) error {
+
+	err := c.visitAllConfigFields(func(v *Value) error {
 		if key == v.Name {
 			dv = v.Default
 			found = true
@@ -286,6 +292,10 @@ func (c *Config) getDefaultValue(key string) (interface{}, error) {
 
 		return nil
 	})
+
+	if err != nil {
+		return dv, err
+	}
 
 	if found {
 		return dv, nil
@@ -381,6 +391,7 @@ func readConfig() (*viper.Viper, error) {
 	cfgViper.AutomaticEnv()                        // read in environment variables that match
 
 	err := cfgViper.ReadInConfig()
+	// nolint
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			log.Debug("no config file found, using defaults")

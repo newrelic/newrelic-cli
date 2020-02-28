@@ -67,10 +67,10 @@ func readDefaultProfile(configDir string) (string, error) {
 
 	// ReadInConfig must be called here, even though we receive an error back,
 	// ConfigFileUsed() does not return the value without this call here.
-	cfgViper.ReadInConfig()
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err := cfgViper.ReadInConfig()
+	if err != nil {
+		log.Debug(err)
+	}
 
 	// Since Viper requires key:value, we manually read it again and unmarshal the JSON...
 	byteValue, err := ioutil.ReadFile(cfgViper.ConfigFileUsed())

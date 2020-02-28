@@ -45,11 +45,20 @@ Using zsh, for example.
 
 		switch shell := completionShell; shell {
 		case "bash":
-			Command.GenBashCompletion(os.Stdout)
+			err := Command.GenBashCompletion(os.Stdout)
+			if err != nil {
+				log.Error(err)
+			}
 		case "powershell":
-			Command.GenPowerShellCompletion(os.Stdout)
+			err := Command.GenPowerShellCompletion(os.Stdout)
+			if err != nil {
+				log.Error(err)
+			}
 		case "zsh":
-			Command.GenZshCompletion(os.Stdout)
+			err := Command.GenZshCompletion(os.Stdout)
+			if err != nil {
+				log.Error(err)
+			}
 		default:
 			log.Error("--shell must be one of [bash, powershell, zsh]")
 		}
