@@ -17,13 +17,13 @@ var (
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
 	Use:   "profiles",
-	Short: "profile management",
+	Short: "Subcommands to mange the credential profiles for this tool",
 }
 
 var credentialsAdd = &cobra.Command{
 	Use:   "add",
-	Short: "add a new profile",
-	Long: `Add new credential profile
+	Short: "Add a new credential profile",
+	Long: `Add a new credential profile
 
 The describe-deployments command performs a search for New Relic APM
 deployments.
@@ -54,8 +54,8 @@ deployments.
 
 var credentialsDefault = &cobra.Command{
 	Use:   "default",
-	Short: "set the default profile",
-	Long: `Set the default credential profile by name
+	Short: "Set the default credential profile name",
+	Long: `Set the default credential profile name
 
 The default command sets the profile to use by default using the specified name.
 `,
@@ -72,7 +72,7 @@ The default command sets the profile to use by default using the specified name.
 
 var credentialsList = &cobra.Command{
 	Use:   "list",
-	Short: "list profiles",
+	Short: "List the credential profiles available",
 	Long: `List the credential profiles available
 
 The list command prints out the available profiles' credentials.
@@ -94,8 +94,8 @@ The list command prints out the available profiles' credentials.
 
 var credentialsRemove = &cobra.Command{
 	Use:   "remove",
-	Short: "delete a profile",
-	Long: `Remove a credential profiles by name
+	Short: "Remove a credential profile",
+	Long: `Remove a credential profiles
 
 The remove command removes a credential profile specified by name.
 `,

@@ -21,7 +21,7 @@ func init() {
 	Command.AddCommand(versionCmd)
 
 	Command.AddCommand(completionCmd)
-	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for shell.  (bash, powershell, zsh)")
+	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
 	err := completionCmd.MarkFlagRequired("shell")
 	if err != nil {
 		log.Error(err)

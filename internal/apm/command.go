@@ -20,12 +20,12 @@ var (
 // Command represents the apm command
 var Command = &cobra.Command{
 	Use:   "apm",
-	Short: "apm",
+	Short: "Subcommands to interact with New Relic APM",
 }
 
 var apmDescribeDeployments = &cobra.Command{
 	Use:   "describe-deployments",
-	Short: "describe-deployments",
+	Short: "Search for New Relic APM deployments",
 	Long: `Search for New Relic APM deployments
 
 The describe-deployments command performs a search for New Relic APM
@@ -51,11 +51,12 @@ deployments.
 
 var apmCreateDeployment = &cobra.Command{
 	Use:   "create-deployment",
-	Short: "create-deployment",
+	Short: "Create a New Relic APM deployment",
 	Long: `Create a New Relic APM deployment
 
 The create-deployment command performs a create operation for an APM
-deployment.
+deployment.  The 'revision' flag is a free-form string to use as the code
+version for the deployment.
 `,
 	Example: "newrelic apm create-deployment --applicationID <appID> -r <codeRevision>",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -81,8 +82,8 @@ deployment.
 
 var apmDeleteDeployment = &cobra.Command{
 	Use:   "delete-deployment",
-	Short: "delete-deployment",
-	Long: `delete a New Relic APM deployment
+	Short: "Delete a New Relic APM deployment",
+	Long: `Delete a New Relic APM deployment
 
 The delete-deployment command performs a delete operation for an APM
 deployment.

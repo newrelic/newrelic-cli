@@ -23,7 +23,9 @@ var (
 var completionCmd = &cobra.Command{
 	Use:   "completion",
 	Short: "Generates shell completion functions",
-	Long: `To load completion run
+	Long: `Generate shell completion functions
+
+To load completion run the following.
 
 . <(newrelic completion --shell bash)
 
