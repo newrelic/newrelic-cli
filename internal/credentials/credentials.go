@@ -116,6 +116,18 @@ func (c *Credentials) RemoveProfile(profileName string) error {
 		return err
 	}
 
+	if profileName == c.DefaultProfile {
+		c.DefaultProfile = ""
+		defaultProfileFileName := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultProfileFile))
+
+		err := os.Remove(defaultProfileFileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Infof("profile %s has been removed", profileName)
+
 	return nil
 }
 

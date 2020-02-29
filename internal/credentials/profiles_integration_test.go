@@ -90,4 +90,16 @@ func TestCredentials(t *testing.T) {
 	assert.Equal(t, c2.DefaultProfile, "testCase2")
 	assert.Equal(t, c2.ConfigDirectory, f)
 	assert.False(t, c.profileExists("testCase1"))
+
+	// Remove the default profile and check the results
+	_, err = os.Stat(fmt.Sprintf("%s/%s.json", f, "default-profile"))
+	assert.NoError(t, err)
+
+	err = c.RemoveProfile("testCase2")
+	assert.NoError(t, err)
+	assert.Equal(t, c.DefaultProfile, "")
+	_, err = os.Stat(fmt.Sprintf("%s/%s.json", f, "default-profile"))
+	assert.Error(t, err)
+	assert.True(t, os.IsNotExist(err))
+
 }
