@@ -8,14 +8,11 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/entities"
-	"github.com/newrelic/newrelic-cli/internal/version"
 )
 
 var (
 	// AppName for this CMD
 	AppName = "newrelic-dev"
-	// Version of the CLI
-	Version = version.Version
 )
 
 func init() {
@@ -36,7 +33,7 @@ func init() {
 }
 
 func main() {
-	if err := Execute(AppName, Version); err != nil {
+	if err := Execute(AppName); err != nil {
 		log.Fatal(err)
 	}
 }
