@@ -14,10 +14,10 @@ import (
 // CreateNRClient initializes the New Relic client.
 func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, error) {
 	var (
-		err                error
-		personalAPIKey     string
-		region             string
-		defaultServiceName = "newrelic-cli"
+		err            error
+		personalAPIKey string
+		region         string
+		serviceName    = "newrelic-cli"
 	)
 
 	// Create the New Relic Client
@@ -34,14 +34,14 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
 	}
 
-	userAgent := fmt.Sprintf("newrelic/%s/%s (https://github.com/newrelic/%s)", defaultServiceName, version.Version, defaultServiceName)
+	userAgent := fmt.Sprintf("newrelic/%s/%s (https://github.com/newrelic/%s)", serviceName, version.Version, serviceName)
 
 	nrClient, err := newrelic.New(
 		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
 		newrelic.ConfigRegion(region),
 		newrelic.ConfigUserAgent(userAgent),
-		newrelic.ConfigServiceName(defaultServiceName),
+		newrelic.ConfigServiceName(serviceName),
 	)
 
 	if err != nil {
