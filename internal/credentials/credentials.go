@@ -76,8 +76,8 @@ func (c *Credentials) AddProfile(profileName, region, apiKey string) error {
 	}
 
 	p := Profile{
-		Region:         region,
-		PersonalAPIKey: apiKey,
+		Region: region,
+		APIKey: apiKey,
 	}
 
 	c.Profiles[profileName] = p
@@ -178,7 +178,7 @@ func (c *Credentials) List() {
 		}
 
 		if showKeys {
-			y := len(v.PersonalAPIKey)
+			y := len(v.APIKey)
 			if y > keyLen {
 				keyLen = y
 			}
@@ -198,7 +198,7 @@ func (c *Credentials) List() {
 		}
 		key := colorMuted(hiddenKeyString)
 		if showKeys {
-			key = v.PersonalAPIKey
+			key = v.APIKey
 		}
 
 		fmt.Printf(format, name, v.Region, key)

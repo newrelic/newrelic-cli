@@ -48,7 +48,7 @@ func TestCredentials(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
 	assert.Equal(t, c.Profiles["testCase1"].Region, "us")
-	assert.Equal(t, c.Profiles["testCase1"].PersonalAPIKey, "apiKeyGoesHere")
+	assert.Equal(t, c.Profiles["testCase1"].APIKey, "apiKeyGoesHere")
 	assert.Equal(t, c.DefaultProfile, "")
 
 	// Set the default profile to the only one we've got
@@ -67,7 +67,7 @@ func TestCredentials(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 2)
 	assert.Equal(t, c.Profiles["testCase2"].Region, "us")
-	assert.Equal(t, c.Profiles["testCase2"].PersonalAPIKey, "apiKeyGoesHere")
+	assert.Equal(t, c.Profiles["testCase2"].APIKey, "apiKeyGoesHere")
 
 	// Set the default profile to the new one
 	err = c.SetDefaultProfile("testCase2")
