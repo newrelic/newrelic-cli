@@ -402,8 +402,8 @@ func readConfig(configDir string) (*viper.Viper, error) {
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
 	cfgViper.SetConfigType(DefaultConfigType)
-	cfgViper.AddConfigPath(configDir)              // adding home directory as first search path
-	cfgViper.AddConfigPath(DefaultConfigDirectory) // adding home directory as first search path
+	cfgViper.AddConfigPath(configDir)              // adding provided directory as search path
+	cfgViper.AddConfigPath(DefaultConfigDirectory) // adding home directory as search path
 	cfgViper.AddConfigPath(".")                    // current directory to search path
 	cfgViper.AutomaticEnv()                        // read in environment variables that match
 
