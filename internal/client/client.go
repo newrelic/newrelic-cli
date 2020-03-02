@@ -11,13 +11,14 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
+const serviceName = "newrelic-cli"
+
 // CreateNRClient initializes the New Relic client.
 func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, error) {
 	var (
 		err            error
 		personalAPIKey string
 		region         string
-		serviceName    = "newrelic-cli"
 	)
 
 	// Create the New Relic Client
