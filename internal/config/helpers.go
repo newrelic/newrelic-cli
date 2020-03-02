@@ -11,7 +11,7 @@ func WithConfig(f func(c *Config)) {
 
 // WithConfigFrom loads and returns the CLI configuration from a specified location.
 func WithConfigFrom(configDir string, f func(c *Config)) {
-	c, err := LoadConfig()
+	c, err := LoadConfig(configDir)
 	if err != nil {
 		log.Fatal(err)
 	}

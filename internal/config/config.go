@@ -45,6 +45,8 @@ type Config struct {
 	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
 	PluginDir     string `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
 	SendUsageData string `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
+
+	configDir string
 }
 
 // Value represents an instance of a configuration field.
@@ -78,15 +80,24 @@ func init() {
 	defaultConfig.PluginDir = DefaultConfigDirectory + "/plugins"
 }
 
-// LoadConfig loads the configuration from disk, or initializes a new file
-// if one doesn't currently exist.
-func LoadConfig() (*Config, error) {
-	cfg, err := load()
+// LoadConfig loads the configuration from disk, substituting defaults
+// if the file does not exist.
+func LoadConfig(configDir string) (*Config, error) {
+	log.Debug("loading config file")
+
+	if configDir == "" {
+		configDir = DefaultConfigDirectory
+	} else {
+		configDir = os.ExpandEnv(configDir)
+	}
+
+	cfg, err := load(configDir)
 	if err != nil {
 		return nil, err
 	}
 
 	cfg.setLogger()
+	cfg.configDir = configDir
 
 	return cfg, nil
 }
@@ -165,10 +176,8 @@ func (c *Config) Set(key string, value string) error {
 	return nil
 }
 
-func load() (*Config, error) {
-	log.Debug("loading config file")
-
-	cfgViper, err := readConfig()
+func load(configDir string) (*Config, error) {
+	cfgViper, err := readConfig(configDir)
 	if err != nil {
 		return nil, err
 	}
@@ -235,8 +244,7 @@ func (c *Config) getAll(key string) []Value {
 }
 
 func (c *Config) set(key string, value interface{}) error {
-	cfgViper, err := readConfig()
-
+	cfgViper, err := readConfig(c.configDir)
 	if err != nil {
 		return err
 	}
@@ -276,6 +284,8 @@ func (c *Config) set(key string, value interface{}) error {
 			log.Error(err)
 		}
 	}
+
+	*c = config
 
 	return nil
 }
@@ -351,6 +361,12 @@ func (c *Config) visitAllConfigFields(f func(*Value) error) error {
 	// Iterate through the fields in the struct
 	for i := 0; i < cfgType.NumField(); i++ {
 		field := cfgType.Field(i)
+
+		// Skip unexported fields
+		if field.PkgPath != "" {
+			continue
+		}
+
 		name := field.Tag.Get("mapstructure")
 		value := cfgValue.Field(i).Interface()
 		defaultValue := defaultCfgValue.Field(i).Interface()
@@ -381,11 +397,12 @@ func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {
 	return &cfgMap, nil
 }
 
-func readConfig() (*viper.Viper, error) {
+func readConfig(configDir string) (*viper.Viper, error) {
 	cfgViper := viper.New()
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
 	cfgViper.SetConfigType(DefaultConfigType)
+	cfgViper.AddConfigPath(configDir)              // adding home directory as first search path
 	cfgViper.AddConfigPath(DefaultConfigDirectory) // adding home directory as first search path
 	cfgViper.AddConfigPath(".")                    // current directory to search path
 	cfgViper.AutomaticEnv()                        // read in environment variables that match
