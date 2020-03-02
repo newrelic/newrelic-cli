@@ -7,15 +7,17 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/version"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
 // CreateNRClient initializes the New Relic client.
 func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, error) {
 	var (
-		err    error
-		apiKey string
-		region string
+		err                error
+		personalAPIKey     string
+		region             string
+		defaultServiceName = "newrelic-cli"
 	)
 
 	// Create the New Relic Client
@@ -32,11 +34,16 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
 	}
 
+	userAgent := fmt.Sprintf("newrelic/%s/%s (https://github.com/newrelic/%s)", defaultServiceName, version.Version, defaultServiceName)
+
 	nrClient, err := newrelic.New(
 		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
 		newrelic.ConfigRegion(region),
+		newrelic.ConfigUserAgent(userAgent),
+		newrelic.ConfigServiceName(defaultServiceName),
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("unable to create New Relic client with error: %s", err)
 	}
