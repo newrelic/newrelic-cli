@@ -13,8 +13,6 @@ import (
 var (
 	// AppName for this CMD
 	AppName = "newrelic-dev"
-	// Version of the CLI
-	Version = "dev"
 )
 
 func init() {
@@ -35,7 +33,7 @@ func init() {
 }
 
 func main() {
-	if err := Execute(AppName, Version); err != nil {
+	if err := Execute(AppName); err != nil {
 		log.Fatal(err)
 	}
 }

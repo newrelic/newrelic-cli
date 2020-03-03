@@ -13,7 +13,7 @@ SRCDIR       ?= .
 GO_PKGS      ?= $(shell ${GO} list ./... | grep -v -e "/vendor/" -e "/example")
 FILES        ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/')
 
-LDFLAGS_UNIT ?= '-X version.GitTag=$(PROJECT_VER_TAGGED)'
+LDFLAGS_UNIT ?= '-X github.com/newrelic/newrelic-cli/internal/version.GitTag=$(PROJECT_VER_TAGGED)'
 
 GOTOOLS += github.com/stretchr/testify/assert
 
