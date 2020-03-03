@@ -1,16 +1,17 @@
 package nerdgraph
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 
-	prettyjson "github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	ng "github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
 var (
@@ -63,12 +64,12 @@ keys are the variables to be referenced in the GraphQL query.
 				log.Fatal(err)
 			}
 
-			json, err := prettyjson.Marshal(result)
-			if err != nil {
-				log.Fatal(err)
-			}
+			reqBodyBytes := new(bytes.Buffer)
+			json.NewEncoder(reqBodyBytes).Encode(ng.QueryResponse{
+				Actor: result.(ng.QueryResponse).Actor,
+			})
 
-			fmt.Println(string(json))
+			fmt.Println(string(reqBodyBytes.Bytes()))
 		})
 	},
 }

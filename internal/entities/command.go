@@ -83,7 +83,7 @@ more information.
 				params.Reporting = &reporting
 			}
 
-			entities, err := nrClient.Entities.SearchEntities(params)
+			entities, err := nrClient.Entities.SearchEntities(params, nil)
 			if err != nil {
 				log.Fatal(err)
 			}
