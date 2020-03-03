@@ -22,7 +22,7 @@ func TestAPMCommand(t *testing.T) {
 func TestApmDescribeDeployments(t *testing.T) {
 	assert.Equal(t, "describe-deployments", apmDescribeDeployments.Name())
 
-	requiredFlags := []string{"applicationID"}
+	requiredFlags := []string{"applicationId"}
 
 	for _, r := range requiredFlags {
 		x := apmDescribeDeployments.Flag(r)
@@ -39,7 +39,7 @@ func TestApmCreateDeployment(t *testing.T) {
 	command := apmCreateDeployment
 	assert.Equal(t, "create-deployment", command.Name())
 
-	requiredFlags := []string{"applicationID", "revision"}
+	requiredFlags := []string{"applicationId", "revision"}
 
 	for _, r := range requiredFlags {
 		x := command.Flag(r)
@@ -56,7 +56,41 @@ func TestApmDeleteDeployment(t *testing.T) {
 	command := apmDeleteDeployment
 	assert.Equal(t, "delete-deployment", command.Name())
 
-	requiredFlags := []string{"applicationID", "deploymentID"}
+	requiredFlags := []string{"applicationId", "deploymentID"}
+
+	for _, r := range requiredFlags {
+		x := command.Flag(r)
+		if x == nil {
+			t.Errorf("Missing required flag: %s\n", r)
+			continue
+		}
+
+		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
+	}
+}
+
+func TestApmApplication(t *testing.T) {
+	command := apmApplication
+	assert.Equal(t, "application", command.Name())
+
+	requiredFlags := []string{}
+
+	for _, r := range requiredFlags {
+		x := command.Flag(r)
+		if x == nil {
+			t.Errorf("Missing required flag: %s\n", r)
+			continue
+		}
+
+		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
+	}
+}
+
+func TestApmGetApplication(t *testing.T) {
+	command := apmGetApplication
+	assert.Equal(t, "get", command.Name())
+
+	requiredFlags := []string{}
 
 	for _, r := range requiredFlags {
 		x := command.Flag(r)
