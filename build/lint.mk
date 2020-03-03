@@ -18,7 +18,7 @@ GO_PKGS      ?= $(shell ${GO} list ./... | grep -v -e "/vendor/" -e "/example")
 FILES        ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/')
 
 GOTOOLS += github.com/client9/misspell/cmd/misspell \
-	   github.com/llorllale/go-gitlint/cmd/go-gitlint \
+           github.com/llorllale/go-gitlint/cmd/go-gitlint \
            github.com/golangci/golangci-lint/cmd/golangci-lint
 
 
@@ -50,6 +50,6 @@ lint-commit: deps
 
 golangci: deps
 	@echo "=== $(PROJECT_NAME) === [ golangci-lint    ]: Linting using $(GOLINTER) ($(COMMIT_LINT_CMD))..."
-	@$(GOLINTER) run -v
+	@$(GOLINTER) run
 
 .PHONY: lint spell-check spell-check-fix gofmt gofmt-fix lint-fix lint-commit
