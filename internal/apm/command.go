@@ -43,7 +43,7 @@ var apmDescribeDeployments = &cobra.Command{
 The describe-deployments command performs a search for New Relic APM
 deployments.
 `,
-	Example: "newrelic apm describe-deployments --applicationID <appID>",
+	Example: "newrelic apm describe-deployments --applicationId <appID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			deployments, err := nrClient.APM.ListDeployments(apmApplicationID)
@@ -70,7 +70,7 @@ The create-deployment command performs a create operation for an APM
 deployment.  The 'revision' flag is a free-form string to use as the code
 version for the deployment.
 `,
-	Example: "newrelic apm create-deployment --applicationID <appID> -r <codeRevision>",
+	Example: "newrelic apm create-deployment --applicationId <appID> -r <codeRevision>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			deployment := apm.Deployment{
@@ -100,7 +100,7 @@ var apmDeleteDeployment = &cobra.Command{
 The delete-deployment command performs a delete operation for an APM
 deployment.
 `,
-	Example: "newrelic apm delete-deployment --applicationID <appID> --deploymentID <deploymentID>",
+	Example: "newrelic apm delete-deployment --applicationId <appID> --deploymentID <deploymentID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			d, err := nrClient.APM.DeleteDeployment(apmApplicationID, deploymentID)
@@ -128,7 +128,7 @@ The get command performs a query for an APM application by ID.
 	Example: "newrelic apm application get --name <appName>",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if apmApplicationName == "" && apmApplicationAccount == "" && apmApplicationGUID == "" {
+		if apmApplicationName == "" && apmApplicationAccountID == "" && apmApplicationGUID == "" {
 			log.Fatal("one of --name, --acountId or --guid are required")
 		}
 
@@ -176,16 +176,16 @@ func init() {
 	var err error
 
 	Command.AddCommand(apmDescribeDeployments)
-	apmDescribeDeployments.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given name")
-	err = apmDescribeDeployments.MarkFlagRequired("applicationID")
+	apmDescribeDeployments.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given name")
+	err = apmDescribeDeployments.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
 
 	Command.AddCommand(apmCreateDeployment)
-	apmCreateDeployment.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given name")
+	apmCreateDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given name")
 	apmCreateDeployment.Flags().StringVarP(&deploymentRevision, "revision", "r", "", "the code revision to set for the deployment")
-	err = apmCreateDeployment.MarkFlagRequired("applicationID")
+	err = apmCreateDeployment.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
@@ -196,9 +196,9 @@ func init() {
 	}
 
 	Command.AddCommand(apmDeleteDeployment)
-	apmDeleteDeployment.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given name")
+	apmDeleteDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given name")
 	apmDeleteDeployment.Flags().IntVarP(&deploymentID, "deploymentID", "d", 0, "search for results matching the given name")
-	err = apmDeleteDeployment.MarkFlagRequired("applicationID")
+	err = apmDeleteDeployment.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
@@ -210,7 +210,7 @@ func init() {
 
 	Command.AddCommand(apmApplication)
 	apmApplication.AddCommand(apmGetApplication)
-	apmGetApplication.Flags().IntVarP(&apmApplicationID, "applicationID", "a", 0, "search for results matching the given APM application ID")
+	apmGetApplication.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given APM application ID")
 	apmGetApplication.Flags().StringVarP(&apmApplicationName, "name", "n", "", "search for results matching the given APM application name")
 	apmGetApplication.Flags().StringVarP(&apmApplicationGUID, "guid", "g", "", "search for results matching the given APM application GUID")
 	apmGetApplication.Flags().StringVarP(&apmApplicationAccountID, "accountId", "", "", "search for results matching the given APM application account ID")
