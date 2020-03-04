@@ -1,6 +1,7 @@
-tmp/*
 bin/*
 coverage/*
+dist/*
+tmp/*
 vendor/*
 
 .vscode/

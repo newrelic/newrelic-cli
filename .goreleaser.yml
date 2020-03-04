@@ -1,0 +1,69 @@
+project_name: newrelic-cli
+
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - make clean
+    - go mod download
+
+builds:
+  -
+    id: newrelic
+    dir: cmd/newrelic
+    binary: newrelic
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.AppName={{.Binary}}
+        -X github.com/newrelic/newrelic-cli/internal/client.version={{.Version}}
+
+release:
+  # Mark as a pre-release for now
+  prerelease: true
+  name_template: "{{.ProjectName}} v{{.Version}}"
+
+archives:
+  -
+    id: "default"
+    builds:
+      - newrelic
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - CHANGELOG.md
+      - LICENSE
+      - README.md
+
+dockers:
+  -
+    image_templates:
+      - 'newrelic/cli:{{ .Tag }}'
+      - 'newrelic/cli:v{{ .Major }}.{{ .Minor }}'
+      - 'newrelic/cli:latest'
+    dockerfile: Dockerfile
+    binaries:
+      - newrelic
+    build_flag_templates:
+      - "--pull"
+      - "--label=repository=http://github.com/newrelic/newrelic-cli"
+      - "--label=homepage=https://developer.newrelic.com/"
+      - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
+
+# Already using git-chglog
+changelog:
+  skip: true

@@ -21,7 +21,7 @@ build: check-version clean lint test cover-report compile
 build-ci: check-version clean lint test compile-only
 
 # All clean commands
-clean: clean-cover clean-compile
+clean: cover-clean compile-clean release-clean
 
 # Import fragments
 include build/compile.mk
