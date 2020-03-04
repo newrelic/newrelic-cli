@@ -83,7 +83,7 @@ func init() {
 // LoadConfig loads the configuration from disk, substituting defaults
 // if the file does not exist.
 func LoadConfig(configDir string) (*Config, error) {
-	log.Debug("loading config file")
+	log.Debugf("loading config file from %s", configDir)
 
 	if configDir == "" {
 		configDir = DefaultConfigDirectory
@@ -210,7 +210,7 @@ func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
 		return err
 	}
 
-	err = os.MkdirAll(DefaultConfigDirectory, os.ModePerm)
+	err = os.MkdirAll(c.configDir, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -272,7 +272,7 @@ func (c *Config) set(key string, value interface{}) error {
 		return err
 	}
 
-	path := fmt.Sprintf("%s/%s.%s", DefaultConfigDirectory, DefaultConfigName, DefaultConfigType)
+	path := fmt.Sprintf("%s/%s.%s", c.configDir, DefaultConfigName, DefaultConfigType)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		createErr := c.createFile(path, cfgViper)
 		if createErr != nil {
@@ -285,7 +285,9 @@ func (c *Config) set(key string, value interface{}) error {
 		}
 	}
 
-	*c = config
+	if err := mergo.Merge(c, config, mergo.WithOverride); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -402,10 +404,8 @@ func readConfig(configDir string) (*viper.Viper, error) {
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
 	cfgViper.SetConfigType(DefaultConfigType)
-	cfgViper.AddConfigPath(configDir)              // adding provided directory as search path
-	cfgViper.AddConfigPath(DefaultConfigDirectory) // adding home directory as search path
-	cfgViper.AddConfigPath(".")                    // current directory to search path
-	cfgViper.AutomaticEnv()                        // read in environment variables that match
+	cfgViper.AddConfigPath(configDir) // adding provided directory as search path
+	cfgViper.AutomaticEnv()           // read in environment variables that match
 
 	err := cfgViper.ReadInConfig()
 	// nolint
