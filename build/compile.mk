@@ -15,8 +15,8 @@ COMMANDS   ?= $(wildcard ${SRCDIR}/cmd/*)
 BINS       := $(foreach cmd,${COMMANDS},$(notdir ${cmd}))
 
 
-clean-compile:
-	@echo "=== $(PROJECT_NAME) === [ clean-compile    ]: removing binaries..."
+compile-clean:
+	@echo "=== $(PROJECT_NAME) === [ compile-clean    ]: removing binaries..."
 	@rm -rfv $(BUILD_DIR)/*
 
 compile: deps compile-only
