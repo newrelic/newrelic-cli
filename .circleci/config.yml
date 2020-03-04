@@ -104,5 +104,7 @@ jobs:
     working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run: make release-publish
 
