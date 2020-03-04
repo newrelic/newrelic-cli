@@ -21,6 +21,9 @@ builds:
       - windows
     goarch:
       - amd64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.AppName={{.Binary}}
+        -X github.com/newrelic/newrelic-cli/internal/client.version={{.Version}}
 
 archives:
   -

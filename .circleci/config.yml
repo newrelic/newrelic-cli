@@ -16,29 +16,29 @@ workflows:
       - security-scan:
           requires:
             - checkout_code
-      - build:
+      - compile:
           requires:
             - lint
             - test
             - security-scan
-      - hold-for-deploy:
+      - hold-for-release:
           type: approval
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only: /^v\d+\.\d+\.\d+$/
           require:
-            - build
-      - docker-push:
+            - compile
+      - release:
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only: /^v\d+\.\d+\.\d+$/
           requires:
-            - build
-            - hold-for-deploy
+            - compile
+            - hold-for-release
 
 jobs:
   checkout_code:
@@ -54,7 +54,7 @@ jobs:
 
   lint:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
@@ -65,7 +65,7 @@ jobs:
 
   test:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
@@ -77,19 +77,9 @@ jobs:
           name: Integration Tests
           command: make test-integration
 
-  build:
-    docker:
-      - image: circleci/golang:1.13
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
-    steps:
-      - restore_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
-      - run: make build-ci
-
-
   security-scan:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
@@ -99,13 +89,20 @@ jobs:
           fail-on-issues: false
           monitor-on-build: true
 
-  docker-push:
+  compile:
     docker:
-      - image: circleci/golang:1.13
+      - image: circleci/golang:1.14
+    working_directory: /go/src/github.com/newrelic/newrelic-cli
+    steps:
+      - restore_cache:
+          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+      - run: make compile-only
+
+  release:
+    docker:
+      - image: circleci/golang:1.14
     working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - checkout
-      - run:
-          name: Push Docker Container
-          command: make docker-push
+      - run: make release-publish
 
