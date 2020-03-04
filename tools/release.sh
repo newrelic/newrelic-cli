@@ -32,10 +32,7 @@ git checkout -b release/v${RELEASE_VERSION}
 # Auto-generate CHANGELOG updates
 git-chglog --next-tag v${RELEASE_VERSION} -o CHANGELOG.md
 
-# Update version in version.go file
-echo -e "package version\n\n// Version of this library\nconst Version string = \"${RELEASE_VERSION}\"" > internal/version/version.go
-
 # Commit CHANGELOG updates
-git add CHANGELOG.md internal/version/version.go
-git commit -m "chore(changelog): Update CHANGELOG for v${RELEASE_VERSION}"
+git add CHANGELOG.md
+git commit -m "chore(changelog): Update CHANGELOG for v${RELEASE_VERSION} [skip ci]"
 git push origin release/v${RELEASE_VERSION}
