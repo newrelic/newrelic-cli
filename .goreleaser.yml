@@ -56,17 +56,6 @@ dockers:
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
 
-#checksum:
-#  name_template: 'checksums.txt'
-#
-#snapshot:
-#  name_template: "{{ .Tag }}-next"
-
+# Already using git-chglog
 changelog:
-  sort: asc
-  filters:
-    exclude:
-    - '^chore\('
-    - '^test\('
-    - Merge pull request
-    - Merge branch
+  skip: true
