@@ -45,7 +45,12 @@ can dowload the latest release [here](https://github.com/newrelic/newrelic-cli/r
 
 ### Docker
 
-There is a docker image that can be utilized for running commands as well.  Here is an example:
+There is a docker image that can be utilized for running commands as well.
+
+*Note:* You must pass in `NEW_RELIC_API_KEY`, which is your [Personal API
+Key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#personal-api-key)
+
+#### APM Application Example
 
 ```bash
 # Pull the latest container
@@ -56,7 +61,7 @@ $ docker pull newrelic/cli
 $ docker run -it --rm \
     -e NEW_RELIC_API_KEY="$NEW_RELIC_API_KEY" \
     newrelic/cli \
-    apm application get --name WebPortal
+    apm application get --name WebPortal --accountId 2508259
 
 [
   {
@@ -67,17 +72,6 @@ $ docker run -it --rm \
     "GUID": "MjUwODI1OXxBUE18QVBQTElDQVRJT058MjA0MjYxMzY4",
     "Name": "WebPortal",
     "Permalink": "https://one.newrelic.com/redirect/entity/MjUwODI1OXxBUE18QVBQTElDQVRJT058MjA0MjYxMzY4",
-    "Reporting": true,
-    "Type": "APPLICATION"
-  },
-  {
-    "AccountID": 756053,
-    "ApplicationID": 58445375,
-    "Domain": "APM",
-    "EntityType": "APM_APPLICATION_ENTITY",
-    "GUID": "NzU2MDUzfEFQTXxBUFBMSUNBVElPTnw1ODQ0NTM3NQ",
-    "Name": "WebPortal",
-    "Permalink": "https://one.newrelic.com/redirect/entity/NzU2MDUzfEFQTXxBUFBMSUNBVElPTnw1ODQ0NTM3NQ",
     "Reporting": true,
     "Type": "APPLICATION"
   }
