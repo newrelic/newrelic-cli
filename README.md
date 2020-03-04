@@ -43,6 +43,48 @@ Today pre-release binaries have been created on the GitHub releases page.  You
 can dowload the latest release [here](https://github.com/newrelic/newrelic-cli/releases)
 
 
+### Docker
+
+There is a docker image that can be utilized for running commands as well.  Here is an example:
+
+```bash
+# Pull the latest container
+$ docker pull newrelic/cli
+
+# Run the container interactively, remove it once the command exists
+# Also must pass $NEW_RELIC_API_KEY to the container
+$ docker run -it --rm \
+    -e NEW_RELIC_API_KEY="$NEW_RELIC_API_KEY" \
+    newrelic/cli \
+    newrelic apm application get --name WebPortal
+
+[
+  {
+    "AccountID": 2508259,
+    "ApplicationID": 204261368,
+    "Domain": "APM",
+    "EntityType": "APM_APPLICATION_ENTITY",
+    "GUID": "MjUwODI1OXxBUE18QVBQTElDQVRJT058MjA0MjYxMzY4",
+    "Name": "WebPortal",
+    "Permalink": "https://one.newrelic.com/redirect/entity/MjUwODI1OXxBUE18QVBQTElDQVRJT058MjA0MjYxMzY4",
+    "Reporting": true,
+    "Type": "APPLICATION"
+  },
+  {
+    "AccountID": 756053,
+    "ApplicationID": 58445375,
+    "Domain": "APM",
+    "EntityType": "APM_APPLICATION_ENTITY",
+    "GUID": "NzU2MDUzfEFQTXxBUFBMSUNBVElPTnw1ODQ0NTM3NQ",
+    "Name": "WebPortal",
+    "Permalink": "https://one.newrelic.com/redirect/entity/NzU2MDUzfEFQTXxBUFBMSUNBVElPTnw1ODQ0NTM3NQ",
+    "Reporting": true,
+    "Type": "APPLICATION"
+  }
+]
+```
+
+
 ### Getting Help
 
 In order to get help about what commands are available, the trusty `--help`
