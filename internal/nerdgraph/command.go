@@ -65,11 +65,17 @@ keys are the variables to be referenced in the GraphQL query.
 			}
 
 			reqBodyBytes := new(bytes.Buffer)
-			json.NewEncoder(reqBodyBytes).Encode(ng.QueryResponse{
+
+			encoder := json.NewEncoder(reqBodyBytes)
+			err = encoder.Encode(ng.QueryResponse{
 				Actor: result.(ng.QueryResponse).Actor,
 			})
 
-			fmt.Println(string(reqBodyBytes.Bytes()))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(reqBodyBytes.String())
 		})
 	},
 }
