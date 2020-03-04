@@ -56,7 +56,7 @@ $ docker pull newrelic/cli
 $ docker run -it --rm \
     -e NEW_RELIC_API_KEY="$NEW_RELIC_API_KEY" \
     newrelic/cli \
-    newrelic apm application get --name WebPortal
+    apm application get --name WebPortal
 
 [
   {
