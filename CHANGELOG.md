@@ -2,6 +2,22 @@
 ## [Unreleased]
 
 
+<a name="v0.2.0"></a>
+## [v0.2.0] - 2020-03-03
+### Bug Fixes
+- **client:** Fix ENV var prefix to be consistent with NR standards
+- **config:** set user agent and service name, add version package
+- **credentials:** proper handling when removing default profile
+- **docs:** Fix release badge link
+
+### Documentation Updates
+- **command:** improve short help text
+
+### Features
+- **apm:** include get command for APM applications
+- **docker:** Add docker image building / push to make system
+
+
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2020-02-27
 ### Bug Fixes
@@ -39,4 +55,5 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.0...HEAD
+[v0.2.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.1.0...v0.2.0
