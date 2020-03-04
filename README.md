@@ -59,7 +59,7 @@ $ docker pull newrelic/cli
 # Run the container interactively, remove it once the command exists
 # Also must pass $NEW_RELIC_API_KEY to the container
 $ docker run -it --rm \
-    -e NEW_RELIC_API_KEY="$NEW_RELIC_API_KEY" \
+    -e NEW_RELIC_API_KEY \
     newrelic/cli \
     apm application get --name WebPortal --accountId 2508259
 
