@@ -14,4 +14,7 @@ import (
 	// build/document.mk
 	_ "github.com/git-chglog/git-chglog/cmd/git-chglog"
 	_ "golang.org/x/tools/cmd/godoc"
+
+	// build/release.mk
+	_ "github.com/goreleaser/goreleaser"
 )
