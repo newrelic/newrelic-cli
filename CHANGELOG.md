@@ -2,9 +2,16 @@
 ## [Unreleased]
 
 
+<a name="v0.2.3"></a>
+## [v0.2.3] - 2020-03-04
+### Bug Fixes
+- **build:** Allow overriding the version on make (needed for Homebrew local build)
+
+
 <a name="v0.2.2"></a>
 ## [v0.2.2] - 2020-03-04
 ### Bug Fixes
+- **build:** Enable remote docker for CircleCI
 - **build:** Remove version.go generation from make release
 - **build:** Add docker login to release-push process
 
@@ -68,7 +75,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...HEAD
+[v0.2.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.1.0...v0.2.0
