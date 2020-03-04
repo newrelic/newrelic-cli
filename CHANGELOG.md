@@ -2,6 +2,12 @@
 ## [Unreleased]
 
 
+<a name="v0.2.1"></a>
+## [v0.2.1] - 2020-03-03
+### Bug Fixes
+- **docker:** Use Entrypoint so binary is assumed
+
+
 <a name="v0.2.0"></a>
 ## [v0.2.0] - 2020-03-03
 ### Bug Fixes
@@ -55,5 +61,6 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.1...HEAD
+[v0.2.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.1.0...v0.2.0
