@@ -4,7 +4,8 @@
 
 GO         ?= go
 BUILD_DIR  ?= ./bin/
-LDFLAGS    ?= "-s -w -X main.Version=$(PROJECT_VER) -X main.AppName=$$b" # $b replaced by the binary name in the compile loop, -s/w remove debug symbols
+# $b replaced by the binary name in the compile loop, -s/w remove debug symbols
+LDFLAGS    ?= "-s -w -X main.version=$(PROJECT_VER) -X main.appName=$$b -X github.com/newrelic/newrelic-cli/internal/client.version=$(PROJECT_VER)"
 SRCDIR     ?= .
 COMPILE_OS ?= darwin linux windows
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/newrelic/newrelic-cli/internal/version"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -75,18 +74,15 @@ var versionCmd = &cobra.Command{
 `,
 	Example: "newrelic version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("newrelic version %s\n", version.Version)
+		fmt.Printf("newrelic version %s\n", version)
 	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the RootCmd.
-func Execute(appName string) error {
-	if appName != "" {
-		Command.Use = appName
-	}
-
-	Command.Version = version.Version
+func Execute() error {
+	Command.Use = appName
+	Command.Version = version
 
 	return Command.Execute()
 }
