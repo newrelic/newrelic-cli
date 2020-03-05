@@ -156,8 +156,8 @@ specified tag keys.
 
 var entitiesDeleteTagValues = &cobra.Command{
 	Use:   "delete-tag-values",
-	Short: "Delete the given tag:value pairs from the given entitiy",
-	Long: `Delete the given tag:value pairs from the given entitiy
+	Short: "Delete the given tag:value pairs from the given entity",
+	Long: `Delete the given tag:value pairs from the given entity
 
 The delete-tag-values command performs a delete operation on the entity for the
 specified tag:value pairs.
@@ -180,8 +180,8 @@ specified tag:value pairs.
 
 var entitiesCreateTags = &cobra.Command{
 	Use:   "create-tags",
-	Short: "Create tag:value pairs for the given entitiy",
-	Long: `Create tag:value pairs for the given entitiy
+	Short: "Create tag:value pairs for the given entity",
+	Long: `Create tag:value pairs for the given entity
 
 The create-tags command adds tag:value pairs for the given entity.
 `,
@@ -203,8 +203,8 @@ The create-tags command adds tag:value pairs for the given entity.
 
 var entitiesReplaceTags = &cobra.Command{
 	Use:   "replace-tags",
-	Short: "Replace tag:value pairs for the given entitiy",
-	Long: `Repaces tag:value pairs for the given entitiy
+	Short: "Replace tag:value pairs for the given entity",
+	Long: `Repaces tag:value pairs for the given entity
 
 The replace-tags command replaces any existing tag:value pairs with those
 provided for the given entity.
