@@ -1,3 +1,5 @@
+// +build unit
+
 package nerdgraph
 
 import (
@@ -16,11 +18,4 @@ func TestNerdGraphCommand(t *testing.T) {
 		assert.NotEmptyf(t, c.Long, "Need to set Command.%s on Command %s", "Long", c.CommandPath())
 		assert.NotEmptyf(t, c.Example, "Need to set Command.%s on Command %s", "Example", c.CommandPath())
 	}
-}
-
-func TestQuery(t *testing.T) {
-	command := queryCmd
-
-	assert.Equal(t, "query", command.Name())
-	assert.True(t, command.HasFlags())
 }
