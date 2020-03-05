@@ -17,12 +17,15 @@ SRCDIR       ?= .
 GO_PKGS      ?= $(shell ${GO} list ./... | grep -v -e "/vendor/" -e "/example")
 FILES        ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/')
 
+GO_MOD_OUTDATED ?= go-mod-outdated
+
 GOTOOLS += github.com/client9/misspell/cmd/misspell \
            github.com/llorllale/go-gitlint/cmd/go-gitlint \
+           github.com/psampaz/go-mod-outdated \
            github.com/golangci/golangci-lint/cmd/golangci-lint
 
 
-lint: deps spell-check gofmt lint-commit golangci
+lint: deps spell-check gofmt lint-commit golangci outdated
 lint-fix: deps spell-check-fix gofmt-fix
 
 #
@@ -52,4 +55,8 @@ golangci: deps
 	@echo "=== $(PROJECT_NAME) === [ golangci-lint    ]: Linting using $(GOLINTER) ($(COMMIT_LINT_CMD))..."
 	@$(GOLINTER) run
 
-.PHONY: lint spell-check spell-check-fix gofmt gofmt-fix lint-fix lint-commit
+outdated: deps
+	@echo "=== $(PROJECT_NAME) === [ outdated         ]: Finding outdated deps with $(GO_MOD_OUTDATED)..."
+	@$(GO) list -u -m -json all | $(GO_MOD_OUTDATED) -direct -update
+
+.PHONY: lint spell-check spell-check-fix gofmt gofmt-fix lint-fix lint-commit outdated
