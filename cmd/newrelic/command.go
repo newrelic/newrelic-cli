@@ -84,5 +84,9 @@ func Execute() error {
 	Command.Use = appName
 	Command.Version = version
 
+	// Silence Cobra's internal handling of error messaging
+	// since we have a custom error handler in main.go
+	Command.SilenceErrors = true
+
 	return Command.Execute()
 }
