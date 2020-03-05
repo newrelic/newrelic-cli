@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -75,7 +76,13 @@ keys are the variables to be referenced in the GraphQL query.
 				log.Fatal(err)
 			}
 
-			fmt.Println(reqBodyBytes.String())
+			formatted, err := prettyjson.Format(reqBodyBytes.Bytes())
+
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(bytes.NewBuffer(formatted).String())
 		})
 	},
 }
