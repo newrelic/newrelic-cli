@@ -1,8 +1,7 @@
+.DS_Store
+.vscode/
 bin/*
 coverage/*
 dist/*
 tmp/*
 vendor/*
-
-.vscode/
-.DS_Store

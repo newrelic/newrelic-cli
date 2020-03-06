@@ -44,18 +44,16 @@ jobs:
   checkout_code:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - checkout
       - save_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
-            - /go/src/github.com/newrelic/newrelic-cli
+            - ~/project
 
   lint:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -66,7 +64,6 @@ jobs:
   test:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -80,7 +77,6 @@ jobs:
   security-scan:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -92,7 +88,6 @@ jobs:
   compile:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - restore_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -101,7 +96,6 @@ jobs:
   release:
     docker:
       - image: circleci/golang:1.14
-    working_directory: /go/src/github.com/newrelic/newrelic-cli
     steps:
       - checkout
       - setup_remote_docker:

@@ -1,4 +1,4 @@
-RELEASE_SCRIPT ?= ./tools/release.sh
+RELEASE_SCRIPT ?= ./scripts/release.sh
 
 GOTOOLS += github.com/goreleaser/goreleaser
 
