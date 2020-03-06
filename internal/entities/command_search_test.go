@@ -9,7 +9,7 @@ import (
 )
 
 func TestEntitiesSearch(t *testing.T) {
-	command := entitiesSearch
+	command := cmdEntitySearch
 
 	assert.Equal(t, "search", command.Name())
 	assert.True(t, command.HasFlags())
