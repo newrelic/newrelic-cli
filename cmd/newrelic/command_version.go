@@ -8,7 +8,7 @@ import (
 
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Show the version of this tool",
+	Short: "Show the version of the New Relic CLI",
 	Long: `Use the version command to print out the version of this command.
 `,
 	Example: "newrelic version",

@@ -15,7 +15,7 @@ var (
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
 	Use:   "config",
-	Short: "Manage the configuration of this tool",
+	Short: "Manage the configuration of the New Relic CLI",
 }
 
 var cmdSet = &cobra.Command{

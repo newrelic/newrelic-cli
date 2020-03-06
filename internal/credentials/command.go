@@ -25,7 +25,7 @@ var credentialsAdd = &cobra.Command{
 	Short: "Add a new credential profile",
 	Long: `Add a new credential profile
 
-The add command creates a new credential profile for use with this tool.
+The add command creates a new credential profile for use with the New Relic CLI.
 `,
 	Example: "newrelic credentials add -n <profileName> -r <region> --apiKey <apiKey>",
 	Run: func(cmd *cobra.Command, args []string) {
