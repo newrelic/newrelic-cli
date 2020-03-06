@@ -24,10 +24,9 @@ var entitiesDescribeTags = &cobra.Command{
 	Short: "Describe the tags for a given entity",
 	Long: `Describe the tags for a given entity
 
-The describe-tags command returns JSON output of the tags for the requested
-entity.
+The describe-tags command returns JSON output of the tags for the requested entity.
 `,
-	Example: "newrelic entities describe-tags --guid <guid>",
+	Example: "newrelic entities describe-tags --guid <entityGUID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tags, err := nrClient.Entities.ListTags(entityGUID)
@@ -47,13 +46,13 @@ entity.
 
 var entitiesDeleteTags = &cobra.Command{
 	Use:   "delete-tags",
-	Short: "Delete the given tag:value pairs from the given entitiy",
-	Long: `Delete the given tag:value pairs from the given entitiy
+	Short: "Delete the given tag:value pairs from the given entity",
+	Long: `Delete the given tag:value pairs from the given entity
 
-The delete-tags command performs a delete operation on the entity for the
-specified tag keys.
+The delete-tag-values command deletes all tags on the given entity 
+that match the specified keys.
 `,
-	Example: "newrelic entities delete-tags --guid <guid> --tag tag1 --tag tag2 --tag tag3,tag4",
+	Example: "newrelic entities delete-tags --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3,tag4",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			err := nrClient.Entities.DeleteTags(entityGUID, entityTags)
@@ -66,11 +65,10 @@ specified tag keys.
 
 var entitiesDeleteTagValues = &cobra.Command{
 	Use:   "delete-tag-values",
-	Short: "Delete the given tag/value pairs from the given entitiy",
-	Long: `Delete the given tag/value pairs from the given entitiy
+	Short: "Delete the given tag/value pairs from the given entity",
+	Long: `Delete the given tag/value pairs from the given entity
 
-The delete-tag-values command performs a delete operation on the entity for the
-specified tag:value pairs.
+The delete-tags command deletes the specified tag:value pairs on a given entity.
 `,
 	Example: "newrelic entities delete-tag-values --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -90,12 +88,12 @@ specified tag:value pairs.
 
 var entitiesCreateTags = &cobra.Command{
 	Use:   "create-tags",
-	Short: "Create tag:value pairs for the given entitiy",
-	Long: `Create tag:value pairs for the given entitiy
+	Short: "Create tag:value pairs for the given entity",
+	Long: `Create tag:value pairs for the given entity
 
-The create-tags command adds tag:value pairs for the given entity.
+The create-tags command adds tag:value pairs to the given entity.
 `,
-	Example: "newrelic entities create-tags --guid <guid> --tag tag1:value1",
+	Example: "newrelic entities create-tags --guid <entityGUID> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tags, err := assembleTags(entityTags)
@@ -113,13 +111,13 @@ The create-tags command adds tag:value pairs for the given entity.
 
 var entitiesReplaceTags = &cobra.Command{
 	Use:   "replace-tags",
-	Short: "Replace tag:value pairs for the given entitiy",
-	Long: `Repaces tag:value pairs for the given entitiy
+	Short: "Replace tag:value pairs for the given entity",
+	Long: `Replace tag:value pairs for the given entity
 
 The replace-tags command replaces any existing tag:value pairs with those
 provided for the given entity.
 `,
-	Example: "newrelic entities replace-tags --guid <guid> --tag tag1:value1",
+	Example: "newrelic entities replace-tags --guid <entityGUID> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tags, err := assembleTags(entityTags)
@@ -204,15 +202,15 @@ func init() {
 	var err error
 
 	Command.AddCommand(entitiesDescribeTags)
-	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to describe")
+	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to retrieve tags for")
 	err = entitiesDescribeTags.MarkFlagRequired("guid")
 	if err != nil {
 		log.Error(err)
 	}
 
 	Command.AddCommand(entitiesDeleteTags)
-	entitiesDeleteTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tags on")
-	entitiesDeleteTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to delete from the entity")
+	entitiesDeleteTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to delete tags on")
+	entitiesDeleteTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "the tag keys to delete from the entity")
 	err = entitiesDeleteTags.MarkFlagRequired("guid")
 	if err != nil {
 		log.Error(err)
@@ -224,8 +222,8 @@ func init() {
 	}
 
 	Command.AddCommand(entitiesDeleteTagValues)
-	entitiesDeleteTagValues.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
-	entitiesDeleteTagValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "key:value tags to delete from the entity")
+	entitiesDeleteTagValues.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to delete tag values on")
+	entitiesDeleteTagValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "the tag key:value pairs to delete from the entity")
 	err = entitiesDeleteTagValues.MarkFlagRequired("guid")
 	if err != nil {
 		log.Error(err)
@@ -237,8 +235,8 @@ func init() {
 	}
 
 	Command.AddCommand(entitiesCreateTags)
-	entitiesCreateTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to create tag values on")
-	entitiesCreateTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to add to the entity")
+	entitiesCreateTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to create tag values on")
+	entitiesCreateTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "the tag names to add to the entity")
 	err = entitiesCreateTags.MarkFlagRequired("guid")
 	if err != nil {
 		log.Error(err)
@@ -250,8 +248,8 @@ func init() {
 	}
 
 	Command.AddCommand(entitiesReplaceTags)
-	entitiesReplaceTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to delete tag values on")
-	entitiesReplaceTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "tag names to replace on the entity")
+	entitiesReplaceTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to replace tag values on")
+	entitiesReplaceTags.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "the tag names to replace on the entity")
 	err = entitiesReplaceTags.MarkFlagRequired("guid")
 	if err != nil {
 		log.Error(err)

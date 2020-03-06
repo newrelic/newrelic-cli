@@ -22,13 +22,13 @@ To load completion run the following.
 
 To configure your shell to load the completions on start, include the following in your shell's rc file.
 
-Using bash, for example.
+Using bash, for example:
 
 # ~/.bashrc or ~/.profile
 . <(newrelic completion --shell bash)
 
 
-Using zsh, for example.
+Using zsh, for example:
 
 # ~/.zshrc
 . <(newrelic completion --shell zsh)

@@ -49,10 +49,9 @@ var apmCreateDeployment = &cobra.Command{
 	Long: `Create a New Relic APM deployment
 
 The create-deployment command performs a create operation for an APM
-deployment.  The 'revision' flag is a free-form string to use as the code
-version for the deployment.
+deployment.
 `,
-	Example: "newrelic apm create-deployment --applicationId <appID> -r <codeRevision>",
+	Example: "newrelic apm create-deployment --applicationId <appID> --revision <deploymentRevision>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			deployment := apm.Deployment{
@@ -104,15 +103,15 @@ func init() {
 	var err error
 
 	Command.AddCommand(apmDescribeDeployments)
-	apmDescribeDeployments.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given name")
+	apmDescribeDeployments.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "the application ID to list deployments for")
 	err = apmDescribeDeployments.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
 
 	Command.AddCommand(apmCreateDeployment)
-	apmCreateDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given name")
-	apmCreateDeployment.Flags().StringVarP(&deploymentRevision, "revision", "r", "", "the code revision to set for the deployment")
+	apmCreateDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "the application ID the deployment will be created for")
+	apmCreateDeployment.Flags().StringVarP(&deploymentRevision, "revision", "r", "", "a freeform string representing the revision of the deployment")
 	err = apmCreateDeployment.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
@@ -124,8 +123,8 @@ func init() {
 	}
 
 	Command.AddCommand(apmDeleteDeployment)
-	apmDeleteDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given name")
-	apmDeleteDeployment.Flags().IntVarP(&deploymentID, "deploymentID", "d", 0, "search for results matching the given name")
+	apmDeleteDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "the application ID the deployment belongs to")
+	apmDeleteDeployment.Flags().IntVarP(&deploymentID, "deploymentID", "d", 0, "the ID of the deployment to be deleted")
 	err = apmDeleteDeployment.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)

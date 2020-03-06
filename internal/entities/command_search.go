@@ -19,11 +19,9 @@ var entitiesSearch = &cobra.Command{
 	Short: "Search for New Relic entities",
 	Long: `Search for New Relic entities
 
-The search command performs a search for New Relic entities. Optionally, you can
-provide additional search flags as filters to narrow search results. Use --help for
-more information.
+The search command performs a search for New Relic entities.
 `,
-	Example: "newrelic entities search -n test",
+	Example: "newrelic entities search --name <applicationName>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			params := entities.SearchEntitiesParams{}
@@ -100,11 +98,11 @@ func mapEntities(entities []*entities.Entity, fields []string, fn utils.StructTo
 
 func init() {
 	Command.AddCommand(entitiesSearch)
-	entitiesSearch.Flags().StringVarP(&entityName, "name", "n", "", "search for results matching the given name")
-	entitiesSearch.Flags().StringVarP(&entityType, "type", "t", "", "search for results matching the given type")
-	entitiesSearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "a", "", "search for results matching the given alert severity type")
-	entitiesSearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "search for results based on whether or not an entity is reporting (true or false)")
-	entitiesSearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for results matching the given entity domain")
-	entitiesSearch.Flags().StringVar(&entityTag, "tag", "", "search for results matching the given entity tag")
-	entitiesSearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "Filter search results to only return these fields for each search result.")
+	entitiesSearch.Flags().StringVarP(&entityName, "name", "n", "", "search for entities matching the given name")
+	entitiesSearch.Flags().StringVarP(&entityType, "type", "t", "", "search for entities matching the given type")
+	entitiesSearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "a", "", "search for entities matching the given alert severity type")
+	entitiesSearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "search for entities based on whether or not an entity is reporting (true or false)")
+	entitiesSearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for entities matching the given entity domain")
+	entitiesSearch.Flags().StringVar(&entityTag, "tag", "", "search for entities matching the given entity tag")
+	entitiesSearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "filter search results to only return certain fields for each search result")
 }
