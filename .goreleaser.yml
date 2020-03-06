@@ -51,11 +51,11 @@ archives:
 
 dockers:
   -
+    dockerfile: build/package/Dockerfile
     image_templates:
       - 'newrelic/cli:{{ .Tag }}'
       - 'newrelic/cli:v{{ .Major }}.{{ .Minor }}'
       - 'newrelic/cli:latest'
-    dockerfile: Dockerfile
     binaries:
       - newrelic
     build_flag_templates:
