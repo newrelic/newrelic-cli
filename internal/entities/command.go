@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
@@ -25,6 +26,7 @@ var (
 	entityAlertSeverity string
 	entityDomain        string
 	entityReporting     string
+	entityFields        []string
 )
 
 // Command represents the entities command
@@ -88,7 +90,16 @@ more information.
 				log.Fatal(err)
 			}
 
-			json, err := prettyjson.Marshal(entities)
+			var json []byte
+
+			if len(entityFields) > 0 {
+				mapped := mapEntities(entities, entityFields, utils.StructToMap)
+
+				json, err = prettyjson.Marshal(mapped)
+			} else {
+				json, err = prettyjson.Marshal(entities)
+			}
+
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -145,8 +156,8 @@ specified tag keys.
 
 var entitiesDeleteTagValues = &cobra.Command{
 	Use:   "delete-tag-values",
-	Short: "Delete the given tag/value pairs from the given entitiy",
-	Long: `Delete the given tag/value pairs from the given entitiy
+	Short: "Delete the given tag:value pairs from the given entity",
+	Long: `Delete the given tag:value pairs from the given entity
 
 The delete-tag-values command performs a delete operation on the entity for the
 specified tag:value pairs.
@@ -169,8 +180,8 @@ specified tag:value pairs.
 
 var entitiesCreateTags = &cobra.Command{
 	Use:   "create-tags",
-	Short: "Create tag:value pairs for the given entitiy",
-	Long: `Create tag:value pairs for the given entitiy
+	Short: "Create tag:value pairs for the given entity",
+	Long: `Create tag:value pairs for the given entity
 
 The create-tags command adds tag:value pairs for the given entity.
 `,
@@ -192,8 +203,8 @@ The create-tags command adds tag:value pairs for the given entity.
 
 var entitiesReplaceTags = &cobra.Command{
 	Use:   "replace-tags",
-	Short: "Replace tag:value pairs for the given entitiy",
-	Long: `Repaces tag:value pairs for the given entitiy
+	Short: "Replace tag:value pairs for the given entity",
+	Long: `Repaces tag:value pairs for the given entity
 
 The replace-tags command replaces any existing tag:value pairs with those
 provided for the given entity.
@@ -279,8 +290,17 @@ func assembleTagValue(tagValueString string) (entities.TagValue, error) {
 	return tv, nil
 }
 
-func init() {
+func mapEntities(entities []*entities.Entity, fields []string, fn utils.StructToMapCallback) []map[string]interface{} {
+	mappedEntities := make([]map[string]interface{}, len(entities))
 
+	for i, v := range entities {
+		mappedEntities[i] = fn(v, fields)
+	}
+
+	return mappedEntities
+}
+
+func init() {
 	var err error
 
 	Command.AddCommand(entitiesSearch)
@@ -290,6 +310,7 @@ func init() {
 	entitiesSearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "search for results based on whether or not an entity is reporting (true or false)")
 	entitiesSearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for results matching the given entity domain")
 	entitiesSearch.Flags().StringVar(&entityTag, "tag", "", "search for results matching the given entity tag")
+	entitiesSearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "Filter search results to only return these fields for each search result.")
 
 	Command.AddCommand(entitiesDescribeTags)
 	entitiesDescribeTags.Flags().StringVarP(&entityGUID, "guid", "g", "", "entity GUID to describe")
