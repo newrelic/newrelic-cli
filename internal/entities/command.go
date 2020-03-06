@@ -19,5 +19,5 @@ var (
 // Command represents the entities command
 var Command = &cobra.Command{
 	Use:   "entities",
-	Short: "Subcommands to interact with New Relic entities",
+	Short: "Interact with New Relic entities",
 }

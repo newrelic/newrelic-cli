@@ -7,5 +7,5 @@ import (
 // Command represents the apm command
 var Command = &cobra.Command{
 	Use:   "apm",
-	Short: "Subcommands to interact with New Relic APM",
+	Short: "Interact with New Relic APM",
 }

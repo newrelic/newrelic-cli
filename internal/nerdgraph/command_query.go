@@ -21,9 +21,8 @@ var (
 
 var queryCmd = &cobra.Command{
 	Use:   "query",
-	Short: "Execute a raw GraphQL query request to the NerdGraph API.",
-	Long: `
-Execute a raw GraphQL query request to the NerdGraph API.
+	Short: "Execute a raw GraphQL query request to the NerdGraph API",
+	Long: `Execute a raw GraphQL query request to the NerdGraph API
 
 The query command accepts a single argument in the form of a GraphQL query as a string.
 This command accepts an optional flag, --variables, which should be a JSON string where the
@@ -83,5 +82,5 @@ keys are the variables to be referenced in the GraphQL query.
 
 func init() {
 	Command.AddCommand(queryCmd)
-	queryCmd.Flags().StringVar(&variables, "variables", "{}", "(Optional) The variables to pass to the GraphQL query, represented as a JSON string.")
+	queryCmd.Flags().StringVar(&variables, "variables", "{}", "the variables to pass to the GraphQL query, represented as a JSON string")
 }

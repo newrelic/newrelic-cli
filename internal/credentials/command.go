@@ -17,7 +17,7 @@ var (
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
 	Use:   "profiles",
-	Short: "Subcommands to mange the credential profiles for this tool",
+	Short: "Manage the credential profiles for this tool",
 }
 
 var credentialsAdd = &cobra.Command{
@@ -25,8 +25,7 @@ var credentialsAdd = &cobra.Command{
 	Short: "Add a new credential profile",
 	Long: `Add a new credential profile
 
-The describe-deployments command performs a search for New Relic APM
-deployments.
+The add command creates a new credential profile for use with this tool.
 `,
 	Example: "newrelic credentials add -n <profileName> -r <region> --apiKey <apiKey>",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -118,9 +117,9 @@ func init() {
 
 	// Add
 	Command.AddCommand(credentialsAdd)
-	credentialsAdd.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to add")
-	credentialsAdd.Flags().StringVarP(&region, "region", "r", "", "us or eu region")
-	credentialsAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "Personal API key")
+	credentialsAdd.Flags().StringVarP(&profileName, "profileName", "n", "", "the profile name to add")
+	credentialsAdd.Flags().StringVarP(&region, "region", "r", "", "the US or EU region")
+	credentialsAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
 	err = credentialsAdd.MarkFlagRequired("profileName")
 	if err != nil {
 		log.Error(err)
@@ -138,7 +137,7 @@ func init() {
 
 	// Default
 	Command.AddCommand(credentialsDefault)
-	credentialsDefault.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to set as default")
+	credentialsDefault.Flags().StringVarP(&profileName, "profileName", "n", "", "the profile name to set as default")
 	err = credentialsDefault.MarkFlagRequired("profileName")
 	if err != nil {
 		log.Error(err)
@@ -150,7 +149,7 @@ func init() {
 
 	// Remove
 	Command.AddCommand(credentialsRemove)
-	credentialsRemove.Flags().StringVarP(&profileName, "profileName", "n", "", "The profile name to remove")
+	credentialsRemove.Flags().StringVarP(&profileName, "profileName", "n", "", "the profile name to remove")
 	err = credentialsRemove.MarkFlagRequired("profileName")
 	if err != nil {
 		log.Error(err)

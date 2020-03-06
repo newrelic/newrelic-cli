@@ -15,7 +15,7 @@ var (
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
 	Use:   "config",
-	Short: "Subcommands to manage the configuration of this tool",
+	Short: "Manage the configuration of this tool",
 }
 
 var cmdSet = &cobra.Command{
@@ -99,7 +99,7 @@ func init() {
 
 	Command.AddCommand(cmdSet)
 	cmdSet.Flags().StringVarP(&key, "key", "k", "", "the key to set")
-	cmdSet.Flags().StringVarP(&value, "value", "v", "", "the value to be set")
+	cmdSet.Flags().StringVarP(&value, "value", "v", "", "the value to set")
 	err = cmdSet.MarkFlagRequired("key")
 	if err != nil {
 		log.Error(err)

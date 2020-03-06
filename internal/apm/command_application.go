@@ -22,17 +22,17 @@ var (
 // Command represents the apm command
 var apmApplication = &cobra.Command{
 	Use:     "application",
-	Short:   "Subcommands to interact with New Relic APM applications",
+	Short:   "Interact with New Relic APM applications",
 	Example: "newrelic apm application --help",
-	Long:    "Subcommands to interact with New Relic APM applications",
+	Long:    "Interact with New Relic APM applications",
 }
 
 var apmGetApplication = &cobra.Command{
 	Use:   "get",
-	Short: "Get a New Relic application, searching by name or GUID",
-	Long: `Get a New Relic application by ID
+	Short: "Get a New Relic application",
+	Long: `Get a New Relic application
 
-The get command performs a query for an APM application by ID.
+The get command performs a query for an APM application by ID, entity GUID, name, and/or account ID.
 `,
 	Example: "newrelic apm application get --name <appName>",
 	Run: func(cmd *cobra.Command, args []string) {
