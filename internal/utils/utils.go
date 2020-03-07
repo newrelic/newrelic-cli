@@ -3,6 +3,8 @@ package utils
 import (
 	"reflect"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type StructToMapCallback func(item interface{}, fields []string) map[string]interface{}
@@ -35,4 +37,20 @@ func StructToMap(item interface{}, fields []string) map[string]interface{} {
 	}
 
 	return mapped
+}
+
+// LogIfError wraps the err nil check to cleanup the code.
+// Logs at Error level
+func LogIfError(err error) {
+	if err != nil {
+		log.Error(err)
+	}
+}
+
+// LogIfFatal wraps the err nil check to cleanup the code.
+// Logs at Fatal level
+func LogIfFatal(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
