@@ -2,6 +2,21 @@
 ## [Unreleased]
 
 
+<a name="v0.3.0"></a>
+## [v0.3.0] - 2020-03-06
+### Bug Fixes
+- **newrelic:** Do not log fatal error if Cobra is printing out the help screen
+- **newrelic:** avoid duplicate error message output
+
+### Documentation Updates
+- include information on getting started
+- **newrelic:** update the help screens for consistency
+
+### Features
+- **entities:** add ability to map entity search result fields via flag
+- **nerdgraph:** add nerdgraph command with query subcommand
+
+
 <a name="v0.2.3"></a>
 ## [v0.2.3] - 2020-03-04
 ### Bug Fixes
@@ -75,7 +90,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.3.0...HEAD
+[v0.3.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...v0.3.0
 [v0.2.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.1...v0.2.2
 [v0.2.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.0...v0.2.1
