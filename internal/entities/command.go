@@ -6,18 +6,18 @@ import (
 
 // Should these be moved out or made into higher-level flags?
 var (
-	entityName          string
-	entityGUID          string
-	entityValues        []string
-	entityType          string
 	entityAlertSeverity string
 	entityDomain        string
-	entityReporting     string
 	entityFields        []string
+	entityGUID          string
+	entityName          string
+	entityReporting     string
+	entityType          string
+	entityValues        []string
 )
 
 // Command represents the entities command
 var Command = &cobra.Command{
-	Use:   "entities",
+	Use:   "entity",
 	Short: "Interact with New Relic entities",
 }

@@ -11,13 +11,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestEntitiesDescribeTags(t *testing.T) {
-	assert.Equal(t, "describe-tags", entitiesDescribeTags.Name())
+func TestEntitiesGetTags(t *testing.T) {
+	assert.Equal(t, "get", cmdTagsGet.Name())
 
 	requiredFlags := []string{"guid"}
 
 	for _, r := range requiredFlags {
-		x := entitiesDescribeTags.Flag(r)
+		x := cmdTagsGet.Flag(r)
 		if x == nil {
 			t.Errorf("missing required flag: %s\n", r)
 			continue
@@ -28,12 +28,12 @@ func TestEntitiesDescribeTags(t *testing.T) {
 }
 
 func TestEntitiesDeleteTags(t *testing.T) {
-	assert.Equal(t, "delete-tags", entitiesDeleteTags.Name())
+	assert.Equal(t, "delete", cmdTagsDelete.Name())
 
 	requiredFlags := []string{"guid", "tag"}
 
 	for _, r := range requiredFlags {
-		x := entitiesDeleteTags.Flag(r)
+		x := cmdTagsDelete.Flag(r)
 		if x == nil {
 			t.Errorf("missing required flag: %s\n", r)
 			continue
@@ -44,12 +44,12 @@ func TestEntitiesDeleteTags(t *testing.T) {
 }
 
 func TestEntitiesDeleteTagValues(t *testing.T) {
-	assert.Equal(t, "delete-tag-values", entitiesDeleteTagValues.Name())
+	assert.Equal(t, "delete-values", cmdTagsDeleteValues.Name())
 
 	requiredFlags := []string{"guid", "value"}
 
 	for _, r := range requiredFlags {
-		x := entitiesDeleteTagValues.Flag(r)
+		x := cmdTagsDeleteValues.Flag(r)
 		if x == nil {
 			t.Errorf("missing required flag: %s\n", r)
 			continue
@@ -60,8 +60,8 @@ func TestEntitiesDeleteTagValues(t *testing.T) {
 }
 
 func TestEntitiesCreateTags(t *testing.T) {
-	cur := *entitiesCreateTags
-	assert.Equal(t, "create-tags", cur.Name())
+	cur := *cmdTagsCreate
+	assert.Equal(t, "create", cur.Name())
 
 	requiredFlags := []string{"guid", "tag"}
 
@@ -77,8 +77,8 @@ func TestEntitiesCreateTags(t *testing.T) {
 }
 
 func TestEntitiesReplaceTags(t *testing.T) {
-	cur := *entitiesReplaceTags
-	assert.Equal(t, "replace-tags", cur.Name())
+	cur := *cmdTagsReplace
+	assert.Equal(t, "replace", cur.Name())
 
 	requiredFlags := []string{"guid", "tag"}
 
