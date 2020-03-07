@@ -6,11 +6,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
 func TestQuery(t *testing.T) {
-	command := queryCmd
+	assert.Equal(t, "query", cmdQuery.Name())
 
-	assert.Equal(t, "query", command.Name())
-	assert.True(t, command.HasFlags())
+	testcobra.CheckCobraMetadata(t, cmdQuery)
+	testcobra.CheckCobraRequiredFlags(t, cmdQuery, []string{})
 }
