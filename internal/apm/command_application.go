@@ -7,9 +7,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
+
+	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -59,14 +61,10 @@ The search command performs a query for an APM application name, and/or account 
 			}
 
 			results, err = nrClient.Entities.SearchEntities(params)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			json, err := prettyjson.Marshal(results)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			fmt.Println(string(json))
 		})
@@ -89,17 +87,14 @@ The get command performs a query for an APM application by GUID.
 
 			if appGUID != "" {
 				results, err = nrClient.Entities.GetEntity(appGUID)
-				if err != nil {
-					log.Fatal(err)
-				}
+				utils.LogIfFatal(err)
 			} else {
-				log.Fatal("GUID is required")
+				utils.LogIfError(cmd.Help())
+				log.Fatal(" --guid <entityGUID> is required")
 			}
 
 			json, err := prettyjson.Marshal(results)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			fmt.Println(string(json))
 		})
@@ -113,9 +108,6 @@ func init() {
 	cmdApp.PersistentFlags().StringVarP(&appGUID, "guid", "g", "", "search for results matching the given APM application GUID")
 
 	cmdApp.AddCommand(cmdAppGet)
-	if err := cmdAppGet.MarkPersistentFlagRequired("guid"); err != nil {
-		log.Error(err)
-	}
 
 	cmdApp.AddCommand(cmdAppSearch)
 	cmdAppSearch.Flags().StringVarP(&appName, "name", "n", "", "search for results matching the given APM application name")

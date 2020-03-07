@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"github.com/hokaccha/go-prettyjson"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
+
+	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -40,14 +41,10 @@ The list command returns deployments for a New Relic APM application.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			deployments, err := nrClient.APM.ListDeployments(appID)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			json, err := prettyjson.Marshal(deployments)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			fmt.Println(string(json))
 		})
@@ -66,14 +63,10 @@ application.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			d, err := nrClient.APM.CreateDeployment(appID, deployment)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			json, err := prettyjson.Marshal(d)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			fmt.Println(string(json))
 		})
@@ -91,14 +84,10 @@ The delete command performs a delete operation for an APM deployment.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			d, err := nrClient.APM.DeleteDeployment(appID, deployment.ID)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			json, err := prettyjson.Marshal(d)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			fmt.Println(string(json))
 		})
@@ -106,15 +95,11 @@ The delete command performs a delete operation for an APM deployment.
 }
 
 func init() {
-	var err error
 	Command.AddCommand(cmdDeployment)
 
 	cmdDeployment.AddCommand(cmdDeploymentList)
 	cmdDeploymentList.Flags().IntVarP(&appID, "applicationId", "a", 0, "the application ID to list deployments for")
-	err = cmdDeploymentList.MarkFlagRequired("applicationId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDeploymentList.MarkFlagRequired("applicationId"))
 
 	cmdDeployment.AddCommand(cmdDeploymentCreate)
 	cmdDeploymentCreate.Flags().StringVarP(&deployment.Description, "description", "", "", "the description stored with the deployment")
@@ -122,27 +107,15 @@ func init() {
 	cmdDeploymentCreate.Flags().StringVarP(&deployment.Changelog, "change-log", "", "", "the change log stored with the deployment")
 
 	cmdDeploymentCreate.Flags().IntVarP(&appID, "applicationId", "a", 0, "the application ID the deployment will be created for")
-	err = cmdDeploymentCreate.MarkFlagRequired("applicationId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDeploymentCreate.MarkFlagRequired("applicationId"))
 
 	cmdDeploymentCreate.Flags().StringVarP(&deployment.Revision, "revision", "r", "", "a freeform string representing the revision of the deployment")
-	err = cmdDeploymentCreate.MarkFlagRequired("revision")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDeploymentCreate.MarkFlagRequired("revision"))
 
 	cmdDeployment.AddCommand(cmdDeploymentDelete)
 	cmdDeploymentDelete.Flags().IntVarP(&appID, "applicationId", "a", 0, "the application ID the deployment belongs to")
-	err = cmdDeploymentDelete.MarkFlagRequired("applicationId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDeploymentDelete.MarkFlagRequired("applicationId"))
 
 	cmdDeploymentDelete.Flags().IntVarP(&deployment.ID, "deploymentID", "d", 0, "the ID of the deployment to be deleted")
-	err = cmdDeploymentDelete.MarkFlagRequired("deploymentID")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDeploymentDelete.MarkFlagRequired("deploymentID"))
 }
