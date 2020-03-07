@@ -17,18 +17,30 @@ var (
 	deploymentID       int
 )
 
-var apmDescribeDeployments = &cobra.Command{
-	Use:   "describe-deployments",
-	Short: "Search for New Relic APM deployments",
-	Long: `Search for New Relic APM deployments
+var cmdDeployment = &cobra.Command{
+	Use:   "deployment",
+	Short: "Manage New Relic APM deployment markers",
+	Long: `Manage New Relic APM deployment markers
 
-The describe-deployments command performs a search for New Relic APM
-deployments.
+A deployment marker is an event indicating that a deployment happened, and
+it's paired with metadata available from your SCM system (for example,
+the user, revision, or change-log). APM displays a vertical line, or
+“marker,” on charts and graphs at the deployment event's timestamp.
 `,
-	Example: "newrelic apm describe-deployments --applicationId <appID>",
+	Example: "newrelic apm deployment list --applicationId <appID>",
+}
+
+var cmdDeploymentList = &cobra.Command{
+	Use:   "list",
+	Short: "List New Relic APM deployments for an application",
+	Long: `List New Relic APM deployments for an application
+
+The list command returns deployments for a New Relic APM application.
+`,
+	Example: "newrelic apm deployment list --applicationId <appID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			deployments, err := nrClient.APM.ListDeployments(apmApplicationID)
+			deployments, err := nrClient.APM.ListDeployments(appID)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -43,22 +55,22 @@ deployments.
 	},
 }
 
-var apmCreateDeployment = &cobra.Command{
-	Use:   "create-deployment",
+var cmdDeploymentCreate = &cobra.Command{
+	Use:   "create",
 	Short: "Create a New Relic APM deployment",
 	Long: `Create a New Relic APM deployment
 
-The create-deployment command performs a create operation for an APM
-deployment.
+The create command creates a new deployment marker for a New Relic APM
+application.
 `,
-	Example: "newrelic apm create-deployment --applicationId <appID> --revision <deploymentRevision>",
+	Example: "newrelic apm deployment create --applicationId <appID> --revision <deploymentRevision>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			deployment := apm.Deployment{
 				Revision: deploymentRevision,
 			}
 
-			d, err := nrClient.APM.CreateDeployment(apmApplicationID, deployment)
+			d, err := nrClient.APM.CreateDeployment(appID, deployment)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -73,18 +85,17 @@ deployment.
 	},
 }
 
-var apmDeleteDeployment = &cobra.Command{
-	Use:   "delete-deployment",
+var cmdDeploymentDelete = &cobra.Command{
+	Use:   "delete",
 	Short: "Delete a New Relic APM deployment",
 	Long: `Delete a New Relic APM deployment
 
-The delete-deployment command performs a delete operation for an APM
-deployment.
+The delete command performs a delete operation for an APM deployment.
 `,
-	Example: "newrelic apm delete-deployment --applicationId <appID> --deploymentID <deploymentID>",
+	Example: "newrelic apm deployment delete --applicationId <appID> --deploymentID <deploymentID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			d, err := nrClient.APM.DeleteDeployment(apmApplicationID, deploymentID)
+			d, err := nrClient.APM.DeleteDeployment(appID, deploymentID)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -101,36 +112,37 @@ deployment.
 
 func init() {
 	var err error
+	Command.AddCommand(cmdDeployment)
 
-	Command.AddCommand(apmDescribeDeployments)
-	apmDescribeDeployments.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "the application ID to list deployments for")
-	err = apmDescribeDeployments.MarkFlagRequired("applicationId")
+	cmdDeployment.AddCommand(cmdDeploymentList)
+	cmdDeploymentList.Flags().IntVarP(&appID, "applicationId", "a", 0, "the application ID to list deployments for")
+	err = cmdDeploymentList.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
 
-	Command.AddCommand(apmCreateDeployment)
-	apmCreateDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "the application ID the deployment will be created for")
-	apmCreateDeployment.Flags().StringVarP(&deploymentRevision, "revision", "r", "", "a freeform string representing the revision of the deployment")
-	err = apmCreateDeployment.MarkFlagRequired("applicationId")
+	cmdDeployment.AddCommand(cmdDeploymentCreate)
+	cmdDeploymentCreate.Flags().IntVarP(&appID, "applicationId", "a", 0, "the application ID the deployment will be created for")
+	cmdDeploymentCreate.Flags().StringVarP(&deploymentRevision, "revision", "r", "", "a freeform string representing the revision of the deployment")
+	err = cmdDeploymentCreate.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
 
-	err = apmCreateDeployment.MarkFlagRequired("revision")
+	err = cmdDeploymentCreate.MarkFlagRequired("revision")
 	if err != nil {
 		log.Error(err)
 	}
 
-	Command.AddCommand(apmDeleteDeployment)
-	apmDeleteDeployment.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "the application ID the deployment belongs to")
-	apmDeleteDeployment.Flags().IntVarP(&deploymentID, "deploymentID", "d", 0, "the ID of the deployment to be deleted")
-	err = apmDeleteDeployment.MarkFlagRequired("applicationId")
+	cmdDeployment.AddCommand(cmdDeploymentDelete)
+	cmdDeploymentDelete.Flags().IntVarP(&appID, "applicationId", "a", 0, "the application ID the deployment belongs to")
+	cmdDeploymentDelete.Flags().IntVarP(&deploymentID, "deploymentID", "d", 0, "the ID of the deployment to be deleted")
+	err = cmdDeploymentDelete.MarkFlagRequired("applicationId")
 	if err != nil {
 		log.Error(err)
 	}
 
-	err = apmDeleteDeployment.MarkFlagRequired("deploymentID")
+	err = cmdDeploymentDelete.MarkFlagRequired("deploymentID")
 	if err != nil {
 		log.Error(err)
 	}

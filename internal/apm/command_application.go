@@ -13,62 +13,87 @@ import (
 )
 
 var (
-	apmApplicationAccountID string
-	apmApplicationID        int
-	apmApplicationName      string
-	apmApplicationGUID      string
+	appAccountID string
+	appID        int
+	appName      string
+	appGUID      string
 )
 
 // Command represents the apm command
-var apmApplication = &cobra.Command{
+var cmdApp = &cobra.Command{
 	Use:     "application",
 	Short:   "Interact with New Relic APM applications",
 	Example: "newrelic apm application --help",
 	Long:    "Interact with New Relic APM applications",
 }
 
-var apmGetApplication = &cobra.Command{
+var cmdAppSearch = &cobra.Command{
+	Use:   "search",
+	Short: "Search for a New Relic application",
+	Long: `Search for a New Relic application
+
+The search command performs a query for an APM application name, and/or account ID.
+`,
+	Example: "newrelic apm application search --name <appName>",
+	Run: func(cmd *cobra.Command, args []string) {
+
+		if appName == "" && appAccountID == "" {
+			log.Fatal("one of --name or --acountId are required")
+		}
+
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			var results []*entities.Entity
+			var err error
+
+			params := entities.SearchEntitiesParams{
+				Domain: entities.EntityDomainType("APM"),
+				Type:   entities.EntityType("APPLICATION"),
+			}
+
+			if appName != "" {
+				params.Name = appName
+			}
+
+			if appAccountID != "" {
+				params.Tags = &entities.TagValue{Key: "accountId", Value: appAccountID}
+			}
+
+			results, err = nrClient.Entities.SearchEntities(params)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			json, err := prettyjson.Marshal(results)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(string(json))
+		})
+	},
+}
+
+//
+var cmdAppGet = &cobra.Command{
 	Use:   "get",
 	Short: "Get a New Relic application",
 	Long: `Get a New Relic application
 
-The get command performs a query for an APM application by ID, entity GUID, name, and/or account ID.
+The get command performs a query for an APM application by GUID.
 `,
-	Example: "newrelic apm application get --name <appName>",
+	Example: "newrelic apm application get --guid <entityGUID>",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		if apmApplicationName == "" && apmApplicationAccountID == "" && apmApplicationGUID == "" {
-			log.Fatal("one of --name, --acountId or --guid are required")
-		}
-
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-
-			var results []*entities.Entity
+			var results *entities.Entity
 			var err error
 
-			if apmApplicationGUID != "" {
-				results, err = nrClient.Entities.GetEntities([]string{apmApplicationGUID})
+			if appGUID != "" {
+				results, err = nrClient.Entities.GetEntity(appGUID)
 				if err != nil {
 					log.Fatal(err)
 				}
 			} else {
-				params := entities.SearchEntitiesParams{
-					Domain: entities.EntityDomainType("APM"),
-					Type:   entities.EntityType("APPLICATION"),
-				}
-
-				if apmApplicationName != "" {
-					params.Name = apmApplicationName
-				}
-
-				if apmApplicationAccountID != "" {
-					params.Tags = &entities.TagValue{Key: "accountId", Value: apmApplicationAccountID}
-				}
-
-				results, err = nrClient.Entities.SearchEntities(params)
-				if err != nil {
-					log.Fatal(err)
-				}
+				log.Fatal("GUID is required")
 			}
 
 			json, err := prettyjson.Marshal(results)
@@ -82,10 +107,17 @@ The get command performs a query for an APM application by ID, entity GUID, name
 }
 
 func init() {
-	Command.AddCommand(apmApplication)
-	apmApplication.AddCommand(apmGetApplication)
-	apmGetApplication.Flags().IntVarP(&apmApplicationID, "applicationId", "a", 0, "search for results matching the given APM application ID")
-	apmGetApplication.Flags().StringVarP(&apmApplicationName, "name", "n", "", "search for results matching the given APM application name")
-	apmGetApplication.Flags().StringVarP(&apmApplicationGUID, "guid", "g", "", "search for results matching the given APM application GUID")
-	apmGetApplication.Flags().StringVarP(&apmApplicationAccountID, "accountId", "", "", "search for results matching the given APM application account ID")
+	Command.AddCommand(cmdApp)
+
+	cmdApp.PersistentFlags().IntVarP(&appID, "applicationId", "a", 0, "search for results matching the given APM application ID")
+	cmdApp.PersistentFlags().StringVarP(&appGUID, "guid", "g", "", "search for results matching the given APM application GUID")
+
+	cmdApp.AddCommand(cmdAppGet)
+	if err := cmdAppGet.MarkPersistentFlagRequired("guid"); err != nil {
+		log.Error(err)
+	}
+
+	cmdApp.AddCommand(cmdAppSearch)
+	cmdAppSearch.Flags().StringVarP(&appName, "name", "n", "", "search for results matching the given APM application name")
+	cmdAppGet.Flags().StringVarP(&appAccountID, "accountId", "", "", "search for results matching the given APM application account ID")
 }
