@@ -21,6 +21,12 @@ being developed, but the tool as-is does perform a subset of tasks.
 * Deployment Markers: Easily record an APM Application deployment within
   New Relic.
 
+### Getting Started
+
+For a quick guide on getting started with the New Relic CLI, see our [Getting
+Started](https://github.com/newrelic/newrelic-cli/blob/master/docs/GETTING_STARTED.md)
+page.
+
 ### Other Resources
 
 There are a handful of other useful tools that this does not replace.  Here are
@@ -82,10 +88,11 @@ $ docker run -it --rm \
 ### Getting Help
 
 In order to get help about what commands are available, the trusty `--help`
-flag is here to assist.
+flag is here to assist.  Alternatively, using just the `help` subcommand also works.
 
 ```
 newrelic --help
+newrelic help
 ```
 
 Help is also available for the nested sub-commands.  For example, the with the
@@ -93,6 +100,7 @@ following command, you can retrieve help for the `apm` sub-command.
 
 ```
 newrelic apm --help
+newrelic help apm
 ```
 
 Using the CLI in this way, users are able to inspect what commands are
