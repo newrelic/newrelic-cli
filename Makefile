@@ -27,6 +27,7 @@ build-ci: check-version clean lint test compile-only
 clean: cover-clean compile-clean release-clean
 
 # Import fragments
+include build/admin.mk
 include build/compile.mk
 include build/deps.mk
 include build/docker.mk
