@@ -34,13 +34,13 @@ var cmdAppSearch = &cobra.Command{
 	Short: "Search for a New Relic application",
 	Long: `Search for a New Relic application
 
-The search command performs a query for an APM application name, and/or account ID.
+The search command performs a query for an APM application name and/or account ID.
 `,
 	Example: "newrelic apm application search --name <appName>",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if appName == "" && appAccountID == "" {
-			log.Fatal("one of --name or --acountId are required")
+			log.Fatal("one of --name or --accountId are required")
 		}
 
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
