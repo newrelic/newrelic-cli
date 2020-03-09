@@ -72,9 +72,17 @@ The search command performs a search for New Relic entities.
 			if len(entityFields) > 0 {
 				mapped := mapEntities(entities, entityFields, utils.StructToMap)
 
-				json, err = prettyjson.Marshal(mapped)
+				if len(mapped) == 1 {
+					json, err = prettyjson.Marshal(mapped[0])
+				} else {
+					json, err = prettyjson.Marshal(mapped)
+				}
 			} else {
-				json, err = prettyjson.Marshal(entities)
+				if len(entities) == 1 {
+					json, err = prettyjson.Marshal(entities[0])
+				} else {
+					json, err = prettyjson.Marshal(entities)
+				}
 			}
 
 			if err != nil {

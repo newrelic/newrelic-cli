@@ -5,86 +5,42 @@ package credentials
 import (
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
 func TestCredentialsCommand(t *testing.T) {
-	assert.NotEmptyf(t, Command.Use, "Need to set Command.%s on Command %s", "Use", Command.CalledAs())
-	assert.NotEmptyf(t, Command.Short, "Need to set Command.%s on Command %s", "Short", Command.CalledAs())
+	assert.Equal(t, "profiles", Command.Name())
 
-	for _, c := range Command.Commands() {
-		assert.NotEmptyf(t, c.Use, "Need to set Command.%s on Command %s", "Use", c.CommandPath())
-		assert.NotEmptyf(t, c.Short, "Need to set Command.%s on Command %s", "Short", c.CommandPath())
-		assert.NotEmptyf(t, c.Long, "Need to set Command.%s on Command %s", "Long", c.CommandPath())
-		assert.NotEmptyf(t, c.Example, "Need to set Command.%s on Command %s", "Example", c.CommandPath())
-	}
+	testcobra.CheckCobraMetadata(t, Command)
+	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
 }
 
 func TestCredentialsAdd(t *testing.T) {
-	command := credentialsAdd
-	assert.Equal(t, "add", command.Name())
+	assert.Equal(t, "add", cmdAdd.Name())
 
-	requiredFlags := []string{"profileName", "region"}
-
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdAdd)
+	testcobra.CheckCobraRequiredFlags(t, cmdAdd, []string{"profileName", "region"})
 }
 
 func TestCredentialsDefault(t *testing.T) {
-	command := credentialsDefault
-	assert.Equal(t, "default", command.Name())
+	assert.Equal(t, "default", cmdDefault.Name())
 
-	requiredFlags := []string{"profileName"}
-
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdDefault)
+	testcobra.CheckCobraRequiredFlags(t, cmdDefault, []string{"profileName"})
 }
 
 func TestCredentialsList(t *testing.T) {
-	command := credentialsList
-	assert.Equal(t, "list", command.Name())
+	assert.Equal(t, "list", cmdList.Name())
 
-	requiredFlags := []string{}
-
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdList)
+	testcobra.CheckCobraRequiredFlags(t, cmdList, []string{})
 }
 
 func TestCredentialsRemove(t *testing.T) {
-	command := credentialsRemove
-	assert.Equal(t, "remove", command.Name())
+	assert.Equal(t, "remove", cmdRemove.Name())
 
-	requiredFlags := []string{"profileName"}
-
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdRemove)
+	testcobra.CheckCobraRequiredFlags(t, cmdRemove, []string{"profileName"})
 }

@@ -5,56 +5,37 @@ package apm
 import (
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
-func TestApmDescribeDeployments(t *testing.T) {
-	assert.Equal(t, "describe-deployments", apmDescribeDeployments.Name())
+func TestApmDeployment(t *testing.T) {
+	assert.Equal(t, "deployment", cmdDeployment.Name())
 
-	requiredFlags := []string{"applicationId"}
-
-	for _, r := range requiredFlags {
-		x := apmDescribeDeployments.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdDeployment)
 }
 
-func TestApmCreateDeployment(t *testing.T) {
-	command := apmCreateDeployment
-	assert.Equal(t, "create-deployment", command.Name())
+func TestApmDeploymentList(t *testing.T) {
+	assert.Equal(t, "list", cmdDeploymentList.Name())
 
-	requiredFlags := []string{"applicationId", "revision"}
+	testcobra.CheckCobraMetadata(t, cmdDeploymentList)
+	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentList, []string{"applicationId"})
+}
 
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
+func TestApmDeploymentCreate(t *testing.T) {
+	assert.Equal(t, "create", cmdDeploymentCreate.Name())
 
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdDeploymentCreate)
+	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentCreate,
+		[]string{"applicationId", "revision"})
+
 }
 
 func TestApmDeleteDeployment(t *testing.T) {
-	command := apmDeleteDeployment
-	assert.Equal(t, "delete-deployment", command.Name())
+	assert.Equal(t, "delete", cmdDeploymentDelete.Name())
 
-	requiredFlags := []string{"applicationId", "deploymentID"}
-
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdDeploymentDelete)
+	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentDelete,
+		[]string{"applicationId", "deploymentID"})
 }

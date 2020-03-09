@@ -5,40 +5,29 @@ package apm
 import (
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
-func TestApmApplication(t *testing.T) {
-	command := apmApplication
-	assert.Equal(t, "application", command.Name())
+func TestApmApp(t *testing.T) {
+	assert.Equal(t, "application", cmdApp.Name())
 
-	requiredFlags := []string{}
-
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdApp)
+	testcobra.CheckCobraRequiredFlags(t, cmdApp, []string{})
 }
 
-func TestApmGetApplication(t *testing.T) {
-	command := apmGetApplication
-	assert.Equal(t, "get", command.Name())
+func TestApmAppGet(t *testing.T) {
+	assert.Equal(t, "get", cmdAppGet.Name())
 
-	requiredFlags := []string{}
+	testcobra.CheckCobraMetadata(t, cmdAppGet)
+	// guid is required, but Persisted Flags are not supported by this check
+	testcobra.CheckCobraRequiredFlags(t, cmdAppGet, []string{})
+}
 
-	for _, r := range requiredFlags {
-		x := command.Flag(r)
-		if x == nil {
-			t.Errorf("Missing required flag: %s\n", r)
-			continue
-		}
+func TestApmAppSearch(t *testing.T) {
+	assert.Equal(t, "search", cmdAppSearch.Name())
 
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
+	testcobra.CheckCobraMetadata(t, cmdAppSearch)
+	testcobra.CheckCobraRequiredFlags(t, cmdAppSearch, []string{})
 }
