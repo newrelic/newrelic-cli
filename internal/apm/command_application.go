@@ -40,6 +40,7 @@ The search command performs a query for an APM application name and/or account I
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if appName == "" && appAccountID == "" {
+			utils.LogIfError(cmd.Help())
 			log.Fatal("one of --name or --accountId are required")
 		}
 
