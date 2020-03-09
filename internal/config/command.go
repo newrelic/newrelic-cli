@@ -32,6 +32,8 @@ The set command sets a persistent configuration value for the New Relic CLI.
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 }
@@ -85,6 +87,7 @@ This will have the effect of resetting the value to its default.
 				log.Error(err)
 			}
 
+			log.Info("success")
 		})
 	},
 	Aliases: []string{

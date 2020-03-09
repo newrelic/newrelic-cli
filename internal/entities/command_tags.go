@@ -70,6 +70,8 @@ that match the specified keys.
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 }
@@ -93,6 +95,8 @@ The delete-values command deletes the specified tag:value pairs on a given entit
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 }
@@ -116,6 +120,8 @@ The create command adds tag:value pairs to the given entity.
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 }
@@ -140,6 +146,8 @@ provided for the given entity.
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 }
