@@ -2,6 +2,14 @@
 ## [Unreleased]
 
 
+<a name="v0.4.0"></a>
+## [v0.4.0] - 2020-03-10
+### Bug Fixes
+- **apm:** required params should result in help display
+- **build:** Force tag fetch on CI checkout
+- **lint:** skip spellcheck on the output/ directory
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0] - 2020-03-06
 ### Bug Fixes
@@ -90,7 +98,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0...HEAD
+[v0.4.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...v0.3.0
 [v0.2.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.1...v0.2.2
