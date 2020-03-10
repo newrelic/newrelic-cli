@@ -10,6 +10,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
+
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -22,10 +24,7 @@ func init() {
 
 	Command.AddCommand(completionCmd)
 	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
-	err := completionCmd.MarkFlagRequired("shell")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(completionCmd.MarkFlagRequired("shell"))
 
 	// Bind imported sub-commands
 	Command.AddCommand(entities.Command)
