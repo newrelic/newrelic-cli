@@ -15,7 +15,7 @@ GOLINTER      = golangci-lint
 EXCLUDEDIR   ?= .git
 SRCDIR       ?= .
 GO_PKGS      ?= $(shell ${GO} list ./... | grep -v -e "/vendor/" -e "/example")
-FILES        ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/')
+FILES        ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/' -e '/output/')
 
 GO_MOD_OUTDATED ?= go-mod-outdated
 
