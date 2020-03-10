@@ -46,6 +46,7 @@ jobs:
       - image: circleci/golang:1.14
     steps:
       - checkout
+      - run: git fetch --tags
       - save_cache:
           key: repo-{{ .Environment.CIRCLE_SHA1 }}
           paths:
