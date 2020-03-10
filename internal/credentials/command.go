@@ -65,6 +65,8 @@ The default command sets the profile to use by default using the specified name.
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 }
@@ -105,6 +107,8 @@ The remove command removes a credential profile specified by name.
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			log.Info("success")
 		})
 	},
 	Aliases: []string{
