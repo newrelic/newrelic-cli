@@ -26,6 +26,11 @@ The search command performs a search for New Relic entities.
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			params := entities.SearchEntitiesParams{}
 
+			if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
+				utils.LogIfError(cmd.Help())
+				log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
+			}
+
 			if entityName != "" {
 				params.Name = entityName
 			}
