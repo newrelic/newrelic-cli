@@ -76,7 +76,7 @@ func (c *Credentials) AddProfile(profileName, region, apiKey string) error {
 	}
 
 	p := Profile{
-		Region: region,
+		Region: strings.ToLower(region),
 		APIKey: apiKey,
 	}
 

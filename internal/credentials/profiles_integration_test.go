@@ -101,5 +101,24 @@ func TestCredentials(t *testing.T) {
 	_, err = os.Stat(fmt.Sprintf("%s/%s.json", f, "default-profile"))
 	assert.Error(t, err)
 	assert.True(t, os.IsNotExist(err))
+}
 
+func TestCredentialLowerCaseRegion(t *testing.T) {
+	f, err := ioutil.TempDir("/tmp", "newrelic")
+	assert.NoError(t, err)
+	defer os.RemoveAll(f)
+
+	// Initialize the new configuration directory
+	c, err := LoadCredentials(f)
+	assert.NoError(t, err)
+	assert.Equal(t, len(c.Profiles), 0)
+	assert.Equal(t, c.DefaultProfile, "")
+	assert.Equal(t, c.ConfigDirectory, f)
+
+	// Create an initial profile to work with
+	err = c.AddProfile("testCase1", "US", "apiKeyGoesHere")
+	assert.NoError(t, err)
+	assert.Equal(t, len(c.Profiles), 1)
+	assert.Equal(t, "us", c.Profiles["testCase1"].Region)
+	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
 }
