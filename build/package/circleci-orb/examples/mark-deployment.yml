@@ -1,0 +1,26 @@
+description: "Create a New Relic APM Application deployment marker. More docs here: https://github.com/newrelic/newrelic-cli"
+
+usage:
+  version: 2.1
+
+  orbs:
+    newrelic: newrelic/cli@x.y.z
+
+  jobs:
+    build:
+      docker:
+        - image: <docker image>
+      steps:
+        - newrelic/mark-deployment:
+            applicationId: "1234567"                   # (required) The New Relic Application ID to create the marker for
+            apiKey:        "<My New Relic API Key>"    # (required) The New Relic Personal API key used to create the deployment marker (Default: $NEW_RELIC_API_KEY)
+            accountId:     "<My New Relic Account ID>" # (required) The New Relic Account ID where the application is reporting (Default: $NEW_RELIC_ACCOUNT_ID)
+            revision:      "v0.1.0"                    # (optional) The code revision for this deployment (Default: $CIRCLE_SHA1)
+            user:          "My Username"               # (optional) Name recorded as making the deployment (Default: $CIRCLE_USERNAME)
+            description:   "My test deployment"        # (optional) Text describing the deployment (Default: 'Marker created by CircleCI build ${CIRCLE_BUILD_NUM}')
+            changelog:     "Lots of stuff changes"     # (optional) Change log for this deployment
+
+  workflows:
+    your-workflow:
+      jobs:
+        - build

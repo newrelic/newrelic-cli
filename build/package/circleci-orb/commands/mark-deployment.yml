@@ -1,0 +1,44 @@
+description: Create a New Relic APM Deployment marker for your application
+
+parameters:
+  applicationId:
+    description: The New Relic Application ID to create the marker for
+    type: string
+    default: ${NEW_RELIC_APPLICATION_ID}
+
+  accountId:
+    description: The New Relic Account ID where the application is reporting
+    type: string
+    default: ${NEW_RELIC_ACCOUNT_ID}
+
+  apiKey:
+    description: The New Relic Personal API key used to create the deployment marker
+    type: string
+    default: ${NEW_RELIC_API_KEY}
+
+  revision:
+    description: The code revision for this deployment
+    type: string
+    default: ${CIRCLE_SHA1}
+
+  user:
+    description: Name recorded as making the deployment
+    type: string
+    default: ${CIRCLE_USERNAME}
+
+  description:
+    description: Text describing the deployment
+    type: string
+    default: Marker created by CircleCI build ${CIRCLE_BUILD_NUM}
+
+  changelog:
+    description: Change log for this deployment
+    type: string
+
+steps:
+  - run:
+      name: New Relic CLI - APM Deployment
+      command: |
+        echo "Not implemented"
+
+

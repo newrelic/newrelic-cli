@@ -1,0 +1,8 @@
+version: 2.1
+description: >
+  Integrate New Relic with your CircleCI CI/CD pipeline easily with the newrelic/cli orb.
+display:
+  home_url: https://developer.newrelic.com
+  source_url: https://github.com/newrelic/newrelic-cli
+
+
