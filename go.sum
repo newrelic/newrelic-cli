@@ -389,8 +389,8 @@ github.com/mozilla/tls-observatory v0.0.0-20190404164649-a3c1b6cfecfd/go.mod h1:
 github.com/mwitkow/go-conntrack v0.0.0-20161129095857-cc309e4a2223/go.mod h1:qRWi+5nqEBWmkhHvq77mSJWrCKwh8bxhgT7d/eI7P4U=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d h1:AREM5mwr4u1ORQBMvzfzBgpsctsbQikCVpvC+tX285E=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96djdrsSGy3AWPyBgZMAGfxZNfgntdJG+11KU4QvbU=
-github.com/newrelic/newrelic-client-go v0.15.0 h1:FuGsI4gpI/uT7BQ/Q5MTKOQ+S307xejGBR3odvwxvx8=
-github.com/newrelic/newrelic-client-go v0.15.0/go.mod h1:t5cDNddE1yqC6ph7VdeRbFoVMZrxY06d0+xseKQozfY=
+github.com/newrelic/newrelic-client-go v0.16.0 h1:gNc2rAGIyZ3Nk/MpEGuXfKSaPQ1w7tLhAM9f6IFx8Mw=
+github.com/newrelic/newrelic-client-go v0.16.0/go.mod h1:t5cDNddE1yqC6ph7VdeRbFoVMZrxY06d0+xseKQozfY=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olekukonko/tablewriter v0.0.1 h1:b3iUnf1v+ppJiOfNX4yxxqfWKMQPZR5yoh8urCTFX88=
 github.com/olekukonko/tablewriter v0.0.1/go.mod h1:vsDQFd/mU46D+Z4whnwzcISnGGzXWMclvtLoiIKAKIo=
@@ -682,8 +682,8 @@ golang.org/x/tools v0.0.0-20200102140908-9497f49d5709/go.mod h1:TB2adYChydJhpapK
 golang.org/x/tools v0.0.0-20200204192400-7124308813f3/go.mod h1:TB2adYChydJhpapKDTa4BR/hXlZSLoq2Wpct/0txZ28=
 golang.org/x/tools v0.0.0-20200305224536-de023d59a5d1 h1:A6Mu2vcvuNXbBiGKuVHG74fmEPmzsZ5dzG0WhV2GcqI=
 golang.org/x/tools v0.0.0-20200305224536-de023d59a5d1/go.mod h1:o4KQGtdN14AW+yjsvvwRTJJuXz8XRtIHtEnmAXLyFUw=
-golang.org/x/tools v0.0.0-20200309202150-20ab64c0d93f h1:NbrfHxef+IfdI86qCgO/1Siq1BuMH2xG0NqgvCguRhQ=
-golang.org/x/tools v0.0.0-20200309202150-20ab64c0d93f/go.mod h1:o4KQGtdN14AW+yjsvvwRTJJuXz8XRtIHtEnmAXLyFUw=
+golang.org/x/tools v0.0.0-20200311090712-aafaee8bce8c h1:9WR4YuzLDuQMqEmLQrG0DiMmE2/HvX1dlrujzjmNVFg=
+golang.org/x/tools v0.0.0-20200311090712-aafaee8bce8c/go.mod h1:o4KQGtdN14AW+yjsvvwRTJJuXz8XRtIHtEnmAXLyFUw=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7 h1:9zdDQZ7Thm29KFXgAX/+yaf3eVbP7djjWp/dXAppNCc=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
