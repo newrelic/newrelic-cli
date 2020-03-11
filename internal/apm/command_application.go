@@ -105,12 +105,11 @@ The get command performs a query for an APM application by GUID.
 func init() {
 	Command.AddCommand(cmdApp)
 
-	cmdApp.PersistentFlags().IntVarP(&appID, "applicationId", "a", 0, "search for results matching the given APM application ID")
 	cmdApp.PersistentFlags().StringVarP(&appGUID, "guid", "g", "", "search for results matching the given APM application GUID")
 
 	cmdApp.AddCommand(cmdAppGet)
 
 	cmdApp.AddCommand(cmdAppSearch)
 	cmdAppSearch.Flags().StringVarP(&appName, "name", "n", "", "search for results matching the given APM application name")
-	cmdAppGet.Flags().StringVarP(&appAccountID, "accountId", "", "", "search for results matching the given APM application account ID")
+	cmdAppSearch.Flags().StringVarP(&appAccountID, "accountId", "", "", "search for results matching the given APM application account ID")
 }
