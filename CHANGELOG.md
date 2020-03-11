@@ -2,6 +2,14 @@
 ## [Unreleased]
 
 
+<a name="v0.4.1"></a>
+## [v0.4.1] - 2020-03-11
+### Bug Fixes
+- **apm:** Fix apm command flag parsing for accountId, applicationId
+- **apm/application:** Fix search params to accept accountId
+- **credentials:** Lowercase region on storage for compatibility with nr1 cli
+
+
 <a name="v0.4.0"></a>
 ## [v0.4.0] - 2020-03-10
 ### Bug Fixes
@@ -103,7 +111,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...HEAD
+[v0.4.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...v0.3.0
 [v0.2.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.2...v0.2.3
