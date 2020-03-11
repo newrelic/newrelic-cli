@@ -20,7 +20,7 @@ func TestApmDeploymentList(t *testing.T) {
 	assert.Equal(t, "list", cmdDeploymentList.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdDeploymentList)
-	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentList, []string{"applicationId"})
+	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentList, []string{})
 }
 
 func TestApmDeploymentCreate(t *testing.T) {
@@ -28,7 +28,7 @@ func TestApmDeploymentCreate(t *testing.T) {
 
 	testcobra.CheckCobraMetadata(t, cmdDeploymentCreate)
 	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentCreate,
-		[]string{"applicationId", "revision"})
+		[]string{"revision"})
 
 }
 
@@ -37,5 +37,5 @@ func TestApmDeleteDeployment(t *testing.T) {
 
 	testcobra.CheckCobraMetadata(t, cmdDeploymentDelete)
 	testcobra.CheckCobraRequiredFlags(t, cmdDeploymentDelete,
-		[]string{"applicationId", "deploymentID"})
+		[]string{"deploymentID"})
 }

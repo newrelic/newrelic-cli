@@ -15,10 +15,8 @@ import (
 )
 
 var (
-	appAccountID string
-	appID        int
-	appName      string
-	appGUID      string
+	appName string
+	appGUID string
 )
 
 // Command represents the apm command
@@ -39,30 +37,45 @@ The search command performs a query for an APM application name and/or account I
 	Example: "newrelic apm application search --name <appName>",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if appName == "" && appAccountID == "" {
+		if appGUID == "" && appName == "" && apmAccountID == "" {
 			utils.LogIfError(cmd.Help())
-			log.Fatal("one of --name or --accountId are required")
+			log.Fatal("one of --accountId, --guid, --name are required")
 		}
 
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			var results []*entities.Entity
 			var err error
 
-			params := entities.SearchEntitiesParams{
-				Domain: entities.EntityDomainType("APM"),
-				Type:   entities.EntityType("APPLICATION"),
-			}
+			// Look for just the GUID if passed in
+			if appGUID != "" {
+				if appName != "" || apmAccountID != "" {
+					log.Warnf("Searching for --guid only, ignoring --accountId and --name")
+				}
 
-			if appName != "" {
-				params.Name = appName
-			}
+				var singleResult *entities.Entity
+				singleResult, err = nrClient.Entities.GetEntity(appGUID)
+				utils.LogIfFatal(err)
 
-			if appAccountID != "" {
-				params.Tags = &entities.TagValue{Key: "accountId", Value: appAccountID}
-			}
+				if singleResult != nil {
+					results = append(results, singleResult)
+				}
+			} else {
+				params := entities.SearchEntitiesParams{
+					Domain: entities.EntityDomainType("APM"),
+					Type:   entities.EntityType("APPLICATION"),
+				}
 
-			results, err = nrClient.Entities.SearchEntities(params)
-			utils.LogIfFatal(err)
+				if appName != "" {
+					params.Name = appName
+				}
+
+				if apmAccountID != "" {
+					params.Tags = &entities.TagValue{Key: "accountId", Value: apmAccountID}
+				}
+
+				results, err = nrClient.Entities.SearchEntities(params)
+				utils.LogIfFatal(err)
+			}
 
 			json, err := prettyjson.Marshal(results)
 			utils.LogIfFatal(err)
@@ -111,5 +124,4 @@ func init() {
 
 	cmdApp.AddCommand(cmdAppSearch)
 	cmdAppSearch.Flags().StringVarP(&appName, "name", "n", "", "search for results matching the given APM application name")
-	cmdAppSearch.Flags().StringVarP(&appAccountID, "accountId", "", "", "search for results matching the given APM application account ID")
 }
