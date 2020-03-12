@@ -16,6 +16,11 @@ parameters:
     type: string
     default: ${NEW_RELIC_API_KEY}
 
+  region:
+    description: The New Relic Region the application is reporting to
+    type: string
+    default: ${NEW_RELIC_REGION}
+
   revision:
     description: The code revision for this deployment
     type: string
@@ -39,6 +44,22 @@ steps:
   - run:
       name: New Relic CLI - APM Deployment
       command: |
-        echo "Not implemented"
+        export NEW_RELIC_API_KEY=<< parameters.apiKey >>
+        <<# parameters.region >>
+          export NEW_RELIC_REGION=<< parameters.region >>
+        <</ parameters.region >>
+
+        /bin/newrelic apm deployment create \
+          --applicationId << parameters.applicationId >> \
+          --revision << parameters.revision >> \
+          <<# parameters.changelog >>
+          --change-log << parameters.changelog >> \
+          <</ parameters.changelog >>
+          <<# parameters.description >>
+          --description << parameters.description >> \
+          <</ parameters.description >>
+          <<# parameters.user >>
+          --user << parameters.user >>
+          <</ parameters.user >>
 
 
