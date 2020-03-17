@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
 func TestEntitiesGetTags(t *testing.T) {

@@ -6,9 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 // DefaultProfileFile is the configuration file containing the default profile name
