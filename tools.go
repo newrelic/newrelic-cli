@@ -11,6 +11,7 @@ import (
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/llorllale/go-gitlint/cmd/go-gitlint"
 	_ "github.com/psampaz/go-mod-outdated"
+	_ "golang.org/x/tools/cmd/goimports"
 
 	// build/document.mk
 	_ "github.com/git-chglog/git-chglog/cmd/git-chglog"

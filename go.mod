@@ -7,8 +7,8 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/git-chglog/git-chglog v0.0.0-20190923122001-6050f20bcdb0
 	github.com/go-openapi/strfmt v0.19.4 // indirect
-	github.com/golangci/golangci-lint v1.23.8
-	github.com/goreleaser/goreleaser v0.128.0
+	github.com/golangci/golangci-lint v1.24.0
+	github.com/goreleaser/goreleaser v0.129.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/imdario/mergo v0.3.8
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
@@ -20,5 +20,5 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/tools v0.0.0-20200311090712-aafaee8bce8c
+	golang.org/x/tools v0.0.0-20200317190434-d05f4d6edb1c
 )
