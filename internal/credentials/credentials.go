@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 const (

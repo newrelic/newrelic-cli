@@ -1,8 +1,9 @@
 package credentials
 
 import (
-	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 // WithCredentials loads and returns the CLI credentials.
