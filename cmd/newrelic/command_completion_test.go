@@ -5,7 +5,6 @@ package main
 import (
 	"testing"
 
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
