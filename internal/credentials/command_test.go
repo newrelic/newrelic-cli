@@ -11,24 +11,27 @@ import (
 )
 
 func TestCredentialsCommand(t *testing.T) {
-	assert.Equal(t, "profiles", Command.Name())
+	assert.Equal(t, "profile", Command.Name())
 
 	testcobra.CheckCobraMetadata(t, Command)
 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
+	testcobra.CheckCobraCommandAliases(t, Command, []string{"profiles"}) // DEPRECATED: from nr1 cli
 }
 
 func TestCredentialsAdd(t *testing.T) {
 	assert.Equal(t, "add", cmdAdd.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdAdd)
-	testcobra.CheckCobraRequiredFlags(t, cmdAdd, []string{"profileName", "region"})
+	testcobra.CheckCobraRequiredFlags(t, cmdAdd, []string{"name", "region"})
+	testcobra.CheckCobraCommandAliases(t, cmdAdd, []string{})
 }
 
 func TestCredentialsDefault(t *testing.T) {
 	assert.Equal(t, "default", cmdDefault.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdDefault)
-	testcobra.CheckCobraRequiredFlags(t, cmdDefault, []string{"profileName"})
+	testcobra.CheckCobraRequiredFlags(t, cmdDefault, []string{"name"})
+	testcobra.CheckCobraCommandAliases(t, cmdDefault, []string{})
 }
 
 func TestCredentialsList(t *testing.T) {
@@ -36,11 +39,13 @@ func TestCredentialsList(t *testing.T) {
 
 	testcobra.CheckCobraMetadata(t, cmdList)
 	testcobra.CheckCobraRequiredFlags(t, cmdList, []string{})
+	testcobra.CheckCobraCommandAliases(t, cmdList, []string{"ls"}) // DEPRECATED: from nr1 cli
 }
 
-func TestCredentialsRemove(t *testing.T) {
-	assert.Equal(t, "remove", cmdRemove.Name())
+func TestCredentialsDelete(t *testing.T) {
+	assert.Equal(t, "delete", cmdDelete.Name())
 
-	testcobra.CheckCobraMetadata(t, cmdRemove)
-	testcobra.CheckCobraRequiredFlags(t, cmdRemove, []string{"profileName"})
+	testcobra.CheckCobraMetadata(t, cmdDelete)
+	testcobra.CheckCobraRequiredFlags(t, cmdDelete, []string{"name"})
+	testcobra.CheckCobraCommandAliases(t, cmdDelete, []string{"remove", "rm"}) // DEPRECATED: from nr1 cli
 }
