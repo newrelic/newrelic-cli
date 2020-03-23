@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var versionCmd = &cobra.Command{
+var cmdVersion = &cobra.Command{
 	Use:   "version",
 	Short: "Show the version of the New Relic CLI",
 	Long: `Use the version command to print out the version of this command.
@@ -18,5 +18,5 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	Command.AddCommand(versionCmd)
+	Command.AddCommand(cmdVersion)
 }

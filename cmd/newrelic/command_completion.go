@@ -13,7 +13,7 @@ var (
 	completionShell string
 )
 
-var completionCmd = &cobra.Command{
+var cmdCompletion = &cobra.Command{
 	Use:   "completion",
 	Short: "Generates shell completion functions",
 	Long: `Generate shell completion functions
@@ -61,8 +61,8 @@ Using zsh, for example:
 }
 
 func init() {
-	Command.AddCommand(completionCmd)
+	Command.AddCommand(cmdCompletion)
 
-	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
-	utils.LogIfError(completionCmd.MarkFlagRequired("shell"))
+	cmdCompletion.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
+	utils.LogIfError(cmdCompletion.MarkFlagRequired("shell"))
 }
