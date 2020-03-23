@@ -27,7 +27,7 @@ For a quick guide on getting started with the New Relic CLI, see our [Getting
 Started](https://github.com/newrelic/newrelic-cli/blob/master/docs/GETTING_STARTED.md)
 page.
 
-The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/master/docs/newrelic.md)
+The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/master/docs/cli/newrelic.md)
 
 ### Other Resources
 
