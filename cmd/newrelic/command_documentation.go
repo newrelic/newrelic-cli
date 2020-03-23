@@ -14,9 +14,8 @@ var (
 )
 
 var cmdDocumentation = &cobra.Command{
-	Hidden: true,
-	Use:    "documentation",
-	Short:  "Generates CLI documentation",
+	Use:   "documentation",
+	Short: "Generate CLI documentation",
 	Long: `Generate CLI documentation
 
 newrelic documentation --outputDir <my directory> --type (markdown|manpage)
@@ -57,5 +56,4 @@ func init() {
 	cmdDocumentation.Flags().StringVarP(&docOutputDir, "outputDir", "o", "", "Output directory for generated documentation")
 	cmdDocumentation.Flags().StringVar(&docFormat, "format", "markdown", "Documentation format [markdown, manpage] default 'markdown'")
 	utils.LogIfError(cmdDocumentation.MarkFlagRequired("outputDir"))
-
 }
