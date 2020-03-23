@@ -10,7 +10,7 @@ HOMEBREW_UPSTREAM ?= git@github.com:newrelic-forks/homebrew-core.git
 ARCHIVE_URL       ?= https://github.com/newrelic/$(strip $(PROJECT_NAME))/archive/v$(strip $(PROJECT_VER_TAGGED)).tar.gz
 
 # Example usage: make release version=0.11.0
-release:
+release: build
 	@echo "=== $(PROJECT_NAME) === [ release          ]: Generating release."
 	$(RELEASE_SCRIPT) $(version)
 

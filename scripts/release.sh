@@ -29,6 +29,17 @@ echo "Generating release for v${RELEASE_VERSION} using system user git user ${GI
 
 git checkout -b release/v${RELEASE_VERSION}
 
+# Auto-generate CLI documentation
+NATIVEOS= $(shell go version | awk -F '[ /]' '{print $$4}')
+NATIVEARCH= $(shell go version | awk -F '[ /]' '{print $$5}')
+
+if [ -x "bin/${NATIVEOS}/newrelic" ]; then
+   rm -rf docs/cli/*
+   bin/${NATIVOS}/newrelic documentation --outputDir docs/cli/ --format markdown
+   git add docs/cli/*
+   git commit -m "chore(docs): Regenerate CLI docs for v${RELEASE_VERSION}"
+fi
+
 # Auto-generate CHANGELOG updates
 git-chglog --next-tag v${RELEASE_VERSION} -o CHANGELOG.md
 
