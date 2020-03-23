@@ -5,13 +5,15 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
 	completionShell string
 )
 
-var completionCmd = &cobra.Command{
+var cmdCompletion = &cobra.Command{
 	Use:   "completion",
 	Short: "Generates shell completion functions",
 	Long: `Generate shell completion functions
@@ -56,4 +58,11 @@ Using zsh, for example:
 			log.Error("--shell must be one of [bash, powershell, zsh]")
 		}
 	},
+}
+
+func init() {
+	Command.AddCommand(cmdCompletion)
+
+	cmdCompletion.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
+	utils.LogIfError(cmdCompletion.MarkFlagRequired("shell"))
 }

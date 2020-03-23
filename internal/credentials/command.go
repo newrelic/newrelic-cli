@@ -16,18 +16,21 @@ var (
 
 // Command is the base command for managing profiles
 var Command = &cobra.Command{
-	Use:   "profiles",
-	Short: "Manage the credential profiles for this tool",
+	Use:   "profile",
+	Short: "Manage the authentication profiles for this tool",
+	Aliases: []string{
+		"profiles", // DEPRECATED: accept but not consistent with the rest of the singular usage
+	},
 }
 
 var cmdAdd = &cobra.Command{
 	Use:   "add",
-	Short: "Add a new credential profile",
-	Long: `Add a new credential profile
+	Short: "Add a new profile",
+	Long: `Add a new profile
 
-The add command creates a new credential profile for use with the New Relic CLI.
+The add command creates a new profile for use with the New Relic CLI.
 `,
-	Example: "newrelic credentials add -n <profileName> -r <region> --apiKey <apiKey>",
+	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
 			err := creds.AddProfile(profileName, region, apiKey)
@@ -53,12 +56,12 @@ The add command creates a new credential profile for use with the New Relic CLI.
 
 var cmdDefault = &cobra.Command{
 	Use:   "default",
-	Short: "Set the default credential profile name",
-	Long: `Set the default credential profile name
+	Short: "Set the default profile name",
+	Long: `Set the default profile name
 
 The default command sets the profile to use by default using the specified name.
 `,
-	Example: "newrelic credentials default -n <profileName>",
+	Example: "newrelic profile default --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
 			err := creds.SetDefaultProfile(profileName)
@@ -73,12 +76,12 @@ The default command sets the profile to use by default using the specified name.
 
 var cmdList = &cobra.Command{
 	Use:   "list",
-	Short: "List the credential profiles available",
-	Long: `List the credential profiles available
+	Short: "List the profiles available",
+	Long: `List the profiles available
 
 The list command prints out the available profiles' credentials.
 `,
-	Example: "newrelic credentials list",
+	Example: "newrelic profile list",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
 			if creds != nil {
@@ -93,14 +96,14 @@ The list command prints out the available profiles' credentials.
 	},
 }
 
-var cmdRemove = &cobra.Command{
-	Use:   "remove",
-	Short: "Remove a credential profile",
-	Long: `Remove a credential profiles
+var cmdDelete = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete a profile",
+	Long: `Delete a profile
 
-The remove command removes a credential profile specified by name.
+The delete command removes the profile specified by name.
 `,
-	Example: "newrelic credentials remove -n <profileName>",
+	Example: "newrelic profile delete --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
 			err := creds.RemoveProfile(profileName)
@@ -112,6 +115,7 @@ The remove command removes a credential profile specified by name.
 		})
 	},
 	Aliases: []string{
+		"remove",
 		"rm",
 	},
 }
@@ -121,10 +125,10 @@ func init() {
 
 	// Add
 	Command.AddCommand(cmdAdd)
-	cmdAdd.Flags().StringVarP(&profileName, "profileName", "n", "", "the profile name to add")
+	cmdAdd.Flags().StringVarP(&profileName, "name", "n", "", "unique profile name to add")
 	cmdAdd.Flags().StringVarP(&region, "region", "r", "", "the US or EU region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
-	err = cmdAdd.MarkFlagRequired("profileName")
+	err = cmdAdd.MarkFlagRequired("name")
 	if err != nil {
 		log.Error(err)
 	}
@@ -141,8 +145,8 @@ func init() {
 
 	// Default
 	Command.AddCommand(cmdDefault)
-	cmdDefault.Flags().StringVarP(&profileName, "profileName", "n", "", "the profile name to set as default")
-	err = cmdDefault.MarkFlagRequired("profileName")
+	cmdDefault.Flags().StringVarP(&profileName, "name", "n", "", "the profile name to set as default")
+	err = cmdDefault.MarkFlagRequired("name")
 	if err != nil {
 		log.Error(err)
 	}
@@ -152,9 +156,9 @@ func init() {
 	cmdList.Flags().BoolVarP(&showKeys, "show-keys", "s", false, "list the profiles on your keychain")
 
 	// Remove
-	Command.AddCommand(cmdRemove)
-	cmdRemove.Flags().StringVarP(&profileName, "profileName", "n", "", "the profile name to remove")
-	err = cmdRemove.MarkFlagRequired("profileName")
+	Command.AddCommand(cmdDelete)
+	cmdDelete.Flags().StringVarP(&profileName, "name", "n", "", "the profile name to delete")
+	err = cmdDelete.MarkFlagRequired("name")
 	if err != nil {
 		log.Error(err)
 	}

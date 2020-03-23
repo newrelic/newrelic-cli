@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// testCmdRequiredFlags is a helper function to make sure that
+// CheckCobraRequiredFlags is a helper function to make sure that
 // the Cobra command has certain required flags set
 func CheckCobraRequiredFlags(t *testing.T, command *cobra.Command, requiredFlags []string) {
 	for _, r := range requiredFlags {
@@ -18,6 +18,14 @@ func CheckCobraRequiredFlags(t *testing.T, command *cobra.Command, requiredFlags
 		}
 
 		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
+	}
+}
+
+// CheckCobraCommandAliases is a helper function to make sure that
+// the Cobra command has certain required aliases set
+func CheckCobraCommandAliases(t *testing.T, command *cobra.Command, requiredAliases []string) {
+	for _, a := range requiredAliases {
+		assert.True(t, command.HasAlias(a))
 	}
 }
 
