@@ -5,6 +5,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -56,4 +58,11 @@ Using zsh, for example:
 			log.Error("--shell must be one of [bash, powershell, zsh]")
 		}
 	},
+}
+
+func init() {
+	Command.AddCommand(completionCmd)
+
+	completionCmd.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
+	utils.LogIfError(completionCmd.MarkFlagRequired("shell"))
 }

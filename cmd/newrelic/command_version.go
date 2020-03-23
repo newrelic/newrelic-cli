@@ -16,3 +16,7 @@ var versionCmd = &cobra.Command{
 		fmt.Printf("newrelic version %s\n", version)
 	},
 }
+
+func init() {
+	Command.AddCommand(versionCmd)
+}
