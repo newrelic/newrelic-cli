@@ -10,6 +10,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
+	"github.com/newrelic/newrelic-cli/internal/workload"
 )
 
 var (
@@ -24,6 +25,7 @@ func init() {
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(config.Command)
 	Command.AddCommand(nerdgraph.Command)
+	Command.AddCommand(workload.Command)
 }
 
 func main() {
