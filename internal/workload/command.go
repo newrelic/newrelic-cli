@@ -7,5 +7,5 @@ import (
 // Command represents the workloads command.
 var Command = &cobra.Command{
 	Use:   "workload",
-	Short: "Interact with New Relic One workloads.",
+	Short: "Interact with New Relic One workloads",
 }
