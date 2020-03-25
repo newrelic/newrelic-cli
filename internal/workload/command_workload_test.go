@@ -23,3 +23,10 @@ func TestDelete(t *testing.T) {
 	testcobra.CheckCobraMetadata(t, cmdDelete)
 	testcobra.CheckCobraRequiredFlags(t, cmdDelete, []string{})
 }
+
+func TestUpdate(t *testing.T) {
+	assert.Equal(t, "update", cmdUpdate.Name())
+
+	testcobra.CheckCobraMetadata(t, cmdUpdate)
+	testcobra.CheckCobraRequiredFlags(t, cmdUpdate, []string{})
+}
