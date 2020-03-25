@@ -10,6 +10,13 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
+func TestGet(t *testing.T) {
+	assert.Equal(t, "get", cmdGet.Name())
+
+	testcobra.CheckCobraMetadata(t, cmdGet)
+	testcobra.CheckCobraRequiredFlags(t, cmdGet, []string{})
+}
+
 func TestCreate(t *testing.T) {
 	assert.Equal(t, "create", cmdCreate.Name())
 
