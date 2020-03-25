@@ -15,6 +15,7 @@ var (
 	entityGUIDs         []string
 	entitySearchQueries []string
 	scopeAccountIDs     []int
+	guid                string
 )
 
 var cmdCreate = &cobra.Command{
@@ -30,9 +31,6 @@ be provided to include entities from different sub-accounts that you also have
 access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
-	Args: func(cmd *cobra.Command, args []string) error {
-		return nil
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			createInput := workloads.CreateInput{
@@ -64,11 +62,33 @@ access to.
 		})
 	},
 }
+var cmdDelete = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete a New Relic One workload.",
+	Long: `Delete a New Relic One workload
+
+The delete command accepts a workload's entity GUID.
+`,
+	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
+	Run: func(cmd *cobra.Command, args []string) {
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			_, err := nrClient.Workloads.DeleteWorkload(guid)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Info("success")
+		})
+	},
+}
 
 func init() {
 	Command.AddCommand(cmdCreate)
 	cmdCreate.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
 	cmdCreate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload")
+	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "g", []string{}, "the list of entity Guids composing the workload")
+	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
+	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
 	err := cmdCreate.MarkFlagRequired("accountId")
 	if err != nil {
 		log.Error(err)
@@ -79,7 +99,9 @@ func init() {
 		log.Error(err)
 	}
 
-	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "g", []string{}, "the list of entity Guids composing the workload")
-	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
-	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
+	Command.AddCommand(cmdDelete)
+	cmdDelete.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload to delete")
+	if err != nil {
+		log.Error(err)
+	}
 }
