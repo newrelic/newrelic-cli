@@ -110,6 +110,36 @@ entities from different sub-accounts that you also have access to.
 	},
 }
 
+var cmdDuplicate = &cobra.Command{
+	Use:   "duplicate",
+	Short: "Duplicate a New Relic One workload.",
+	Long: `Duplicate a New Relic One workload
+
+The duplicate command targets an existing workload by its entity GUID, and clones
+it to the provided account ID. An optional name can be provided for the new workload.
+If the name isn't specified, the name + ' copy' of the source workload is used to
+compose the new name.
+`,
+	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
+	Run: func(cmd *cobra.Command, args []string) {
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			var duplicateInput *workloads.DuplicateInput
+			if name != "" {
+				duplicateInput = &workloads.DuplicateInput{
+					Name: &name,
+				}
+			}
+
+			_, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			log.Info("success")
+		})
+	},
+}
+
 var cmdDelete = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a New Relic One workload.",
@@ -148,13 +178,6 @@ func init() {
 		log.Error(err)
 	}
 
-	// Delete
-	Command.AddCommand(cmdDelete)
-	cmdDelete.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload to delete")
-	if err != nil {
-		log.Error(err)
-	}
-
 	// Update
 	Command.AddCommand(cmdUpdate)
 	cmdUpdate.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload you want to update")
@@ -167,4 +190,27 @@ func init() {
 	if err != nil {
 		log.Error(err)
 	}
+
+	// Duplicate
+	Command.AddCommand(cmdDuplicate)
+	cmdDuplicate.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload you want to duplicate")
+	cmdDuplicate.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic Account ID where you want to create the new workload")
+	cmdDuplicate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload to duplicate")
+
+	err = cmdDuplicate.MarkFlagRequired("accountId")
+	if err != nil {
+		log.Error(err)
+	}
+	err = cmdDuplicate.MarkFlagRequired("guid")
+	if err != nil {
+		log.Error(err)
+	}
+
+	// Delete
+	Command.AddCommand(cmdDelete)
+	cmdDelete.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload to delete")
+	if err != nil {
+		log.Error(err)
+	}
+
 }
