@@ -107,12 +107,18 @@ you also have access to.
 				createInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
 			}
 
-			_, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
+			workload, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			json, err := prettyjson.Marshal(workload)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			log.Info("success")
+			fmt.Println(string(json))
 		})
 	},
 }
@@ -184,12 +190,18 @@ compose the new name.
 				}
 			}
 
-			_, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
+			workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			json, err := prettyjson.Marshal(workload)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			log.Info("success")
+			fmt.Println(string(json))
 		})
 	},
 }
