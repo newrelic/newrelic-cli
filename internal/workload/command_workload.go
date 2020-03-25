@@ -138,10 +138,8 @@ entities from different sub-accounts that you also have access to.
 	Example: `newrelic workload update --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --name 'Updated workflow'`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			updateInput := workloads.UpdateInput{}
-
-			if name != "" {
-				updateInput.Name = &name
+			updateInput := workloads.UpdateInput{
+				Name: name,
 			}
 
 			if len(entityGUIDs) > 0 {
@@ -183,11 +181,8 @@ compose the new name.
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var duplicateInput *workloads.DuplicateInput
-			if name != "" {
-				duplicateInput = &workloads.DuplicateInput{
-					Name: &name,
-				}
+			duplicateInput := &workloads.DuplicateInput{
+				Name: name,
 			}
 
 			workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
