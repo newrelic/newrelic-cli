@@ -47,6 +47,31 @@ The get command retrieves a specific workload by its account ID and workload ID.
 	},
 }
 
+var cmdList = &cobra.Command{
+	Use:   "list",
+	Short: "List the New Relic One workloads for an account.",
+	Long: `List the New Relic One workloads for an account
+
+The list command retrieves the workloads for the given account ID.
+`,
+	Example: `newrelic workload list --accountId 12345678`,
+	Run: func(cmd *cobra.Command, args []string) {
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			workload, err := nrClient.Workloads.ListWorkloads(accountID)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			json, err := prettyjson.Marshal(workload)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			fmt.Println(string(json))
+		})
+	},
+}
+
 var cmdCreate = &cobra.Command{
 	Use:   "create",
 	Short: "Create a New Relic One workload.",
@@ -200,6 +225,14 @@ func init() {
 	}
 
 	err = cmdGet.MarkFlagRequired("id")
+	if err != nil {
+		log.Error(err)
+	}
+
+	// List
+	Command.AddCommand(cmdList)
+	cmdList.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
+	err = cmdList.MarkFlagRequired("accountId")
 	if err != nil {
 		log.Error(err)
 	}
