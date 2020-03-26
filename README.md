@@ -4,6 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/newrelic/newrelic-cli?style=flat-square)](https://goreportcard.com/report/github.com/newrelic/newrelic-cli)
 [![GoDoc](https://godoc.org/github.com/newrelic/newrelic-cli?status.svg)](https://godoc.org/github.com/newrelic/newrelic-cli)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/master/LICENSE)
+[![CLA assistant](https://cla-assistant.io/readme/badge/newrelic/newrelic-cli)](https://cla-assistant.io/newrelic/newrelic-cli)
 [![Release](https://img.shields.io/github/release/newrelic/newrelic-cli/all.svg)](https://github.com/newrelic/newrelic-cli/releases/latest)
 
 The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/)
