@@ -2,6 +2,23 @@
 ## [Unreleased]
 
 
+<a name="v0.5.0"></a>
+## [v0.5.0] - 2020-03-26
+### Bug Fixes
+- **credentials:** Change profiles => profile, remove => delete (with aliases)
+- **documentation:** Unhide documentation generation command
+
+### Features
+- **docs:** Add auto-generated CLI documentation
+- **docs:** Add cobra generated documentation command (hidden)
+- **workloads:** add a command to duplicate workloads
+- **workloads:** add a command to update workloads
+- **workloads:** add a command to delete workloads
+- **workloads:** add a command to create workloads
+- **workloads:** add a command to list workloads
+- **workloads:** add a command to get a workload
+
+
 <a name="v0.4.1"></a>
 ## [v0.4.1] - 2020-03-11
 ### Bug Fixes
@@ -111,7 +128,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...HEAD
+[v0.5.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...v0.5.0
 [v0.4.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0...v0.4.1
 [v0.4.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.3.0...v0.4.0
 [v0.3.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...v0.3.0
