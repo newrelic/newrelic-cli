@@ -20,5 +20,5 @@ require (
 	github.com/spf13/cobra v0.0.6
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/tools v0.0.0-20200317190434-d05f4d6edb1c
+	golang.org/x/tools v0.0.0-20200330174233-9c79f685b721
 )
