@@ -2,7 +2,7 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
 
 	// Commands
 	"github.com/newrelic/newrelic-cli/internal/apm"
@@ -30,7 +30,7 @@ func init() {
 
 func main() {
 	if err := Execute(); err != nil {
-		if err != cobra.ErrSubCommandRequired {
+		if err != flag.ErrHelp {
 			log.Fatal(err)
 		}
 	}
