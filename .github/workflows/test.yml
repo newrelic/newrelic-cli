@@ -18,14 +18,38 @@ jobs:
       uses: actions/setup-go@v1
       with:
         go-version: ${{ matrix.go-version }}
+
+    - name: Add GOBIN to PATH
+      run: echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+
     - name: Checkout code
       uses: actions/checkout@v2
+
+    - name: Cache deps
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
     - name: Lint
       run: make lint
+
     - name: Unit Tests
       run: make test-unit
+
     - name: Integration Tests
       run: make test-integration
+      env:
+        NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+        NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+        NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+        NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+
     - name: Compile
       run: make compile-only
 
