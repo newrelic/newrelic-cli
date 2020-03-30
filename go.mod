@@ -17,7 +17,7 @@ require (
 	github.com/newrelic/newrelic-client-go v0.19.0
 	github.com/psampaz/go-mod-outdated v0.5.0
 	github.com/sirupsen/logrus v1.5.0
-	github.com/spf13/cobra v0.0.6
+	github.com/spf13/cobra v0.0.7
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/tools v0.0.0-20200317190434-d05f4d6edb1c
