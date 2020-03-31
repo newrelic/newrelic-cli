@@ -9,6 +9,8 @@ cloud.google.com/go v0.44.3/go.mod h1:60680Gw3Yr4ikxnPRS/oxxkBccT6SA1yMk63TGekxK
 cloud.google.com/go/datastore v1.0.0/go.mod h1:LXYbyblFSglQ5pkeyhO+Qmw7ukd3C+pD7TKLgZqpHYE=
 code.gitea.io/sdk/gitea v0.0.0-20200128061546-ea2b5af37297 h1:2jEu+HD5Hk87b8HiztAoTo+bSkerjFik3mU5z8sJycg=
 code.gitea.io/sdk/gitea v0.0.0-20200128061546-ea2b5af37297/go.mod h1:z3uwDV/b9Ls47NGukYM9XhnHtqPh/J+t40lsUrR6JDY=
+code.gitea.io/sdk/gitea v0.11.2 h1:D0xIRlHv3IckzdYOWzHK1bPvlkXdA4LD909UYyBdi1o=
+code.gitea.io/sdk/gitea v0.11.2/go.mod h1:z3uwDV/b9Ls47NGukYM9XhnHtqPh/J+t40lsUrR6JDY=
 contrib.go.opencensus.io/exporter/aws v0.0.0-20181029163544-2befc13012d0/go.mod h1:uu1P0UCM/6RbsMrgPa98ll8ZcHM858i/AD06a9aLRCA=
 contrib.go.opencensus.io/exporter/ocagent v0.5.0 h1:TKXjQSRS0/cCDrP7KvkgU6SmILtF/yV2TOs/02K/WZQ=
 contrib.go.opencensus.io/exporter/ocagent v0.5.0/go.mod h1:ImxhfLRpxoYiSq891pBrLVhN+qmP8BTVvdH2YLs7Gl0=
@@ -259,8 +261,8 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGa
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/goreleaser/goreleaser v0.129.0 h1:hJHsgxxNck3oe/MU4K+yznH2qgAVGNcxARTRP8ODSRk=
 github.com/goreleaser/goreleaser v0.129.0/go.mod h1:tzHV+xcU9AJMYNby0QS0lHm1DRrTCBkJXW9ic2reepY=
-github.com/goreleaser/goreleaser v0.130.0 h1:b2glkDQFPXSF4ZtBtPC8F8frE7/AimiW2Qr3usZGrUw=
-github.com/goreleaser/goreleaser v0.130.0/go.mod h1:SumgJ2vLy0ABPm3qlSiF0WX0MXBvB19iie/VE+dI4Nc=
+github.com/goreleaser/goreleaser v0.130.2 h1:zfE1PbCydYuCc3jJ4ncOTSzPjZCdxsp0Fsj9hDCOw3I=
+github.com/goreleaser/goreleaser v0.130.2/go.mod h1:J/1yMavmWYJ+gybZ1sxXVgcHcPnIZe5hK8QG+I0udHc=
 github.com/goreleaser/nfpm v1.2.1 h1:AEnu9XVmupRDTR930Z2rAs31Mj6sLIPxFcR9ESYvgDA=
 github.com/goreleaser/nfpm v1.2.1/go.mod h1:TtWrABZozuLOttX2uDlYyECfQX7x5XYkVxhjYcR6G9w=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
