@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
@@ -30,7 +31,16 @@ Retrieve a NerdStorage document.  Valid scopes are ACCOUNT, ENTITY, and USER.
 ACCOUNT scope requires a valid account ID and ENTITY scope requires a valid entity
 GUID.  A valid Nerdpack package ID is required.
 `,
-	Example: `newrelic nerdstorage document get --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol --documentId myDoc`,
+	Example: `
+  # Account scope
+  newrelic nerdstorage document get --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol --documentId myDoc
+
+  # Entity scope
+  newrelic nerdstorage document get --scope ENTITY --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --entityId MjUyMDUyOHxFUE18QVBQTElDQVRJT058MjE1MDM3Nzk1  --collection myCol --documentId myDoc
+
+  # User scope
+  newrelic nerdstorage document get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			var document interface{}
@@ -44,16 +54,8 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				if accountID == 0 {
-					log.Fatal("account ID is required when using account scope")
-				}
-
 				document, err = nrClient.NerdStorage.GetDocumentWithAccountScope(accountID, input)
 			case "entity":
-				if entityGUID == "" {
-					log.Fatal("entity GUID is required when using entity scope")
-				}
-
 				document, err = nrClient.NerdStorage.GetDocumentWithEntityScope(entityGUID, input)
 			case "user":
 				document, err = nrClient.NerdStorage.GetDocumentWithUserScope(input)
@@ -84,7 +86,16 @@ Write a NerdStorage document.  Valid scopes are ACCOUNT, ENTITY, and USER.
 ACCOUNT scope requires a valid account ID and ENTITY scope requires a valid entity
 GUID.  A valid Nerdpack package ID is required.
 `,
-	Example: `newrelic nerdstorage document write --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol --documentId myDoc --document '{"field": "myValue"}'`,
+	Example: `
+  # Account scope
+  newrelic nerdstorage document write --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
+
+  # Entity scope
+  newrelic nerdstorage document write --scope ENTITY --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --entityId MjUyMDUyOHxFUE18QVBQTElDQVRJT058MjE1MDM3Nzk1 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
+
+  # User scope
+  newrelic nerdstorage document write --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			var unmarshaled map[string]interface{}
@@ -102,16 +113,8 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				if accountID == 0 {
-					log.Fatal("account ID is required when using account scope")
-				}
-
 				_, err = nrClient.NerdStorage.WriteDocumentWithAccountScope(accountID, input)
 			case "entity":
-				if entityGUID == "" {
-					log.Fatal("entity GUID is required when using entity scope")
-				}
-
 				_, err = nrClient.NerdStorage.WriteDocumentWithEntityScope(entityGUID, input)
 			case "user":
 				_, err = nrClient.NerdStorage.WriteDocumentWithUserScope(input)
@@ -136,7 +139,16 @@ Delete a NerdStorage document.  Valid scopes are ACCOUNT, ENTITY, and USER.
 ACCOUNT scope requires a valid account ID and ENTITY scope requires a valid entity
 GUID.  A valid Nerdpack package ID is required.
 `,
-	Example: `newrelic nerdstorage document delete --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol --documentId myDoc`,
+	Example: `
+  # Account scope
+  newrelic nerdstorage document delete --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol --documentId myDoc
+
+  # Entity scope
+  newrelic nerdstorage document delete --scope ENTITY --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --entityId MjUyMDUyOHxFUE18QVBQTElDQVRJT058MjE1MDM3Nzk1 --collection myCol --documentId myDoc
+
+  # User scope
+  newrelic nerdstorage document delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			var err error
@@ -149,16 +161,8 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				if accountID == 0 {
-					log.Fatal("account ID is required when using account scope")
-				}
-
 				_, err = nrClient.NerdStorage.DeleteDocumentWithAccountScope(accountID, input)
 			case "entity":
-				if entityGUID == "" {
-					log.Fatal("entity GUID is required when using entity scope")
-				}
-
 				_, err = nrClient.NerdStorage.DeleteDocumentWithEntityScope(entityGUID, input)
 			case "user":
 				_, err = nrClient.NerdStorage.DeleteDocumentWithUserScope(input)
@@ -178,92 +182,66 @@ func init() {
 	Command.AddCommand(cmdDocument)
 
 	cmdDocument.AddCommand(cmdDocumentGet)
-	cmdDocumentGet.Flags().IntVar(&accountID, "accountId", 0, "the account ID")
-	cmdDocumentGet.Flags().StringVar(&entityGUID, "entityGuid", "", "the entity GUID")
-	cmdDocumentGet.Flags().StringVar(&packageID, "packageId", "", "the external package ID")
-	cmdDocumentGet.Flags().StringVar(&collection, "collection", "", "the collection name to get the document from")
-	cmdDocumentGet.Flags().StringVar(&documentID, "documentId", "", "the document ID")
-	cmdDocumentGet.Flags().StringVar(&scope, "scope", "USER", "the scope to get the document from")
+	cmdDocumentGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
+	cmdDocumentGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
+	cmdDocumentGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
+	cmdDocumentGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
+	cmdDocumentGet.Flags().StringVarP(&documentID, "documentId", "d", "", "the document ID")
+	cmdDocumentGet.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to get the document from")
 
 	err := cmdDocumentGet.MarkFlagRequired("packageId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentGet.MarkFlagRequired("scope")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentGet.MarkFlagRequired("collection")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentGet.MarkFlagRequired("documentId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	cmdDocument.AddCommand(cmdDocumentWrite)
-	cmdDocumentWrite.Flags().IntVar(&accountID, "accountId", 0, "the account ID")
-	cmdDocumentWrite.Flags().StringVar(&entityGUID, "entityGuid", "", "the entity GUID")
-	cmdDocumentWrite.Flags().StringVar(&packageID, "packageId", "", "the external package ID")
-	cmdDocumentWrite.Flags().StringVar(&collection, "collection", "", "the collection name to write the document to")
-	cmdDocumentWrite.Flags().StringVar(&documentID, "documentId", "", "the document ID")
-	cmdDocumentWrite.Flags().StringVar(&document, "document", "{}", "the document to be written")
-	cmdDocumentWrite.Flags().StringVar(&scope, "scope", "USER", "the scope to write the document to")
+	cmdDocumentWrite.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
+	cmdDocumentWrite.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
+	cmdDocumentWrite.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
+	cmdDocumentWrite.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to write the document to")
+	cmdDocumentWrite.Flags().StringVarP(&documentID, "documentId", "d", "", "the document ID")
+	cmdDocumentWrite.Flags().StringVarP(&document, "document", "o", "{}", "the document to be written, in JSON format")
+	cmdDocumentWrite.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to write the document to")
 
 	err = cmdDocumentWrite.MarkFlagRequired("packageId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentWrite.MarkFlagRequired("scope")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentWrite.MarkFlagRequired("document")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentWrite.MarkFlagRequired("collection")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentWrite.MarkFlagRequired("documentId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	cmdDocument.AddCommand(cmdDocumentDelete)
-	cmdDocumentDelete.Flags().IntVar(&accountID, "accountId", 0, "the account ID")
-	cmdDocumentDelete.Flags().StringVar(&entityGUID, "entityGuid", "", "the entity GUID")
-	cmdDocumentDelete.Flags().StringVar(&packageID, "packageId", "", "the external package ID")
-	cmdDocumentDelete.Flags().StringVar(&collection, "collection", "", "the collection name to delete the document from")
-	cmdDocumentDelete.Flags().StringVar(&documentID, "documentId", "", "the document ID")
-	cmdDocumentDelete.Flags().StringVar(&scope, "scope", "USER", "the scope to delete the document from")
+	cmdDocumentDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
+	cmdDocumentDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
+	cmdDocumentDelete.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
+	cmdDocumentDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")
+	cmdDocumentDelete.Flags().StringVarP(&documentID, "documentId", "d", "", "the document ID")
+	cmdDocumentDelete.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to delete the document from")
 
 	err = cmdDocumentDelete.MarkFlagRequired("packageId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentDelete.MarkFlagRequired("scope")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentDelete.MarkFlagRequired("collection")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdDocumentDelete.MarkFlagRequired("documentId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 }

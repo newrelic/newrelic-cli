@@ -8,7 +8,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	nrRegion "github.com/newrelic/newrelic-client-go/pkg/region"
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
 var (
@@ -19,9 +19,9 @@ var (
 // CreateNRClient initializes the New Relic client.
 func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, error) {
 	var (
-		err    error
-		apiKey string
-		region string
+		err         error
+		apiKey      string
+		regionValue string
 	)
 
 	// Create the New Relic Client
@@ -31,7 +31,7 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 
 	if defProfile != nil {
 		apiKey = defProfile.APIKey
-		region = defProfile.Region
+		regionValue = defProfile.Region
 	}
 
 	if apiKey == "" {
@@ -43,7 +43,7 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	nrClient, err := newrelic.New(
 		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
-		newrelic.ConfigRegion(nrRegion.Name(region)),
+		newrelic.ConfigRegion(region.Name(regionValue)),
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
 	)

@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
@@ -29,7 +30,16 @@ Retrieve a NerdStorage collection.  Valid scopes are ACCOUNT, ENTITY, and USER.
 ACCOUNT scope requires a valid account ID and ENTITY scope requires a valid entity
 GUID.  A valid Nerdpack package ID is required.
 `,
-	Example: `newrelic nerdstorage collection get --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol`,
+	Example: `
+  # Account scope
+  newrelic nerdstorage collection get --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol
+
+  # Entity scope
+  newrelic nerdstorage collection get --scope ENTITY --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --entityId MjUyMDUyOHxFUE18QVBQTElDQVRJT058MjE1MDM3Nzk1  --collection myCol
+
+  # User scope
+  newrelic nerdstorage collection get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			var resp []interface{}
@@ -42,16 +52,8 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				if accountID == 0 {
-					log.Fatal("account ID is required when using account scope")
-				}
-
 				resp, err = nrClient.NerdStorage.GetCollectionWithAccountScope(accountID, input)
 			case "entity":
-				if entityGUID == "" {
-					log.Fatal("entity GUID is required when using entity scope")
-				}
-
 				resp, err = nrClient.NerdStorage.GetCollectionWithEntityScope(entityGUID, input)
 			case "user":
 				resp, err = nrClient.NerdStorage.GetCollectionWithUserScope(input)
@@ -82,7 +84,16 @@ Delete a NerdStorage collection.  Valid scopes are ACCOUNT, ENTITY, and USER.
 ACCOUNT scope requires a valid account ID and ENTITY scope requires a valid entity
 GUID.  A valid Nerdpack package ID is required.
 `,
-	Example: `newrelic nerdstorage collection delete --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol`,
+	Example: `
+  # Account scope
+  newrelic nerdstorage collection delete --scope ACCOUNT --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --accountId 12345678 --collection myCol
+
+  # Entity scope
+  newrelic nerdstorage collection delete --scope ENTITY --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --entityId MjUyMDUyOHxFUE18QVBQTElDQVRJT058MjE1MDM3Nzk1  --collection myCol
+
+  # User scope
+  newrelic nerdstorage collection delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			var err error
@@ -94,16 +105,8 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				if accountID == 0 {
-					log.Fatal("account ID is required when using account scope")
-				}
-
 				_, err = nrClient.NerdStorage.DeleteCollectionWithAccountScope(accountID, input)
 			case "entity":
-				if entityGUID == "" {
-					log.Fatal("entity GUID is required when using entity scope")
-				}
-
 				_, err = nrClient.NerdStorage.DeleteCollectionWithEntityScope(entityGUID, input)
 			case "user":
 				_, err = nrClient.NerdStorage.DeleteCollectionWithUserScope(input)
@@ -123,46 +126,34 @@ func init() {
 	Command.AddCommand(cmdCollection)
 
 	cmdCollection.AddCommand(cmdCollectionGet)
-	cmdCollectionGet.Flags().IntVar(&accountID, "accountId", 0, "the account ID")
-	cmdCollectionGet.Flags().StringVar(&entityGUID, "entityGuid", "", "the entity GUID")
-	cmdCollectionGet.Flags().StringVar(&packageID, "packageId", "", "the external package ID")
-	cmdCollectionGet.Flags().StringVar(&collection, "collection", "", "the collection name to get the document from")
-	cmdCollectionGet.Flags().StringVar(&scope, "scope", "USER", "the scope to get the document from")
+	cmdCollectionGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
+	cmdCollectionGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
+	cmdCollectionGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
+	cmdCollectionGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
+	cmdCollectionGet.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to get the document from")
 
 	err := cmdCollectionGet.MarkFlagRequired("packageId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdCollectionGet.MarkFlagRequired("scope")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdCollectionGet.MarkFlagRequired("collection")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	cmdCollection.AddCommand(cmdCollectionDelete)
-	cmdCollectionDelete.Flags().IntVar(&accountID, "accountId", 0, "the account ID")
-	cmdCollectionDelete.Flags().StringVar(&entityGUID, "entityGuid", "", "the entity GUID")
-	cmdCollectionDelete.Flags().StringVar(&packageID, "packageId", "", "the external package ID")
-	cmdCollectionDelete.Flags().StringVar(&collection, "collection", "", "the collection name to delete the document from")
-	cmdCollectionDelete.Flags().StringVar(&scope, "scope", "USER", "the scope to delete the document from")
+	cmdCollectionDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
+	cmdCollectionDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
+	cmdCollectionDelete.Flags().StringVarP(&packageID, "packageId", "", "p", "the external package ID")
+	cmdCollectionDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")
+	cmdCollectionDelete.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to delete the document from")
 
 	err = cmdCollectionDelete.MarkFlagRequired("packageId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdCollectionDelete.MarkFlagRequired("scope")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 
 	err = cmdCollectionDelete.MarkFlagRequired("collection")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(err)
 }
