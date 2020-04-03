@@ -8,7 +8,7 @@ require (
 	github.com/git-chglog/git-chglog v0.0.0-20190923122001-6050f20bcdb0
 	github.com/go-openapi/strfmt v0.19.4 // indirect
 	github.com/golangci/golangci-lint v1.24.0
-	github.com/goreleaser/goreleaser v0.131.0
+	github.com/goreleaser/goreleaser v0.131.1
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/imdario/mergo v0.3.9
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
