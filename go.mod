@@ -14,12 +14,12 @@ require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go v0.20.1
+	github.com/newrelic/newrelic-client-go v0.21.0
 	github.com/psampaz/go-mod-outdated v0.5.0
 	github.com/sirupsen/logrus v1.5.0
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.2
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/tools v0.0.0-20200330174233-9c79f685b721
+	golang.org/x/tools v0.0.0-20200402174825-0a46fa39b051
 )
