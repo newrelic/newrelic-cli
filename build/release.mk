@@ -16,21 +16,28 @@ release: build
 
 release-clean:
 	@echo "=== $(PROJECT_NAME) === [ release-clean    ]: distribution files..."
-	@rm -rfv $(DIST_DIR)/*
+	@rm -rfv $(DIST_DIR)
 
 release-publish: clean tools docker-login
 	@echo "=== $(PROJECT_NAME) === [ release-publish  ]: Publishing release via $(REL_CMD)"
 	$(REL_CMD)
 
+# Local Snapshot
+snapshot: release-clean
+	@echo "=== $(PROJECT_NAME) === [ snapshot         ]: Creating release via $(REL_CMD)"
+	@echo "=== $(PROJECT_NAME) === [ snapshot         ]:   THIS WILL NOT BE PUBLISHED!"
+	$(REL_CMD) --skip-publish --snapshot
+
 release-homebrew:
 ifeq ($(HOMEBREW_GITHUB_API_TOKEN), "")
-	@echo "=== $(PROJECT_NAME) === [ admin-homebrew ]: HOMEBREW_GITHUB_API_TOKEN must be set"
+	@echo "=== $(PROJECT_NAME) === [ admin-homebrew   ]: HOMEBREW_GITHUB_API_TOKEN must be set"
 	exit 1
 endif
 ifeq ($(shell which $(HOMEBREW_CMD)), "")
-	@echo "=== $(PROJECT_NAME) === [ admin-homebrew ]: Hombrew command '$(HOMEBREW_CMD)' not found."
+	@echo "=== $(PROJECT_NAME) === [ admin-homebrew   ]: Hombrew command '$(HOMEBREW_CMD)' not found."
 	exit 1
 endif
-	@echo "=== $(PROJECT_NAME) === [ admin-homebrew ]: updating homebrew..."
+	@echo "=== $(PROJECT_NAME) === [ admin-homebrew   ]: updating homebrew..."
 	@HUB_REMOTE=$(HOMEBREW_UPSTREAM) $(HOMEBREW_CMD) bump-formula-pr --url $(ARCHIVE_URL) $(PROJECT_NAME)
-.PHONY: release release-clean release-homebrew release-publish
+
+.PHONY: release release-clean release-homebrew release-publish snapshot
