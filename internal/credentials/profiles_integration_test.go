@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
 func TestCredentialsLoadCredentialsNoDirectory(t *testing.T) {
@@ -47,9 +49,9 @@ func TestCredentials(t *testing.T) {
 	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
-	assert.Equal(t, c.Profiles["testCase1"].Region, "us")
-	assert.Equal(t, c.Profiles["testCase1"].APIKey, "apiKeyGoesHere")
-	assert.Equal(t, c.DefaultProfile, "")
+	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
+	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
+	assert.Equal(t, "", c.DefaultProfile)
 
 	// Set the default profile to the only one we've got
 	err = c.SetDefaultProfile("testCase1")
@@ -66,7 +68,7 @@ func TestCredentials(t *testing.T) {
 	err = c.AddProfile("testCase2", "us", "apiKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 2)
-	assert.Equal(t, c.Profiles["testCase2"].Region, "us")
+	assert.Equal(t, c.Profiles["testCase2"].Region, region.US)
 	assert.Equal(t, c.Profiles["testCase2"].APIKey, "apiKeyGoesHere")
 
 	// Set the default profile to the new one
@@ -119,6 +121,6 @@ func TestCredentialLowerCaseRegion(t *testing.T) {
 	err = c.AddProfile("testCase1", "US", "apiKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
-	assert.Equal(t, "us", c.Profiles["testCase1"].Region)
+	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
 	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
 }
