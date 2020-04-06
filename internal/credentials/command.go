@@ -10,7 +10,7 @@ var (
 	// Display keys when printing output
 	showKeys    bool
 	profileName string
-	region      string
+	flagRegion  string
 	apiKey      string
 )
 
@@ -33,7 +33,7 @@ The add command creates a new profile for use with the New Relic CLI.
 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
-			err := creds.AddProfile(profileName, region, apiKey)
+			err := creds.AddProfile(profileName, flagRegion, apiKey)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -126,7 +126,7 @@ func init() {
 	// Add
 	Command.AddCommand(cmdAdd)
 	cmdAdd.Flags().StringVarP(&profileName, "name", "n", "", "unique profile name to add")
-	cmdAdd.Flags().StringVarP(&region, "region", "r", "", "the US or EU region")
+	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
 	err = cmdAdd.MarkFlagRequired("name")
 	if err != nil {

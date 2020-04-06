@@ -10,6 +10,8 @@ import (
 	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-client-go/pkg/region"
+
 	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
@@ -70,14 +72,18 @@ func (c *Credentials) profileExists(profileName string) bool {
 }
 
 // AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, region, apiKey string) error {
-
+func (c *Credentials) AddProfile(profileName, reg, apiKey string) error {
 	if c.profileExists(profileName) {
 		return fmt.Errorf("profile with name %s already exists", profileName)
 	}
 
+	nrRegion, err := region.Parse(reg)
+	if err != nil {
+		return err
+	}
+
 	p := Profile{
-		Region: strings.ToLower(region),
+		Region: nrRegion,
 		APIKey: apiKey,
 	}
 
@@ -86,14 +92,14 @@ func (c *Credentials) AddProfile(profileName, region, apiKey string) error {
 	file, _ := json.MarshalIndent(c.Profiles, "", "  ")
 	defaultCredentialsFile := os.ExpandEnv(fmt.Sprintf("%s/%s.json", c.ConfigDirectory, DefaultCredentialsFile))
 
-	if _, err := os.Stat(c.ConfigDirectory); os.IsNotExist(err) {
-		err := os.MkdirAll(c.ConfigDirectory, os.ModePerm)
+	if _, err = os.Stat(c.ConfigDirectory); os.IsNotExist(err) {
+		err = os.MkdirAll(c.ConfigDirectory, os.ModePerm)
 		if err != nil {
 			return err
 		}
 	}
 
-	err := ioutil.WriteFile(defaultCredentialsFile, file, 0600)
+	err = ioutil.WriteFile(defaultCredentialsFile, file, 0600)
 	if err != nil {
 		return err
 	}

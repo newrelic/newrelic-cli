@@ -21,7 +21,7 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	var (
 		err         error
 		apiKey      string
-		regionValue string
+		regionValue region.Name
 	)
 
 	// Create the New Relic Client
@@ -43,7 +43,7 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	nrClient, err := newrelic.New(
 		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
-		newrelic.ConfigRegion(region.Name(regionValue)),
+		newrelic.ConfigRegion(regionValue),
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
 	)
@@ -77,7 +77,10 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 	}
 
 	if envRegion != "" {
-		out.Region = envRegion
+		reg, err := region.Parse(envRegion)
+		if err == nil {
+			out.Region = reg
+		}
 	}
 
 	return &out

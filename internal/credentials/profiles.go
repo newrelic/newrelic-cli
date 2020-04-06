@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 )
@@ -17,8 +20,8 @@ const DefaultProfileFile = "default-profile"
 
 // Profile contains data of a single profile
 type Profile struct {
-	APIKey string `mapstructure:"apiKey" json:"apiKey,omitempty"` // For accessing New Relic GraphQL resources
-	Region string `mapstructure:"region" json:"region,omitempty"` // Region to use for New Relic resources
+	APIKey string      `mapstructure:"apiKey" json:"apiKey,omitempty"` // For accessing New Relic GraphQL resources
+	Region region.Name `mapstructure:"region" json:"region,omitempty"` // Region to use for New Relic resources
 }
 
 // LoadProfiles reads the credential profiles from the default path.
@@ -125,4 +128,16 @@ func unmarshalProfiles(cfgViper *viper.Viper) (*map[string]Profile, error) {
 	log.Debugf("loaded credentials from: %v", cfgViper.ConfigFileUsed())
 
 	return &cfgMap, nil
+}
+
+// MarshalJSON allows us to override the default behavior on marshal
+// and lowercase the region string for backwards compatibility
+func (p Profile) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		APIKey string `json:"apiKey,omitempty"`
+		Region string `json:"region,omitempty"`
+	}{
+		APIKey: p.APIKey,
+		Region: strings.ToLower(p.Region.String()),
+	})
 }
