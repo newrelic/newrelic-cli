@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 )
 
 var (
@@ -64,11 +67,8 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 		return p
 	}
 
-	var out credentials.Profile
-
-	if p == nil {
-		out = credentials.Profile{}
-	} else {
+	out := credentials.Profile{}
+	if p != nil {
 		out = *p
 	}
 
@@ -77,9 +77,30 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 	}
 
 	if envRegion != "" {
-		reg, err := region.Parse(envRegion)
-		if err == nil {
-			out.Region = reg
+		var err error
+		out.Region, err = region.Parse(envRegion)
+
+		if err != nil {
+			switch err.(type) {
+			case region.UnknownError:
+				log.Errorf("error parsing NEW_RELIC_REGION: %s", err)
+				// Ignore the override if they have a default on the profile
+				if p.Region != "" {
+					var e2 error
+					out.Region, e2 = region.Parse(p.Region.String())
+					if e2 != nil {
+						log.Errorf("error parsing default profile: %s", e2)
+						out.Region = region.Default
+					}
+				} else {
+					out.Region = region.Default
+				}
+				log.Errorf("using region %s", out.Region.String())
+			case region.UnknownUsingDefaultError:
+				log.Error(err)
+			default:
+				log.Fatalf("unknown error: %v", err)
+			}
 		}
 	}
 
