@@ -2,8 +2,15 @@
 ## [Unreleased]
 
 
+<a name="v0.6.1"></a>
+## [v0.6.1] - 2020-04-07
+### Bug Fixes
+- **newrelic:** Fix command name replacement on build
+- **region:** Region parsing from config did not allow lowercase which is required for backwards compat
+
+
 <a name="v0.6.0"></a>
-## [v0.6.0] - 2020-04-02
+## [v0.6.0] - 2020-04-03
 ### Features
 - **nerdstorage:** add command for managing nerdstorage documents
 
@@ -134,7 +141,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...HEAD
+[v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
 [v0.5.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...v0.5.0
 [v0.4.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0...v0.4.1
