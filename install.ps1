@@ -43,7 +43,7 @@ function Get-File($url,$to) {
 }
 
 function Get-Useragent() {
-    return "newrelic-cli-installer/1.0 (+https://raw.githubusercontent.com/newrelic/newrelic-cli/master/install.ps1/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor); $(if($env:PROCESSOR_ARCHITECTURE -eq 'AMD64'){'Win64; x64; '})$(if($env:PROCESSOR_ARCHITEW6432 -eq 'AMD64'){'WOW64; '})$PSEdition)"
+    return "newrelic-cli-ps1-installer/1.0 (+https://raw.githubusercontent.com/newrelic/newrelic-cli/master/install.ps1/) PowerShell/$($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) (Windows NT $([System.Environment]::OSVersion.Version.Major).$([System.Environment]::OSVersion.Version.Minor); $(if($env:PROCESSOR_ARCHITECTURE -eq 'AMD64'){'Win64; x64; '})$(if($env:PROCESSOR_ARCHITEW6432 -eq 'AMD64'){'WOW64; '})$PSEdition)"
 }
 
 function Write-Success($msg) { Write-Host $msg -f darkgreen }
