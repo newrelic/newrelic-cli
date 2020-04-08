@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -120,7 +122,16 @@ func readCredentials(configDir string) (*viper.Viper, error) {
 
 func unmarshalProfiles(cfgViper *viper.Viper) (*map[string]Profile, error) {
 	cfgMap := map[string]Profile{}
-	err := cfgViper.Unmarshal(&cfgMap)
+
+	// Have to pass in the default hooks to add one...
+	err := cfgViper.Unmarshal(&cfgMap,
+		viper.DecodeHook(
+			mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				mapstructure.StringToSliceHookFunc(","),
+				StringToRegionHookFunc(), // Custom parsing of Region on unmarshal
+			),
+		))
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal credentials with error: %v", err)
 	}
@@ -140,4 +151,26 @@ func (p Profile) MarshalJSON() ([]byte, error) {
 		APIKey: p.APIKey,
 		Region: strings.ToLower(p.Region.String()),
 	})
+}
+
+// StringToRegionHookFunc takes a string and runs it through the region
+// parser to create a valid region (or error)
+func StringToRegionHookFunc() mapstructure.DecodeHookFunc {
+	return func(
+		f reflect.Type,
+		t reflect.Type,
+		data interface{}) (interface{}, error) {
+		var n region.Name
+
+		if f.Kind() != reflect.String {
+			return data, nil
+		}
+		if t != reflect.TypeOf(n) {
+			return data, nil
+		}
+
+		// Convert it by parsing
+		reg, err := region.Parse(data.(string))
+		return reg, err
+	}
 }

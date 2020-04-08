@@ -3,6 +3,7 @@
 package credentials
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -123,4 +124,45 @@ func TestCredentialLowerCaseRegion(t *testing.T) {
 	assert.Equal(t, len(c.Profiles), 1)
 	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
 	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
+}
+
+// TestCredentialCompatibilityNR1
+func TestCredentialCompatibilityNR1(t *testing.T) {
+	t.Parallel()
+
+	f, err := ioutil.TempDir("/tmp", "newrelic")
+	assert.NoError(t, err)
+	defer os.RemoveAll(f)
+
+	// Custom struct to mirror the config of NR1, and bypass
+	// any custom marshal / unmarshal code we have
+	testCredentialData := map[string]struct {
+		APIKey string
+		Region string
+	}{
+		"test": {
+			APIKey: "apiKeyGoesHere",
+			Region: "us",
+		},
+		"testeu": {
+			APIKey: "apiKeyEU",
+			Region: "EU",
+		},
+	}
+	file, jsonErr := json.MarshalIndent(testCredentialData, "", " ")
+	assert.NoError(t, jsonErr)
+
+	err = ioutil.WriteFile(f+"/credentials.json", file, 0600)
+	assert.NoError(t, err)
+
+	c, loadErr := LoadCredentials(f)
+	assert.NoError(t, loadErr)
+	assert.Equal(t, len(testCredentialData), len(c.Profiles))
+
+	for k := range c.Profiles {
+		assert.Equal(t, testCredentialData[k].APIKey, c.Profiles[k].APIKey)
+		reg, parseErr := region.Parse(testCredentialData[k].Region)
+		assert.NoError(t, parseErr, "invalid region test data on test") // Bad test data
+		assert.Equal(t, reg, c.Profiles[k].Region)
+	}
 }

@@ -14,6 +14,7 @@ require (
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mitchellh/mapstructure v1.2.2
 	github.com/newrelic/newrelic-client-go v0.21.0
 	github.com/psampaz/go-mod-outdated v0.5.0
 	github.com/sirupsen/logrus v1.5.0
