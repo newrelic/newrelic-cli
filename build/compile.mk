@@ -53,5 +53,7 @@ compile-linux: deps-only compile-only
 compile-windows: GOOS=windows
 compile-windows: deps-only compile-only
 
+compile-windows-installer:
+	@msbuild .\installers\Windows\NewRelicCLIInstaller.sln
 
 .PHONY: clean-compile compile compile-darwin compile-linux compile-only compile-windows

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <!-- Use * to generate product ID on every build -->
+  <Product Id="*"
+			 Name="New Relic CLI"
+			 Language="1033"
+			 Version="$(var.Version)"
+			 Manufacturer="New Relic"
+			 UpgradeCode="58FB0E6C-94EF-4AFB-A067-A6DA6B17E10F">
+
+    <Package Compressed="yes"
+				 InstallScope="perMachine"
+				 Manufacturer="New Relic"
+				 Description="The New Relic command line interface." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <!--Directory structure-->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="DIR_NewRelic" Name="New Relic">
+          <Directory Id="DIR_NewRelicCLI" Name="New Relic CLI" />
+          </Directory>
+        </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="DIR_Shortcuts" Name="New Relic">
+          <Directory Id="DIR_CLIShortcut" Name="New Relic CLI" />
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!--Components-->
+    <DirectoryRef Id="DIR_NewRelicCLI">
+      <Component Id="CMP_NewRelicExe" Guid="367D82BF-A960-4B09-9714-079C93B9E1FB">
+        <Environment Id="PATH" Name="PATH" Value="[DIR_NewRelicCLI]" Permanent="no" Part="last" Action="set" System="no" />
+        <File Id="FILE_NewRelicExe" Source="..\..\..\dist\newrelic_windows_amd64\newrelic.exe" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!--Start Menu Shortcuts-->
+    <DirectoryRef Id="DIR_Shortcuts">
+      <Component Id="CMP_ReadFileShortcut" Guid="1AF06B42-CD42-4AED-959F-36DB5E512046">
+        <Shortcut Id="UninstallShortcut"
+						  Name="Uninstall New Relic CLI"
+						  Description="Uninstalls New Relic CLI"
+						  Target="[System64Folder]msiexec.exe"
+						  Arguments="/x [ProductCode]" />
+
+        <RemoveFolder Id="RemoveDIR_CLIShortcut" Directory="DIR_Shortcuts" On="uninstall" />   
+        <RemoveFolder Id="RemoveDIR_Shortcuts" Directory="DIR_CLIShortcut" On="uninstall" />
+
+        <RegistryValue Root="HKCU"
+							   Key="Software\New Relic\NewRelicCLI"
+							   Name="installed"
+							   Type="integer"
+							   Value="1"
+							   KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!--Features-->
+    <Feature Id="FileToInstallFeature" Title="New Relic CLI" Level="1">
+      <ComponentRef Id="CMP_NewRelicExe" />
+    </Feature>
+
+    <Feature Id="ShortcutsFeature" Title="Shortcuts" Level="1">
+      <ComponentRef Id="CMP_ReadFileShortcut" />
+    </Feature>
+
+    <UI Id="WixUI_FeatureTree">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="FeatureTree" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg">NOT Installed</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+
+      <!--
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg">LicenseAccepted = "1"</Publish>
+      -->
+
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2">NOT Installed</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg" Order="1">NOT Installed OR WixUI_InstallMode = "Change"</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2">Installed AND NOT PATCH</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="3">Installed AND PATCH</Publish>
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="ChangeButton" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+    </UI>
+
+    <WixVariable Id="WixUIBannerBmp" Value="ui-banner.bmp"/>
+    <WixVariable Id="WixUIDialogBmp" Value="ui-dialog.bmp"/>
+
+    <UIRef Id="WixUI_Common" />
+  </Product>
+</Wix>
