@@ -26,3 +26,41 @@ jobs:
       shell: bash
       run: make release-publish
 
+  release-windows-installer:
+    runs-on: windows-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Add GOBIN to PATH
+      run: echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build executable
+      run: make snapshot
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.0
+
+    - name: Compile installer
+      run: make compile-windows-installer
+
+    - name: Get latest release
+      id: get-latest-release
+      run: echo "##[set-output name=release_url;]$(scripts/get_latest_release.sh)"
+
+    - name: Upload Windows installer
+      id: upload-windows-installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get-latest-release.outputs.release_url }}
+        asset_path: .\installers\Windows\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
+        asset_name: NewRelicCLIInstaller.msi
+        asset_content_type: application/octet-stream

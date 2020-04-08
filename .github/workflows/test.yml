@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, feat/ps-installer ]
 
 jobs:
   tests:
@@ -52,7 +52,7 @@ jobs:
         NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
 
-  # Compile on all supported OSes
+  # Compile on all supported OSes (except Windows)
   compile:
     strategy:
       matrix:
@@ -61,7 +61,6 @@ jobs:
         platform:
           - ubuntu-latest
           - macos-latest
-          - windows-latest
     runs-on: ${{ matrix.platform }}
     steps:
     - name: Install Go
@@ -78,4 +77,3 @@ jobs:
 
     - name: Compile
       run: make compile-only
-
