@@ -2,6 +2,12 @@
 ## [Unreleased]
 
 
+<a name="v0.6.2"></a>
+## [v0.6.2] - 2020-04-08
+### Bug Fixes
+- **region:** Add custom decoder for region for NR1 compatibility
+
+
 <a name="v0.6.1"></a>
 ## [v0.6.1] - 2020-04-07
 ### Bug Fixes
@@ -141,7 +147,8 @@
 - **profile:** Add listing of profiles to command
 
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...HEAD
+[v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
 [v0.5.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...v0.5.0
