@@ -30,8 +30,8 @@ echo "Generating release for v${RELEASE_VERSION} using system user git user ${GI
 git checkout -b release/v${RELEASE_VERSION}
 
 # Auto-generate CLI documentation
-NATIVEOS= $(shell go version | awk -F '[ /]' '{print $$4}')
-NATIVEARCH= $(shell go version | awk -F '[ /]' '{print $$5}')
+NATIVEOS=$(go version | awk -F '[ /]' '{print $4}')
+NATIVEARCH=$(go version | awk -F '[ /]' '{print $5}')
 
 if [ -x "bin/${NATIVEOS}/newrelic" ]; then
    rm -rf docs/cli/*
