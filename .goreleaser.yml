@@ -9,8 +9,7 @@ before:
     - go mod download
 
 builds:
-  -
-    id: newrelic
+  - id: newrelic
     dir: cmd/newrelic
     binary: newrelic
     env:
@@ -25,14 +24,69 @@ builds:
       - -s -w -X main.version={{.Version}} -X main.appName={{.Binary}}
         -X github.com/newrelic/newrelic-cli/internal/client.version={{.Version}}
 
-release:
-  # Mark as a pre-release for now
-  prerelease: true
-  name_template: "{{.ProjectName}} v{{.Version}}"
+brews:
+  - name: newrelic # maybe newrelic-cli ?
+    ids: [default]
+    github:
+      owner: sanderblue
+      name: newrelic-cli
+
+    # Example: newrelic-cli_0.6.0_Darwin_x86_64.tar.gz
+    # url_template: 'https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}'
+
+    # Folder inside the repository to put the formula.
+    # Default is the root folder.
+    # folder: Formula
+
+    # Your app's homepage.
+    # Default is empty.
+    homepage: 'https://github.com/sanderblue/newrelic-cli'
+    description: 'New Relic CLI'
+
+    # Setting this will prevent goreleaser to actually try to commit the updated
+    # formula - instead, the formula file will be stored on the dist folder only,
+    # leaving the responsibility of publishing it to the user.
+    # If set to auto, the release will not be uploaded to the homebrew tap
+    # in case there is an indicator for prerelease in the tag e.g. v1.0.0-rc1
+    # Default is false.
+    # skip_upload: true
+
+    custom_block: |
+      url "https://github.com/newrelic/newrelic-cli/archive/v0.6.2.tar.gz"
+      sha256 "603bf5b23e8f986085596b0728503eaa46d41cb31d1c3ac9f1988ac7d48219ec"
+      head "https://github.com/newrelic/newrelic-cli.git"
+
+      bottle do
+        cellar :any_skip_relocation
+        sha256 "8cec5f941f4debc4ee6aeb677a958aea0bb767779f15cabb5dd36644151353b5" => :catalina
+        sha256 "d0190fc7cfb04544eb7e05125e4888b6226183f4777d5923b3afa45ca8803dfc" => :mojave
+        sha256 "147be967461677898528c16b3561b30e1c5803d8cdddea47bbe9af8d6e667933" => :high_sierra
+      end
+
+    dependencies:
+      - 'go => :build'
+
+    test: |
+      assert_match /pluginDir/, shell_output("#{bin}/newrelic config list")
+      assert_match /logLevel/, shell_output("#{bin}/newrelic config list")
+      assert_match /sendUsageData/, shell_output("#{bin}/newrelic config list")
+      assert_match version.to_s, shell_output("#{bin}/newrelic version 2>&1")
+    install: |
+      ENV["PROJECT_VER"] = version
+      system "make", "compile-only"
+      bin.install "bin/darwin/newrelic"
+      output = Utils.popen_read("#{bin}/newrelic completion --shell bash")
+      (bash_completion/"newrelic").write output
+      output = Utils.popen_read("#{bin}/newrelic completion --shell zsh")
+      (zsh_completion/"_newrelic").write output
+
+# release:
+#   # Mark as a pre-release for now
+#   prerelease: true
+#   name_template: '{{.ProjectName}} v{{.Version}}'
 
 archives:
-  -
-    id: "default"
+  - id: 'default'
     builds:
       - newrelic
     replacements:
@@ -49,20 +103,19 @@ archives:
       - LICENSE
       - README.md
 
-dockers:
-  -
-    dockerfile: build/package/Dockerfile
-    image_templates:
-      - 'newrelic/cli:{{ .Tag }}'
-      - 'newrelic/cli:v{{ .Major }}.{{ .Minor }}'
-      - 'newrelic/cli:latest'
-    binaries:
-      - newrelic
-    build_flag_templates:
-      - "--pull"
-      - "--label=repository=http://github.com/newrelic/newrelic-cli"
-      - "--label=homepage=https://developer.newrelic.com/"
-      - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
+# dockers:
+#   - dockerfile: build/package/Dockerfile
+#     image_templates:
+#       - 'newrelic/cli:{{ .Tag }}'
+#       - 'newrelic/cli:v{{ .Major }}.{{ .Minor }}'
+#       - 'newrelic/cli:latest'
+#     binaries:
+#       - newrelic
+#     build_flag_templates:
+#       - '--pull'
+#       - '--label=repository=http://github.com/newrelic/newrelic-cli'
+#       - '--label=homepage=https://developer.newrelic.com/'
+#       - '--label=maintainer=Developer Toolkit <opensource@newrelic.com>'
 
 # Already using git-chglog
 changelog:

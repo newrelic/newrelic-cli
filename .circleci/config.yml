@@ -25,17 +25,19 @@ workflows:
           type: approval
           filters:
             branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
+              # ignore: /.*/
+              only: feat/homebrew-automation-enhancements # TEMPORARY
+            # tags:
+            #   only: /^v\d+\.\d+\.\d+$/
           require:
             - compile
       - release:
           filters:
             branches:
-              ignore: /.*/
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
+              # ignore: /.*/
+              only: feat/homebrew-automation-enhancements # TEMPORARY
+            # tags:
+            #   only: /^v\d+\.\d+\.\d+$/
           requires:
             - compile
             - hold-for-release
@@ -48,7 +50,7 @@ jobs:
       - checkout
       - run: git fetch --tags
       - save_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: repo-{{ .Environment.CIRCLE_BRANCH }}-{{ .Environment.CIRCLE_SHA1 }}
           paths:
             - ~/project
 
@@ -57,7 +59,7 @@ jobs:
       - image: circleci/golang:1.14
     steps:
       - restore_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: repo-{{ .Environment.CIRCLE_BRANCH }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Lint
           command: make lint
@@ -67,7 +69,7 @@ jobs:
       - image: circleci/golang:1.14
     steps:
       - restore_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: repo-{{ .Environment.CIRCLE_BRANCH }}-{{ .Environment.CIRCLE_SHA1 }}
       - run:
           name: Unit Tests
           command: make test-unit
@@ -80,7 +82,7 @@ jobs:
       - image: circleci/golang:1.14
     steps:
       - restore_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: repo-{{ .Environment.CIRCLE_BRANCH }}-{{ .Environment.CIRCLE_SHA1 }}
       - snyk/scan:
           severity-threshold: high
           fail-on-issues: false
@@ -91,7 +93,7 @@ jobs:
       - image: circleci/golang:1.14
     steps:
       - restore_cache:
-          key: repo-{{ .Environment.CIRCLE_SHA1 }}
+          key: repo-{{ .Environment.CIRCLE_BRANCH }}-{{ .Environment.CIRCLE_SHA1 }}
       - run: make compile-only
 
   release:
@@ -102,4 +104,3 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run: make release-publish
-
