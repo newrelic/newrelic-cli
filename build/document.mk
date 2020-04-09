@@ -7,8 +7,9 @@ GOTOOLS     += golang.org/x/tools/cmd/godoc \
 GODOC       ?= godoc
 GODOC_HTTP  ?= "localhost:6060"
 
-CHANGELOG_CMD  ?= git-chglog
-CHANGELOG_FILE ?= CHANGELOG.md
+CHANGELOG_CMD      ?= git-chglog
+CHANGELOG_FILE     ?= CHANGELOG.md
+RELEASE_NOTES_FILE ?= relnotes.md
 
 docs: tools
 	@echo "=== $(PROJECT_NAME) === [ docs             ]: Starting godoc server..."
@@ -23,5 +24,9 @@ changelog: tools
 	@echo "=== $(PROJECT_NAME) === [ changelog        ]: Generating changelog..."
 	@$(CHANGELOG_CMD) --silent -o $(CHANGELOG_FILE)
 
+release-notes: tools
+	@echo "=== $(PROJECT_NAME) === [ release-notes    ]: Generating release notes..."
+	@mkdir -p $(SRCDIR)/tmp
+	@$(CHANGELOG_CMD) --silent -o $(SRCDIR)/tmp/$(RELEASE_NOTES_FILE) v$(PROJECT_VER_TAGGED)
 
-.PHONY: docs changelog
+.PHONY: docs changelog release-notes
