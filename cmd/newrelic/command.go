@@ -6,10 +6,11 @@ import (
 
 // Command represents the base command when called without any subcommands
 var Command = &cobra.Command{
-	Use:     appName,
-	Short:   "The New Relic CLI",
-	Long:    `The New Relic CLI enables users to perform tasks against the New Relic APIs`,
-	Version: version,
+	Use:               appName,
+	Short:             "The New Relic CLI",
+	Long:              `The New Relic CLI enables users to perform tasks against the New Relic APIs`,
+	Version:           version,
+	DisableAutoGenTag: true, // Do not print generation date on documentation
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
