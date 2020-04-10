@@ -1,9 +1,6 @@
 package apm
 
 import (
-	"fmt"
-
-	"github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -11,6 +8,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -49,10 +47,7 @@ The list command returns deployments for a New Relic APM application.
 			deployments, err := nrClient.APM.ListDeployments(apmAppID)
 			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(deployments)
-			utils.LogIfFatal(err)
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(deployments))
 		})
 	},
 }
@@ -76,10 +71,7 @@ application.
 			d, err := nrClient.APM.CreateDeployment(apmAppID, deployment)
 			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(d)
-			utils.LogIfFatal(err)
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(d))
 		})
 	},
 }
@@ -102,10 +94,7 @@ The delete command performs a delete operation for an APM deployment.
 			d, err := nrClient.APM.DeleteDeployment(apmAppID, deployment.ID)
 			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(d)
-			utils.LogIfFatal(err)
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(d))
 		})
 	},
 }
