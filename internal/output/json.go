@@ -6,6 +6,26 @@ import (
 	"fmt"
 )
 
+// jsonSetPrettyPrint toggles the pretty printing within
+// the json formatter
+func (o *Output) jsonSetPrettyPrint(pretty bool) error {
+	if o == nil || o.jsonFormatter == nil {
+		return errors.New("invalid output formatter")
+	}
+
+	if pretty {
+		o.jsonFormatter.DisabledColor = false
+		o.jsonFormatter.Indent = 2
+		o.jsonFormatter.Newline = "\n"
+	} else {
+		o.jsonFormatter.DisabledColor = true
+		o.jsonFormatter.Indent = 0
+		o.jsonFormatter.Newline = ""
+	}
+
+	return nil
+}
+
 // JSON prints out data as JSON
 func (o *Output) json(data interface{}) error {
 	var (
@@ -21,6 +41,9 @@ func (o *Output) json(data interface{}) error {
 	if o == nil || o.jsonFormatter == nil {
 		return errors.New("invalid output formatter")
 	}
+
+	// ensure right printing config
+	o.jsonSetPrettyPrint(o.prettyPrint)
 
 	// Let's see what they sent us
 	switch d := data.(type) {
