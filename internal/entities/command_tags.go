@@ -2,14 +2,14 @@ package entities
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
-	prettyjson "github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/output"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
@@ -41,16 +41,9 @@ The get command returns JSON output of the tags for the requested entity.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tags, err := nrClient.Entities.ListTags(entityGUID)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(tags)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Println(string(json))
+			utils.LogIfError(output.Print(tags))
 		})
 	},
 }
@@ -67,9 +60,7 @@ that match the specified keys.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			err := nrClient.Entities.DeleteTags(entityGUID, entityTags)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			log.Info("success")
 		})
@@ -87,14 +78,10 @@ The delete-values command deletes the specified tag:value pairs on a given entit
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tagValues, err := assembleTagValues(entityValues)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			err = nrClient.Entities.DeleteTagValues(entityGUID, tagValues)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			log.Info("success")
 		})
@@ -112,14 +99,10 @@ The create command adds tag:value pairs to the given entity.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tags, err := assembleTags(entityTags)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			err = nrClient.Entities.AddTags(entityGUID, tags)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			log.Info("success")
 		})
@@ -138,14 +121,10 @@ provided for the given entity.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			tags, err := assembleTags(entityTags)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			err = nrClient.Entities.ReplaceTags(entityGUID, tags)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			log.Info("success")
 		})
@@ -218,66 +197,33 @@ func assembleTagValue(tagValueString string) (entities.TagValue, error) {
 }
 
 func init() {
-	var err error
-
 	Command.AddCommand(cmdTags)
 
 	cmdTags.AddCommand(cmdTagsGet)
 	cmdTagsGet.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to retrieve tags for")
-	err = cmdTagsGet.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdTagsGet.MarkFlagRequired("guid"))
 
 	cmdTags.AddCommand(cmdTagsDelete)
 	cmdTagsDelete.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to delete tags on")
 	cmdTagsDelete.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "the tag keys to delete from the entity")
-	err = cmdTagsDelete.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = cmdTagsDelete.MarkFlagRequired("tag")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdTagsDelete.MarkFlagRequired("guid"))
+	utils.LogIfError(cmdTagsDelete.MarkFlagRequired("tag"))
 
 	cmdTags.AddCommand(cmdTagsDeleteValues)
 	cmdTagsDeleteValues.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to delete tag values on")
 	cmdTagsDeleteValues.Flags().StringSliceVarP(&entityValues, "value", "v", []string{}, "the tag key:value pairs to delete from the entity")
-	err = cmdTagsDeleteValues.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = cmdTagsDeleteValues.MarkFlagRequired("value")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdTagsDeleteValues.MarkFlagRequired("guid"))
+	utils.LogIfError(cmdTagsDeleteValues.MarkFlagRequired("value"))
 
 	cmdTags.AddCommand(cmdTagsCreate)
 	cmdTagsCreate.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to create tag values on")
 	cmdTagsCreate.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "the tag names to add to the entity")
-	err = cmdTagsCreate.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = cmdTagsCreate.MarkFlagRequired("tag")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdTagsCreate.MarkFlagRequired("guid"))
+	utils.LogIfError(cmdTagsCreate.MarkFlagRequired("tag"))
 
 	cmdTags.AddCommand(cmdTagsReplace)
 	cmdTagsReplace.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to replace tag values on")
 	cmdTagsReplace.Flags().StringSliceVarP(&entityTags, "tag", "t", []string{}, "the tag names to replace on the entity")
-	err = cmdTagsReplace.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = cmdTagsReplace.MarkFlagRequired("tag")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdTagsReplace.MarkFlagRequired("guid"))
+	utils.LogIfError(cmdTagsReplace.MarkFlagRequired("tag"))
 }
