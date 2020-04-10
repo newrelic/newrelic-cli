@@ -1,14 +1,13 @@
 package nerdstorage
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
@@ -64,13 +63,8 @@ GUID.  A valid Nerdpack package ID is required.
 				log.Fatal(err)
 			}
 
-			json, err := prettyjson.Marshal(resp)
-			if err != nil {
-				log.Fatal(err)
-			}
-
+			utils.LogIfFatal(output.Print(resp))
 			log.Info("success")
-			fmt.Println(string(json))
 		})
 	},
 }
