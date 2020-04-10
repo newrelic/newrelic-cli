@@ -1,9 +1,6 @@
 package apm
 
 import (
-	"fmt"
-
-	"github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -11,6 +8,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -77,10 +75,7 @@ The search command performs a query for an APM application name and/or account I
 				utils.LogIfFatal(err)
 			}
 
-			json, err := prettyjson.Marshal(results)
-			utils.LogIfFatal(err)
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(results))
 		})
 	},
 }
@@ -107,10 +102,7 @@ The get command performs a query for an APM application by GUID.
 				log.Fatal(" --guid <entityGUID> is required")
 			}
 
-			json, err := prettyjson.Marshal(results)
-			utils.LogIfFatal(err)
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(results))
 		})
 	},
 }

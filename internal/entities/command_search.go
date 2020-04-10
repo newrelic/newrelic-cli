@@ -1,14 +1,13 @@
 package entities
 
 import (
-	"fmt"
 	"strconv"
 
-	prettyjson "github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -49,10 +48,7 @@ The search command performs a search for New Relic entities.
 
 			if entityTag != "" {
 				tag, err := assembleTagValue(entityTag)
-
-				if err != nil {
-					log.Fatal(err)
-				}
+				utils.LogIfFatal(err)
 
 				params.Tags = &tag
 			}
@@ -68,33 +64,27 @@ The search command performs a search for New Relic entities.
 			}
 
 			entities, err := nrClient.Entities.SearchEntities(params)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
-			var json []byte
+			var result interface{}
 
 			if len(entityFields) > 0 {
 				mapped := mapEntities(entities, entityFields, utils.StructToMap)
 
 				if len(mapped) == 1 {
-					json, err = prettyjson.Marshal(mapped[0])
+					result = mapped[0]
 				} else {
-					json, err = prettyjson.Marshal(mapped)
+					result = mapped
 				}
 			} else {
 				if len(entities) == 1 {
-					json, err = prettyjson.Marshal(entities[0])
+					result = entities[0]
 				} else {
-					json, err = prettyjson.Marshal(entities)
+					result = entities
 				}
 			}
 
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(result))
 		})
 	},
 }

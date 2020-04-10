@@ -2,7 +2,13 @@ package main
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/output"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
+
+var outputFormat string
+var outputPlain bool
 
 // Command represents the base command when called without any subcommands
 var Command = &cobra.Command{
@@ -24,4 +30,16 @@ func Execute() error {
 	Command.SilenceErrors = true
 
 	return Command.Execute()
+}
+
+func init() {
+	cobra.OnInitialize(initConfig)
+
+	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
+	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
+}
+
+func initConfig() {
+	utils.LogIfError(output.SetFormat(output.ParseFormat(outputFormat)))
+	utils.LogIfError(output.SetPrettyPrint(!outputPlain))
 }

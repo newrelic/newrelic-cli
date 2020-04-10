@@ -1,13 +1,12 @@
 package workload
 
 import (
-	"fmt"
-
-	"github.com/hokaccha/go-prettyjson"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/output"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
@@ -33,16 +32,9 @@ The get command retrieves a specific workload by its account ID and workload ID.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			workload, err := nrClient.Workloads.GetWorkload(accountID, id)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(workload)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(workload))
 		})
 	},
 }
@@ -58,16 +50,9 @@ The list command retrieves the workloads for the given account ID.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			workload, err := nrClient.Workloads.ListWorkloads(accountID)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(workload)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			fmt.Println(string(json))
+			utils.LogIfFatal(output.Print(workload))
 		})
 	},
 }
@@ -108,17 +93,10 @@ you also have access to.
 			}
 
 			workload, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(workload)
-			if err != nil {
-				log.Fatal(err)
-			}
-
+			utils.LogIfFatal(output.Print(workload))
 			log.Info("success")
-			fmt.Println(string(json))
 		})
 	},
 }
@@ -159,9 +137,7 @@ entities from different sub-accounts that you also have access to.
 			}
 
 			_, err := nrClient.Workloads.UpdateWorkload(guid, updateInput)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			log.Info("success")
 		})
@@ -186,17 +162,10 @@ compose the new name.
 			}
 
 			workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
-			json, err := prettyjson.Marshal(workload)
-			if err != nil {
-				log.Fatal(err)
-			}
-
+			utils.LogIfFatal(output.Print(workload))
 			log.Info("success")
-			fmt.Println(string(json))
 		})
 	},
 }
@@ -212,9 +181,7 @@ The delete command accepts a workload's entity GUID.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			_, err := nrClient.Workloads.DeleteWorkload(guid)
-			if err != nil {
-				log.Fatal(err)
-			}
+			utils.LogIfFatal(err)
 
 			log.Info("success")
 		})
@@ -226,23 +193,13 @@ func init() {
 	Command.AddCommand(cmdGet)
 	cmdGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
 	cmdGet.Flags().IntVarP(&id, "id", "i", 0, "the identifier of the workload")
-	err := cmdGet.MarkFlagRequired("accountId")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = cmdGet.MarkFlagRequired("id")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdGet.MarkFlagRequired("accountId"))
+	utils.LogIfError(cmdGet.MarkFlagRequired("id"))
 
 	// List
 	Command.AddCommand(cmdList)
 	cmdList.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
-	err = cmdList.MarkFlagRequired("accountId")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdList.MarkFlagRequired("accountId"))
 
 	// Create
 	Command.AddCommand(cmdCreate)
@@ -251,15 +208,8 @@ func init() {
 	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
-	err = cmdCreate.MarkFlagRequired("accountId")
-	if err != nil {
-		log.Error(err)
-	}
-
-	err = cmdCreate.MarkFlagRequired("name")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdCreate.MarkFlagRequired("accountId"))
+	utils.LogIfError(cmdCreate.MarkFlagRequired("name"))
 
 	// Update
 	Command.AddCommand(cmdUpdate)
@@ -268,31 +218,18 @@ func init() {
 	cmdUpdate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdUpdate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdUpdate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
-
-	err = cmdUpdate.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdUpdate.MarkFlagRequired("guid"))
 
 	// Duplicate
 	Command.AddCommand(cmdDuplicate)
 	cmdDuplicate.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload you want to duplicate")
 	cmdDuplicate.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic Account ID where you want to create the new workload")
 	cmdDuplicate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload to duplicate")
-
-	err = cmdDuplicate.MarkFlagRequired("accountId")
-	if err != nil {
-		log.Error(err)
-	}
-	err = cmdDuplicate.MarkFlagRequired("guid")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDuplicate.MarkFlagRequired("accountId"))
+	utils.LogIfError(cmdDuplicate.MarkFlagRequired("guid"))
 
 	// Delete
 	Command.AddCommand(cmdDelete)
 	cmdDelete.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload to delete")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDelete.MarkFlagRequired("guid"))
 }
