@@ -33,6 +33,7 @@ include build/docker.mk
 include build/document.mk
 include build/lint.mk
 include build/release.mk
+include build/snapcraft.mk
 include build/test.mk
 include build/util.mk
 
