@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Add GOBIN to PATH
+      run: echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Publish Release
+      shell: bash
+      run: make release-publish
+
