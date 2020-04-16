@@ -24,8 +24,6 @@ builds:
         -X github.com/newrelic/newrelic-cli/internal/client.version={{.Version}}
 
 release:
-  # Mark as a pre-release for now
-  prerelease: true
   name_template: "{{.ProjectName}} v{{.Version}}"
 
 archives:

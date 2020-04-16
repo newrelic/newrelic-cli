@@ -53,5 +53,4 @@ compile-linux: deps-only compile-only
 compile-windows: GOOS=windows
 compile-windows: deps-only compile-only
 
-
 .PHONY: clean-compile compile compile-darwin compile-linux compile-only compile-windows

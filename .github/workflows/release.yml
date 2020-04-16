@@ -24,5 +24,47 @@ jobs:
 
     - name: Publish Release
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: make release-publish
 
+    - uses: actions/upload-artifact@v1
+      with:
+        name: windows-binary
+        path: dist/newrelic_windows_amd64/newrelic.exe
+
+  release-windows-installer:
+    runs-on: windows-latest
+    needs: release
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.0
+
+    - uses: actions/download-artifact@v1
+      with:
+        name: windows-binary
+        path: .\dist\newrelic_windows_amd64
+
+    - name: Compile installer
+      run: msbuild .\installers\Windows\NewRelicCLIInstaller.sln
+
+    - name: Get latest release upload URL
+      id: get-latest-release-upload-url
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+
+    - name: Upload Windows installer
+      id: upload-windows-installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+        asset_path: .\installers\Windows\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
+        asset_name: NewRelicCLIInstaller.msi
+        asset_content_type: application/octet-stream

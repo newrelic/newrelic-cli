@@ -1,8 +1,11 @@
 .DS_Store
 .vscode/
-bin/*
+**/bin/*
 coverage/*
 dist/*
 tmp/*
 vendor/*
 output/*
+Release/*
+**/obj/*
+**/.vs/*
