@@ -49,8 +49,12 @@ time.
 ### Installation
 
 Today pre-release binaries have been created on the GitHub releases page.  You
-can dowload the latest release [here](https://github.com/newrelic/newrelic-cli/releases)
+can download the latest release [here](https://github.com/newrelic/newrelic-cli/releases)
 
+To streamline the release binary install, you can use the included install
+script to download the latest release.
+
+    DESTDIR=/usr/local/bin ./scripts/install.sh
 
 ### Docker
 
