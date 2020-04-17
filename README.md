@@ -78,6 +78,12 @@ sudo snap install newrelic-cli
 ### Pre-built binaries
 Pre-built binaries are created on the GitHub releases page for all of the above platforms.  You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases).
 
+### Install via Scoop
+```bash
+scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
+scoop install newrelic-cli
+```
+
 ### Docker
 
 There is an official [docker image](https://hub.docker.com/r/newrelic/cli) that can be utilized for running commands as well.
@@ -226,7 +232,7 @@ $ make docs
 
 ## Community
 
-New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. 
+New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices.
 
 * [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
 * [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.
