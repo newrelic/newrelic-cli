@@ -65,6 +65,12 @@ jobs:
     - name: Compile installer
       run: msbuild .\installers\Windows\NewRelicCLIInstaller.sln
 
+    - name: Sign installer
+      env:
+        PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+      working-directory: .\installers\Windows\NewRelicCLIInstaller
+      run: .\SignMSI.cmd
+
     - name: Get latest release upload URL
       id: get-latest-release-upload-url
       shell: bash

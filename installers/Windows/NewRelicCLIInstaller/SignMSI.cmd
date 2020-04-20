@@ -1,3 +1,1 @@
-﻿
-makecert.exe -r -pe -ss MY -sky exchange -n CN="New Relic CLI" CodeSign.cer
-signtool sign /v /s MY /n "New Relic CLI" /t http://timestamp.verisign.com/scripts/timstamp.dll bin\x64\Release\NewRelicCLIInstaller.msi
+"C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\SignTool.exe" sign /f developer-toolkit.pfx /p "%PFX_PASSWORD%" /t http://timestamp.digicert.com bin\x64\Release\NewRelicCLIInstaller.msi
