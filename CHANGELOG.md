@@ -1,12 +1,25 @@
-<a name="unreleased"></a>
-## [Unreleased]
+<a name="v0.7.0"></a>
+## [v0.7.0] - 2020-04-20
+### Bug Fixes
+- **build:** Goreleaser was running `make clean` which broke things when run from `make release-publish`
 
+### Features
+- **ci:** automate updating of homebrew formula
+- **docs:** Custom release notes for goreleaser
+- **install:** include install script
+- **installer:** add code signing for Win installer
+- **installers:** add a WiX-based MSI
+- **newrelic-cli:** create a PS1 installer for Windows
+- **newrelic-cli:** create a PS1 installer for Windows
+- **output:** Enable format selection globally, also plain/pretty printing
+- **output:** Support YAML output
+- **output:** Output package for central output handling
+- **snapcraft:** include goreleaser config for snaps
 
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
 - **region:** Add custom decoder for region for NR1 compatibility
-
 
 <a name="v0.6.1"></a>
 ## [v0.6.1] - 2020-04-07
@@ -14,12 +27,10 @@
 - **newrelic:** Fix command name replacement on build
 - **region:** Region parsing from config did not allow lowercase which is required for backwards compat
 
-
 <a name="v0.6.0"></a>
 ## [v0.6.0] - 2020-04-03
 ### Features
 - **nerdstorage:** add command for managing nerdstorage documents
-
 
 <a name="v0.5.0"></a>
 ## [v0.5.0] - 2020-03-27
@@ -37,14 +48,12 @@
 - **workloads:** add a command to list workloads
 - **workloads:** add a command to get a workload
 
-
 <a name="v0.4.1"></a>
 ## [v0.4.1] - 2020-03-11
 ### Bug Fixes
 - **apm:** Fix apm command flag parsing for accountId, applicationId
 - **apm/application:** Fix search params to accept accountId
 - **credentials:** Lowercase region on storage for compatibility with nr1 cli
-
 
 <a name="v0.4.0"></a>
 ## [v0.4.0] - 2020-03-10
@@ -57,7 +66,6 @@
 ### Features
 - **apm/deployment:** Add all user defined fields to the deployment creation
 - **entities/search:** Return single object instead of array on single value result
-
 
 <a name="v0.3.0"></a>
 ## [v0.3.0] - 2020-03-06
@@ -73,12 +81,10 @@
 - **entities:** add ability to map entity search result fields via flag
 - **nerdgraph:** add nerdgraph command with query subcommand
 
-
 <a name="v0.2.3"></a>
 ## [v0.2.3] - 2020-03-04
 ### Bug Fixes
 - **build:** Allow overriding the version on make (needed for Homebrew local build)
-
 
 <a name="v0.2.2"></a>
 ## [v0.2.2] - 2020-03-04
@@ -87,12 +93,10 @@
 - **build:** Remove version.go generation from make release
 - **build:** Add docker login to release-push process
 
-
 <a name="v0.2.1"></a>
 ## [v0.2.1] - 2020-03-03
 ### Bug Fixes
 - **docker:** Use Entrypoint so binary is assumed
-
 
 <a name="v0.2.0"></a>
 ## [v0.2.0] - 2020-03-03
@@ -108,7 +112,6 @@
 ### Features
 - **apm:** include get command for APM applications
 - **docker:** Add docker image building / push to make system
-
 
 <a name="v0.1.0"></a>
 ## v0.1.0 - 2020-02-27
@@ -146,8 +149,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...HEAD
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
