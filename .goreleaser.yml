@@ -86,7 +86,7 @@ snapcrafts:
     # store. `stable` will let you release also to the `candidate` and `stable`
     # channels. More info about channels here:
     # https://snapcraft.io/docs/reference/channels
-    grade: devel
+    grade: stable
     confinement: strict
     license: Apache-2.0
     base: core18
