@@ -73,7 +73,7 @@ snapcrafts:
       windows: Windows
       386: i386
       amd64: x86_64
-    name: newrelic-cli
+    name: newrelic
     publish: true
     summary: A project to consolidate some tools New Relic offers for managing resources.
     description: |
