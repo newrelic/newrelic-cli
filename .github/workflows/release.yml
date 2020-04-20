@@ -41,11 +41,11 @@ jobs:
         token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
 
     - name: Create homebrew-core pull request
-        shell: bash
-        run: ./scripts/brew_formula_pull_request.sh
-        env:
-          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
-          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
+      shell: bash
+      run: ./scripts/brew_formula_pull_request.sh
+      env:
+        GH_USER_EMAIL: developer-toolkit-team@newrelic.com
+        GH_USER_NAME: 'New Relic Developer Toolkit Bot'
 
   release-windows-installer:
     runs-on: windows-latest
