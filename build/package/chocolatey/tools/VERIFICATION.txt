@@ -1,0 +1,9 @@
+﻿VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+
+Releases can be verified against the github releases.
+
+https://github.com/newrelic/newrelic-cli/releases
+
+The Developer Toolkit Team authors this software for New New Relic.

@@ -9,3 +9,6 @@ output/*
 Release/*
 **/obj/*
 **/.vs/*
+*.msi
+*.nupkg
+build/package/chocolatey/tools/LICENSE.txt
