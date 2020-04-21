@@ -28,7 +28,7 @@ For a quick guide on getting started with the New Relic CLI, see our [Getting
 Started](https://github.com/newrelic/newrelic-cli/blob/master/docs/GETTING_STARTED.md)
 page.
 
-The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/master/docs/cli/newrelic.md)
+The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/master/docs/cli/newrelic.md).
 
 ### Other Resources
 
@@ -44,26 +44,47 @@ time.
   A utility that automatically detects common problems with New Relic agents.
 
 
-## Usage
+## Installation
+Installation options are available for various platforms.
 
-### Installation
+### MacOS
+Install the New Relic CLI on MacOS via [`homebrew`](https://brew.sh/).  With `homebrew` installed, run:
 
-Today pre-release binaries have been created on the GitHub releases page.  You
-can download the latest release [here](https://github.com/newrelic/newrelic-cli/releases)
+```
+brew install newrelic-cli
+```
 
-To streamline the release binary install, you can use the included install
-script to download the latest release.
+### Windows
+Installation is supported on 64-bit Windows.
 
-    DESTDIR=/usr/local/bin ./scripts/install.sh
+#### Standalone installer
+A standalone MSI installer is available on the GitHub releases page.  You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
+
+#### Powershell
+Silent installation of the latest version of the CLI can be achieved via the follwing Powershell command:
+
+```powershell
+(New-Object System.Net.WebClient).DownloadFile("https://github.com/newrelic/newrelic-cli/releases/latest/download/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi"); `
+msiexec.exe /qn /i "$env:TEMP\NewRelicCLIInstaller.msi" | Out-Null; `
+```
+
+### Linux
+Linux binaries can be installed via [Snapcraft](https://snapcraft.io/).  With the `snapd` daemon installed, run:
+
+```
+sudo snap install newrelic-cli
+```
+
+### Pre-built binaries
+Pre-built binaries are created on the GitHub releases page for all of the above platforms.  You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases).
 
 ### Docker
 
-There is a docker image that can be utilized for running commands as well.
+There is an official [docker image](https://hub.docker.com/r/newrelic/cli) that can be utilized for running commands as well.
 
-*Note:* You must pass in `NEW_RELIC_API_KEY`, which is your [Personal API
-Key](https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#personal-api-key)
+## Example Usage
 
-#### APM Application Example
+#### Querying an APM application (using the Docker image)
 
 ```bash
 # Pull the latest container
@@ -90,6 +111,8 @@ $ docker run -it --rm \
   }
 ]
 ```
+
+See the [Getting Started guide](docs/GETTING_STARTED.md) for a more in-depth introduction to the capabilities of the New Relic CLI.
 
 
 ### Getting Help
