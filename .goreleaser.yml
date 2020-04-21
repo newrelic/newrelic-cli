@@ -106,7 +106,7 @@ scoop:
     name: newrelic-cli
   commit_author:
     name: nr-developer-toolkit
-    email: developer-toolkit-team@newrelic.com
+    email: "{{ .Env.DEV_TOOLKIT_EMAIL }}"
   homepage: https://github.com/newrelic/newrelic-cli
   url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
   description: |
