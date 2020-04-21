@@ -18,7 +18,7 @@ PROJECT_MODULE  ?= $(shell $(GO) list -m)
 all: build
 
 # Humans running make:
-build: check-version clean lint test cover-report compile
+build: check-version clean lint test cover-report compile package
 
 # Build command for CI tooling
 build-ci: check-version clean lint test compile-only
@@ -33,6 +33,7 @@ include build/deps.mk
 include build/docker.mk
 include build/document.mk
 include build/lint.mk
+include build/package.mk
 include build/release.mk
 include build/snapcraft.mk
 include build/test.mk
