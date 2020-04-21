@@ -68,6 +68,12 @@ Silent installation of the latest version of the CLI can be achieved via the fol
 msiexec.exe /qn /i "$env:TEMP\NewRelicCLIInstaller.msi" | Out-Null; `
 ```
 
+#### Scoop
+```powershell
+scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
+scoop install newrelic-cli
+```
+
 ### Linux
 Linux binaries can be installed via [Snapcraft](https://snapcraft.io/).  With the `snapd` daemon installed, run:
 
@@ -77,12 +83,6 @@ sudo snap install newrelic-cli
 
 ### Pre-built binaries
 Pre-built binaries are created on the GitHub releases page for all of the above platforms.  You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases).
-
-### Install via Scoop
-```bash
-scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
-scoop install newrelic-cli
-```
 
 ### Docker
 
