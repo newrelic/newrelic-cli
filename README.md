@@ -57,6 +57,12 @@ brew install newrelic-cli
 ### Windows
 Installation is supported on 64-bit Windows.
 
+#### Scoop
+```powershell
+scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
+scoop install newrelic-cli
+```
+
 #### Standalone installer
 A standalone MSI installer is available on the GitHub releases page.  You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
 
@@ -66,12 +72,6 @@ Silent installation of the latest version of the CLI can be achieved via the fol
 ```powershell
 (New-Object System.Net.WebClient).DownloadFile("https://github.com/newrelic/newrelic-cli/releases/latest/download/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi"); `
 msiexec.exe /qn /i "$env:TEMP\NewRelicCLIInstaller.msi" | Out-Null; `
-```
-
-#### Scoop
-```powershell
-scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
-scoop install newrelic-cli
 ```
 
 ### Linux
