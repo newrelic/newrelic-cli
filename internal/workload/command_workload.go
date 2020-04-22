@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	id                  int
 	accountID           int
 	name                string
 	entityGUIDs         []string
@@ -26,12 +25,12 @@ var cmdGet = &cobra.Command{
 	Short: "Get a New Relic One workload.",
 	Long: `Get a New Relic One workload
 
-The get command retrieves a specific workload by its account ID and workload ID.
+The get command retrieves a specific workload by its account ID and workload GUID.
 `,
-	Example: `newrelic workload create --accountId 12345678 --id 1346`,
+	Example: `newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			workload, err := nrClient.Workloads.GetWorkload(accountID, id)
+			workload, err := nrClient.Workloads.GetWorkload(accountID, guid)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(workload))
@@ -192,7 +191,7 @@ func init() {
 	// Get
 	Command.AddCommand(cmdGet)
 	cmdGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
-	cmdGet.Flags().IntVarP(&id, "id", "i", 0, "the identifier of the workload")
+	cmdGet.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload")
 	utils.LogIfError(cmdGet.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdGet.MarkFlagRequired("id"))
 
