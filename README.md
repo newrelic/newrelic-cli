@@ -57,6 +57,12 @@ brew install newrelic-cli
 ### Windows
 Installation is supported on 64-bit Windows.
 
+#### Scoop
+```powershell
+scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
+scoop install newrelic-cli
+```
+
 #### Standalone installer
 A standalone MSI installer is available on the GitHub releases page.  You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
 
@@ -226,7 +232,7 @@ $ make docs
 
 ## Community
 
-New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. 
+New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices.
 
 * [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
 * [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.

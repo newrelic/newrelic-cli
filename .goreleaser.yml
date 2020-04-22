@@ -99,3 +99,17 @@ snapcrafts:
         # things they allow:
         # https://snapcraft.io/docs/reference/interfaces.
         plugs: ["home", "network"]
+
+scoop:
+  bucket:
+    owner: newrelic
+    name: newrelic-cli
+  commit_author:
+    name: nr-developer-toolkit
+    email: "{{ .Env.DEV_TOOLKIT_EMAIL }}"
+  homepage: https://github.com/newrelic/newrelic-cli
+  url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+  description: |
+    The New Relic CLI is an officially supported command line interface for New
+    Relic, released as part of the Developer Toolkit.
+  license: Apache-2.0
