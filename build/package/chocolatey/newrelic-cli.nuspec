@@ -8,7 +8,7 @@
     <title>newrelic-cli</title>
     <authors>New Relic Developer Toolkit Team</authors>
     <projectUrl>https://github.com/newrelic/newrelic-cli</projectUrl>
-    <copyright>2020</copyright>
+    <copyright>New Relic 2020-2021</copyright>
     <licenseUrl>https://github.com/newrelic/newrelic-cli/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <docsUrl>https://developer.newrelic.com</docsUrl>
