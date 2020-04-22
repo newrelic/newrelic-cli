@@ -75,12 +75,12 @@ jobs:
         path: .\dist\newrelic_windows_amd64
 
     - name: Compile installer
-      run: msbuild .\installers\Windows\NewRelicCLIInstaller.sln
+      run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
 
     - name: Sign installer
       env:
         PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
-      working-directory: .\installers\Windows\NewRelicCLIInstaller
+      working-directory: .\build\package\msi\NewRelicCLIInstaller
       run: .\SignMSI.cmd
 
     - name: Get latest release upload URL
@@ -97,6 +97,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-        asset_path: .\installers\Windows\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
+        asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
         asset_name: NewRelicCLIInstaller.msi
         asset_content_type: application/octet-stream
