@@ -44,6 +44,9 @@ archives:
       - LICENSE
       - README.md
 
+signs:
+  - artifacts: all
+
 dockers:
   - dockerfile: build/package/Dockerfile
     image_templates:
