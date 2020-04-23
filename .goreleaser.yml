@@ -46,6 +46,7 @@ archives:
 
 signs:
   - artifacts: all
+    args: ["-u", "0xDC9FC6B1FCE47986", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
 dockers:
   - dockerfile: build/package/Dockerfile
