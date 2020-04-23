@@ -5,7 +5,7 @@ CHOCO         ?= docker run --rm -v $$PWD:$$PWD -w $$PWD linuturk/mono-choco
 CHOCOLATEY_BUILD_DIR	?= build/package/chocolatey
 
 chocolatey-publish: chocolatey-build
-	@echo "=== $(PROJECT_NAME) === [ choco-publish     ]: publishing chocolatey package"
+	@echo "=== $(PROJECT_NAME) === [ chocolatey-publish ]: publishing chocolatey package"
 	@if [ -z "${CHOCOLATEY_API_KEY}" ]; then \
 		echo "Failure: CHOCOLATEY_API_KEY not set" ; \
 		exit 1 ; \
@@ -16,7 +16,7 @@ chocolatey-publish: chocolatey-build
 
 
 chocolatey-build:
-	@echo "=== $(PROJECT_NAME) === [ choco-build     ]: building chocolatey package"
+	@echo "=== $(PROJECT_NAME) === [ chocolatey-build ]: publishing chocolatey package"
 	@cp LICENSE $(CHOCOLATEY_BUILD_DIR)/tools/LICENSE.txt
 	@cd $(CHOCOLATEY_BUILD_DIR) && \
 		curl -sL -o tools/NewRelicCLIInstaller.msi https://github.com/newrelic/newrelic-cli/releases/download/v${PROJECT_VER_TAGGED}/NewRelicCLIInstaller.msi && \
