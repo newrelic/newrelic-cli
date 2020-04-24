@@ -35,7 +35,7 @@ newrelic entity search --name <applicationName>
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, YAML] (default "JSON")
+      --format string   output text format [YAML, JSON] (default "JSON")
       --plain           output compact text
 ```
 

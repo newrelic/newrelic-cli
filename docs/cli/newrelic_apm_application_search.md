@@ -31,7 +31,7 @@ newrelic apm application search --name <appName>
 ```
   -a, --accountId string    A New Relic account ID
       --applicationId int   A New Relic APM application ID
-      --format string       output text format [JSON, YAML] (default "JSON")
+      --format string       output text format [YAML, JSON] (default "JSON")
   -g, --guid string         search for results matching the given APM application GUID
       --plain               output compact text
 ```
