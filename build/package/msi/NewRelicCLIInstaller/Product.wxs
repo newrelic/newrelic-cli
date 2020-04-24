@@ -34,7 +34,7 @@
     <DirectoryRef Id="DIR_NewRelicCLI">
       <Component Id="CMP_NewRelicExe" Guid="367D82BF-A960-4B09-9714-079C93B9E1FB">
         <Environment Id="PATH" Name="PATH" Value="[DIR_NewRelicCLI]" Permanent="no" Part="last" Action="set" System="no" />
-        <File Id="FILE_NewRelicExe" Source="..\..\..\dist\newrelic_windows_amd64\newrelic.exe" KeyPath="yes" />
+        <File Id="FILE_NewRelicExe" Source="..\..\..\..\dist\newrelic_windows_amd64\newrelic.exe" KeyPath="yes" />
       </Component>
     </DirectoryRef>
 
