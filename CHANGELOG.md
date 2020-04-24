@@ -1,7 +1,39 @@
+<a name="v0.8.0"></a>
+## [v0.8.0] - 2020-04-24
+### Bug Fixes
+- **chocolatey:** use copyright longer than four characters
+- **chocolatey:** use better path for msi placement
+- **chocolatey:** start packaging duing in main build process
+- **chocolatey:** continue cleaning template files
+- **chocolatey:** clean up comments from template files
+
+### Documentation Updates
+- update command examples in Getting Started guide to reflect recent updates
+- **installation:** update installation guide with more options
+- **readme:** fix typo in pgp key URL
+- **releases:** add link to the DTK public PGP key
+
+### Features
+- **build:** provide installation via Scoop (Windows)
+- **chocolatey:** begin chocolatey build
+- **packaging:** include rpm and deb builds in goreleaser
+- **release:** add code signing for artifacts
+
 <a name="v0.7.0"></a>
 ## [v0.7.0] - 2020-04-20
 ### Bug Fixes
 - **build:** Goreleaser was running `make clean` which broke things when run from `make release-publish`
+- **ci:** wrap git config values in quotes
+- **ci:** pass git config a global option
+- **ci:** chmod +x the brew PR script
+- **ci:** update the snap app name to match the binary
+- **ci:** revert snapcraft binary name
+- **ci:** upgrade snapcraft grade
+- **ci:** add a step to install snapcraft
+- **ci:** wire snapcraft token into publish step
+- **ci:** wire docker creds into publish step
+- **ci:** fix yaml indentation
+- **ci:** update the snap name to match the binary
 
 ### Features
 - **ci:** automate updating of homebrew formula
@@ -149,7 +181,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...HEAD
+[v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
 [v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
