@@ -1,0 +1,15 @@
+{
+    "version": "0.8.1",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/newrelic/newrelic-cli/releases/download/v0.8.1/newrelic-cli_0.8.1_Windows_x86_64.zip",
+            "bin": [
+                "newrelic.exe"
+            ],
+            "hash": "0e55f3306a48a0564d1d48c73839c7e9ee574422af8fdf0296b023f6873329b4"
+        }
+    },
+    "homepage": "https://github.com/newrelic/newrelic-cli",
+    "license": "Apache-2.0",
+    "description": "The New Relic CLI is an officially supported command line interface for New\nRelic, released as part of the Developer Toolkit.\n"
+}
