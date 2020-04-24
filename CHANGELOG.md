@@ -1,3 +1,19 @@
+<a name="v0.8.3"></a>
+## [v0.8.3] - 2020-04-24
+### Bug Fixes
+- **build:** Ignore scoop commit messages
+- **release:** fix relative path in WiX project
+
+<a name="v0.8.2"></a>
+## [v0.8.2] - 2020-04-24
+### Bug Fixes
+- **release:** perform a stricter find when searching published assets
+
+<a name="v0.8.1"></a>
+## [v0.8.1] - 2020-04-24
+### Bug Fixes
+- **release:** use new token for publishing
+
 <a name="v0.8.0"></a>
 ## [v0.8.0] - 2020-04-24
 ### Bug Fixes
@@ -181,7 +197,10 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...HEAD
+[v0.8.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.2...v0.8.3
+[v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
+[v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
 [v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
