@@ -6,7 +6,7 @@ Get a New Relic One workload.
 
 Get a New Relic One workload
 
-The get command retrieves a specific workload by its account ID and workload ID.
+The get command retrieves a specific workload by its account ID and workload GUID.
 
 
 ```
@@ -16,15 +16,15 @@ newrelic workload get [flags]
 ### Examples
 
 ```
-newrelic workload create --accountId 12345678 --id 1346
+newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt
 ```
 
 ### Options
 
 ```
   -a, --accountId int   the New Relic account ID where you want to create the workload
+  -g, --guid string     the GUID of the workload
   -h, --help            help for get
-  -i, --id int          the identifier of the workload
 ```
 
 ### Options inherited from parent commands
