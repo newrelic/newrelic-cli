@@ -1,0 +1,71 @@
+---
+# Extension protocol version
+protocol_version: 1
+
+
+# Information that we need to know about the extension to ensure that we can use it
+metadata:
+  # Name of the extension. This serves as the namespace for the command, so in this
+  # case you would execute `newrelic example ...`
+  name: example
+
+  # version of this extension
+  version: 1.0.0
+
+  # Helpful information about the extension
+  description: An Example extension that does stuff
+
+  # Specific things this extension requires to work.
+  requires:
+    # Optional: Minimum CLI version
+    cli_version: 0.8.0
+
+    # Optional: Runtime / interpreter / etc
+    runtime: bash
+
+    # Optional: Extensions using other extensions? I mean this is the meta section...
+    extensions:
+      - jsonFormatter
+      - slack
+
+
+# Command tree that is within the extension name space
+# Commands can have sub-commands
+# Model this after what we do today with Cobra, seems to work well
+commands:
+  # `newrelic example test`
+  - name: test
+    description: This runs example tests
+    aliases:
+      - tst
+      - testing
+    flags:
+      # `newrelic example test --count 4`
+      - name: count
+        description: How many times to count in the test
+        type: int
+    commands:
+      # `newrelic example test one`
+      - name: one
+        description: Test against one or something, this is fake so...
+
+  # `newrelic example foo`
+  - name: foo
+    description: Not the bar command
+
+  # `newrelic example bar`
+  - name: bar
+    description: Thing 2
+    aliases:
+      - baz
+
+# Ability to register handlers for I/O
+handlers:
+  # stdin would be passed through to this somehow
+  input:
+    name: takesTheInput
+
+  # maybe this would override 'internal/output' package?
+  output:
+    name: writesToLogsAndStdout
+
