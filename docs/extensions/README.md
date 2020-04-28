@@ -2,6 +2,73 @@
 
 The New Relic CLI is an extensible platform for building on the New Relic Platform.
 
+
+## Use Cases
+
+Basic use cases and examples for the main types of interactions a plugin might want to do.
+
+1. **Do something locally**
+
+   Create a new nerdpack:
+
+   ```
+   # Existing command in nr1 CLI
+   nr1 create
+
+   # Example command as Extension
+   newrelic one create
+   ```
+
+1. **Do something against the New Relic APIs**
+
+   Make a NRQL query:
+
+   ```
+   # Existing command in nr1 CLI
+   nr1 nrql --account $NEW_RELIC_ACCOUNT_ID --query 'FROM Transaction SELECT count(*)'
+
+   # Example command as Extension
+   newrelic nrql
+   ```
+
+1. **Do something against a third-party API**
+
+   Run a NRQL query and send the resulting link to a Slack channel
+
+   ```
+   #Run NRQL and post to slack channel
+   query($account:Int!, $query:Nrql!) {
+     actor {
+       account(id: $account) {
+         nrql(query: $query) {
+           staticChartUrl(chartType: LINE)
+         }
+       }
+     }
+   }
+   {
+     "account": $NEW_RELIC_ACCOUNT_ID,
+     "query":"FROM Transaction SELECT count(*) TIMESERIES SINCE 1 hour ago"
+   }
+
+   Post "data"."actor"."account"."nrql"."staticChartUrl" link to Slack
+
+   newrelic slack-me-a-chart \
+     --query "FROM Transaction SELECT count(*) TIMESERIES SINCE 1 hour ago"
+   ```
+
+1. **Intercept output and reformat it**
+
+   We can't implement all output formats, so why not allow an extension to process the data and format it?
+
+   ```
+   # CSV would have to be a plugin name, pre-installed and registered
+   newrelic nerdgraph query --query "" --variables "" --output csv
+
+   accountId,name
+   0,badwolf
+   ```
+
 ## Architecture
 
 ### CLI
