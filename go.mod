@@ -7,14 +7,14 @@ require (
 	github.com/fatih/color v1.9.0
 	github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373
 	github.com/go-openapi/strfmt v0.19.4 // indirect
-	github.com/golangci/golangci-lint v1.25.0
+	github.com/golangci/golangci-lint v1.25.1
 	github.com/goreleaser/goreleaser v0.132.1
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/imdario/mergo v0.3.9
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/mapstructure v1.2.2
+	github.com/mitchellh/mapstructure v1.2.3
 	github.com/newrelic/newrelic-client-go v0.22.0
 	github.com/psampaz/go-mod-outdated v0.6.0
 	github.com/sirupsen/logrus v1.5.0
@@ -22,6 +22,6 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.6.3
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/tools v0.0.0-20200423205358-59e73619c742
+	golang.org/x/tools v0.0.0-20200428140416-006b16f6cf7f
 	gopkg.in/yaml.v2 v2.2.8
 )
