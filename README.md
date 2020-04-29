@@ -1,3 +1,5 @@
+[![Community Project header](https://github.com/newrelic/open-source-office/raw/master/examples/categories/images/Community_Project.png)](https://github.com/newrelic/open-source-office/blob/master/examples/categories/index.md#category-community-project)
+
 # newrelic-cli
 
 [![Testing](https://github.com/newrelic/newrelic-cli/workflows/Testing/badge.svg)](https://github.com/newrelic/newrelic-cli/actions)
