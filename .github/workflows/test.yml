@@ -7,20 +7,44 @@ on:
     branches: [ master ]
 
 jobs:
-  tests:
-    strategy:
-      matrix:
-        go-version: 
-          - 1.13.x
-          - 1.14.x
-        platform:
-          - ubuntu-latest
-    runs-on: ${{ matrix.platform }}
+  lint:
+    runs-on: ubuntu-latest
     steps:
     - name: Install Go
       uses: actions/setup-go@v1
       with:
-        go-version: ${{ matrix.go-version }}
+        go-version: 1.14.x
+
+    - name: Add GOBIN to PATH
+      run: echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Full git history
+      run: |
+        git fetch --prune --unshallow
+
+    - name: Cache deps
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Lint
+      run: make lint
+
+  test-unit:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.14.x
 
     - name: Add GOBIN to PATH
       run: echo "::add-path::$(go env GOPATH)/bin"
@@ -37,11 +61,33 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Lint
-      run: make lint
-
     - name: Unit Tests
       run: make test-unit
+
+
+  test-integration:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.14.x
+
+    - name: Add GOBIN to PATH
+      run: echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Cache deps
+      uses: actions/cache@v1
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
 
     - name: Integration Tests
       run: make test-integration
@@ -52,29 +98,3 @@ jobs:
         NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
 
-  # Compile on all supported OSes
-  compile:
-    strategy:
-      matrix:
-        go-version:
-           - 1.14.x
-        platform:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-    runs-on: ${{ matrix.platform }}
-    steps:
-    - name: Install Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: ${{ matrix.go-version }}
-
-    - name: Add GOBIN to PATH
-      run: echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
-
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Compile
-      run: make compile-only
