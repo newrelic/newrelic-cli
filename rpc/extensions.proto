@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option go_package = ".;rpc";
+
+message CommandExecution {
+  string Command = 1;
+  repeated string Args = 2;
+}
+
+message ExecutionRequest {}
+
+service Extension {
+  rpc Executions (ExecutionRequest) returns (CommandExecution);
+
+  rpc NerdgraphQuery(NerdQueryRequest) return ( JSONResponse );
+}

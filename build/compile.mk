@@ -34,7 +34,7 @@ compile-all: deps-only
 		done \
 	done
 
-compile-only: deps-only
+compile-only: deps-only proto
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/$(GOOS)
 	@for b in $(BINS); do \
@@ -42,6 +42,10 @@ compile-only: deps-only
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
 		GOOS=$(GOOS) $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
+
+proto:
+	@echo "=== $(PROJECT_NAME) === [ proto compile    ]: compiling protobufs:"
+	@protoc -I rpc/ rpc/extensions.proto --go_out=plugins=grpc:rpc
 
 # Override GOOS for these specific targets
 compile-darwin: GOOS=darwin
