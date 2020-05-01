@@ -11,9 +11,6 @@ var Command = &cobra.Command{
 	Run:   runExecutionServer,
 }
 
-func init() {
-}
-
 func runExecutionServer(cmd *cobra.Command, args []string) {
-	NewServer()
+	NewServer(cmd.CalledAs(), args)
 }

@@ -4,11 +4,9 @@ import (
 	"context"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
-	"google.golang.org/grpc"
-
 	pb "github.com/newrelic/newrelic-cli/rpc"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -16,6 +14,8 @@ const (
 )
 
 func main() {
+	log.SetLevel(log.InfoLevel)
+
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
@@ -30,10 +30,9 @@ func main() {
 
 	req := &pb.ExecutionRequest{}
 	r, err := c.Executions(ctx, req)
-
 	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+		log.Fatalf("could request execution: %v", err)
 	}
 
-	log.Errorf("response: %+v", r)
+	log.Infof("response: %+v", r)
 }

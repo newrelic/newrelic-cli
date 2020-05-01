@@ -11,6 +11,5 @@ message ExecutionRequest {}
 
 service Extension {
   rpc Executions (ExecutionRequest) returns (CommandExecution);
-
-  rpc NerdgraphQuery(NerdQueryRequest) return ( JSONResponse );
 }
+
