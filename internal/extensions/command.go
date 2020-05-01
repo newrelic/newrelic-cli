@@ -1,6 +1,8 @@
 package extensions
 
 import (
+	"time"
+
 	"github.com/spf13/cobra"
 )
 
@@ -12,5 +14,9 @@ var Command = &cobra.Command{
 }
 
 func runExecutionServer(cmd *cobra.Command, args []string) {
-	NewServer(cmd.CalledAs(), args)
+	s := NewServer(cmd.CalledAs(), args)
+
+	timeout := time.NewTimer(30 * time.Second)
+	<-timeout.C
+	s.Stop()
 }

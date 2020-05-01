@@ -11,15 +11,12 @@ import (
 )
 
 type Server struct {
-	cmd  string
-	args []string
+	cmd        string
+	args       []string
+	grpcServer *grpc.Server
 }
 
 func NewServer(cmd string, args []string) *Server {
-	server := &Server{
-		cmd:  cmd,
-		args: args,
-	}
 
 	var opts []grpc.ServerOption
 
@@ -30,11 +27,21 @@ func NewServer(cmd string, args []string) *Server {
 
 	grpcServer := grpc.NewServer(opts...)
 
+	server := &Server{
+		cmd:        cmd,
+		args:       args,
+		grpcServer: grpcServer,
+	}
+
 	pb.RegisterExtensionServer(grpcServer, server)
 
-	grpcServer.Serve(lis)
+	go grpcServer.Serve(lis)
 
 	return server
+}
+
+func (s *Server) Stop() {
+	s.grpcServer.GracefulStop()
 }
 
 func (s *Server) Executions(ctx context.Context, req *pb.ExecutionRequest) (*pb.CommandExecution, error) {
