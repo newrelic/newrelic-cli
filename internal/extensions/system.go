@@ -104,14 +104,41 @@ func (e *Extension) Start() error {
 	return nil
 }
 
+// Stdin sets the extension's stdin.
+func (e *Extension) Stdin(reader io.Reader) {
+	e.cmd.Stdin = reader
+}
+
+// Stdout sets the extension's stdout.
+func (e *Extension) Stdout(writer io.Writer) {
+	e.cmd.Stdout = writer
+}
+
+// Stderr sets the extension's stderr.
+func (e *Extension) Stderr(writer io.Writer) {
+	e.cmd.Stderr = writer
+}
+
 // Err returns an error if one was encountered.
 func (e *Extension) Err() error {
 	if e.waitErr != nil {
-		return e.waitErr
+		return &ErrorExit{}
 	}
 	if errors.Is(e.ctx.Err(), context.DeadlineExceeded) {
-		return e.ctx.Err()
+		return &ErrorDeadlineExceeded{}
 	}
 
 	return nil
+}
+
+type ErrorDeadlineExceeded struct{}
+
+func (e *ErrorDeadlineExceeded) Error() string {
+	return "ErrorDeadlineExceeded"
+}
+
+type ErrorExit struct{}
+
+func (e *ErrorExit) Error() string {
+	return "ErrorExit"
 }
