@@ -9,6 +9,8 @@ cloud.google.com/go v0.44.3/go.mod h1:60680Gw3Yr4ikxnPRS/oxxkBccT6SA1yMk63TGekxK
 cloud.google.com/go/datastore v1.0.0/go.mod h1:LXYbyblFSglQ5pkeyhO+Qmw7ukd3C+pD7TKLgZqpHYE=
 code.gitea.io/sdk/gitea v0.11.2 h1:D0xIRlHv3IckzdYOWzHK1bPvlkXdA4LD909UYyBdi1o=
 code.gitea.io/sdk/gitea v0.11.2/go.mod h1:z3uwDV/b9Ls47NGukYM9XhnHtqPh/J+t40lsUrR6JDY=
+code.gitea.io/sdk/gitea v0.11.3 h1:CdI3J82Mqn0mElyEKa5DUSr3Wi2R+qm/6uVtCkSSqSM=
+code.gitea.io/sdk/gitea v0.11.3/go.mod h1:z3uwDV/b9Ls47NGukYM9XhnHtqPh/J+t40lsUrR6JDY=
 contrib.go.opencensus.io/exporter/aws v0.0.0-20181029163544-2befc13012d0/go.mod h1:uu1P0UCM/6RbsMrgPa98ll8ZcHM858i/AD06a9aLRCA=
 contrib.go.opencensus.io/exporter/ocagent v0.5.0 h1:TKXjQSRS0/cCDrP7KvkgU6SmILtF/yV2TOs/02K/WZQ=
 contrib.go.opencensus.io/exporter/ocagent v0.5.0/go.mod h1:ImxhfLRpxoYiSq891pBrLVhN+qmP8BTVvdH2YLs7Gl0=
@@ -57,6 +59,9 @@ github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239 h1:kFOfPq6dUM1hTo
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/apex/log v1.1.1 h1:BwhRZ0qbjYtTob0I+2M+smavV0kOC8XgcnGZcyL9liA=
 github.com/apex/log v1.1.1/go.mod h1:Ls949n1HFtXfbDcjiTTFQqkVUrte0puoIBfO3SVgwOA=
+github.com/apex/log v1.1.4 h1:3Zk+boorIQAAGBrHn0JUtAau4ihMamT4WdnfdnXM1zQ=
+github.com/apex/log v1.1.4/go.mod h1:AlpoD9aScyQfJDVHmLMEcx4oU6LqzkWp4Mg9GdAcEvQ=
+github.com/apex/logs v0.0.4/go.mod h1:XzxuLZ5myVHDy9SAmYpamKKRNApGj54PfYLcFrXqDwo=
 github.com/aphistic/golf v0.0.0-20180712155816-02c07f170c5a/go.mod h1:3NqKYiepwy8kCu4PNA+aP7WUV72eXWJeP9/r3/K9aLE=
 github.com/aphistic/sweet v0.2.0/go.mod h1:fWDlIh/isSE9n6EPsRmC0det+whmX6dJid3stzu0Xys=
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
@@ -268,6 +273,8 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGa
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/goreleaser/goreleaser v0.132.1 h1:305D2zCfYxk6VMgCL+6aqsnRfoOLuaDRU+JB8ZHtzgM=
 github.com/goreleaser/goreleaser v0.132.1/go.mod h1:no9b6Py5iA3iLZYe2FMXoxVbulj7rUEuoAufeLu/tTo=
+github.com/goreleaser/goreleaser v0.133.0 h1:qAiPLbjxtr8YNlGWEry/uBEJFM5obXZvz+wBtMKXzgI=
+github.com/goreleaser/goreleaser v0.133.0/go.mod h1:ZT6Y2rSYa6NxQzIsdfWWNWAlYGXGbreo66NmE+3X3WQ=
 github.com/goreleaser/nfpm v1.2.1 h1:AEnu9XVmupRDTR930Z2rAs31Mj6sLIPxFcR9ESYvgDA=
 github.com/goreleaser/nfpm v1.2.1/go.mod h1:TtWrABZozuLOttX2uDlYyECfQX7x5XYkVxhjYcR6G9w=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
@@ -542,6 +549,7 @@ github.com/tidwall/pretty v1.0.0 h1:HsD+QiTn7sK6flMKIvNmpqz1qrpP3Ps6jOKIKMooyg4=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/timakin/bodyclose v0.0.0-20190930140734-f7f2e9bca95e h1:RumXZ56IrCj4CL+g1b9OL/oH0QnsF976bC8xQFYUD5Q=
 github.com/timakin/bodyclose v0.0.0-20190930140734-f7f2e9bca95e/go.mod h1:Qimiffbc6q9tBWlVV6x0P9sat/ao1xEkREYPPj9hphk=
+github.com/tj/assert v0.0.0-20171129193455-018094318fb0 h1:Rw8kxzWo1mr6FSaYXjQELRe88y2KdfynXdnK72rdjtA=
 github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLDRpvE+3b7gP/C2YyLFYxNmcLnPTMe0=
 github.com/tj/go-elastic v0.0.0-20171221160941-36157cbbebc2/go.mod h1:WjeM0Oo1eNAjXGDx2yma7uG2XoyRZTq1uv3M/o7imD0=
 github.com/tj/go-kinesis v0.0.0-20171128231115-08b17f58cb1b/go.mod h1:/yhzCV0xPfx6jb1bBgRFjl5lytqVqZXEaeqWP8lTEao=
@@ -729,6 +737,8 @@ golang.org/x/tools v0.0.0-20200414032229-332987a829c3/go.mod h1:EkVYQZoAsY45+roY
 golang.org/x/tools v0.0.0-20200422022333-3d57cf2e726e/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/tools v0.0.0-20200501155019-2658dc0cadb5 h1:skr8G4q25c51+6Dl9dOaUHiRYj1JB4V7DXGIDYsKe7Q=
 golang.org/x/tools v0.0.0-20200501155019-2658dc0cadb5/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
+golang.org/x/tools v0.0.0-20200504215816-9f0e5ee6c7c4 h1:eIjjOJUMGaX1Uop4S4spYLWurpTpmssLFW28uKQYEJc=
+golang.org/x/tools v0.0.0-20200504215816-9f0e5ee6c7c4/go.mod h1:EkVYQZoAsY45+roYkvgYkIh4xh/qjgUK9TdY2XT94GE=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7 h1:9zdDQZ7Thm29KFXgAX/+yaf3eVbP7djjWp/dXAppNCc=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
