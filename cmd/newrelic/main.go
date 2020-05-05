@@ -29,9 +29,12 @@ func init() {
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(workload.Command)
-
-	// Test
 	Command.AddCommand(extensions.Command)
+
+	// Bind extension sub-commands
+	for _, c := range extensions.ExtensionRootCommands {
+		Command.AddCommand(c)
+	}
 }
 
 func main() {

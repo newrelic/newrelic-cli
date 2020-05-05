@@ -9,10 +9,9 @@ import (
 	"time"
 )
 
-// Manifest describes an extension.
-type Manifest struct {
-	Command string
-}
+const (
+	defaultTimeout = 5 * time.Second
+)
 
 // Extension represents an extension runner.
 type Extension struct {
@@ -52,8 +51,8 @@ func WithArgs(args ...string) ConfigOption {
 }
 
 // New creates a new extension runner.
-func New(m *Manifest, opts ...ConfigOption) (*Extension, error) {
-	ctx, cancelFunc := context.WithCancel(context.Background())
+func New(m *ExtensionManifest, opts ...ConfigOption) (*Extension, error) {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultTimeout)
 	e := &Extension{
 		ctx:        ctx,
 		CancelFunc: cancelFunc,
@@ -65,7 +64,7 @@ func New(m *Manifest, opts ...ConfigOption) (*Extension, error) {
 		}
 	}
 
-	e.cmd = exec.CommandContext(e.ctx, m.Command, e.args...)
+	e.cmd = exec.CommandContext(e.ctx, m.Extension.Command, e.args...)
 
 	stdinPipe, err := e.cmd.StdinPipe()
 	if err != nil {
