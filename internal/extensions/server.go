@@ -54,8 +54,7 @@ var (
 )
 
 func serve(cmdDef *CommandDefinition, command *cobra.Command, args []string) {
-	fmt.Printf("\n serve: cmdDef:  %+v\n", cmdDef.Use)
-
+	log.Infof("Starting extension server")
 	for _, r := range routes {
 		http.HandleFunc(r.Route, r.Handler(cmdDef, command, args))
 		log.Infof("Registered route: %s\n", r.Route)

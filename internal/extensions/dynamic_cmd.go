@@ -1,7 +1,6 @@
 package extensions
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -131,20 +130,6 @@ func createCobraCommand(p *ExtensionManifest, cd *CommandDefinition) (*cobra.Com
 		Use:   cd.Use,
 		Short: cd.Short,
 		Long:  cd.Long,
-		// PreRun: func(cmd *cobra.Command, args []string) {
-		// 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
-		// 		def := cd.Flag(f.Name)
-		// 		if def == nil {
-		// 			return
-		// 		}
-		// 		if def.Prompt != "" {
-		// 			_, err := promptForValue(f, def)
-		// 			if err != nil {
-		// 				log.Fatal(err)
-		// 			}
-		// 		}
-		// 	})
-		// },
 		Run: func(cmd *cobra.Command, args []string) {
 			runExtension(p, cmd, args)
 		},
@@ -198,10 +183,6 @@ func runExtension(m *ExtensionManifest, cmd *cobra.Command, args []string) {
 
 	// Wait for context to be done
 	<-proc.DoneChan
-
-	fmt.Print("\n****************************\n")
-	fmt.Printf("Process done:Command: %+v", cmd)
-	fmt.Print("\n****************************\n")
 
 	procErr := proc.Err()
 
