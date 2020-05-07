@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultTimeout = 5 * time.Second
+	defaultTimeout = 30 * time.Second
 )
 
 // Extension represents an extension runner.

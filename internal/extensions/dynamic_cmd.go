@@ -13,13 +13,13 @@ import (
 
 // CommandFlag represents a command flag.
 type CommandFlag struct {
-	Name      string   `yaml:"Name,omitempty"`
-	Options   []string `yaml:"Options,omitempty"`
-	Prompt    string   `yaml:"Prompt,omitempty"`
-	Required  bool     `yaml:"Required,omitempty"`
-	Shorthand string   `yaml:"Shorthand,omitempty"`
-	Type      string   `yaml:"Type,omitempty"`
-	Usage     string   `yaml:"Usage,omitempty"`
+	Name      string   `yaml:"Name,omitempty" json:"name,omitempty"`
+	Options   []string `yaml:"Options,omitempty" json:"options,omitempty"`
+	Prompt    string   `yaml:"Prompt,omitempty" json:"prompt,omitempty"`
+	Required  bool     `yaml:"Required,omitempty" json:"required,omitempty"`
+	Shorthand string   `yaml:"Shorthand,omitempty" json:"shorthand,omitempty"`
+	Type      string   `yaml:"Type,omitempty" json:"type,omitempty"`
+	Usage     string   `yaml:"Usage,omitempty" json:"usage,omitempty"`
 }
 
 // CommandDefinition represents the definition of a CLI subcommand.
@@ -205,8 +205,15 @@ func promptForString(prompt string) (string, error) {
 }
 
 func runExtension(m *ExtensionManifest, cmd *cobra.Command, args []string) {
+	var cmdDef *CommandDefinition
+	for _, command := range m.Commands {
+		if command.Use == cmd.Name() {
+			cmdDef = command
+		}
+	}
+
 	go func() {
-		serve(cmd, args)
+		serve(cmdDef, cmd, args)
 	}()
 
 	proc, err := New(m)
@@ -224,6 +231,7 @@ func runExtension(m *ExtensionManifest, cmd *cobra.Command, args []string) {
 		log.Fatalf("Error: %+v", err)
 	}
 
+	// Wait for context to be done
 	<-proc.DoneChan
 
 	procErr := proc.Err()

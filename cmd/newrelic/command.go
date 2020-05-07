@@ -35,7 +35,7 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
+	// Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
 }
 
