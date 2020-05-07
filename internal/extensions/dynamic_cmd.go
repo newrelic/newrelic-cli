@@ -1,6 +1,7 @@
 package extensions
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -130,6 +131,20 @@ func createCobraCommand(p *ExtensionManifest, cd *CommandDefinition) (*cobra.Com
 		Use:   cd.Use,
 		Short: cd.Short,
 		Long:  cd.Long,
+		// PreRun: func(cmd *cobra.Command, args []string) {
+		// 	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		// 		def := cd.Flag(f.Name)
+		// 		if def == nil {
+		// 			return
+		// 		}
+		// 		if def.Prompt != "" {
+		// 			_, err := promptForValue(f, def)
+		// 			if err != nil {
+		// 				log.Fatal(err)
+		// 			}
+		// 		}
+		// 	})
+		// },
 		Run: func(cmd *cobra.Command, args []string) {
 			runExtension(p, cmd, args)
 		},
@@ -152,56 +167,6 @@ func createCobraCommand(p *ExtensionManifest, cd *CommandDefinition) (*cobra.Com
 	}
 
 	return cmd, nil
-}
-
-func promptForValue(f *pflag.Flag, def *CommandFlag) error {
-	var result string
-	var err error
-	if len(def.Options) > 0 {
-		result, err = promptForStringOption(def.Prompt, def.Options)
-	} else {
-		result, err = promptForString(def.Prompt)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	err = f.Value.Set(result)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func promptForStringOption(prompt string, options []string) (string, error) {
-	s := promptui.Select{
-		Label: prompt,
-		Items: options,
-	}
-
-	_, result, err := s.Run()
-
-	if err != nil {
-		return "", err
-	}
-
-	return result, nil
-}
-
-func promptForString(prompt string) (string, error) {
-	p := promptui.Prompt{
-		Label: prompt,
-	}
-
-	result, err := p.Run()
-
-	if err != nil {
-		return "", err
-	}
-
-	return result, nil
 }
 
 func runExtension(m *ExtensionManifest, cmd *cobra.Command, args []string) {
@@ -234,6 +199,10 @@ func runExtension(m *ExtensionManifest, cmd *cobra.Command, args []string) {
 	// Wait for context to be done
 	<-proc.DoneChan
 
+	fmt.Print("\n****************************\n")
+	fmt.Printf("Process done:Command: %+v", cmd)
+	fmt.Print("\n****************************\n")
+
 	procErr := proc.Err()
 
 	switch procErr.(type) {
@@ -242,4 +211,53 @@ func runExtension(m *ExtensionManifest, cmd *cobra.Command, args []string) {
 	case *ErrorExit:
 		log.Fatalf("Error: ExitError: %+v", procErr)
 	}
+}
+
+func promptForValue(f *pflag.Flag, def *CommandFlag) (string, error) {
+	var result string
+	var err error
+	if len(def.Options) > 0 {
+		result, err = promptForStringOption(def.Prompt, def.Options)
+	} else {
+		result, err = promptForString(def.Prompt)
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	err = f.Value.Set(result)
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
+}
+
+func promptForStringOption(prompt string, options []string) (string, error) {
+	s := promptui.Select{
+		Label: prompt,
+		Items: options,
+	}
+
+	_, result, err := s.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
+}
+
+func promptForString(prompt string) (string, error) {
+	p := promptui.Prompt{
+		Label: prompt,
+	}
+
+	result, err := p.Run()
+
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }

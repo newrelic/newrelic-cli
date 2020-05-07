@@ -92,20 +92,27 @@ func handleRequestPrompt(
 			log.Fatalf("Error: %+v", err)
 		}
 
-		var data Prompt
+		var data CommandFlag
 		err = json.Unmarshal(buf.Bytes(), &data)
 		if err != nil {
 			log.Fatalf("Error: %+v", err)
 		}
 
-		value, err := promptForStringOption(data.Prompt, data.Options)
+		pFlag := command.Flag(data.Name)
+		flagDef := cmdDef.Flag(data.Name)
+
+		promptResponse, err := promptForValue(pFlag, flagDef)
 		if err != nil {
 			log.Fatalf("Error: %v", err)
 		}
 
-		_, err = fmt.Fprintf(w, "%s", value)
-		if err != nil {
-			log.Fatalf("Error: %v", err)
-		}
+		respond(w, promptResponse)
+	}
+}
+
+func respond(w http.ResponseWriter, value string) {
+	_, err := fmt.Fprintf(w, "%s", value)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
 	}
 }
