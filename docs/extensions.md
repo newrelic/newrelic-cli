@@ -20,7 +20,7 @@ The interaction begins with a call to [`/command`](#command), which will return 
 #### Binary execution mode
 In this execution model, the extension simply receives its command and arguments as command line arguments during invocation.  IO from the extension is redirected to the user's terminal.
 
-When using `binary` mode, the extension's entrypoint (see [entrypoint](#entrypoint) above) will be invoked with additional arguments representing the command to be executed and a collection of flag value pairs, in the format `<ENTRYPOINT> <COMMAND> <FLAG_1> <VALUE_1> <FLAG_2> <VALUE_2> <FLAG_N> <VALUE_N>`.  An example invocation:
+When using `binary` mode, the extension's entrypoint (see [entrypoint](#entrypoint) above) will be invoked with additional arguments representing the command to be executed and a collection of flag value pairs, in the format `<ENTRYPOINT> <COMMAND> <ARGUMENTS> <FLAG_1> <VALUE_1> <FLAG_2> <VALUE_2> <FLAG_N> <VALUE_N>`.  An example invocation:
 
 ```
 node index.js hello name Shelly
@@ -78,7 +78,7 @@ A description of the extension as it will appear in the CLI help. This will be p
 * **Required**: false
 * **Default**: `api`
 
-The execution model this extension will use. Options are `api` and `binary` (See [Execution Modes](#plugin-modes) for details on execution models).
+The execution model this extension will use. Options are `api` and `binary` (See [Execution Modes](#execution-modes) for details on execution models).
 
 #### `commands`
 * **Type**: `array of hashes`
@@ -176,7 +176,7 @@ commands:
 ```
 
 ## CLI API
-If the extension is making use of the `api` mode (see [Execution modes](#plugin-modes) above), it can communicate with the CLI host via an HTTP API.
+If the extension is making use of the `api` mode (see [Execution modes](#execution-modes) above), it can communicate with the CLI host via an HTTP API.
 
 ### Authentication
 Upon invocation, the extension will be provided with a URI for connecting to the host CLI as well as a session token for authentication purposes.  The authentication token should be provided in the `X-CLI-Auth` header for all requests back to the CLI host.
@@ -192,10 +192,10 @@ Requests that do not provide the auth token will result in 401 Unauthorized resp
 ### Endpoint reference
 
 * [`Command`](#command)
-* [`Out`](#out)
+* [`Stdout`](#stdout)
 * [`Log`](#log)
 * [`Prompt`](#prompt)
-* [`Query`](#query)
+* [`GraphQL`](#graphql)
 * [`Fail`](#fail)
 
 
@@ -218,11 +218,11 @@ Used to collect user context for the current command execution.  Contains the co
 }
 ```
 
-#### `Out`
+#### `Stdout`
 
 Used to send output to the user's terminal.
 
-**URL** : `/out`
+**URL** : `/Stdout`
 
 **Method** : `POST`
 
@@ -276,11 +276,11 @@ Used to collect user input via an interactive prompt.  `options`, `default`, and
 }
 ```
 
-#### `Query`
+#### `GraphQL`
 
 Used to execute an authenticated request against the NerdGraph API.  The host CLI will use the current user's CLI profile to determine how to authenticate to the NerdGraph backend.
 
-**URL** : `/query`
+**URL** : `/graphql`
 
 **Method** : `POST`
 
@@ -319,22 +319,22 @@ Used to indicate to the host CLI that the extension has failed.
 ## Publishing and installing extensions
 To allow the CLI host to install the extension, it must be publicly available via GitHub.  It must also include an `extension.yml` in the project root as defined above.
 
-Users can then install a plugin via the `newrelic plugins add` command:
+Users can then install an extension via the `newrelic extensions add` command:
 
 ```
-> newrelic plugins add github.com/newrelic/hello-world-extension
+> newrelic extensions add github.com/newrelic/hello-world-extension
 ```
 
-Commands can be removed via the `newrelic plugins remove` command based on the name defined in their manifest:
+Commands can be removed via the `newrelic extensions remove` command based on the name defined in their manifest:
 
 ```
-> newrelic plugins remove hello-world
+> newrelic extensions remove hello-world
 ```
 
-To view a list of installed plugins, the user can use the `newrelic plugins list` command:
+To view a list of installed extensions, the user can use the `newrelic extensions list` command:
 
 ```
-> newrelic plugins list
+> newrelic extensions list
 
 +-------------+---------+-------------------------------------------+
 |    Name     | Version |                Repository                 |
@@ -344,8 +344,8 @@ To view a list of installed plugins, the user can use the `newrelic plugins list
 
 ```
 
-The user can use the `newrelic plugins upgrade` command to upgrade an installed plugin:
+The user can use the `newrelic extensions upgrade` command to upgrade an installed extension:
 
 ```
-> newrelic plugins upgrade
+> newrelic extensions upgrade
 ```
