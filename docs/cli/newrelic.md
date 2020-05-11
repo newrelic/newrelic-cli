@@ -9,7 +9,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 ### Options
 
 ```
-      --format string   output text format [YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, YAML] (default "JSON")
   -h, --help            help for newrelic
       --plain           output compact text
 ```

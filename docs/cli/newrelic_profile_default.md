@@ -29,7 +29,7 @@ newrelic profile default --name <profileName>
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, YAML] (default "JSON")
       --plain           output compact text
 ```
 
