@@ -273,8 +273,8 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGa
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/goreleaser/goreleaser v0.132.1 h1:305D2zCfYxk6VMgCL+6aqsnRfoOLuaDRU+JB8ZHtzgM=
 github.com/goreleaser/goreleaser v0.132.1/go.mod h1:no9b6Py5iA3iLZYe2FMXoxVbulj7rUEuoAufeLu/tTo=
-github.com/goreleaser/goreleaser v0.133.0 h1:qAiPLbjxtr8YNlGWEry/uBEJFM5obXZvz+wBtMKXzgI=
-github.com/goreleaser/goreleaser v0.133.0/go.mod h1:ZT6Y2rSYa6NxQzIsdfWWNWAlYGXGbreo66NmE+3X3WQ=
+github.com/goreleaser/goreleaser v0.134.0 h1:3ua5fSYvc/doKd5sVTzvXbyqW6H/eyuvy46woLrUFic=
+github.com/goreleaser/goreleaser v0.134.0/go.mod h1:ZT6Y2rSYa6NxQzIsdfWWNWAlYGXGbreo66NmE+3X3WQ=
 github.com/goreleaser/nfpm v1.2.1 h1:AEnu9XVmupRDTR930Z2rAs31Mj6sLIPxFcR9ESYvgDA=
 github.com/goreleaser/nfpm v1.2.1/go.mod h1:TtWrABZozuLOttX2uDlYyECfQX7x5XYkVxhjYcR6G9w=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
