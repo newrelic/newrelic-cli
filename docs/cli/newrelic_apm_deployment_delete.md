@@ -31,7 +31,7 @@ newrelic apm deployment delete --applicationId <appID> --deploymentID <deploymen
 ```
   -a, --accountId string    A New Relic account ID
       --applicationId int   A New Relic APM application ID
-      --format string       output text format [YAML, JSON] (default "JSON")
+      --format string       output text format [JSON, YAML] (default "JSON")
       --plain               output compact text
 ```
 

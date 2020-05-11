@@ -1,3 +1,13 @@
+<a name="v0.8.4"></a>
+## [v0.8.4] - 2020-05-11
+### Bug Fixes
+- **build:** Fix linting in Github actions
+
+### Documentation Updates
+- update community support information
+- add the OSS category header
+- **extensions:** add cli extension documentation
+
 <a name="v0.8.3"></a>
 ## [v0.8.3] - 2020-04-24
 ### Bug Fixes
@@ -197,7 +207,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...HEAD
+[v0.8.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...v0.8.4
 [v0.8.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.2...v0.8.3
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
