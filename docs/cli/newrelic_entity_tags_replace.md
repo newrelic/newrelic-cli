@@ -31,7 +31,7 @@ newrelic entity tags replace --guid <entityGUID> --tag tag1:value1
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, YAML] (default "JSON")
       --plain           output compact text
 ```
 
