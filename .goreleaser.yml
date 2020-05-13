@@ -46,6 +46,7 @@ archives:
 
 signs:
   - artifacts: all
+    args: ["-u", "0xDC9FC6B1FCE47986", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
 dockers:
   - dockerfile: build/package/Dockerfile
@@ -110,9 +111,36 @@ scoop:
   commit_author:
     name: nr-developer-toolkit
     email: "{{ .Env.DEV_TOOLKIT_EMAIL }}"
+  commit_msg_template: "chore(scoop): update for {{ .ProjectName }} version {{ .Tag }}"
   homepage: https://github.com/newrelic/newrelic-cli
   url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
   description: |
     The New Relic CLI is an officially supported command line interface for New
     Relic, released as part of the Developer Toolkit.
   license: Apache-2.0
+
+nfpms:
+  - id: newrelic
+    package_name: newrelic-cli
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    builds:
+      - newrelic
+    replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+    vendor: New Relic
+    homepage: https://github.com/newrelic/newrelic-cli
+    maintainer: opensource@newrelic.com
+    description: |
+      The New Relic CLI is an officially supported command line interface for New
+      Relic, released as part of the Developer Toolkit.
+    license: Apache 2.0
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/local/bin
+    epoch: 1
+    release: 1
