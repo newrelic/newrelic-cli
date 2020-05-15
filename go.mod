@@ -11,7 +11,7 @@ require (
 	github.com/goreleaser/goreleaser v0.134.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/imdario/mergo v0.3.9
-	github.com/jedib0t/go-pretty v4.3.0+incompatible
+	github.com/jedib0t/go-pretty/v6 v6.0.0
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.0
