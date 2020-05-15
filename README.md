@@ -8,7 +8,12 @@
 [![GoDoc](https://godoc.org/github.com/newrelic/newrelic-cli?status.svg)](https://godoc.org/github.com/newrelic/newrelic-cli)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/master/LICENSE)
 [![CLA assistant](https://cla-assistant.io/readme/badge/newrelic/newrelic-cli)](https://cla-assistant.io/newrelic/newrelic-cli)
-[![Release](https://img.shields.io/github/release/newrelic/newrelic-cli/all.svg)](https://github.com/newrelic/newrelic-cli/releases/latest)
+[![Release](https://img.shields.io/github/v/release/newrelic/newrelic-cli?sort=semver)](https://github.com/newrelic/newrelic-cli/releases/latest)
+
+[![Docker Stars](https://img.shields.io/docker/stars/newrelic/cli.svg)](https://hub.docker.com/r/newrelic/cli)
+[![Docker Pulls](https://img.shields.io/docker/pulls/newrelic/cli.svg)](https://hub.docker.com/r/newrelic/cli)
+[![Docker Size](https://img.shields.io/docker/image-size/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
+[![Docker Version](https://img.shields.io/docker/v/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 
 The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/)
 
