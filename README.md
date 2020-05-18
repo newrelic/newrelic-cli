@@ -19,8 +19,6 @@ The New Relic CLI is an officially supported command line interface for New Reli
 
 ## Overview
 
-**THIS IS AN ALPHA / PRE-RELEASE: Subject to drastic changes**
-
 The New Relic CLI is a project to consolidate some of the tools that New Relic
 offers for managing resources.  Current scope is limited while the framework is
 being developed, but the tool as-is does perform a subset of tasks.
