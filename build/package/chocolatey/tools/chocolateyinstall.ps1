@@ -2,15 +2,12 @@
 $toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $fileLocation = Join-Path $toolsDir 'NewRelicCLIInstaller.msi'
 
-$url        = '' # download url, HTTPS preferred
-$url64      = '' # 64bit URL here (HTTPS preferred) or remove - if installer contains both (very rare), use $url
-
 $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
   unzipLocation = $toolsDir
   fileType      = 'msi' #only one of these: exe, msi, msu
-  url           = $url
-  url64bit      = $url64
+  url           = '' # download url, HTTPS preferred
+  url64bit      = '' # 64bit URL here (HTTPS preferred) or remove - if installer contains both (very rare), use $url
   file          = $fileLocation
 
   softwareName  = 'newrelic-cli' #part or all of the Display Name as you see it in Programs and Features. It should be enough to be unique
