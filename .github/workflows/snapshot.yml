@@ -1,0 +1,37 @@
+name: Snapshot
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Add GOBIN to PATH
+      run: echo "::add-path::$(go env GOPATH)/bin"
+      shell: bash
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build artifact
+      shell: bash
+      run: make compile-linux
+
+    - name: Publish Snapshot to Docker
+      uses: docker/build-push-action@v1
+      with:
+        path: bin/linux/
+        dockerfile: build/package/Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        repository: newrelic/cli
+        tags: snapshot
+        add_git_lables: true
+
