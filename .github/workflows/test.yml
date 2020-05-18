@@ -21,10 +21,8 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Full git history
-      run: |
-        git fetch --prune --unshallow
+      with:
+        fetch-depth: 0
 
     - name: Cache deps
       uses: actions/cache@v1
