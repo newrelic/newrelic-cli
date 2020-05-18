@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "config:base"
-  ],
+  "extends": ["config:base"],
   "gomodTidy": true,
   "ignoreDeps": [
     "golang.org/x/crypto",
@@ -9,8 +7,7 @@
     "golang.org/x/sys",
     "golang.org/x/tools"
   ],
-  "labels": [
-    "dependencies"
-  ],
-  "prConcurrentLimit": 4
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 4,
+  "postUpdateOptions": ["gomodTidy"]
 }
