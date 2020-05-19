@@ -1,6 +1,7 @@
 #
 # Makefile fragment for Docker actions
 #
+DOCKER            ?= docker
 DOCKER_FILE       ?= build/package/Dockerfile
 DOCKER_IMAGE      ?= newrelic/cli
 DOCKER_IMAGE_TAG  ?= snapshot
@@ -28,6 +29,6 @@ docker-login:
 # Push the docker image
 docker-push: docker-login docker-build
 	@echo "=== $(PROJECT_NAME) === [ docker-push      ]: Pushing docker image: $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG) ..."
-	$(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
+	@$(DOCKER) push $(DOCKER_IMAGE):$(DOCKER_IMAGE_TAG)
 
 .PHONY: docker-build docker-login docker-push
