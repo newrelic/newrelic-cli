@@ -12,4 +12,4 @@ $packageArgs = @{
   validExitCodes= @(0, 3010, 1641)
 }
 
-Install-ChocolateyInstallPackage @packageArgs # https://chocolatey.org/docs/helpers-install-chocolatey-package
+Install-ChocolateyInstallPackage @packageArgs # https://chocolatey.org/docs/helpers-install-chocolatey-install-package
