@@ -6,4 +6,4 @@ Releases can be verified against the github releases.
 
 https://github.com/newrelic/newrelic-cli/releases
 
-The Developer Toolkit Team authors this software for New New Relic.
+The Developer Toolkit Team authors this software for New Relic.
