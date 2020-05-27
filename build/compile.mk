@@ -30,7 +30,7 @@ compile-all: deps-only
 		for os in $(COMPILE_OS); do \
 			echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)$$os/$$b"; \
 			BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-			GOOS=$$os $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$$os/$$b $$BUILD_FILES ; \
+			CGO_ENABLED=0 GOOS=$$os $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$$os/$$b $$BUILD_FILES ; \
 		done \
 	done
 
@@ -40,7 +40,7 @@ compile-only: deps-only
 	@for b in $(BINS); do \
 		echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)$(GOOS)/$$b"; \
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-		GOOS=$(GOOS) $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
+		CGO_ENABLED=0 GOOS=$(GOOS) $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
 
 # Override GOOS for these specific targets
