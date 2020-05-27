@@ -8,7 +8,7 @@
     "golang.org/x/tools"
   ],
   "commitMessagePrefix": "chore(deps):",
-  "reviewers": "team:developer-toolkit",
+  "reviewers": ["team:developer-toolkit"],
   "labels": ["dependencies"],
   "prConcurrentLimit": 4,
   "postUpdateOptions": ["gomodTidy"]
