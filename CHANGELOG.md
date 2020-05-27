@@ -1,3 +1,10 @@
+<a name="v0.8.5"></a>
+## [v0.8.5] - 2020-05-27
+### Bug Fixes
+- **build:** Docker makefile was missing binary name
+- **build:** ignore Scoop commits during commit linting
+- **chocolatey:** fix typo in chocolatey verfication.txt
+
 <a name="v0.8.4"></a>
 ## [v0.8.4] - 2020-05-11
 ### Bug Fixes
@@ -207,7 +214,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.5...HEAD
+[v0.8.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...v0.8.5
 [v0.8.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...v0.8.4
 [v0.8.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.2...v0.8.3
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
