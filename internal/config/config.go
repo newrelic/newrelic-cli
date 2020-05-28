@@ -42,7 +42,7 @@ type Config struct {
 	LogLevel           string  `mapstructure:"logLevel"`           // LogLevel for verbose output
 	PluginDir          string  `mapstructure:"pluginDir"`          // PluginDir is the directory where plugins will be installed
 	SendUsageData      Ternary `mapstructure:"sendUsageData"`      // SendUsageData enables sending usage statistics to New Relic
-	PreReleaseFeatures Ternary `mapstructure:"PreReleaseFeatures"` // PreReleaseFeatures enables display on features within the CLI that are announced but not generally available to customers
+	PreReleaseFeatures Ternary `mapstructure:"preReleaseFeatures"` // PreReleaseFeatures enables display on features within the CLI that are announced but not generally available to customers
 
 	configDir string
 }
