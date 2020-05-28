@@ -26,9 +26,6 @@ const (
 	// DefaultLogLevel is the default log level
 	DefaultLogLevel = "INFO"
 
-	// DefaultSendUsageData is the default value for sendUsageData
-	DefaultSendUsageData = "NOT_ASKED"
-
 	globalScopeIdentifier = "*"
 )
 
@@ -42,9 +39,10 @@ var (
 
 // Config contains the main CLI configuration
 type Config struct {
-	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
-	PluginDir     string `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
-	SendUsageData string `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
+	LogLevel           string  `mapstructure:"logLevel"`           // LogLevel for verbose output
+	PluginDir          string  `mapstructure:"pluginDir"`          // PluginDir is the directory where plugins will be installed
+	SendUsageData      Ternary `mapstructure:"sendUsageData"`      // SendUsageData enables sending usage statistics to New Relic
+	PreReleaseFeatures Ternary `mapstructure:"PreReleaseFeatures"` // PreReleaseFeatures enables display on features within the CLI that are announced but not generally available to customers
 
 	configDir string
 }
@@ -67,8 +65,9 @@ func (c *Value) IsDefault() bool {
 
 func init() {
 	defaultConfig = &Config{
-		LogLevel:      DefaultLogLevel,
-		SendUsageData: DefaultSendUsageData,
+		LogLevel:           DefaultLogLevel,
+		SendUsageData:      TernaryValues.Unknown,
+		PreReleaseFeatures: TernaryValues.Unknown,
 	}
 
 	cfgDir, err := getDefaultConfigDirectory()
@@ -162,7 +161,7 @@ func (c *Config) Get(key string) {
 }
 
 // Set sets a config value.
-func (c *Config) Set(key string, value string) error {
+func (c *Config) Set(key string, value interface{}) error {
 	if !stringInStrings(key, validConfigKeys()) {
 		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
 	}
@@ -173,6 +172,7 @@ func (c *Config) Set(key string, value string) error {
 	}
 
 	renderer.Set(key, value)
+
 	return nil
 }
 
@@ -203,7 +203,7 @@ func load(configDir string) (*Config, error) {
 
 func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
 	err := c.visitAllConfigFields(func(v *Value) error {
-		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value.(string))
+		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value)
 		return nil
 	})
 	if err != nil {
@@ -338,10 +338,10 @@ func (c *Config) validate() error {
 			if !stringInStrings(v.Value.(string), validValues) {
 				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
 			}
-		case "sendusagedata":
-			validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
-			if !stringInStrings(v.Value.(string), validValues) {
-				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
+		case "sendusagedata", "prereleasefeatures":
+			err := (v.Value.(Ternary)).Valid()
+			if err != nil {
+				return fmt.Errorf("invalid value for '%s': %s", v.Name, err)
 			}
 		}
 

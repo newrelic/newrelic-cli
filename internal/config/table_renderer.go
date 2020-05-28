@@ -35,9 +35,10 @@ func (tr *TableRenderer) Delete(key string) {
 }
 
 // Set renders output for the set command.
-func (tr *TableRenderer) Set(key string, value string) {
+func (tr *TableRenderer) Set(key string, value interface{}) {
 	bold := color.New(color.Bold).SprintFunc()
 	cyan := color.New(color.FgHiCyan).SprintFunc()
+
 	log.Debugf("%s set to %s\n", bold(key), cyan(value))
 }
 
