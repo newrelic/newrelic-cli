@@ -47,11 +47,11 @@ func TestConfigSetSendUsageData(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, c.configDir, f)
 
-	// Set the valid log levels
-	for _, l := range []string{
-		"NOT_ASKED",
-		"DISALLOW",
-		"ALLOW",
+	// Set the valid send-usage-date values
+	for _, l := range []Ternary{
+		TernaryValues.Allow,
+		TernaryValues.Disallow,
+		TernaryValues.Unknown,
 	} {
 		err = c.Set("sendUsageData", l)
 		assert.NoError(t, err)
