@@ -37,6 +37,11 @@ func (t Ternary) Valid() error {
 	return fmt.Errorf("\"%s\" is not a valid value; Please use one of: %s", val, TernaryValues)
 }
 
+// Bool returns true if the ternary is set and contains the true value
+func (t Ternary) Bool() bool {
+	return strings.EqualFold(t.String(), TernaryValues.Allow.String())
+}
+
 // String returns the string value of the ternary
 func (t Ternary) String() string {
 	return string(t)
