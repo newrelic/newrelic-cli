@@ -39,9 +39,10 @@ var (
 
 // Config contains the main CLI configuration
 type Config struct {
-	LogLevel      string  `mapstructure:"logLevel"`      // LogLevel for verbose output
-	PluginDir     string  `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
-	SendUsageData Ternary `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
+	LogLevel           string  `mapstructure:"logLevel"`           // LogLevel for verbose output
+	PluginDir          string  `mapstructure:"pluginDir"`          // PluginDir is the directory where plugins will be installed
+	SendUsageData      Ternary `mapstructure:"sendUsageData"`      // SendUsageData enables sending usage statistics to New Relic
+	PreReleaseFeatures Ternary `mapstructure:"PreReleaseFeatures"` // PreReleaseFeatures enables display on features within the CLI that are announced but not generally available to customers
 
 	configDir string
 }
@@ -64,8 +65,9 @@ func (c *Value) IsDefault() bool {
 
 func init() {
 	defaultConfig = &Config{
-		LogLevel:      DefaultLogLevel,
-		SendUsageData: TernaryValues.Unknown,
+		LogLevel:           DefaultLogLevel,
+		SendUsageData:      TernaryValues.Unknown,
+		PreReleaseFeatures: TernaryValues.Unknown,
 	}
 
 	cfgDir, err := getDefaultConfigDirectory()
@@ -170,6 +172,7 @@ func (c *Config) Set(key string, value interface{}) error {
 	}
 
 	renderer.Set(key, value)
+
 	return nil
 }
 
@@ -335,7 +338,7 @@ func (c *Config) validate() error {
 			if !stringInStrings(v.Value.(string), validValues) {
 				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
 			}
-		case "sendusagedata":
+		case "sendusagedata", "prereleasefeatures":
 			err := (v.Value.(Ternary)).Valid()
 			if err != nil {
 				return fmt.Errorf("invalid value for '%s': %s", v.Name, err)
