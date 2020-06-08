@@ -47,7 +47,7 @@ func TestConfigSetSendUsageData(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, c.configDir, f)
 
-	// Set the valid send-usage-date values
+	// Set the valid sendUsageData values
 	for _, l := range []Ternary{
 		TernaryValues.Allow,
 		TernaryValues.Disallow,
