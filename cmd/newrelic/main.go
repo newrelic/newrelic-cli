@@ -2,6 +2,7 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
 	// Commands
@@ -30,6 +31,8 @@ func init() {
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(workload.Command)
+
+	CheckPrereleaseMode(Command)
 }
 
 func main() {
@@ -38,4 +41,23 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+}
+
+// CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
+// flag is active.
+func CheckPrereleaseMode(c *cobra.Command) {
+	config.WithConfig(func(cfg *config.Config) {
+		if !cfg.PreReleaseFeatures.Bool() {
+			return
+		}
+
+		log.Debug("Pre-release mode active")
+
+		for _, cmd := range c.Commands() {
+			if cmd.Hidden {
+				log.Debugf("Activating pre-release subcommand: %s", cmd.Name())
+				cmd.Hidden = false
+			}
+		}
+	})
 }

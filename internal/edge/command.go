@@ -8,4 +8,7 @@ import (
 var Command = &cobra.Command{
 	Use:   "edge",
 	Short: "Interact with New Relic Edge",
+
+	// Mark as pre-release
+	Hidden: true,
 }
