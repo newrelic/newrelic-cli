@@ -2,12 +2,14 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
 	// Commands
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
@@ -21,13 +23,16 @@ var (
 
 func init() {
 	// Bind imported sub-commands
-	Command.AddCommand(entities.Command)
-	Command.AddCommand(credentials.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(config.Command)
+	Command.AddCommand(credentials.Command)
+	Command.AddCommand(edge.Command)
+	Command.AddCommand(entities.Command)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(workload.Command)
+
+	CheckPrereleaseMode(Command)
 }
 
 func main() {
@@ -36,4 +41,23 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+}
+
+// CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
+// flag is active.
+func CheckPrereleaseMode(c *cobra.Command) {
+	config.WithConfig(func(cfg *config.Config) {
+		if !cfg.PreReleaseFeatures.Bool() {
+			return
+		}
+
+		log.Debug("Pre-release mode active")
+
+		for _, cmd := range c.Commands() {
+			if cmd.Hidden {
+				log.Debugf("Activating pre-release subcommand: %s", cmd.Name())
+				cmd.Hidden = false
+			}
+		}
+	})
 }
