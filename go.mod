@@ -14,13 +14,13 @@ require (
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.2
-	github.com/newrelic/newrelic-client-go v0.29.0
+	github.com/newrelic/newrelic-client-go v0.29.1
 	github.com/psampaz/go-mod-outdated v0.6.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/tools v0.0.0-20200609164405-eb789aa7ce50
+	golang.org/x/tools v0.0.0-20200610160956-3e83d1e96d0e
 	gopkg.in/yaml.v2 v2.3.0
 )
