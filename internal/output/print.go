@@ -9,6 +9,8 @@ func Print(data interface{}) (err error) {
 	switch globalOutput.format {
 	case FormatJSON:
 		err = globalOutput.json(data)
+	case FormatText:
+		err = globalOutput.table(data)
 	case FormatYAML:
 		err = globalOutput.yaml(data)
 	default:
@@ -26,4 +28,14 @@ func JSON(data interface{}) (err error) {
 	}
 
 	return globalOutput.json(data)
+}
+
+// Text allows you to override the default output method and
+// explicitly print JSON to the screen
+func Text(data interface{}) (err error) {
+	if err = ensureGlobalOutput(); err != nil {
+		return err
+	}
+
+	return globalOutput.text(data)
 }

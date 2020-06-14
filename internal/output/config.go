@@ -2,13 +2,21 @@ package output
 
 import (
 	"github.com/hokaccha/go-prettyjson"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // New creates a new outputter with the specific config options
 func New(opts ...ConfigOption) (*Output, error) {
 	config := &Output{
-		format:      DefaultFormat,
-		prettyPrint: DefaultPretty,
+		format:        DefaultFormat,
+		prettyPrint:   DefaultPretty,
+		terminalWidth: DefaultTerminalWidth,
+	}
+
+	// Set some defaults
+	w, _, err := terminal.GetSize(0)
+	if err == nil {
+		config.terminalWidth = w
 	}
 
 	// Loop through config options
@@ -20,6 +28,7 @@ func New(opts ...ConfigOption) (*Output, error) {
 		}
 	}
 
+	// JSON output
 	config.jsonFormatter = prettyjson.NewFormatter()
 
 	return config, nil
