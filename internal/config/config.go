@@ -7,10 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/imdario/mergo"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/newrelic/newrelic-cli/internal/output"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 const (
@@ -33,7 +37,6 @@ var (
 	// DefaultConfigDirectory is the default location for the CLI config files
 	DefaultConfigDirectory string
 
-	renderer      = TableRenderer{}
 	defaultConfig *Config
 )
 
@@ -135,7 +138,7 @@ func (c *Config) setLogger() {
 
 // List outputs a list of all the configuration values
 func (c *Config) List() {
-	renderer.List(c)
+	utils.LogIfFatal(output.Text(c.getAll("")))
 }
 
 // Delete deletes a config value.
@@ -151,13 +154,17 @@ func (c *Config) Delete(key string) error {
 		return err
 	}
 
-	renderer.Delete(key)
+	bold := color.New(color.Bold).SprintFunc()
+	green := color.New(color.FgHiGreen).SprintFunc()
+
+	utils.LogIfFatal(output.Text(fmt.Sprintf("%s %s removed successfully\n", green("✔"), bold(key))))
+
 	return nil
 }
 
 // Get retrieves a config value.
 func (c *Config) Get(key string) {
-	renderer.Get(c, key)
+	utils.LogIfFatal(output.Text(c.getAll(key)))
 }
 
 // Set sets a config value.
@@ -171,7 +178,10 @@ func (c *Config) Set(key string, value interface{}) error {
 		return err
 	}
 
-	renderer.Set(key, value)
+	bold := color.New(color.Bold).SprintFunc()
+	cyan := color.New(color.FgHiCyan).SprintFunc()
+
+	log.Debugf("%s set to %s\n", bold(key), cyan(value))
 
 	return nil
 }
