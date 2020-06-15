@@ -14,7 +14,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 const (
@@ -138,7 +137,7 @@ func (c *Config) setLogger() {
 
 // List outputs a list of all the configuration values
 func (c *Config) List() {
-	utils.LogIfFatal(output.Text(c.getAll("")))
+	output.Text(c.getAll(""))
 }
 
 // Delete deletes a config value.
@@ -154,14 +153,14 @@ func (c *Config) Delete(key string) error {
 		return err
 	}
 
-	utils.LogIfFatal(output.Text(fmt.Sprintf("%s %s removed successfully\n", text.FgGreen.Sprint("✔"), text.Bold.Sprint(key))))
+	output.Printf("%s %s removed successfully\n", text.FgGreen.Sprint("✔"), text.Bold.Sprint(key))
 
 	return nil
 }
 
 // Get retrieves a config value.
 func (c *Config) Get(key string) {
-	utils.LogIfFatal(output.Text(c.getAll(key)))
+	output.Text(c.getAll(key))
 }
 
 // Set sets a config value.
@@ -175,7 +174,7 @@ func (c *Config) Set(key string, value interface{}) error {
 		return err
 	}
 
-	log.Debugf("%s set to %s\n", text.Bold.Sprint(key), text.FgCyan.Sprint(value))
+	output.Printf("%s set to %s\n", text.Bold.Sprint(key), text.FgCyan.Sprint(value))
 
 	return nil
 }

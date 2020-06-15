@@ -67,7 +67,7 @@ The history command will fetch a list of the most recent NRQL queries you execut
 				historyLimit = count
 			}
 
-			utils.LogIfFatal(output.Text((*result)[0:historyLimit]))
+			output.Text((*result)[0:historyLimit])
 		})
 	},
 }

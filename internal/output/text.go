@@ -52,7 +52,6 @@ func (o *Output) table(data interface{}) error {
 		// Create the header from the field names
 		typ := reflect.TypeOf(data).Elem()
 
-		//cols := first.NumField()
 		cols := typ.NumField()
 		header := make([]interface{}, cols)
 		colConfig := make([]table.ColumnConfig, cols)
@@ -76,7 +75,20 @@ func (o *Output) table(data interface{}) error {
 			tw.AppendRow(table.Row(row))
 		}
 
-	//case reflect.Struct:
+	// Single Struct becomes table view of Field | Value
+	case reflect.Struct:
+		typ := reflect.TypeOf(data)
+		tw.AppendHeader(table.Row{"Field", "Value"})
+
+		for f := 0; f < typ.NumField(); f++ {
+			row := []interface{}{
+				typ.Field(f).Name,
+				v.Field(f).Interface(),
+			}
+
+			tw.AppendRow(table.Row(row))
+		}
+
 	default:
 		return fmt.Errorf("unable to format data type: %T", data)
 	}

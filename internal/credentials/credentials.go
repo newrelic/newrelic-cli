@@ -13,7 +13,6 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 const (
@@ -180,7 +179,7 @@ func (c *Credentials) List() {
 		out = append(out, profileList{Name: name, Region: v.Region.String(), APIKey: key})
 	}
 
-	utils.LogIfFatal(output.Text(out))
+	output.Text(out)
 }
 
 type profileList struct {
