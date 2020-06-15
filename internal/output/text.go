@@ -24,9 +24,8 @@ func (o *Output) text(data interface{}) error {
 	switch v := reflect.ValueOf(data); v.Kind() {
 	case reflect.String:
 		fmt.Println(data)
-	case reflect.Slice:
-		return o.table(data)
-	//case reflect.Struct:
+	case reflect.Slice, reflect.Struct:
+		return o.renderAsTable(data)
 	default:
 		return fmt.Errorf("unable to format data type: %T", data)
 	}
@@ -34,7 +33,7 @@ func (o *Output) text(data interface{}) error {
 	return nil
 }
 
-func (o *Output) table(data interface{}) error {
+func (o *Output) renderAsTable(data interface{}) error {
 	// Early quit on no data
 	if data == nil {
 		return nil
@@ -90,7 +89,7 @@ func (o *Output) table(data interface{}) error {
 		}
 
 	default:
-		return fmt.Errorf("unable to format data type: %T", data)
+		return fmt.Errorf("unable to format data as table - type: %T", data)
 	}
 
 	tw.Render()

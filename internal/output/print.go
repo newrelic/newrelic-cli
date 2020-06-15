@@ -16,7 +16,7 @@ func Print(data interface{}) (err error) {
 	case FormatJSON:
 		err = globalOutput.json(data)
 	case FormatText:
-		err = globalOutput.table(data)
+		err = globalOutput.text(data)
 	case FormatYAML:
 		err = globalOutput.yaml(data)
 	default:
