@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/imdario/mergo"
+	"github.com/jedib0t/go-pretty/v6/text"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -154,10 +154,7 @@ func (c *Config) Delete(key string) error {
 		return err
 	}
 
-	bold := color.New(color.Bold).SprintFunc()
-	green := color.New(color.FgHiGreen).SprintFunc()
-
-	utils.LogIfFatal(output.Text(fmt.Sprintf("%s %s removed successfully\n", green("✔"), bold(key))))
+	utils.LogIfFatal(output.Text(fmt.Sprintf("%s %s removed successfully\n", text.FgGreen.Sprint("✔"), text.Bold.Sprint(key))))
 
 	return nil
 }
@@ -178,10 +175,7 @@ func (c *Config) Set(key string, value interface{}) error {
 		return err
 	}
 
-	bold := color.New(color.Bold).SprintFunc()
-	cyan := color.New(color.FgHiCyan).SprintFunc()
-
-	log.Debugf("%s set to %s\n", bold(key), cyan(value))
+	log.Debugf("%s set to %s\n", text.Bold.Sprint(key), text.FgCyan.Sprint(value))
 
 	return nil
 }

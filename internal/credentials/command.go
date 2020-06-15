@@ -1,7 +1,7 @@
 package credentials
 
 import (
-	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -38,8 +38,7 @@ The add command creates a new profile for use with the New Relic CLI.
 				log.Fatal(err)
 			}
 
-			cyan := color.New(color.FgCyan).SprintfFunc()
-			log.Infof("profile %s added", cyan(profileName))
+			log.Infof("profile %s added", text.FgCyan.Sprint(profileName))
 
 			if len(creds.Profiles) == 1 {
 				err := creds.SetDefaultProfile(profileName)
@@ -47,8 +46,7 @@ The add command creates a new profile for use with the New Relic CLI.
 					log.Fatal(err)
 				}
 
-				cyan := color.New(color.FgCyan).SprintfFunc()
-				log.Infof("setting %s as default profile", cyan(profileName))
+				log.Infof("setting %s as default profile", text.FgCyan.Sprint(profileName))
 			}
 		})
 	},
