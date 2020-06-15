@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
@@ -24,6 +26,7 @@ var Command = &cobra.Command{
 func Execute() error {
 	Command.Use = appName
 	Command.Version = version
+	Command.SilenceUsage = os.Getenv("CI") != ""
 
 	// Silence Cobra's internal handling of error messaging
 	// since we have a custom error handler in main.go
