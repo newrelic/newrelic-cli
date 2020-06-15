@@ -8,9 +8,12 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
+	"github.com/jedib0t/go-pretty/v6/text"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
 const (
@@ -33,7 +36,6 @@ var (
 	// DefaultConfigDirectory is the default location for the CLI config files
 	DefaultConfigDirectory string
 
-	renderer      = TableRenderer{}
 	defaultConfig *Config
 )
 
@@ -135,7 +137,7 @@ func (c *Config) setLogger() {
 
 // List outputs a list of all the configuration values
 func (c *Config) List() {
-	renderer.List(c)
+	output.Text(c.getAll(""))
 }
 
 // Delete deletes a config value.
@@ -151,13 +153,14 @@ func (c *Config) Delete(key string) error {
 		return err
 	}
 
-	renderer.Delete(key)
+	output.Printf("%s %s removed successfully\n", text.FgGreen.Sprint("✔"), text.Bold.Sprint(key))
+
 	return nil
 }
 
 // Get retrieves a config value.
 func (c *Config) Get(key string) {
-	renderer.Get(c, key)
+	output.Text(c.getAll(key))
 }
 
 // Set sets a config value.
@@ -171,7 +174,7 @@ func (c *Config) Set(key string, value interface{}) error {
 		return err
 	}
 
-	renderer.Set(key, value)
+	output.Printf("%s set to %s\n", text.Bold.Sprint(key), text.FgCyan.Sprint(value))
 
 	return nil
 }

@@ -1,9 +1,9 @@
 package config
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -28,12 +28,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithConfig(func(cfg *Config) {
-			err := cfg.Set(key, value)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			log.Info("success")
+			utils.LogIfError(cfg.Set(key, value))
 		})
 	},
 }
@@ -82,12 +77,7 @@ This will have the effect of resetting the value to its default.
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithConfig(func(cfg *Config) {
-			err := cfg.Delete(key)
-			if err != nil {
-				log.Error(err)
-			}
-
-			log.Info("success")
+			utils.LogIfError(cfg.Delete(key))
 		})
 	},
 	Aliases: []string{
@@ -96,33 +86,19 @@ This will have the effect of resetting the value to its default.
 }
 
 func init() {
-	var err error
-
 	Command.AddCommand(cmdList)
 
 	Command.AddCommand(cmdSet)
 	cmdSet.Flags().StringVarP(&key, "key", "k", "", "the key to set")
 	cmdSet.Flags().StringVarP(&value, "value", "v", "", "the value to set")
-	err = cmdSet.MarkFlagRequired("key")
-	if err != nil {
-		log.Error(err)
-	}
-	err = cmdSet.MarkFlagRequired("value")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdSet.MarkFlagRequired("key"))
+	utils.LogIfError(cmdSet.MarkFlagRequired("value"))
 
 	Command.AddCommand(cmdGet)
 	cmdGet.Flags().StringVarP(&key, "key", "k", "", "the key to get")
-	err = cmdGet.MarkFlagRequired("key")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdGet.MarkFlagRequired("key"))
 
 	Command.AddCommand(cmdDelete)
 	cmdDelete.Flags().StringVarP(&key, "key", "k", "", "the key to delete")
-	err = cmdDelete.MarkFlagRequired("key")
-	if err != nil {
-		log.Error(err)
-	}
+	utils.LogIfError(cmdDelete.MarkFlagRequired("key"))
 }
