@@ -22,7 +22,7 @@ newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR
 ### Options
 
 ```
-  -a, --accountId int   the New Relic account ID where you want to create the workload
+  -a, --accountId int   the New Relic account ID where the workload is located
   -g, --guid string     the GUID of the workload
   -h, --help            help for get
 ```
@@ -30,7 +30,7 @@ newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, YAML] (default "JSON")
+      --format string   output text format [YAML, JSON, Text] (default "JSON")
       --plain           output compact text
 ```
 
