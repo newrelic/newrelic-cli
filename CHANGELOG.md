@@ -1,3 +1,15 @@
+<a name="v0.9.0"></a>
+## [v0.9.0] - 2020-06-16
+### Bug Fixes
+- **output:** Fix FormatText to do more than just tables
+
+### Features
+- **config:** Add config option to show Pre-Release Features (resolves [#274](https://github.com/newrelic/newrelic-client-go/issues/274))
+- **edge:** mark as pre-release
+- **edge:** add infinite tracing support
+- **nrql:** Add NRQL Query and History commands
+- **output:** Add text output formatter to general package
+
 <a name="v0.8.5"></a>
 ## [v0.8.5] - 2020-05-27
 ### Bug Fixes
@@ -214,7 +226,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.9.0...HEAD
+[v0.9.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.5...v0.9.0
 [v0.8.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...v0.8.5
 [v0.8.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...v0.8.4
 [v0.8.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.2...v0.8.3
