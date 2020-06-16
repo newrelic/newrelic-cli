@@ -50,7 +50,20 @@ git fetch upstream
 # Ensure our local master branch is up to date with the
 # latest code from Homebrew/homebrew-core.
 # Abort the rebase if encounter merge conflicts.
-git rebase upstream/master || git rebase --abort
+git rebase upstream/master
+
+exitCode=$?
+
+if [ $exitCode -ne 0 ]; then
+  echo " "
+  echo "Failed to rebase on top of upstream/master likely due to a merge conflict."
+  echo "Please rebase the homebrew pull request locally and fix any conflicts before merging."
+  echo " "
+
+  git rebase --abort
+
+  exit $exitCode
+fi
 
 homebrew_formula_file='Formula/newrelic-cli.rb'
 tmp_formula_file='Formula/newrelic-cli.rb.tmp'
