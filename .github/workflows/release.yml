@@ -19,6 +19,24 @@ jobs:
       run: echo "::add-path::$(go env GOPATH)/bin"
       shell: bash
 
+    - name: Update master with latest from upstream
+      uses: actions/checkout@v2
+      with:
+        repository: newrelic-forks/homebrew-core
+        ref: master
+        token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+      env:
+        GH_USER_EMAIL: developer-toolkit-team@newrelic.com
+        GH_USER_NAME: 'New Relic Developer Toolkit Bot'
+      run: |
+        git config --global user.email "$GH_USER_EMAIL"
+        git config --global user.name "$GH_USER_NAME"
+        git status
+        git remote add upstream git@github.com:Homebrew/homebrew-core.git
+        git fetch upstream
+        git rebase upstream/master || git rebase --abort
+        git push --set-upstream origin master
+
     - name: Checkout code
       uses: actions/checkout@v2
       with:
@@ -48,7 +66,7 @@ jobs:
         name: windows-binary
         path: dist/newrelic_windows_amd64/newrelic.exe
 
-    - name: Checkout homebrew-core
+    - name: Checkout newrelic-forks/homebrew-core
       uses: actions/checkout@v2
       with:
         repository: newrelic-forks/homebrew-core
