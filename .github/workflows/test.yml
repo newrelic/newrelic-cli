@@ -95,4 +95,3 @@ jobs:
         NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
         NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
-

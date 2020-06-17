@@ -48,7 +48,7 @@ jobs:
         name: windows-binary
         path: dist/newrelic_windows_amd64/newrelic.exe
 
-    - name: Checkout homebrew-core
+    - name: Checkout newrelic-forks/homebrew-core
       uses: actions/checkout@v2
       with:
         repository: newrelic-forks/homebrew-core
