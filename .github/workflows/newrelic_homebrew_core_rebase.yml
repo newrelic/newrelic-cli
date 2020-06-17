@@ -8,9 +8,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        # with:
-        #   # Needed for release notes
-        #   fetch-depth: 0
 
       - name: Checkout newrelic-forks/homebrew-core
         uses: actions/checkout@v2
