@@ -39,7 +39,7 @@ git config --global user.email "$GH_USER_EMAIL"
 git config --global user.name "$GH_USER_NAME"
 
 # Add the original Homebrew/homebrew-core as the upstream repo
-git remote add upstream git@github.com:Homebrew/homebrew-core.git
+git remote add upstream https://github.com/Homebrew/homebrew-core.git
 
 # List our remotes for CI clarity
 git remote -v
