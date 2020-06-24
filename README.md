@@ -165,7 +165,7 @@ are used to construct or destroy an item, respectively.
 
 ### Building
 
-This package does not generate any direct usable assets (it's a library).  You can still run the build scripts to validate you code, and generate coverage information.
+The `newrelic` command will be built in `bin/ARCH/newrelic`, where `ARCH` is either `linux`, `darwin`, or `windows`, depending on your build environment. You can run it directly from there or install it by moving it to a directory in your `PATH`.
 
 ```
 # Default target is 'build'
