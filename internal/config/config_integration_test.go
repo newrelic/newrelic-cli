@@ -22,11 +22,11 @@ func TestConfigSetLogLevel(t *testing.T) {
 
 	// Set the valid log levels
 	for _, l := range []string{
-		"Error",
-		"Warn",
-		"Info",
-		"Debug",
-		"Trace",
+		"ERROR",
+		"WARN",
+		"INFO",
+		"DEBUG",
+		"TRACE",
 	} {
 		err = c.Set("logLevel", l)
 		assert.NoError(t, err)
