@@ -27,7 +27,7 @@ const (
 	DefaultEnvPrefix = "newrelic"
 
 	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "Info"
+	DefaultLogLevel = "INFO"
 
 	globalScopeIdentifier = "*"
 )
@@ -166,7 +166,7 @@ func (c *Config) Get(key string) {
 // Set sets a config value.
 func (c *Config) Set(key string, value interface{}) error {
 	if !stringInStrings(key, validConfigKeys()) {
-		return fmt.Errorf("\"%s\" is not a valid key; use one of: %s", key, validConfigKeys())
+		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
 	}
 
 	err := c.set(key, value)
@@ -335,10 +335,11 @@ func (c *Config) setDefaults() error {
 
 func (c *Config) validate() error {
 	err := c.visitAllConfigFields(func(v *Value) error {
+		// switch k := strings.ToLower(v.Name); k {
 		switch k := strings.ToLower(v.Name); k {
 		case "loglevel":
 			validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
-			if !stringInStrings(v.Value.(string), validValues) {
+			if !stringInStringsIgnoreCase(v.Value.(string), validValues) {
 				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
 			}
 		case "sendusagedata", "prereleasefeatures":
@@ -439,6 +440,17 @@ func validConfigKeys() []string {
 func stringInStrings(s string, ss []string) bool {
 	for _, v := range ss {
 		if v == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Function ignores the case
+func stringInStringsIgnoreCase(s string, ss []string) bool {
+	for _, v := range ss {
+		if strings.EqualFold(v, s) {
 			return true
 		}
 	}
