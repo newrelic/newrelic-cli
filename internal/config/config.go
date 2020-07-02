@@ -27,7 +27,7 @@ const (
 	DefaultEnvPrefix = "newrelic"
 
 	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "INFO"
+	DefaultLogLevel = "Info"
 
 	globalScopeIdentifier = "*"
 )
@@ -166,7 +166,7 @@ func (c *Config) Get(key string) {
 // Set sets a config value.
 func (c *Config) Set(key string, value interface{}) error {
 	if !stringInStrings(key, validConfigKeys()) {
-		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
+		return fmt.Errorf("\"%s\" is not a valid key; use one of: %s", key, validConfigKeys())
 	}
 
 	err := c.set(key, value)
@@ -438,7 +438,7 @@ func validConfigKeys() []string {
 
 func stringInStrings(s string, ss []string) bool {
 	for _, v := range ss {
-		if strings.EqualFold(v, s) {
+		if v == s {
 			return true
 		}
 	}
