@@ -335,7 +335,6 @@ func (c *Config) setDefaults() error {
 
 func (c *Config) validate() error {
 	err := c.visitAllConfigFields(func(v *Value) error {
-		// switch k := strings.ToLower(v.Name); k {
 		switch k := strings.ToLower(v.Name); k {
 		case "loglevel":
 			validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
