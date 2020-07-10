@@ -1,3 +1,21 @@
+<a name="v0.10.0"></a>
+## [v0.10.0] - 2020-07-10
+### Bug Fixes
+- **config:** remove extra comment
+- **config:** compatible case with any loglevel value
+- **config:** ensure compatible case with nr1
+- **release:** need to use https URL for upstream homebrew-core
+- **release:** generate correct sha256 for homebrew release
+- **scoop:** fix bot email address
+
+### Documentation Updates
+- **README:** Correct Building section
+
+### Features
+- **release:** attempt to automate syncing our homebrew-core fork with upstream
+- **release:** add step to update newrelic-forks/homebrew-core with latest from upstream homebrew-code
+- **release:** update master branch with latest code from upstream
+
 <a name="v0.9.0"></a>
 ## [v0.9.0] - 2020-06-16
 ### Bug Fixes
@@ -226,7 +244,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.10.0...HEAD
+[v0.10.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.9.0...v0.10.0
 [v0.9.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.5...v0.9.0
 [v0.8.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...v0.8.5
 [v0.8.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...v0.8.4
