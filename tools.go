@@ -19,4 +19,7 @@ import (
 
 	// build/release.mk
 	_ "github.com/goreleaser/goreleaser"
+
+	// build/test.mk
+	_ "gotest.tools/gotestsum"
 )

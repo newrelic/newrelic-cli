@@ -15,6 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
+	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
 
@@ -34,6 +35,7 @@ func init() {
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(nrql.Command)
+	Command.AddCommand(reporting.Command)
 	Command.AddCommand(workload.Command)
 
 	CheckPrereleaseMode(Command)
