@@ -25,4 +25,5 @@ require (
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/tools v0.0.0-20200722181740-bd1e9de8d890
 	gopkg.in/yaml.v2 v2.3.0
+	gotest.tools/gotestsum v0.5.2
 )
