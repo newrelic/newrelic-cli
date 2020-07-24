@@ -47,11 +47,12 @@ func TestCredentials(t *testing.T) {
 	assert.Equal(t, c.ConfigDirectory, f)
 
 	// Create an initial profile to work with
-	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere")
+	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere", "insightsInsertKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
 	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
 	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
+	assert.Equal(t, "insightsInsertKeyGoesHere", c.Profiles["testCase1"].InsightsInsertKey)
 	assert.Equal(t, "", c.DefaultProfile)
 
 	// Set the default profile to the only one we've got
@@ -60,13 +61,13 @@ func TestCredentials(t *testing.T) {
 	assert.Equal(t, c.DefaultProfile, "testCase1")
 
 	// Adding a profile with the same name should result in an error
-	err = c.AddProfile("testCase1", "us", "foot")
+	err = c.AddProfile("testCase1", "us", "foot", "")
 	assert.Error(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
 	assert.True(t, c.profileExists("testCase1"))
 
 	// Create a second profile to work with
-	err = c.AddProfile("testCase2", "us", "apiKeyGoesHere")
+	err = c.AddProfile("testCase2", "us", "apiKeyGoesHere", "")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 2)
 	assert.Equal(t, c.Profiles["testCase2"].Region, region.US)
@@ -119,11 +120,12 @@ func TestCredentialLowerCaseRegion(t *testing.T) {
 	assert.Equal(t, c.ConfigDirectory, f)
 
 	// Create an initial profile to work with
-	err = c.AddProfile("testCase1", "US", "apiKeyGoesHere")
+	err = c.AddProfile("testCase1", "US", "apiKeyGoesHere", "insightsInsertKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
 	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
 	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
+	assert.Equal(t, "insightsInsertKeyGoesHere", c.Profiles["testCase1"].InsightsInsertKey)
 }
 
 // TestCredentialCompatibilityNR1

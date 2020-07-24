@@ -11,6 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
+	"github.com/newrelic/newrelic-cli/internal/events"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
@@ -28,6 +29,7 @@ func init() {
 	Command.AddCommand(config.Command)
 	Command.AddCommand(credentials.Command)
 	Command.AddCommand(edge.Command)
+	Command.AddCommand(events.Command)
 	Command.AddCommand(entities.Command)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)

@@ -41,6 +41,14 @@ environment variable.
 export NEW_RELIC_REGION="EU"
 ```
 
+Creating custom events with the `newrelic events` sub-command requires an Insights
+insert key, which can be configured in a profile or with the following environment
+variable:
+
+```sh
+export NEW_RELIC_INSIGHTS_INSERT_KEY=<your_insights_insert_key>
+```
+
 ### Shell Completion
 
 Frequent users of the shell might appreciate a little assistance from their
@@ -202,6 +210,23 @@ Then we pass that to `xargs` to call the `newrelic` CLI to use the `entity tags 
 you're not familiar with it, it's worth looking at to tie these sorts of
 commands together.
 
+#### Posting custom events
+
+To post a custom event, we pass the event payload to the `events post` command:
+
+```sh
+newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'
+```
+
+Note that the `eventType` field is required.
+
+Once successful, we can query for the newly created event with a NRQL query:
+
+```sh
+newrelic nrql query accountId 12345 --query 'SELECT * from Payment'
+```
+
+Custom events may take a moment to appear in query results while they are being ingested.
 
 ### Want more?
 
