@@ -8,10 +8,11 @@ import (
 
 var (
 	// Display keys when printing output
-	showKeys    bool
-	profileName string
-	flagRegion  string
-	apiKey      string
+	showKeys          bool
+	profileName       string
+	flagRegion        string
+	apiKey            string
+	insightsInsertKey string
 )
 
 // Command is the base command for managing profiles
@@ -29,11 +30,13 @@ var cmdAdd = &cobra.Command{
 	Long: `Add a new profile
 
 The add command creates a new profile for use with the New Relic CLI.
+API key and region are required. An Insights insert key is optional, but required
+for posting custom events with the ` + "`newrelic events`" + `command.
 `,
-	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey>",
+	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
-			err := creds.AddProfile(profileName, flagRegion, apiKey)
+			err := creds.AddProfile(profileName, flagRegion, apiKey, insightsInsertKey)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -126,6 +129,7 @@ func init() {
 	cmdAdd.Flags().StringVarP(&profileName, "name", "n", "", "unique profile name to add")
 	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
+	cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
 	err = cmdAdd.MarkFlagRequired("name")
 	if err != nil {
 		log.Error(err)

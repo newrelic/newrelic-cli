@@ -72,7 +72,7 @@ func (c *Credentials) profileExists(profileName string) bool {
 }
 
 // AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, reg, apiKey string) error {
+func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsertKey string) error {
 	if c.profileExists(profileName) {
 		return fmt.Errorf("profile with name %s already exists", profileName)
 	}
@@ -83,8 +83,9 @@ func (c *Credentials) AddProfile(profileName, reg, apiKey string) error {
 	}
 
 	p := Profile{
-		Region: nrRegion,
-		APIKey: apiKey,
+		Region:            nrRegion,
+		APIKey:            apiKey,
+		InsightsInsertKey: insightsInsertKey,
 	}
 
 	c.Profiles[profileName] = p
@@ -171,19 +172,27 @@ func (c *Credentials) List() {
 		if k == c.DefaultProfile {
 			name += text.FgHiBlack.Sprint(defaultProfileString)
 		}
-		key := text.FgHiBlack.Sprint(hiddenKeyString)
+		apiKey := text.FgHiBlack.Sprint(hiddenKeyString)
+		insightsInsertKey := text.FgHiBlack.Sprint(hiddenKeyString)
 		if showKeys {
-			key = v.APIKey
+			apiKey = v.APIKey
+			insightsInsertKey = v.InsightsInsertKey
 		}
 
-		out = append(out, profileList{Name: name, Region: v.Region.String(), APIKey: key})
+		out = append(out, profileList{
+			Name:              name,
+			Region:            v.Region.String(),
+			APIKey:            apiKey,
+			InsightsInsertKey: insightsInsertKey,
+		})
 	}
 
 	output.Text(out)
 }
 
 type profileList struct {
-	Name   string
-	Region string
-	APIKey string
+	Name              string
+	Region            string
+	APIKey            string
+	InsightsInsertKey string
 }
