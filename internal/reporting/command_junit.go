@@ -18,9 +18,10 @@ import (
 const junitEventType = "TestRun"
 
 var (
-	accountID   int
-	path        string
-	convertOnly bool
+	accountID    int
+	path         string
+	dryRun       bool
+	outputEvents bool
 )
 
 var cmdJUnit = &cobra.Command{
@@ -59,8 +60,11 @@ var cmdJUnit = &cobra.Command{
 				}
 			}
 
-			if convertOnly {
+			if outputEvents {
 				utils.LogIfFatal(output.Print(events))
+			}
+
+			if dryRun {
 				return
 			}
 
@@ -103,7 +107,8 @@ func init() {
 	Command.AddCommand(cmdJUnit)
 	cmdJUnit.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID to send test run results to")
 	cmdJUnit.Flags().StringVarP(&path, "path", "p", "", "the path to a JUnit-formatted test results file")
-	cmdJUnit.Flags().BoolVarP(&convertOnly, "convertOnly", "c", false, "convert to custom event format without posting events")
+	cmdJUnit.Flags().BoolVarP(&outputEvents, "output", "o", false, "output generated custom events to stdout")
+	cmdJUnit.Flags().BoolVar(&dryRun, "dryRun", false, "suppress posting custom events to NRDB")
 	utils.LogIfError(cmdJUnit.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdJUnit.MarkFlagRequired("path"))
 }
