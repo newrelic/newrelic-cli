@@ -27,6 +27,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 * [newrelic nerdstorage](newrelic_nerdstorage.md)	 - Read, write, and delete NerdStorage documents and collections.
 * [newrelic nrql](newrelic_nrql.md)	 - Commands for interacting with the New Relic Database
 * [newrelic profile](newrelic_profile.md)	 - Manage the authentication profiles for this tool
+* [newrelic reporting](newrelic_reporting.md)	 - Commands for reporting data into New Relic
 * [newrelic version](newrelic_version.md)	 - Show the version of the New Relic CLI
 * [newrelic workload](newrelic_workload.md)	 - Interact with New Relic One workloads
 
