@@ -69,6 +69,16 @@ scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
 scoop install newrelic-cli
 ```
 
+#### Chocolatey
+
+Currently the `newrelic-cli` is in review with in the Chocolatey system, and
+should be published in the next few days.  That means that you must include the
+version spec, as follows.
+
+```powershell
+choco install newrelic-cli
+```
+
 #### Standalone installer
 A standalone MSI installer is available on the GitHub releases page.  You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
 
