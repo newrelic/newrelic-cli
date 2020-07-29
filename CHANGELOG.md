@@ -1,3 +1,51 @@
+<a name="v0.12.0"></a>
+## [v0.12.0] - 2020-07-24
+### Features
+- **reporting:** add junit reporting
+
+<a name="v0.11.0"></a>
+## [v0.11.0] - 2020-07-24
+### Features
+- release edge command
+- add a command for posting custom events
+
+<a name="v0.10.0"></a>
+## [v0.10.0] - 2020-07-10
+### Bug Fixes
+- **config:** remove extra comment
+- **config:** compatible case with any loglevel value
+- **config:** ensure compatible case with nr1
+- **release:** need to use https URL for upstream homebrew-core
+- **release:** generate correct sha256 for homebrew release
+- **scoop:** fix bot email address
+
+### Documentation Updates
+- **README:** Correct Building section
+
+### Features
+- **release:** attempt to automate syncing our homebrew-core fork with upstream
+- **release:** add step to update newrelic-forks/homebrew-core with latest from upstream homebrew-code
+- **release:** update master branch with latest code from upstream
+
+<a name="v0.9.0"></a>
+## [v0.9.0] - 2020-06-16
+### Bug Fixes
+- **output:** Fix FormatText to do more than just tables
+
+### Features
+- **config:** Add config option to show Pre-Release Features (resolves [#274](https://github.com/newrelic/newrelic-client-go/issues/274))
+- **edge:** mark as pre-release
+- **edge:** add infinite tracing support
+- **nrql:** Add NRQL Query and History commands
+- **output:** Add text output formatter to general package
+
+<a name="v0.8.5"></a>
+## [v0.8.5] - 2020-05-27
+### Bug Fixes
+- **build:** Docker makefile was missing binary name
+- **build:** ignore Scoop commits during commit linting
+- **chocolatey:** fix typo in chocolatey verfication.txt
+
 <a name="v0.8.4"></a>
 ## [v0.8.4] - 2020-05-11
 ### Bug Fixes
@@ -207,7 +255,12 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.12.0...HEAD
+[v0.12.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.11.0...v0.12.0
+[v0.11.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.10.0...v0.11.0
+[v0.10.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.9.0...v0.10.0
+[v0.9.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.5...v0.9.0
+[v0.8.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...v0.8.5
 [v0.8.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...v0.8.4
 [v0.8.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.2...v0.8.3
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2

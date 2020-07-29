@@ -17,12 +17,33 @@ func WithClient(f func(c *newrelic.NewRelic)) {
 func WithClientFrom(configDir string, f func(c *newrelic.NewRelic)) {
 	config.WithConfigFrom(configDir, func(cfg *config.Config) {
 		credentials.WithCredentialsFrom(configDir, func(creds *credentials.Credentials) {
-			nrClient, err := CreateNRClient(cfg, creds)
+			nrClient, _, err := CreateNRClient(cfg, creds)
 			if err != nil {
 				log.Fatal(err)
 			}
 
 			f(nrClient)
+		})
+	})
+}
+
+// WithClientAndProfile returns a New Relic client and the profile used to initialize it,
+// after environment oveerrides have been applied.
+func WithClientAndProfile(f func(c *newrelic.NewRelic, p *credentials.Profile)) {
+	WithClientAndProfileFrom(config.DefaultConfigDirectory, f)
+}
+
+// WithClientAndProfileFrom returns a New Relic client and default profile used to initialize it,
+// after environment oveerrides have been applied.
+func WithClientAndProfileFrom(configDir string, f func(c *newrelic.NewRelic, p *credentials.Profile)) {
+	config.WithConfigFrom(configDir, func(cfg *config.Config) {
+		credentials.WithCredentialsFrom(configDir, func(creds *credentials.Credentials) {
+			nrClient, defaultProfile, err := CreateNRClient(cfg, creds)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			f(nrClient, defaultProfile)
 		})
 	})
 }

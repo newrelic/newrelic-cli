@@ -5,6 +5,11 @@
 NATIVEOS    ?= $(shell go version | awk -F '[ /]' '{print $$4}')
 NATIVEARCH  ?= $(shell go version | awk -F '[ /]' '{print $$5}')
 
+GIT_HOOKS_PATH ?= .githooks
+
+git-hooks:
+	@echo "=== $(PROJECT_NAME) === [ git-hooks        ]: Configuring git hooks..."
+	@git config core.hooksPath $(GIT_HOOKS_PATH)
 
 check-version:
 ifdef GOOS

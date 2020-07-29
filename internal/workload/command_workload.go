@@ -190,14 +190,14 @@ The delete command accepts a workload's entity GUID.
 func init() {
 	// Get
 	Command.AddCommand(cmdGet)
-	cmdGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
+	cmdGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where the workload is located")
 	cmdGet.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload")
 	utils.LogIfError(cmdGet.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdGet.MarkFlagRequired("guid"))
 
 	// List
 	Command.AddCommand(cmdList)
-	cmdList.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
+	cmdList.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID you want to list workloads for")
 	utils.LogIfError(cmdList.MarkFlagRequired("accountId"))
 
 	// Create

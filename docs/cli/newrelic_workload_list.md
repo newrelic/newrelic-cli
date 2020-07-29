@@ -22,14 +22,14 @@ newrelic workload list --accountId 12345678
 ### Options
 
 ```
-  -a, --accountId int   the New Relic account ID where you want to create the workload
+  -a, --accountId int   the New Relic account ID you want to list workloads for
   -h, --help            help for list
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, YAML] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 

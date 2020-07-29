@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
-	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-client-go/pkg/region"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
 const (
@@ -72,7 +72,7 @@ func (c *Credentials) profileExists(profileName string) bool {
 }
 
 // AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, reg, apiKey string) error {
+func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsertKey string) error {
 	if c.profileExists(profileName) {
 		return fmt.Errorf("profile with name %s already exists", profileName)
 	}
@@ -83,8 +83,9 @@ func (c *Credentials) AddProfile(profileName, reg, apiKey string) error {
 	}
 
 	p := Profile{
-		Region: nrRegion,
-		APIKey: apiKey,
+		Region:            nrRegion,
+		APIKey:            apiKey,
+		InsightsInsertKey: insightsInsertKey,
 	}
 
 	c.Profiles[profileName] = p
@@ -163,52 +164,35 @@ func (c *Credentials) SetDefaultProfile(profileName string) error {
 
 // List outputs a list of all the configured Credentials
 func (c *Credentials) List() {
-	// Console colors
-	color.Set(color.Bold)
-	defer color.Unset()
-	colorMuted := color.New(color.FgHiBlack).SprintFunc()
+	out := []profileList{}
 
-	nameLen := 4   // Name
-	keyLen := 8    // <hidden>
-	regionLen := 6 // Region
-
-	// Find lengths for pretty printing
-	for k, v := range c.Profiles {
-		x := len(k)
-		if x > nameLen {
-			nameLen = x
-		}
-
-		z := len(v.Region)
-		if z > regionLen {
-			regionLen = z
-		}
-
-		if showKeys {
-			y := len(v.APIKey)
-			if y > keyLen {
-				keyLen = y
-			}
-		}
-	}
-
-	nameLen += len(defaultProfileString)
-
-	format := fmt.Sprintf("%%-%ds  %%-%ds  %%-%ds\n", nameLen, regionLen, keyLen)
-	fmt.Printf(format, "Name", "Region", "API key")
-	fmt.Printf(format, strings.Repeat("-", nameLen), strings.Repeat("-", regionLen), strings.Repeat("-", keyLen))
 	// Print them out
 	for k, v := range c.Profiles {
 		name := k
 		if k == c.DefaultProfile {
-			name += colorMuted(defaultProfileString)
+			name += text.FgHiBlack.Sprint(defaultProfileString)
 		}
-		key := colorMuted(hiddenKeyString)
+		apiKey := text.FgHiBlack.Sprint(hiddenKeyString)
+		insightsInsertKey := text.FgHiBlack.Sprint(hiddenKeyString)
 		if showKeys {
-			key = v.APIKey
+			apiKey = v.APIKey
+			insightsInsertKey = v.InsightsInsertKey
 		}
 
-		fmt.Printf(format, name, v.Region, key)
+		out = append(out, profileList{
+			Name:              name,
+			Region:            v.Region.String(),
+			APIKey:            apiKey,
+			InsightsInsertKey: insightsInsertKey,
+		})
 	}
-	fmt.Println("")
+
+	output.Text(out)
+}
+
+type profileList struct {
+	Name              string
+	Region            string
+	APIKey            string
+	InsightsInsertKey string
 }

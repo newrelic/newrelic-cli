@@ -8,13 +8,16 @@
 [![GoDoc](https://godoc.org/github.com/newrelic/newrelic-cli?status.svg)](https://godoc.org/github.com/newrelic/newrelic-cli)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/master/LICENSE)
 [![CLA assistant](https://cla-assistant.io/readme/badge/newrelic/newrelic-cli)](https://cla-assistant.io/newrelic/newrelic-cli)
-[![Release](https://img.shields.io/github/release/newrelic/newrelic-cli/all.svg)](https://github.com/newrelic/newrelic-cli/releases/latest)
+[![Release](https://img.shields.io/github/v/release/newrelic/newrelic-cli?sort=semver)](https://github.com/newrelic/newrelic-cli/releases/latest)
+
+[![Docker Stars](https://img.shields.io/docker/stars/newrelic/cli.svg)](https://hub.docker.com/r/newrelic/cli)
+[![Docker Pulls](https://img.shields.io/docker/pulls/newrelic/cli.svg)](https://hub.docker.com/r/newrelic/cli)
+[![Docker Size](https://img.shields.io/docker/image-size/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
+[![Docker Version](https://img.shields.io/docker/v/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 
 The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/)
 
 ## Overview
-
-**THIS IS AN ALPHA / PRE-RELEASE: Subject to drastic changes**
 
 The New Relic CLI is a project to consolidate some of the tools that New Relic
 offers for managing resources.  Current scope is limited while the framework is
@@ -73,7 +76,7 @@ should be published in the next few days.  That means that you must include the
 version spec, as follows.
 
 ```powershell
-choco install newrelic-cli --version=0.7.0
+choco install newrelic-cli
 ```
 
 #### Standalone installer
@@ -172,7 +175,7 @@ are used to construct or destroy an item, respectively.
 
 ### Building
 
-This package does not generate any direct usable assets (it's a library).  You can still run the build scripts to validate you code, and generate coverage information.
+The `newrelic` command will be built in `bin/ARCH/newrelic`, where `ARCH` is either `linux`, `darwin`, or `windows`, depending on your build environment. You can run it directly from there or install it by moving it to a directory in your `PATH`.
 
 ```
 # Default target is 'build'

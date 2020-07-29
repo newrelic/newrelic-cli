@@ -20,11 +20,12 @@ var (
 )
 
 // CreateNRClient initializes the New Relic client.
-func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, error) {
+func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, *credentials.Profile, error) {
 	var (
-		err         error
-		apiKey      string
-		regionValue region.Name
+		err               error
+		apiKey            string
+		insightsInsertKey string
+		regionValue       region.Name
 	)
 
 	// Create the New Relic Client
@@ -34,17 +35,19 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 
 	if defProfile != nil {
 		apiKey = defProfile.APIKey
+		insightsInsertKey = defProfile.InsightsInsertKey
 		regionValue = defProfile.Region
 	}
 
 	if apiKey == "" {
-		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
+		return nil, nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
 	}
 
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	nrClient, err := newrelic.New(
 		newrelic.ConfigPersonalAPIKey(apiKey),
+		newrelic.ConfigInsightsInsertKey(insightsInsertKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
 		newrelic.ConfigRegion(regionValue),
 		newrelic.ConfigUserAgent(userAgent),
@@ -52,18 +55,19 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to create New Relic client with error: %s", err)
+		return nil, nil, fmt.Errorf("unable to create New Relic client with error: %s", err)
 	}
 
-	return nrClient, nil
+	return nrClient, defProfile, nil
 }
 
 // applyOverrides reads Profile info out of the Environment to override config
 func applyOverrides(p *credentials.Profile) *credentials.Profile {
 	envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
+	envInsightsInsertKey := os.Getenv("NEW_RELIC_INSIGHTS_INSERT_KEY")
 	envRegion := os.Getenv("NEW_RELIC_REGION")
 
-	if envAPIKey == "" && envRegion == "" {
+	if envAPIKey == "" && envRegion == "" && envInsightsInsertKey == "" {
 		return p
 	}
 
@@ -74,6 +78,10 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 
 	if envAPIKey != "" {
 		out.APIKey = envAPIKey
+	}
+
+	if envInsightsInsertKey != "" {
+		out.InsightsInsertKey = envInsightsInsertKey
 	}
 
 	if envRegion != "" {

@@ -10,6 +10,7 @@ GOIMPORTS    ?= goimports
 COMMIT_LINT_CMD   ?= go-gitlint
 COMMIT_LINT_REGEX ?= "(Scoop update|(chore|docs|feat|fix|refactor|tests?)(\([^\)]+\))?:) .*"
 COMMIT_LINT_START ?= "2020-05-08"
+COMMIT_MSG_FILE   ?= ""
 
 GOLINTER      = golangci-lint
 
@@ -26,7 +27,8 @@ GOTOOLS += github.com/client9/misspell/cmd/misspell \
            github.com/llorllale/go-gitlint/cmd/go-gitlint \
            github.com/psampaz/go-mod-outdated \
            github.com/golangci/golangci-lint/cmd/golangci-lint \
-           golang.org/x/tools/cmd/goimports
+           golang.org/x/tools/cmd/goimports \
+		   gotest.tools/gotestsum
 
 
 lint: deps spell-check gofmt lint-commit golangci goimports outdated
@@ -57,7 +59,8 @@ goimports: deps
 
 lint-commit: deps
 	@echo "=== $(PROJECT_NAME) === [ lint-commit      ]: Checking that commit messages are properly formatted ($(COMMIT_LINT_CMD))..."
-	@$(COMMIT_LINT_CMD) --since=$(COMMIT_LINT_START) --subject-minlen=10 --subject-maxlen=120 --subject-regex=$(COMMIT_LINT_REGEX)
+	@$(COMMIT_LINT_CMD) --since=$(COMMIT_LINT_START) --subject-minlen=10 --subject-maxlen=120 --subject-regex=$(COMMIT_LINT_REGEX) --msg-file=$(COMMIT_MSG_FILE)
+
 
 golangci: deps
 	@echo "=== $(PROJECT_NAME) === [ golangci-lint    ]: Linting using $(GOLINTER) ($(COMMIT_LINT_CMD))..."

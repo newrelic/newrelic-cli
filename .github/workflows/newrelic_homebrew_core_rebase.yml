@@ -1,0 +1,27 @@
+name: Rebase newrelic-forks/homebrew-core
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  update-newrelic-homebrew-core:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Checkout newrelic-forks/homebrew-core
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic-forks/homebrew-core
+          path: homebrew-core
+          token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+
+      - name: Update newrelic-forks/homebrew-core master with latest from upstream homebrew-core
+        shell: bash
+        run: ./scripts/rebase_from_upstream.sh
+        env:
+          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
+          GH_USER_NAME: 'New Relic Developer Toolkit Bot'

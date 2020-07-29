@@ -16,7 +16,12 @@ export GIT_TAG=$(git describe --tags | tr -d "v")
 
 printf "Generating Homebrew formula for git tag: ${GIT_TAG} \n"
 
-asset_file=$(find ${PWD}/dist -type f -name "newrelic-cli_${GIT_TAG}_Darwin_x86_64.tar.gz")
+release_asset_url="https://github.com/newrelic/newrelic-cli/archive/v${GIT_TAG}.tar.gz"
+
+# Download the release asset so we can get a proper sha256
+wget $release_asset_url
+
+asset_file=$(find ${PWD} -type f -name "v${GIT_TAG}.tar.gz")
 
 printf "\nAsset gzip: ${asset_file}"
 
@@ -32,6 +37,33 @@ cd homebrew-core
 # https://developer.github.com/v3/guides/managing-deploy-keys/#machine-users
 git config --global user.email "$GH_USER_EMAIL"
 git config --global user.name "$GH_USER_NAME"
+
+# Add the original Homebrew/homebrew-core as the upstream repo
+git remote add upstream https://github.com/Homebrew/homebrew-core.git
+
+# List our remotes for CI clarity
+git remote -v
+
+# Need to fetch so we have the upstream/master branch locally
+git fetch upstream
+
+# Ensure our local master branch is up to date with the
+# latest code from Homebrew/homebrew-core.
+# Abort the rebase if encounter merge conflicts.
+git rebase upstream/master
+
+exitCode=$?
+
+if [ $exitCode -ne 0 ]; then
+  echo " "
+  echo "Failed to rebase on top of upstream/master likely due to a merge conflict."
+  echo "Please rebase the homebrew pull request locally and fix any conflicts before merging."
+  echo " "
+
+  git rebase --abort
+
+  exit $exitCode
+fi
 
 homebrew_formula_file='Formula/newrelic-cli.rb'
 tmp_formula_file='Formula/newrelic-cli.rb.tmp'

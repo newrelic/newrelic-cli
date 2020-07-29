@@ -8,9 +8,12 @@ import (
 	"time"
 
 	"github.com/imdario/mergo"
+	"github.com/jedib0t/go-pretty/v6/text"
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
 const (
@@ -26,9 +29,6 @@ const (
 	// DefaultLogLevel is the default log level
 	DefaultLogLevel = "INFO"
 
-	// DefaultSendUsageData is the default value for sendUsageData
-	DefaultSendUsageData = "NOT_ASKED"
-
 	globalScopeIdentifier = "*"
 )
 
@@ -36,15 +36,15 @@ var (
 	// DefaultConfigDirectory is the default location for the CLI config files
 	DefaultConfigDirectory string
 
-	renderer      = TableRenderer{}
 	defaultConfig *Config
 )
 
 // Config contains the main CLI configuration
 type Config struct {
-	LogLevel      string `mapstructure:"logLevel"`      // LogLevel for verbose output
-	PluginDir     string `mapstructure:"pluginDir"`     // PluginDir is the directory where plugins will be installed
-	SendUsageData string `mapstructure:"sendUsageData"` // SendUsageData enables sending usage statistics to New Relic
+	LogLevel           string  `mapstructure:"logLevel"`           // LogLevel for verbose output
+	PluginDir          string  `mapstructure:"pluginDir"`          // PluginDir is the directory where plugins will be installed
+	SendUsageData      Ternary `mapstructure:"sendUsageData"`      // SendUsageData enables sending usage statistics to New Relic
+	PreReleaseFeatures Ternary `mapstructure:"preReleaseFeatures"` // PreReleaseFeatures enables display on features within the CLI that are announced but not generally available to customers
 
 	configDir string
 }
@@ -67,8 +67,9 @@ func (c *Value) IsDefault() bool {
 
 func init() {
 	defaultConfig = &Config{
-		LogLevel:      DefaultLogLevel,
-		SendUsageData: DefaultSendUsageData,
+		LogLevel:           DefaultLogLevel,
+		SendUsageData:      TernaryValues.Unknown,
+		PreReleaseFeatures: TernaryValues.Unknown,
 	}
 
 	cfgDir, err := getDefaultConfigDirectory()
@@ -136,7 +137,7 @@ func (c *Config) setLogger() {
 
 // List outputs a list of all the configuration values
 func (c *Config) List() {
-	renderer.List(c)
+	output.Text(c.getAll(""))
 }
 
 // Delete deletes a config value.
@@ -152,17 +153,18 @@ func (c *Config) Delete(key string) error {
 		return err
 	}
 
-	renderer.Delete(key)
+	output.Printf("%s %s removed successfully\n", text.FgGreen.Sprint("✔"), text.Bold.Sprint(key))
+
 	return nil
 }
 
 // Get retrieves a config value.
 func (c *Config) Get(key string) {
-	renderer.Get(c, key)
+	output.Text(c.getAll(key))
 }
 
 // Set sets a config value.
-func (c *Config) Set(key string, value string) error {
+func (c *Config) Set(key string, value interface{}) error {
 	if !stringInStrings(key, validConfigKeys()) {
 		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
 	}
@@ -172,7 +174,8 @@ func (c *Config) Set(key string, value string) error {
 		return err
 	}
 
-	renderer.Set(key, value)
+	output.Printf("%s set to %s\n", text.Bold.Sprint(key), text.FgCyan.Sprint(value))
+
 	return nil
 }
 
@@ -203,7 +206,7 @@ func load(configDir string) (*Config, error) {
 
 func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
 	err := c.visitAllConfigFields(func(v *Value) error {
-		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value.(string))
+		cfgViper.Set(globalScopeIdentifier+"."+v.Name, v.Value)
 		return nil
 	})
 	if err != nil {
@@ -335,13 +338,13 @@ func (c *Config) validate() error {
 		switch k := strings.ToLower(v.Name); k {
 		case "loglevel":
 			validValues := []string{"Info", "Debug", "Trace", "Warn", "Error"}
-			if !stringInStrings(v.Value.(string), validValues) {
+			if !stringInStringsIgnoreCase(v.Value.(string), validValues) {
 				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
 			}
-		case "sendusagedata":
-			validValues := []string{"NOT_ASKED", "DISALLOW", "ALLOW"}
-			if !stringInStrings(v.Value.(string), validValues) {
-				return fmt.Errorf("\"%s\" is not a valid %s value; Please use one of: %s", v.Value, v.Name, validValues)
+		case "sendusagedata", "prereleasefeatures":
+			err := (v.Value.(Ternary)).Valid()
+			if err != nil {
+				return fmt.Errorf("invalid value for '%s': %s", v.Name, err)
 			}
 		}
 
@@ -434,6 +437,17 @@ func validConfigKeys() []string {
 }
 
 func stringInStrings(s string, ss []string) bool {
+	for _, v := range ss {
+		if v == s {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Function ignores the case
+func stringInStringsIgnoreCase(s string, ss []string) bool {
 	for _, v := range ss {
 		if strings.EqualFold(v, s) {
 			return true

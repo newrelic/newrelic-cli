@@ -35,6 +35,12 @@ func TestConfigSetLogLevel(t *testing.T) {
 
 	err = c.Set("logLevel", "INVALID_VALUE")
 	assert.Error(t, err)
+
+	err = c.Set("loglevel", "Info")
+	assert.Error(t, err)
+
+	err = c.Set("Loglevel", "Debug")
+	assert.Error(t, err)
 }
 
 func TestConfigSetSendUsageData(t *testing.T) {
@@ -47,11 +53,11 @@ func TestConfigSetSendUsageData(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, c.configDir, f)
 
-	// Set the valid log levels
-	for _, l := range []string{
-		"NOT_ASKED",
-		"DISALLOW",
-		"ALLOW",
+	// Set the valid sendUsageData values
+	for _, l := range []Ternary{
+		TernaryValues.Allow,
+		TernaryValues.Disallow,
+		TernaryValues.Unknown,
 	} {
 		err = c.Set("sendUsageData", l)
 		assert.NoError(t, err)
@@ -59,6 +65,31 @@ func TestConfigSetSendUsageData(t *testing.T) {
 	}
 
 	err = c.Set("sendUsageData", "INVALID_VALUE")
+	assert.Error(t, err)
+}
+
+func TestConfigSetPreReleaseFeatures(t *testing.T) {
+	f, err := ioutil.TempDir("/tmp", "newrelic")
+	assert.NoError(t, err)
+	defer os.RemoveAll(f)
+
+	// Initialize the new configuration directory
+	c, err := LoadConfig(f)
+	assert.NoError(t, err)
+	assert.Equal(t, c.configDir, f)
+
+	// Set the valid pre-release feature values
+	for _, l := range []Ternary{
+		TernaryValues.Allow,
+		TernaryValues.Disallow,
+		TernaryValues.Unknown,
+	} {
+		err = c.Set("preReleaseFeatures", l)
+		assert.NoError(t, err)
+		assert.Equal(t, l, c.PreReleaseFeatures)
+	}
+
+	err = c.Set("preReleaseFeatures", "INVALID_VALUE")
 	assert.Error(t, err)
 }
 

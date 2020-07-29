@@ -16,18 +16,31 @@ type Format uint
 
 const DefaultFormat = FormatJSON
 const DefaultPretty = true
+const DefaultTerminalWidth = 80
 
 const (
 	FormatJSON Format = iota
+	FormatText
 	FormatYAML
 	//FormatCSV
 )
 
 var formatStrings = map[Format]string{
 	FormatJSON: "JSON",
+	FormatText: "Text",
 	FormatYAML: "YAML",
 }
 
+// Output is the main ref for the output package
+type Output struct {
+	format        Format
+	prettyPrint   bool
+	terminalWidth int
+
+	jsonFormatter *prettyjson.Formatter
+}
+
+// String returns the string value of the format name
 func (f Format) String() string {
 	if name, ok := formatStrings[f]; ok {
 		return name
@@ -53,14 +66,6 @@ func ParseFormat(name string) Format {
 	}
 
 	return DefaultFormat
-}
-
-// Output is the main ref for the output package
-type Output struct {
-	format      Format
-	prettyPrint bool
-
-	jsonFormatter *prettyjson.Formatter
 }
 
 func SetFormat(format Format) (err error) {

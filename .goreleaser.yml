@@ -110,7 +110,7 @@ scoop:
     name: newrelic-cli
   commit_author:
     name: nr-developer-toolkit
-    email: "{{ .Env.DEV_TOOLKIT_EMAIL }}"
+    email: developer-toolkit@newrelic.com
   commit_msg_template: "chore(scoop): update for {{ .ProjectName }} version {{ .Tag }}"
   homepage: https://github.com/newrelic/newrelic-cli
   url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"

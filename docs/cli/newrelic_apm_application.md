@@ -24,7 +24,7 @@ newrelic apm application --help
 ```
   -a, --accountId string    A New Relic account ID
       --applicationId int   A New Relic APM application ID
-      --format string       output text format [JSON, YAML] (default "JSON")
+      --format string       output text format [JSON, Text, YAML] (default "JSON")
       --plain               output compact text
 ```
 

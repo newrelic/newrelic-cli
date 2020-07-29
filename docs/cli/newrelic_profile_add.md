@@ -7,6 +7,8 @@ Add a new profile
 Add a new profile
 
 The add command creates a new profile for use with the New Relic CLI.
+API key and region are required. An Insights insert key is optional, but required
+for posting custom events with the `newrelic events`command.
 
 
 ```
@@ -16,22 +18,23 @@ newrelic profile add [flags]
 ### Examples
 
 ```
-newrelic profile add --name <profileName> --region <region> --apiKey <apiKey>
+newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey>
 ```
 
 ### Options
 
 ```
-      --apiKey string   your personal API key
-  -h, --help            help for add
-  -n, --name string     unique profile name to add
-  -r, --region string   the US or EU region
+      --apiKey string              your personal API key
+  -h, --help                       help for add
+      --insightsInsertKey string   your Insights insert key
+  -n, --name string                unique profile name to add
+  -r, --region string              the US or EU region
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, YAML] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 

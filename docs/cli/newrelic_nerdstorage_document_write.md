@@ -46,7 +46,7 @@ newrelic nerdstorage document write [flags]
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, YAML] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
