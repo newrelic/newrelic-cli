@@ -62,6 +62,14 @@ jobs:
     - name: Unit Tests
       run: make test-unit
 
+    - name: New Relic JUnit Reporter
+      if: ${{ always() }}
+      uses: newrelic/junit-reporter-action@v0.1.1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        insertApiKey: ${{ secrets.NEW_RELIC_INSIGHTS_INSERT_KEY }}
+        testOutputPath: coverage/unit.xml
+
 
   test-integration:
     needs: lint
@@ -95,3 +103,11 @@ jobs:
         NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
         NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
         NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+
+    - name: New Relic JUnit Reporter
+      if: ${{ always() }}
+      uses: newrelic/junit-reporter-action@v0.1.1
+      with:
+        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+        insertApiKey: ${{ secrets.NEW_RELIC_INSIGHTS_INSERT_KEY }}
+        testOutputPath: coverage/integration.xml
