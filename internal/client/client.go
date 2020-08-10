@@ -4,11 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
-
-	log "github.com/sirupsen/logrus"
+	"strings"
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/region"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -25,7 +23,7 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 		err               error
 		apiKey            string
 		insightsInsertKey string
-		regionValue       region.Name
+		regionValue       string
 	)
 
 	// Create the New Relic Client
@@ -85,31 +83,7 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 	}
 
 	if envRegion != "" {
-		var err error
-		out.Region, err = region.Parse(envRegion)
-
-		if err != nil {
-			switch err.(type) {
-			case region.UnknownError:
-				log.Errorf("error parsing NEW_RELIC_REGION: %s", err)
-				// Ignore the override if they have a default on the profile
-				if p.Region != "" {
-					var e2 error
-					out.Region, e2 = region.Parse(p.Region.String())
-					if e2 != nil {
-						log.Errorf("error parsing default profile: %s", e2)
-						out.Region = region.Default
-					}
-				} else {
-					out.Region = region.Default
-				}
-				log.Errorf("using region %s", out.Region.String())
-			case region.UnknownUsingDefaultError:
-				log.Error(err)
-			default:
-				log.Fatalf("unknown error: %v", err)
-			}
-		}
+		out.Region = strings.ToUpper(envRegion)
 	}
 
 	return &out

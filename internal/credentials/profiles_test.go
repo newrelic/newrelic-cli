@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
 func TestProfileMarshal(t *testing.T) {
@@ -15,7 +13,7 @@ func TestProfileMarshal(t *testing.T) {
 
 	p := Profile{
 		APIKey: "testAPIKey",
-		Region: region.Name("TEST"),
+		Region: "TEST",
 	}
 
 	// Ensure that the region name is Lowercase

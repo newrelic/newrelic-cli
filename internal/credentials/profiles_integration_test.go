@@ -50,7 +50,7 @@ func TestCredentials(t *testing.T) {
 	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere", "insightsInsertKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
-	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
+	assert.Equal(t, region.US.String(), c.Profiles["testCase1"].Region)
 	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
 	assert.Equal(t, "insightsInsertKeyGoesHere", c.Profiles["testCase1"].InsightsInsertKey)
 	assert.Equal(t, "", c.DefaultProfile)
@@ -70,7 +70,7 @@ func TestCredentials(t *testing.T) {
 	err = c.AddProfile("testCase2", "us", "apiKeyGoesHere", "")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 2)
-	assert.Equal(t, c.Profiles["testCase2"].Region, region.US)
+	assert.Equal(t, c.Profiles["testCase2"].Region, region.US.String())
 	assert.Equal(t, c.Profiles["testCase2"].APIKey, "apiKeyGoesHere")
 
 	// Set the default profile to the new one
@@ -123,7 +123,7 @@ func TestCredentialLowerCaseRegion(t *testing.T) {
 	err = c.AddProfile("testCase1", "US", "apiKeyGoesHere", "insightsInsertKeyGoesHere")
 	assert.NoError(t, err)
 	assert.Equal(t, len(c.Profiles), 1)
-	assert.Equal(t, region.US, c.Profiles["testCase1"].Region)
+	assert.Equal(t, region.US.String(), c.Profiles["testCase1"].Region)
 	assert.Equal(t, "apiKeyGoesHere", c.Profiles["testCase1"].APIKey)
 	assert.Equal(t, "insightsInsertKeyGoesHere", c.Profiles["testCase1"].InsightsInsertKey)
 }
@@ -163,8 +163,6 @@ func TestCredentialCompatibilityNR1(t *testing.T) {
 
 	for k := range c.Profiles {
 		assert.Equal(t, testCredentialData[k].APIKey, c.Profiles[k].APIKey)
-		reg, parseErr := region.Parse(testCredentialData[k].Region)
-		assert.NoError(t, parseErr, "invalid region test data on test") // Bad test data
-		assert.Equal(t, reg, c.Profiles[k].Region)
+		assert.Equal(t, testCredentialData[k].Region, c.Profiles[k].Region)
 	}
 }

@@ -62,26 +62,19 @@ func TestApplyOverrides(t *testing.T) {
 	p2 = applyOverrides(&p)
 	assert.NotNil(t, p2)
 	assert.Equal(t, "anotherAPIKey", p2.APIKey)
-	assert.Equal(t, region.US, p2.Region)
+	assert.Equal(t, region.US.String(), p2.Region)
 
 	// Override just the REGION (valid)
 	os.Unsetenv("NEW_RELIC_API_KEY")
 	p2 = applyOverrides(&p)
 	assert.NotNil(t, p2)
 	assert.Equal(t, p.APIKey, p2.APIKey)
-	assert.Equal(t, region.US, p2.Region)
+	assert.Equal(t, region.US.String(), p2.Region)
 
 	// Region lowercase
 	os.Setenv("NEW_RELIC_REGION", "eu")
 	p2 = applyOverrides(&p)
 	assert.NotNil(t, p2)
 	assert.Equal(t, p.APIKey, p2.APIKey)
-	assert.Equal(t, region.EU, p2.Region)
-
-	// Invalid REGION (Should be region.Default)
-	os.Setenv("NEW_RELIC_REGION", "test")
-	p2 = applyOverrides(&p)
-	assert.NotNil(t, p2)
-	assert.Equal(t, p.APIKey, p2.APIKey)
-	assert.Equal(t, region.Default, p2.Region)
+	assert.Equal(t, region.EU.String(), p2.Region)
 }
