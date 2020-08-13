@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/goreleaser/goreleaser v0.140.1
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
-	github.com/imdario/mergo v0.3.10
+	github.com/imdario/mergo v0.3.11
 	github.com/jedib0t/go-pretty/v6 v6.0.4
 	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909
 	github.com/llorllale/go-gitlint v0.0.0-20190914155841-58c0b8cef0e5
