@@ -22,9 +22,9 @@ const DefaultProfileFile = "default-profile"
 
 // Profile contains data of a single profile
 type Profile struct {
-	APIKey            string      `mapstructure:"apiKey" json:"apiKey,omitempty"`                       // For accessing New Relic GraphQL resources
-	InsightsInsertKey string      `mapstructure:"insightsInsertKey" json:"insightsInsertKey,omitempty"` // For posting custom events
-	Region            region.Name `mapstructure:"region" json:"region,omitempty"`                       // Region to use for New Relic resources
+	APIKey            string `mapstructure:"apiKey" json:"apiKey,omitempty"`                       // For accessing New Relic GraphQL resources
+	InsightsInsertKey string `mapstructure:"insightsInsertKey" json:"insightsInsertKey,omitempty"` // For posting custom events
+	Region            string `mapstructure:"region" json:"region,omitempty"`                       // Region to use for New Relic resources
 }
 
 // LoadProfiles reads the credential profiles from the default path.
@@ -152,7 +152,7 @@ func (p Profile) MarshalJSON() ([]byte, error) {
 	}{
 		APIKey:            p.APIKey,
 		InsightsInsertKey: p.InsightsInsertKey,
-		Region:            strings.ToLower(p.Region.String()),
+		Region:            strings.ToLower(p.Region),
 	})
 }
 

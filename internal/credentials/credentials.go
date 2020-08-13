@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/newrelic/newrelic-client-go/pkg/region"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
@@ -73,17 +72,14 @@ func (c *Credentials) profileExists(profileName string) bool {
 
 // AddProfile adds a new profile to the credentials file.
 func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsertKey string) error {
+	var err error
+
 	if c.profileExists(profileName) {
 		return fmt.Errorf("profile with name %s already exists", profileName)
 	}
 
-	nrRegion, err := region.Parse(reg)
-	if err != nil {
-		return err
-	}
-
 	p := Profile{
-		Region:            nrRegion,
+		Region:            strings.ToUpper(reg),
 		APIKey:            apiKey,
 		InsightsInsertKey: insightsInsertKey,
 	}
@@ -181,7 +177,7 @@ func (c *Credentials) List() {
 
 		out = append(out, profileList{
 			Name:              name,
-			Region:            v.Region.String(),
+			Region:            v.Region,
 			APIKey:            apiKey,
 			InsightsInsertKey: insightsInsertKey,
 		})
