@@ -13,8 +13,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/events"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
+	"github.com/newrelic/newrelic-cli/internal/nerdpack"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
-	"github.com/newrelic/newrelic-cli/internal/nr1"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/workload"
@@ -39,7 +39,7 @@ func init() {
 	Command.AddCommand(reporting.Command)
 	Command.AddCommand(workload.Command)
 
-	Command.AddCommand(nr1.Command)
+	Command.AddCommand(nerdpack.Command)
 
 	CheckPrereleaseMode(Command)
 }
