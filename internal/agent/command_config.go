@@ -1,4 +1,4 @@
-package apm
+package agent
 
 import (
 	"encoding/base64"
@@ -14,7 +14,12 @@ var (
 	textToEncode string
 )
 
-var cmdObfuscate = &cobra.Command{
+var cmdConfig = &cobra.Command{
+	Use:   "config",
+	Short: "Configuration utilities/helpers for New Relic agents",
+}
+
+var cmdConfigObfuscate = &cobra.Command{
 	Use:   "obfuscate",
 	Short: "Obfuscate a configuration value using a key",
 	Long: `Obfuscate a configuration value using a key.  Obfuscated value
@@ -35,11 +40,13 @@ is placed in the Agent configuration or environment variable."
 
 func init() {
 
-	cmdConfig.AddCommand(cmdObfuscate)
+	Command.AddCommand(cmdConfig)
 
-	cmdObfuscate.Flags().StringVarP(&encodeKey, "kye", "", "", "the key to use when obfuscating the clear-text value")
-	cmdObfuscate.Flags().StringVarP(&textToEncode, "value", "", "", "the value, in clear text, to be obfuscated")
+	cmdConfig.AddCommand(cmdConfigObfuscate)
 
-	utils.LogIfError(cmdObfuscate.MarkFlagRequired("key"))
-	utils.LogIfError(cmdObfuscate.MarkFlagRequired("value"))
+	cmdConfigObfuscate.Flags().StringVarP(&encodeKey, "key", "", "", "the key to use when obfuscating the clear-text value")
+	cmdConfigObfuscate.Flags().StringVarP(&textToEncode, "value", "", "", "the value, in clear text, to be obfuscated")
+
+	utils.LogIfError(cmdConfigObfuscate.MarkFlagRequired("key"))
+	utils.LogIfError(cmdConfigObfuscate.MarkFlagRequired("value"))
 }
