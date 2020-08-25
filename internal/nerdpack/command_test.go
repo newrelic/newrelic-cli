@@ -1,6 +1,6 @@
 // +build unit
 
-package nr1
+package nerdpack
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestNerdGraphCommand(t *testing.T) {
-	assert.Equal(t, "nr1", Command.Name())
+	assert.Equal(t, "nerdpack", Command.Name())
 
 	testcobra.CheckCobraMetadata(t, Command)
 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
