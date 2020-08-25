@@ -14,57 +14,53 @@ var Command = &cobra.Command{
 	Short: "Build, validate, and serve Nerdpacks",
 }
 
-type nerdpackSubCommands struct {
-	Name         string
-	ChildCommand string
-	Flags        []string
-	Short        string
-	Long         string
-	Example      string
+type PassthroughCommand struct {
+	cobra.Command
+
+	ExecCommand string
+	Flags       []string
 }
 
-var nerdpackSubCommandMappings = []nerdpackSubCommands{
+var nerdpackSubCommandMappings = []PassthroughCommand{
 	{
-		Name:         "create",
-		ChildCommand: "create",
+		ExecCommand: "create",
 		Flags: []string{
 			"--type=nerdpack",
 		},
-		Short: "Create a nerdpack",
-		Long: `
-			...
-		`,
-		Example: "newrelic nerdpack create",
+		Command: cobra.Command{
+			Use:     "create",
+			Short:   "Creates a nerdpack",
+			Long:    `...`,
+			Example: "newrelic nerdpack create",
+		},
 	},
 	{
-		Name:         "build",
-		ChildCommand: "nerdpack:build",
-		Flags:        []string{},
-		Short:        "Build a nerdpack",
-		Long: `
-			...
-		`,
-		Example: "newrelic nerdpack build",
+		ExecCommand: "nerdpack:build",
+		Command: cobra.Command{
+			Use:     "build",
+			Short:   "Builds a nerdpack",
+			Long:    `...`,
+			Example: "newrelic nerdpack build",
+		},
 	},
 	{
-		Name:         "validate",
-		ChildCommand: "nerdpack:validate",
-		Flags:        []string{},
-		Short:        "Validate a nerdpack",
-		Long: `
-			...
-		`,
-		Example: "newrelic nerdpack validate",
+		ExecCommand: "nerdpack:validate",
+		Command: cobra.Command{
+			Use:     "validate",
+			Short:   "Validates artifacts inside a Nerdpack",
+			Long:    `...`,
+			Example: "newrelic nerdpack validate --profile=profileName",
+		},
 	},
 }
 
 func init() {
 	for _, c := range nerdpackSubCommandMappings {
-		executeArgs := []string{c.ChildCommand}
+		executeArgs := []string{c.ExecCommand}
 		executeArgs = append(executeArgs, c.Flags...)
 
 		var command = &cobra.Command{
-			Use:   c.Name,
+			Use:   c.Use,
 			Short: c.Short,
 			Long:  c.Long,
 			// Allows unknown flags to be passed to the child exec
