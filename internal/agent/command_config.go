@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"encoding/base64"
+
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
@@ -40,7 +42,7 @@ is placed in the Agent configuration or environment variable."
 
 		}
 
-		encodedString := string(encodedTextBytes)
+		encodedString := base64.StdEncoding.EncodeToString(encodedTextBytes)
 
 		utils.LogIfFatal(output.Print(encodedString))
 	},
