@@ -2,6 +2,11 @@ package agent
 
 import "encoding/base64"
 
+// ObfuscationResult represents the result of an obfuscation request
+type ObfuscationResult struct {
+	ObfuscatedValue string
+}
+
 // ObfuscateStringWithKey obfuscates a string using a key
 // It XORs each byte of the value using part of the key
 // and converts it to a UTF8-string value.

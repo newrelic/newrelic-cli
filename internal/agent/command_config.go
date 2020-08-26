@@ -26,7 +26,9 @@ is placed in the Agent configuration or environment variable."
 	Example: "newrelic agent config obfuscate --value <config_value> --key <obfuscation_key>",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var result = obfuscateStringWithKey(textToEncode, encodeKey)
+		result := ObfuscationResult{
+			ObfuscatedValue: obfuscateStringWithKey(textToEncode, encodeKey),
+		}
 
 		utils.LogIfFatal(output.Print(result))
 	},
