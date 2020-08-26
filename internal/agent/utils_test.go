@@ -40,4 +40,7 @@ func TestObfuscateStringWithKey(t *testing.T) {
 	result = obfuscateStringWithKey("XYZ", "456")
 	assert.Equal(t, "bGxs", result)
 
+	result = obfuscateStringWithKey("国字 kokuji", "123")
+	assert.Equal(t, "1KmO1J+kEVlcWkdZWA==", result)
+
 }
