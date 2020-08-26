@@ -4,7 +4,7 @@ import "encoding/base64"
 
 // ObfuscationResult represents the result of an obfuscation request
 type ObfuscationResult struct {
-	ObfuscatedValue string
+	ObfuscatedValue string `json:"obfuscatedValue"`
 }
 
 // ObfuscateStringWithKey obfuscates a string using a key

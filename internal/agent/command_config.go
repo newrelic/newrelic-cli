@@ -20,8 +20,8 @@ var cmdConfig = &cobra.Command{
 var cmdConfigObfuscate = &cobra.Command{
 	Use:   "obfuscate",
 	Short: "Obfuscate a configuration value using a key",
-	Long: `Obfuscate a configuration value using a key.  Obfuscated value
-is placed in the Agent configuration or environment variable." 
+	Long: `Obfuscate a configuration value using a key.  The obfuscated value
+should be placed in the Agent configuration or in an environment variable." 
 `,
 	Example: "newrelic agent config obfuscate --value <config_value> --key <obfuscation_key>",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -40,8 +40,8 @@ func init() {
 
 	cmdConfig.AddCommand(cmdConfigObfuscate)
 
-	cmdConfigObfuscate.Flags().StringVarP(&encodeKey, "key", "", "", "the key to use when obfuscating the clear-text value")
-	cmdConfigObfuscate.Flags().StringVarP(&textToEncode, "value", "", "", "the value, in clear text, to be obfuscated")
+	cmdConfigObfuscate.Flags().StringVarP(&encodeKey, "key", "k", "", "the key to use when obfuscating the clear-text value")
+	cmdConfigObfuscate.Flags().StringVarP(&textToEncode, "value", "v", "", "the value, in clear text, to be obfuscated")
 
 	utils.LogIfError(cmdConfigObfuscate.MarkFlagRequired("key"))
 	utils.LogIfError(cmdConfigObfuscate.MarkFlagRequired("value"))
