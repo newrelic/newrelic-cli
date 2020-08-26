@@ -1,8 +1,6 @@
 package agent
 
 import (
-	"encoding/base64"
-
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
@@ -28,23 +26,9 @@ is placed in the Agent configuration or environment variable."
 	Example: "newrelic agent config obfuscate --value <config_value> --key <obfuscation_key>",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		encodingKeyBytes := []byte(encodeKey)
-		encodingKeyLen := len(encodingKeyBytes)
+		var result = obfuscateStringWithKey(textToEncode, encodeKey)
 
-		textToEncodeBytes := []byte(textToEncode)
-		textToEncodeLen := len(textToEncode)
-
-		encodedTextBytes := make([]byte, textToEncodeLen)
-
-		for i := 0; i < textToEncodeLen; i++ {
-
-			encodedTextBytes[i] = textToEncodeBytes[i] ^ encodingKeyBytes[i%encodingKeyLen]
-
-		}
-
-		encodedString := base64.StdEncoding.EncodeToString(encodedTextBytes)
-
-		utils.LogIfFatal(output.Print(encodedString))
+		utils.LogIfFatal(output.Print(result))
 	},
 }
 
