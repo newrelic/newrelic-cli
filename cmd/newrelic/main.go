@@ -6,6 +6,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	// Commands
+	"github.com/newrelic/newrelic-cli/internal/agent"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -37,6 +38,7 @@ func init() {
 	Command.AddCommand(nrql.Command)
 	Command.AddCommand(reporting.Command)
 	Command.AddCommand(workload.Command)
+	Command.AddCommand(agent.Command)
 
 	CheckPrereleaseMode(Command)
 }
