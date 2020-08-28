@@ -9,13 +9,14 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 ### Options
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
+      --format string   output text format [Text, YAML, JSON] (default "JSON")
   -h, --help            help for newrelic
       --plain           output compact text
 ```
 
 ### SEE ALSO
 
+* [newrelic agent](newrelic_agent.md)	 - Utilities for New Relic Agents
 * [newrelic apm](newrelic_apm.md)	 - Interact with New Relic APM
 * [newrelic completion](newrelic_completion.md)	 - Generates shell completion functions
 * [newrelic config](newrelic_config.md)	 - Manage the configuration of the New Relic CLI

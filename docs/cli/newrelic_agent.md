@@ -1,15 +1,15 @@
-## newrelic reporting
+## newrelic agent
 
-Commands for reporting data into New Relic
+Utilities for New Relic Agents
 
 ### Synopsis
 
-Commands for reporting data into New Relic
+Utilities for New Relic Agents
 
 ### Options
 
 ```
-  -h, --help   help for reporting
+  -h, --help   help for agent
 ```
 
 ### Options inherited from parent commands
@@ -22,5 +22,5 @@ Commands for reporting data into New Relic
 ### SEE ALSO
 
 * [newrelic](newrelic.md)	 - The New Relic CLI
-* [newrelic reporting junit](newrelic_reporting_junit.md)	 - Send JUnit test run results to New Relic
+* [newrelic agent config](newrelic_agent_config.md)	 - Configuration utilities/helpers for New Relic agents
 
