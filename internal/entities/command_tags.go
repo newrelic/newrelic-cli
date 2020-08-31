@@ -9,6 +9,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
+	"github.com/newrelic/newrelic-cli/internal/pipe"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -40,10 +41,16 @@ The get command returns JSON output of the tags for the requested entity.
 	Example: "newrelic entity tags get --guid <entityGUID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tags, err := nrClient.Entities.ListTags(entityGUID)
-			utils.LogIfFatal(err)
-
-			utils.LogIfError(output.Print(tags))
+			// Temporary until bulk actions can be build into newrelic-client-go
+			if value, ok := pipe.Get("guid"); ok {
+				tags, err := nrClient.Entities.ListTags(value[0])
+				utils.LogIfFatal(err)
+				utils.LogIfError(output.Print(tags))
+			} else {
+				tags, err := nrClient.Entities.ListTags(entityGUID)
+				utils.LogIfFatal(err)
+				utils.LogIfError(output.Print(tags))
+			}
 		})
 	},
 }
@@ -200,8 +207,13 @@ func init() {
 	Command.AddCommand(cmdTags)
 
 	cmdTags.AddCommand(cmdTagsGet)
-	cmdTagsGet.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to retrieve tags for")
-	utils.LogIfError(cmdTagsGet.MarkFlagRequired("guid"))
+
+	pipe.GetInput([]string{"guid"})
+
+	if !pipe.Exists("guid") {
+		cmdTagsGet.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to retrieve tags for")
+		utils.LogIfError(cmdTagsGet.MarkFlagRequired("guid"))
+	}
 
 	cmdTags.AddCommand(cmdTagsDelete)
 	cmdTagsDelete.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to delete tags on")
