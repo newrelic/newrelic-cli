@@ -622,9 +622,9 @@ github.com/nakabonne/nestif v0.3.0 h1:+yOViDGhg8ygGrmII72nV9B/zGxY188TYpfolntsaP
 github.com/nakabonne/nestif v0.3.0/go.mod h1:dI314BppzXjJ4HsCnbo7XzrJHPszZsjnk5wEBSYHI2c=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d h1:AREM5mwr4u1ORQBMvzfzBgpsctsbQikCVpvC+tX285E=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96djdrsSGy3AWPyBgZMAGfxZNfgntdJG+11KU4QvbU=
-github.com/newrelic/newrelic-client-go v0.40.0 h1:A8NG8P8I6vjZQuhJFGwXI8ay29DE+dfwQmLRrjKEOqw=
-github.com/newrelic/newrelic-client-go v0.40.0/go.mod h1:oHvM16rw1l3d2lYfnOdvr7wsZeswpxiiQU7M+BYgoYs=
-github.com/newrelic/tutone v0.2.2/go.mod h1:tfWM773ZGUHqQu70NV3DPjrFmxQ9+p8/++7UJ1J1gmE=
+github.com/newrelic/newrelic-client-go v0.41.0 h1:WYRmU9jAc9q2NGaoyxozZaiP/+UFQbVcRhuH1+XNoZE=
+github.com/newrelic/newrelic-client-go v0.41.0/go.mod h1:Ao+Iogn+6P2i0+tjdk48XJXn4IPwougANyEnAIhJYPI=
+github.com/newrelic/tutone v0.2.3/go.mod h1:tfWM773ZGUHqQu70NV3DPjrFmxQ9+p8/++7UJ1J1gmE=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nishanths/exhaustive v0.0.0-20200708172631-8866003e3856 h1:W3KBC2LFyfgd+wNudlfgCCsTo4q97MeNWrfz8/wSdSc=
@@ -1241,8 +1241,6 @@ gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c h1:grhR+C34yXImVGp7EzNk+DTIk+323eIUWOmEevy6bDo=
 gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-gotest.tools/gotestsum v0.5.2 h1:sSKWtEFqorHhuBCHU6MeUl50cq9U2J3d1m5NlQTVrbY=
-gotest.tools/gotestsum v0.5.2/go.mod h1:hC9TQserDVTWcJuARh76Ydp3ZwuE+pIIWpt2BzDLD6M=
 gotest.tools/gotestsum v0.5.3 h1:9SkwB5ou8GYUqSgbCCYCMk9BVXueDmzwk5WjaZeZW2o=
 gotest.tools/gotestsum v0.5.3/go.mod h1:hC9TQserDVTWcJuARh76Ydp3ZwuE+pIIWpt2BzDLD6M=
 gotest.tools/v3 v3.0.2 h1:kG1BFyqVHuQoVQiR1bWGnfz/fmHvvuiSPIV7rvl360E=
