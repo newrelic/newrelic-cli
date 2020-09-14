@@ -1,0 +1,62 @@
+---
+# Log level for running tutone
+# Default: info
+log_level: debug
+
+# File to store a copy of the schema
+# Default: schema.json
+cache:
+  schema_file: schema.json
+
+# GraphQL endpoint to query for schema
+# Required
+endpoint: https://api.newrelic.com/graphql
+
+# How to authenticate to the API
+auth:
+  header: Api-Key
+  api_key_env_var: NEW_RELIC_API_KEY
+
+packages:
+  - name: nerdgraph
+    path: internal/nerdgraph
+    generators:
+      - command
+    imports:
+      - '"encoding/json"'
+      - '"github.com/spf13/cobra"'
+      - '"github.com/newrelic/newrelic-client-go/newrelic"'
+      - '"github.com/newrelic/newrelic-client-go/pkg/alerts"'
+      - '"github.com/newrelic/newrelic-cli/internal/client"'
+      - '"github.com/newrelic/newrelic-cli/internal/utils"'
+      - '"github.com/newrelic/newrelic-cli/internal/output"'
+    commands:
+      - name: mutation
+        shortDescription: "here is a short description"
+        longDescription: "here is a longer description with more detail"
+        subcommands:
+          - name: alertsPolicyCreate
+            shortDescription: "here is a short description"
+            longDescription: "here is a longer description with more detail"
+            inputType: "alerts.AlertsPolicyInput"
+            clientMethod: "nrClient.Alerts.CreatePolicyMutation"
+            example: >
+              newrelic nerdgraph mutation alertsPolicyCreate --input='{"name": "foo","incidentPreference": "PER_CONDITION"}' --accountId=$NEW_RELIC_ACCOUNT_ID
+            flags:
+              - name: accountId
+                type: int
+                defaultValue: ""
+                required: true # default is false
+                description: "describe the flag here"
+                variableName: accountID
+              - name: input
+                type: string
+                defaultValue: ""
+                required: false # default is false
+                description: "describe the flag here"
+                variableName: alertsPolicyCreateInput
+
+generators:
+  - name: command
+    templateName: "command.go.tmpl"
+    templateDir: "templates"
