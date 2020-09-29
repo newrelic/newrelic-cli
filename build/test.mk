@@ -8,7 +8,7 @@ MISSPELL     ?= misspell
 GOFMT        ?= gofmt
 TEST_RUNNER  ?= gotestsum
 
-COVERAGE_DIR ?= ./coverage/
+COVERAGE_DIR ?= ./coverage
 COVERMODE    ?= atomic
 SRCDIR       ?= .
 GO_PKGS      ?= $(shell $(GO) list ./... | grep -v -e "/vendor/" -e "/example")

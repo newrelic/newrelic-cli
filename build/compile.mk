@@ -3,7 +3,7 @@
 #
 
 GO         ?= go
-BUILD_DIR  ?= ./bin/
+BUILD_DIR  ?= ./bin
 PROJECT_MODULE ?= $(shell $(GO) list -m)
 # $b replaced by the binary name in the compile loop, -s/w remove debug symbols
 LDFLAGS    ?= "-s -w -X main.version=$(PROJECT_VER) -X main.appName=$$b -X $(PROJECT_MODULE)/internal/client.version=$(PROJECT_VER)"
