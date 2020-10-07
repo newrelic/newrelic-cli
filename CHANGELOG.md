@@ -1,3 +1,9 @@
+<a name="v0.14.0"></a>
+## [v0.14.0] - 2020-09-30
+### Features
+- **nerdgraph:** implement tutone-generated mutation command alertsPolicyCreate
+- **release:** [#45](https://github.com/newrelic/newrelic-client-go/issues/45) add support for command chaining
+
 <a name="v0.13.0"></a>
 ## [v0.13.0] - 2020-08-27
 ### Documentation Updates
@@ -260,7 +266,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.0...HEAD
+[v0.14.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.13.0...v0.14.0
 [v0.13.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.12.0...v0.13.0
 [v0.12.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.11.0...v0.12.0
 [v0.11.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.10.0...v0.11.0
