@@ -2,10 +2,6 @@
 
 Execute GraphQL requests to the NerdGraph API
 
-### Synopsis
-
-Execute GraphQL requests to the NerdGraph API
-
 ### Options
 
 ```
@@ -15,12 +11,13 @@ Execute GraphQL requests to the NerdGraph API
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [Text, YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
 ### SEE ALSO
 
 * [newrelic](newrelic.md)	 - The New Relic CLI
+* [newrelic nerdgraph mutation](newrelic_nerdgraph_mutation.md)	 - here is a short description
 * [newrelic nerdgraph query](newrelic_nerdgraph_query.md)	 - Execute a raw GraphQL query request to the NerdGraph API
 
