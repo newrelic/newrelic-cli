@@ -15,7 +15,7 @@ require (
 	github.com/llorllale/go-gitlint v0.0.0-20200802191503-5984945d4b80
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
-	github.com/newrelic/newrelic-client-go v0.44.0
+	github.com/newrelic/newrelic-client-go v0.46.0
 	github.com/psampaz/go-mod-outdated v0.7.0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.0
@@ -26,5 +26,5 @@ require (
 	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	golang.org/x/tools v0.0.0-20200812195022-5ae4c3c160a0
 	gopkg.in/yaml.v2 v2.3.0
-	gotest.tools/gotestsum v0.5.3
+	gotest.tools/gotestsum v0.5.4
 )
