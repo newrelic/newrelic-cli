@@ -18,45 +18,32 @@ auth:
   api_key_env_var: NEW_RELIC_API_KEY
 
 packages:
-  - name: nerdgraph
-    path: internal/nerdgraph
+  - name: apiaccess
+    path: internal/apiaccess
+    fileName: command.go
     generators:
       - command
-    imports:
-      - '"encoding/json"'
-      - '"github.com/spf13/cobra"'
-      - '"github.com/newrelic/newrelic-client-go/newrelic"'
-      - '"github.com/newrelic/newrelic-client-go/pkg/alerts"'
-      - '"github.com/newrelic/newrelic-cli/internal/client"'
-      - '"github.com/newrelic/newrelic-cli/internal/utils"'
-      - '"github.com/newrelic/newrelic-cli/internal/output"'
+    imports: [] # optional - use for aliasing imports
     commands:
-      - name: mutation
-        shortDescription: "here is a short description"
-        longDescription: "here is a longer description with more detail"
+      - name: apiAccess
+        shortDescription: Manage New Relic API access keys # optional override (uses NG as default)
         subcommands:
-          - name: alertsPolicyCreate
-            shortDescription: "here is a short description"
-            longDescription: "here is a longer description with more detail"
-            inputType: "alerts.AlertsPolicyInput"
-            clientMethod: "nrClient.Alerts.CreatePolicyMutation"
-            example: >
-              newrelic nerdgraph mutation alertsPolicyCreate --input='{"name": "foo","incidentPreference": "PER_CONDITION"}' --accountId=$NEW_RELIC_ACCOUNT_ID
-            flags:
-              - name: accountId
-                type: int
-                defaultValue: ""
-                required: true # default is false
-                description: "describe the flag here"
-                variableName: accountID
-              - name: input
-                type: string
-                defaultValue: ""
-                required: false # default is false
-                description: "describe the flag here"
-                variableName: alertsPolicyCreateInput
+          - name: apiAccessGetKey
+            path: ["actor", "apiAccess", "key"]
+            clientPackageName: apiaccess
+            clientMethod: nrClient.APIAccess.GetAPIAccessKey
+          - name: apiAccessCreateKeys
+            clientPackageName: apiaccess
+            clientMethod: nrClient.APIAccess.CreateAPIAccessKeys
+          - name: apiAccessUpdateKeys
+            clientPackageName: apiaccess
+            clientMethod: nrClient.APIAccess.UpdateAPIAccessKeys
+          - name: apiAccessDeleteKeys
+            clientPackageName: apiaccess
+            clientMethod: nrClient.APIAccess.DeleteAPIAccessKey
 
 generators:
   - name: command
     templateName: "command.go.tmpl"
-    templateDir: "templates"
+    templateDir: templates
+    # templateURL: "https://gist.githubusercontent.com/sanderblue/ff8e9715471744c76237cc209214ab3d/raw/0fa76c29ba0adfbde08810f0d8e9d00f1237e843/command.go.tmpl"

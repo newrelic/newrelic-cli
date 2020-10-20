@@ -1,79 +1,76 @@
 {{- $packageName := .PackageName -}}
-package {{$packageName}}
+package {{ $packageName }}
 
 {{- if gt (len .Imports) 0 }}
 import (
-  {{- range .Imports}}
-  {{.}}
-  {{- end}}
+  {{- range .Imports }}
+  {{ . }}
+  {{- end }}
 )
-{{- end}}
+{{- end }}
 
-{{range .Commands}}
-{{- $cmdNameTitleCase := .Name | title -}}
-{{- $cmdVarName := print "cmd" $cmdNameTitleCase -}}
+{{ range .Commands }}
 
-var {{$cmdVarName}} = &cobra.Command{
-	Use: {{.Name | quote}},
-	Short: {{.ShortDescription | quote}},
-  Long: {{.LongDescription | quote}},
-  Example: "newrelic {{$packageName}} {{.Name}} --help",
+var {{ .CmdVariableName }} = &cobra.Command{
+  Use: {{ .Name | quote }},
+  Short: {{ .ShortDescription | quote }},
+  Long: {{ .LongDescription | quote }},
+  Example: "newrelic {{ $packageName }} {{ .Name }} --help",
 }
 
-{{range .Subcommands}}
-{{- $nameTitleCase := .Name | title -}}
-{{- $cmdVarName := print "cmd" $nameTitleCase -}}
-{{- $inputVarName := print .Name "Input" -}}
+{{ range .Subcommands }}
+{{- $cmdVarName := .CmdVariableName -}}
 
-{{range .Flags}}
-  var {{.VariableName}} {{.Type}}
-{{- end}}
+{{ range .Flags }}
+var {{ .VariableName }} {{ .VariableType }}
+{{- end }}
 
-var {{$cmdVarName}} = &cobra.Command{
-  Use: {{.Name | quote}},
-  Short: {{.ShortDescription | quote}},
-  Long: {{.LongDescription | quote}},
-  Example: {{.Example | quote}},
+var {{ $cmdVarName }} = &cobra.Command{
+  Use: {{ .Name | quote }},
+  Short: {{ .ShortDescription | quote }},
+  Long: {{ .LongDescription | quote }},
+  Example: {{ .Example | quote }},
   Run: func(cmd *cobra.Command, args []string) {
     client.WithClient(func(nrClient *newrelic.NewRelic) {
-      var input {{.InputType}}
-			err := json.Unmarshal([]byte({{.Name}}Input), &input)
-			utils.LogIfFatal(err)
+      {{- range .Flags -}}
+      {{- if .IsInputType -}}
+      var {{ .Name }} {{ .ClientType }}
 
-      resp, err := {{.ClientMethod}}(accountID, input)
-			utils.LogIfFatal(err)
+      err := json.Unmarshal([]byte({{ .VariableName }}), &{{ .Name }})
+      utils.LogIfFatal(err)
+      {{- end -}}
+      {{ end }}
 
-			utils.LogIfFatal(output.Print(resp))
+      resp, err := {{ .ClientMethod }}({{ .ClientMethodArgs | join ", " }})
+      utils.LogIfFatal(err)
+
+      utils.LogIfFatal(output.Print(resp))
     })
   },
 }
-{{- end}}
-{{- end}}
+{{- end }}
+{{- end }}
 
 func init() {
-{{- range .Commands}}
-{{- $parentCmdNameTitleCase := .Name | title -}}
-{{- $parentCmdVarName := print "cmd" $parentCmdNameTitleCase -}}
-  Command.AddCommand({{$parentCmdVarName}})
+{{ range .Commands }}
+{{- $parentCmdVarName := .CmdVariableName -}}
 
-{{ range .Subcommands}}
-{{- $subCmdNameTitleCase := .Name | title -}}
-{{- $cmdVarName := print "cmd" $subCmdNameTitleCase -}}
-{{- $inputVarName := print .Name "Input" -}}
+{{ range .Subcommands }}
+{{- $cmdVarName := .CmdVariableName -}}
 
-  {{$parentCmdVarName}}.AddCommand({{$cmdVarName}})
+  {{ $parentCmdVarName }}.AddCommand({{ $cmdVarName }})
 
-{{ range .Flags}}
+{{ range .Flags }}
   {{- $defaultVal := .DefaultValue | quote -}}
   {{- if (eq .Type "int") -}}
     {{- $defaultVal = 0 -}}
   {{- end}}
 
-  {{$cmdVarName}}.Flags().{{- .FlagMethodName -}}(&{{.VariableName}}, {{.Name | quote}}, {{$defaultVal}}, {{.Description | quote}})
-  {{- if .Required}}
-  utils.LogIfError({{- $cmdVarName -}}.MarkFlagRequired({{.Name | quote}}))
-  {{end}}
-{{- end}}
-{{- end}}
-{{- end}}
+  {{ $cmdVarName }}.Flags().{{- .FlagMethodName -}}(&{{ .VariableName }}, {{ .Name | quote }}, {{ $defaultVal }}, {{ .Description | quote }})
+  {{- if .Required }}
+  utils.LogIfError({{- $cmdVarName -}}.MarkFlagRequired({{.Name | quote }}))
+  {{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
 }

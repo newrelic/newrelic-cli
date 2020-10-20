@@ -7,6 +7,7 @@ import (
 
 	// Commands
 	"github.com/newrelic/newrelic-cli/internal/agent"
+	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -43,6 +44,7 @@ func init() {
 	Command.AddCommand(workload.Command)
 	Command.AddCommand(agent.Command)
 	Command.AddCommand(install.Command)
+	Command.AddCommand(apiaccess.Command)
 
 	CheckPrereleaseMode(Command)
 }
