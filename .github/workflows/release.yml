@@ -43,7 +43,7 @@ jobs:
         SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
       run: make release-publish
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: windows-binary
         path: dist/newrelic_windows_amd64/newrelic.exe
