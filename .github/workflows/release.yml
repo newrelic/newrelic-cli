@@ -43,7 +43,7 @@ jobs:
         SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
       run: make release-publish
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: windows-binary
         path: dist/newrelic_windows_amd64/newrelic.exe
@@ -76,9 +76,9 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.0
+      uses: microsoft/setup-msbuild@v1.0.2
 
-    - uses: actions/download-artifact@v1
+    - uses: actions/download-artifact@v2
       with:
         name: windows-binary
         path: .\dist\newrelic_windows_amd64
