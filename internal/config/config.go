@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/newrelic/newrelic-cli/internal/utils"
+
 	"github.com/imdario/mergo"
 	"github.com/jedib0t/go-pretty/v6/text"
-	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
@@ -72,7 +73,7 @@ func init() {
 		PreReleaseFeatures: TernaryValues.Unknown,
 	}
 
-	cfgDir, err := getDefaultConfigDirectory()
+	cfgDir, err := utils.GetDefaultConfigDirectory()
 	if err != nil {
 		log.Fatalf("error building default config directory: %s", err)
 	}
@@ -101,15 +102,6 @@ func LoadConfig(configDir string) (*Config, error) {
 	cfg.configDir = configDir
 
 	return cfg, nil
-}
-
-func getDefaultConfigDirectory() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
 func (c *Config) setLogger() {

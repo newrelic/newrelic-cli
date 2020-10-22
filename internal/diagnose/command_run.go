@@ -13,7 +13,8 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/mitchellh/go-homedir"
+	"github.com/newrelic/newrelic-cli/internal/utils"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -58,17 +59,8 @@ Checks the currently-installed version against the latest version, and if they a
 
 const downloadURL = "http://download.newrelic.com/nrdiag/nrdiag_latest.zip"
 
-// FIXME: this should be somewhere globally-available (copied from internal/config/config.go)
-func getDefaultConfigDirectory() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s/.newrelic", home), nil
-}
-
 func ensureBinaryExists() (string, error) {
-	configDirectory, err := getDefaultConfigDirectory()
+	configDirectory, err := utils.GetDefaultConfigDirectory()
 	if err != nil {
 		return "", err
 	}
