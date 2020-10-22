@@ -1,16 +1,29 @@
 package install
 
+import (
+	"io/ioutil"
+
+	"github.com/go-task/task/v3/taskfile"
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+)
+
 func install() error {
 	// discovery
 	d := getDiscoverer()
 	manifest, err := d.discover()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// retrieve the recipes
 	f := getRecipeFetcher()
 	recipes, err := f.fetch(manifest)
+	if err != nil {
+		return err
+	}
+
+	log.Infof("recipes: %+v", recipes)
 
 	// unmarshal the recipe
 
@@ -29,18 +42,26 @@ type process struct {
 	name string
 }
 
-func getDiscoverer() *discoverer {
-	return &mockDiscoverer
+func getDiscoverer() discoverer {
+	return new(mockDiscoverer)
+}
+
+func getRecipeFetcher() fetcher {
+	return new(mockRecipeFetcher)
 }
 
 type discoverer interface {
-	discover() (discoveryManifest, error)
+	discover() (*discoveryManifest, error)
+}
+
+type fetcher interface {
+	fetch(*discoveryManifest) ([]recipe, error)
 }
 
 type mockDiscoverer struct{}
 
-func (m *mockDiscoverer) discover() (discoveryManifest, error) {
-	m := &DiscoveryManifest{
+func (m *mockDiscoverer) discover() (*discoveryManifest, error) {
+	x := discoveryManifest{
 		processes: []process{
 			process{
 				name: "java",
@@ -50,21 +71,57 @@ func (m *mockDiscoverer) discover() (discoveryManifest, error) {
 		arch:     "amd64",
 	}
 
-	return m, nil
+	return &x, nil
+}
+
+type mockRecipeFetcher struct{}
+
+func (m *mockRecipeFetcher) fetch(manifest *discoveryManifest) ([]recipe, error) {
+	var x recipe
+
+	fileName := "internal/install/config.yaml"
+	data, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Warnf("data: %+v", string(data))
+
+	err = yaml.Unmarshal(data, &x)
+	if err != nil {
+		return nil, err
+	}
+
+	return []recipe{x}, nil
 }
 
 type recipe struct {
-	name string `yaml:"name"`
-	description string `yaml:"description"`
-	repository string `yaml:"repository"`
-	platform string `yaml:"platform"`
-	arch string `yaml:"arch"`
-	targetEnvironment string `yaml:"target_environment"`
-	processMatch []string `yaml:"process_match"`
-	meltMatch string `yaml:"melt_match"`
+	Name              string            `yaml:"name"`
+	Description       string            `yaml:"description"`
+	Repository        string            `yaml:"repository"`
+	Platform          string            `yaml:"platform"`
+	Arch              string            `yaml:"arch"`
+	TargetEnvironment string            `yaml:"target_environment"`
+	ProcessMatch      []string          `yaml:"process_match"`
+	MeltMatch         MELTMatch         `yaml:"melt_match"`
+	Install           taskfile.Taskfile `yaml:"install"`
+}
 
+type MELTMatch struct {
+	Events  []CommonMatcher  `yaml:"events"`
+	Metrics []CommonMatcher  `yaml:"metrics"`
+	Logging []LoggingMatcher `yaml:"logging"`
+}
+
+type CommonMatcher struct {
+	Pattern string `yaml:"pattern"`
+}
+
+type LoggingMatcher struct {
+	CommonMatcher
+	Files []string `yaml:"files"`
 }
 
 type recipeFetcher interface {
-	func fetch() (error, []*recipe)
+	fetch() (error, []*recipe)
 }
