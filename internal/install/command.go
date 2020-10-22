@@ -6,6 +6,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
@@ -16,6 +17,10 @@ var Command = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// This assumes a default profile exists
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
+			if err := install(); err != nil {
+				utils.LogIfFatal(err)
+			}
+
 			log.Info("success")
 		})
 	},
