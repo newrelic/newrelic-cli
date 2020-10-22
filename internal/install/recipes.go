@@ -3,29 +3,30 @@ package install
 import (
 	"io/ioutil"
 
-	"github.com/go-task/task/v3/taskfile"
 	"gopkg.in/yaml.v2"
 )
+
+const recipeFile = "recipes/infra.yaml"
 
 type recipeFetcher interface {
 	fetch(*discoveryManifest) ([]recipe, error)
 }
 
 type recipe struct {
-	Name              string            `yaml:"name"`
-	Description       string            `yaml:"description"`
-	Repository        string            `yaml:"repository"`
-	Platform          string            `yaml:"platform"`
-	Arch              string            `yaml:"arch"`
-	TargetEnvironment string            `yaml:"target_environment"`
-	ProcessMatch      []string          `yaml:"process_match"`
-	MELTMatch         meltMatch         `yaml:"melt_match"`
-	Install           taskfile.Taskfile `yaml:"install"`
+	Name              string                 `yaml:"name"`
+	Description       string                 `yaml:"description"`
+	Repository        string                 `yaml:"repository"`
+	Platform          string                 `yaml:"platform"`
+	Arch              string                 `yaml:"arch"`
+	TargetEnvironment string                 `yaml:"target_environment"`
+	ProcessMatch      []string               `yaml:"process_match"`
+	MELTMatch         meltMatch              `yaml:"melt_match"`
+	Install           map[string]interface{} `yaml:"install"`
 }
 
 type meltMatch struct {
-	Events  []patternMatcher  `yaml:"events"`
-	Metrics []patternMatcher  `yaml:"metrics"`
+	Events  []patternMatcher `yaml:"events"`
+	Metrics []patternMatcher `yaml:"metrics"`
 	Logging []loggingMatcher `yaml:"logging"`
 }
 
@@ -43,8 +44,7 @@ type yamlRecipeFetcher struct{}
 func (m *yamlRecipeFetcher) fetch(manifest *discoveryManifest) ([]recipe, error) {
 	var x recipe
 
-	fileName := "internal/install/config.yaml"
-	data, err := ioutil.ReadFile(fileName)
+	data, err := ioutil.ReadFile(recipeFile)
 	if err != nil {
 		return nil, err
 	}

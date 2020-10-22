@@ -35,8 +35,9 @@ install:
 
   version: "3"
 
-  variables:
-    - FOO_VAR: foo-value
+  vars:
+    FOO_VAR: foovalue
+    BAR_VAR: barvalue
 
   tasks:
     install:
