@@ -2,7 +2,6 @@ package diagnose
 
 import (
 	"archive/zip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,67 +34,81 @@ The diagnose command runs New Relic Diagnostics, our troubleshooting suite. The 
 `,
 	Example: "\tnewrelic diagnose run --suites java,infra",
 	Run: func(cmd *cobra.Command, args []string) {
-		path, err := ensureBinaryExists()
-		if err != nil {
-			log.Fatal(err)
-		}
-		nrdiag := exec.Command(path)
-		nrdiag.Stdout = os.Stdout
-		nrdiag.Stderr = os.Stderr
-		nrdiag.Env = append(nrdiag.Env, "NEWRELIC_CLI_SUBPROCESS=true")
+		nrdiagArgs := make([]string, 0)
 		if options.listSuites {
-			nrdiag.Args = append(nrdiag.Args, "-help", "suites")
+			nrdiagArgs = append(nrdiagArgs, "-help", "suites")
 		} else if options.suites != "" {
-			nrdiag.Args = append(nrdiag.Args, "-suites", options.suites)
+			nrdiagArgs = append(nrdiagArgs, "-suites", options.suites)
 		}
-		err = nrdiag.Run()
+		err := runDiagnostics(nrdiagArgs...)
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
 }
-
-// TODO: flesh this out - do we want the fetch/update process to be entirely transparent, or accessible to the user?
 
 var cmdUpdate = &cobra.Command{
 	Use:   "update",
 	Short: "Update the New Relic Diagnostics binary if necessary",
 	Long: `Update the New Relic Diagnostics binary for your system, if it is out of date.
 
-Checks the currently-installed version against the latest version, and if they are different, fetches the latest New Relic Diagnostics build from https://download.newrelic.com/nrdiag.`,
+Checks the currently-installed version against the latest version, and if they are different, fetches and installs the latest New Relic Diagnostics build from https://download.newrelic.com/nrdiag.`,
 	Example: "newrelic diagnose update",
 	Run: func(cmd *cobra.Command, args []string) {
-		// FIXME: do something
+		err := runDiagnostics("-q", "-version")
+		if err == nil {
+			return
+		}
+		exitError, ok := err.(*exec.ExitError)
+		if !ok || ok && exitError.ProcessState.ExitCode() != 1 {
+			// Unexpected error
+			log.Fatal(err)
+		}
+		err = downloadBinary()
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
+}
+
+func runDiagnostics(args ...string) error {
+	err := ensureBinaryExists()
+	if err != nil {
+		return err
+	}
+	diagnostics := exec.Command(getBinaryPath())
+	diagnostics.Stdout = os.Stdout
+	diagnostics.Stderr = os.Stderr
+	diagnostics.Env = append(diagnostics.Env, "NEWRELIC_CLI_SUBPROCESS=true")
+	diagnostics.Args = append(diagnostics.Args, args...)
+	return diagnostics.Run()
+}
+
+func getBinaryPath() string {
+	configDirectory, err := utils.GetDefaultConfigDirectory()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return path.Join(configDirectory, "bin", "nrdiag")
+}
+
+func ensureBinaryExists() error {
+	destination := getBinaryPath()
+	err := os.MkdirAll(path.Dir(destination), 0777)
+	if err != nil {
+		return err
+	}
+
+	if _, err = os.Stat(destination); os.IsNotExist(err) {
+		log.Infof("nrdiag binary not found in %s", destination)
+		return downloadBinary()
+	}
+	return nil
 }
 
 const downloadURL = "http://download.newrelic.com/nrdiag/nrdiag_latest.zip"
 
-func ensureBinaryExists() (string, error) {
-	configDirectory, err := utils.GetDefaultConfigDirectory()
-	if err != nil {
-		return "", err
-	}
-
-	binPath := path.Join(configDirectory, "bin")
-	if _, err := os.Stat(binPath); os.IsNotExist(err) {
-		err = os.Mkdir(binPath, 0777)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	binaryPath := path.Join(binPath, "nrdiag")
-	if _, err := os.Stat(binaryPath); os.IsNotExist(err) {
-		log.Infof("nrdiag binary not found in %s", binaryPath)
-		return binaryPath, downloadBinary(binaryPath)
-	}
-
-	return binaryPath, nil
-}
-
-// TODO: break this up?
-func downloadBinary(destination string) error {
+func downloadBinary() error {
 	log.Info("Determining OS...")
 	var executable string
 	if bits.UintSize == 64 {
@@ -113,7 +126,7 @@ func downloadBinary(destination string) error {
 	} else if runtime.GOOS == "linux" {
 		subdir = "linux"
 	} else {
-		return errors.New("Unknown operating system: " + runtime.GOOS)
+		return fmt.Errorf("unknown operating system: %s", runtime.GOOS)
 	}
 
 	log.Infof("Downloading %s", downloadURL)
@@ -141,7 +154,7 @@ func downloadBinary(destination string) error {
 	}
 	defer zipReader.Close()
 
-	targetPath := fmt.Sprintf("nrdiag/%s/%s", subdir, executable)
+	targetPath := path.Join("nrdiag", subdir, executable)
 	var zipped *zip.File
 	for _, f := range zipReader.File {
 		if f.Name == targetPath {
@@ -154,7 +167,7 @@ func downloadBinary(destination string) error {
 	}
 
 	log.Info("Extracting... ")
-	out, err := os.OpenFile(destination, os.O_CREATE|os.O_WRONLY, 0777)
+	out, err := os.OpenFile(getBinaryPath(), os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
 	}
