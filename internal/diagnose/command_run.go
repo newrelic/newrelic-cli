@@ -19,14 +19,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var cmdDiag = &cobra.Command{
+var options struct {
+	suites        string
+	listSuites    bool
+	verbose       bool
+	attachmentKey string
+}
+
+var cmdRun = &cobra.Command{
 	Use:   "run",
 	Short: "Troubleshoot your New Relic-instrumented application",
 	Long: `Troubleshoot your New Relic-instrumented application
 
-The diagnose command runs New Relic Diagnostic, our troubleshooting suite. The first time you run this command the nrdiag binary appropriate for your system will be downloaded to .newrelic/bin in your home directory.
+The diagnose command runs New Relic Diagnostics, our troubleshooting suite. The first time you run this command the nrdiag binary appropriate for your system will be downloaded to .newrelic/bin in your home directory.\n
 `,
-	Example: "newrelic diagnose run",
+	Example: "\tnewrelic diagnose run --suites java,infra",
 	Run: func(cmd *cobra.Command, args []string) {
 		path, err := ensureBinaryExists()
 		if err != nil {
@@ -35,7 +42,12 @@ The diagnose command runs New Relic Diagnostic, our troubleshooting suite. The f
 		nrdiag := exec.Command(path)
 		nrdiag.Stdout = os.Stdout
 		nrdiag.Stderr = os.Stderr
-		nrdiag.Args = args
+		nrdiag.Env = append(nrdiag.Env, "NEWRELIC_CLI_SUBPROCESS=true")
+		if options.listSuites {
+			nrdiag.Args = append(nrdiag.Args, "-help", "suites")
+		} else if options.suites != "" {
+			nrdiag.Args = append(nrdiag.Args, "-suites", options.suites)
+		}
 		err = nrdiag.Run()
 		if err != nil {
 			log.Fatal(err)
@@ -161,6 +173,10 @@ func downloadBinary(destination string) error {
 }
 
 func init() {
-	Command.AddCommand(cmdDiag)
+	Command.AddCommand(cmdRun)
+	cmdRun.Flags().StringVar(&options.attachmentKey, "attachment-key", "", "Attachment key for automatic upload to a support ticket (get key from an existing ticket).")
+	cmdRun.Flags().BoolVar(&options.verbose, "verbose", false, "Display verbose logging during task execution.")
+	cmdRun.Flags().StringVar(&options.suites, "suites", "", "The task suite or comma-separated list of suites to run. Use --list-suites for a list of available suites.")
+	cmdRun.Flags().BoolVar(&options.listSuites, "list-suites", false, "List the task suites available for the --suites argument.")
 	Command.AddCommand(cmdUpdate)
 }
