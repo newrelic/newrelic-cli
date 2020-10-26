@@ -628,8 +628,7 @@ github.com/nakabonne/nestif v0.3.0 h1:+yOViDGhg8ygGrmII72nV9B/zGxY188TYpfolntsaP
 github.com/nakabonne/nestif v0.3.0/go.mod h1:dI314BppzXjJ4HsCnbo7XzrJHPszZsjnk5wEBSYHI2c=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d h1:AREM5mwr4u1ORQBMvzfzBgpsctsbQikCVpvC+tX285E=
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96djdrsSGy3AWPyBgZMAGfxZNfgntdJG+11KU4QvbU=
-github.com/newrelic/newrelic-client-go v0.47.0 h1:tYEwRb87IpX1cIIXwwszG8x2mwyAnpvRned1AInvhmg=
-github.com/newrelic/newrelic-client-go v0.47.0/go.mod h1:SRy/dX0pmFKfhuW+Ee5HN9PjF/u2jPXXoSWgyFIhkNY=
+github.com/newrelic/newrelic-client-go v0.47.1/go.mod h1:SRy/dX0pmFKfhuW+Ee5HN9PjF/u2jPXXoSWgyFIhkNY=
 github.com/newrelic/tutone v0.2.5/go.mod h1:Jv8miaLyP2pjx4wqvAdx1nLXMx/Cl7kmsNiKZlCeIds=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
