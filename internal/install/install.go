@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func install() error {
+func install(configFile string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
 	d := new(mockDiscoverer)
@@ -26,6 +26,7 @@ func install() error {
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
 	f := new(yamlRecipeFetcher)
+	f.ConfigFile = configFile
 	recipes, err := f.fetch(manifest)
 	if err != nil {
 		return err
@@ -58,12 +59,12 @@ func executeRecipeSteps(r recipe) error {
 	}
 
 	file.Write(out)
-	
+
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+		Stdin:      os.Stdin,
+		Stdout:     os.Stdout,
+		Stderr:     os.Stderr,
 	}
 
 	if err := e.Setup(); err != nil {

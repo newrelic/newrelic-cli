@@ -6,8 +6,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const recipeFile = "recipes/infra.yaml"
-
 type recipeFetcher interface {
 	fetch(*discoveryManifest) ([]recipe, error)
 }
@@ -39,12 +37,14 @@ type loggingMatcher struct {
 	Files []string `yaml:"files"`
 }
 
-type yamlRecipeFetcher struct{}
+type yamlRecipeFetcher struct {
+	ConfigFile string
+}
 
 func (m *yamlRecipeFetcher) fetch(manifest *discoveryManifest) ([]recipe, error) {
 	var x recipe
 
-	data, err := ioutil.ReadFile(recipeFile)
+	data, err := ioutil.ReadFile(m.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
