@@ -15,6 +15,8 @@ import (
 var outputFormat string
 var outputPlain bool
 
+const defaultProfileName string = "default"
+
 // Command represents the base command when called without any subcommands
 var Command = &cobra.Command{
 	PersistentPreRun:  initializeCLI,
@@ -26,7 +28,24 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	credentials.WithCredentials(func (c *credentials.Credentials) {
+	// TODO what do we want?
+
+	// Create a license key from nerdgraph using the creds we have.  This may
+	// require an accountID.  Set this in the profile.
+
+	// Trim down the required number of elements in the environment as much as
+	// possible.
+
+	// When an accountID is required, we should try to retrieve it from
+	// nerdgraph, in place of requiring the user to set it.
+
+	// Determine the accounts this user has access to.  In the case we have only
+	// one, then we have our answer about which account ID to use.
+	// { actor { accounts(scope: IN_REGION) { id name } } }
+
+	// Default to US region?
+
+	credentials.WithCredentials(func(c *credentials.Credentials) {
 		if c.DefaultProfile != "" {
 			log.Infof("default profile already exists")
 			return
@@ -35,24 +54,36 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 		envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
 		envRegion := os.Getenv("NEW_RELIC_REGION")
 
-		if envAPIKey != "" && envRegion != "" {
-			profileName := "default"
-
-			// TODO: DRY this up (exists as well in credentials/command.go)
-			err := c.AddProfile(profileName, envRegion, envAPIKey, "")
-			if err != nil {
-				log.Fatal(err)
+		hasDefault := func() bool {
+			for profileName, _ := range c.Profiles {
+				if profileName == defaultProfileName {
+					return true
+				}
 			}
 
-			log.Infof("profile %s added", text.FgCyan.Sprint(profileName))
+			return false
+		}
 
-			if len(c.Profiles) == 1 {
-				err := c.SetDefaultProfile(profileName)
+		if envAPIKey != "" && envRegion != "" {
+
+			// TODO: DRY this up (exists as well in credentials/command.go)
+
+			if !hasDefault() {
+				err := c.AddProfile(defaultProfileName, envRegion, envAPIKey, "")
 				if err != nil {
 					log.Fatal(err)
 				}
 
-				log.Infof("setting %s as default profile", text.FgCyan.Sprint(profileName))
+				log.Infof("profile %s added", text.FgCyan.Sprint(defaultProfileName))
+			}
+
+			if len(c.Profiles) == 1 {
+				err := c.SetDefaultProfile(defaultProfileName)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				log.Infof("setting %s as default profile", text.FgCyan.Sprint(defaultProfileName))
 			}
 		}
 	})
