@@ -31,7 +31,7 @@ func TestApplyOverrides(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create an initial profile to work with
-	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere", "insightsInsertKeyGoesHere")
+	err = c.AddProfile("testCase1", "us", "apiKeyGoesHere", "insightsInsertKeyGoesHere", 0)
 	assert.NoError(t, err)
 	p := c.Profiles["testCase1"]
 	assert.NotNil(t, p)

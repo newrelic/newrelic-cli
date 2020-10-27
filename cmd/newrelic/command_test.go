@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -21,8 +22,15 @@ func TestRootCommand(t *testing.T) {
 func TestInitialization(t *testing.T) {
 	f, err := ioutil.TempDir("/tmp", "newrelic")
 	assert.NoError(t, err)
-	defer os.RemoveAll(f)
+	// defer os.RemoveAll(f)
 	config.DefaultConfigDirectory = f
+
+	// Save the creds while we have them.
+	apiKey := os.Getenv("NEW_RELIC_API_KEY")
+	apiRegion := os.Getenv("NEW_RELIC_REGION")
+	apiAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
+	accountID, err := strconv.Atoi(apiAccountID)
+	assert.NoError(t, err)
 
 	// Init without the logical environment variables
 	os.Setenv("NEW_RELIC_API_KEY", "")
@@ -37,10 +45,8 @@ func TestInitialization(t *testing.T) {
 	assert.Equal(t, "", c.DefaultProfile)
 
 	// Init with environment
-	testingAPIKey := "mysupersecretAPIKey"
-	testingRegion := "us"
-	os.Setenv("NEW_RELIC_API_KEY", testingAPIKey)
-	os.Setenv("NEW_RELIC_REGION", testingRegion)
+	os.Setenv("NEW_RELIC_API_KEY", apiKey)
+	os.Setenv("NEW_RELIC_REGION", apiRegion)
 	initializeCLI(Command, []string{})
 
 	// // Initialize the new configuration directory
@@ -49,8 +55,9 @@ func TestInitialization(t *testing.T) {
 	assert.Equal(t, 1, len(c.Profiles))
 	assert.Equal(t, f, c.ConfigDirectory)
 	assert.Equal(t, defaultProfileName, c.DefaultProfile)
-	assert.Equal(t, testingAPIKey, c.Profiles[defaultProfileName].APIKey)
-	assert.Equal(t, testingRegion, c.Profiles[defaultProfileName].Region)
+	assert.Equal(t, apiKey, c.Profiles[defaultProfileName].APIKey)
+	assert.Equal(t, apiRegion, c.Profiles[defaultProfileName].Region)
+	assert.Equal(t, accountID, c.Profiles[defaultProfileName].AccountID)
 
 	// Ensure that we don't Fatal out if the default profile already exists, but
 	// was not specified in the default-profile.json.

@@ -2,14 +2,18 @@ package main
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/accounts"
 )
 
 var outputFormat string
@@ -44,6 +48,8 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 	// { actor { accounts(scope: IN_REGION) { id name } } }
 
 	// Default to US region?
+	var accountID int
+	var err error
 
 	credentials.WithCredentials(func(c *credentials.Credentials) {
 		if c.DefaultProfile != "" {
@@ -53,9 +59,10 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 
 		envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
 		envRegion := os.Getenv("NEW_RELIC_REGION")
+		envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 
 		hasDefault := func() bool {
-			for profileName, _ := range c.Profiles {
+			for profileName := range c.Profiles {
 				if profileName == defaultProfileName {
 					return true
 				}
@@ -68,8 +75,38 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 
 			// TODO: DRY this up (exists as well in credentials/command.go)
 
+			// Use the accountID from the environment if we have it.
+			if envAccountID != "" {
+				accountID, err = strconv.Atoi(envAccountID)
+				if err != nil {
+					log.Errorf("error reading accountID from environment: %s", err)
+				}
+			}
+
+			// If we still don't have an account ID, try to look one up from the API.
+			if accountID == 0 {
+				client.WithClient(func(nrClient *newrelic.NewRelic) {
+
+					params := accounts.ListAccountsParams{
+						Scope: &accounts.RegionScopeTypes.IN_REGION,
+					}
+
+					resp, err := nrClient.Accounts.ListAccounts(params)
+					if err != nil {
+						log.Fatal("error retrieving accounts:", err)
+					}
+
+					if len(resp) == 1 {
+						// Set the accountID for the profile
+						accountID = resp[0].ID
+					} else {
+						log.Warnf("more than one account found")
+					}
+				})
+			}
+
 			if !hasDefault() {
-				err := c.AddProfile(defaultProfileName, envRegion, envAPIKey, "")
+				err := c.AddProfile(defaultProfileName, envRegion, envAPIKey, "", accountID)
 				if err != nil {
 					log.Fatal(err)
 				}
