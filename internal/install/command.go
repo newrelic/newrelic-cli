@@ -16,6 +16,7 @@ var configFiles []string
 var Command = &cobra.Command{
 	Use:   "install",
 	Short: "Install New Relic.",
+	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		// This assumes a default profile exists
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
