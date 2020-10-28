@@ -36,7 +36,7 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey>",
 	Run: func(cmd *cobra.Command, args []string) {
 		WithCredentials(func(creds *Credentials) {
-			err := creds.AddProfile(profileName, flagRegion, apiKey, insightsInsertKey)
+			err := creds.AddProfile(profileName, flagRegion, apiKey, insightsInsertKey, 0)
 			if err != nil {
 				log.Fatal(err)
 			}

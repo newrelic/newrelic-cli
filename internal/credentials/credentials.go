@@ -71,7 +71,7 @@ func (c *Credentials) profileExists(profileName string) bool {
 }
 
 // AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsertKey string) error {
+func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsertKey string, accountID int) error {
 	var err error
 
 	if c.profileExists(profileName) {
@@ -82,6 +82,10 @@ func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsert
 		Region:            strings.ToUpper(reg),
 		APIKey:            apiKey,
 		InsightsInsertKey: insightsInsertKey,
+	}
+
+	if accountID > 0 {
+		p.AccountID = accountID
 	}
 
 	c.Profiles[profileName] = p
