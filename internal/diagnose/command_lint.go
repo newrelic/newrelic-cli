@@ -1,7 +1,7 @@
 package diagnose
 
 import (
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ Checks the settings in the specified Java agent config file, making sure they ha
 	Run: func(cmd *cobra.Command, args []string) {
 		err := runDiagnostics("-t", "Java/Config/ValidateSettings", "-c", options.configFile)
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 	},
 }

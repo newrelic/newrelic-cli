@@ -14,11 +14,11 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/utils"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 func downloadBinary() error {
-	logrus.Info("Determining OS...")
+	log.Info("Determining OS...")
 	var executable string
 	if bits.UintSize == 64 {
 		executable = "nrdiag_x64"
@@ -38,9 +38,12 @@ func downloadBinary() error {
 		return fmt.Errorf("unknown operating system: %s", runtime.GOOS)
 	}
 
-	logrus.Infof("Downloading %s", downloadURL)
+	log.Infof("Downloading %s", downloadURL)
 	resp, err := http.Get(downloadURL)
 	if err != nil {
+		log.Warnf("failed to download the latest nrdiag: %s", err)
+		home, _ := utils.GetDefaultConfigDirectory()
+		log.Infof("If this problem persists, you can download the zip file from https://download.newrelic.com/nrdiag/nrdiag_latest.zip and place the appropriate binary for your system in %s/bin, then try again.", home)
 		return err
 	}
 	defer resp.Body.Close()
@@ -75,7 +78,7 @@ func downloadBinary() error {
 		return fmt.Errorf("executable %s not found in zip file", targetPath)
 	}
 
-	logrus.Info("Extracting... ")
+	log.Info("Extracting... ")
 	out, err := os.OpenFile(getBinaryPath(), os.O_CREATE|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
@@ -102,7 +105,7 @@ func ensureBinaryExists() error {
 	}
 
 	if _, err = os.Stat(destination); os.IsNotExist(err) {
-		logrus.Infof("nrdiag binary not found in %s", destination)
+		log.Infof("nrdiag binary not found in %s", destination)
 		return downloadBinary()
 	}
 	return nil
@@ -124,9 +127,9 @@ func runDiagnostics(args ...string) error {
 func getBinaryPath() string {
 	configDirectory, err := utils.GetDefaultConfigDirectory()
 	if err != nil {
-		logrus.Fatal(err)
+		log.Fatal(err)
 	}
 	return path.Join(configDirectory, "bin", "nrdiag")
 }
 
-const downloadURL = "https://download.newrelic.com/nrdiag/nrdiag_latest.zip"
+const downloadURL = "https://download.example.com/nrdiag/nrdiag_latest.zip"

@@ -3,7 +3,7 @@ package diagnose
 import (
 	"os/exec"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -22,11 +22,11 @@ Checks the currently-installed version against the latest version, and if they a
 		exitError, ok := err.(*exec.ExitError)
 		if !ok || ok && exitError.ProcessState.ExitCode() != 1 {
 			// Unexpected error
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 		err = downloadBinary()
 		if err != nil {
-			logrus.Fatal(err)
+			log.Fatal(err)
 		}
 	},
 }
