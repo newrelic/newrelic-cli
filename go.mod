@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/client9/misspell v0.3.4
 	github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373
+	github.com/go-task/task/v3 v3.0.1-0.20201013001609-60759a4e3b23
 	github.com/golangci/golangci-lint v1.32.0
 	github.com/google/uuid v1.1.2
 	github.com/goreleaser/goreleaser v0.146.0
@@ -23,8 +24,11 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.6.1
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
+	golang.org/x/sys v0.0.0-20201022201747-fb209a7c41cd // indirect
 	golang.org/x/tools v0.0.0-20201013201025-64a9e34f3752
 	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	gotest.tools/gotestsum v0.6.0
 )
