@@ -106,7 +106,7 @@ func ensureBinaryExists() error {
 	return nil
 }
 
-const downloadURL = "http://download.newrelic.com/nrdiag/nrdiag_latest.zip"
+const downloadURL = "https://download.newrelic.com/nrdiag/nrdiag_latest.zip"
 
 func downloadBinary() error {
 	log.Info("Determining OS...")
