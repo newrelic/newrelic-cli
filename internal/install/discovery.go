@@ -7,7 +7,7 @@ type discoveryManifest struct {
 }
 
 type process struct {
-	name string
+	Name string
 }
 
 type discoverer interface {
@@ -19,9 +19,7 @@ type mockDiscoverer struct{}
 func (m *mockDiscoverer) discover() (*discoveryManifest, error) {
 	x := discoveryManifest{
 		processes: []process{
-			process{
-				name: "java",
-			},
+			{Name: "java"},
 		},
 		platform: "linux",
 		arch:     "amd64",

@@ -17,7 +17,7 @@ import (
 func install() error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	d := new(mockDiscoverer)
+	var d discoverer = new(mockDiscoverer)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
@@ -25,7 +25,7 @@ func install() error {
 
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	f := new(yamlRecipeFetcher)
+	var f recipeFetcher = new(yamlRecipeFetcher)
 	recipes, err := f.fetch(manifest)
 	if err != nil {
 		return err
@@ -57,16 +57,19 @@ func executeRecipeSteps(r recipe) error {
 		return err
 	}
 
-	file.Write(out)
-	
-	e := task.Executor{
-		Entrypoint: file.Name(),
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
+	_, err = file.Write(out)
+	if err != nil {
+		return err
 	}
 
-	if err := e.Setup(); err != nil {
+	e := task.Executor{
+		Entrypoint: file.Name(),
+		Stdin:      os.Stdin,
+		Stdout:     os.Stdout,
+		Stderr:     os.Stderr,
+	}
+
+	if err = e.Setup(); err != nil {
 		return err
 	}
 
@@ -102,7 +105,7 @@ func getTaskKeys(m map[string]*taskfile.Task) []string {
 
 func getSignalContext() context.Context {
 	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		sig := <-ch
