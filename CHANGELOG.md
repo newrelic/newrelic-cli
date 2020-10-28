@@ -1,3 +1,8 @@
+<a name="v0.15.0"></a>
+## [v0.15.0] - 2020-10-28
+### Features
+- **profiles:** create a profile automatically if it's possible
+
 <a name="v0.14.1"></a>
 ## [v0.14.1] - 2020-10-15
 ### Bug Fixes
@@ -274,7 +279,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.0...HEAD
+[v0.15.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.1...v0.15.0
 [v0.14.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.0...v0.14.1
 [v0.14.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.13.0...v0.14.0
 [v0.13.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.12.0...v0.13.0
