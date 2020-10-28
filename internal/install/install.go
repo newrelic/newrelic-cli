@@ -14,7 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func install() error {
+func install(configFile string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
 	var d discoverer = new(mockDiscoverer)
@@ -26,7 +26,7 @@ func install() error {
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
 	var f recipeFetcher = new(yamlRecipeFetcher)
-	recipes, err := f.fetch(manifest)
+	recipes, err := f.fetch(configFile, manifest)
 	if err != nil {
 		return err
 	}

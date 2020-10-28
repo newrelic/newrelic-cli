@@ -9,7 +9,7 @@ GOIMPORTS    ?= goimports
 
 COMMIT_LINT_CMD   ?= go-gitlint
 COMMIT_LINT_REGEX ?= "(Scoop update|(chore|docs|feat|fix|refactor|tests?)(\([^\)]+\))?:) .*"
-COMMIT_LINT_START ?= "2020-05-08"
+COMMIT_LINT_START ?= "2020-10-28"
 COMMIT_MSG_FILE   ?= ""
 
 GOLINTER      = golangci-lint

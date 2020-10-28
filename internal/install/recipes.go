@@ -2,14 +2,14 @@ package install
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/url"
 
 	"gopkg.in/yaml.v2"
 )
 
-const recipeFile = "recipes/infra.yaml"
-
 type recipeFetcher interface {
-	fetch(*discoveryManifest) ([]recipe, error)
+	fetch(string, *discoveryManifest) ([]recipe, error)
 }
 
 type recipe struct {
@@ -41,12 +41,30 @@ type loggingMatcher struct {
 
 type yamlRecipeFetcher struct{}
 
-func (m *yamlRecipeFetcher) fetch(manifest *discoveryManifest) ([]recipe, error) {
+func (m *yamlRecipeFetcher) fetch(configFile string, manifest *discoveryManifest) ([]recipe, error) {
 	var x recipe
+	var data []byte
+	var err error
 
-	data, err := ioutil.ReadFile(recipeFile)
-	if err != nil {
-		return nil, err
+	// Try to parse the config
+	url, err := url.Parse(configFile)
+	if url != nil && err == nil && url.IsAbs() {
+		resp, getErr := http.Get(url.String())
+		if getErr != nil {
+			return nil, getErr
+		}
+
+		defer resp.Body.Close()
+
+		data, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		data, err = ioutil.ReadFile(configFile)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = yaml.Unmarshal(data, &x)
