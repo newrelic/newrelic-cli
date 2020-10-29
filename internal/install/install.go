@@ -79,9 +79,7 @@ func executeRecipeSteps(r recipe) error {
 		return err
 	}
 
-	taskKeys := getTaskKeys(map[string]*taskfile.Task(tf.Tasks))
-
-	calls, globals := taskargs.ParseV3(taskKeys...)
+	calls, globals := taskargs.ParseV3()
 	e.Taskfile.Vars.Merge(globals)
 
 	if err := e.Run(getSignalContext(), calls...); err != nil {
@@ -89,18 +87,6 @@ func executeRecipeSteps(r recipe) error {
 	}
 
 	return nil
-}
-
-func getTaskKeys(m map[string]*taskfile.Task) []string {
-	keys := make([]string, len(m))
-
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-
-	return keys
 }
 
 func getSignalContext() context.Context {
