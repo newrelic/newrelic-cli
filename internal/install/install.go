@@ -89,18 +89,6 @@ func executeRecipeSteps(r recipe) error {
 	return nil
 }
 
-func getTaskKeys(m map[string]*taskfile.Task) []string {
-	keys := make([]string, len(m))
-
-	i := 0
-	for k := range m {
-		keys[i] = k
-		i++
-	}
-
-	return keys
-}
-
 func getSignalContext() context.Context {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
