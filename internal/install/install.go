@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	"errors"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -10,6 +11,7 @@ import (
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -81,6 +83,21 @@ func executeRecipeSteps(r recipe) error {
 
 	calls, globals := taskargs.ParseV3()
 	e.Taskfile.Vars.Merge(globals)
+
+	credentials.WithCredentials(func(c *credentials.Credentials) {
+		v := taskfile.Vars{}
+		licenseKey := c.Profiles[c.DefaultProfile].LicenseKey
+		if licenseKey == "" {
+			err = errors.New("license key not found in default profile")
+		}
+
+		v.Set("NR_LICENSE_KEY", taskfile.Var{Static: licenseKey})
+		e.Taskfile.Vars.Merge(&v)
+	})
+
+	if err != nil {
+		return err
+	}
 
 	if err := e.Run(getSignalContext(), calls...); err != nil {
 		return err
