@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -45,7 +46,7 @@ func initializeProfile() {
 
 	credentials.WithCredentials(func(c *credentials.Credentials) {
 		if c.DefaultProfile != "" {
-			log.Infof("default profile already exists")
+			err = errors.New("default profile already exists, not attempting to initialize")
 			return
 		}
 
@@ -57,6 +58,7 @@ func initializeProfile() {
 
 		// If we don't have a personal API key we can't initialize a profile.
 		if apiKey == "" {
+			err = errors.New("api key not provided, not attempting to initialize default profile")
 			return
 		}
 
@@ -69,7 +71,8 @@ func initializeProfile() {
 		if envAccountID != "" {
 			accountID, err = strconv.Atoi(envAccountID)
 			if err != nil {
-				log.Warnf("couldn't parse account ID: %s", err)
+				err = fmt.Errorf("couldn't parse account ID: %s", err)
+				return
 			}
 		}
 
@@ -101,7 +104,7 @@ func initializeProfile() {
 
 				err = c.AddProfile(defaultProfileName, p)
 				if err != nil {
-					log.Fatal(err)
+					return
 				}
 
 				log.Infof("profile %s added", text.FgCyan.Sprint(defaultProfileName))
@@ -110,6 +113,7 @@ func initializeProfile() {
 			if len(c.Profiles) == 1 {
 				err = c.SetDefaultProfile(defaultProfileName)
 				if err != nil {
+					err = fmt.Errorf("error setting %s as the default profile: %s", text.FgCyan.Sprint(defaultProfileName), err)
 					return
 				}
 
@@ -119,7 +123,7 @@ func initializeProfile() {
 	})
 
 	if err != nil {
-		log.Warnf("couldn't initialize default profile: %s", err)
+		log.Debugf("couldn't initialize default profile: %s", err)
 	}
 }
 
