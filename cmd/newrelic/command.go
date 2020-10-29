@@ -69,7 +69,7 @@ func initializeProfile() {
 		if envAccountID != "" {
 			accountID, err = strconv.Atoi(envAccountID)
 			if err != nil {
-				log.Warnf("couldn't initialize default profile: %s", err)
+				log.Warnf("couldn't parse account ID: %s", err)
 			}
 		}
 
@@ -79,7 +79,7 @@ func initializeProfile() {
 			if accountID == 0 {
 				accountID, err = fetchAccountID(nrClient)
 				if err != nil {
-					log.Warnf("couldn't initialize default profile: %s", err)
+					return
 				}
 			}
 
@@ -87,7 +87,7 @@ func initializeProfile() {
 				// We should have an account ID by now, so fetch the license key for it.
 				licenseKey, err = fetchLicenseKey(nrClient, accountID)
 				if err != nil {
-					log.Warnf("couldn't initialize default profile: %s", err)
+					return
 				}
 			}
 
@@ -99,7 +99,7 @@ func initializeProfile() {
 					LicenseKey: licenseKey,
 				}
 
-				err := c.AddProfile(defaultProfileName, p)
+				err = c.AddProfile(defaultProfileName, p)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -108,15 +108,19 @@ func initializeProfile() {
 			}
 
 			if len(c.Profiles) == 1 {
-				err := c.SetDefaultProfile(defaultProfileName)
+				err = c.SetDefaultProfile(defaultProfileName)
 				if err != nil {
-					log.Warn("couldn't initialize default profile", err)
+					return
 				}
 
 				log.Infof("setting %s as default profile", text.FgCyan.Sprint(defaultProfileName))
 			}
 		})
 	})
+
+	if err != nil {
+		log.Warnf("couldn't initialize default profile: %s", err)
+	}
 }
 
 func hasProfileWithDefaultName(profiles map[string]credentials.Profile) bool {

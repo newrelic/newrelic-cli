@@ -11,9 +11,10 @@ import (
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 )
 
 func install(configFile string) error {
