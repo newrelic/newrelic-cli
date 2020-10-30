@@ -18,15 +18,17 @@ newrelic profile add [flags]
 ### Examples
 
 ```
-newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey>
+newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>
 ```
 
 ### Options
 
 ```
+      --accountId int              your account ID
       --apiKey string              your personal API key
   -h, --help                       help for add
       --insightsInsertKey string   your Insights insert key
+      --licenseKey string          your license key
   -n, --name string                unique profile name to add
   -r, --region string              the US or EU region
 ```
@@ -34,7 +36,7 @@ newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [YAML, JSON, Text] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
