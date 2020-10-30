@@ -71,22 +71,15 @@ func (c *Credentials) profileExists(profileName string) bool {
 }
 
 // AddProfile adds a new profile to the credentials file.
-func (c *Credentials) AddProfile(profileName, reg, apiKey string, insightsInsertKey string, accountID int) error {
+func (c *Credentials) AddProfile(profileName string, p Profile) error {
 	var err error
 
 	if c.profileExists(profileName) {
 		return fmt.Errorf("profile with name %s already exists", profileName)
 	}
 
-	p := Profile{
-		Region:            strings.ToUpper(reg),
-		APIKey:            apiKey,
-		InsightsInsertKey: insightsInsertKey,
-	}
-
-	if accountID > 0 {
-		p.AccountID = accountID
-	}
+	// Case fold the region
+	p.Region = strings.ToUpper(p.Region)
 
 	c.Profiles[profileName] = p
 
@@ -169,14 +162,35 @@ func (c *Credentials) List() {
 	// Print them out
 	for k, v := range c.Profiles {
 		name := k
+
 		if k == c.DefaultProfile {
 			name += text.FgHiBlack.Sprint(defaultProfileString)
 		}
-		apiKey := text.FgHiBlack.Sprint(hiddenKeyString)
-		insightsInsertKey := text.FgHiBlack.Sprint(hiddenKeyString)
+
+		var accountID int
+		if v.AccountID != 0 {
+			accountID = v.AccountID
+		}
+
+		var apiKey string
+		if v.APIKey != "" {
+			apiKey = text.FgHiBlack.Sprint(hiddenKeyString)
+		}
+
+		var insightsInsertKey string
+		if v.InsightsInsertKey != "" {
+			insightsInsertKey = text.FgHiBlack.Sprint(hiddenKeyString)
+		}
+
+		var licenseKey string
+		if v.LicenseKey != "" {
+			licenseKey = text.FgHiBlack.Sprint(hiddenKeyString)
+		}
+
 		if showKeys {
 			apiKey = v.APIKey
 			insightsInsertKey = v.InsightsInsertKey
+			licenseKey = v.LicenseKey
 		}
 
 		out = append(out, profileList{
@@ -184,15 +198,20 @@ func (c *Credentials) List() {
 			Region:            v.Region,
 			APIKey:            apiKey,
 			InsightsInsertKey: insightsInsertKey,
+			AccountID:         accountID,
+			LicenseKey:        licenseKey,
 		})
 	}
 
 	output.Text(out)
 }
 
+// The order of fields in this struct dictates the ordering of the output table.
 type profileList struct {
 	Name              string
+	AccountID         int
 	Region            string
 	APIKey            string
+	LicenseKey        string
 	InsightsInsertKey string
 }

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/accounts"
+	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
 var outputFormat string
@@ -32,98 +35,145 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	// TODO what do we want?
+	initializeProfile()
+}
 
-	// Create a license key from nerdgraph using the creds we have.  This may
-	// require an accountID.  Set this in the profile.
-
-	// Trim down the required number of elements in the environment as much as
-	// possible.
-
-	// When an accountID is required, we should try to retrieve it from
-	// nerdgraph, in place of requiring the user to set it.
-
-	// Determine the accounts this user has access to.  In the case we have only
-	// one, then we have our answer about which account ID to use.
-	// { actor { accounts(scope: IN_REGION) { id name } } }
-
-	// Default to US region?
+func initializeProfile() {
 	var accountID int
+	var region string
+	var licenseKey string
 	var err error
 
 	credentials.WithCredentials(func(c *credentials.Credentials) {
 		if c.DefaultProfile != "" {
-			log.Infof("default profile already exists")
+			err = errors.New("default profile already exists, not attempting to initialize")
 			return
 		}
 
-		envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
-		envRegion := os.Getenv("NEW_RELIC_REGION")
+		apiKey := os.Getenv("NEW_RELIC_API_KEY")
 		envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 
-		hasDefault := func() bool {
-			for profileName := range c.Profiles {
-				if profileName == defaultProfileName {
-					return true
-				}
-			}
+		region = os.Getenv("NEW_RELIC_REGION")
+		licenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
 
-			return false
+		// If we don't have a personal API key we can't initialize a profile.
+		if apiKey == "" {
+			err = errors.New("api key not provided, not attempting to initialize default profile")
+			return
 		}
 
-		if envAPIKey != "" && envRegion != "" {
+		// Default the region to US if it's not in the environment
+		if region == "" {
+			region = "US"
+		}
 
-			// TODO: DRY this up (exists as well in credentials/command.go)
+		// Use the accountID from the environment if we have it.
+		if envAccountID != "" {
+			accountID, err = strconv.Atoi(envAccountID)
+			if err != nil {
+				err = fmt.Errorf("couldn't parse account ID: %s", err)
+				return
+			}
+		}
 
-			// Use the accountID from the environment if we have it.
-			if envAccountID != "" {
-				accountID, err = strconv.Atoi(envAccountID)
+		// We should have an API key by this point, initialize the client.
+		client.WithClient(func(nrClient *newrelic.NewRelic) {
+			// If we still don't have an account ID try to look one up from the API.
+			if accountID == 0 {
+				accountID, err = fetchAccountID(nrClient)
 				if err != nil {
-					log.Errorf("error reading accountID from environment: %s", err)
+					return
 				}
 			}
 
-			// If we still don't have an account ID, try to look one up from the API.
-			if accountID == 0 {
-				client.WithClient(func(nrClient *newrelic.NewRelic) {
-
-					params := accounts.ListAccountsParams{
-						Scope: &accounts.RegionScopeTypes.IN_REGION,
-					}
-
-					resp, err := nrClient.Accounts.ListAccounts(params)
-					if err != nil {
-						log.Fatal("error retrieving accounts:", err)
-					}
-
-					if len(resp) == 1 {
-						// Set the accountID for the profile
-						accountID = resp[0].ID
-					} else {
-						log.Warnf("more than one account found")
-					}
-				})
+			if licenseKey == "" {
+				// We should have an account ID by now, so fetch the license key for it.
+				licenseKey, err = fetchLicenseKey(nrClient, accountID)
+				if err != nil {
+					return
+				}
 			}
 
-			if !hasDefault() {
-				err := c.AddProfile(defaultProfileName, envRegion, envAPIKey, "", accountID)
+			if !hasProfileWithDefaultName(c.Profiles) {
+				p := credentials.Profile{
+					Region:     region,
+					APIKey:     apiKey,
+					AccountID:  accountID,
+					LicenseKey: licenseKey,
+				}
+
+				err = c.AddProfile(defaultProfileName, p)
 				if err != nil {
-					log.Fatal(err)
+					return
 				}
 
 				log.Infof("profile %s added", text.FgCyan.Sprint(defaultProfileName))
 			}
 
 			if len(c.Profiles) == 1 {
-				err := c.SetDefaultProfile(defaultProfileName)
+				err = c.SetDefaultProfile(defaultProfileName)
 				if err != nil {
-					log.Fatal(err)
+					err = fmt.Errorf("error setting %s as the default profile: %s", text.FgCyan.Sprint(defaultProfileName), err)
+					return
 				}
 
 				log.Infof("setting %s as default profile", text.FgCyan.Sprint(defaultProfileName))
 			}
-		}
+		})
 	})
+
+	if err != nil {
+		log.Debugf("couldn't initialize default profile: %s", err)
+	}
+}
+
+func hasProfileWithDefaultName(profiles map[string]credentials.Profile) bool {
+	for profileName := range profiles {
+		if profileName == defaultProfileName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
+	query := ` query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
+
+	variables := map[string]interface{}{
+		"accountId": accountID,
+	}
+
+	resp, err := client.NerdGraph.Query(query, variables)
+	if err != nil {
+		return "", err
+	}
+
+	queryResp := resp.(nerdgraph.QueryResponse)
+	actor := queryResp.Actor.(map[string]interface{})
+	account := actor["account"].(map[string]interface{})
+	licenseKey := account["licenseKey"].(string)
+
+	return licenseKey, nil
+}
+
+// fetchAccountID will try and retrieve an account ID for the given user.  If it
+// finds more than one account it will returrn an error.
+func fetchAccountID(client *newrelic.NewRelic) (int, error) {
+	params := accounts.ListAccountsParams{
+		Scope: &accounts.RegionScopeTypes.IN_REGION,
+	}
+
+	accounts, err := client.Accounts.ListAccounts(params)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(accounts) == 1 {
+		return accounts[0].ID, nil
+	}
+
+	return 0, errors.New("more than one account found")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -1,6 +1,8 @@
 package install
 
 import (
+	"errors"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -18,8 +20,10 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		// This assumes a default profile exists
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
+			if profile == nil {
+				log.Fatal(errors.New("default profile has not been set"))
+			}
 
 			for _, c := range configFiles {
 				if err := install(c); err != nil {
