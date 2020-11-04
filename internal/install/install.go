@@ -20,7 +20,7 @@ import (
 func install(configFile string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = new(mockDiscoverer)
+	var d discoverer = new(langDiscoverer)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
