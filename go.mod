@@ -16,8 +16,10 @@ require (
 	github.com/llorllale/go-gitlint v0.0.0-20200802191503-5984945d4b80
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
+	github.com/newrelic/infra-integrations-sdk v3.6.5+incompatible
 	github.com/newrelic/newrelic-client-go v0.47.3
 	github.com/psampaz/go-mod-outdated v0.7.0
+	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
