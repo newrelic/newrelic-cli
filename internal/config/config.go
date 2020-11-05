@@ -25,7 +25,7 @@ const (
 	DefaultConfigType = "json"
 
 	// DefaultEnvPrefix is used when reading environment variables
-	DefaultEnvPrefix = "newrelic"
+	DefaultEnvPrefix = "NEW_RELIC_CLI"
 
 	// DefaultLogLevel is the default log level
 	DefaultLogLevel = "INFO"
@@ -193,6 +193,11 @@ func load(configDir string) (*Config, error) {
 		return nil, err
 	}
 
+	err = config.applyOverrides()
+	if err != nil {
+		return nil, err
+	}
+
 	return &config, nil
 }
 
@@ -309,6 +314,16 @@ func (c *Config) getDefaultValue(key string) (interface{}, error) {
 	}
 
 	return nil, fmt.Errorf("failed to locate default value for %s", key)
+}
+
+func (c *Config) applyOverrides() error {
+	log.Debug("setting config overrides")
+
+	if v := os.Getenv("NEW_RELIC_CLI_PRERELEASEFEATURES"); v != "" {
+		c.PreReleaseFeatures = Ternary(v)
+	}
+
+	return nil
 }
 
 func (c *Config) setDefaults() error {

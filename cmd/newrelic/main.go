@@ -14,6 +14,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/events"
+	"github.com/newrelic/newrelic-cli/internal/install"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
@@ -41,6 +42,7 @@ func init() {
 	Command.AddCommand(reporting.Command)
 	Command.AddCommand(workload.Command)
 	Command.AddCommand(agent.Command)
+	Command.AddCommand(install.Command)
 
 	CheckPrereleaseMode(Command)
 }

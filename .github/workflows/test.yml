@@ -63,7 +63,7 @@ jobs:
       run: make test-unit
 
     - name: New Relic JUnit Reporter
-      if: ${{ always() }}
+      if: github.event.pull_request.head.repo.full_name == github.repository
       uses: newrelic/junit-reporter-action@v0.1.1
       with:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
@@ -96,6 +96,7 @@ jobs:
           ${{ runner.os }}-go-
 
     - name: Integration Tests
+      if: github.event.pull_request.head.repo.full_name == github.repository
       run: make test-integration
       env:
         NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
@@ -105,7 +106,7 @@ jobs:
         NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
 
     - name: New Relic JUnit Reporter
-      if: ${{ always() }}
+      if: github.event.pull_request.head.repo.full_name == github.repository
       uses: newrelic/junit-reporter-action@v0.1.1
       with:
         accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}

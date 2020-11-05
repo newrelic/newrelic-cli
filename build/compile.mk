@@ -28,7 +28,7 @@ compile-all: deps-only
 	@mkdir -p $(BUILD_DIR)/$(GOOS)
 	@for b in $(BINS); do \
 		for os in $(COMPILE_OS); do \
-			echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)$$os/$$b"; \
+			echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)/$$os/$$b"; \
 			BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
 			CGO_ENABLED=0 GOOS=$$os $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$$os/$$b $$BUILD_FILES ; \
 		done \

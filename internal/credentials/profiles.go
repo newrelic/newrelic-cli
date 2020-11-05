@@ -25,6 +25,8 @@ type Profile struct {
 	APIKey            string `mapstructure:"apiKey" json:"apiKey,omitempty"`                       // For accessing New Relic GraphQL resources
 	InsightsInsertKey string `mapstructure:"insightsInsertKey" json:"insightsInsertKey,omitempty"` // For posting custom events
 	Region            string `mapstructure:"region" json:"region,omitempty"`                       // Region to use for New Relic resources
+	AccountID         int    `mapstructure:"accountID" json:"accountID"`                           // AccountID to use for New Relic resources
+	LicenseKey        string `mapstructure:"licenseKey" json:"licenseKey"`                         // License key to use for agent config and ingest
 }
 
 // LoadProfiles reads the credential profiles from the default path.
@@ -149,9 +151,13 @@ func (p Profile) MarshalJSON() ([]byte, error) {
 		APIKey            string `json:"apiKey,omitempty"`
 		InsightsInsertKey string `json:"insightsInsertKey,omitempty"`
 		Region            string `json:"region,omitempty"`
+		AccountID         int    `json:"accountID,omitempty"`
+		LicenseKey        string `json:"licenseKey,omitempty"`
 	}{
 		APIKey:            p.APIKey,
 		InsightsInsertKey: p.InsightsInsertKey,
+		AccountID:         p.AccountID,
+		LicenseKey:        p.LicenseKey,
 		Region:            strings.ToLower(p.Region),
 	})
 }
