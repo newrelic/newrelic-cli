@@ -20,6 +20,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 * [newrelic apm](newrelic_apm.md)	 - Interact with New Relic APM
 * [newrelic completion](newrelic_completion.md)	 - Generates shell completion functions
 * [newrelic config](newrelic_config.md)	 - Manage the configuration of the New Relic CLI
+* [newrelic diagnose](newrelic_diagnose.md)	 - Troubleshoot your New Relic installation
 * [newrelic documentation](newrelic_documentation.md)	 - Generate CLI documentation
 * [newrelic edge](newrelic_edge.md)	 - Interact with New Relic Edge
 * [newrelic entity](newrelic_entity.md)	 - Interact with New Relic entities
