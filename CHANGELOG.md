@@ -1,3 +1,13 @@
+<a name="v0.16.0"></a>
+## [v0.16.0] - 2020-11-04
+### Bug Fixes
+- **internal/diagnose:** download udpates via https!
+
+### Features
+- **internal/diagnose:** lint command; break out commands & helpers
+- **internal/diagnose:** add minimal command line options
+- **newrelic:** integrate with nrdiag (prototype)
+
 <a name="v0.15.2"></a>
 ## [v0.15.2] - 2020-10-29
 ### Bug Fixes
@@ -287,7 +297,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.16.0...HEAD
+[v0.16.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.2...v0.16.0
 [v0.15.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.1...v0.15.2
 [v0.15.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.0...v0.15.1
 [v0.15.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.1...v0.15.0
