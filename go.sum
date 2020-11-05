@@ -661,6 +661,8 @@ github.com/newrelic/infra-integrations-sdk v3.6.5+incompatible h1:LfmaAvvEvSy8BK
 github.com/newrelic/infra-integrations-sdk v3.6.5+incompatible/go.mod h1:tMUHRMq6mJS0YyBnbWrTXAnREnQqC1AGO6Lu45u5xAM=
 github.com/newrelic/newrelic-client-go v0.47.3 h1:BsFIN06drKTZC7FvAAjF0DOn0CVuIa8gdqviQPwIY8w=
 github.com/newrelic/newrelic-client-go v0.47.3/go.mod h1:DXWmWwZBWgvNMI7KNAvy/s+szaIQE27jXlhKjlGaQI4=
+github.com/newrelic/newrelic-diagnostics-cli v0.0.0-20201105014318-b67c82030fbe h1:ncPwuIaFlLcubTZ4L6a+ZnSHBeaRedSU1nDqQQktXfg=
+github.com/newrelic/newrelic-diagnostics-cli v0.0.0-20201105014318-b67c82030fbe/go.mod h1:xVLCeQbwXHxPcufDRcbM5php5O2TPqkIeDKJSKKXSvQ=
 github.com/newrelic/tutone v0.2.5/go.mod h1:Jv8miaLyP2pjx4wqvAdx1nLXMx/Cl7kmsNiKZlCeIds=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=

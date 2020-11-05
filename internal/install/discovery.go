@@ -7,6 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/pkg/lang"
+	"github.com/zlesnr/newrelic-diagnostics-cli/tasks/base/env"
 )
 
 type discoveryManifest struct {
@@ -48,6 +49,26 @@ func (m *langDiscoverer) discover() (*discoveryManifest, error) {
 		processes: processList,
 		platform:  runtime.GOOS,
 		arch:      runtime.GOARCH,
+	}
+
+	return &x, nil
+}
+
+type diagDiscoverer struct{}
+
+func (m *diagDiscoverer) discover() (*discoveryManifest, error) {
+	hostInfo, err := env.NewHostInfo()
+	if err != nil {
+		return nil, err
+	}
+
+	x := discoveryManifest{
+		platform: runtime.GOOS,
+		arch:     runtime.GOARCH,
+	}
+
+	for _, p := range hostInfo.Processes {
+		x.processes = append(x.processes, p)
 	}
 
 	return &x, nil
