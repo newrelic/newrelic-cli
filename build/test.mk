@@ -46,7 +46,7 @@ cover-report:
 	@echo 'mode: $(COVERMODE)' > $(COVERAGE_DIR)/coverage.out
 	@cat $(COVERAGE_DIR)/*.tmp | grep -v 'mode: $(COVERMODE)' >> $(COVERAGE_DIR)/coverage.out || true
 	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out -o $(COVERAGE_DIR)/coverage.html
-	@echo "=== $(PROJECT_NAME) === [ cover-report     ]:     $(COVERAGE_DIR)coverage.html"
+	@echo "=== $(PROJECT_NAME) === [ cover-report     ]:     $(COVERAGE_DIR)/coverage.html"
 
 cover-view: cover-report
 	@$(GO) tool cover -html=$(COVERAGE_DIR)/coverage.out
