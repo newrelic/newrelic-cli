@@ -123,7 +123,7 @@ func initializeProfile() {
 	})
 
 	if err != nil {
-		log.Debugf("couldn't initialize default profile: %s", err)
+		log.Fatal("couldn't initialize default profile: ", err)
 	}
 }
 
@@ -173,7 +173,7 @@ func fetchAccountID(client *newrelic.NewRelic) (int, error) {
 		return accounts[0].ID, nil
 	}
 
-	return 0, errors.New("more than one account found")
+	return 0, errors.New("more than one account found. Use the environment variable NEW_RELIC_ACCOUNT_ID to specify which accountId to use.")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
