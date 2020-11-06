@@ -67,8 +67,22 @@ func (m *diagDiscoverer) discover() (*discoveryManifest, error) {
 		arch:     runtime.GOARCH,
 	}
 
+	integrations := []string{
+		"java",
+		"nginx",
+	}
+
 	for _, p := range hostInfo.Processes {
-		x.processes = append(x.processes, p)
+		for _, i := range integrations {
+			name, err := p.Name()
+			if err != nil {
+				continue
+			}
+
+			if i == name {
+				x.processes = append(x.processes, p)
+			}
+		}
 	}
 
 	return &x, nil

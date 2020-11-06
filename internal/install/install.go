@@ -3,11 +3,14 @@ package install
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
@@ -17,19 +20,21 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 )
 
-func install(configFile string) error {
+func install(configFiles []string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = new(langDiscoverer)
+	var d discoverer = new(diagDiscoverer)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
 	}
 
+	log.Debugf("manifest: %+v", manifest)
+
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
 	var f recipeFetcher = new(yamlRecipeFetcher)
-	recipes, err := f.fetch(configFile, manifest)
+	recipes, err := f.fetch(configFiles, manifest)
 	if err != nil {
 		return err
 	}
@@ -43,6 +48,28 @@ func install(configFile string) error {
 	}
 
 	return nil
+}
+
+var s *spinner.Spinner
+
+func preRun(t *taskfile.Task, x map[string]interface{}) {
+	if t.Name() == "default" {
+		return
+	}
+	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Prefix = fmt.Sprintf("%s... ", t.Name())
+	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
+
+	// x["spinner"] = s
+	s.Start()
+}
+
+func postRun(t *taskfile.Task, x map[string]interface{}) {
+	if t.Name() == "default" {
+		return
+	}
+	// x["spinner"].(*spinner.Spinner).Stop()
+	s.Stop()
 }
 
 func executeRecipeSteps(r recipe) error {
@@ -70,11 +97,17 @@ func executeRecipeSteps(r recipe) error {
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
+		PreRun:     preRun,
+		PostRun:    postRun,
 	}
 
 	if err = e.Setup(); err != nil {
 		return err
 	}
+
+	// e.Stderr = nil
+	// e.Stdout = nil
+	// e.Stdin = nil
 
 	var tf taskfile.Taskfile
 	err = yaml.Unmarshal(out, &tf)

@@ -3,6 +3,7 @@ module github.com/newrelic/newrelic-cli
 go 1.13
 
 require (
+	github.com/briandowns/spinner v1.11.1
 	github.com/client9/misspell v0.3.4
 	github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373
 	github.com/go-task/task/v3 v3.0.1-0.20201013001609-60759a4e3b23
