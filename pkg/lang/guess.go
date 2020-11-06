@@ -32,7 +32,7 @@ func GetLangs(ctx context.Context) map[ID][]*process.Process {
 	for _, pid := range pids {
 		p, err := process.NewProcess(pid)
 		if err != nil {
-			l.Warnf("cannot read pid: %s", pid, err.Error())
+			// l.Debugf("cannot read pid: %s", pid, err.Error())
 			continue
 		}
 

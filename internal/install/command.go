@@ -25,10 +25,8 @@ var Command = &cobra.Command{
 				log.Fatal(errors.New("default profile has not been set"))
 			}
 
-			for _, c := range configFiles {
-				if err := install(c); err != nil {
-					utils.LogIfFatal(err)
-				}
+			if err := install(configFiles); err != nil {
+				utils.LogIfFatal(err)
 			}
 
 			log.Info("success")
@@ -37,10 +35,5 @@ var Command = &cobra.Command{
 }
 
 func init() {
-	Command.Flags().StringSliceVarP(&configFiles, "config", "c", []string{"recipes/infra.yaml"}, "Path to the config file")
-
-	err := Command.MarkFlagRequired("config")
-	if err != nil {
-		log.Error(err)
-	}
+	Command.Flags().StringSliceVarP(&configFiles, "config", "c", []string{}, "Path to the config file")
 }
