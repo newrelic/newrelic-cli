@@ -25,8 +25,8 @@ type Profile struct {
 	APIKey            string `mapstructure:"apiKey" json:"apiKey,omitempty"`                       // For accessing New Relic GraphQL resources
 	InsightsInsertKey string `mapstructure:"insightsInsertKey" json:"insightsInsertKey,omitempty"` // For posting custom events
 	Region            string `mapstructure:"region" json:"region,omitempty"`                       // Region to use for New Relic resources
-	AccountID         int    `mapstructure:"accountID" json:"accountID"`                           // AccountID to use for New Relic resources
-	LicenseKey        string `mapstructure:"licenseKey" json:"licenseKey"`                         // License key to use for agent config and ingest
+	AccountID         int    `mapstructure:"accountID" json:"accountID,omitempty"`                 // AccountID to use for New Relic resources
+	LicenseKey        string `mapstructure:"licenseKey" json:"licenseKey,omitempty"`               // License key to use for agent config and ingest
 }
 
 // LoadProfiles reads the credential profiles from the default path.
@@ -69,22 +69,17 @@ func (c *Credentials) Default() *Profile {
 func readDefaultProfile(configDir string) (string, error) {
 	var defaultProfile string
 
-	cfgViper := viper.New()
-	cfgViper.SetConfigName(DefaultProfileFile)
-	cfgViper.SetConfigType(defaultConfigType)
-	cfgViper.AddConfigPath(configDir)
-
-	// ReadInConfig must be called here, even though we receive an error back,
-	// ConfigFileUsed() does not return the value without this call here.
-	err := cfgViper.ReadInConfig()
+	_, err := os.Stat(configDir)
 	if err != nil {
-		log.Debug(err)
+		return "", fmt.Errorf("unable to read default-profile from %s: %s", configDir, err)
 	}
 
-	// Since Viper requires key:value, we manually read it again and unmarshal the JSON...
-	byteValue, err := ioutil.ReadFile(cfgViper.ConfigFileUsed())
+	configPath := os.ExpandEnv(fmt.Sprintf("%s/%s.%s", configDir, DefaultProfileFile, defaultConfigType))
+
+	// The default-profile.json is a quoted string of the name for the default profile.
+	byteValue, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		return "", fmt.Errorf("error while reading default profile file %s: %s", cfgViper.ConfigFileUsed(), err)
+		return "", fmt.Errorf("error while reading default profile file %s: %s", configPath, err)
 	}
 	err = json.Unmarshal(byteValue, &defaultProfile)
 	if err != nil {
