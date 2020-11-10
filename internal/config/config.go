@@ -155,7 +155,7 @@ func (c *Config) Get(key string) {
 	output.Text(c.getAll(key))
 }
 
-// Set sets a config value.
+// Set is used to update a config value.
 func (c *Config) Set(key string, value interface{}) error {
 	if !stringInStrings(key, validConfigKeys()) {
 		return fmt.Errorf("\"%s\" is not a valid key; Please use one of: %s", key, validConfigKeys())
@@ -215,6 +215,8 @@ func (c *Config) createFile(path string, cfgViper *viper.Viper) error {
 		return err
 	}
 
+	log.Debugf("creating config file at %s: %+v", path, cfgViper.AllSettings())
+
 	err = cfgViper.WriteConfigAs(path)
 	if err != nil {
 		return err
@@ -250,8 +252,8 @@ func (c *Config) set(key string, value interface{}) error {
 	}
 
 	cfgViper.Set(globalScopeIdentifier+"."+key, value)
-	allScopes, err := unmarshalAllScopes(cfgViper)
 
+	allScopes, err := unmarshalAllScopes(cfgViper)
 	if err != nil {
 		return err
 	}
@@ -267,8 +269,14 @@ func (c *Config) set(key string, value interface{}) error {
 	}
 
 	err = config.validate()
-
 	if err != nil {
+		return err
+	}
+
+	// Update our instance of the config with what was taken from cfgViper.  This
+	// is required for the createFile below to function properly, as it relies on
+	// the instance values.
+	if err := mergo.Merge(c, config, mergo.WithOverride); err != nil {
 		return err
 	}
 
@@ -279,14 +287,11 @@ func (c *Config) set(key string, value interface{}) error {
 			return createErr
 		}
 	} else {
-		err = cfgViper.WriteConfig()
+		log.Debugf("writing config file at %s", path)
+		err = cfgViper.WriteConfigAs(path)
 		if err != nil {
 			log.Error(err)
 		}
-	}
-
-	if err := mergo.Merge(c, config, mergo.WithOverride); err != nil {
-		return err
 	}
 
 	return nil
@@ -403,8 +408,6 @@ func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config with error: %v", err)
 	}
-
-	log.Debugf("loaded config from: %v", cfgViper.ConfigFileUsed())
 
 	return &cfgMap, nil
 }

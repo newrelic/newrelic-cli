@@ -31,6 +31,11 @@ func TestConfigSetLogLevel(t *testing.T) {
 		err = c.Set("logLevel", l)
 		assert.NoError(t, err)
 		assert.Equal(t, l, c.LogLevel)
+
+		// Double check that the config is written to disk
+		c2, err := LoadConfig(f)
+		assert.NoError(t, err)
+		assert.Equal(t, l, c2.LogLevel)
 	}
 
 	err = c.Set("logLevel", "INVALID_VALUE")
@@ -41,6 +46,7 @@ func TestConfigSetLogLevel(t *testing.T) {
 
 	err = c.Set("Loglevel", "Debug")
 	assert.Error(t, err)
+
 }
 
 func TestConfigSetSendUsageData(t *testing.T) {
