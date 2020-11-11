@@ -50,17 +50,17 @@ func install(configFiles []string) error {
 	return nil
 }
 
-var s *spinner.Spinner
+// var s *spinner.Spinner
 
 func preRun(t *taskfile.Task, x map[string]interface{}) {
 	if t.Name() == "default" {
 		return
 	}
-	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Prefix = fmt.Sprintf("%s... ", t.Name())
 	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
 
-	// x["spinner"] = s
+	x["spinner"] = s
 	s.Start()
 }
 
@@ -68,8 +68,8 @@ func postRun(t *taskfile.Task, x map[string]interface{}) {
 	if t.Name() == "default" {
 		return
 	}
-	// x["spinner"].(*spinner.Spinner).Stop()
-	s.Stop()
+	x["spinner"].(*spinner.Spinner).Stop()
+	// s.Stop()
 }
 
 func executeRecipeSteps(r recipe) error {
@@ -105,9 +105,9 @@ func executeRecipeSteps(r recipe) error {
 		return err
 	}
 
-	// e.Stderr = nil
-	// e.Stdout = nil
-	// e.Stdin = nil
+	e.Stderr = nil
+	e.Stdout = nil
+	e.Stdin = nil
 
 	var tf taskfile.Taskfile
 	err = yaml.Unmarshal(out, &tf)

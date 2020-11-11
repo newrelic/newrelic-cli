@@ -40,17 +40,46 @@ install:
     BAR_VAR: barvalue
 
   tasks:
-    install:
+    default:
       cmds:
         - task: setup_nr_profile
-        - task: install_infra
+        # - task: install_infra
+        - task: one
+        - task: two
+        - task: three
+        - task: nap_time
 
     setup_nr_profile:
+      label: "Setting up NR Profile"
+      silent: true
       cmds:
-        - echo "Setting up NR Profile"
+
+    one:
+      silent: true
+      label: "doing a thing"
+      cmds:
+        - sleep 2
+
+    two:
+      silent: true
+      label: "doing a another thing"
+      cmds:
+        - sleep 3
+
+    three:
+      silent: true
+      label: "doing a last thing"
+      cmds:
+        - sleep 2
+
+    nap_time:
+      silent: true
+      cmds:
+        - sleep 2
 
     install_infra:
-      cmds:
-        - echo "Installing the Infrastructure agent"
-        - curl -L https://raw.githubusercontent.com/fryckbos/infra-install/master/install.sh {{.NR_LICENSE_KEY}} | sh
       silent: true
+      Label: "Installing the Infrastructure agent"
+      cmds:
+        - curl -s -L https://raw.githubusercontent.com/fryckbos/infra-install/master/install.sh {{.NR_LICENSE_KEY}} | sh
+

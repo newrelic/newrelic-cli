@@ -1,9 +1,11 @@
 package install
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -102,10 +104,24 @@ func (m *mockServer) submit(manifest *discoveryManifest) []string {
 	available := []string{}
 
 	allIntegrations := map[string][]string{}
-	allIntegrations["java"] = []string{"recipes/demo.yaml"}
+	allIntegrations["java"] = []string{
+		"https://raw.githubusercontent.com/newrelic/newrelic-cli/feat/process-detection/recipes/demo.yaml",
+	}
+	allIntegrations["nginx"] = []string{
+		"https://raw.githubusercontent.com/newrelic/open-install-library/main/recipes/newrelic/nginx/nginx_amazonLinux2.yml?token=AG7IYRH3SW7WU2DQ2WDQ7AC7V3NVQ",
+	}
+
+	names := []string{}
+	namesHasName := func(names []string, name string) bool {
+		for _, n := range names {
+			if n == name {
+				return true
+			}
+		}
+		return false
+	}
 
 	for _, p := range manifest.processes {
-
 		for k, v := range allIntegrations {
 			name, err := p.Name()
 			if err != nil {
@@ -113,9 +129,16 @@ func (m *mockServer) submit(manifest *discoveryManifest) []string {
 			}
 
 			if k == name {
+				if !namesHasName(names, k) {
+					names = append(names, k)
+				}
 				available = append(available, v...)
 			}
 		}
+	}
+
+	for _, n := range names {
+		fmt.Fprintf(os.Stderr, "detected %s...\n", n)
 	}
 
 	return available

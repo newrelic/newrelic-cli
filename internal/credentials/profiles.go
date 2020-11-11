@@ -81,6 +81,8 @@ func readDefaultProfile(configDir string) (string, error) {
 		log.Debug(err)
 	}
 
+	// log.Debugf("cfgViper: %+v", cfgViper)
+
 	// Since Viper requires key:value, we manually read it again and unmarshal the JSON...
 	byteValue, err := ioutil.ReadFile(cfgViper.ConfigFileUsed())
 	if err != nil {
