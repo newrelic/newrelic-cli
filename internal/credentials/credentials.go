@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
@@ -46,13 +47,19 @@ func LoadCredentials(configDir string) (*Credentials, error) {
 
 	profiles, err := LoadProfiles(configDir)
 	if err != nil {
-		log.Debugf("no credential profiles: see newrelic profiles --help")
+		log.Infof("no credential profiles: see newrelic profiles --help")
 	}
 
 	defaultProfile, err := LoadDefaultProfile(configDir)
 	if err != nil {
-		log.Debugf("no default profile set: see newrelic profiles --help")
+		log.Infof("no default profile set: see newrelic profiles --help")
 	}
+
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n profiles:  %+v \n", *profiles)
+	fmt.Printf("\n defaultProfile:  %+v \n", defaultProfile)
+	fmt.Print("\n **************************** \n\n")
+	time.Sleep(3 * time.Second)
 
 	creds.Profiles = *profiles
 	creds.DefaultProfile = defaultProfile

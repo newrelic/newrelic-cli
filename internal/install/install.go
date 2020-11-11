@@ -21,6 +21,8 @@ import (
 )
 
 func install(configFiles []string) error {
+	fmt.Print("\n\n install... \n\n")
+
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
 	var d discoverer = new(diagDiscoverer)

@@ -65,25 +65,27 @@ func (c *Value) IsDefault() bool {
 	return c.Value == c.Default
 }
 
-func init() {
-	defaultConfig = &Config{
-		LogLevel:           DefaultLogLevel,
-		SendUsageData:      TernaryValues.Unknown,
-		PreReleaseFeatures: TernaryValues.Unknown,
-	}
+// func init() {
+// 	defaultConfig = &Config{
+// 		LogLevel:           DefaultLogLevel,
+// 		SendUsageData:      TernaryValues.Unknown,
+// 		PreReleaseFeatures: TernaryValues.Unknown,
+// 	}
 
-	cfgDir, err := getDefaultConfigDirectory()
-	if err != nil {
-		log.Fatalf("error building default config directory: %s", err)
-	}
+// 	cfgDir, err := getDefaultConfigDirectory()
+// 	if err != nil {
+// 		log.Fatalf("error building default config directory: %s", err)
+// 	}
 
-	DefaultConfigDirectory = cfgDir
-	defaultConfig.PluginDir = DefaultConfigDirectory + "/plugins"
-}
+// 	DefaultConfigDirectory = cfgDir
+// 	defaultConfig.PluginDir = DefaultConfigDirectory + "/plugins"
+// }
 
 // LoadConfig loads the configuration from disk, substituting defaults
 // if the file does not exist.
 func LoadConfig(configDir string) (*Config, error) {
+	fmt.Printf("\n\n *** LoadConfig... %v \n\n", configDir)
+
 	log.Debugf("loading config file from %s", configDir)
 
 	if configDir == "" {
@@ -419,6 +421,9 @@ func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {
 
 func readConfig(configDir string) (*viper.Viper, error) {
 	cfgViper := viper.New()
+
+	// fmt.Printf("\n\n *** readConfig:             %v \n\n", cfgViper)
+
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
 	cfgViper.SetConfigType(DefaultConfigType)
@@ -426,6 +431,9 @@ func readConfig(configDir string) (*viper.Viper, error) {
 	cfgViper.AutomaticEnv()           // read in environment variables that match
 
 	err := cfgViper.ReadInConfig()
+
+	// fmt.Printf("\n\n *** readConfig - AllSettings: %v \n\n", cfgViper.AllSettings())
+
 	// nolint
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

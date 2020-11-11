@@ -38,5 +38,3 @@ require (
 )
 
 replace github.com/zlesnr/newrelic-diagnostics-cli => /Users/sblue/Sites/new-relic/newrelic-diagnostics-cli
-
-replace github.com/go-task/task/v3 => /Users/sblue/Sites/new-relic/task

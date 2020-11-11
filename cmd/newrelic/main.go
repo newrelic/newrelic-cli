@@ -1,9 +1,12 @@
 package main
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	// Commands
 	"github.com/newrelic/newrelic-cli/internal/agent"
@@ -27,6 +30,8 @@ var (
 )
 
 func init() {
+	initializeConfig()
+
 	// Bind imported sub-commands
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(config.Command)
@@ -42,7 +47,7 @@ func init() {
 	Command.AddCommand(agent.Command)
 	Command.AddCommand(install.Command)
 
-	CheckPrereleaseMode(Command)
+	// CheckPrereleaseMode(Command)
 }
 
 func main() {
@@ -56,18 +61,30 @@ func main() {
 // CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
 // flag is active.
 func CheckPrereleaseMode(c *cobra.Command) {
-	config.WithConfig(func(cfg *config.Config) {
-		if !cfg.PreReleaseFeatures.Bool() {
-			return
-		}
+	config.WithConfiguration(func(cfg *viper.Viper) {
+		log.Print("\n\n **************************** \n")
+		log.Printf("\n CheckPrereleaseMode - new config:  %+v \n", *cfg)
+		log.Print("\n **************************** \n\n")
+		time.Sleep(3 * time.Second)
 
-		log.Debug("Pre-release mode active")
+		// if !cfg.PreReleaseFeatures.Bool() {
+		// 	return
+		// }
 
-		for _, cmd := range c.Commands() {
-			if cmd.Hidden {
-				log.Debugf("Activating pre-release subcommand: %s", cmd.Name())
-				cmd.Hidden = false
-			}
-		}
+		// log.Debug("Pre-release mode active")
+
+		// for _, cmd := range c.Commands() {
+		// 	if cmd.Hidden {
+		// 		log.Debugf("Activating pre-release subcommand: %s", cmd.Name())
+		// 		cmd.Hidden = false
+		// 	}
+		// }
 	})
+}
+
+func initializeConfig() {
+	c, err := config.Configure()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
