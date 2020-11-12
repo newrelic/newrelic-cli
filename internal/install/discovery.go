@@ -2,18 +2,30 @@ package install
 
 import (
 	"context"
+	"fmt"
 	"runtime"
 
+	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
-
-	"github.com/newrelic/newrelic-cli/pkg/lang"
-	"github.com/zlesnr/newrelic-diagnostics-cli/tasks/base/env"
 )
 
 type discoveryManifest struct {
 	processes []genericProcess
 	platform  string
 	arch      string
+}
+
+func newDiscoveryManifest() *discoveryManifest {
+	d := discoveryManifest{
+		platform: runtime.GOOS,
+		arch:     runtime.GOARCH,
+	}
+
+	return &d
+}
+
+func (d *discoveryManifest) AddProcess(p *process.Process) {
+	d.processes = append(d.processes, p)
 }
 
 type genericProcess interface {
@@ -24,91 +36,89 @@ type discoverer interface {
 	discover() (*discoveryManifest, error)
 }
 
-type langDiscoverer struct{}
+type psUtilDiscoverer struct{}
 
-func (m *langDiscoverer) discover() (*discoveryManifest, error) {
-	processMap := lang.GetLangs(context.Background())
+func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
+	d := newDiscoveryManifest()
 
-	var processList []genericProcess
-	for lang, processes := range processMap {
-		log.Debugf("found %d %s processes:", len(processes), lang)
-
-		for _, p := range processes {
-			name, err := p.Name()
-			if err != nil {
-				log.Warnf("couldn't retrieve process name for PID %d", p.Pid)
-				continue
-			}
-
-			log.Debugf("  %d: %s", p.Pid, name)
-			processList = append(processList, p)
-		}
-	}
-
-	x := discoveryManifest{
-		processes: processList,
-		platform:  runtime.GOOS,
-		arch:      runtime.GOARCH,
-	}
-
-	return &x, nil
-}
-
-type diagDiscoverer struct{}
-
-func (m *diagDiscoverer) discover() (*discoveryManifest, error) {
-	hostInfo, err := env.NewHostInfo()
+	pids, err := process.PidsWithContext(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot retrieve processes: %s", err)
 	}
 
-	x := discoveryManifest{
-		platform: runtime.GOOS,
-		arch:     runtime.GOARCH,
-	}
-
-	integrations := []string{
-		"java",
-		"nginx",
-	}
-
-	for _, p := range hostInfo.Processes {
-		for _, i := range integrations {
-			name, err := p.Name()
-			if err != nil {
-				continue
-			}
-
-			if i == name {
-				x.processes = append(x.processes, p)
-			}
+	for _, pid := range pids {
+		p, err := process.NewProcess(pid)
+		if err != nil {
+			log.Debugf("cannot read pid %d: %s", pid, err)
+			continue
 		}
+
+		d.AddProcess(p)
 	}
 
-	return &x, nil
+	return d, nil
 }
 
-// nolint:unused
-type mockDiscoverer struct{}
+// type langDiscoverer struct{}
 
-func (m *mockDiscoverer) discover() (*discoveryManifest, error) {
-	x := discoveryManifest{
-		processes: []genericProcess{
-			&mockProcess{name: "java"},
-		},
-		platform: "linux",
-		arch:     "amd64",
-	}
+// func (m *langDiscoverer) discover() (*discoveryManifest, error) {
+// 	processMap := lang.GetLangs(context.Background())
 
-	return &x, nil
-}
+// 	var processList []genericProcess
+// 	for lang, processes := range processMap {
+// 		log.Debugf("found %d %s processes:", len(processes), lang)
 
-// nolint:unused
-type mockProcess struct {
-	name string
-}
+// 		for _, p := range processes {
+// 			name, err := p.Name()
+// 			if err != nil {
+// 				log.Warnf("couldn't retrieve process name for PID %d", p.Pid)
+// 				continue
+// 			}
 
-// nolint:unused
-func (m *mockProcess) Name() (string, error) {
-	return m.name, nil
-}
+// 			log.Debugf("  %d: %s", p.Pid, name)
+// 			processList = append(processList, p)
+// 		}
+// 	}
+
+// 	x := discoveryManifest{
+// 		processes: processList,
+// 		platform:  runtime.GOOS,
+// 		arch:      runtime.GOARCH,
+// 	}
+
+// 	return &x, nil
+// }
+
+// type diagDiscoverer struct{}
+
+// func (m *diagDiscoverer) discover() (*discoveryManifest, error) {
+// 	hostInfo, err := env.NewHostInfo()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+
+// 	x := discoveryManifest{
+// 		platform: runtime.GOOS,
+// 		arch:     runtime.GOARCH,
+// 	}
+
+// 	integrations := []string{
+// 		"java",
+// 		"nginx",
+// 	}
+
+// 	for _, p := range hostInfo.Processes {
+// 		for _, i := range integrations {
+// 			name, err := p.Name()
+// 			if err != nil {
+// 				continue
+// 			}
+
+// 			if i == name {
+// 				x.processes = append(x.processes, p)
+// 			}
+// 		}
+// 	}
+
+// 	return &x, nil
+// }

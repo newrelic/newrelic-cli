@@ -16,12 +16,12 @@ func TestDiscovery(t *testing.T) {
 		t.Fatalf("error starting java process")
 	}
 
-	pd := langDiscoverer{}
+	pd := psUtilDiscoverer{}
 	manifest, err := pd.discover()
 	require.NoError(t, err)
 	require.NotNil(t, manifest)
 
-	require.GreaterOrEqual(t, 1, len(manifest.processes))
+	require.GreaterOrEqual(t, len(manifest.processes), 1)
 
 	err = cmd.Process.Signal(os.Interrupt)
 	if err != nil {

@@ -3,14 +3,11 @@ package install
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/briandowns/spinner"
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
@@ -23,7 +20,7 @@ import (
 func install(configFiles []string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = new(diagDiscoverer)
+	var d discoverer = new(psUtilDiscoverer)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
@@ -50,27 +47,27 @@ func install(configFiles []string) error {
 	return nil
 }
 
-var s *spinner.Spinner
+// var s *spinner.Spinner
 
-func preRun(t *taskfile.Task, x map[string]interface{}) {
-	if t.Name() == "default" {
-		return
-	}
-	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-	s.Prefix = fmt.Sprintf("%s... ", t.Name())
-	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
+// func preRun(t *taskfile.Task, x map[string]interface{}) {
+// 	if t.Name() == "default" {
+// 		return
+// 	}
+// 	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+// 	s.Prefix = fmt.Sprintf("%s... ", t.Name())
+// 	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
 
-	// x["spinner"] = s
-	s.Start()
-}
+// 	// x["spinner"] = s
+// 	s.Start()
+// }
 
-func postRun(t *taskfile.Task, x map[string]interface{}) {
-	if t.Name() == "default" {
-		return
-	}
-	// x["spinner"].(*spinner.Spinner).Stop()
-	s.Stop()
-}
+// func postRun(t *taskfile.Task, x map[string]interface{}) {
+// 	if t.Name() == "default" {
+// 		return
+// 	}
+// 	// x["spinner"].(*spinner.Spinner).Stop()
+// 	s.Stop()
+// }
 
 func executeRecipeSteps(r recipe) error {
 	log.Debugf("Executing recipe %s", r.Name)
@@ -97,17 +94,11 @@ func executeRecipeSteps(r recipe) error {
 		Stdin:      os.Stdin,
 		Stdout:     os.Stdout,
 		Stderr:     os.Stderr,
-		PreRun:     preRun,
-		PostRun:    postRun,
 	}
 
 	if err = e.Setup(); err != nil {
 		return err
 	}
-
-	// e.Stderr = nil
-	// e.Stdout = nil
-	// e.Stdin = nil
 
 	var tf taskfile.Taskfile
 	err = yaml.Unmarshal(out, &tf)

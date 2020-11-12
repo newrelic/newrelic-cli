@@ -25,9 +25,9 @@ type recipe struct {
 	Install           map[string]interface{} `yaml:"install"`
 }
 
-type integration struct {
-	recipeURL string
-}
+// type integration struct {
+// 	recipeURL string
+// }
 
 type meltMatch struct {
 	Events  []patternMatcher `yaml:"events"`
@@ -51,7 +51,7 @@ func (m *yamlRecipeFetcher) fetch(configFiles []string, manifest *discoveryManif
 	var data []byte
 	var recipes []recipe
 
-	recipeTargets := []string{}
+	var recipeTargets []string
 	if len(configFiles) == 0 {
 		var s manifestServer = new(mockServer)
 		recipeTargets = s.submit(manifest)
