@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -83,7 +84,12 @@ func CheckPrereleaseMode(c *cobra.Command) {
 }
 
 func initializeConfig() {
-	c, err := config.Configure()
+	_, err := config.Configure()
+
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n initializeConfig - err:  %+v \n", err)
+	fmt.Print("\n **************************** \n\n")
+
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -9,32 +9,15 @@ import (
 
 	"github.com/imdario/mergo"
 	"github.com/jedib0t/go-pretty/v6/text"
-	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
-const (
-	// DefaultConfigName is the default name of the global configuration file
-	DefaultConfigName = "config"
-
-	// DefaultConfigType to read, though any file type supported by viper is allowed
-	DefaultConfigType = "json"
-
-	// DefaultEnvPrefix is used when reading environment variables
-	DefaultEnvPrefix = "NEW_RELIC_CLI"
-
-	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "INFO"
-
-	globalScopeIdentifier = "*"
-)
-
 var (
 	// DefaultConfigDirectory is the default location for the CLI config files
-	DefaultConfigDirectory string
+	// DefaultConfigDirectory string
 
 	defaultConfig *Config
 )
@@ -71,12 +54,10 @@ func (c *Value) IsDefault() bool {
 // 		SendUsageData:      TernaryValues.Unknown,
 // 		PreReleaseFeatures: TernaryValues.Unknown,
 // 	}
-
 // 	cfgDir, err := getDefaultConfigDirectory()
 // 	if err != nil {
 // 		log.Fatalf("error building default config directory: %s", err)
 // 	}
-
 // 	DefaultConfigDirectory = cfgDir
 // 	defaultConfig.PluginDir = DefaultConfigDirectory + "/plugins"
 // }
@@ -103,15 +84,6 @@ func LoadConfig(configDir string) (*Config, error) {
 	cfg.configDir = configDir
 
 	return cfg, nil
-}
-
-func getDefaultConfigDirectory() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
 func (c *Config) setLogger() {
@@ -422,7 +394,7 @@ func unmarshalAllScopes(cfgViper *viper.Viper) (*map[string]Config, error) {
 func readConfig(configDir string) (*viper.Viper, error) {
 	cfgViper := viper.New()
 
-	// fmt.Printf("\n\n *** readConfig:             %v \n\n", cfgViper)
+	fmt.Printf("\n\n *** readConfig:             %v \n\n", cfgViper)
 
 	cfgViper.SetEnvPrefix(DefaultEnvPrefix)
 	cfgViper.SetConfigName(DefaultConfigName)
