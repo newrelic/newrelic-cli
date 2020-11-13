@@ -17,19 +17,21 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 )
 
-func install(configFile string) error {
+func install(configFiles []string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = new(mockDiscoverer)
+	var d discoverer = new(psUtilDiscoverer)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
 	}
 
+	log.Debugf("manifest: %+v", manifest)
+
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
 	var f recipeFetcher = new(yamlRecipeFetcher)
-	recipes, err := f.fetch(configFile, manifest)
+	recipes, err := f.fetch(configFiles, manifest)
 	if err != nil {
 		return err
 	}
@@ -44,6 +46,28 @@ func install(configFile string) error {
 
 	return nil
 }
+
+// var s *spinner.Spinner
+
+// func preRun(t *taskfile.Task, x map[string]interface{}) {
+// 	if t.Name() == "default" {
+// 		return
+// 	}
+// 	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+// 	s.Prefix = fmt.Sprintf("%s... ", t.Name())
+// 	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
+
+// 	// x["spinner"] = s
+// 	s.Start()
+// }
+
+// func postRun(t *taskfile.Task, x map[string]interface{}) {
+// 	if t.Name() == "default" {
+// 		return
+// 	}
+// 	// x["spinner"].(*spinner.Spinner).Stop()
+// 	s.Stop()
+// }
 
 func executeRecipeSteps(r recipe) error {
 	log.Debugf("Executing recipe %s", r.Name)
