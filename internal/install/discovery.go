@@ -10,18 +10,44 @@ import (
 )
 
 type discoveryManifest struct {
-	processes []genericProcess
-	platform  string
-	arch      string
+	processes         []genericProcess
+	platform          string
+	arch              string
+	targetEnvironment string
 }
 
 func newDiscoveryManifest() *discoveryManifest {
 	d := discoveryManifest{
-		platform: runtime.GOOS,
-		arch:     runtime.GOARCH,
+		platform:          runtime.GOOS,
+		arch:              runtime.GOARCH,
+		targetEnvironment: "vm",
 	}
 
 	return &d
+}
+
+func (d *discoveryManifest) ToSuggestionsInput() (*suggestionsInput, error) {
+	c := suggestionsInput{
+		Variant: variantInput{
+			OS:                d.platform,
+			Arch:              d.arch,
+			TargetEnvironment: d.targetEnvironment,
+		},
+	}
+
+	for _, process := range d.processes {
+		n, err := process.Name()
+		if err != nil {
+			return nil, err
+		}
+
+		p := processDetailInput{
+			Name: n,
+		}
+		c.ProcessDetails = append(c.ProcessDetails, p)
+	}
+
+	return &c, nil
 }
 
 func (d *discoveryManifest) AddProcess(p *process.Process) {
@@ -58,67 +84,3 @@ func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
 
 	return d, nil
 }
-
-// type langDiscoverer struct{}
-
-// func (m *langDiscoverer) discover() (*discoveryManifest, error) {
-// 	processMap := lang.GetLangs(context.Background())
-
-// 	var processList []genericProcess
-// 	for lang, processes := range processMap {
-// 		log.Debugf("found %d %s processes:", len(processes), lang)
-
-// 		for _, p := range processes {
-// 			name, err := p.Name()
-// 			if err != nil {
-// 				log.Warnf("couldn't retrieve process name for PID %d", p.Pid)
-// 				continue
-// 			}
-
-// 			log.Debugf("  %d: %s", p.Pid, name)
-// 			processList = append(processList, p)
-// 		}
-// 	}
-
-// 	x := discoveryManifest{
-// 		processes: processList,
-// 		platform:  runtime.GOOS,
-// 		arch:      runtime.GOARCH,
-// 	}
-
-// 	return &x, nil
-// }
-
-// type diagDiscoverer struct{}
-
-// func (m *diagDiscoverer) discover() (*discoveryManifest, error) {
-// 	hostInfo, err := env.NewHostInfo()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	x := discoveryManifest{
-// 		platform: runtime.GOOS,
-// 		arch:     runtime.GOARCH,
-// 	}
-
-// 	integrations := []string{
-// 		"java",
-// 		"nginx",
-// 	}
-
-// 	for _, p := range hostInfo.Processes {
-// 		for _, i := range integrations {
-// 			name, err := p.Name()
-// 			if err != nil {
-// 				continue
-// 			}
-
-// 			if i == name {
-// 				x.processes = append(x.processes, p)
-// 			}
-// 		}
-// 	}
-
-// 	return &x, nil
-// }

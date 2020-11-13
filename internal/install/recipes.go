@@ -1,49 +1,28 @@
 package install
 
 import (
-	"io/ioutil"
-	"net/http"
-	"net/url"
-
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
 // recipeFetcher is responsible for retrieving the recipes.
 type recipeFetcher interface {
-	fetch([]string, *discoveryManifest) ([]recipe, error)
+	fetch([]string, *discoveryManifest) ([]recipeFile, error)
 }
 
-type recipe struct {
-	InputVars []variableConfig       `yaml:"inputVars"`
-	Install   map[string]interface{} `yaml:"install"`
-	MetaData  metaData               `yaml:"metadata"`
+type recipeFile struct {
+	Name              string                 `yaml:"name"`
+	Description       string                 `yaml:"description"`
+	Repository        string                 `yaml:"repository"`
+	Platform          string                 `yaml:"platform"`
+	Arch              string                 `yaml:"arch"`
+	TargetEnvironment string                 `yaml:"targetEnvironment"`
+	ProcessMatch      []string               `yaml:"process_match"`
+	MELTMatch         meltMatch              `yaml:"melt_match"`
+	Install           map[string]interface{} `yaml:"install"`
 }
-
-type metaData struct {
-	Description  string    `yaml:"description"`
-	Keywords     []string  `yaml:"keywords"`
-	MELTMatch    meltMatch `yaml:"meltMatch"`
-	Name         string    `yaml:"name"`
-	ProcessMatch []string  `yaml:"processMatch"`
-	Repository   string    `yaml:"repository"`
-	Variant      variant   `yaml:"variant"`
-}
-
-type variant struct {
-	Arch              []string `yaml:"arch"`
-	OS                []string `yaml:"os"`
-	TargetEnvironment []string `yaml:"targetEnvironment"`
-}
-
-type variableConfig struct {
-	Name    string `yaml:"name"`
-	Prompt  string `yaml:"prompt"`
-	Default string `yaml:"default"`
-}
-
-// type integration struct {
-// 	recipeURL string
-// }
 
 type meltMatch struct {
 	Events  patternMatcher `yaml:"events"`
@@ -60,79 +39,128 @@ type loggingMatcher struct {
 	Files []string `yaml:"files"`
 }
 
-type yamlRecipeFetcher struct{}
+type serviceRecipeFetcher struct {
+	client *newrelic.NewRelic
+}
 
-func (m *yamlRecipeFetcher) fetch(configFiles []string, manifest *discoveryManifest) ([]recipe, error) {
-	var x recipe
-	var data []byte
-	var recipes []recipe
-
-	var recipeTargets []string
-	if len(configFiles) == 0 {
-		var s manifestServer = new(mockServer)
-		recipeTargets = s.submit(manifest)
-	} else {
-		recipeTargets = configFiles
+func (m *serviceRecipeFetcher) fetch(configFiles []string, manifest *discoveryManifest) ([]recipeFile, error) {
+	c, err := manifest.ToSuggestionsInput()
+	if err != nil {
+		return nil, err
 	}
 
-	// Try to parse the config
-	for _, c := range recipeTargets {
-		url, err := url.Parse(c)
-		if url != nil && err == nil && url.IsAbs() {
-			resp, getErr := http.Get(url.String())
-			if getErr != nil {
-				return nil, getErr
-			}
+	vars := map[string]interface{}{
+		"criteria": c,
+	}
 
-			defer resp.Body.Close()
+	var resp queryResult
+	if err := m.client.NerdGraph.QueryWithResponse(suggestionsQuery, vars, &resp); err != nil {
+		return nil, err
+	}
 
-			data, err = ioutil.ReadAll(resp.Body)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			data, err = ioutil.ReadFile(c)
-			if err != nil {
-				return nil, err
-			}
-		}
+	log.Infof("%+v\n", resp)
 
-		err = yaml.Unmarshal(data, &x)
+	return resp.Account.Suggestions.ToRecipeFiles(), nil
+}
+
+func newServiceRecipeFetcher(client *newrelic.NewRelic) recipeFetcher {
+	f := serviceRecipeFetcher{
+		client: client,
+	}
+
+	return &f
+}
+
+type queryResult struct {
+	Account accountStitchedFields
+}
+
+type accountStitchedFields struct {
+	Suggestions suggestionsResult
+}
+
+type suggestionsResult struct {
+	Results []recipe
+}
+
+func (suggestions *suggestionsResult) ToRecipeFiles() []recipeFile {
+	r := make([]recipeFile, len(suggestions.Results))
+	for i, s := range suggestions.Results {
+		recipe, err := s.ToRecipeFile()
 		if err != nil {
-			return nil, err
+			log.Warnf("could not parse recipe %s", s.Metadata.Name)
+			continue
 		}
-
-		recipes = append(recipes, x)
+		r[i] = *recipe
 	}
 
-	return recipes, nil
+	return r
 }
 
-type manifestServer interface {
-	submit(*discoveryManifest) []string
+type suggestionsInput struct {
+	Variant        variantInput         `json:"variant"`
+	ProcessDetails []processDetailInput `json:"processDetails"`
 }
 
-type mockServer struct{}
+type variantInput struct {
+	OS                string `json:"os"`
+	Arch              string `json:"arch"`
+	TargetEnvironment string `json:"targetEnvironment"`
+}
 
-func (m *mockServer) submit(manifest *discoveryManifest) []string {
-	available := []string{}
+type recipeVariant struct {
+	OS                []string `json:"os"`
+	Arch              []string `json:"arch"`
+	TargetEnvironment []string `json:"targetEnvironment"`
+}
 
-	allIntegrations := map[string][]string{}
-	allIntegrations["java"] = []string{"recipes/demo.yaml"}
+type processDetailInput struct {
+	Name string `json:"name"`
+}
 
-	for _, p := range manifest.processes {
+type recipe struct {
+	ID       string
+	Metadata recipeMetadata
+	File     string
+}
 
-		for k, v := range allIntegrations {
-			name, err := p.Name()
-			if err != nil {
-				continue
-			}
+type recipeMetadata struct {
+	Name        string
+	Description string
+	Repository  string
+	Variant     recipeVariant
+	Keywords    []string
+}
 
-			if k == name {
-				available = append(available, v...)
-			}
-		}
+func (s *recipe) ToRecipeFile() (*recipeFile, error) {
+	var r recipeFile
+	err := yaml.Unmarshal([]byte(s.File), &r)
+	if err != nil {
+		return nil, err
 	}
 
-	return available
+	return &r, nil
 }
+
+const (
+	suggestionsQuery = `
+	query Suggestions($criteria: SuggestionsInput){
+		account {
+			suggestions(criteria: $criteria) {
+				results {
+					metadata {
+						name
+						description
+						repository
+						variant {
+							os
+							arch
+							targetEnvironment
+						}
+					}
+					file
+				}
+			}
+		}
+	}`
+)

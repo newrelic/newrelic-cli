@@ -25,7 +25,7 @@ var Command = &cobra.Command{
 				log.Fatal(errors.New("default profile has not been set"))
 			}
 
-			if err := install(configFiles); err != nil {
+			if err := install(nrClient, configFiles); err != nil {
 				utils.LogIfFatal(err)
 			}
 

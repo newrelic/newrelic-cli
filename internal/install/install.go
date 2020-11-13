@@ -17,9 +17,10 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
-func install(configFiles []string) error {
+func install(client *newrelic.NewRelic, configFiles []string) error {
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
 	var d discoverer = new(psUtilDiscoverer)
@@ -32,7 +33,7 @@ func install(configFiles []string) error {
 
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	var f recipeFetcher = new(yamlRecipeFetcher)
+	f := newServiceRecipeFetcher(client)
 	recipes, err := f.fetch(configFiles, manifest)
 	if err != nil {
 		return err
@@ -71,8 +72,8 @@ func install(configFiles []string) error {
 // 	s.Stop()
 // }
 
-func executeRecipeSteps(r recipe) error {
-	log.Debugf("Executing recipe %s", r.MetaData.Name)
+func executeRecipeSteps(r recipeFile) error {
+	log.Debugf("Executing recipe %s", r.Name)
 
 	out, err := yaml.Marshal(r.Install)
 	if err != nil {
