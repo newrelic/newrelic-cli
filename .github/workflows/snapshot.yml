@@ -8,17 +8,10 @@ jobs:
   snapshot:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-
-      - name: Add GOBIN to PATH
-        run: echo "::add-path::$(go env GOPATH)/bin"
-        shell: bash
-
-      - name: Checkout code
-        uses: actions/checkout@v2
 
       - name: Build artifact
         shell: bash
@@ -40,4 +33,3 @@ jobs:
           cache-from: type=registry,ref=newrelic/cli:latest
           cache-to: type=inline
           tags: newrelic/cli:latest
-
