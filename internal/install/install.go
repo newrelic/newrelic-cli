@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
+	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
@@ -122,6 +124,39 @@ func executeRecipeSteps(r recipe) error {
 
 	if err != nil {
 		return err
+	}
+
+	for _, envConfig := range r.Vars {
+		v := taskfile.Vars{}
+
+		envValue := os.Getenv(envConfig.Name)
+		if envValue == "" {
+			log.Debugf("required env var %s not found", envConfig.Name)
+			msg := fmt.Sprintf("value for %s required", envConfig.Name)
+
+			if envConfig.Message != "" {
+				msg = envConfig.Message
+			}
+
+			prompt := promptui.Prompt{
+				Label: msg,
+			}
+
+			if envConfig.Default != "" {
+				prompt.Default = envConfig.Default
+			}
+
+			result, err := prompt.Run()
+			if err != nil {
+				return fmt.Errorf("prompt failed: %s", err)
+			}
+
+			v.Set(envConfig.Name, taskfile.Var{Static: result})
+		} else {
+			v.Set(envConfig.Name, taskfile.Var{Static: envValue})
+		}
+
+		e.Taskfile.Vars.Merge(&v)
 	}
 
 	if err := e.Run(getSignalContext(), calls...); err != nil {

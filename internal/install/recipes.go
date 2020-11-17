@@ -19,10 +19,17 @@ type recipe struct {
 	Repository        string                 `yaml:"repository"`
 	Platform          string                 `yaml:"platform"`
 	Arch              string                 `yaml:"arch"`
-	TargetEnvironment string                 `yaml:"target_environment"`
-	ProcessMatch      []string               `yaml:"process_match"`
-	MELTMatch         meltMatch              `yaml:"melt_match"`
+	TargetEnvironment string                 `yaml:"targetEnvironment"`
+	ProcessMatch      []string               `yaml:"processMatch"`
+	MELTMatch         meltMatch              `yaml:"meltMatch"`
 	Install           map[string]interface{} `yaml:"install"`
+	InputVars         []VariableConfig       `yaml:"inputVars"`
+}
+
+type VariableConfig struct {
+	Name    string `yaml:"name"`
+	Prompt  string `yaml:"prompt"`
+	Default string `yaml:"default"`
 }
 
 // type integration struct {
