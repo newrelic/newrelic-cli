@@ -33,7 +33,7 @@ DESTDIR="${DESTDIR:-/usr/local/bin}"
 if [ -z "$NEW_RELIC_CLI_VERSION" ]; then
 	echo "CHECK PASSED v${NEW_RELIC_CLI_VERSION}"
 
-	NEW_RELIC_CLI_VERSION=$(curl -sLI -o /dev/null -w '%{url_effective}' $LATEST_URL | cut -d "v" -f 2)
+	NEW_RELIC_CLI_VERSION=$(curl -LI -o /dev/null -w '%{url_effective}' $LATEST_URL | cut -d "v" -f 2)
 fi
 
 echo "Installing New Relic CLI v${NEW_RELIC_CLI_VERSION} - $1"
@@ -41,7 +41,6 @@ echo "Installing New Relic CLI v${NEW_RELIC_CLI_VERSION} - $1"
 # Run the script in a temporary directory that we know is empty.
 SCRATCH=$(mktemp -d || mktemp -d -t 'tmp')
 cd "$SCRATCH"
-
 
 function error {
   echo "An error occurred installing the tool."
