@@ -113,16 +113,16 @@ func init() {
 	cmdKey.Flags().StringVar(&apiAccessGetKeykeyType, "keyType", "", "The type of key.")
 	utils.LogIfError(cmdKey.MarkFlagRequired("keyType"))
 
-	Command.AddCommand(cmdApiAccessCreateKeys)
+	Command.AddCommand(cmdAPIAccessCreateKeys)
 
-	cmdApiAccessCreateKeys.Flags().StringVar(&apiAccessCreateKeysInput, "keys", "", "A list of the configurations for each key you want to create.")
+	cmdAPIAccessCreateKeys.Flags().StringVar(&apiAccessCreateKeysInput, "keys", "", "A list of the configurations for each key you want to create.")
 
-	Command.AddCommand(cmdApiAccessUpdateKeys)
+	Command.AddCommand(cmdAPIAccessUpdateKeys)
 
-	cmdApiAccessUpdateKeys.Flags().StringVar(&apiAccessUpdateKeysInput, "keys", "", "The configurations of each key you want to update.")
+	cmdAPIAccessUpdateKeys.Flags().StringVar(&apiAccessUpdateKeysInput, "keys", "", "The configurations of each key you want to update.")
 
-	Command.AddCommand(cmdApiAccessDeleteKeys)
+	Command.AddCommand(cmdAPIAccessDeleteKeys)
 
-	cmdApiAccessDeleteKeys.Flags().StringVar(&apiAccessDeleteKeysInput, "keys", "", "A list of each key `id` that you want to delete. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).")
+	cmdAPIAccessDeleteKeys.Flags().StringVar(&apiAccessDeleteKeysInput, "keys", "", "A list of each key `id` that you want to delete. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).")
 
 }
