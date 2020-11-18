@@ -3,26 +3,18 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v2
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-
-      - name: Add GOBIN to PATH
-        run: echo "::add-path::$(go env GOPATH)/bin"
-        shell: bash
-
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          # Needed for release notes
-          fetch-depth: 0
 
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
@@ -59,7 +51,7 @@ jobs:
         run: ./scripts/brew_formula_pull_request.sh
         env:
           GH_USER_EMAIL: developer-toolkit-team@newrelic.com
-          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
+          GH_USER_NAME: "New Relic Developer Toolkit Bot"
 
       - name: Upload chocolatey package
         shell: bash

@@ -2,113 +2,91 @@ name: Testing
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.14.x
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.x
 
-    - name: Add GOBIN to PATH
-      run: echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
+      - name: Cache deps
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-
-    - name: Cache deps
-      uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Lint
-      run: make lint
+      - name: Lint
+        run: make lint
 
   test-unit:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.14.x
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.x
 
-    - name: Add GOBIN to PATH
-      run: echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
+      - name: Cache deps
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Unit Tests
+        run: make test-unit
 
-    - name: Cache deps
-      uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Unit Tests
-      run: make test-unit
-
-    - name: New Relic JUnit Reporter
-      if: github.event.pull_request.head.repo.full_name == github.repository
-      uses: newrelic/junit-reporter-action@v0.1.1
-      with:
-        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-        insertApiKey: ${{ secrets.NEW_RELIC_INSIGHTS_INSERT_KEY }}
-        testOutputPath: coverage/unit.xml
-
+      - name: New Relic JUnit Reporter
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: newrelic/junit-reporter-action@v0.1.1
+        with:
+          accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+          insertApiKey: ${{ secrets.NEW_RELIC_INSIGHTS_INSERT_KEY }}
+          testOutputPath: coverage/unit.xml
 
   test-integration:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.14.x
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.x
 
-    - name: Add GOBIN to PATH
-      run: echo "::add-path::$(go env GOPATH)/bin"
-      shell: bash
+      - name: Cache deps
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Integration Tests
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: make test-integration
+        env:
+          NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+          NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+          NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+          NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+          NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
 
-    - name: Cache deps
-      uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
-    - name: Integration Tests
-      if: github.event.pull_request.head.repo.full_name == github.repository
-      run: make test-integration
-      env:
-        NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-        NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
-        NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-        NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-        NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
-
-    - name: New Relic JUnit Reporter
-      if: github.event.pull_request.head.repo.full_name == github.repository
-      uses: newrelic/junit-reporter-action@v0.1.1
-      with:
-        accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-        insertApiKey: ${{ secrets.NEW_RELIC_INSIGHTS_INSERT_KEY }}
-        testOutputPath: coverage/integration.xml
+      - name: New Relic JUnit Reporter
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: newrelic/junit-reporter-action@v0.1.1
+        with:
+          accountId: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+          insertApiKey: ${{ secrets.NEW_RELIC_INSIGHTS_INSERT_KEY }}
+          testOutputPath: coverage/integration.xml
