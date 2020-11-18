@@ -39,7 +39,7 @@ var cmdKey = &cobra.Command{
 }
 var apiAccessCreateKeysInput string
 
-var cmdApiAccessCreateKeys = &cobra.Command{
+var cmdAPIAccessCreateKeys = &cobra.Command{
 	Use:     "apiAccessCreateKeys",
 	Short:   "Create keys. You can create keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
@@ -61,7 +61,7 @@ var cmdApiAccessCreateKeys = &cobra.Command{
 }
 var apiAccessUpdateKeysInput string
 
-var cmdApiAccessUpdateKeys = &cobra.Command{
+var cmdAPIAccessUpdateKeys = &cobra.Command{
 	Use:     "apiAccessUpdateKeys",
 	Short:   "Update keys. You can update keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
@@ -83,7 +83,7 @@ var cmdApiAccessUpdateKeys = &cobra.Command{
 }
 var apiAccessDeleteKeysInput string
 
-var cmdApiAccessDeleteKeys = &cobra.Command{
+var cmdAPIAccessDeleteKeys = &cobra.Command{
 	Use:     "apiAccessDeleteKeys",
 	Short:   "A mutation to delete keys.",
 	Long:    "",
