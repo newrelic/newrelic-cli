@@ -114,10 +114,8 @@ func (c *Config) setLogger() {
 	switch level := strings.ToUpper(c.LogLevel); level {
 	case "TRACE":
 		log.SetLevel(log.TraceLevel)
-		log.SetReportCaller(true)
 	case "DEBUG":
 		log.SetLevel(log.DebugLevel)
-		log.SetReportCaller(true)
 	case "WARN":
 		log.SetLevel(log.WarnLevel)
 	case "ERROR":
