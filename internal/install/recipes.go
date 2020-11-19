@@ -14,15 +14,31 @@ type recipeFetcher interface {
 }
 
 type recipe struct {
-	Name              string                 `yaml:"name"`
-	Description       string                 `yaml:"description"`
-	Repository        string                 `yaml:"repository"`
-	Platform          string                 `yaml:"platform"`
-	Arch              string                 `yaml:"arch"`
-	TargetEnvironment string                 `yaml:"target_environment"`
-	ProcessMatch      []string               `yaml:"process_match"`
-	MELTMatch         meltMatch              `yaml:"melt_match"`
-	Install           map[string]interface{} `yaml:"install"`
+	InputVars []variableConfig       `yaml:"inputVars"`
+	Install   map[string]interface{} `yaml:"install"`
+	MetaData  metaData               `yaml:"metadata"`
+}
+
+type metaData struct {
+	Description  string    `yaml:"description"`
+	Keywords     []string  `yaml:"keywords"`
+	MELTMatch    meltMatch `yaml:"meltMatch"`
+	Name         string    `yaml:"name"`
+	ProcessMatch []string  `yaml:"processMatch"`
+	Repository   string    `yaml:"repository"`
+	Variant      variant   `yaml:"variant"`
+}
+
+type variant struct {
+	Arch              []string `yaml:"arch"`
+	OS                []string `yaml:"os"`
+	TargetEnvironment []string `yaml:"targetEnvironment"`
+}
+
+type variableConfig struct {
+	Name    string `yaml:"name"`
+	Prompt  string `yaml:"prompt"`
+	Default string `yaml:"default"`
 }
 
 // type integration struct {

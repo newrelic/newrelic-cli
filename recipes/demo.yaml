@@ -10,15 +10,15 @@ arch: "386"
 # Still TBD
 # Some variable/indicator for where you're trying to install this that isn't necessarily where you're running the newrelic-cli from
 # Options - native, vm, docker, kubernetes, serverless/lambda, prometheus-exporter etc.
-target_environment: vm
+targetEnvironment: vm
 
 # Examine Infrastructure events for correlated data
-process_match:
+processMatch:
   - /infra/
 
 # Examine Metrics, Events, and Logging for correlated data
 # Used by the UI to determine if you've successfully configured and are ingesting data
-melt_match:
+meltMatch:
   events:
     - pattern: /SystemSample/
   metrics:
@@ -27,6 +27,10 @@ melt_match:
     - pattern: /http/
       files:
         - /var\/log\/system.log
+
+inputVars:
+  - name: "LOG_FILES"
+    prompt: "Which log files would you like to tail?"
 
 install:
   # go-task yaml definition goes here
@@ -40,9 +44,16 @@ install:
     default:
       silent: true
       cmds:
-        - task: java_thing
-    java_thing:
+        - task: syslog_thing
+    syslog_thing:
       silent: true
-      label: "doing a java thing"
+      label: "doing a syslog thing"
       cmds:
-        - sleep 5
+        - |
+          echo "logs:" > file.yaml
+          for i in $(echo {{.LOG_FILES}} | sed "s/,/ /g"); do
+            if [ -f $i ]; then
+              NAME=$(basename $i)
+              echo -e "  - name: $NAME\n    file: $i" >> file.yaml
+            fi
+          done

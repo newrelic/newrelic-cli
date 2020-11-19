@@ -173,7 +173,7 @@ func fetchAccountID(client *newrelic.NewRelic) (int, error) {
 		return accounts[0].ID, nil
 	}
 
-	return 0, errors.New("more than one account found")
+	return 0, errors.New("multiple accounts found, please set NEW_RELIC_ACCOUNT_ID")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
