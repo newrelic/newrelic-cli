@@ -1,3 +1,11 @@
+<a name="v0.17.0"></a>
+## [v0.17.0] - 2020-11-19
+### Features
+- **apiaccess:** add generated apiAccess commands (prerelease)
+- **install:** prompt for variable input
+- **install:** implement a mock server for process-based task selection
+- **install:** wire up process discovery with cloned nri-process-discovery code
+
 <a name="v0.16.0"></a>
 ## [v0.16.0] - 2020-11-04
 ### Bug Fixes
@@ -297,7 +305,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.0...HEAD
+[v0.17.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.16.0...v0.17.0
 [v0.16.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.2...v0.16.0
 [v0.15.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.1...v0.15.2
 [v0.15.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.0...v0.15.1
