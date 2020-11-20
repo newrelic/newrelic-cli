@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	// nolint:unused
 	linuxOSReleaseFile = "/etc/os-release"
 )
 
@@ -21,7 +22,9 @@ type discoveryManifest struct {
 	processes  []genericProcess
 	systemType string
 	arch       string
-	distro     string
+
+	// nolint:unused,structcheck
+	distro string
 }
 
 func newDiscoveryManifest() *discoveryManifest {
@@ -79,6 +82,7 @@ func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
 	return d, nil
 }
 
+// nolint:deadcode,unused
 func discoverOSInfo(systemType string) (map[string]string, error) {
 	switch systemType {
 	case "linux":
@@ -93,6 +97,7 @@ func discoverOSInfo(systemType string) (map[string]string, error) {
 	}
 }
 
+// nolint:unused
 func discoverLinuxOSInfo() (map[string]string, error) {
 	osInfo := map[string]string{}
 
