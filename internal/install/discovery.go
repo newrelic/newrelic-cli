@@ -26,8 +26,8 @@ func newDiscoveryManifest() *discoveryManifest {
 	return &d
 }
 
-func (d *discoveryManifest) ToSuggestionsInput() (*suggestionsInput, error) {
-	c := suggestionsInput{
+func (d *discoveryManifest) ToRecommendationsInput() (*recommendationsInput, error) {
+	c := recommendationsInput{
 		Variant: variantInput{
 			OS:                d.platform,
 			Arch:              d.arch,

@@ -44,7 +44,7 @@ type serviceRecipeFetcher struct {
 }
 
 func (m *serviceRecipeFetcher) fetch(configFiles []string, manifest *discoveryManifest) ([]recipeFile, error) {
-	c, err := manifest.ToSuggestionsInput()
+	c, err := manifest.ToRecommendationsInput()
 	if err != nil {
 		return nil, err
 	}
@@ -54,13 +54,13 @@ func (m *serviceRecipeFetcher) fetch(configFiles []string, manifest *discoveryMa
 	}
 
 	var resp queryResult
-	if err := m.client.NerdGraph.QueryWithResponse(suggestionsQuery, vars, &resp); err != nil {
+	if err := m.client.NerdGraph.QueryWithResponse(recommendationsQuery, vars, &resp); err != nil {
 		return nil, err
 	}
 
 	log.Infof("%+v\n", resp)
 
-	return resp.Account.Suggestions.ToRecipeFiles(), nil
+	return resp.Account.OpenInstallation.Recommendations.ToRecipeFiles(), nil
 }
 
 func newServiceRecipeFetcher(client *newrelic.NewRelic) recipeFetcher {
@@ -72,20 +72,22 @@ func newServiceRecipeFetcher(client *newrelic.NewRelic) recipeFetcher {
 }
 
 type queryResult struct {
-	Account accountStitchedFields
+	Account docsStitchedFields
 }
 
-type accountStitchedFields struct {
-	Suggestions suggestionsResult
+type docsStitchedFields struct {
+	OpenInstallation struct {
+		Recommendations recommendationsResult
+	}
 }
 
-type suggestionsResult struct {
+type recommendationsResult struct {
 	Results []recipe
 }
 
-func (suggestions *suggestionsResult) ToRecipeFiles() []recipeFile {
-	r := make([]recipeFile, len(suggestions.Results))
-	for i, s := range suggestions.Results {
+func (recommendations *recommendationsResult) ToRecipeFiles() []recipeFile {
+	r := make([]recipeFile, len(recommendations.Results))
+	for i, s := range recommendations.Results {
 		recipe, err := s.ToRecipeFile()
 		if err != nil {
 			log.Warnf("could not parse recipe %s", s.Metadata.Name)
@@ -97,7 +99,7 @@ func (suggestions *suggestionsResult) ToRecipeFiles() []recipeFile {
 	return r
 }
 
-type suggestionsInput struct {
+type recommendationsInput struct {
 	Variant        variantInput         `json:"variant"`
 	ProcessDetails []processDetailInput `json:"processDetails"`
 }
@@ -143,22 +145,24 @@ func (s *recipe) ToRecipeFile() (*recipeFile, error) {
 }
 
 const (
-	suggestionsQuery = `
-	query Suggestions($criteria: SuggestionsInput){
-		account {
-			suggestions(criteria: $criteria) {
-				results {
-					metadata {
-						name
-						description
-						repository
-						variant {
-							os
-							arch
-							targetEnvironment
+	recommendationsQuery = `
+	query Recommendations($criteria: OpenInstallationRecommendationsInput){
+		docs {
+			openInstallation {
+				recommendations(criteria: $criteria) {
+					results {
+						metadata {
+							name
+							description
+							repository
+							variant {
+								os
+								arch
+								targetEnvironment
+							}
 						}
+						file
 					}
-					file
 				}
 			}
 		}

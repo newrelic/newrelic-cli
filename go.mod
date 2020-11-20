@@ -8,7 +8,7 @@ require (
 	github.com/go-task/task/v3 v3.0.1-0.20201013001609-60759a4e3b23
 	github.com/golangci/golangci-lint v1.33.0
 	github.com/google/uuid v1.1.2
-	github.com/goreleaser/goreleaser v0.147.0
+	github.com/goreleaser/goreleaser v0.147.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/imdario/mergo v0.3.11
 	github.com/jedib0t/go-pretty/v6 v6.0.5
@@ -17,7 +17,7 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.3.3
-	github.com/newrelic/newrelic-client-go v0.48.1
+	github.com/newrelic/newrelic-client-go v0.50.0
 	github.com/psampaz/go-mod-outdated v0.7.0
 	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
 	github.com/sirupsen/logrus v1.7.0
