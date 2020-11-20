@@ -19,7 +19,6 @@ type discoveryManifest struct {
 func newDiscoveryManifest() *discoveryManifest {
 	d := discoveryManifest{
 		platform:          runtime.GOOS,
-		arch:              runtime.GOARCH,
 		targetEnvironment: "vm",
 	}
 
