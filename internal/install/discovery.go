@@ -1,24 +1,33 @@
 package install
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"runtime"
+	"strings"
 
 	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	linuxOSReleaseFile = "/etc/os-release"
+)
+
 type discoveryManifest struct {
-	processes []genericProcess
-	platform  string
-	arch      string
+	processes  []genericProcess
+	systemType string
+	arch       string
+	distro     string
 }
 
 func newDiscoveryManifest() *discoveryManifest {
 	d := discoveryManifest{
-		platform: runtime.GOOS,
-		arch:     runtime.GOARCH,
+		systemType: runtime.GOOS,
+		arch:       runtime.GOARCH,
 	}
 
 	return &d
@@ -41,6 +50,17 @@ type psUtilDiscoverer struct{}
 func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
 	d := newDiscoveryManifest()
 
+	// osInfo, err := discoverOSInfo(runtime.GOOS)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// for key, val := range osInfo {
+	// 	if key == "NAME" {
+	// 		d.distro = value
+	// 	}
+	// }
+
 	pids, err := process.PidsWithContext(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve processes: %s", err)
@@ -59,66 +79,48 @@ func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
 	return d, nil
 }
 
-// type langDiscoverer struct{}
+func discoverOSInfo(systemType string) (map[string]string, error) {
+	switch systemType {
+	case "linux":
+		osInfo, err := discoverLinuxOSInfo()
+		if err != nil {
+			return nil, err
+		}
 
-// func (m *langDiscoverer) discover() (*discoveryManifest, error) {
-// 	processMap := lang.GetLangs(context.Background())
+		return osInfo, nil
+	default:
+		return nil, fmt.Errorf("unsupported system type %s", systemType)
+	}
+}
 
-// 	var processList []genericProcess
-// 	for lang, processes := range processMap {
-// 		log.Debugf("found %d %s processes:", len(processes), lang)
+func discoverLinuxOSInfo() (map[string]string, error) {
+	osInfo := map[string]string{}
 
-// 		for _, p := range processes {
-// 			name, err := p.Name()
-// 			if err != nil {
-// 				log.Warnf("couldn't retrieve process name for PID %d", p.Pid)
-// 				continue
-// 			}
+	file, err := os.Open(linuxOSReleaseFile)
+	if err != nil {
+		return nil, err
+	}
 
-// 			log.Debugf("  %d: %s", p.Pid, name)
-// 			processList = append(processList, p)
-// 		}
-// 	}
+	defer file.Close()
 
-// 	x := discoveryManifest{
-// 		processes: processList,
-// 		platform:  runtime.GOOS,
-// 		arch:      runtime.GOARCH,
-// 	}
+	reader := bufio.NewReader(file)
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return nil, err
+		}
 
-// 	return &x, nil
-// }
+		if err != nil && err == io.EOF {
+			break
+		}
 
-// type diagDiscoverer struct{}
+		info := strings.Split(line, "=")
+		if len(info) != 2 {
+			continue
+		}
 
-// func (m *diagDiscoverer) discover() (*discoveryManifest, error) {
-// 	hostInfo, err := env.NewHostInfo()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+		osInfo[info[0]] = strings.Trim(info[1], "\"\n")
+	}
 
-// 	x := discoveryManifest{
-// 		platform: runtime.GOOS,
-// 		arch:     runtime.GOARCH,
-// 	}
-
-// 	integrations := []string{
-// 		"java",
-// 		"nginx",
-// 	}
-
-// 	for _, p := range hostInfo.Processes {
-// 		for _, i := range integrations {
-// 			name, err := p.Name()
-// 			if err != nil {
-// 				continue
-// 			}
-
-// 			if i == name {
-// 				x.processes = append(x.processes, p)
-// 			}
-// 		}
-// 	}
-
-// 	return &x, nil
-// }
+	return osInfo, nil
+}
