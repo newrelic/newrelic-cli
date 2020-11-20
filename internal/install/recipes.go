@@ -46,13 +46,13 @@ type variableConfig struct {
 // }
 
 type meltMatch struct {
-	Events  []patternMatcher `yaml:"events"`
-	Metrics []patternMatcher `yaml:"metrics"`
-	Logging []loggingMatcher `yaml:"logging"`
+	Events  patternMatcher `yaml:"events"`
+	Metrics patternMatcher `yaml:"metrics"`
+	Logging loggingMatcher `yaml:"logging"`
 }
 
 type patternMatcher struct {
-	Pattern string `yaml:"pattern"`
+	Pattern []string `yaml:"pattern"`
 }
 
 type loggingMatcher struct {
