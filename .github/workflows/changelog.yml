@@ -3,18 +3,24 @@ name: Changelog
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   createPullRequest:
     runs-on: ubuntu-latest
     steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.x
+
+      - name: Add GOBIN to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v2
-        with:
-          go-version: 1.15.x
 
       - name: Update Changelog
         run: |
@@ -26,12 +32,12 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-          commit-message: "chore: update changelog"
+          commit-message: 'chore: update changelog'
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           signoff: false
           branch: update/changelog
-          title: "${{ github.ref }} Changelog Update"
+          title: '${{ github.ref }} Changelog Update'
           base: master
           body: |
             Update changelog
