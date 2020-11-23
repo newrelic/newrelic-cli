@@ -21,10 +21,17 @@ jobs:
           - windows-latest
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - name: Install Go
+        uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
+
+      - name: Add GOBIN to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Compile
         run: make compile-only
