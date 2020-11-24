@@ -132,4 +132,4 @@ func getBinaryPath() string {
 	return path.Join(configDirectory, "bin", "nrdiag")
 }
 
-const downloadURL = "https://download.example.com/nrdiag/nrdiag_latest.zip"
+const downloadURL = "https://download.newrelic.com/nrdiag/nrdiag_latest.zip"
