@@ -52,7 +52,7 @@ func install(client *newrelic.NewRelic) error {
 }
 
 func executeRecipeSteps(r recipeFile) error {
-	log.Debugf("Executing recipe %s", r.MetaData.Name)
+	log.Debugf("Executing recipe %s", r.Name)
 
 	out, err := yaml.Marshal(r.Install)
 	if err != nil {
@@ -60,7 +60,7 @@ func executeRecipeSteps(r recipeFile) error {
 	}
 
 	// Create a temporary task file.
-	file, err := ioutil.TempFile("", r.MetaData.Name)
+	file, err := ioutil.TempFile("", r.Name)
 	defer os.Remove(file.Name())
 	if err != nil {
 		return err
