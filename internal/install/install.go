@@ -21,21 +21,22 @@ import (
 )
 
 func install(client *newrelic.NewRelic) error {
+	ctx := getSignalContext()
 	rf := newServiceRecipeFetcher(&client.NerdGraph)
 	pf := newRegexProcessFilterer(rf)
 
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
 	var d discoverer = newPSUtilDiscoverer(pf)
-	manifest, err := d.discover()
+	manifest, err := d.discover(ctx)
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("manifest: %+v", manifest)
-
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
+	// TODO: pass context into this method.  The client will need to be updated
+	// to allow this
 	recipes, err := rf.fetchRecommendations(manifest)
 	if err != nil {
 		return err
@@ -43,7 +44,7 @@ func install(client *newrelic.NewRelic) error {
 
 	// Execute the recipe steps.
 	for _, r := range recipes {
-		err := executeRecipeSteps(r)
+		err := executeRecipeSteps(ctx, r)
 		if err != nil {
 			return err
 		}
@@ -52,7 +53,7 @@ func install(client *newrelic.NewRelic) error {
 	return nil
 }
 
-func executeRecipeSteps(r recipeFile) error {
+func executeRecipeSteps(ctx context.Context, r recipeFile) error {
 	log.Debugf("Executing recipe %s", r.Name)
 
 	out, err := yaml.Marshal(r.Install)
@@ -111,7 +112,7 @@ func executeRecipeSteps(r recipeFile) error {
 		return err
 	}
 
-	if err := e.Run(getSignalContext(), calls...); err != nil {
+	if err := e.Run(ctx, calls...); err != nil {
 		return err
 	}
 

@@ -20,7 +20,7 @@ func newServiceRecipeFetcher(client nerdGraphClient) recipeFetcher {
 }
 
 func (f *serviceRecipeFetcher) fetchRecommendations(manifest *discoveryManifest) ([]recipeFile, error) {
-	c, err := manifest.ToRecommendationsInput()
+	c, err := createRecommendationsInput(manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +141,28 @@ type recipeFilter struct {
 type recipeFilterMetadata struct {
 	Name         string
 	ProcessMatch []string
+}
+
+func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, error) {
+	c := recommendationsInput{
+		Variant: variantInput{
+			OS: d.platform,
+		},
+	}
+
+	for _, process := range d.processes {
+		n, err := process.Name()
+		if err != nil {
+			return nil, err
+		}
+
+		p := processDetailInput{
+			Name: n,
+		}
+		c.ProcessDetails = append(c.ProcessDetails, p)
+	}
+
+	return &c, nil
 }
 
 const (

@@ -3,6 +3,7 @@
 package install
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"testing"
@@ -32,7 +33,7 @@ func TestDiscovery(t *testing.T) {
 	pf := newRegexProcessFilterer(mockRecipeFetcher)
 	pd := newPSUtilDiscoverer(pf)
 
-	manifest, err := pd.discover()
+	manifest, err := pd.discover(context.Background())
 
 	require.NoError(t, err)
 	require.NotNil(t, manifest)

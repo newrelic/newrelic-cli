@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
 )
@@ -20,8 +21,20 @@ func newPSUtilDiscoverer(f processFilterer) discoverer {
 	return &d
 }
 
-func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
-	m := newDiscoveryManifest()
+func (p *psUtilDiscoverer) discover(ctx context.Context) (*discoveryManifest, error) {
+	i, err := host.InfoWithContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	m := discoveryManifest{
+		kernelArch:      i.KernelArch,
+		kernelVersion:   i.KernelVersion,
+		os:              i.OS,
+		platform:        i.Platform,
+		platformFamily:  i.PlatformFamily,
+		platformVersion: i.PlatformVersion,
+	}
 
 	pids, err := process.PidsWithContext(context.Background())
 	if err != nil {
@@ -49,5 +62,5 @@ func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
 		m.AddProcess(p)
 	}
 
-	return m, nil
+	return &m, nil
 }
