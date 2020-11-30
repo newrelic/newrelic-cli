@@ -64,7 +64,7 @@ lint-commit: deps
 
 golangci: deps
 	@echo "=== $(PROJECT_NAME) === [ golangci-lint    ]: Linting using $(GOLINTER) ($(COMMIT_LINT_CMD))..."
-	@$(GOLINTER) run
+	@$(GOLINTER) run --build-tags unit,integration
 
 outdated: deps
 	@echo "=== $(PROJECT_NAME) === [ outdated         ]: Finding outdated deps with $(GO_MOD_OUTDATED)..."

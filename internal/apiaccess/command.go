@@ -3,12 +3,13 @@ package apiaccess
 import (
 	"encoding/json"
 
+	"github.com/spf13/cobra"
+
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
-	"github.com/spf13/cobra"
 )
 
 var Command = &cobra.Command{

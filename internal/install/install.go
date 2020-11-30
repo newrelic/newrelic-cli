@@ -17,30 +17,34 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
-func install(configFiles []string) error {
+func install(client *newrelic.NewRelic) error {
+	ctx := getSignalContext()
+	rf := newServiceRecipeFetcher(&client.NerdGraph)
+	pf := newRegexProcessFilterer(rf)
+
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = new(psUtilDiscoverer)
-	manifest, err := d.discover()
+	var d discoverer = newPSUtilDiscoverer(pf)
+	manifest, err := d.discover(ctx)
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("manifest: %+v", manifest)
-
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	var f recipeFetcher = new(yamlRecipeFetcher)
-	recipes, err := f.fetch(configFiles, manifest)
+	// TODO: pass context into this method.  The client will need to be updated
+	// to allow this
+	recipes, err := rf.fetchRecommendations(manifest)
 	if err != nil {
 		return err
 	}
 
 	// Execute the recipe steps.
 	for _, r := range recipes {
-		err := executeRecipeSteps(r)
+		err := executeRecipeSteps(ctx, r)
 		if err != nil {
 			return err
 		}
@@ -49,30 +53,8 @@ func install(configFiles []string) error {
 	return nil
 }
 
-// var s *spinner.Spinner
-
-// func preRun(t *taskfile.Task, x map[string]interface{}) {
-// 	if t.Name() == "default" {
-// 		return
-// 	}
-// 	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-// 	s.Prefix = fmt.Sprintf("%s... ", t.Name())
-// 	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
-
-// 	// x["spinner"] = s
-// 	s.Start()
-// }
-
-// func postRun(t *taskfile.Task, x map[string]interface{}) {
-// 	if t.Name() == "default" {
-// 		return
-// 	}
-// 	// x["spinner"].(*spinner.Spinner).Stop()
-// 	s.Stop()
-// }
-
-func executeRecipeSteps(r recipe) error {
-	log.Debugf("Executing recipe %s", r.MetaData.Name)
+func executeRecipeSteps(ctx context.Context, r recipeFile) error {
+	log.Debugf("Executing recipe %s", r.Name)
 
 	out, err := yaml.Marshal(r.Install)
 	if err != nil {
@@ -80,7 +62,7 @@ func executeRecipeSteps(r recipe) error {
 	}
 
 	// Create a temporary task file.
-	file, err := ioutil.TempFile("", r.MetaData.Name)
+	file, err := ioutil.TempFile("", r.Name)
 	defer os.Remove(file.Name())
 	if err != nil {
 		return err
@@ -126,7 +108,31 @@ func executeRecipeSteps(r recipe) error {
 		return err
 	}
 
-	for _, envConfig := range r.InputVars {
+	if err := setInputVars(e.Taskfile, r.InputVars); err != nil {
+		return err
+	}
+
+	if err := e.Run(ctx, calls...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getSignalContext() context.Context {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		sig := <-ch
+		log.Warnf("signal received: %s", sig)
+		cancel()
+	}()
+	return ctx
+}
+
+func setInputVars(t *taskfile.Taskfile, inputVars []variableConfig) error {
+	for _, envConfig := range inputVars {
 		v := taskfile.Vars{}
 
 		envValue := os.Getenv(envConfig.Name)
@@ -156,24 +162,8 @@ func executeRecipeSteps(r recipe) error {
 			v.Set(envConfig.Name, taskfile.Var{Static: envValue})
 		}
 
-		e.Taskfile.Vars.Merge(&v)
-	}
-
-	if err := e.Run(getSignalContext(), calls...); err != nil {
-		return err
+		t.Vars.Merge(&v)
 	}
 
 	return nil
-}
-
-func getSignalContext() context.Context {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		sig := <-ch
-		log.Warnf("signal received: %s", sig)
-		cancel()
-	}()
-	return ctx
 }
