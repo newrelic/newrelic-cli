@@ -106,7 +106,31 @@ func executeRecipeSteps(r recipeFile) error {
 		return err
 	}
 
-	for _, envConfig := range r.InputVars {
+	if err := setInputVars(e.Taskfile, r.InputVars); err != nil {
+		return err
+	}
+
+	if err := e.Run(getSignalContext(), calls...); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getSignalContext() context.Context {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		sig := <-ch
+		log.Warnf("signal received: %s", sig)
+		cancel()
+	}()
+	return ctx
+}
+
+func setInputVars(t *taskfile.Taskfile, inputVars []variableConfig) error {
+	for _, envConfig := range inputVars {
 		v := taskfile.Vars{}
 
 		envValue := os.Getenv(envConfig.Name)
@@ -136,24 +160,8 @@ func executeRecipeSteps(r recipeFile) error {
 			v.Set(envConfig.Name, taskfile.Var{Static: envValue})
 		}
 
-		e.Taskfile.Vars.Merge(&v)
-	}
-
-	if err := e.Run(getSignalContext(), calls...); err != nil {
-		return err
+		t.Vars.Merge(&v)
 	}
 
 	return nil
-}
-
-func getSignalContext() context.Context {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		sig := <-ch
-		log.Warnf("signal received: %s", sig)
-		cancel()
-	}()
-	return ctx
 }
