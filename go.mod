@@ -19,7 +19,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.3
 	github.com/newrelic/newrelic-client-go v0.50.0
 	github.com/psampaz/go-mod-outdated v0.7.0
-	github.com/shirou/gopsutil v0.0.0-20190901111213-e4ec7b275ada
+	github.com/shirou/gopsutil v3.20.10+incompatible
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5

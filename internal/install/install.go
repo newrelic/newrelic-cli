@@ -20,10 +20,12 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
-func install(client *newrelic.NewRelic, configFiles []string) error {
+func install(client *newrelic.NewRelic) error {
+	f := newServiceRecipeFetcher(&client.NerdGraph)
+
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = new(psUtilDiscoverer)
+	var d discoverer = newPSUtilDiscoverer(f)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
@@ -33,8 +35,7 @@ func install(client *newrelic.NewRelic, configFiles []string) error {
 
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	f := newServiceRecipeFetcher(client)
-	recipes, err := f.fetch(configFiles, manifest)
+	recipes, err := f.fetchRecommendations(manifest)
 	if err != nil {
 		return err
 	}
@@ -50,30 +51,8 @@ func install(client *newrelic.NewRelic, configFiles []string) error {
 	return nil
 }
 
-// var s *spinner.Spinner
-
-// func preRun(t *taskfile.Task, x map[string]interface{}) {
-// 	if t.Name() == "default" {
-// 		return
-// 	}
-// 	s = spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-// 	s.Prefix = fmt.Sprintf("%s... ", t.Name())
-// 	s.FinalMSG = fmt.Sprintf("%s ...completed.\n", t.Name())
-
-// 	// x["spinner"] = s
-// 	s.Start()
-// }
-
-// func postRun(t *taskfile.Task, x map[string]interface{}) {
-// 	if t.Name() == "default" {
-// 		return
-// 	}
-// 	// x["spinner"].(*spinner.Spinner).Stop()
-// 	s.Stop()
-// }
-
 func executeRecipeSteps(r recipeFile) error {
-	log.Debugf("Executing recipe %s", r.Name)
+	log.Debugf("Executing recipe %s", r.MetaData.Name)
 
 	out, err := yaml.Marshal(r.Install)
 	if err != nil {

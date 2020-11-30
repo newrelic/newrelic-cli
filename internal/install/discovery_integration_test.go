@@ -16,7 +16,19 @@ func TestDiscovery(t *testing.T) {
 		t.Fatalf("error starting java process")
 	}
 
-	pd := psUtilDiscoverer{}
+	mockRecipeFetcher := newMockRecipeFetcher()
+	mockRecipeFetcher.fetchFiltersFunc = func() ([]recipeFilter, error) {
+		return []recipeFilter{
+			{
+				ID: "test",
+				Metadata: recipeFilterMetadata{
+					Name:         "java",
+					ProcessMatch: []string{"java"},
+				},
+			},
+		}, nil
+	}
+	pd := newPSUtilDiscoverer(mockRecipeFetcher)
 	manifest, err := pd.discover()
 	require.NoError(t, err)
 	require.NotNil(t, manifest)
