@@ -33,7 +33,8 @@ func TestConfigSetLogLevel(t *testing.T) {
 		assert.Equal(t, l, c.LogLevel)
 
 		// Double check that the config is written to disk
-		c2, err := LoadConfig(f)
+		var c2 *Config
+		c2, err = LoadConfig(f)
 		assert.NoError(t, err)
 		assert.Equal(t, l, c2.LogLevel)
 	}

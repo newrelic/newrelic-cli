@@ -21,6 +21,3 @@ func (c *mockNerdGraphClient) QueryWithResponse(query string, variables map[stri
 
 	return nil
 }
-
-func clear(res interface{}) {
-}

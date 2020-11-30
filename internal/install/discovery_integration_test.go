@@ -40,5 +40,8 @@ func TestDiscovery(t *testing.T) {
 		t.Fatalf("error sending interrupt to java process")
 	}
 
-	cmd.Wait()
+	err = cmd.Wait()
+	if err != nil {
+		t.Fatalf("error waiting for test process to complete")
+	}
 }

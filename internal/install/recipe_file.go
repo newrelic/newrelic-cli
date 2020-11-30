@@ -4,7 +4,7 @@ type recipeFile struct {
 	Description    string                 `yaml:"description"`
 	InputVars      []variableConfig       `yaml:"inputVars"`
 	Install        map[string]interface{} `yaml:"install"`
-	InstallTargets recipeInstallTarget    `yaml:"installTargets`
+	InstallTargets recipeInstallTarget    `yaml:"installTargets"`
 	Keywords       []string               `yaml:"keywords"`
 	MELTMatch      meltMatch              `yaml:"meltMatch"`
 	Name           string                 `yaml:"name"`
