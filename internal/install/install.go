@@ -21,11 +21,12 @@ import (
 )
 
 func install(client *newrelic.NewRelic) error {
-	f := newServiceRecipeFetcher(&client.NerdGraph)
+	rf := newServiceRecipeFetcher(&client.NerdGraph)
+	pf := newRegexProcessFilterer(rf)
 
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
-	var d discoverer = newPSUtilDiscoverer(f)
+	var d discoverer = newPSUtilDiscoverer(pf)
 	manifest, err := d.discover()
 	if err != nil {
 		return err
@@ -35,7 +36,7 @@ func install(client *newrelic.NewRelic) error {
 
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	recipes, err := f.fetchRecommendations(manifest)
+	recipes, err := rf.fetchRecommendations(manifest)
 	if err != nil {
 		return err
 	}

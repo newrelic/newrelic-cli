@@ -2,7 +2,6 @@ package install
 
 import (
 	"fmt"
-	"regexp"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -142,27 +141,6 @@ type recipeFilter struct {
 type recipeFilterMetadata struct {
 	Name         string
 	ProcessMatch []string
-}
-
-func (c *recipeFilter) match(process genericProcess) bool {
-	for _, pattern := range c.Metadata.ProcessMatch {
-		name, err := process.Name()
-		if err != nil {
-			log.Debugf("could not retrieve process name for PID %d", process.PID())
-			continue
-		}
-		matched, err := regexp.Match(pattern, []byte(name))
-		if err != nil {
-			log.Debugf("could not execute pattern %s against process invocation %s", pattern, name)
-			continue
-		}
-
-		if matched {
-			return matched
-		}
-	}
-
-	return false
 }
 
 const (

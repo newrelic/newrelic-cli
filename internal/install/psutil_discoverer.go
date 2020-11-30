@@ -9,48 +9,45 @@ import (
 )
 
 type psUtilDiscoverer struct {
-	recipeFetcher recipeFetcher
+	processFilterer processFilterer
 }
 
-func newPSUtilDiscoverer(r recipeFetcher) discoverer {
+func newPSUtilDiscoverer(f processFilterer) discoverer {
 	d := psUtilDiscoverer{
-		recipeFetcher: r,
+		processFilterer: f,
 	}
 
 	return &d
 }
 
 func (p *psUtilDiscoverer) discover() (*discoveryManifest, error) {
-	d := newDiscoveryManifest()
-
-	filters, err := p.recipeFetcher.fetchFilters()
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve process filter criteria: %s", err)
-	}
+	m := newDiscoveryManifest()
 
 	pids, err := process.PidsWithContext(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve processes: %s", err)
 	}
 
+	processes := []genericProcess{}
 	for _, pid := range pids {
-		pp, err := process.NewProcess(pid)
+		var pp *process.Process
+		pp, err = process.NewProcess(pid)
 		if err != nil {
 			log.Debugf("cannot read pid %d: %s", pid, err)
 			continue
 		}
 
-		p := psUtilProcess(*pp)
-
-		matches := false
-		for _, f := range filters {
-			matches = matches || f.match(p)
-		}
-
-		if matches {
-			d.AddProcess(p)
-		}
+		processes = append(processes, psUtilProcess(*pp))
 	}
 
-	return d, nil
+	filtered, err := p.processFilterer.filter(processes)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, p := range filtered {
+		m.AddProcess(p)
+	}
+
+	return m, nil
 }
