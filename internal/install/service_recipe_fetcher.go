@@ -1,19 +1,18 @@
 package install
 
 import (
+	"fmt"
 	"regexp"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-
-	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
 type serviceRecipeFetcher struct {
-	client *nerdgraph.NerdGraph
+	client nerdGraphClient
 }
 
-func newServiceRecipeFetcher(client *nerdgraph.NerdGraph) recipeFetcher {
+func newServiceRecipeFetcher(client nerdGraphClient) recipeFetcher {
 	f := serviceRecipeFetcher{
 		client: client,
 	}
@@ -45,15 +44,21 @@ func (f *serviceRecipeFetcher) fetchFilters() ([]recipeFilter, error) {
 		return nil, err
 	}
 
+	fmt.Printf("resp: %+v\n", resp)
+
 	return resp.Account.OpenInstallation.RecipeSearch.Results, nil
 }
 
 type recommendationsQueryResult struct {
-	Account struct {
-		OpenInstallation struct {
-			Recommendations recommendationsResult
-		}
-	}
+	Account recommendationsQueryAccount
+}
+
+type recommendationsQueryAccount struct {
+	OpenInstallation recommendationsQueryOpenInstallation
+}
+
+type recommendationsQueryOpenInstallation struct {
+	Recommendations recommendationsResult
 }
 
 type recommendationsResult struct {
@@ -114,11 +119,15 @@ type processDetailInput struct {
 }
 
 type recipeFilterQueryResult struct {
-	Account struct {
-		OpenInstallation struct {
-			RecipeSearch recipeFilterResult
-		}
-	}
+	Account recipeFilterQueryAccount
+}
+
+type recipeFilterQueryAccount struct {
+	OpenInstallation recipeFilterQueryOpenInstallation
+}
+
+type recipeFilterQueryOpenInstallation struct {
+	RecipeSearch recipeFilterResult
 }
 
 type recipeFilterResult struct {
