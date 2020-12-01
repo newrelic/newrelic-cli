@@ -108,6 +108,7 @@ github.com/Masterminds/semver v1.5.0 h1:H65muMkzWKEuNDnfl9d70GUjFniHKHRbFPGBuZ3Q
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
 github.com/Masterminds/semver/v3 v3.1.0 h1:Y2lUDsFKVRSYGojLJ1yLxSXdMmMYTYls0rCvoqmMUQk=
 github.com/Masterminds/semver/v3 v3.1.0/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
+github.com/Masterminds/semver/v3 v3.1.1 h1:hLg3sBzpNErnxhQtUy/mmLR2I9foDujNK030IGemrRc=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=
 github.com/Masterminds/sprig v2.22.0+incompatible h1:z4yfnGrZ7netVz+0EDJ0Wi+5VZCSYp4Z0m2dk6cEM60=
 github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
@@ -449,11 +450,13 @@ github.com/goreleaser/goreleaser v0.143.0 h1:O/oQFIdg/nGso0iQ7/W4J4aqsERWvkDhnFz
 github.com/goreleaser/goreleaser v0.143.0/go.mod h1:/zq84GQ8WZFnspGTONdZO0Kgf5BzOD3CzufXyw+ut4A=
 github.com/goreleaser/goreleaser v0.147.2 h1:5afh3TsLEA6WemlBeUGOu0r6+AA9XA55Y9M0igV4kN8=
 github.com/goreleaser/goreleaser v0.147.2/go.mod h1:AkI3X+mBaAEc99RDZgUGvjbUEqh/+t+EjNMaqUbd+3w=
+github.com/goreleaser/goreleaser v0.148.0 h1:vDmy2XMB7e/Uc5N+L6sZnlgA2bYMVcBbbuuwPnETMys=
 github.com/goreleaser/goreleaser v0.148.0/go.mod h1:4IfM3GZYelDiM3x05po3Nk2N20lQGYQUliWQYWSP0oU=
 github.com/goreleaser/nfpm v1.7.0 h1:ZUBnaYNOO5zMKkwGmzRG9jIOBBGKM86iylBorQjZfuU=
 github.com/goreleaser/nfpm v1.7.0/go.mod h1:V6xp021JRvYdBYpGFoP6m6YsuedzgB6IO2ub2NNBohs=
 github.com/goreleaser/nfpm v1.10.1 h1:v8CQ9Xe+1DLYkns2g0uAgQ/pCn5qs4/iBWWk1UDV6BA=
 github.com/goreleaser/nfpm v1.10.1/go.mod h1:G0vvOjif+gnnTTWBtvYqMBh8nMGM7eNkrZU/W2gdM6o=
+github.com/goreleaser/nfpm v1.10.2 h1:/D5vs9LwFcXTnZqHkJOwuiEag6rgtwKVj1yBvvJZaMA=
 github.com/goreleaser/nfpm v1.10.2/go.mod h1:R3sQteLUCtPD7GJxvDl0eqlkTX0/hqFftT3WUPLjClA=
 github.com/gorilla/websocket v1.4.0 h1:WDFjx/TMzVgy9VdMMQi2K2Emtwi2QcUQsztZ/zLaH/Q=
 github.com/gorilla/websocket v1.4.0/go.mod h1:E7qHFY5m1UJ88s3WnNqhKjPHQ0heANvMoAMk2YaljkQ=
@@ -679,6 +682,7 @@ github.com/mitchellh/mapstructure v1.3.2 h1:mRS76wmkOn3KkKAyXDu42V+6ebnXWIztFSYG
 github.com/mitchellh/mapstructure v1.3.2/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/mapstructure v1.3.3 h1:SzB1nHZ2Xi+17FP0zVQBHIZqvwRN9408fJO8h+eeNA8=
 github.com/mitchellh/mapstructure v1.3.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
+github.com/mitchellh/mapstructure v1.4.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/mitchellh/reflectwalk v1.0.0/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
 github.com/mitchellh/reflectwalk v1.0.1 h1:FVzMWA5RllMAKIdUSC8mdWo3XtwoecrH79BY70sEEpE=
 github.com/mitchellh/reflectwalk v1.0.1/go.mod h1:mSTlrgnPZtwu0c4WaC2kGObEpuNDbx0jmZXqmk4esnw=
