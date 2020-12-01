@@ -53,7 +53,7 @@ func (p *psUtilDiscoverer) discover(ctx context.Context) (*discoveryManifest, er
 		processes = append(processes, psUtilProcess(*pp))
 	}
 
-	filtered, err := p.processFilterer.filter(processes)
+	filtered, err := p.processFilterer.filter(ctx, processes)
 	if err != nil {
 		return nil, err
 	}

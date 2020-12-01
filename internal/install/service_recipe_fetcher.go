@@ -1,7 +1,7 @@
 package install
 
 import (
-	"fmt"
+	"context"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -19,7 +19,7 @@ func newServiceRecipeFetcher(client nerdGraphClient) recipeFetcher {
 	return &f
 }
 
-func (f *serviceRecipeFetcher) fetchRecommendations(manifest *discoveryManifest) ([]recipeFile, error) {
+func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifest *discoveryManifest) ([]recipeFile, error) {
 	c, err := createRecommendationsInput(manifest)
 	if err != nil {
 		return nil, err
@@ -30,20 +30,18 @@ func (f *serviceRecipeFetcher) fetchRecommendations(manifest *discoveryManifest)
 	}
 
 	var resp recommendationsQueryResult
-	if err := f.client.QueryWithResponse(recommendationsQuery, vars, &resp); err != nil {
+	if err := f.client.QueryWithResponseAndContext(ctx, recommendationsQuery, vars, &resp); err != nil {
 		return nil, err
 	}
 
 	return resp.Account.OpenInstallation.Recommendations.ToRecipeFiles(), nil
 }
 
-func (f *serviceRecipeFetcher) fetchFilters() ([]recipeFilter, error) {
+func (f *serviceRecipeFetcher) fetchFilters(ctx context.Context) ([]recipeFilter, error) {
 	var resp recipeFilterQueryResult
-	if err := f.client.QueryWithResponse(recipeFilterCriteriaQuery, nil, &resp); err != nil {
+	if err := f.client.QueryWithResponseAndContext(ctx, recipeFilterCriteriaQuery, nil, &resp); err != nil {
 		return nil, err
 	}
-
-	fmt.Printf("resp: %+v\n", resp)
 
 	return resp.Account.OpenInstallation.RecipeSearch.Results, nil
 }

@@ -1,5 +1,7 @@
 package install
 
+import "context"
+
 type mockRecipeFetcher struct {
 	fetchRecommendationsFunc func(*discoveryManifest) ([]recipeFile, error)
 	fetchFiltersFunc         func() ([]recipeFilter, error)
@@ -13,11 +15,11 @@ func newMockRecipeFetcher() *mockRecipeFetcher {
 	return &f
 }
 
-func (f *mockRecipeFetcher) fetchRecommendations(manifest *discoveryManifest) ([]recipeFile, error) {
+func (f *mockRecipeFetcher) fetchRecommendations(ctx context.Context, manifest *discoveryManifest) ([]recipeFile, error) {
 	return f.fetchRecommendationsFunc(manifest)
 }
 
-func (f *mockRecipeFetcher) fetchFilters() ([]recipeFilter, error) {
+func (f *mockRecipeFetcher) fetchFilters(ctx context.Context) ([]recipeFilter, error) {
 	return f.fetchFiltersFunc()
 }
 

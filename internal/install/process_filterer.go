@@ -1,5 +1,7 @@
 package install
 
+import "context"
+
 type processFilterer interface {
-	filter([]genericProcess) ([]genericProcess, error)
+	filter(context.Context, []genericProcess) ([]genericProcess, error)
 }

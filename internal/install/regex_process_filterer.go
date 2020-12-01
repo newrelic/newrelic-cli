@@ -1,6 +1,7 @@
 package install
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 
@@ -19,8 +20,8 @@ func newRegexProcessFilterer(r recipeFetcher) *regexProcessFilterer {
 	return &f
 }
 
-func (f *regexProcessFilterer) filter(processes []genericProcess) ([]genericProcess, error) {
-	filters, err := f.recipeFetcher.fetchFilters()
+func (f *regexProcessFilterer) filter(ctx context.Context, processes []genericProcess) ([]genericProcess, error) {
+	filters, err := f.recipeFetcher.fetchFilters(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve process filter criteria: %s", err)
 	}

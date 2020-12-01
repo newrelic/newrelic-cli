@@ -1,6 +1,8 @@
 package install
 
+import "context"
+
 type recipeFetcher interface {
-	fetchRecommendations(*discoveryManifest) ([]recipeFile, error)
-	fetchFilters() ([]recipeFilter, error)
+	fetchRecommendations(context.Context, *discoveryManifest) ([]recipeFile, error)
+	fetchFilters(context.Context) ([]recipeFilter, error)
 }
