@@ -144,7 +144,8 @@ type recipeFilterMetadata struct {
 func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, error) {
 	c := recommendationsInput{
 		Variant: variantInput{
-			OS: d.platform,
+			OS:   d.platformFamily,
+			Arch: d.kernelArch,
 		},
 	}
 
