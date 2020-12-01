@@ -1,6 +1,7 @@
 package install
 
 import (
+	"context"
 	"reflect"
 )
 
@@ -14,7 +15,7 @@ func newMockNerdGraphClient() *mockNerdGraphClient {
 	}
 }
 
-func (c *mockNerdGraphClient) QueryWithResponse(query string, variables map[string]interface{}, respBody interface{}) error {
+func (c *mockNerdGraphClient) QueryWithResponseAndContext(ctx context.Context, query string, variables map[string]interface{}, respBody interface{}) error {
 	respBodyPtrValue := reflect.ValueOf(respBody)
 	respBodyValue := reflect.Indirect(respBodyPtrValue)
 	respBodyValue.Set(reflect.ValueOf(c.respBody))

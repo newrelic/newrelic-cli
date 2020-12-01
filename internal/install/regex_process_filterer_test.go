@@ -3,6 +3,7 @@
 package install
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -34,7 +35,7 @@ func TestFilter(t *testing.T) {
 	}
 
 	f := newRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(processes)
+	filtered, err := f.filter(context.Background(), processes)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)

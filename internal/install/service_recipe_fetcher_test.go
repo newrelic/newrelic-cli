@@ -3,6 +3,7 @@
 package install
 
 import (
+	"context"
 	"reflect"
 	"testing"
 
@@ -27,7 +28,7 @@ func TestFetchFilters(t *testing.T) {
 
 	s := newServiceRecipeFetcher(c)
 
-	filters, err := s.fetchFilters()
+	filters, err := s.fetchFilters(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, filters)
 	require.NotEmpty(t, filters)
@@ -55,7 +56,7 @@ description: test description
 
 	s := newServiceRecipeFetcher(c)
 
-	recipes, err := s.fetchRecommendations(&m)
+	recipes, err := s.fetchRecommendations(context.Background(), &m)
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)

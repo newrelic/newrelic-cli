@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 
@@ -9,6 +11,21 @@ import (
 
 	log "github.com/sirupsen/logrus"
 )
+
+var (
+	SignalCtx context.Context = getSignalContext()
+)
+
+func getSignalContext() context.Context {
+	ch := make(chan os.Signal, 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		sig := <-ch
+		log.Warnf("signal received: %s", sig)
+		cancel()
+	}()
+	return ctx
+}
 
 type StructToMapCallback func(item interface{}, fields []string) map[string]interface{}
 

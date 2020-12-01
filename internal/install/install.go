@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -17,34 +15,32 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
 func install(client *newrelic.NewRelic) error {
-	ctx := getSignalContext()
 	rf := newServiceRecipeFetcher(&client.NerdGraph)
 	pf := newRegexProcessFilterer(rf)
 
 	// Execute the discovery process.
 	log.Debug("Running discovery...")
 	var d discoverer = newPSUtilDiscoverer(pf)
-	manifest, err := d.discover(ctx)
+	m, err := d.discover(utils.SignalCtx)
 	if err != nil {
 		return err
 	}
 
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	// TODO: pass context into this method.  The client will need to be updated
-	// to allow this
-	recipes, err := rf.fetchRecommendations(manifest)
+	recipes, err := rf.fetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
 		return err
 	}
 
 	// Execute the recipe steps.
 	for _, r := range recipes {
-		err := executeRecipeSteps(ctx, r)
+		err := executeRecipeSteps(utils.SignalCtx, *m, r)
 		if err != nil {
 			return err
 		}
@@ -53,7 +49,7 @@ func install(client *newrelic.NewRelic) error {
 	return nil
 }
 
-func executeRecipeSteps(ctx context.Context, r recipeFile) error {
+func executeRecipeSteps(ctx context.Context, m discoveryManifest, r recipeFile) error {
 	log.Debugf("Executing recipe %s", r.Name)
 
 	out, err := yaml.Marshal(r.Install)
@@ -108,6 +104,8 @@ func executeRecipeSteps(ctx context.Context, r recipeFile) error {
 		return err
 	}
 
+	setSystemVars(e.Taskfile, m)
+
 	if err := setInputVars(e.Taskfile, r.InputVars); err != nil {
 		return err
 	}
@@ -119,16 +117,16 @@ func executeRecipeSteps(ctx context.Context, r recipeFile) error {
 	return nil
 }
 
-func getSignalContext() context.Context {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		sig := <-ch
-		log.Warnf("signal received: %s", sig)
-		cancel()
-	}()
-	return ctx
+func setSystemVars(t *taskfile.Taskfile, m discoveryManifest) {
+	v := taskfile.Vars{}
+	v.Set("OS", taskfile.Var{Static: m.os})
+	v.Set("Platform", taskfile.Var{Static: m.platform})
+	v.Set("PlatformFamily", taskfile.Var{Static: m.platformFamily})
+	v.Set("PlatformVersion", taskfile.Var{Static: m.platformVersion})
+	v.Set("KernelArch", taskfile.Var{Static: m.kernelArch})
+	v.Set("KernelVersion", taskfile.Var{Static: m.kernelVersion})
+
+	t.Vars.Merge(&v)
 }
 
 func setInputVars(t *taskfile.Taskfile, inputVars []variableConfig) error {
