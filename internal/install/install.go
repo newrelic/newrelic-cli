@@ -33,8 +33,6 @@ func install(client *newrelic.NewRelic) error {
 
 	// Retrieve the relevant recipes.
 	log.Debug("Retrieving recipes...")
-	// TODO: pass context into this method.  The client will need to be updated
-	// to allow this
 	recipes, err := rf.fetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
 		return err
