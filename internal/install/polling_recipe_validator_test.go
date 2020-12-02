@@ -55,12 +55,8 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 func TestValidate_FailAfterNAttempts(t *testing.T) {
 	c := newMockNrdbClient()
 	v := newPollingRecipeValidator(c)
-	v.maxAttempts = 5
+	v.maxAttempts = 3
 	v.interval = 10 * time.Millisecond
-
-	results := []nrdb.NrdbResult{}
-
-	c.ReturnResultsAfterNAttempts(results, 5)
 
 	r := recipe{}
 
@@ -68,7 +64,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 
 	require.NoError(t, err)
 	require.False(t, ok)
-	require.Equal(t, 5, c.Attempts())
+	require.Equal(t, 3, c.Attempts())
 }
 
 func TestValidate_FailAfterMaxAttempts(t *testing.T) {

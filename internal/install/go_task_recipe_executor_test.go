@@ -12,11 +12,17 @@ import (
 	"testing"
 
 	"github.com/go-task/task/v3/taskfile"
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
+	p := credentials.Profile{
+		LicenseKey: "testLicenseKey",
+	}
+	credentials.SetDefaultProfile(p)
+
 	e := newGoTaskRecipeExecutor()
 
 	m := discoveryManifest{

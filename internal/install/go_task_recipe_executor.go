@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -68,22 +69,11 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 	calls, globals := taskargs.ParseV3()
 	e.Taskfile.Vars.Merge(globals)
 
-	credentials.WithCredentials(func(c *credentials.Credentials) {
-		v := taskfile.Vars{}
-		licenseKey := c.Profiles[c.DefaultProfile].LicenseKey
-		if licenseKey == "" {
-			err = errors.New("license key not found in default profile")
-		}
+	setSystemVars(e.Taskfile, m)
 
-		v.Set("NR_LICENSE_KEY", taskfile.Var{Static: licenseKey})
-		e.Taskfile.Vars.Merge(&v)
-	})
-
-	if err != nil {
+	if err := setProfileVars(e.Taskfile); err != nil {
 		return err
 	}
-
-	setSystemVars(e.Taskfile, m)
 
 	if err := setInputVars(e.Taskfile, f.InputVars); err != nil {
 		return err
@@ -92,6 +82,23 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 	if err := e.Run(ctx, calls...); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func setProfileVars(t *taskfile.Taskfile) error {
+	defaultProfile := credentials.DefaultProfile()
+	if defaultProfile.LicenseKey == "" {
+		return errors.New("license key not found in default profile")
+	}
+
+	v := taskfile.Vars{}
+	v.Set("NEW_RELIC_LICENSE_KEY", taskfile.Var{Static: defaultProfile.LicenseKey})
+	v.Set("NEW_RELIC_ACCOUNT_ID", taskfile.Var{Static: strconv.Itoa(defaultProfile.AccountID)})
+	v.Set("NEW_RELIC_API_KEY", taskfile.Var{Static: defaultProfile.APIKey})
+	v.Set("NEW_RELIC_REGION", taskfile.Var{Static: defaultProfile.Region})
+
+	t.Vars.Merge(&v)
 
 	return nil
 }

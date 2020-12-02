@@ -41,8 +41,9 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 
 	go func() {
 		for {
-			if count >= m.maxAttempts {
+			if count == m.maxAttempts {
 				resultChan <- false
+				return
 			}
 
 			log.Debugf("Validation attempt #%d...", count+1)
@@ -51,11 +52,12 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 				errChan <- err
 			}
 
+			count++
+
 			if ok {
 				resultChan <- true
+				return
 			}
-
-			count++
 
 			select {
 			case <-ticker.C:
@@ -63,6 +65,7 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 
 			case <-ctx.Done():
 				resultChan <- false
+				return
 			}
 		}
 	}()

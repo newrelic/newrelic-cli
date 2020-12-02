@@ -35,6 +35,7 @@ var Command = &cobra.Command{
 				log.Fatal(errors.New("default profile has not been set"))
 			}
 
+			// Wire up the recipe installer with dependency injection.
 			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
 			pf := newRegexProcessFilterer(rf)
 
@@ -45,6 +46,7 @@ var Command = &cobra.Command{
 				newPollingRecipeValidator(&nrClient.Nrdb),
 			)
 
+			// Run the install.
 			if err := i.install(); err != nil {
 				utils.LogIfFatal(err)
 			}
@@ -57,5 +59,5 @@ var Command = &cobra.Command{
 func init() {
 	Command.Flags().BoolVarP(&interactiveMode, "interactive", "i", true, "enables interactive mode")
 	Command.Flags().BoolVarP(&autoDiscoveryMode, "autoDiscovery", "d", true, "enables auto-discovery mode")
-	Command.Flags().StringSliceVarP(&recipeFriendlyNames, "recipe", "r", []string{}, "the name of a reecipe to install")
+	Command.Flags().StringSliceVarP(&recipeFriendlyNames, "recipe", "r", []string{}, "the name of a recipe to install")
 }

@@ -6,6 +6,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
+var defaultProfile *Profile
+
 // WithCredentials loads and returns the CLI credentials.
 func WithCredentials(f func(c *Credentials)) {
 	WithCredentialsFrom(config.DefaultConfigDirectory, f)
@@ -22,12 +24,18 @@ func WithCredentialsFrom(configDir string, f func(c *Credentials)) {
 }
 
 // DefaultProfile retrieves the current default profile.
-func DefaultProfile() Profile {
-	var p Profile
+func DefaultProfile() *Profile {
+	if defaultProfile == nil {
+		WithCredentials(func(c *Credentials) {
+			p := c.Profiles[c.DefaultProfile]
+			defaultProfile = &p
+		})
+	}
 
-	WithCredentials(func(c *Credentials) {
-		p = c.Profiles[c.DefaultProfile]
-	})
+	return defaultProfile
+}
 
-	return p
+// SetDefaultProfile allows mocking of the default profile for testing purposes.
+func SetDefaultProfile(p Profile) {
+	defaultProfile = &p
 }
