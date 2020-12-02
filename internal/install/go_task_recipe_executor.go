@@ -98,12 +98,13 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 
 func setSystemVars(t *taskfile.Taskfile, m discoveryManifest) {
 	v := taskfile.Vars{}
-	v.Set("OS", taskfile.Var{Static: m.os})
-	v.Set("Platform", taskfile.Var{Static: m.platform})
-	v.Set("PlatformFamily", taskfile.Var{Static: m.platformFamily})
-	v.Set("PlatformVersion", taskfile.Var{Static: m.platformVersion})
-	v.Set("KernelArch", taskfile.Var{Static: m.kernelArch})
-	v.Set("KernelVersion", taskfile.Var{Static: m.kernelVersion})
+	v.Set("HOSTNAME", taskfile.Var{Static: m.Hostname})
+	v.Set("OS", taskfile.Var{Static: m.OS})
+	v.Set("PLATFORM", taskfile.Var{Static: m.Platform})
+	v.Set("PLATFORM_FAMILY", taskfile.Var{Static: m.PlatformFamily})
+	v.Set("PLATFORM_VERSION", taskfile.Var{Static: m.PlatformVersion})
+	v.Set("KERNEL_ARCH", taskfile.Var{Static: m.KernelArch})
+	v.Set("KERNEL_VERSION", taskfile.Var{Static: m.KernelVersion})
 
 	t.Vars.Merge(&v)
 }

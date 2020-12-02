@@ -171,8 +171,8 @@ func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipe
 	c := recipeSearchInput{
 		Name: friendlyName,
 		Variant: variantInput{
-			OS:   d.platformFamily,
-			Arch: d.kernelArch,
+			OS:   d.PlatformFamily,
+			Arch: d.KernelArch,
 		},
 	}
 
@@ -182,12 +182,12 @@ func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipe
 func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, error) {
 	c := recommendationsInput{
 		Variant: variantInput{
-			OS:   d.platformFamily,
-			Arch: d.kernelArch,
+			OS:   d.PlatformFamily,
+			Arch: d.KernelArch,
 		},
 	}
 
-	for _, process := range d.processes {
+	for _, process := range d.Processes {
 		n, err := process.Name()
 		if err != nil {
 			return nil, err

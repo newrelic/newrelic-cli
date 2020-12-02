@@ -6,7 +6,6 @@ type recipeFile struct {
 	Install        map[string]interface{} `yaml:"install"`
 	InstallTargets recipeInstallTarget    `yaml:"installTargets"`
 	Keywords       []string               `yaml:"keywords"`
-	MELTMatch      meltMatch              `yaml:"meltMatch"`
 	Name           string                 `yaml:"name"`
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
@@ -30,25 +29,10 @@ type recipeInstallTarget struct {
 	KernelArch      string `yaml:"kernelArch"`
 }
 
-type meltMatch struct {
-	Events  patternMatcher `yaml:"events"`
-	Metrics patternMatcher `yaml:"metrics"`
-	Logging loggingMatcher `yaml:"logging"`
-}
-
 type variant struct {
 	Arch              []string `yaml:"arch"`
 	OS                []string `yaml:"os"`
 	TargetEnvironment []string `yaml:"targetEnvironment"`
-}
-
-type patternMatcher struct {
-	Pattern []string `yaml:"pattern"`
-}
-
-type loggingMatcher struct {
-	patternMatcher
-	Files []string `yaml:"files"`
 }
 
 type recipeVariant struct {

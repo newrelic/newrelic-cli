@@ -28,12 +28,13 @@ func (p *psUtilDiscoverer) discover(ctx context.Context) (*discoveryManifest, er
 	}
 
 	m := discoveryManifest{
-		kernelArch:      i.KernelArch,
-		kernelVersion:   i.KernelVersion,
-		os:              i.OS,
-		platform:        i.Platform,
-		platformFamily:  i.PlatformFamily,
-		platformVersion: i.PlatformVersion,
+		Hostname:        i.Hostname,
+		KernelArch:      i.KernelArch,
+		KernelVersion:   i.KernelVersion,
+		OS:              i.OS,
+		Platform:        i.Platform,
+		PlatformFamily:  i.PlatformFamily,
+		PlatformVersion: i.PlatformVersion,
 	}
 
 	pids, err := process.PidsWithContext(context.Background())
