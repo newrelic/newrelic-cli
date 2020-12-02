@@ -91,3 +91,41 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, ok)
 }
+
+func TestValidate_FailIfContextDone(t *testing.T) {
+	c := newMockNrdbClient()
+
+	results := []nrdb.NrdbResult{
+		map[string]interface{}{},
+	}
+
+	c.ReturnResultsAfterNAttempts(results, 2)
+
+	v := newPollingRecipeValidator(c)
+	v.interval = 1 * time.Second
+
+	r := recipe{}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	ok, err := v.validate(ctx, r)
+
+	require.NoError(t, err)
+	require.False(t, ok)
+}
+
+func TestValidate_QueryError(t *testing.T) {
+	c := newMockNrdbClient()
+
+	c.ThrowError("test error")
+
+	v := newPollingRecipeValidator(c)
+
+	r := recipe{}
+
+	ok, err := v.validate(context.Background(), r)
+
+	require.False(t, ok)
+	require.EqualError(t, err, "test error")
+}

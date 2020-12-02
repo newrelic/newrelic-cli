@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	"errors"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
@@ -9,6 +10,7 @@ import (
 type mockNrdbClient struct {
 	results  func() []nrdb.NrdbResult
 	attempts int
+	error    string
 }
 
 func newMockNrdbClient() *mockNrdbClient {
@@ -21,9 +23,18 @@ func newMockNrdbClient() *mockNrdbClient {
 
 func (c *mockNrdbClient) QueryWithContext(ctx context.Context, accountID int, nrql nrdb.Nrql) (*nrdb.NrdbResultContainer, error) {
 	c.attempts++
+
+	if c.error != "" {
+		return nil, errors.New(c.error)
+	}
+
 	return &nrdb.NrdbResultContainer{
 		Results: c.results(),
 	}, nil
+}
+
+func (c *mockNrdbClient) ThrowError(message string) {
+	c.error = message
 }
 
 func (c *mockNrdbClient) ReturnResultsAfterNAttempts(results []nrdb.NrdbResult, attempts int) {

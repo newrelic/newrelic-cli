@@ -62,7 +62,7 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 				continue
 
 			case <-ctx.Done():
-				return
+				resultChan <- false
 			}
 		}
 	}()
