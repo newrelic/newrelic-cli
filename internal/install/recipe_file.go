@@ -11,6 +11,7 @@ type recipeFile struct {
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
 	Variant        variant                `yaml:"variant"`
+	ValidationNRQL string                 `yaml:"validationNrql"`
 }
 
 type variableConfig struct {

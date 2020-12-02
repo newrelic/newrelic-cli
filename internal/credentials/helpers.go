@@ -20,3 +20,14 @@ func WithCredentialsFrom(configDir string, f func(c *Credentials)) {
 
 	f(c)
 }
+
+// DefaultProfile retrieves the current default profile.
+func DefaultProfile() Profile {
+	var p Profile
+
+	WithCredentials(func(c *Credentials) {
+		p = c.Profiles[c.DefaultProfile]
+	})
+
+	return p
+}

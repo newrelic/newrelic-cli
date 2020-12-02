@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -19,7 +20,35 @@ func newServiceRecipeFetcher(client nerdGraphClient) recipeFetcher {
 	return &f
 }
 
-func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifest *discoveryManifest) ([]recipeFile, error) {
+func (f *serviceRecipeFetcher) fetchRecipe(ctx context.Context, manifest *discoveryManifest, friendlyName string) (*recipe, error) {
+	c, err := createRecipeSearchInput(manifest, friendlyName)
+	if err != nil {
+		return nil, err
+	}
+
+	vars := map[string]interface{}{
+		"criteria": c,
+	}
+
+	var resp recipeSearchQueryResult
+	if err := f.client.QueryWithResponseAndContext(ctx, recommendationsQuery, vars, &resp); err != nil {
+		return nil, err
+	}
+
+	results := resp.Account.OpenInstallation.RecipeSearch.Results
+
+	if len(results) == 0 {
+		return nil, fmt.Errorf("no results found for friendly name %s", friendlyName)
+	}
+
+	if len(results) > 1 {
+		return nil, fmt.Errorf("more than 1 result found for friendly name %s", friendlyName)
+	}
+
+	return &results[0], nil
+}
+
+func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifest *discoveryManifest) ([]recipe, error) {
 	c, err := createRecommendationsInput(manifest)
 	if err != nil {
 		return nil, err
@@ -34,12 +63,12 @@ func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifes
 		return nil, err
 	}
 
-	return resp.Account.OpenInstallation.Recommendations.ToRecipeFiles(), nil
+	return resp.Account.OpenInstallation.Recommendations.Results, nil
 }
 
-func (f *serviceRecipeFetcher) fetchFilters(ctx context.Context) ([]recipeFilter, error) {
-	var resp recipeFilterQueryResult
-	if err := f.client.QueryWithResponseAndContext(ctx, recipeFilterCriteriaQuery, nil, &resp); err != nil {
+func (f *serviceRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, error) {
+	var resp recipeSearchQueryResult
+	if err := f.client.QueryWithResponseAndContext(ctx, recipeSearchQuery, nil, &resp); err != nil {
 		return nil, err
 	}
 
@@ -69,11 +98,13 @@ type recipe struct {
 }
 
 type recipeMetadata struct {
-	Name        string
-	Description string
-	Repository  string
-	Variant     recipeVariant
-	Keywords    []string
+	Name           string
+	Description    string
+	Repository     string
+	Variant        recipeVariant
+	Keywords       []string
+	ProcessMatch   []string
+	ValidationNRQL string
 }
 
 func (s *recipe) ToRecipeFile() (*recipeFile, error) {
@@ -105,6 +136,11 @@ type recommendationsInput struct {
 	ProcessDetails []processDetailInput `json:"processDetails"`
 }
 
+type recipeSearchInput struct {
+	Name    string       `json:"name"`
+	Variant variantInput `json:"variant"`
+}
+
 type variantInput struct {
 	OS                string `json:"os"`
 	Arch              string `json:"arch"`
@@ -115,30 +151,32 @@ type processDetailInput struct {
 	Name string `json:"name"`
 }
 
-type recipeFilterQueryResult struct {
-	Account recipeFilterQueryAccount
+type recipeSearchQueryResult struct {
+	Account recipeSearchQueryAccount
 }
 
-type recipeFilterQueryAccount struct {
-	OpenInstallation recipeFilterQueryOpenInstallation
+type recipeSearchQueryAccount struct {
+	OpenInstallation recipeSearchQueryOpenInstallation
 }
 
-type recipeFilterQueryOpenInstallation struct {
-	RecipeSearch recipeFilterResult
+type recipeSearchQueryOpenInstallation struct {
+	RecipeSearch recipeSearchResult
 }
 
-type recipeFilterResult struct {
-	Results []recipeFilter
+type recipeSearchResult struct {
+	Results []recipe
 }
 
-type recipeFilter struct {
-	ID       string
-	Metadata recipeFilterMetadata
-}
+func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipeSearchInput, error) {
+	c := recipeSearchInput{
+		Name: friendlyName,
+		Variant: variantInput{
+			OS:   d.platformFamily,
+			Arch: d.kernelArch,
+		},
+	}
 
-type recipeFilterMetadata struct {
-	Name         string
-	ProcessMatch []string
+	return &c, nil
 }
 
 func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, error) {
@@ -165,39 +203,42 @@ func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, er
 }
 
 const (
-	recommendationsQuery = `
-	query Recommendations($criteria: OpenInstallationRecommendationsInput){
+	recipeResultFragment = `
+		id
+		metadata {
+			name
+			description
+			repository
+			processMatch
+			validationNrql
+			variant {
+				os
+				arch
+				targetEnvironment
+			}
+		}
+		file
+	`
+	recipeSearchQuery = `
+	query RecipeSearch($criteria: OpenInstallationRecipeSearchCriteria){
 		docs {
 			openInstallation {
-				recommendations(criteria: $criteria) {
+				recipeSearch(criteria: $criteria) {
 					results {
-						metadata {
-							name
-							description
-							repository
-							variant {
-								os
-								arch
-								targetEnvironment
-							}
-						}
-						file
+						` + recipeResultFragment + `
 					}
 				}
 			}
 		}
 	}`
 
-	recipeFilterCriteriaQuery = `
-	query RecipeSearch{
+	recommendationsQuery = `
+	query Recommendations($criteria: OpenInstallationRecommendationsInput){
 		docs {
 			openInstallation {
-				recipeSearch {
+				recommendations(criteria: $criteria) {
 					results {
-						id
-						metadata {
-							processMatch
-						}
+						` + recipeResultFragment + `
 					}
 				}
 			}

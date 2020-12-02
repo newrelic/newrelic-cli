@@ -18,11 +18,11 @@ func TestDiscovery(t *testing.T) {
 	}
 
 	mockRecipeFetcher := newMockRecipeFetcher()
-	mockRecipeFetcher.fetchFiltersFunc = func() ([]recipeFilter, error) {
-		return []recipeFilter{
+	mockRecipeFetcher.fetchRecipesFunc = func() ([]recipe, error) {
+		return []recipe{
 			{
 				ID: "test",
-				Metadata: recipeFilterMetadata{
+				Metadata: recipeMetadata{
 					Name:         "java",
 					ProcessMatch: []string{"java"},
 				},

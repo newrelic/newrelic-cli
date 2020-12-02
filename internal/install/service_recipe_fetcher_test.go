@@ -11,10 +11,10 @@ import (
 )
 
 func TestFetchFilters(t *testing.T) {
-	f := []recipeFilter{
+	r := []recipe{
 		{
 			ID: "test",
-			Metadata: recipeFilterMetadata{
+			Metadata: recipeMetadata{
 				Name: "test",
 				ProcessMatch: []string{
 					"test",
@@ -24,16 +24,16 @@ func TestFetchFilters(t *testing.T) {
 	}
 
 	c := newMockNerdGraphClient()
-	c.respBody = wrapFilters(f)
+	c.respBody = wrapRecipes(r)
 
 	s := newServiceRecipeFetcher(c)
 
-	filters, err := s.fetchFilters(context.Background())
+	recipes, err := s.fetchRecipes(context.Background())
 	require.NoError(t, err)
-	require.NotNil(t, filters)
-	require.NotEmpty(t, filters)
-	require.Equal(t, 1, len(filters))
-	require.True(t, reflect.DeepEqual(f, filters))
+	require.NotNil(t, recipes)
+	require.NotEmpty(t, recipes)
+	require.Equal(t, 1, len(recipes))
+	require.True(t, reflect.DeepEqual(r, recipes))
 }
 
 func TestFetchRecommendations(t *testing.T) {
@@ -63,12 +63,12 @@ description: test description
 	require.Equal(t, 1, len(recipes))
 }
 
-func wrapFilters(f []recipeFilter) recipeFilterQueryResult {
-	return recipeFilterQueryResult{
-		Account: recipeFilterQueryAccount{
-			OpenInstallation: recipeFilterQueryOpenInstallation{
-				RecipeSearch: recipeFilterResult{
-					Results: f,
+func wrapRecipes(r []recipe) recipeSearchQueryResult {
+	return recipeSearchQueryResult{
+		Account: recipeSearchQueryAccount{
+			OpenInstallation: recipeSearchQueryOpenInstallation{
+				RecipeSearch: recipeSearchResult{
+					Results: r,
 				},
 			},
 		},

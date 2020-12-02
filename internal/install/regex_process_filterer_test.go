@@ -10,10 +10,10 @@ import (
 )
 
 func TestFilter(t *testing.T) {
-	recipeFilters := []recipeFilter{
+	recipes := []recipe{
 		{
 			ID: "test",
-			Metadata: recipeFilterMetadata{
+			Metadata: recipeMetadata{
 				Name:         "java",
 				ProcessMatch: []string{"java"},
 			},
@@ -21,8 +21,8 @@ func TestFilter(t *testing.T) {
 	}
 
 	mockRecipeFetcher := newMockRecipeFetcher()
-	mockRecipeFetcher.fetchFiltersFunc = func() ([]recipeFilter, error) {
-		return recipeFilters, nil
+	mockRecipeFetcher.fetchRecipesFunc = func() ([]recipe, error) {
+		return recipes, nil
 	}
 
 	processes := []genericProcess{
