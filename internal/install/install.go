@@ -46,9 +46,11 @@ func install(client *newrelic.NewRelic) error {
 	var logFiles []string
 	for _, r := range recipes {
 		for _, l := range r.MELTMatch.Logging {
-			if matchLog(l) {
-				logMatches = append(logMatches, l)
-				logFiles = append(logFiles, l.File)
+			match, files := matchLogFilesFromRecipe(l)
+			if match {
+				if userAcceptLogFiles(files) {
+					logMatches = append(logMatches, l)
+				}
 			}
 		}
 	}
@@ -56,7 +58,7 @@ func install(client *newrelic.NewRelic) error {
 	// LOG_FILES is the name of the variable used by the logging recipe as input
 	// for creating the file.  When empty, we use the results of the recipes to
 	// determine the files.
-	if os.Getenv("LOG_FILES") != "" {
+	if os.Getenv("LOG_FILES") != "" && len(logFiles) > 0 {
 		os.Setenv("LOG_FILES", strings.Join(logFiles, ","))
 	}
 
@@ -71,6 +73,38 @@ func install(client *newrelic.NewRelic) error {
 	return nil
 }
 
+// matchLogFilesFromRecipe determines if any files match the given logMatcher.
+func matchLogFilesFromRecipe(matcher logMatcher) (bool, []string) {
+	matches, err := filepath.Glob(matcher.File)
+	if err != nil {
+		log.Errorf("error matching logfiles: %s", err)
+		return false, nil
+	}
+
+	if len(matches) > 0 {
+		return true, matches
+	}
+
+	return false, nil
+}
+
+func userAcceptLogFiles(files []string) bool {
+	msg := fmt.Sprintf("The following log files have been found: %s\nDo you want to watch them? [Yes/No]", strings.Join(files, ", "))
+
+	prompt := promptui.Select{
+		Label: msg,
+		Items: []string{"Yes", "No"},
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		log.Errorf("prompt failed: %s", err)
+		return false
+	}
+
+	return result == "Yes"
+}
+
 func matchLog(logMatch logMatcher) bool {
 	matches, err := filepath.Glob(logMatch.File)
 	if err != nil {
@@ -79,20 +113,7 @@ func matchLog(logMatch logMatcher) bool {
 	}
 
 	if len(matches) > 0 {
-		msg := fmt.Sprintf("The following log files have been found: %s\nDo you want to watch them? [Yes/No]", strings.Join(matches, ", "))
-
-		prompt := promptui.Select{
-			Label: msg,
-			Items: []string{"Yes", "No"},
-		}
-
-		_, result, err := prompt.Run()
-		if err != nil {
-			log.Errorf("prompt failed: %s", err)
-			return false
-		}
-
-		return result == "Yes"
+		userAcceptLogFiles(matches)
 	}
 
 	return false
