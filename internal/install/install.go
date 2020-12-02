@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -38,6 +40,26 @@ func install(client *newrelic.NewRelic) error {
 		return err
 	}
 
+	// Use the received recipies to determine the log file locations, prompt the
+	// user for acceptance.
+	var logMatches []logMatcher
+	var logFiles []string
+	for _, r := range recipes {
+		for _, l := range r.MELTMatch.Logging {
+			if matchLog(l) {
+				logMatches = append(logMatches, l)
+				logFiles = append(logFiles, l.File)
+			}
+		}
+	}
+
+	// LOG_FILES is the name of the variable used by the logging recipe as input
+	// for creating the file.  When empty, we use the results of the recipes to
+	// determine the files.
+	if os.Getenv("LOG_FILES") != "" {
+		os.Setenv("LOG_FILES", strings.Join(logFiles, ","))
+	}
+
 	// Execute the recipe steps.
 	for _, r := range recipes {
 		err := executeRecipeSteps(utils.SignalCtx, *m, r)
@@ -47,6 +69,33 @@ func install(client *newrelic.NewRelic) error {
 	}
 
 	return nil
+}
+
+func matchLog(logMatch logMatcher) bool {
+	matches, err := filepath.Glob(logMatch.File)
+	if err != nil {
+		log.Errorf("error matching logfiles: %s", err)
+		return false
+	}
+
+	if len(matches) > 0 {
+		msg := fmt.Sprintf("The following log files have been found: %s\nDo you want to watch them? [Yes/No]", strings.Join(matches, ", "))
+
+		prompt := promptui.Select{
+			Label: msg,
+			Items: []string{"Yes", "No"},
+		}
+
+		_, result, err := prompt.Run()
+		if err != nil {
+			log.Errorf("prompt failed: %s", err)
+			return false
+		}
+
+		return result == "Yes"
+	}
+
+	return false
 }
 
 func executeRecipeSteps(ctx context.Context, m discoveryManifest, r recipeFile) error {

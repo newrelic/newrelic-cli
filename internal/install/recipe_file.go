@@ -32,7 +32,7 @@ type recipeInstallTarget struct {
 type meltMatch struct {
 	Events  patternMatcher `yaml:"events"`
 	Metrics patternMatcher `yaml:"metrics"`
-	Logging loggingMatcher `yaml:"logging"`
+	Logging []logMatcher   `yaml:"logging"`
 }
 
 type variant struct {
@@ -45,9 +45,15 @@ type patternMatcher struct {
 	Pattern []string `yaml:"pattern"`
 }
 
-type loggingMatcher struct {
-	patternMatcher
-	Files []string `yaml:"files"`
+type logMatcher struct {
+	// The name of the log file, as used by the Infra agent.
+	Name string `yaml:"name"`
+
+	// The path to the files, wildcards accepted.
+	File string `yaml:"file"`
+
+	// The pattern of the log messages themselves to make parsing and querying easier.
+	Pattern string `yaml:"pattern"`
 }
 
 type recipeVariant struct {
