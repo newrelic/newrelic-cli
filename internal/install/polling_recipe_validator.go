@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -12,7 +12,7 @@ import (
 
 const (
 	defaultMaxAttempts = 20
-	defaultInterval    = 15 * time.Second
+	defaultInterval    = 5 * time.Second
 )
 
 type pollingRecipeValidator struct {
@@ -41,11 +41,11 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 
 	go func() {
 		for {
-			if count > m.maxAttempts {
+			if count >= m.maxAttempts {
 				resultChan <- false
 			}
 
-			logrus.Debugf("Validation attempt #%d...", count+1)
+			log.Debugf("Validation attempt #%d...", count+1)
 			ok, err := m.tryValidate(ctx, r)
 			if err != nil {
 				errChan <- err
