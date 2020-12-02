@@ -12,24 +12,50 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
+var (
+	interactiveMode     bool
+	autoDiscoveryMode   bool
+	recipeFriendlyNames []string
+)
+
 // Command represents the install command.
 var Command = &cobra.Command{
 	Use:    "install",
 	Short:  "Install New Relic.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		ic := installContext{
+			interactiveMode:     interactiveMode,
+			autoDiscoveryMode:   autoDiscoveryMode,
+			recipeFriendlyNames: recipeFriendlyNames,
+		}
+
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
 			if profile == nil {
 				log.Fatal(errors.New("default profile has not been set"))
 			}
 
-			ic := installContext{}
+			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
+			pf := newRegexProcessFilterer(rf)
 
-			if err := install(nrClient, ic); err != nil {
+			i := newRecipeInstaller(ic,
+				newPSUtilDiscoverer(pf),
+				rf,
+				newGoTaskRecipeExecutor(),
+				newPollingRecipeValidator(&nrClient.Nrdb),
+			)
+
+			if err := i.install(); err != nil {
 				utils.LogIfFatal(err)
 			}
 
 			log.Info("success")
 		})
 	},
+}
+
+func init() {
+	Command.Flags().BoolVarP(&interactiveMode, "interactive", "i", true, "enables interactive mode")
+	Command.Flags().BoolVarP(&autoDiscoveryMode, "autoDiscovery", "d", true, "enables auto-discovery mode")
+	Command.Flags().StringSliceVarP(&recipeFriendlyNames, "recipe", "r", []string{}, "the name of a reecipe to install")
 }
