@@ -12,9 +12,10 @@ import (
 	"testing"
 
 	"github.com/go-task/task/v3/taskfile"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {

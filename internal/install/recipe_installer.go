@@ -51,6 +51,12 @@ func (i *recipeInstaller) install() error {
 		return err
 	}
 
+	// Explicitly run the infra agent recipe
+	//...
+
+	// Configure logging based on discoveryManifest.Logs
+	//...
+
 	var recipes []recipe
 	if i.autoDiscoveryMode {
 		// Retrieve the relevant recipes.
@@ -72,6 +78,8 @@ func (i *recipeInstaller) install() error {
 			if r == nil {
 				return fmt.Errorf("recipe %s not found", n)
 			}
+
+			recipes = append(recipes, *r)
 		}
 	}
 

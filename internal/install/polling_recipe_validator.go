@@ -36,46 +36,30 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
 
-	resultChan := make(chan bool)
-	errChan := make(chan error)
-
-	go func() {
-		for {
-			if count == m.maxAttempts {
-				resultChan <- false
-				return
-			}
-
-			log.Debugf("Validation attempt #%d...", count+1)
-			ok, err := m.tryValidate(ctx, r)
-			if err != nil {
-				errChan <- err
-			}
-
-			count++
-
-			if ok {
-				resultChan <- true
-				return
-			}
-
-			select {
-			case <-ticker.C:
-				continue
-
-			case <-ctx.Done():
-				resultChan <- false
-				return
-			}
+	for {
+		if count == m.maxAttempts {
+			return false, nil
 		}
-	}()
 
-	select {
-	case err := <-errChan:
-		return false, err
+		log.Debugf("Validation attempt #%d...", count+1)
+		ok, err := m.tryValidate(ctx, r)
+		if err != nil {
+			return false, err
+		}
 
-	case result := <-resultChan:
-		return result, nil
+		count++
+
+		if ok {
+			return true, nil
+		}
+
+		select {
+		case <-ticker.C:
+			continue
+
+		case <-ctx.Done():
+			return false, nil
+		}
 	}
 }
 

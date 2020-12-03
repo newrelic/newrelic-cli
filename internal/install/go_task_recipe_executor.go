@@ -69,13 +69,13 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 	calls, globals := taskargs.ParseV3()
 	e.Taskfile.Vars.Merge(globals)
 
-	setSystemVars(e.Taskfile, m)
+	setVarsFromSystemInfo(e.Taskfile, m)
 
-	if err := setProfileVars(e.Taskfile); err != nil {
+	if err := setVarsFromProfile(e.Taskfile); err != nil {
 		return err
 	}
 
-	if err := setInputVars(e.Taskfile, f.InputVars); err != nil {
+	if err := setVarsFromInput(e.Taskfile, f.InputVars); err != nil {
 		return err
 	}
 
@@ -86,7 +86,7 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 	return nil
 }
 
-func setProfileVars(t *taskfile.Taskfile) error {
+func setVarsFromProfile(t *taskfile.Taskfile) error {
 	defaultProfile := credentials.DefaultProfile()
 	if defaultProfile.LicenseKey == "" {
 		return errors.New("license key not found in default profile")
@@ -103,7 +103,7 @@ func setProfileVars(t *taskfile.Taskfile) error {
 	return nil
 }
 
-func setSystemVars(t *taskfile.Taskfile, m discoveryManifest) {
+func setVarsFromSystemInfo(t *taskfile.Taskfile, m discoveryManifest) {
 	v := taskfile.Vars{}
 	v.Set("HOSTNAME", taskfile.Var{Static: m.Hostname})
 	v.Set("OS", taskfile.Var{Static: m.OS})
@@ -116,7 +116,7 @@ func setSystemVars(t *taskfile.Taskfile, m discoveryManifest) {
 	t.Vars.Merge(&v)
 }
 
-func setInputVars(t *taskfile.Taskfile, inputVars []variableConfig) error {
+func setVarsFromInput(t *taskfile.Taskfile, inputVars []variableConfig) error {
 	for _, envConfig := range inputVars {
 		v := taskfile.Vars{}
 

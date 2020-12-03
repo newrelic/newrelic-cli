@@ -3,7 +3,6 @@ package install
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
@@ -40,13 +39,10 @@ func (c *mockNrdbClient) ThrowError(message string) {
 
 func (c *mockNrdbClient) ReturnResultsAfterNAttempts(results []nrdb.NrdbResult, attempts int) {
 	c.results = func() []nrdb.NrdbResult {
-		fmt.Printf("c.attempts: %d\n", c.attempts)
-		fmt.Printf("attempts: %d\n", attempts)
 		if c.attempts < attempts {
 			return []nrdb.NrdbResult{}
 		}
 
-		fmt.Printf("returning desired results\n")
 		return results
 	}
 }
