@@ -18,11 +18,11 @@ func TestDiscovery(t *testing.T) {
 	}
 
 	mockRecipeFetcher := newMockRecipeFetcher()
-	mockRecipeFetcher.fetchFiltersFunc = func() ([]recipeFilter, error) {
-		return []recipeFilter{
+	mockRecipeFetcher.fetchRecipesFunc = func() ([]recipe, error) {
+		return []recipe{
 			{
 				ID: "test",
-				Metadata: recipeFilterMetadata{
+				Metadata: recipeMetadata{
 					Name:         "java",
 					ProcessMatch: []string{"java"},
 				},
@@ -37,7 +37,7 @@ func TestDiscovery(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, manifest)
-	require.GreaterOrEqual(t, len(manifest.processes), 1)
+	require.GreaterOrEqual(t, len(manifest.Processes), 1)
 
 	err = cmd.Process.Signal(os.Interrupt)
 	if err != nil {

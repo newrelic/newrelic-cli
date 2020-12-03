@@ -21,7 +21,7 @@ func newRegexProcessFilterer(r recipeFetcher) *regexProcessFilterer {
 }
 
 func (f *regexProcessFilterer) filter(ctx context.Context, processes []genericProcess) ([]genericProcess, error) {
-	filters, err := f.recipeFetcher.fetchFilters(ctx)
+	recipes, err := f.recipeFetcher.fetchRecipes(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve process filter criteria: %s", err)
 	}
@@ -29,8 +29,8 @@ func (f *regexProcessFilterer) filter(ctx context.Context, processes []genericPr
 	matches := []genericProcess{}
 	for _, p := range processes {
 		isMatch := false
-		for _, f := range filters {
-			isMatch = isMatch || match(f, p)
+		for _, r := range recipes {
+			isMatch = isMatch || match(r, p)
 		}
 
 		if isMatch {
@@ -41,8 +41,8 @@ func (f *regexProcessFilterer) filter(ctx context.Context, processes []genericPr
 	return matches, nil
 }
 
-func match(f recipeFilter, process genericProcess) bool {
-	for _, pattern := range f.Metadata.ProcessMatch {
+func match(r recipe, process genericProcess) bool {
+	for _, pattern := range r.Metadata.ProcessMatch {
 		name, err := process.Name()
 		if err != nil {
 			log.Debugf("could not retrieve process name for PID %d", process.PID())

@@ -11,6 +11,7 @@ type recipeFile struct {
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
 	Variant        variant                `yaml:"variant"`
+	ValidationNRQL string                 `yaml:"validationNrql"`
 }
 
 type variableConfig struct {
@@ -32,13 +33,7 @@ type recipeInstallTarget struct {
 type meltMatch struct {
 	Events  patternMatcher `yaml:"events"`
 	Metrics patternMatcher `yaml:"metrics"`
-	Logging loggingMatcher `yaml:"logging"`
-}
-
-type variant struct {
-	Arch              []string `yaml:"arch"`
-	OS                []string `yaml:"os"`
-	TargetEnvironment []string `yaml:"targetEnvironment"`
+	Logs    loggingMatcher `yaml:"logs"`
 }
 
 type patternMatcher struct {
@@ -46,8 +41,14 @@ type patternMatcher struct {
 }
 
 type loggingMatcher struct {
-	patternMatcher
-	Files []string `yaml:"files"`
+	Pattern []string `yaml:"pattern"`
+	Files   []string `yaml:"files"`
+}
+
+type variant struct {
+	Arch              []string `yaml:"arch"`
+	OS                []string `yaml:"os"`
+	TargetEnvironment []string `yaml:"targetEnvironment"`
 }
 
 type recipeVariant struct {

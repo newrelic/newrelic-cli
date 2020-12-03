@@ -7,13 +7,14 @@ type discoverer interface {
 }
 
 type discoveryManifest struct {
-	processes       []genericProcess
-	os              string
-	platform        string
-	platformFamily  string
-	platformVersion string
-	kernelVersion   string
-	kernelArch      string
+	Hostname        string           `json:"hostname"`
+	KernelArch      string           `json:"kernelArch"`
+	KernelVersion   string           `json:"kernelVersion"`
+	OS              string           `json:"os"`
+	Platform        string           `json:"platform"`
+	PlatformFamily  string           `json:"platformFamily"`
+	PlatformVersion string           `json:"platformVersion"`
+	Processes       []genericProcess `json:"processes"`
 }
 
 type genericProcess interface {
@@ -22,5 +23,5 @@ type genericProcess interface {
 }
 
 func (d *discoveryManifest) AddProcess(p genericProcess) {
-	d.processes = append(d.processes, p)
+	d.Processes = append(d.Processes, p)
 }
