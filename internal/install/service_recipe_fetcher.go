@@ -36,7 +36,7 @@ func (f *serviceRecipeFetcher) fetchRecipe(ctx context.Context, manifest *discov
 		return nil, err
 	}
 
-	results := resp.Account.OpenInstallation.RecipeSearch.Results
+	results := resp.Docs.OpenInstallation.RecipeSearch.Results
 
 	if len(results) == 0 {
 		return nil, fmt.Errorf("no results found for friendly name %s", friendlyName)
@@ -64,7 +64,7 @@ func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifes
 		return nil, err
 	}
 
-	return resp.Account.OpenInstallation.Recommendations.Results, nil
+	return resp.Docs.OpenInstallation.Recommendations.Results, nil
 }
 
 func (f *serviceRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, error) {
@@ -73,14 +73,14 @@ func (f *serviceRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, erro
 		return nil, err
 	}
 
-	return resp.Account.OpenInstallation.RecipeSearch.Results, nil
+	return resp.Docs.OpenInstallation.RecipeSearch.Results, nil
 }
 
 type recommendationsQueryResult struct {
-	Account recommendationsQueryAccount
+	Docs recommendationsQueryDocs
 }
 
-type recommendationsQueryAccount struct {
+type recommendationsQueryDocs struct {
 	OpenInstallation recommendationsQueryOpenInstallation
 }
 
@@ -153,10 +153,10 @@ type processDetailInput struct {
 }
 
 type recipeSearchQueryResult struct {
-	Account recipeSearchQueryAccount
+	Docs recipeSearchQueryDocs
 }
 
-type recipeSearchQueryAccount struct {
+type recipeSearchQueryDocs struct {
 	OpenInstallation recipeSearchQueryOpenInstallation
 }
 
