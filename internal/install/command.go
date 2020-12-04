@@ -13,6 +13,7 @@ import (
 
 var (
 	interactiveMode     bool
+	installLogging      bool
 	autoDiscoveryMode   bool
 	recipeFriendlyNames []string
 )
@@ -25,6 +26,7 @@ var Command = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := installContext{
 			interactiveMode:     interactiveMode,
+			installLogging:      installLogging,
 			autoDiscoveryMode:   autoDiscoveryMode,
 			recipeFriendlyNames: recipeFriendlyNames,
 		}
@@ -53,6 +55,7 @@ var Command = &cobra.Command{
 
 func init() {
 	Command.Flags().BoolVarP(&interactiveMode, "interactive", "i", true, "enables interactive mode")
+	Command.Flags().BoolVarP(&installLogging, "installLogging", "l", true, "installs New Relic logging")
 	Command.Flags().BoolVarP(&autoDiscoveryMode, "autoDiscovery", "d", true, "enables auto-discovery mode")
 	Command.Flags().StringSliceVarP(&recipeFriendlyNames, "recipe", "r", []string{}, "the name of a recipe to install")
 }

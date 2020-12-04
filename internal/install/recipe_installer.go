@@ -32,6 +32,7 @@ func newRecipeInstaller(
 
 	i.autoDiscoveryMode = ic.autoDiscoveryMode
 	i.interactiveMode = ic.interactiveMode
+	i.installLogging = ic.installLogging
 	i.recipeFriendlyNames = ic.recipeFriendlyNames
 
 	return &i
@@ -40,6 +41,7 @@ func newRecipeInstaller(
 type installContext struct {
 	interactiveMode     bool
 	autoDiscoveryMode   bool
+	installLogging      bool
 	recipeFriendlyNames []string
 }
 
@@ -49,7 +51,6 @@ const (
 )
 
 func (i *recipeInstaller) install() {
-
 	log.Infoln("Welcome to New Relic. Let's install some instrumentation.")
 	log.Infoln("Questions? Read more about our installation process at https://docs.newrelic.com/install-newrelic.")
 
@@ -59,8 +60,10 @@ func (i *recipeInstaller) install() {
 	// Run the infra agent recipe, exiting on failure.
 	i.installInfraAgentFatal(m)
 
-	// Run the logging recipe, exiting on failure.
-	i.installLoggingFatal(m)
+	// Run the logging recipe if requested, exiting on failure.
+	if i.installLogging {
+		i.installLoggingFatal(m)
+	}
 
 	// Retrieve a list of recipes to execute.
 	var recipes []recipe
