@@ -31,7 +31,6 @@ func (f *serviceRecipeFetcher) fetchRecipe(ctx context.Context, manifest *discov
 		"criteria": c,
 	}
 
-	log.Info("fetching recipe")
 	var resp recipeSearchQueryResult
 	if err := f.client.QueryWithResponseAndContext(ctx, recipeSearchQuery, vars, &resp); err != nil {
 		return nil, err
@@ -201,14 +200,14 @@ func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, er
 func createInstallTarget(d *discoveryManifest) installTarget {
 	i := installTarget{
 		PlatformVersion: strings.ToUpper(d.PlatformVersion),
-		KernelArch:      strings.ToUpper(d.KernelArch),
-		KernelVersion:   strings.ToUpper(d.KernelVersion),
+		//KernelArch:      strings.ToUpper(d.KernelArch),
+		//KernelVersion:   strings.ToUpper(d.KernelVersion),
 	}
 
 	i.Type = "HOST"
 	i.OS = strings.ToUpper(d.OS)
 	i.Platform = strings.ToUpper(d.Platform)
-	i.PlatformFamily = strings.ToUpper(d.PlatformFamily)
+	//i.PlatformFamily = strings.ToUpper(d.PlatformFamily)
 
 	return i
 }
