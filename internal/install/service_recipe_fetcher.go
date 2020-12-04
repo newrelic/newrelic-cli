@@ -142,10 +142,10 @@ type installTarget struct {
 	Type            string `json:"type"`
 	OS              string `json:"os"`
 	Platform        string `json:"platform"`
-	PlatformFamily  string `json:"platformFamily"`
+	PlatformFamily  string `json:"platformFamily,omitempty"`
 	PlatformVersion string `json:"platformVersion"`
-	KernelArch      string `json:"kernelArch"`
-	KernelVersion   string `json:"kernelVersion"`
+	KernelArch      string `json:"kernelArch,omitempty"`
+	KernelVersion   string `json:"kernelVersion,omitempty"`
 }
 
 type processDetailInput struct {
