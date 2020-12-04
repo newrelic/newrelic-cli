@@ -147,16 +147,16 @@ func (i *recipeInstaller) fetchFatal(m *discoveryManifest, recipeName string) *r
 
 func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (bool, error) {
 	// Execute the recipe steps.
-	log.Infof("Installing %s...\n", r.Metadata.Name)
+	log.Infof("Installing %s...\n", r.Name)
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
-		return false, fmt.Errorf("encountered an error while executing %s: %s", r.Metadata.Name, err)
+		return false, fmt.Errorf("encountered an error while executing %s: %s", r.Name, err)
 	}
-	log.Infof("Installing %s...success\n", r.Metadata.Name)
+	log.Infof("Installing %s...success\n", r.Name)
 
 	log.Info("Listening for data...")
 	ok, err := i.recipeValidator.validate(utils.SignalCtx, *r)
 	if err != nil {
-		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Metadata.Name, err)
+		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 	}
 
 	if !ok {
@@ -171,21 +171,21 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
-		log.Fatalf("Could not install %s: %s", r.Metadata.Name, err)
+		log.Fatalf("Could not install %s: %s", r.Name, err)
 	}
 
 	if !ok {
-		log.Fatalf("Could not detect data from %s.", r.Metadata.Name)
+		log.Fatalf("Could not detect data from %s.", r.Name)
 	}
 }
 
 func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
-		log.Warnf("Could not install %s: %s", r.Metadata.Name, err)
+		log.Warnf("Could not install %s: %s", r.Name, err)
 	}
 
 	if !ok {
-		log.Warnf("Could not detect data from %s.", r.Metadata.Name)
+		log.Warnf("Could not detect data from %s.", r.Name)
 	}
 }

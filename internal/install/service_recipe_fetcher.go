@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -30,8 +31,9 @@ func (f *serviceRecipeFetcher) fetchRecipe(ctx context.Context, manifest *discov
 		"criteria": c,
 	}
 
+	log.Info("fetching recipe")
 	var resp recipeSearchQueryResult
-	if err := f.client.QueryWithResponseAndContext(ctx, recommendationsQuery, vars, &resp); err != nil {
+	if err := f.client.QueryWithResponseAndContext(ctx, recipeSearchQuery, vars, &resp); err != nil {
 		return nil, err
 	}
 
@@ -92,18 +94,14 @@ type recommendationsResult struct {
 }
 
 type recipe struct {
-	ID       string
-	Metadata recipeMetadata
-	File     string
-}
-
-type recipeMetadata struct {
+	ID             string
+	File           string
 	Name           string
 	Description    string
 	Repository     string
-	Variant        recipeVariant
 	Keywords       []string
 	ProcessMatch   []string
+	LogMatch       logMatch
 	ValidationNRQL string
 }
 
@@ -122,7 +120,7 @@ func (recommendations *recommendationsResult) ToRecipeFiles() []recipeFile {
 	for i, s := range recommendations.Results {
 		recipe, err := s.ToRecipeFile()
 		if err != nil {
-			log.Warnf("could not parse recipe %s", s.Metadata.Name)
+			log.Warnf("could not parse recipe %s", s.Name)
 			continue
 		}
 		r[i] = *recipe
@@ -132,19 +130,23 @@ func (recommendations *recommendationsResult) ToRecipeFiles() []recipeFile {
 }
 
 type recommendationsInput struct {
-	Variant        variantInput         `json:"variant"`
+	InstallTarget  installTarget        `json:"installTarget"`
 	ProcessDetails []processDetailInput `json:"processDetails"`
 }
 
 type recipeSearchInput struct {
-	Name    string       `json:"name"`
-	Variant variantInput `json:"variant"`
+	Name          string        `json:"name"`
+	InstallTarget installTarget `json:"installTarget"`
 }
 
-type variantInput struct {
-	OS                string `json:"os"`
-	Arch              string `json:"arch"`
-	TargetEnvironment string `json:"targetEnvironment"`
+type installTarget struct {
+	Type            string `json:"type"`
+	OS              string `json:"os"`
+	Platform        string `json:"platform"`
+	PlatformFamily  string `json:"platformFamily"`
+	PlatformVersion string `json:"platformVersion"`
+	KernelArch      string `json:"kernelArch"`
+	KernelVersion   string `json:"kernelVersion"`
 }
 
 type processDetailInput struct {
@@ -169,11 +171,8 @@ type recipeSearchResult struct {
 
 func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipeSearchInput, error) {
 	c := recipeSearchInput{
-		Name: friendlyName,
-		Variant: variantInput{
-			OS:   d.PlatformFamily,
-			Arch: d.KernelArch,
-		},
+		Name:          friendlyName,
+		InstallTarget: createInstallTarget(d),
 	}
 
 	return &c, nil
@@ -181,10 +180,7 @@ func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipe
 
 func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, error) {
 	c := recommendationsInput{
-		Variant: variantInput{
-			OS:   d.PlatformFamily,
-			Arch: d.KernelArch,
-		},
+		InstallTarget: createInstallTarget(d),
 	}
 
 	for _, process := range d.Processes {
@@ -202,20 +198,56 @@ func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, er
 	return &c, nil
 }
 
+func createInstallTarget(d *discoveryManifest) installTarget {
+	i := installTarget{
+		PlatformVersion: strings.ToUpper(d.PlatformVersion),
+		KernelArch:      strings.ToUpper(d.KernelArch),
+		KernelVersion:   strings.ToUpper(d.KernelVersion),
+	}
+
+	i.Type = "HOST"
+	i.OS = strings.ToUpper(d.OS)
+	i.Platform = strings.ToUpper(d.Platform)
+	i.PlatformFamily = strings.ToUpper(d.PlatformFamily)
+
+	return i
+}
+
 const (
 	recipeResultFragment = `
 		id
-		metadata {
+		name
+		description
+		repository
+		installTargets {
+			type
+			os
+			platform
+			platformFamily
+			platformVersion
+			kernelVersion
+			kernelArch
+		}
+		keywords
+		processMatch
+		logMatch {
 			name
-			description
-			repository
-			processMatch
-			validationNrql
-			variant {
-				os
-				arch
-				targetEnvironment
+			file
+			pattern
+			systemd
+			attributes {
+				logtype
 			}
+		}
+		inputVars {
+			name
+			prompt
+			secret
+			default
+		}
+		validationNrql
+		preInstall {
+			prompt
 		}
 		file
 	`

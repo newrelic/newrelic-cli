@@ -6,17 +6,17 @@ type recipeFile struct {
 	Install        map[string]interface{} `yaml:"install"`
 	InstallTargets recipeInstallTarget    `yaml:"installTargets"`
 	Keywords       []string               `yaml:"keywords"`
-	MELTMatch      meltMatch              `yaml:"meltMatch"`
+	LogMatch       logMatch               `yaml:"logMatch"`
 	Name           string                 `yaml:"name"`
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
-	Variant        variant                `yaml:"variant"`
 	ValidationNRQL string                 `yaml:"validationNrql"`
 }
 
 type variableConfig struct {
 	Name    string `yaml:"name"`
 	Prompt  string `yaml:"prompt"`
+	Secret  bool   `secret:"prompt"`
 	Default string `yaml:"default"`
 }
 
@@ -30,29 +30,14 @@ type recipeInstallTarget struct {
 	KernelArch      string `yaml:"kernelArch"`
 }
 
-type meltMatch struct {
-	Events  patternMatcher `yaml:"events"`
-	Metrics patternMatcher `yaml:"metrics"`
-	Logs    loggingMatcher `yaml:"logs"`
+type logMatch struct {
+	Name       string             `yaml:"name"`
+	File       string             `yaml:"file"`
+	Attributes logMatchAttributes `yaml:"attributes"`
+	Pattern    string             `yaml:"pattern"`
+	Systemd    string             `yaml:"systemd"`
 }
 
-type patternMatcher struct {
-	Pattern []string `yaml:"pattern"`
-}
-
-type loggingMatcher struct {
-	Pattern []string `yaml:"pattern"`
-	Files   []string `yaml:"files"`
-}
-
-type variant struct {
-	Arch              []string `yaml:"arch"`
-	OS                []string `yaml:"os"`
-	TargetEnvironment []string `yaml:"targetEnvironment"`
-}
-
-type recipeVariant struct {
-	OS                []string `json:"os"`
-	Arch              []string `json:"arch"`
-	TargetEnvironment []string `json:"targetEnvironment"`
+type logMatchAttributes struct {
+	LogType string `yaml:"logType"`
 }

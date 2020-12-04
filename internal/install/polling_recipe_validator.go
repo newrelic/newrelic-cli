@@ -64,7 +64,7 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 }
 
 func (m *pollingRecipeValidator) tryValidate(ctx context.Context, r recipe) (bool, error) {
-	results, err := m.executeQuery(ctx, r.Metadata.ValidationNRQL)
+	results, err := m.executeQuery(ctx, r.ValidationNRQL)
 	if err != nil {
 		return false, err
 	}
