@@ -8,7 +8,6 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
@@ -47,11 +46,7 @@ var Command = &cobra.Command{
 			)
 
 			// Run the install.
-			if err := i.install(); err != nil {
-				utils.LogIfFatal(err)
-			}
-
-			log.Info("success")
+			i.install()
 		})
 	},
 }
