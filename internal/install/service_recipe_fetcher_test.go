@@ -62,7 +62,7 @@ description: test description
 
 func wrapRecipes(r []recipe) recipeSearchQueryResult {
 	return recipeSearchQueryResult{
-		Account: recipeSearchQueryAccount{
+		Docs: recipeSearchQueryDocs{
 			OpenInstallation: recipeSearchQueryOpenInstallation{
 				RecipeSearch: recipeSearchResult{
 					Results: r,
@@ -74,7 +74,7 @@ func wrapRecipes(r []recipe) recipeSearchQueryResult {
 
 func wrapRecommendations(r []recipe) recommendationsQueryResult {
 	return recommendationsQueryResult{
-		Account: recommendationsQueryAccount{
+		Docs: recommendationsQueryDocs{
 			OpenInstallation: recommendationsQueryOpenInstallation{
 				Recommendations: recommendationsResult{
 					Results: r,

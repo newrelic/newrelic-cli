@@ -27,8 +27,7 @@ func WithCredentialsFrom(configDir string, f func(c *Credentials)) {
 func DefaultProfile() *Profile {
 	if defaultProfile == nil {
 		WithCredentials(func(c *Credentials) {
-			p := c.Profiles[c.DefaultProfile]
-			defaultProfile = &p
+			defaultProfile = c.Default()
 		})
 	}
 

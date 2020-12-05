@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
@@ -57,13 +58,56 @@ func LoadDefaultProfile(configDir string) (string, error) {
 
 // Default returns the default profile
 func (c *Credentials) Default() *Profile {
+	var p *Profile
 	if c.DefaultProfile != "" {
 		if val, ok := c.Profiles[c.DefaultProfile]; ok {
-			return &val
+			p = &val
 		}
 	}
 
-	return nil
+	p = applyOverrides(p)
+	return p
+}
+
+// applyOverrides reads Profile info out of the Environment to override config
+func applyOverrides(p *Profile) *Profile {
+	envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
+	envInsightsInsertKey := os.Getenv("NEW_RELIC_INSIGHTS_INSERT_KEY")
+	envRegion := os.Getenv("NEW_RELIC_REGION")
+	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
+
+	if envAPIKey == "" && envRegion == "" && envInsightsInsertKey == "" && envAccountID == "" {
+		return p
+	}
+
+	out := Profile{}
+	if p != nil {
+		out = *p
+	}
+
+	if envAPIKey != "" {
+		out.APIKey = envAPIKey
+	}
+
+	if envInsightsInsertKey != "" {
+		out.InsightsInsertKey = envInsightsInsertKey
+	}
+
+	if envRegion != "" {
+		out.Region = strings.ToUpper(envRegion)
+	}
+
+	if envAccountID != "" {
+		accountID, err := strconv.Atoi(envAccountID)
+		if err != nil {
+			log.Warnf("Invalid account ID: %s", envAccountID)
+			return &out
+		}
+
+		out.AccountID = accountID
+	}
+
+	return &out
 }
 
 func readDefaultProfile(configDir string) (string, error) {
