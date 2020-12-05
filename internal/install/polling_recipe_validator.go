@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -31,7 +32,7 @@ func newPollingRecipeValidator(c nrdbClient) *pollingRecipeValidator {
 	return &v
 }
 
-func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, error) {
+func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
@@ -42,7 +43,7 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 		}
 
 		log.Debugf("Validation attempt #%d...", count+1)
-		ok, err := m.tryValidate(ctx, r)
+		ok, err := m.tryValidate(ctx, dm, r)
 		if err != nil {
 			return false, err
 		}
@@ -63,20 +64,30 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 	}
 }
 
-func (m *pollingRecipeValidator) tryValidate(ctx context.Context, r recipe) (bool, error) {
-	results, err := m.executeQuery(ctx, r.ValidationNRQL)
+func (m *pollingRecipeValidator) tryValidate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
+	query := substituteHostname(dm, r)
+	results, err := m.executeQuery(ctx, query)
 	if err != nil {
 		return false, err
 	}
 
+	if len(results) == 0 {
+		return false, nil
+	}
+
 	// The query is assumed to use a count aggregate function
-	count := results[0]["count"].(int)
+	count := results[0]["count"].(float64)
 
 	if count > 0 {
 		return true, nil
 	}
 
 	return false, nil
+}
+
+// TODO: replace with go templates
+func substituteHostname(dm discoveryManifest, r recipe) string {
+	return strings.Replace(r.ValidationNRQL, "HOSTNAME", dm.Hostname, -1)
 }
 
 func (m *pollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NrdbResult, error) {

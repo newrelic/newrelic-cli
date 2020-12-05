@@ -37,13 +37,13 @@ func (c *mockNrdbClient) ThrowError(message string) {
 	c.error = message
 }
 
-func (c *mockNrdbClient) ReturnResultsAfterNAttempts(results []nrdb.NrdbResult, attempts int) {
+func (c *mockNrdbClient) ReturnResultsAfterNAttempts(before []nrdb.NrdbResult, after []nrdb.NrdbResult, attempts int) {
 	c.results = func() []nrdb.NrdbResult {
 		if c.attempts < attempts {
-			return []nrdb.NrdbResult{}
+			return before
 		}
 
-		return results
+		return after
 	}
 }
 
