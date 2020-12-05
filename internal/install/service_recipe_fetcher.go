@@ -77,31 +77,31 @@ func (f *serviceRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, erro
 }
 
 type recommendationsQueryResult struct {
-	Docs recommendationsQueryDocs
+	Docs recommendationsQueryDocs `json:"docs"`
 }
 
 type recommendationsQueryDocs struct {
-	OpenInstallation recommendationsQueryOpenInstallation
+	OpenInstallation recommendationsQueryOpenInstallation `json:"openInstallation"`
 }
 
 type recommendationsQueryOpenInstallation struct {
-	Recommendations recommendationsResult
+	Recommendations recommendationsResult `json:"recommendations"`
 }
 
 type recommendationsResult struct {
-	Results []recipe
+	Results []recipe `json:"recipe"`
 }
 
 type recipe struct {
-	ID             string
-	File           string
-	Name           string
-	Description    string
-	Repository     string
-	Keywords       []string
-	ProcessMatch   []string
-	LogMatch       logMatch
-	ValidationNRQL string
+	ID             string   `json:"id"`
+	File           string   `json:"file"`
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	Repository     string   `json:"repository"`
+	Keywords       []string `json:"keywords"`
+	ProcessMatch   []string `json:"processMatch"`
+	LogMatch       logMatch `json:"logMatch"`
+	ValidationNRQL string   `json:"vaalidationNrql"`
 }
 
 func (s *recipe) ToRecipeFile() (*recipeFile, error) {
@@ -153,19 +153,19 @@ type processDetailInput struct {
 }
 
 type recipeSearchQueryResult struct {
-	Docs recipeSearchQueryDocs
+	Docs recipeSearchQueryDocs `json:"docs"`
 }
 
 type recipeSearchQueryDocs struct {
-	OpenInstallation recipeSearchQueryOpenInstallation
+	OpenInstallation recipeSearchQueryOpenInstallation `json:"openInstallation"`
 }
 
 type recipeSearchQueryOpenInstallation struct {
-	RecipeSearch recipeSearchResult
+	RecipeSearch recipeSearchResult `json:"reecipeSearch"`
 }
 
 type recipeSearchResult struct {
-	Results []recipe
+	Results []recipe `json:"results"`
 }
 
 func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipeSearchInput, error) {
