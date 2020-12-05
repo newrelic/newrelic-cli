@@ -161,7 +161,7 @@ type recipeSearchQueryDocs struct {
 }
 
 type recipeSearchQueryOpenInstallation struct {
-	RecipeSearch recipeSearchResult `json:"reecipeSearch"`
+	RecipeSearch recipeSearchResult `json:"recipeSearch"`
 }
 
 type recipeSearchResult struct {
