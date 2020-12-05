@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -64,8 +66,9 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 	envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
 	envInsightsInsertKey := os.Getenv("NEW_RELIC_INSIGHTS_INSERT_KEY")
 	envRegion := os.Getenv("NEW_RELIC_REGION")
+	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 
-	if envAPIKey == "" && envRegion == "" && envInsightsInsertKey == "" {
+	if envAPIKey == "" && envRegion == "" && envInsightsInsertKey == "" && envAccountID == "" {
 		return p
 	}
 
@@ -84,6 +87,16 @@ func applyOverrides(p *credentials.Profile) *credentials.Profile {
 
 	if envRegion != "" {
 		out.Region = strings.ToUpper(envRegion)
+	}
+
+	if envAccountID != "" {
+		accountID, err := strconv.Atoi(envAccountID)
+		if err != nil {
+			log.Warnf("Invalid account ID: %s", envAccountID)
+			return &out
+		}
+
+		out.AccountID = accountID
 	}
 
 	return &out
