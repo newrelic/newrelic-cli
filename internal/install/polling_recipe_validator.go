@@ -69,7 +69,10 @@ func (m *pollingRecipeValidator) tryValidate(ctx context.Context, r recipe) (boo
 		return false, err
 	}
 
-	if len(results) > 0 {
+	// The query is assumed to use a count aggregate function
+	count := results[0]["count"].(int)
+
+	if count > 0 {
 		return true, nil
 	}
 
