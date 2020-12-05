@@ -101,7 +101,7 @@ type recipe struct {
 	Keywords       []string `json:"keywords"`
 	ProcessMatch   []string `json:"processMatch"`
 	LogMatch       logMatch `json:"logMatch"`
-	ValidationNRQL string   `json:"vaalidationNrql"`
+	ValidationNRQL string   `json:"validationNrql"`
 }
 
 func (s *recipe) ToRecipeFile() (*recipeFile, error) {
