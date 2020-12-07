@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"time"
 
@@ -91,10 +92,14 @@ func substituteHostname(dm discoveryManifest, r recipe) string {
 }
 
 func (m *pollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NrdbResult, error) {
-	accountID := credentials.DefaultProfile().AccountID
+	profile := credentials.DefaultProfile()
+	if profile == nil || profile.AccountID == 0 {
+		return nil, errors.New("no account ID found in default profile")
+	}
+
 	nrql := nrdb.Nrql(query)
 
-	result, err := m.client.QueryWithContext(ctx, accountID, nrql)
+	result, err := m.client.QueryWithContext(ctx, profile.AccountID, nrql)
 	if err != nil {
 		return nil, err
 	}

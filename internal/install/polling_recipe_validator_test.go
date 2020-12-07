@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
@@ -26,6 +27,7 @@ var (
 )
 
 func TestValidate(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 1)
@@ -42,6 +44,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestValidate_PassAfterNAttempts(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 	v := newPollingRecipeValidator(c)
 	v.maxAttempts = 5
@@ -60,6 +63,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterNAttempts(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 	v := newPollingRecipeValidator(c)
 	v.maxAttempts = 3
@@ -76,6 +80,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterMaxAttempts(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -94,6 +99,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 }
 
 func TestValidate_FailIfContextDone(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -114,6 +120,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 }
 
 func TestValidate_QueryError(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
 	c.ThrowError("test error")
