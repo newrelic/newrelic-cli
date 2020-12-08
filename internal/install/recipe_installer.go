@@ -30,9 +30,12 @@ func newRecipeInstaller(
 		recipeValidator: v,
 	}
 
+	i.specifyActions = ic.specifyActions
 	i.interactiveMode = ic.interactiveMode
 	i.installLogging = ic.installLogging
+	i.installInfraAgent = ic.installInfraAgent
 	i.recipeNames = ic.recipeNames
+	i.recipeFilenames = ic.recipeFilenames
 
 	return &i
 }

@@ -2,11 +2,16 @@ package install
 
 import "context"
 
-// nolint:unused
 type mockRecipeValidator struct {
-	result func(recipeFile) (bool, error)
+	result func(discoveryManifest, recipe) (bool, error)
 }
 
-func (m *mockRecipeValidator) validate(ctx context.Context, r recipeFile) (bool, error) {
-	return m.result(r)
+func newMockRecipeValidator() *mockRecipeValidator {
+	return &mockRecipeValidator{
+		result: func(discoveryManifest, recipe) (bool, error) { return false, nil },
+	}
+}
+
+func (m *mockRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
+	return m.result(dm, r)
 }
