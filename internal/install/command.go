@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	specifyActions  bool
-	interactiveMode bool
-	installLogging  bool
-	recipeNames     []string
-	recipePaths     []string
+	recipePaths        []string
+	recipeNames        []string
+	skipDiscovery      bool
+	skipInfraInstall   bool
+	skipIntegrations   bool
+	skipLoggingInstall bool
 )
 
 // Command represents the install command.
@@ -27,11 +28,12 @@ var Command = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := installContext{
-			interactiveMode: interactiveMode,
-			installLogging:  installLogging,
-			recipeNames:     recipeNames,
-			recipePaths:     recipePaths,
-			specifyActions:  specifyActions,
+			recipePaths:        recipePaths,
+			recipeNames:        recipeNames,
+			skipDiscovery:      skipDiscovery,
+			skipInfraInstall:   skipInfraInstall,
+			skipIntegrations:   skipIntegrations,
+			skipLoggingInstall: skipLoggingInstall,
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
@@ -71,9 +73,10 @@ func assertProfileIsValid(profile *credentials.Profile) error {
 }
 
 func init() {
-	Command.Flags().BoolVarP(&interactiveMode, "interactive", "i", false, "enables interactive mode if specifyActions has been used")
-	Command.Flags().BoolVarP(&installLogging, "installLogging", "l", false, "installs New Relic logging if specifyActions has been used")
-	Command.Flags().BoolVarP(&specifyActions, "specifyActions", "s", false, "specify the actions to be run during install")
-	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "r", []string{}, "the name of a recipe to install")
-	Command.Flags().StringSliceVarP(&recipePaths, "recipeFile", "c", []string{}, "a recipe file to install")
+	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
+	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
+	Command.Flags().BoolVarP(&skipDiscovery, "skipDiscovery", "d", false, "skips discovery of recommended New Relic integrations")
+	Command.Flags().BoolVarP(&skipInfraInstall, "skipInfraInstall", "i", false, "skips installation of New Relic Infrastructure Agent")
+	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
+	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 }
