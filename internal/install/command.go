@@ -12,10 +12,11 @@ import (
 )
 
 var (
-	interactiveMode     bool
-	installLogging      bool
-	autoDiscoveryMode   bool
-	recipeFriendlyNames []string
+	specifyActions  bool
+	interactiveMode bool
+	installLogging  bool
+	recipeNames     []string
+	recipeFilenames []string
 )
 
 // Command represents the install command.
@@ -25,10 +26,11 @@ var Command = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := installContext{
-			interactiveMode:     interactiveMode,
-			installLogging:      installLogging,
-			autoDiscoveryMode:   autoDiscoveryMode,
-			recipeFriendlyNames: recipeFriendlyNames,
+			interactiveMode: interactiveMode,
+			installLogging:  installLogging,
+			recipeNames:     recipeNames,
+			recipeFilenames: recipeFilenames,
+			specifyActions:  specifyActions,
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
@@ -54,8 +56,9 @@ var Command = &cobra.Command{
 }
 
 func init() {
-	Command.Flags().BoolVarP(&interactiveMode, "interactive", "i", true, "enables interactive mode")
-	Command.Flags().BoolVarP(&installLogging, "installLogging", "l", true, "installs New Relic logging")
-	Command.Flags().BoolVarP(&autoDiscoveryMode, "autoDiscovery", "d", true, "enables auto-discovery mode")
-	Command.Flags().StringSliceVarP(&recipeFriendlyNames, "recipe", "r", []string{}, "the name of a recipe to install")
+	Command.Flags().BoolVarP(&interactiveMode, "interactive", "i", false, "enables interactive mode if specifyActions has been used")
+	Command.Flags().BoolVarP(&installLogging, "installLogging", "l", false, "installs New Relic logging if specifyActions has been used")
+	Command.Flags().BoolVarP(&specifyActions, "specifyActions", "s", false, "specify the actions to be run during install")
+	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "r", []string{}, "the name of a recipe to install")
+	Command.Flags().StringSliceVarP(&recipeFilenames, "recipeFile", "c", []string{}, "a recipe file to install")
 }

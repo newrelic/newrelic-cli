@@ -1,5 +1,11 @@
 package install
 
+import (
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
+)
+
 type recipeFile struct {
 	Description    string                 `yaml:"description"`
 	InputVars      []variableConfig       `yaml:"inputVars"`
@@ -39,5 +45,58 @@ type logMatch struct {
 }
 
 type logMatchAttributes struct {
-	LogType string `yaml:"logType"`
+	LogType string `yaml:"logtype"`
+}
+
+func loadRecipeFile(filename string) (*recipeFile, error) {
+	out, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := newRecipeFile(string(out))
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
+func newRecipeFile(recipeFileString string) (*recipeFile, error) {
+	var f recipeFile
+	err := yaml.Unmarshal([]byte(recipeFileString), &f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &f, nil
+}
+
+func (f *recipeFile) String() (string, error) {
+	out, err := yaml.Marshal(f)
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
+}
+
+func (f *recipeFile) ToRecipe() (*recipe, error) {
+	fileStr, err := f.String()
+	if err != nil {
+		return nil, err
+	}
+
+	r := recipe{
+		File:           fileStr,
+		Name:           f.Name,
+		Description:    f.Description,
+		Repository:     f.Repository,
+		Keywords:       f.Keywords,
+		ProcessMatch:   f.ProcessMatch,
+		LogMatch:       f.LogMatch,
+		ValidationNRQL: f.ValidationNRQL,
+	}
+
+	return &r, nil
 }
