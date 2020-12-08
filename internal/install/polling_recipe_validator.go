@@ -1,9 +1,10 @@
 package install
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"strings"
+	"html/template"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -66,7 +67,11 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManif
 }
 
 func (m *pollingRecipeValidator) tryValidate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
-	query := substituteHostname(dm, r)
+	query, err := substituteHostname(dm, r)
+	if err != nil {
+		return false, err
+	}
+
 	results, err := m.executeQuery(ctx, query)
 	if err != nil {
 		return false, err
@@ -86,9 +91,24 @@ func (m *pollingRecipeValidator) tryValidate(ctx context.Context, dm discoveryMa
 	return false, nil
 }
 
-// TODO: replace with go templates
-func substituteHostname(dm discoveryManifest, r recipe) string {
-	return strings.Replace(r.ValidationNRQL, "HOSTNAME", dm.Hostname, -1)
+func substituteHostname(dm discoveryManifest, r recipe) (string, error) {
+	tmpl, err := template.New("validationNRQL").Parse(r.ValidationNRQL)
+	if err != nil {
+		panic(err)
+	}
+
+	v := struct {
+		HOSTNAME string
+	}{
+		HOSTNAME: dm.Hostname,
+	}
+
+	var tpl bytes.Buffer
+	if err = tmpl.Execute(&tpl, v); err != nil {
+		return "", err
+	}
+
+	return tpl.String(), nil
 }
 
 func (m *pollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NrdbResult, error) {
