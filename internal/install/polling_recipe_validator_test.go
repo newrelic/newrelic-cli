@@ -14,12 +14,12 @@ import (
 )
 
 var (
-	emptyResults = []nrdb.NrdbResult{
+	emptyResults = []nrdb.NRDBResult{
 		map[string]interface{}{
 			"count": 0.0,
 		},
 	}
-	nonEmptyResults = []nrdb.NrdbResult{
+	nonEmptyResults = []nrdb.NRDBResult{
 		map[string]interface{}{
 			"count": 1.0,
 		},

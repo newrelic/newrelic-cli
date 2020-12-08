@@ -7,5 +7,5 @@ import (
 )
 
 type nrdbClient interface {
-	QueryWithContext(context.Context, int, nrdb.Nrql) (*nrdb.NrdbResultContainer, error)
+	QueryWithContext(context.Context, int, nrdb.NRQL) (*nrdb.NRDBResultContainer, error)
 }

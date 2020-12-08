@@ -111,13 +111,13 @@ func substituteHostname(dm discoveryManifest, r recipe) (string, error) {
 	return tpl.String(), nil
 }
 
-func (m *pollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NrdbResult, error) {
+func (m *pollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
 	profile := credentials.DefaultProfile()
 	if profile == nil || profile.AccountID == 0 {
 		return nil, errors.New("no account ID found in default profile")
 	}
 
-	nrql := nrdb.Nrql(query)
+	nrql := nrdb.NRQL(query)
 
 	result, err := m.client.QueryWithContext(ctx, profile.AccountID, nrql)
 	if err != nil {
