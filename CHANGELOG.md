@@ -1,3 +1,9 @@
+<a name="v0.18.0"></a>
+## [v0.18.0] - 2020-12-08
+### Features
+- **install:** sketching out recipe validation
+- **install:** fetch recipes from recipe service
+
 <a name="v0.17.1"></a>
 ## [v0.17.1] - 2020-11-24
 ### Bug Fixes
@@ -313,7 +319,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.0...HEAD
+[v0.18.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.1...v0.18.0
 [v0.17.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.0...v0.17.1
 [v0.17.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.16.0...v0.17.0
 [v0.16.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.2...v0.16.0
