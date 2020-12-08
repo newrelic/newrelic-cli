@@ -11,6 +11,7 @@ import (
 type recipeInstaller struct {
 	installContext
 	discoverer      discoverer
+	fileFilterer    fileFilterer
 	recipeFetcher   recipeFetcher
 	recipeExecutor  recipeExecutor
 	recipeValidator recipeValidator
@@ -19,12 +20,14 @@ type recipeInstaller struct {
 func newRecipeInstaller(
 	ic installContext,
 	d discoverer,
+	l fileFilterer,
 	f recipeFetcher,
 	e recipeExecutor,
 	v recipeValidator,
 ) *recipeInstaller {
 	i := recipeInstaller{
 		discoverer:      d,
+		fileFilterer:    l,
 		recipeFetcher:   f,
 		recipeExecutor:  e,
 		recipeValidator: v,

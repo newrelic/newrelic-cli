@@ -35,12 +35,12 @@ installTargets:
     kernelVersion: testKerrnelVersion
     kernelArch: testKernelArch
 logMatch:
-  name: testName
-  file: testFile
-  attributes:
-    logtype: testlogtype
-  pattern: testPattern
-  systemd: testSystemd
+  - name: testName
+    file: testFile
+    attributes:
+      logtype: testlogtype
+    pattern: testPattern
+    systemd: testSystemd
 `
 )
 

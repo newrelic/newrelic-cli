@@ -93,15 +93,15 @@ type recommendationsResult struct {
 }
 
 type recipe struct {
-	ID             string   `json:"id"`
-	File           string   `json:"file"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	Repository     string   `json:"repository"`
-	Keywords       []string `json:"keywords"`
-	ProcessMatch   []string `json:"processMatch"`
-	LogMatch       logMatch `json:"logMatch"`
-	ValidationNRQL string   `json:"validationNrql"`
+	ID             string     `json:"id"`
+	File           string     `json:"file"`
+	Name           string     `json:"name"`
+	Description    string     `json:"description"`
+	Repository     string     `json:"repository"`
+	Keywords       []string   `json:"keywords"`
+	ProcessMatch   []string   `json:"processMatch"`
+	LogMatch       []logMatch `json:"logMatch"`
+	ValidationNRQL string     `json:"validationNrql"`
 }
 
 func (s *recipe) ToRecipeFile() (*recipeFile, error) {
