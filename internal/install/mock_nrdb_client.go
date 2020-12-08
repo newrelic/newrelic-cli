@@ -8,27 +8,27 @@ import (
 )
 
 type mockNrdbClient struct {
-	results  func() []nrdb.NrdbResult
+	results  func() []nrdb.NRDBResult
 	attempts int
 	error    string
 }
 
 func newMockNrdbClient() *mockNrdbClient {
 	return &mockNrdbClient{
-		results: func() []nrdb.NrdbResult {
-			return []nrdb.NrdbResult{}
+		results: func() []nrdb.NRDBResult {
+			return []nrdb.NRDBResult{}
 		},
 	}
 }
 
-func (c *mockNrdbClient) QueryWithContext(ctx context.Context, accountID int, nrql nrdb.Nrql) (*nrdb.NrdbResultContainer, error) {
+func (c *mockNrdbClient) QueryWithContext(ctx context.Context, accountID int, nrql nrdb.NRQL) (*nrdb.NRDBResultContainer, error) {
 	c.attempts++
 
 	if c.error != "" {
 		return nil, errors.New(c.error)
 	}
 
-	return &nrdb.NrdbResultContainer{
+	return &nrdb.NRDBResultContainer{
 		Results: c.results(),
 	}, nil
 }
@@ -37,8 +37,8 @@ func (c *mockNrdbClient) ThrowError(message string) {
 	c.error = message
 }
 
-func (c *mockNrdbClient) ReturnResultsAfterNAttempts(before []nrdb.NrdbResult, after []nrdb.NrdbResult, attempts int) {
-	c.results = func() []nrdb.NrdbResult {
+func (c *mockNrdbClient) ReturnResultsAfterNAttempts(before []nrdb.NRDBResult, after []nrdb.NRDBResult, attempts int) {
+	c.results = func() []nrdb.NRDBResult {
 		if c.attempts < attempts {
 			return before
 		}
