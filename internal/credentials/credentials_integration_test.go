@@ -1,6 +1,6 @@
 // +build integration
 
-package client
+package credentials
 
 import (
 	"io/ioutil"
@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/newrelic-client-go/pkg/region"
-
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 )
 
 var overrideEnvVars = []string{
@@ -27,11 +25,11 @@ func TestApplyOverrides(t *testing.T) {
 	defer os.RemoveAll(f)
 
 	// Initialize the new configuration directory
-	c, err := credentials.LoadCredentials(f)
+	c, err := LoadCredentials(f)
 	assert.NoError(t, err)
 
 	// Create an initial profile to work with
-	testProfile := credentials.Profile{
+	testProfile := Profile{
 		Region:            "us",
 		APIKey:            "apiKeyGoesHere",
 		InsightsInsertKey: "insightsInsertKeyGoesHere",

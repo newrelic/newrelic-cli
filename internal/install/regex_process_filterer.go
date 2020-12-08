@@ -42,7 +42,7 @@ func (f *regexProcessFilterer) filter(ctx context.Context, processes []genericPr
 }
 
 func match(r recipe, process genericProcess) bool {
-	for _, pattern := range r.Metadata.ProcessMatch {
+	for _, pattern := range r.ProcessMatch {
 		name, err := process.Name()
 		if err != nil {
 			log.Debugf("could not retrieve process name for PID %d", process.PID())

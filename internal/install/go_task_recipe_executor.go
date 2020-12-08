@@ -25,7 +25,7 @@ func newGoTaskRecipeExecutor() *goTaskRecipeExecutor {
 }
 
 func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest, r recipe) error {
-	log.Debugf("Executing recipe %s", r.Metadata.Name)
+	log.Debugf("Executing recipe %s", r.Name)
 
 	f, err := r.ToRecipeFile()
 	if err != nil {
@@ -38,7 +38,7 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 	}
 
 	// Create a temporary task file.
-	file, err := ioutil.TempFile("", r.Metadata.Name)
+	file, err := ioutil.TempFile("", r.Name)
 	defer os.Remove(file.Name())
 	if err != nil {
 		return err

@@ -1,22 +1,28 @@
 package install
 
+import (
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
+)
+
 type recipeFile struct {
 	Description    string                 `yaml:"description"`
 	InputVars      []variableConfig       `yaml:"inputVars"`
 	Install        map[string]interface{} `yaml:"install"`
-	InstallTargets recipeInstallTarget    `yaml:"installTargets"`
+	InstallTargets []recipeInstallTarget  `yaml:"installTargets"`
 	Keywords       []string               `yaml:"keywords"`
-	MELTMatch      meltMatch              `yaml:"meltMatch"`
+	LogMatch       logMatch               `yaml:"logMatch"`
 	Name           string                 `yaml:"name"`
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
-	Variant        variant                `yaml:"variant"`
 	ValidationNRQL string                 `yaml:"validationNrql"`
 }
 
 type variableConfig struct {
 	Name    string `yaml:"name"`
 	Prompt  string `yaml:"prompt"`
+	Secret  bool   `secret:"prompt"`
 	Default string `yaml:"default"`
 }
 
@@ -30,29 +36,67 @@ type recipeInstallTarget struct {
 	KernelArch      string `yaml:"kernelArch"`
 }
 
-type meltMatch struct {
-	Events  patternMatcher `yaml:"events"`
-	Metrics patternMatcher `yaml:"metrics"`
-	Logs    loggingMatcher `yaml:"logs"`
+type logMatch struct {
+	Name       string             `yaml:"name"`
+	File       string             `yaml:"file"`
+	Attributes logMatchAttributes `yaml:"attributes"`
+	Pattern    string             `yaml:"pattern"`
+	Systemd    string             `yaml:"systemd"`
 }
 
-type patternMatcher struct {
-	Pattern []string `yaml:"pattern"`
+type logMatchAttributes struct {
+	LogType string `yaml:"logtype"`
 }
 
-type loggingMatcher struct {
-	Pattern []string `yaml:"pattern"`
-	Files   []string `yaml:"files"`
+func loadRecipeFile(filename string) (*recipeFile, error) {
+	out, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := newRecipeFile(string(out))
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
 }
 
-type variant struct {
-	Arch              []string `yaml:"arch"`
-	OS                []string `yaml:"os"`
-	TargetEnvironment []string `yaml:"targetEnvironment"`
+func newRecipeFile(recipeFileString string) (*recipeFile, error) {
+	var f recipeFile
+	err := yaml.Unmarshal([]byte(recipeFileString), &f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &f, nil
 }
 
-type recipeVariant struct {
-	OS                []string `json:"os"`
-	Arch              []string `json:"arch"`
-	TargetEnvironment []string `json:"targetEnvironment"`
+func (f *recipeFile) String() (string, error) {
+	out, err := yaml.Marshal(f)
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
+}
+
+func (f *recipeFile) ToRecipe() (*recipe, error) {
+	fileStr, err := f.String()
+	if err != nil {
+		return nil, err
+	}
+
+	r := recipe{
+		File:           fileStr,
+		Name:           f.Name,
+		Description:    f.Description,
+		Repository:     f.Repository,
+		Keywords:       f.Keywords,
+		ProcessMatch:   f.ProcessMatch,
+		LogMatch:       f.LogMatch,
+		ValidationNRQL: f.ValidationNRQL,
+	}
+
+	return &r, nil
 }

@@ -30,19 +30,11 @@ func newRecipeInstaller(
 		recipeValidator: v,
 	}
 
-	i.autoDiscoveryMode = ic.autoDiscoveryMode
 	i.interactiveMode = ic.interactiveMode
 	i.installLogging = ic.installLogging
-	i.recipeFriendlyNames = ic.recipeFriendlyNames
+	i.recipeNames = ic.recipeNames
 
 	return &i
-}
-
-type installContext struct {
-	interactiveMode     bool
-	autoDiscoveryMode   bool
-	installLogging      bool
-	recipeFriendlyNames []string
 }
 
 const (
@@ -58,24 +50,30 @@ func (i *recipeInstaller) install() {
 	m := i.discoverFatal()
 
 	// Run the infra agent recipe, exiting on failure.
-	i.installInfraAgentFatal(m)
+	if i.ShouldInstallInfraAgent() {
+		i.installInfraAgentFatal(m)
+	}
 
 	// Run the logging recipe if requested, exiting on failure.
-	if i.installLogging {
+	if i.ShouldInstallLogging() {
 		i.installLoggingFatal(m)
 	}
 
 	// Retrieve a list of recipes to execute.
 	var recipes []recipe
-	if i.autoDiscoveryMode {
-		// Ask the recipe service for recommendations.
-		recipes = i.fetchRecommendationsFatal(m)
-	} else {
+	if i.RecipeFilenamesProvided() {
+		for _, n := range i.recipeFilenames {
+			recipes = append(recipes, *i.recipeFromFilenameFatal(n))
+		}
+	} else if i.RecipeNamesProvided() {
 		// Execute the requested recipes.
-		for _, n := range i.recipeFriendlyNames {
+		for _, n := range i.recipeNames {
 			r := i.fetchWarn(m, n)
 			recipes = append(recipes, *r)
 		}
+	} else {
+		// Ask the recipe service for recommendations.
+		recipes = i.fetchRecommendationsFatal(m)
 	}
 
 	// Execute and validate each of the recipes in the collection.
@@ -94,6 +92,20 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 	}
 
 	return m
+}
+
+func (i *recipeInstaller) recipeFromFilenameFatal(recipeFilename string) *recipe {
+	f, err := loadRecipeFile(recipeFilename)
+	if err != nil {
+		log.Fatalf("Could not load file %s: %s", recipeFilename, err)
+	}
+
+	r, err := f.ToRecipe()
+	if err != nil {
+		log.Fatalf("Could not load file %s: %s", recipeFilename, err)
+	}
+
+	return r
 }
 
 func (i *recipeInstaller) installInfraAgentFatal(m *discoveryManifest) {
@@ -119,7 +131,7 @@ func (i *recipeInstaller) fetchExecuteAndValidateFatal(m *discoveryManifest, rec
 }
 
 func (i *recipeInstaller) fetchWarn(m *discoveryManifest, recipeName string) *recipe {
-	r, err := i.recipeFetcher.fetchRecipe(utils.SignalCtx, m, infraAgentRecipeName)
+	r, err := i.recipeFetcher.fetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {
 		log.Warnf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
 		return nil
@@ -133,7 +145,7 @@ func (i *recipeInstaller) fetchWarn(m *discoveryManifest, recipeName string) *re
 }
 
 func (i *recipeInstaller) fetchFatal(m *discoveryManifest, recipeName string) *recipe {
-	r, err := i.recipeFetcher.fetchRecipe(utils.SignalCtx, m, infraAgentRecipeName)
+	r, err := i.recipeFetcher.fetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {
 		log.Fatalf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
 	}
@@ -147,16 +159,16 @@ func (i *recipeInstaller) fetchFatal(m *discoveryManifest, recipeName string) *r
 
 func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (bool, error) {
 	// Execute the recipe steps.
-	log.Infof("Installing %s...\n", r.Metadata.Name)
+	log.Infof("Installing %s...\n", r.Name)
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
-		return false, fmt.Errorf("encountered an error while executing %s: %s", r.Metadata.Name, err)
+		return false, fmt.Errorf("encountered an error while executing %s: %s", r.Name, err)
 	}
-	log.Infof("Installing %s...success\n", r.Metadata.Name)
+	log.Infof("Installing %s...success\n", r.Name)
 
 	log.Info("Listening for data...")
-	ok, err := i.recipeValidator.validate(utils.SignalCtx, *r)
+	ok, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
 	if err != nil {
-		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Metadata.Name, err)
+		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 	}
 
 	if !ok {
@@ -171,21 +183,21 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
-		log.Fatalf("Could not install %s: %s", r.Metadata.Name, err)
+		log.Fatalf("Could not install %s: %s", r.Name, err)
 	}
 
 	if !ok {
-		log.Fatalf("Could not detect data from %s.", r.Metadata.Name)
+		log.Fatalf("Could not detect data from %s.", r.Name)
 	}
 }
 
 func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
-		log.Warnf("Could not install %s: %s", r.Metadata.Name, err)
+		log.Warnf("Could not install %s: %s", r.Name, err)
 	}
 
 	if !ok {
-		log.Warnf("Could not detect data from %s.", r.Metadata.Name)
+		log.Warnf("Could not detect data from %s.", r.Name)
 	}
 }

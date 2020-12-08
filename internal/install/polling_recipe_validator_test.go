@@ -9,43 +9,53 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
+var (
+	emptyResults = []nrdb.NrdbResult{
+		map[string]interface{}{
+			"count": 0.0,
+		},
+	}
+	nonEmptyResults = []nrdb.NrdbResult{
+		map[string]interface{}{
+			"count": 1.0,
+		},
+	}
+)
+
 func TestValidate(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
-	results := []nrdb.NrdbResult{
-		map[string]interface{}{},
-	}
-
-	c.ReturnResultsAfterNAttempts(results, 1)
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 1)
 
 	v := newPollingRecipeValidator(c)
 
 	r := recipe{}
+	m := discoveryManifest{}
 
-	ok, err := v.validate(context.Background(), r)
+	ok, err := v.validate(context.Background(), m, r)
 
 	require.NoError(t, err)
 	require.True(t, ok)
 }
 
 func TestValidate_PassAfterNAttempts(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 	v := newPollingRecipeValidator(c)
 	v.maxAttempts = 5
 	v.interval = 10 * time.Millisecond
 
-	results := []nrdb.NrdbResult{
-		map[string]interface{}{},
-	}
-
-	c.ReturnResultsAfterNAttempts(results, 5)
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 5)
 
 	r := recipe{}
+	m := discoveryManifest{}
 
-	ok, err := v.validate(context.Background(), r)
+	ok, err := v.validate(context.Background(), m, r)
 
 	require.NoError(t, err)
 	require.True(t, ok)
@@ -53,14 +63,16 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterNAttempts(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 	v := newPollingRecipeValidator(c)
 	v.maxAttempts = 3
 	v.interval = 10 * time.Millisecond
 
 	r := recipe{}
+	m := discoveryManifest{}
 
-	ok, err := v.validate(context.Background(), r)
+	ok, err := v.validate(context.Background(), m, r)
 
 	require.NoError(t, err)
 	require.False(t, ok)
@@ -68,50 +80,47 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterMaxAttempts(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
-	results := []nrdb.NrdbResult{
-		map[string]interface{}{},
-	}
-
-	c.ReturnResultsAfterNAttempts(results, 2)
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 
 	v := newPollingRecipeValidator(c)
 	v.maxAttempts = 1
 	v.interval = 10 * time.Millisecond
 
 	r := recipe{}
+	m := discoveryManifest{}
 
-	ok, err := v.validate(context.Background(), r)
+	ok, err := v.validate(context.Background(), m, r)
 
 	require.NoError(t, err)
 	require.False(t, ok)
 }
 
 func TestValidate_FailIfContextDone(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
-	results := []nrdb.NrdbResult{
-		map[string]interface{}{},
-	}
-
-	c.ReturnResultsAfterNAttempts(results, 2)
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 
 	v := newPollingRecipeValidator(c)
 	v.interval = 1 * time.Second
 
 	r := recipe{}
+	m := discoveryManifest{}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	ok, err := v.validate(ctx, r)
+	ok, err := v.validate(ctx, m, r)
 
 	require.NoError(t, err)
 	require.False(t, ok)
 }
 
 func TestValidate_QueryError(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := newMockNrdbClient()
 
 	c.ThrowError("test error")
@@ -119,8 +128,9 @@ func TestValidate_QueryError(t *testing.T) {
 	v := newPollingRecipeValidator(c)
 
 	r := recipe{}
+	m := discoveryManifest{}
 
-	ok, err := v.validate(context.Background(), r)
+	ok, err := v.validate(context.Background(), m, r)
 
 	require.False(t, ok)
 	require.EqualError(t, err, "test error")

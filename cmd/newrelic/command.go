@@ -52,7 +52,6 @@ func initializeProfile() {
 
 		apiKey := os.Getenv("NEW_RELIC_API_KEY")
 		envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
-
 		region = os.Getenv("NEW_RELIC_REGION")
 		licenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
 

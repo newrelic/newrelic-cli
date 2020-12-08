@@ -12,11 +12,9 @@ import (
 func TestFilter(t *testing.T) {
 	recipes := []recipe{
 		{
-			ID: "test",
-			Metadata: recipeMetadata{
-				Name:         "java",
-				ProcessMatch: []string{"java"},
-			},
+			ID:           "test",
+			Name:         "java",
+			ProcessMatch: []string{"java"},
 		},
 	}
 

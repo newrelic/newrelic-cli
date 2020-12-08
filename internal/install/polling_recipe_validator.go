@@ -1,7 +1,10 @@
 package install
 
 import (
+	"bytes"
 	"context"
+	"errors"
+	"html/template"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -31,7 +34,7 @@ func newPollingRecipeValidator(c nrdbClient) *pollingRecipeValidator {
 	return &v
 }
 
-func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, error) {
+func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
@@ -42,7 +45,7 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 		}
 
 		log.Debugf("Validation attempt #%d...", count+1)
-		ok, err := m.tryValidate(ctx, r)
+		ok, err := m.tryValidate(ctx, dm, r)
 		if err != nil {
 			return false, err
 		}
@@ -63,24 +66,60 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, r recipe) (bool, 
 	}
 }
 
-func (m *pollingRecipeValidator) tryValidate(ctx context.Context, r recipe) (bool, error) {
-	results, err := m.executeQuery(ctx, r.Metadata.ValidationNRQL)
+func (m *pollingRecipeValidator) tryValidate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
+	query, err := substituteHostname(dm, r)
 	if err != nil {
 		return false, err
 	}
 
-	if len(results) > 0 {
+	results, err := m.executeQuery(ctx, query)
+	if err != nil {
+		return false, err
+	}
+
+	if len(results) == 0 {
+		return false, nil
+	}
+
+	// The query is assumed to use a count aggregate function
+	count := results[0]["count"].(float64)
+
+	if count > 0 {
 		return true, nil
 	}
 
 	return false, nil
 }
 
+func substituteHostname(dm discoveryManifest, r recipe) (string, error) {
+	tmpl, err := template.New("validationNRQL").Parse(r.ValidationNRQL)
+	if err != nil {
+		panic(err)
+	}
+
+	v := struct {
+		HOSTNAME string
+	}{
+		HOSTNAME: dm.Hostname,
+	}
+
+	var tpl bytes.Buffer
+	if err = tmpl.Execute(&tpl, v); err != nil {
+		return "", err
+	}
+
+	return tpl.String(), nil
+}
+
 func (m *pollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NrdbResult, error) {
-	accountID := credentials.DefaultProfile().AccountID
+	profile := credentials.DefaultProfile()
+	if profile == nil || profile.AccountID == 0 {
+		return nil, errors.New("no account ID found in default profile")
+	}
+
 	nrql := nrdb.Nrql(query)
 
-	result, err := m.client.QueryWithContext(ctx, accountID, nrql)
+	result, err := m.client.QueryWithContext(ctx, profile.AccountID, nrql)
 	if err != nil {
 		return nil, err
 	}

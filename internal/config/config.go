@@ -5,7 +5,6 @@ import (
 	"os"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/newrelic/newrelic-cli/internal/utils"
 
@@ -106,9 +105,9 @@ func LoadConfig(configDir string) (*Config, error) {
 
 func (c *Config) setLogger() {
 	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp:          true,
-		TimestampFormat:        time.RFC3339,
-		DisableLevelTruncation: true,
+		DisableLevelTruncation:    true,
+		DisableTimestamp:          true,
+		EnvironmentOverrideColors: true,
 	})
 
 	switch level := strings.ToUpper(c.LogLevel); level {

@@ -13,12 +13,10 @@ import (
 func TestFetchFilters(t *testing.T) {
 	r := []recipe{
 		{
-			ID: "test",
-			Metadata: recipeMetadata{
-				Name: "test",
-				ProcessMatch: []string{
-					"test",
-				},
+			ID:   "test",
+			Name: "test",
+			ProcessMatch: []string{
+				"test",
 			},
 		},
 	}
@@ -39,8 +37,7 @@ func TestFetchFilters(t *testing.T) {
 func TestFetchRecommendations(t *testing.T) {
 	r := []recipe{
 		{
-			ID:       "test",
-			Metadata: recipeMetadata{},
+			ID: "test",
 			File: `
 ---
 name: Test recipe file
@@ -65,7 +62,7 @@ description: test description
 
 func wrapRecipes(r []recipe) recipeSearchQueryResult {
 	return recipeSearchQueryResult{
-		Account: recipeSearchQueryAccount{
+		Docs: recipeSearchQueryDocs{
 			OpenInstallation: recipeSearchQueryOpenInstallation{
 				RecipeSearch: recipeSearchResult{
 					Results: r,
@@ -77,7 +74,7 @@ func wrapRecipes(r []recipe) recipeSearchQueryResult {
 
 func wrapRecommendations(r []recipe) recommendationsQueryResult {
 	return recommendationsQueryResult{
-		Account: recommendationsQueryAccount{
+		Docs: recommendationsQueryDocs{
 			OpenInstallation: recommendationsQueryOpenInstallation{
 				Recommendations: recommendationsResult{
 					Results: r,
