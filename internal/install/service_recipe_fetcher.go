@@ -102,6 +102,17 @@ type recipe struct {
 	ProcessMatch   []string   `json:"processMatch"`
 	LogMatch       []logMatch `json:"logMatch"`
 	ValidationNRQL string     `json:"validationNrql"`
+	Vars           map[string]interface{}
+}
+
+// AddVar is responsible for including a new variable on the recipe Vars
+// struct, which is used by go-task executor.
+func (s *recipe) AddVar(key string, value interface{}) {
+	if len(s.Vars) == 0 {
+		s.Vars = make(map[string]interface{})
+	}
+
+	s.Vars[key] = value
 }
 
 func (s *recipe) ToRecipeFile() (*recipeFile, error) {

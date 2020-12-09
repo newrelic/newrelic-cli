@@ -79,6 +79,10 @@ func (re *goTaskRecipeExecutor) execute(ctx context.Context, m discoveryManifest
 		return err
 	}
 
+	if err := setStaticVars(e.Taskfile, r.Vars); err != nil {
+		return err
+	}
+
 	if err := e.Run(ctx, calls...); err != nil {
 		return err
 	}
@@ -114,6 +118,20 @@ func setVarsFromSystemInfo(t *taskfile.Taskfile, m discoveryManifest) {
 	v.Set("KERNEL_VERSION", taskfile.Var{Static: m.KernelVersion})
 
 	t.Vars.Merge(&v)
+}
+
+func setStaticVars(t *taskfile.Taskfile, vars map[string]interface{}) error {
+	for k, x := range vars {
+
+		varData, err := yaml.Marshal(x)
+		if err != nil {
+			return err
+		}
+
+		t.Vars.Set(k, taskfile.Var{Static: string(varData)})
+	}
+
+	return nil
 }
 
 func setVarsFromInput(t *taskfile.Taskfile, inputVars []variableConfig) error {
