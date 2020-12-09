@@ -44,6 +44,7 @@ var Command = &cobra.Command{
 
 			i := newRecipeInstaller(ic,
 				newPSUtilDiscoverer(pf),
+				newGlobFileFilterer(),
 				rf,
 				newGoTaskRecipeExecutor(),
 				newPollingRecipeValidator(&nrClient.Nrdb),
