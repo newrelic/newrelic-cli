@@ -12,7 +12,7 @@ type recipeFile struct {
 	Install        map[string]interface{} `yaml:"install"`
 	InstallTargets []recipeInstallTarget  `yaml:"installTargets"`
 	Keywords       []string               `yaml:"keywords"`
-	LogMatch       logMatch               `yaml:"logMatch"`
+	LogMatch       []logMatch             `yaml:"logMatch"`
 	Name           string                 `yaml:"name"`
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`

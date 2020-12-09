@@ -100,7 +100,7 @@ type recipe struct {
 	Repository     string   `json:"repository"`
 	Keywords       []string `json:"keywords"`
 	ProcessMatch   []string `json:"processMatch"`
-	LogMatch       logMatch `json:"logMatch"`
+	LogMatch       []logMatch `json:"logMatch"`
 	ValidationNRQL string   `json:"validationNrql"`
 }
 
