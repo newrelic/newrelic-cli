@@ -1,3 +1,9 @@
+<a name="v0.18.2"></a>
+## [v0.18.2] - 2020-12-09
+### Bug Fixes
+- **install:** update logMatch type to list
+- **install:** update logMatch type to list
+
 <a name="v0.18.1"></a>
 ## [v0.18.1] - 2020-12-08
 ### Bug Fixes
@@ -324,7 +330,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.2...HEAD
+[v0.18.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.1...v0.18.2
 [v0.18.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.0...v0.18.1
 [v0.18.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.1...v0.18.0
 [v0.17.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.0...v0.17.1
