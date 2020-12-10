@@ -14,9 +14,12 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
+type contextKey int
+
 const (
-	defaultMaxAttempts = 20
-	defaultInterval    = 5 * time.Second
+	defaultMaxAttempts            = 20
+	defaultInterval               = 5 * time.Second
+	TestIdentifierKey  contextKey = iota
 )
 
 type pollingRecipeValidator struct {
@@ -40,9 +43,11 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManif
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
 
-	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-	s.Start()
-	defer s.Stop()
+	if isTest := ctx.Value(TestIdentifierKey); isTest == nil {
+		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+		s.Start()
+		defer s.Stop()
+	}
 
 	for {
 		if count == m.maxAttempts {
