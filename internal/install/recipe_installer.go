@@ -80,12 +80,17 @@ func (i *recipeInstaller) install() {
 	}
 
 	// Execute and validate each of the recipes in the collection.
+	ok := true
 	for _, r := range recipes {
-		i.executeAndValidateWarn(m, &r)
+		ok = ok && i.executeAndValidateWarn(m, &r)
 	}
 
-	log.Infoln("Success! Your data is available in New Relic.")
-	log.Infoln("Go to New Relic to confirm and start exploring your data.")
+	if ok {
+		log.Infoln("Success! Your data is available in New Relic.")
+		log.Infoln("Go to New Relic to confirm and start exploring your data.")
+	} else {
+		log.Warnln("One or more recipes had errors during installation.")
+	}
 }
 
 func (i *recipeInstaller) discoverFatal() *discoveryManifest {
@@ -174,13 +179,7 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 	}
 
-	if !ok {
-		log.Infoln("failed.")
-		return false, nil
-	}
-
-	log.Infoln("success.")
-	return true, nil
+	return ok, nil
 }
 
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
@@ -194,7 +193,7 @@ func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recip
 	}
 }
 
-func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
+func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) bool {
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
 		log.Warnf("Could not install %s: %s", r.Name, err)
@@ -203,4 +202,6 @@ func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe
 	if !ok {
 		log.Warnf("Could not detect data from %s.", r.Name)
 	}
+
+	return ok
 }
