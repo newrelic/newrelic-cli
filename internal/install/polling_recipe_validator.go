@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"time"
 
+	"github.com/briandowns/spinner"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -38,6 +39,10 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManif
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
+
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Start()
+	defer s.Stop()
 
 	for {
 		if count == m.maxAttempts {
