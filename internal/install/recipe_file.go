@@ -2,6 +2,8 @@ package install
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/url"
 
 	"gopkg.in/yaml.v2"
 )
@@ -48,17 +50,33 @@ type logMatchAttributes struct {
 	LogType string `yaml:"logtype"`
 }
 
+func fetchRecipeFile(recipeURL *url.URL) (*recipeFile, error) {
+	response, err := http.Get(recipeURL.String())
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	return toRecipeFile(string(body))
+}
+
 func loadRecipeFile(filename string) (*recipeFile, error) {
 	out, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
+	return toRecipeFile(string(out))
+}
 
-	f, err := newRecipeFile(string(out))
+func toRecipeFile(content string) (*recipeFile, error) {
+	f, err := newRecipeFile(content)
 	if err != nil {
 		return nil, err
 	}
-
 	return f, nil
 }
 

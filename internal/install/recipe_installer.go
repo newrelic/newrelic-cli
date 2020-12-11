@@ -2,6 +2,7 @@ package install
 
 import (
 	"fmt"
+	"net/url"
 
 	log "github.com/sirupsen/logrus"
 
@@ -83,17 +84,12 @@ func (i *recipeInstaller) install() {
 	}
 
 	// Execute and validate each of the recipes in the collection.
-	ok := true
 	for _, r := range recipes {
-		ok = ok && i.executeAndValidateWarn(m, &r)
+		i.executeAndValidateWarn(m, &r)
 	}
 
-	if ok {
-		log.Infoln("Success! Your data is available in New Relic.")
-		log.Infoln("Go to New Relic to confirm and start exploring your data.")
-	} else {
-		log.Warnln("One or more recipes had errors during installation.")
-	}
+	log.Infoln("Success! Your data is available in New Relic.")
+	log.Infoln("Go to New Relic to confirm and start exploring your data.")
 }
 
 func (i *recipeInstaller) discoverFatal() *discoveryManifest {
@@ -106,16 +102,27 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 }
 
 func (i *recipeInstaller) recipeFromFilenameFatal(recipeFilename string) *recipe {
+	recipeURL, parseErr := url.Parse(recipeFilename)
+	if parseErr == nil {
+		f, err := fetchRecipeFile(recipeURL)
+		if err != nil {
+			log.Fatalf("Could not fetch file %s: %s", recipeFilename, err)
+		}
+		return finalizeRecipe(f)
+	}
+
 	f, err := loadRecipeFile(recipeFilename)
 	if err != nil {
 		log.Fatalf("Could not load file %s: %s", recipeFilename, err)
 	}
+	return finalizeRecipe(f)
+}
 
+func finalizeRecipe(f *recipeFile) *recipe {
 	r, err := f.ToRecipe()
 	if err != nil {
-		log.Fatalf("Could not load file %s: %s", recipeFilename, err)
+		log.Fatalf("Could finalize recipe %s: %s", f.Name, err)
 	}
-
 	return r
 }
 
@@ -182,7 +189,13 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 	}
 
-	return ok, nil
+	if !ok {
+		log.Infoln("failed.")
+		return false, nil
+	}
+
+	log.Infoln("success.")
+	return true, nil
 }
 
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
@@ -196,7 +209,7 @@ func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recip
 	}
 }
 
-func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) bool {
+func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
 		log.Warnf("Could not install %s: %s", r.Name, err)
@@ -205,6 +218,4 @@ func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe
 	if !ok {
 		log.Warnf("Could not detect data from %s.", r.Name)
 	}
-
-	return ok
 }
