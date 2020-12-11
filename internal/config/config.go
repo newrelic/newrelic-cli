@@ -26,9 +26,6 @@ const (
 	// DefaultEnvPrefix is used when reading environment variables
 	DefaultEnvPrefix = "NEW_RELIC_CLI"
 
-	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "INFO"
-
 	globalScopeIdentifier = "*"
 )
 
@@ -97,31 +94,10 @@ func LoadConfig(configDir string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg.setLogger()
+	initLogger(cfg.LogLevel)
 	cfg.configDir = configDir
 
 	return cfg, nil
-}
-
-func (c *Config) setLogger() {
-	log.SetFormatter(&log.TextFormatter{
-		DisableLevelTruncation:    true,
-		DisableTimestamp:          true,
-		EnvironmentOverrideColors: true,
-	})
-
-	switch level := strings.ToUpper(c.LogLevel); level {
-	case "TRACE":
-		log.SetLevel(log.TraceLevel)
-	case "DEBUG":
-		log.SetLevel(log.DebugLevel)
-	case "WARN":
-		log.SetLevel(log.WarnLevel)
-	case "ERROR":
-		log.SetLevel(log.ErrorLevel)
-	default:
-		log.SetLevel(log.InfoLevel)
-	}
 }
 
 // List outputs a list of all the configuration values
