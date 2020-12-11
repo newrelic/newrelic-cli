@@ -2,6 +2,8 @@ package install
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/url"
 
 	"gopkg.in/yaml.v2"
 )
@@ -48,17 +50,53 @@ type logMatchAttributes struct {
 	LogType string `yaml:"logtype"`
 }
 
-func loadRecipeFile(filename string) (*recipeFile, error) {
-	out, err := ioutil.ReadFile(filename)
+type recipeFileFetcherImpl struct {
+	HTTPGetFunc  func(string) (*http.Response, error)
+	readFileFunc func(string) ([]byte, error)
+}
+
+func newRecipeFileFetcher() recipeFileFetcher {
+	f := recipeFileFetcherImpl{}
+	f.HTTPGetFunc = defaultHTTPGetFunc
+	f.readFileFunc = defaultReadFileFunc
+	return &f
+}
+
+func defaultHTTPGetFunc(recipeURL string) (*http.Response, error) {
+	return http.Get(recipeURL)
+}
+
+func defaultReadFileFunc(filename string) ([]byte, error) {
+	return ioutil.ReadFile(filename)
+}
+
+func (f *recipeFileFetcherImpl) fetchRecipeFile(recipeURL *url.URL) (*recipeFile, error) {
+	response, err := f.HTTPGetFunc(recipeURL.String())
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 
-	f, err := newRecipeFile(string(out))
+	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
+	return toRecipeFile(string(body))
+}
 
+func (f *recipeFileFetcherImpl) loadRecipeFile(filename string) (*recipeFile, error) {
+	out, err := f.readFileFunc(filename)
+	if err != nil {
+		return nil, err
+	}
+	return toRecipeFile(string(out))
+}
+
+func toRecipeFile(content string) (*recipeFile, error) {
+	f, err := newRecipeFile(content)
+	if err != nil {
+		return nil, err
+	}
 	return f, nil
 }
 
