@@ -106,7 +106,7 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 
 func (i *recipeInstaller) recipeFromFilenameFatal(recipeFilename string) *recipe {
 	recipeURL, parseErr := url.Parse(recipeFilename)
-	if parseErr == nil {
+	if parseErr == nil && recipeURL.Scheme != "" {
 		f, err := i.recipeFileFetcher.fetchRecipeFile(recipeURL)
 		if err != nil {
 			log.Fatalf("Could not fetch file %s: %s", recipeFilename, err)
