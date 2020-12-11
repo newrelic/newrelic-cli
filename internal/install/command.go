@@ -41,6 +41,7 @@ var Command = &cobra.Command{
 			// Wire up the recipe installer with dependency injection.
 			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
 			pf := newRegexProcessFilterer(rf)
+			ff := newRecipeFileFetcher()
 
 			i := newRecipeInstaller(ic,
 				newPSUtilDiscoverer(pf),
@@ -48,6 +49,7 @@ var Command = &cobra.Command{
 				rf,
 				newGoTaskRecipeExecutor(),
 				newPollingRecipeValidator(&nrClient.Nrdb),
+				ff,
 			)
 
 			// Run the install.

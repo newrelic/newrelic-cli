@@ -11,11 +11,12 @@ import (
 
 type recipeInstaller struct {
 	installContext
-	discoverer      discoverer
-	fileFilterer    fileFilterer
-	recipeFetcher   recipeFetcher
-	recipeExecutor  recipeExecutor
-	recipeValidator recipeValidator
+	discoverer        discoverer
+	fileFilterer      fileFilterer
+	recipeFetcher     recipeFetcher
+	recipeExecutor    recipeExecutor
+	recipeValidator   recipeValidator
+	recipeFileFetcher recipeFileFetcher
 }
 
 func newRecipeInstaller(
@@ -25,13 +26,15 @@ func newRecipeInstaller(
 	f recipeFetcher,
 	e recipeExecutor,
 	v recipeValidator,
+	ff recipeFileFetcher,
 ) *recipeInstaller {
 	i := recipeInstaller{
-		discoverer:      d,
-		fileFilterer:    l,
-		recipeFetcher:   f,
-		recipeExecutor:  e,
-		recipeValidator: v,
+		discoverer:        d,
+		fileFilterer:      l,
+		recipeFetcher:     f,
+		recipeExecutor:    e,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
 	}
 
 	i.specifyActions = ic.specifyActions
@@ -104,14 +107,14 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 func (i *recipeInstaller) recipeFromFilenameFatal(recipeFilename string) *recipe {
 	recipeURL, parseErr := url.Parse(recipeFilename)
 	if parseErr == nil {
-		f, err := fetchRecipeFile(recipeURL)
+		f, err := i.recipeFileFetcher.fetchRecipeFile(recipeURL)
 		if err != nil {
 			log.Fatalf("Could not fetch file %s: %s", recipeFilename, err)
 		}
 		return finalizeRecipe(f)
 	}
 
-	f, err := loadRecipeFile(recipeFilename)
+	f, err := i.recipeFileFetcher.loadRecipeFile(recipeFilename)
 	if err != nil {
 		log.Fatalf("Could not load file %s: %s", recipeFilename, err)
 	}

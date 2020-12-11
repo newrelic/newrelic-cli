@@ -50,8 +50,28 @@ type logMatchAttributes struct {
 	LogType string `yaml:"logtype"`
 }
 
-func fetchRecipeFile(recipeURL *url.URL) (*recipeFile, error) {
-	response, err := http.Get(recipeURL.String())
+type recipeFileFetcherImpl struct {
+	HTTPGetFunc  func(string) (*http.Response, error)
+	readFileFunc func(string) ([]byte, error)
+}
+
+func newRecipeFileFetcher() recipeFileFetcher {
+	f := recipeFileFetcherImpl{}
+	f.HTTPGetFunc = defaultHTTPGetFunc
+	f.readFileFunc = defaultReadFileFunc
+	return &f
+}
+
+func defaultHTTPGetFunc(recipeURL string) (*http.Response, error) {
+	return http.Get(recipeURL)
+}
+
+func defaultReadFileFunc(filename string) ([]byte, error) {
+	return ioutil.ReadFile(filename)
+}
+
+func (f *recipeFileFetcherImpl) fetchRecipeFile(recipeURL *url.URL) (*recipeFile, error) {
+	response, err := f.HTTPGetFunc(recipeURL.String())
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +84,8 @@ func fetchRecipeFile(recipeURL *url.URL) (*recipeFile, error) {
 	return toRecipeFile(string(body))
 }
 
-func loadRecipeFile(filename string) (*recipeFile, error) {
-	out, err := ioutil.ReadFile(filename)
+func (f *recipeFileFetcherImpl) loadRecipeFile(filename string) (*recipeFile, error) {
+	out, err := f.readFileFunc(filename)
 	if err != nil {
 		return nil, err
 	}

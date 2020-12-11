@@ -28,8 +28,9 @@ func TestNewRecipeInstaller_InstallContextFields(t *testing.T) {
 	f := newMockRecipeFetcher()
 	e := newMockRecipeExecutor()
 	v := newMockRecipeValidator()
+	ff := newMockRecipeFileFetcher()
 
-	i := newRecipeInstaller(ic, d, l, f, e, v)
+	i := newRecipeInstaller(ic, d, l, f, e, v, ff)
 
 	require.True(t, reflect.DeepEqual(ic, i.installContext))
 }
