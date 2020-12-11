@@ -134,7 +134,7 @@ type OpenInstallationRecipe struct {
 	// The full contents of the recipe file (yaml)
 	File string `json:"file"`
 	// The ID
-	ID int `json:"id"`
+	ID string `json:"id"`
 	// List of variables to prompt for input from the user
 	InputVars []OpenInstallationRecipeInputVariable `json:"inputVars"`
 	// Object representing the intended install target
@@ -185,13 +185,6 @@ type OpenInstallationRecipeInstallTarget struct {
 	// Target type
 	Type OpenInstallationTargetType `json:"type"`
 }
-
-// ID - The `ID` scalar type represents a unique identifier, often used to
-// refetch an object or as key for a cache. The ID type appears in a JSON
-// response as a String; however, it is not intended to be human-readable.
-// When expected as an input type, any string (such as `"4"`) or integer
-// (such as `4`) input value will be accepted as an ID.
-type ID string
 
 // NRQL - This scalar represents a NRQL query string.
 //

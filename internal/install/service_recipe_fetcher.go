@@ -3,7 +3,6 @@ package install
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -195,7 +194,7 @@ func createRecipes(results []OpenInstallationRecipe) []recipe {
 
 func createRecipe(result OpenInstallationRecipe) recipe {
 	return recipe{
-		ID:             strconv.Itoa(result.ID),
+		ID:             result.ID,
 		File:           result.File,
 		Name:           result.Name,
 		Description:    result.Description,

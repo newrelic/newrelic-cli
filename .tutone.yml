@@ -47,6 +47,9 @@ packages:
       - typegen
     types:
       - name: OpenInstallationRecipe
+      - name: ID
+        field_type_override: string
+        skip_type_create: true
 
 generators:
   - name: command

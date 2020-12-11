@@ -13,7 +13,7 @@ import (
 func TestFetchFilters(t *testing.T) {
 	r := []OpenInstallationRecipe{
 		{
-			ID:   0,
+			ID:   "MAo=",
 			Name: "test",
 			ProcessMatch: []string{
 				"test",
@@ -37,7 +37,7 @@ func TestFetchFilters(t *testing.T) {
 func TestFetchRecommendations(t *testing.T) {
 	r := []OpenInstallationRecipe{
 		{
-			ID: 0,
+			ID: "MAo=",
 			File: `
 ---
 name: Test recipe file
