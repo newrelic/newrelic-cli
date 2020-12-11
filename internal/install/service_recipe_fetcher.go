@@ -3,10 +3,8 @@ package install
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
-
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 )
 
 type serviceRecipeFetcher struct {
@@ -46,7 +44,9 @@ func (f *serviceRecipeFetcher) fetchRecipe(ctx context.Context, manifest *discov
 		return nil, fmt.Errorf("more than 1 result found for friendly name %s", friendlyName)
 	}
 
-	return &results[0], nil
+	r := createRecipe(results[0])
+
+	return &r, nil
 }
 
 func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifest *discoveryManifest) ([]recipe, error) {
@@ -64,7 +64,7 @@ func (f *serviceRecipeFetcher) fetchRecommendations(ctx context.Context, manifes
 		return nil, err
 	}
 
-	return resp.Docs.OpenInstallation.Recommendations.Results, nil
+	return resp.Docs.OpenInstallation.Recommendations.ToRecipes(), nil
 }
 
 func (f *serviceRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, error) {
@@ -73,7 +73,7 @@ func (f *serviceRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, erro
 		return nil, err
 	}
 
-	return resp.Docs.OpenInstallation.RecipeSearch.Results, nil
+	return resp.Docs.OpenInstallation.RecipeSearch.ToRecipes(), nil
 }
 
 type recommendationsQueryResult struct {
@@ -89,43 +89,7 @@ type recommendationsQueryOpenInstallation struct {
 }
 
 type recommendationsResult struct {
-	Results []recipe `json:"recipe"`
-}
-
-type recipe struct {
-	ID             string     `json:"id"`
-	File           string     `json:"file"`
-	Name           string     `json:"name"`
-	Description    string     `json:"description"`
-	Repository     string     `json:"repository"`
-	Keywords       []string   `json:"keywords"`
-	ProcessMatch   []string   `json:"processMatch"`
-	LogMatch       []logMatch `json:"logMatch"`
-	ValidationNRQL string     `json:"validationNrql"`
-}
-
-func (s *recipe) ToRecipeFile() (*recipeFile, error) {
-	var r recipeFile
-	err := yaml.Unmarshal([]byte(s.File), &r)
-	if err != nil {
-		return nil, err
-	}
-
-	return &r, nil
-}
-
-func (recommendations *recommendationsResult) ToRecipeFiles() []recipeFile {
-	r := make([]recipeFile, len(recommendations.Results))
-	for i, s := range recommendations.Results {
-		recipe, err := s.ToRecipeFile()
-		if err != nil {
-			log.Warnf("could not parse recipe %s", s.Name)
-			continue
-		}
-		r[i] = *recipe
-	}
-
-	return r
+	Results []OpenInstallationRecipe `json:"recipe"`
 }
 
 type recommendationsInput struct {
@@ -152,6 +116,10 @@ type processDetailInput struct {
 	Name string `json:"name"`
 }
 
+func (r *recommendationsResult) ToRecipes() []recipe {
+	return createRecipes(r.Results)
+}
+
 type recipeSearchQueryResult struct {
 	Docs recipeSearchQueryDocs `json:"docs"`
 }
@@ -165,7 +133,11 @@ type recipeSearchQueryOpenInstallation struct {
 }
 
 type recipeSearchResult struct {
-	Results []recipe `json:"results"`
+	Results []OpenInstallationRecipe `json:"results"`
+}
+
+func (r *recipeSearchResult) ToRecipes() []recipe {
+	return createRecipes(r.Results)
 }
 
 func createRecipeSearchInput(d *discoveryManifest, friendlyName string) (*recipeSearchInput, error) {
@@ -210,6 +182,54 @@ func createInstallTarget(d *discoveryManifest) installTarget {
 	//i.PlatformFamily = strings.ToUpper(d.PlatformFamily)
 
 	return i
+}
+
+func createRecipes(results []OpenInstallationRecipe) []recipe {
+	r := make([]recipe, len(results))
+	for i, result := range results {
+		r[i] = createRecipe(result)
+	}
+
+	return r
+}
+
+func createRecipe(result OpenInstallationRecipe) recipe {
+	return recipe{
+		ID:             strconv.Itoa(result.ID),
+		File:           result.File,
+		Name:           result.Name,
+		Description:    result.Description,
+		Repository:     result.Repository,
+		Keywords:       result.Keywords,
+		ProcessMatch:   result.ProcessMatch,
+		LogMatch:       createLogMatches(result.LogMatch),
+		ValidationNRQL: string(result.ValidationNRQL),
+	}
+}
+
+func createLogMatches(results []OpenInstallationLogMatch) []logMatch {
+	r := make([]logMatch, len(results))
+	for _, result := range results {
+		r = append(r, createLogMatch(result))
+	}
+
+	return r
+}
+
+func createLogMatch(result OpenInstallationLogMatch) logMatch {
+	return logMatch{
+		Name:       result.Name,
+		File:       result.File,
+		Attributes: createLogMatchAttributes(result.Attributes),
+		Pattern:    result.Pattern,
+		Systemd:    result.Systemd,
+	}
+}
+
+func createLogMatchAttributes(result OpenInstallationAttributes) logMatchAttributes {
+	return logMatchAttributes{
+		LogType: result.Logtype,
+	}
 }
 
 const (

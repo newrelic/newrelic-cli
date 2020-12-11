@@ -41,9 +41,9 @@ type recipeInstallTarget struct {
 type logMatch struct {
 	Name       string             `yaml:"name"`
 	File       string             `yaml:"file"`
-	Attributes logMatchAttributes `yaml:"attributes"`
-	Pattern    string             `yaml:"pattern"`
-	Systemd    string             `yaml:"systemd"`
+	Attributes logMatchAttributes `yaml:"attributes,omitempty"`
+	Pattern    string             `yaml:"pattern,omitempty"`
+	Systemd    string             `yaml:"systemd,omitempty"`
 }
 
 type logMatchAttributes struct {

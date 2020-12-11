@@ -12,3 +12,4 @@ Release/*
 *.msi
 *.nupkg
 build/package/chocolatey/tools/LICENSE.txt
+schema.json

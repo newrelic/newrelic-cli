@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -64,11 +65,6 @@ func (i *recipeInstaller) install() {
 		i.installInfraAgentFatal(m)
 	}
 
-	// Run the logging recipe if requested, exiting on failure.
-	if i.ShouldInstallLogging() {
-		i.installLoggingFatal(m)
-	}
-
 	// Retrieve a list of recipes to execute.
 	var recipes []recipe
 	if i.RecipePathsProvided() {
@@ -84,6 +80,11 @@ func (i *recipeInstaller) install() {
 	} else {
 		// Ask the recipe service for recommendations.
 		recipes = i.fetchRecommendationsFatal(m)
+	}
+
+	// Run the logging recipe if requested, exiting on failure.
+	if i.ShouldInstallLogging() {
+		i.installLoggingFatal(m, recipes)
 	}
 
 	// Execute and validate each of the recipes in the collection.
@@ -133,8 +134,29 @@ func (i *recipeInstaller) installInfraAgentFatal(m *discoveryManifest) {
 	i.fetchExecuteAndValidateFatal(m, infraAgentRecipeName)
 }
 
-func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest) {
-	i.fetchExecuteAndValidateFatal(m, loggingRecipeName)
+func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []recipe) {
+	r := i.fetchFatal(m, loggingRecipeName)
+
+	logMatches, err := i.fileFilterer.filter(utils.SignalCtx, recipes)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var acceptedLogMatches []logMatch
+	for _, match := range logMatches {
+		if userAcceptLogFile(match) {
+			acceptedLogMatches = append(acceptedLogMatches, match)
+		}
+	}
+
+	// The struct to approximate the logging configuration file of the Infra Agent.
+	type loggingConfig struct {
+		Logs []logMatch `yaml:"logs"`
+	}
+
+	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
+
+	i.executeAndValidateFatal(m, r)
 }
 
 func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []recipe {
@@ -221,4 +243,21 @@ func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe
 	if !ok {
 		log.Warnf("Could not detect data from %s.", r.Name)
 	}
+}
+
+func userAcceptLogFile(match logMatch) bool {
+	msg := fmt.Sprintf("Files have been found at the following pattern: %s\nDo you want to watch them? [Yes/No]", match.File)
+
+	prompt := promptui.Select{
+		Label: msg,
+		Items: []string{"Yes", "No"},
+	}
+
+	_, result, err := prompt.Run()
+	if err != nil {
+		log.Errorf("prompt failed: %s", err)
+		return false
+	}
+
+	return result == "Yes"
 }
