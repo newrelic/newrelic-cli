@@ -29,7 +29,7 @@ packages:
         shortDescription: Manage New Relic API access keys # optional override (uses NG as default)
         subcommands:
           - name: apiAccessGetKey
-            path: ["actor", "apiAccess", "key"]
+            path: ['actor', 'apiAccess', 'key']
             clientPackageName: apiaccess
             clientMethod: nrClient.APIAccess.GetAPIAccessKey
           - name: apiAccessCreateKeys
@@ -50,8 +50,7 @@ packages:
 
 generators:
   - name: command
-    templateName: "command.go.tmpl"
+    templateName: 'command.go.tmpl'
     templateDir: templates
-    # templateURL: "https://gist.githubusercontent.com/sanderblue/ff8e9715471744c76237cc209214ab3d/raw/0fa76c29ba0adfbde08810f0d8e9d00f1237e843/command.go.tmpl"
   - name: typegen
-    fileName: "types.go"
+    fileName: 'types.go'

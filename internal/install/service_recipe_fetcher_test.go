@@ -11,9 +11,9 @@ import (
 )
 
 func TestFetchFilters(t *testing.T) {
-	r := []recipe{
+	r := []OpenInstallationRecipe{
 		{
-			ID:   "test",
+			ID:   0,
 			Name: "test",
 			ProcessMatch: []string{
 				"test",
@@ -31,13 +31,13 @@ func TestFetchFilters(t *testing.T) {
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
 	require.Equal(t, 1, len(recipes))
-	require.True(t, reflect.DeepEqual(r, recipes))
+	require.True(t, reflect.DeepEqual(createRecipes(r), recipes))
 }
 
 func TestFetchRecommendations(t *testing.T) {
-	r := []recipe{
+	r := []OpenInstallationRecipe{
 		{
-			ID: "test",
+			ID: 0,
 			File: `
 ---
 name: Test recipe file
@@ -60,7 +60,7 @@ description: test description
 	require.Equal(t, 1, len(recipes))
 }
 
-func wrapRecipes(r []recipe) recipeSearchQueryResult {
+func wrapRecipes(r []OpenInstallationRecipe) recipeSearchQueryResult {
 	return recipeSearchQueryResult{
 		Docs: recipeSearchQueryDocs{
 			OpenInstallation: recipeSearchQueryOpenInstallation{
@@ -72,7 +72,7 @@ func wrapRecipes(r []recipe) recipeSearchQueryResult {
 	}
 }
 
-func wrapRecommendations(r []recipe) recommendationsQueryResult {
+func wrapRecommendations(r []OpenInstallationRecipe) recommendationsQueryResult {
 	return recommendationsQueryResult{
 		Docs: recommendationsQueryDocs{
 			OpenInstallation: recommendationsQueryOpenInstallation{
