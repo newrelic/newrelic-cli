@@ -27,7 +27,7 @@ func TestNewRecipeInstaller_InstallContextFields(t *testing.T) {
 		specifyActions:    true,
 		installInfraAgent: true,
 		installLogging:    true,
-		recipeFilenames:   []string{"testRecipeFilename"},
+		recipePaths:       []string{"testRecipeFilename"},
 		recipeNames:       []string{"testRecipeName"},
 	}
 
@@ -49,7 +49,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	ff.fetchRecipeFileFunc = fetchRecipeFileFunc
 	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff)
 
-	recipe := i.recipeFromFilenameFatal("http://recipe/URL")
+	recipe := i.recipeFromPathFatal("http://recipe/URL")
 	require.NotNil(t, recipe)
 	require.Equal(t, recipe.Name, testRecipeName)
 }
@@ -60,7 +60,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	ff.loadRecipeFileFunc = loadRecipeFileFunc
 	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff)
 
-	recipe := i.recipeFromFilenameFatal("file.txt")
+	recipe := i.recipeFromPathFatal("file.txt")
 	require.NotNil(t, recipe)
 	require.Equal(t, recipe.Name, testRecipeName)
 }

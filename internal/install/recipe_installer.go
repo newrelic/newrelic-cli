@@ -42,7 +42,7 @@ func newRecipeInstaller(
 	i.installLogging = ic.installLogging
 	i.installInfraAgent = ic.installInfraAgent
 	i.recipeNames = ic.recipeNames
-	i.recipeFilenames = ic.recipeFilenames
+	i.recipePaths = ic.recipePaths
 
 	return &i
 }
@@ -71,9 +71,9 @@ func (i *recipeInstaller) install() {
 
 	// Retrieve a list of recipes to execute.
 	var recipes []recipe
-	if i.RecipeFilenamesProvided() {
-		for _, n := range i.recipeFilenames {
-			recipes = append(recipes, *i.recipeFromFilenameFatal(n))
+	if i.RecipePathsProvided() {
+		for _, n := range i.recipePaths {
+			recipes = append(recipes, *i.recipeFromPathFatal(n))
 		}
 	} else if i.RecipeNamesProvided() {
 		// Execute the requested recipes.
@@ -104,19 +104,19 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 	return m
 }
 
-func (i *recipeInstaller) recipeFromFilenameFatal(recipeFilename string) *recipe {
-	recipeURL, parseErr := url.Parse(recipeFilename)
+func (i *recipeInstaller) recipeFromPathFatal(recipePath string) *recipe {
+	recipeURL, parseErr := url.Parse(recipePath)
 	if parseErr == nil && recipeURL.Scheme != "" {
 		f, err := i.recipeFileFetcher.fetchRecipeFile(recipeURL)
 		if err != nil {
-			log.Fatalf("Could not fetch file %s: %s", recipeFilename, err)
+			log.Fatalf("Could not fetch file %s: %s", recipePath, err)
 		}
 		return finalizeRecipe(f)
 	}
 
-	f, err := i.recipeFileFetcher.loadRecipeFile(recipeFilename)
+	f, err := i.recipeFileFetcher.loadRecipeFile(recipePath)
 	if err != nil {
-		log.Fatalf("Could not load file %s: %s", recipeFilename, err)
+		log.Fatalf("Could not load file %s: %s", recipePath, err)
 	}
 	return finalizeRecipe(f)
 }

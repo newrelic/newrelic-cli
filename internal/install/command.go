@@ -16,7 +16,7 @@ var (
 	interactiveMode bool
 	installLogging  bool
 	recipeNames     []string
-	recipeFilenames []string
+	recipePaths     []string
 )
 
 // Command represents the install command.
@@ -29,7 +29,7 @@ var Command = &cobra.Command{
 			interactiveMode: interactiveMode,
 			installLogging:  installLogging,
 			recipeNames:     recipeNames,
-			recipeFilenames: recipeFilenames,
+			recipePaths:     recipePaths,
 			specifyActions:  specifyActions,
 		}
 
@@ -63,5 +63,5 @@ func init() {
 	Command.Flags().BoolVarP(&installLogging, "installLogging", "l", false, "installs New Relic logging if specifyActions has been used")
 	Command.Flags().BoolVarP(&specifyActions, "specifyActions", "s", false, "specify the actions to be run during install")
 	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "r", []string{}, "the name of a recipe to install")
-	Command.Flags().StringSliceVarP(&recipeFilenames, "recipeFile", "c", []string{}, "a recipe file to install")
+	Command.Flags().StringSliceVarP(&recipePaths, "recipeFile", "c", []string{}, "a recipe file to install")
 }

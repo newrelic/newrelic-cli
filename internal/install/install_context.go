@@ -6,19 +6,19 @@ type installContext struct {
 	installLogging    bool
 	installInfraAgent bool
 	recipeNames       []string
-	recipeFilenames   []string
+	recipePaths       []string
 }
 
 func (i *installContext) ShouldInstallInfraAgent() bool {
-	return !i.RecipeFilenamesProvided() && (!i.specifyActions || i.installInfraAgent)
+	return !i.RecipePathsProvided() && (!i.specifyActions || i.installInfraAgent)
 }
 
 func (i *installContext) ShouldInstallLogging() bool {
-	return !i.RecipeFilenamesProvided() && (!i.specifyActions || i.installLogging)
+	return !i.RecipePathsProvided() && (!i.specifyActions || i.installLogging)
 }
 
-func (i *installContext) RecipeFilenamesProvided() bool {
-	return len(i.recipeFilenames) > 0
+func (i *installContext) RecipePathsProvided() bool {
+	return len(i.recipePaths) > 0
 }
 
 func (i *installContext) RecipeNamesProvided() bool {

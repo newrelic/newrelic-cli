@@ -21,9 +21,9 @@ func TestShouldInstallInfraAgent_SpecifyActions(t *testing.T) {
 	require.True(t, ic.ShouldInstallInfraAgent())
 }
 
-func TestShouldInstallInfraAgent_RecipeFilenamesProvided(t *testing.T) {
+func TestShouldInstallInfraAgent_RecipePathsProvided(t *testing.T) {
 	ic := installContext{
-		recipeFilenames: []string{"testFilename"},
+		recipePaths: []string{"testFilename"},
 	}
 	require.False(t, ic.ShouldInstallInfraAgent())
 
@@ -45,9 +45,9 @@ func TestShouldInstallLogging_SpecifyActions(t *testing.T) {
 	require.True(t, ic.ShouldInstallLogging())
 }
 
-func TestShouldInstallLogging_RecipeFilenamesProvided(t *testing.T) {
+func TestShouldInstallLogging_RecipePathsProvided(t *testing.T) {
 	ic := installContext{
-		recipeFilenames: []string{"testFilename"},
+		recipePaths: []string{"testFilename"},
 	}
 	require.False(t, ic.ShouldInstallLogging())
 
@@ -63,10 +63,10 @@ func TestRecipeNamesProvided(t *testing.T) {
 	require.True(t, ic.RecipeNamesProvided())
 }
 
-func TestRecipeFilenamesProvided(t *testing.T) {
+func TestRecipePathsProvided(t *testing.T) {
 	ic := installContext{}
-	require.False(t, ic.RecipeFilenamesProvided())
+	require.False(t, ic.RecipePathsProvided())
 
-	ic.recipeFilenames = []string{"testFilename"}
-	require.True(t, ic.RecipeFilenamesProvided())
+	ic.recipePaths = []string{"testFilename"}
+	require.True(t, ic.RecipePathsProvided())
 }
