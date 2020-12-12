@@ -156,7 +156,7 @@ func createRecommendationsInput(d *discoveryManifest) (*recommendationsInput, er
 	for _, process := range d.Processes {
 		n, err := process.Name()
 		if err != nil {
-			return nil, err
+			continue
 		}
 
 		p := processDetailInput{
