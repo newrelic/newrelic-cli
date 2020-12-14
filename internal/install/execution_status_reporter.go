@@ -2,7 +2,7 @@ package install
 
 type executionStatusReporter interface {
 	reportUserStatus(executionStatus) error
-	reportEntityStatus(executionStatus) error
+	reportEntityStatus(string, executionStatus) error
 }
 
 type executionStatus struct {
@@ -13,21 +13,27 @@ type executionStatus struct {
 }
 
 type executionStatusRecipe struct {
-	Name        string                      `json:"name"`
-	DisplayName string                      `json:"displayName"`
-	Status      executionStatusRecipeStatus `json:"status"`
-	Errors      []string                    `json:"errors"`
+	Name        string                       `json:"name"`
+	DisplayName string                       `json:"displayName"`
+	Status      executionStatusRecipeStatus  `json:"status"`
+	Errors      []executionStatusRecipeError `json:"errors"`
 }
 
 type executionStatusRecipeStatus string
 
 var executionStatusRecipeStatusTypes = struct {
 	AVAILABLE executionStatusRecipeStatus
-	INSTALLED executionStatusRecipeStatus
 	FAILED    executionStatusRecipeStatus
+	INSTALLED executionStatusRecipeStatus
 	SKIPPED   executionStatusRecipeStatus
 }{
 	AVAILABLE: "AVAILABLE",
+	FAILED:    "FAILED",
 	INSTALLED: "INSTALLED",
 	SKIPPED:   "SKIPPED",
+}
+
+type executionStatusRecipeError struct {
+	Message string `json:"message"`
+	Details string `json:"details"`
 }
