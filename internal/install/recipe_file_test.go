@@ -2,6 +2,7 @@ package install
 
 import (
 	"io/ioutil"
+	"net/url"
 	"os"
 	"reflect"
 	"testing"
@@ -42,6 +43,7 @@ logMatch:
     pattern: testPattern
     systemd: testSystemd
 `
+	recipeURL, _ = url.Parse("http://localhost/anywhere")
 )
 
 func TestLoadRecipeFile(t *testing.T) {
@@ -52,7 +54,17 @@ func TestLoadRecipeFile(t *testing.T) {
 
 	defer os.Remove(tmpFile.Name())
 
-	f, err := loadRecipeFile(tmpFile.Name())
+	ff := newRecipeFileFetcher()
+
+	f, err := ff.loadRecipeFile(tmpFile.Name())
+	require.NoError(t, err)
+	require.NotNil(t, f)
+}
+
+func TestFetchRecipeFile(t *testing.T) {
+	ff := newMockRecipeFileFetcher()
+
+	f, err := ff.fetchRecipeFile(recipeURL)
 	require.NoError(t, err)
 	require.NotNil(t, f)
 }
