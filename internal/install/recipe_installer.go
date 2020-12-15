@@ -1,6 +1,7 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -12,12 +13,13 @@ import (
 
 type recipeInstaller struct {
 	installContext
-	discoverer        discoverer
-	fileFilterer      fileFilterer
-	recipeFetcher     recipeFetcher
-	recipeExecutor    recipeExecutor
-	recipeValidator   recipeValidator
-	recipeFileFetcher recipeFileFetcher
+	discoverer              discoverer
+	fileFilterer            fileFilterer
+	recipeFetcher           recipeFetcher
+	recipeExecutor          recipeExecutor
+	recipeValidator         recipeValidator
+	recipeFileFetcher       recipeFileFetcher
+	executionStatusReporter executionStatusReporter
 }
 
 func newRecipeInstaller(
@@ -28,14 +30,16 @@ func newRecipeInstaller(
 	e recipeExecutor,
 	v recipeValidator,
 	ff recipeFileFetcher,
+	er executionStatusReporter,
 ) *recipeInstaller {
 	i := recipeInstaller{
-		discoverer:        d,
-		fileFilterer:      l,
-		recipeFetcher:     f,
-		recipeExecutor:    e,
-		recipeValidator:   v,
-		recipeFileFetcher: ff,
+		discoverer:              d,
+		fileFilterer:            l,
+		recipeFetcher:           f,
+		recipeExecutor:          e,
+		recipeValidator:         v,
+		recipeFileFetcher:       ff,
+		executionStatusReporter: er,
 	}
 
 	i.recipePaths = ic.recipePaths
@@ -68,7 +72,6 @@ func (i *recipeInstaller) install() {
 		i.installInfraAgentFatal(m)
 	}
 
-	// Install integrations if necessary, continuing on failure with warnings.
 	var recipes []recipe
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -86,12 +89,20 @@ func (i *recipeInstaller) install() {
 		recipes = i.fetchRecommendationsFatal(m)
 	}
 
-	// Run the logging recipe if requested, exiting on failure.
-	if i.ShouldInstallLogging() {
-		i.installLoggingFatal(m, recipes)
+	status := newExecutionStatus(recipes)
+	i.executionStatusReporter.reportUserStatus(status)
+
+	// Run the infra agent recipe, exiting on failure.
+	if i.ShouldInstallInfraAgent() {
+		i.installInfraAgentFatal(m, status)
 	}
 
-	// Execute and validate each of the remaining recipes.
+	// Run the logging recipe if requested, exiting on failure.
+	if i.ShouldInstallLogging() {
+		i.installLoggingFatal(m, recipes, status)
+	}
+
+	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
 		for _, r := range recipes {
 			i.executeAndValidateWarn(m, &r)
@@ -136,11 +147,11 @@ func finalizeRecipe(f *recipeFile) *recipe {
 	return r
 }
 
-func (i *recipeInstaller) installInfraAgentFatal(m *discoveryManifest) {
-	i.fetchExecuteAndValidateFatal(m, infraAgentRecipeName)
+func (i *recipeInstaller) installInfraAgentFatal(m *discoveryManifest, status executionStatus) {
+	i.fetchExecuteAndValidateFatal(m, infraAgentRecipeName, status)
 }
 
-func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []recipe) {
+func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []recipe, status executionStatus) {
 	r := i.fetchFatal(m, loggingRecipeName)
 
 	logMatches, err := i.fileFilterer.filter(utils.SignalCtx, recipes)
@@ -162,7 +173,7 @@ func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []re
 
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
-	i.executeAndValidateFatal(m, r)
+	i.executeAndValidateFatal(m, r, status)
 }
 
 func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []recipe {
@@ -174,9 +185,9 @@ func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []reci
 	return recipes
 }
 
-func (i *recipeInstaller) fetchExecuteAndValidateFatal(m *discoveryManifest, recipeName string) {
+func (i *recipeInstaller) fetchExecuteAndValidateFatal(m *discoveryManifest, recipeName string, status executionStatus) {
 	r := i.fetchFatal(m, recipeName)
-	i.executeAndValidateFatal(m, r)
+	i.executeAndValidateFatal(m, r, status)
 }
 
 func (i *recipeInstaller) fetchWarn(m *discoveryManifest, recipeName string) *recipe {
@@ -206,11 +217,19 @@ func (i *recipeInstaller) fetchFatal(m *discoveryManifest, recipeName string) *r
 	return r
 }
 
-func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (bool, error) {
+func (i *recipeInstaller) reportRecipeFailure(recipeName string, message string) {
+
+}
+
+func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe, status executionStatus) (bool, error) {
 	// Execute the recipe steps.
 	log.Infof("Installing %s...\n", r.Name)
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
-		return false, fmt.Errorf("encountered an error while executing %s: %s", r.Name, err)
+		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
+
+		i.reportRecipeFailure(r.Name, msg)
+
+		return false, errors.New(msg)
 	}
 	log.Infof("Installing %s...success\n", r.Name)
 
@@ -230,11 +249,12 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 	}
 
 	log.Infoln("success.")
+
 	return true, nil
 }
 
-func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
-	ok, err := i.executeAndValidate(m, r)
+func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe, status executionStatus) {
+	ok, err := i.executeAndValidate(m, r, status)
 	if err != nil {
 		log.Fatalf("Could not install %s: %s", r.Name, err)
 	}
@@ -244,8 +264,8 @@ func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recip
 	}
 }
 
-func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
-	ok, err := i.executeAndValidate(m, r)
+func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe, status executionStatus) {
+	ok, err := i.executeAndValidate(m, r, status)
 	if err != nil {
 		log.Warnf("Could not install %s: %s", r.Name, err)
 	}

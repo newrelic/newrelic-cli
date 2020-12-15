@@ -1,15 +1,19 @@
 package install
 
+import "time"
+
 type executionStatusReporter interface {
 	reportUserStatus(executionStatus) error
 	reportEntityStatus(string, executionStatus) error
 }
 
 type executionStatus struct {
-	Timestamp   int                     `json:"timestamp"`
-	Complete    bool                    `json:"complete"`
+	Complete    bool `json:"complete"`
+	DocumentID  string
 	EntityGuids []string                `json:"entityGuids"`
 	Recipes     []executionStatusRecipe `json:"recipes"`
+	Scope       string
+	Timestamp   int64 `json:"timestamp"`
 }
 
 type executionStatusRecipe struct {
@@ -36,4 +40,26 @@ var executionStatusRecipeStatusTypes = struct {
 type executionStatusRecipeError struct {
 	Message string `json:"message"`
 	Details string `json:"details"`
+}
+
+func newExecutionStatus(recipes []recipe) executionStatus {
+	s := executionStatus{
+		Timestamp: time.Now().Unix(),
+		Complete:  false,
+	}
+
+	availableRecipes := []executionStatusRecipe{}
+
+	for _, r := range recipes {
+		availableRecipe := executionStatusRecipe{
+			// TODO work out the details about dispay name vs short name
+			Name:        r.Name,
+			DisplayName: r.Name,
+			Status:      executionStatusRecipeStatusTypes.AVAILABLE,
+		}
+
+		availableRecipes = append(availableRecipes, availableRecipe)
+	}
+
+	return s
 }
