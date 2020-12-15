@@ -34,9 +34,7 @@ var Command = &cobra.Command{
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			if profile == nil {
-				log.Fatal(errors.New("default profile has not been set"))
-			}
+			assertProfileIsValid(profile)
 
 			// Wire up the recipe installer with dependency injection.
 			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
@@ -56,6 +54,15 @@ var Command = &cobra.Command{
 			i.install()
 		})
 	},
+}
+
+func assertProfileIsValid(profile *credentials.Profile) {
+	if profile == nil {
+		log.Fatal(errors.New("default profile has not been set"))
+	}
+	if profile.Region != "US" {
+		log.Fatalf("Only the US region is supported at this time. region %s is not supported.", profile.Region)
+	}
 }
 
 func init() {
