@@ -17,11 +17,10 @@ var Command = &cobra.Command{
 	Short:   "Manage New Relic API access keys",
 	Long:    "",
 	Example: "newrelic apiaccess apiAccess --help",
-	Hidden:  true, // Mark as pre-release
 }
 
-var apiAccessGetKeyid string
-var apiAccessGetKeykeyType string
+var apiAccessGetKeyId string
+var apiAccessGetKeyKeyType string
 
 var cmdKey = &cobra.Command{
 	Use:     "apiAccessGetKey",
@@ -31,7 +30,7 @@ var cmdKey = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 
-			resp, err := nrClient.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
+			resp, err := nrClient.APIAccess.GetAPIAccessKey(apiAccessGetKeyId, apiaccess.APIAccessKeyType(apiAccessGetKeyKeyType))
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(resp))
@@ -40,14 +39,13 @@ var cmdKey = &cobra.Command{
 }
 var apiAccessCreateKeysInput string
 
-var cmdAPIAccessCreateKeys = &cobra.Command{
+var cmdApiAccessCreateKeys = &cobra.Command{
 	Use:     "apiAccessCreateKeys",
 	Short:   "Create keys. You can create keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessCreateKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-
 			var keys apiaccess.APIAccessCreateInput
 
 			err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
@@ -62,14 +60,13 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 }
 var apiAccessUpdateKeysInput string
 
-var cmdAPIAccessUpdateKeys = &cobra.Command{
+var cmdApiAccessUpdateKeys = &cobra.Command{
 	Use:     "apiAccessUpdateKeys",
 	Short:   "Update keys. You can update keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessUpdateKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-
 			var keys apiaccess.APIAccessUpdateInput
 
 			err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
@@ -84,14 +81,13 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 }
 var apiAccessDeleteKeysInput string
 
-var cmdAPIAccessDeleteKeys = &cobra.Command{
+var cmdApiAccessDeleteKeys = &cobra.Command{
 	Use:     "apiAccessDeleteKeys",
 	Short:   "A mutation to delete keys.",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessDeleteKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-
 			var keys apiaccess.APIAccessDeleteInput
 
 			err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
@@ -108,22 +104,22 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 func init() {
 	Command.AddCommand(cmdKey)
 
-	cmdKey.Flags().StringVar(&apiAccessGetKeyid, "id", "", "The `id` of the key. This can be used to identify a key without revealing the key itself (used to update and delete).")
+	cmdKey.Flags().StringVar(&apiAccessGetKeyId, "id", "", "The `id` of the key. This can be used to identify a key without revealing the key itself (used to update and delete).")
 	utils.LogIfError(cmdKey.MarkFlagRequired("id"))
 
-	cmdKey.Flags().StringVar(&apiAccessGetKeykeyType, "keyType", "", "The type of key.")
+	cmdKey.Flags().StringVar(&apiAccessGetKeyKeyType, "keyType", "", "The type of key.")
 	utils.LogIfError(cmdKey.MarkFlagRequired("keyType"))
+	Command.AddCommand(cmdApiAccessCreateKeys)
 
-	Command.AddCommand(cmdAPIAccessCreateKeys)
+	cmdApiAccessCreateKeys.Flags().StringVar(&apiAccessCreateKeysInput, "keys", "", "A list of the configurations for each key you want to create.")
+	utils.LogIfError(cmdApiAccessCreateKeys.MarkFlagRequired("keys"))
+	Command.AddCommand(cmdApiAccessUpdateKeys)
 
-	cmdAPIAccessCreateKeys.Flags().StringVar(&apiAccessCreateKeysInput, "keys", "", "A list of the configurations for each key you want to create.")
+	cmdApiAccessUpdateKeys.Flags().StringVar(&apiAccessUpdateKeysInput, "keys", "", "The configurations of each key you want to update.")
+	utils.LogIfError(cmdApiAccessUpdateKeys.MarkFlagRequired("keys"))
+	Command.AddCommand(cmdApiAccessDeleteKeys)
 
-	Command.AddCommand(cmdAPIAccessUpdateKeys)
-
-	cmdAPIAccessUpdateKeys.Flags().StringVar(&apiAccessUpdateKeysInput, "keys", "", "The configurations of each key you want to update.")
-
-	Command.AddCommand(cmdAPIAccessDeleteKeys)
-
-	cmdAPIAccessDeleteKeys.Flags().StringVar(&apiAccessDeleteKeysInput, "keys", "", "A list of each key `id` that you want to delete. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).")
+	cmdApiAccessDeleteKeys.Flags().StringVar(&apiAccessDeleteKeysInput, "keys", "", "A list of each key `id` that you want to delete. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).")
+	utils.LogIfError(cmdApiAccessDeleteKeys.MarkFlagRequired("keys"))
 
 }
