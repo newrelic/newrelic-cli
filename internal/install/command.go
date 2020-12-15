@@ -1,6 +1,7 @@
 package install
 
 import (
+	"fmt"
 	"errors"
 
 	log "github.com/sirupsen/logrus"
@@ -34,7 +35,10 @@ var Command = &cobra.Command{
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			assertProfileIsValid(profile)
+			err := assertProfileIsValid(profile)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			// Wire up the recipe installer with dependency injection.
 			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
@@ -56,13 +60,15 @@ var Command = &cobra.Command{
 	},
 }
 
-func assertProfileIsValid(profile *credentials.Profile) {
+func assertProfileIsValid(profile *credentials.Profile) error {
 	if profile == nil {
-		log.Fatal(errors.New("default profile has not been set"))
+		return errors.New("default profile has not been set")
 	}
 	if profile.Region != "US" {
-		log.Fatalf("Only the US region is supported at this time. region %s is not supported.", profile.Region)
+		message := fmt.Sprintf("Only the US region is supported at this time. region %s is not supported.", profile.Region)
+		return errors.New(message)
 	}
+	return nil
 }
 
 func init() {
