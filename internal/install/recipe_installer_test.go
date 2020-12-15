@@ -38,8 +38,9 @@ func TestNewRecipeInstaller_InstallContextFields(t *testing.T) {
 	e := newMockRecipeExecutor()
 	v := newMockRecipeValidator()
 	ff := newMockRecipeFileFetcher()
+	sr := newMockExecutionStatusReporter()
 
-	i := newRecipeInstaller(ic, d, l, f, e, v, ff)
+	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
 
 	require.True(t, reflect.DeepEqual(ic, i.installContext))
 }
@@ -48,7 +49,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	ic := installContext{}
 	ff := newMockRecipeFileFetcher()
 	ff.fetchRecipeFileFunc = fetchRecipeFileFunc
-	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff)
+	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff, nil)
 
 	recipe := i.recipeFromPathFatal("http://recipe/URL")
 	require.NotNil(t, recipe)
@@ -59,7 +60,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	ic := installContext{}
 	ff := newMockRecipeFileFetcher()
 	ff.loadRecipeFileFunc = loadRecipeFileFunc
-	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff)
+	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff, nil)
 
 	recipe := i.recipeFromPathFatal("file.txt")
 	require.NotNil(t, recipe)

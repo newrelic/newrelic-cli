@@ -2,11 +2,13 @@ package install
 
 import "github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 
+// nolint:unused,deadcode
 type mockNerdstorageClient struct {
 	respBody interface{}
 	err      error
 }
 
+// nolint:unused,deadcode
 func newMockNerdstorageClient() *mockNerdstorageClient {
 	return &mockNerdstorageClient{
 		respBody: struct{}{},

@@ -38,7 +38,11 @@ func newPollingRecipeValidator(c nrdbClient) *pollingRecipeValidator {
 	return &v
 }
 
-func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
+func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, string, error) {
+	return m.waitForData(ctx, dm, r)
+}
+
+func (m *pollingRecipeValidator) waitForData(ctx context.Context, dm discoveryManifest, r recipe) (bool, string, error) {
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
@@ -51,19 +55,19 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManif
 
 	for {
 		if count == m.maxAttempts {
-			return false, nil
+			return false, "", nil
 		}
 
 		log.Debugf("Validation attempt #%d...", count+1)
-		ok, err := m.tryValidate(ctx, dm, r)
+		ok, entityGUID, err := m.tryValidate(ctx, dm, r)
 		if err != nil {
-			return false, err
+			return false, "", err
 		}
 
 		count++
 
 		if ok {
-			return true, nil
+			return true, entityGUID, nil
 		}
 
 		select {
@@ -71,34 +75,40 @@ func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManif
 			continue
 
 		case <-ctx.Done():
-			return false, nil
+			return false, "", nil
 		}
 	}
 }
 
-func (m *pollingRecipeValidator) tryValidate(ctx context.Context, dm discoveryManifest, r recipe) (bool, error) {
+func (m *pollingRecipeValidator) tryValidate(ctx context.Context, dm discoveryManifest, r recipe) (bool, string, error) {
 	query, err := substituteHostname(dm, r)
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	results, err := m.executeQuery(ctx, query)
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 
 	if len(results) == 0 {
-		return false, nil
+		return false, "", nil
 	}
 
 	// The query is assumed to use a count aggregate function
 	count := results[0]["count"].(float64)
 
 	if count > 0 {
-		return true, nil
+		// Try and parse an entity GUID from the results
+		// The query is assumed to optionally use a facet over entityGuid
+		if entityGUID, ok := results[0]["entityGuid"]; ok {
+			return true, entityGUID.(string), nil
+		}
+
+		return true, "", nil
 	}
 
-	return false, nil
+	return false, "", nil
 }
 
 func substituteHostname(dm discoveryManifest, r recipe) (string, error) {
