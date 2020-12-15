@@ -65,8 +65,7 @@ func assertProfileIsValid(profile *credentials.Profile) error {
 		return errors.New("default profile has not been set")
 	}
 	if profile.Region != "US" {
-		message := fmt.Sprintf("Only the US region is supported at this time. region %s is not supported.", profile.Region)
-		return errors.New(message)
+		return fmt.Errorf("Only the US region is supported at this time. region %s is not supported.", profile.Region)
 	}
 	return nil
 }
