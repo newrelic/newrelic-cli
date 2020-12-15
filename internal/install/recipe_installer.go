@@ -208,15 +208,19 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 	}
 	log.Infof("Installing %s...success\n", r.Name)
 
-	log.Info("Listening for data...")
-	ok, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
-	if err != nil {
-		return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
-	}
+	if r.ValidationNRQL != "" {
+		log.Info("Listening for data...")
+		ok, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
+		if err != nil {
+			return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
+		}
 
-	if !ok {
-		log.Infoln("failed.")
-		return false, nil
+		if !ok {
+			log.Infoln("failed.")
+			return false, nil
+		}
+	} else {
+		log.Warnf("unable to validate using empty recipe ValidationNRQL")
 	}
 
 	log.Infoln("success.")
