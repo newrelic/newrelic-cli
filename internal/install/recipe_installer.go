@@ -89,9 +89,7 @@ func (i *recipeInstaller) install() {
 		recipes = i.fetchRecommendationsFatal(m)
 	}
 
-	if err := i.statusReporter.reportRecipesAvailable(recipes); err != nil {
-		log.Errorf("Could not report recipe execution status: %s", err)
-	}
+	i.reportRecipesAvailable(recipes)
 
 	// Run the infra agent recipe, exiting on failure.
 	if i.ShouldInstallInfraAgent() {
@@ -223,9 +221,7 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 	log.Infof("Installing %s...\n", r.Name)
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
-		if err := i.statusReporter.reportRecipeFailed(recipeStatusEvent{*r, msg, ""}); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", r.Name, err)
-		}
+		i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
 		return false, errors.New(msg)
 	}
 	log.Infof("Installing %s...success\n", r.Name)
@@ -235,25 +231,18 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 		ok, entityGUID, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
-			if err := i.statusReporter.reportRecipeFailed(recipeStatusEvent{*r, msg, ""}); err != nil {
-				log.Errorf("Error writing recipe status for recipe %s: %s", r.Name, err)
-			}
+			i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
 			return false, errors.New(msg)
 		}
 
 		if !ok {
 			log.Infoln("failed.")
 			msg := "could not validate recipe data"
-			if err := i.statusReporter.reportRecipeFailed(recipeStatusEvent{*r, msg, entityGUID}); err != nil {
-				log.Errorf("Error writing recipe status for recipe %s: %s", r.Name, err)
-			}
+			i.reportRecipeFailed(recipeStatusEvent{*r, msg, entityGUID})
 			return false, nil
 		}
 
-		if err := i.statusReporter.reportRecipeInstalled(recipeStatusEvent{*r, "", entityGUID}); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", r.Name, err)
-		}
-
+		i.reportRecipeInstalled(recipeStatusEvent{*r, "", entityGUID})
 	} else {
 		log.Warnf("Skipping validation due to missing validation query.")
 	}
@@ -261,6 +250,24 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 	log.Infoln("success.")
 
 	return true, nil
+}
+
+func (i *recipeInstaller) reportRecipesAvailable(recipes []recipe) {
+	if err := i.statusReporter.reportRecipesAvailable(recipes); err != nil {
+		log.Errorf("Could not report recipe execution status: %s", err)
+	}
+}
+
+func (i *recipeInstaller) reportRecipeInstalled(e recipeStatusEvent) {
+	if err := i.statusReporter.reportRecipeInstalled(e); err != nil {
+		log.Errorf("Error writing recipe status for recipe %s: %s", e.recipe.Name, err)
+	}
+}
+
+func (i *recipeInstaller) reportRecipeFailed(e recipeStatusEvent) {
+	if err := i.statusReporter.reportRecipeFailed(e); err != nil {
+		log.Errorf("Error writing recipe status for recipe %s: %s", e.recipe.Name, err)
+	}
 }
 
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
