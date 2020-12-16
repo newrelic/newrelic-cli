@@ -43,8 +43,8 @@ type executionStatusRecipeError struct {
 func newExecutionStatus() executionStatus {
 	s := executionStatus{
 		DocumentID: uuid.New().String(),
+		Timestamp:  getTimestamp(),
 	}
-	s.Timestamp = getTimestamp()
 
 	return s
 }
@@ -73,6 +73,8 @@ func (s *executionStatus) withRecipeEvent(e recipeStatusEvent, rs executionStatu
 		}
 		s.Recipes = append(s.Recipes, *e)
 	}
+
+	s.Timestamp = getTimestamp()
 }
 
 func (s *executionStatus) getExecutionStatusRecipe(r recipe) *executionStatusRecipe {
