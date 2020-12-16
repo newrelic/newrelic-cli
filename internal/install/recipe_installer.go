@@ -68,29 +68,23 @@ func (i *recipeInstaller) install() {
 		i.installInfraAgentFatal(m)
 	}
 
-	// Install New Relic Logging if necessary, exiting on failure.
-	if i.ShouldInstallLogging() {
-		i.installLoggingFatal(m)
-	}
-
 	// Install integrations if necessary, continuing on failure with warnings.
-	if i.ShouldInstallIntegrations() {
-		var recipes []recipe
-		if i.RecipePathsProvided() {
-			// Load the recipes from the provided file names.
-			for _, n := range i.recipePaths {
-				recipes = append(recipes, *i.recipeFromPathFatal(n))
-			}
-		} else if i.RecipeNamesProvided() {
-			// Fetch the provided recipes from the recipe service.
-			for _, n := range i.recipeNames {
-				r := i.fetchWarn(m, n)
-				recipes = append(recipes, *r)
-			}
-		} else {
-			// Ask the recipe service for recommendations.
-			recipes = i.fetchRecommendationsFatal(m)
+	var recipes []recipe
+	if i.RecipePathsProvided() {
+		// Load the recipes from the provided file names.
+		for _, n := range i.recipePaths {
+			recipes = append(recipes, *i.recipeFromPathFatal(n))
 		}
+	} else if i.RecipeNamesProvided() {
+		// Fetch the provided recipes from the recipe service.
+		for _, n := range i.recipeNames {
+			r := i.fetchWarn(m, n)
+			recipes = append(recipes, *r)
+		}
+	} else {
+		// Ask the recipe service for recommendations.
+		recipes = i.fetchRecommendationsFatal(m)
+	}
 
 	// Run the logging recipe if requested, exiting on failure.
 	if i.ShouldInstallLogging() {
@@ -98,8 +92,10 @@ func (i *recipeInstaller) install() {
 	}
 
 	// Execute and validate each of the remaining recipes.
-	for _, r := range recipes {
-		i.executeAndValidateWarn(m, &r)
+	if i.ShouldInstallIntegrations() {
+		for _, r := range recipes {
+			i.executeAndValidateWarn(m, &r)
+		}
 	}
 
 	log.Infoln("Success! Your data is available in New Relic.")
