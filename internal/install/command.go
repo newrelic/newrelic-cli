@@ -2,6 +2,7 @@ package install
 
 import (
 	"errors"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -34,8 +35,9 @@ var Command = &cobra.Command{
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			if profile == nil {
-				log.Fatal(errors.New("default profile has not been set"))
+			err := assertProfileIsValid(profile)
+			if err != nil {
+				log.Fatal(err)
 			}
 
 			// Wire up the recipe installer with dependency injection.
@@ -56,6 +58,16 @@ var Command = &cobra.Command{
 			i.install()
 		})
 	},
+}
+
+func assertProfileIsValid(profile *credentials.Profile) error {
+	if profile == nil {
+		return errors.New("default profile has not been set")
+	}
+	if profile.Region != "US" {
+		return fmt.Errorf("only the US region is supported at this time. region %s is not supported", profile.Region)
+	}
+	return nil
 }
 
 func init() {
