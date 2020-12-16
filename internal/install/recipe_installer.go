@@ -87,9 +87,8 @@ func (i *recipeInstaller) install() {
 	} else {
 		// Ask the recipe service for recommendations.
 		recipes = i.fetchRecommendationsFatal(m)
+		i.reportRecipesAvailable(recipes)
 	}
-
-	i.reportRecipesAvailable(recipes)
 
 	// Run the infra agent recipe, exiting on failure.
 	if i.ShouldInstallInfraAgent() {
