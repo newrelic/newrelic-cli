@@ -38,12 +38,12 @@ func newRecipeInstaller(
 		recipeFileFetcher: ff,
 	}
 
-	i.specifyActions = ic.specifyActions
-	i.interactiveMode = ic.interactiveMode
-	i.installLogging = ic.installLogging
-	i.installInfraAgent = ic.installInfraAgent
-	i.recipeNames = ic.recipeNames
 	i.recipePaths = ic.recipePaths
+	i.recipeNames = ic.recipeNames
+	i.skipDiscovery = ic.skipDiscovery
+	i.skipInfraInstall = ic.skipInfraInstall
+	i.skipIntegrations = ic.skipIntegrations
+	i.skipLoggingInstall = ic.skipLoggingInstall
 
 	return &i
 }
@@ -57,22 +57,26 @@ func (i *recipeInstaller) install() {
 	log.Infoln("Welcome to New Relic. Let's install some instrumentation.")
 	log.Infoln("Questions? Read more about our installation process at https://docs.newrelic.com/install-newrelic.")
 
-	// Execute the discovery process, exiting on failure.
-	m := i.discoverFatal()
+	// Execute the discovery process if necessary, exiting on failure.
+	var m *discoveryManifest
+	if i.ShouldRunDiscovery() {
+		m = i.discoverFatal()
+	}
 
-	// Run the infra agent recipe, exiting on failure.
+	// Install the Infrastructure Agent if necessary, exiting on failure.
 	if i.ShouldInstallInfraAgent() {
 		i.installInfraAgentFatal(m)
 	}
 
-	// Retrieve a list of recipes to execute.
+	// Install integrations if necessary, continuing on failure with warnings.
 	var recipes []recipe
 	if i.RecipePathsProvided() {
+		// Load the recipes from the provided file names.
 		for _, n := range i.recipePaths {
 			recipes = append(recipes, *i.recipeFromPathFatal(n))
 		}
 	} else if i.RecipeNamesProvided() {
-		// Execute the requested recipes.
+		// Fetch the provided recipes from the recipe service.
 		for _, n := range i.recipeNames {
 			r := i.fetchWarn(m, n)
 			recipes = append(recipes, *r)
@@ -87,9 +91,11 @@ func (i *recipeInstaller) install() {
 		i.installLoggingFatal(m, recipes)
 	}
 
-	// Execute and validate each of the recipes in the collection.
-	for _, r := range recipes {
-		i.executeAndValidateWarn(m, &r)
+	// Execute and validate each of the remaining recipes.
+	if i.ShouldInstallIntegrations() {
+		for _, r := range recipes {
+			i.executeAndValidateWarn(m, &r)
+		}
 	}
 
 	log.Infoln("Success! Your data is available in New Relic.")
