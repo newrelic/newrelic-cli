@@ -24,11 +24,12 @@ func TestInstall(t *testing.T) {
 
 func TestNewRecipeInstaller_InstallContextFields(t *testing.T) {
 	ic := installContext{
-		specifyActions:    true,
-		installInfraAgent: true,
-		installLogging:    true,
-		recipePaths:       []string{"testRecipeFilename"},
-		recipeNames:       []string{"testRecipeName"},
+		recipePaths:        []string{"testRecipePath"},
+		recipeNames:        []string{"testRecipeName"},
+		skipDiscovery:      true,
+		skipInfraInstall:   true,
+		skipIntegrations:   true,
+		skipLoggingInstall: true,
 	}
 
 	d := newMockDiscoverer()
