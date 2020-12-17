@@ -13,13 +13,13 @@ const (
 
 type nerdstorageExecutionStatusReporter struct {
 	client          nerdstorageClient
-	executionStatus executionStatus
+	executionStatus executionStatusRollup
 }
 
 func newNerdStorageExecutionStatusReporter(client nerdstorageClient) *nerdstorageExecutionStatusReporter {
 	r := nerdstorageExecutionStatusReporter{
 		client:          client,
-		executionStatus: newExecutionStatus(),
+		executionStatus: newExecutionStatusRollup(),
 	}
 
 	return &r
@@ -53,7 +53,7 @@ func (r nerdstorageExecutionStatusReporter) writeStatus(entityGUID string) error
 }
 
 func (r nerdstorageExecutionStatusReporter) reportRecipeFailed(e recipeStatusEvent) error {
-	r.executionStatus.withRecipeEvent(e, executionStatusRecipeStatusTypes.FAILED)
+	r.executionStatus.withRecipeEvent(e, executionStatusTypes.FAILED)
 	if err := r.writeStatus(e.entityGUID); err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (r nerdstorageExecutionStatusReporter) reportRecipeFailed(e recipeStatusEve
 }
 
 func (r nerdstorageExecutionStatusReporter) reportRecipeInstalled(e recipeStatusEvent) error {
-	r.executionStatus.withRecipeEvent(e, executionStatusRecipeStatusTypes.INSTALLED)
+	r.executionStatus.withRecipeEvent(e, executionStatusTypes.INSTALLED)
 	if err := r.writeStatus(e.entityGUID); err != nil {
 		return err
 	}

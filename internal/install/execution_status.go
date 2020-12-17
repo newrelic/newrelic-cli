@@ -6,28 +6,28 @@ import (
 	"github.com/google/uuid"
 )
 
-type executionStatus struct {
+type executionStatusRollup struct {
 	Complete    bool `json:"complete"`
 	DocumentID  string
-	EntityGuids []string                `json:"entityGuids"`
-	Recipes     []executionStatusRecipe `json:"recipes"`
-	Timestamp   int64                   `json:"timestamp"`
+	EntityGuids []string          `json:"entityGuids"`
+	Statuses    []executionStatus `json:"recipes"`
+	Timestamp   int64             `json:"timestamp"`
 }
 
-type executionStatusRecipe struct {
+type executionStatus struct {
 	Name        string                       `json:"name"`
 	DisplayName string                       `json:"displayName"`
-	Status      executionStatusRecipeStatus  `json:"status"`
+	Status      executionStatusType          `json:"status"`
 	Errors      []executionStatusRecipeError `json:"errors"`
 }
 
-type executionStatusRecipeStatus string
+type executionStatusType string
 
-var executionStatusRecipeStatusTypes = struct {
-	AVAILABLE executionStatusRecipeStatus
-	FAILED    executionStatusRecipeStatus
-	INSTALLED executionStatusRecipeStatus
-	SKIPPED   executionStatusRecipeStatus
+var executionStatusTypes = struct {
+	AVAILABLE executionStatusType
+	FAILED    executionStatusType
+	INSTALLED executionStatusType
+	SKIPPED   executionStatusType
 }{
 	AVAILABLE: "AVAILABLE",
 	FAILED:    "FAILED",
@@ -40,8 +40,8 @@ type executionStatusRecipeError struct {
 	Details string `json:"details"`
 }
 
-func newExecutionStatus() executionStatus {
-	s := executionStatus{
+func newExecutionStatusRollup() executionStatusRollup {
+	s := executionStatusRollup{
 		DocumentID: uuid.New().String(),
 		Timestamp:  getTimestamp(),
 	}
@@ -53,35 +53,35 @@ func getTimestamp() int64 {
 	return time.Now().Unix()
 }
 
-func (s *executionStatus) withAvailableRecipes(recipes []recipe) {
+func (s *executionStatusRollup) withAvailableRecipes(recipes []recipe) {
 	for _, r := range recipes {
 		e := recipeStatusEvent{recipe: r}
-		s.withRecipeEvent(e, executionStatusRecipeStatusTypes.AVAILABLE)
+		s.withRecipeEvent(e, executionStatusTypes.AVAILABLE)
 	}
 }
 
-func (s *executionStatus) withRecipeEvent(e recipeStatusEvent, rs executionStatusRecipeStatus) {
+func (s *executionStatusRollup) withRecipeEvent(e recipeStatusEvent, rs executionStatusType) {
 	found := s.getExecutionStatusRecipe(e.recipe)
 
 	if found != nil {
 		found.Status = rs
 	} else {
-		e := &executionStatusRecipe{
+		e := &executionStatus{
 			Name:        e.recipe.Name,
 			DisplayName: e.recipe.DisplayName,
 			Status:      rs,
 		}
-		s.Recipes = append(s.Recipes, *e)
+		s.Statuses = append(s.Statuses, *e)
 	}
 
 	s.Timestamp = getTimestamp()
 }
 
-func (s *executionStatus) getExecutionStatusRecipe(r recipe) *executionStatusRecipe {
-	var found *executionStatusRecipe
-	for i, recipe := range s.Recipes {
+func (s *executionStatusRollup) getExecutionStatusRecipe(r recipe) *executionStatus {
+	var found *executionStatus
+	for i, recipe := range s.Statuses {
 		if recipe.Name == r.Name {
-			found = &s.Recipes[i]
+			found = &s.Statuses[i]
 		}
 	}
 
