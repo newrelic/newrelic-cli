@@ -5,9 +5,12 @@ import (
 )
 
 type recipe struct {
-	ID             string     `json:"id"`
-	File           string     `json:"file"`
-	Name           string     `json:"name"`
+	ID   string `json:"id"`
+	File string `json:"file"`
+	Name string `json:"name"`
+	// TODO: sort out DisplayName vs Name
+	// nolint:govet
+	DisplayName    string     `json:"name"`
 	Description    string     `json:"description"`
 	Repository     string     `json:"repository"`
 	Keywords       []string   `json:"keywords"`

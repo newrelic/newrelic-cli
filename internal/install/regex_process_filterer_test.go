@@ -19,9 +19,7 @@ func TestFilter(t *testing.T) {
 	}
 
 	mockRecipeFetcher := newMockRecipeFetcher()
-	mockRecipeFetcher.fetchRecipesFunc = func() ([]recipe, error) {
-		return recipes, nil
-	}
+	mockRecipeFetcher.fetchRecipesVal = recipes
 
 	processes := []genericProcess{
 		mockProcess{

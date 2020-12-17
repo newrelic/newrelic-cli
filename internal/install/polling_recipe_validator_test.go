@@ -37,7 +37,7 @@ func TestValidate(t *testing.T) {
 	r := recipe{}
 	m := discoveryManifest{}
 
-	ok, err := v.validate(getTestContext(), m, r)
+	ok, _, err := v.validate(getTestContext(), m, r)
 
 	require.NoError(t, err)
 	require.True(t, ok)
@@ -55,7 +55,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 	r := recipe{}
 	m := discoveryManifest{}
 
-	ok, err := v.validate(getTestContext(), m, r)
+	ok, _, err := v.validate(getTestContext(), m, r)
 
 	require.NoError(t, err)
 	require.True(t, ok)
@@ -72,7 +72,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 	r := recipe{}
 	m := discoveryManifest{}
 
-	ok, err := v.validate(getTestContext(), m, r)
+	ok, _, err := v.validate(getTestContext(), m, r)
 
 	require.NoError(t, err)
 	require.False(t, ok)
@@ -92,7 +92,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 	r := recipe{}
 	m := discoveryManifest{}
 
-	ok, err := v.validate(getTestContext(), m, r)
+	ok, _, err := v.validate(getTestContext(), m, r)
 
 	require.NoError(t, err)
 	require.False(t, ok)
@@ -113,7 +113,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 	ctx, cancel := context.WithCancel(getTestContext())
 	cancel()
 
-	ok, err := v.validate(ctx, m, r)
+	ok, _, err := v.validate(ctx, m, r)
 
 	require.NoError(t, err)
 	require.False(t, ok)
@@ -130,7 +130,7 @@ func TestValidate_QueryError(t *testing.T) {
 	r := recipe{}
 	m := discoveryManifest{}
 
-	ok, err := v.validate(getTestContext(), m, r)
+	ok, _, err := v.validate(getTestContext(), m, r)
 
 	require.False(t, ok)
 	require.EqualError(t, err, "test error")

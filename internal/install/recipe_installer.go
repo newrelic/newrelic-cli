@@ -1,6 +1,7 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 
@@ -18,6 +19,7 @@ type recipeInstaller struct {
 	recipeExecutor    recipeExecutor
 	recipeValidator   recipeValidator
 	recipeFileFetcher recipeFileFetcher
+	statusReporter    executionStatusReporter
 }
 
 func newRecipeInstaller(
@@ -28,6 +30,7 @@ func newRecipeInstaller(
 	e recipeExecutor,
 	v recipeValidator,
 	ff recipeFileFetcher,
+	er executionStatusReporter,
 ) *recipeInstaller {
 	i := recipeInstaller{
 		discoverer:        d,
@@ -36,6 +39,7 @@ func newRecipeInstaller(
 		recipeExecutor:    e,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
+		statusReporter:    er,
 	}
 
 	i.recipePaths = ic.recipePaths
@@ -63,12 +67,6 @@ func (i *recipeInstaller) install() {
 		m = i.discoverFatal()
 	}
 
-	// Install the Infrastructure Agent if necessary, exiting on failure.
-	if i.ShouldInstallInfraAgent() {
-		i.installInfraAgentFatal(m)
-	}
-
-	// Install integrations if necessary, continuing on failure with warnings.
 	var recipes []recipe
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -84,6 +82,12 @@ func (i *recipeInstaller) install() {
 	} else {
 		// Ask the recipe service for recommendations.
 		recipes = i.fetchRecommendationsFatal(m)
+		i.reportRecipesAvailable(recipes)
+	}
+
+	// Install the Infrastructure Agent if requested, exiting on failure.
+	if i.ShouldInstallInfraAgent() {
+		i.installInfraAgentFatal(m)
 	}
 
 	// Run the logging recipe if requested, exiting on failure.
@@ -91,7 +95,7 @@ func (i *recipeInstaller) install() {
 		i.installLoggingFatal(m, recipes)
 	}
 
-	// Execute and validate each of the remaining recipes.
+	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
 		for _, r := range recipes {
 			i.executeAndValidateWarn(m, &r)
@@ -210,27 +214,54 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 	// Execute the recipe steps.
 	log.Infof("Installing %s...\n", r.Name)
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
-		return false, fmt.Errorf("encountered an error while executing %s: %s", r.Name, err)
+		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
+		i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
+		return false, errors.New(msg)
 	}
 	log.Infof("Installing %s...success\n", r.Name)
 
 	if r.ValidationNRQL != "" {
 		log.Info("Listening for data...")
-		ok, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
+		ok, entityGUID, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
 		if err != nil {
-			return false, fmt.Errorf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
+			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
+			i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
+			return false, errors.New(msg)
 		}
 
 		if !ok {
 			log.Infoln("failed.")
+			msg := "could not validate recipe data"
+			i.reportRecipeFailed(recipeStatusEvent{*r, msg, entityGUID})
 			return false, nil
 		}
+
+		i.reportRecipeInstalled(recipeStatusEvent{*r, "", entityGUID})
 	} else {
-		log.Warnf("unable to validate using empty recipe ValidationNRQL")
+		log.Debugf("Skipping validation due to missing validation query.")
 	}
 
 	log.Infoln("success.")
+
 	return true, nil
+}
+
+func (i *recipeInstaller) reportRecipesAvailable(recipes []recipe) {
+	if err := i.statusReporter.reportRecipesAvailable(recipes); err != nil {
+		log.Errorf("Could not report recipe execution status: %s", err)
+	}
+}
+
+func (i *recipeInstaller) reportRecipeInstalled(e recipeStatusEvent) {
+	if err := i.statusReporter.reportRecipeInstalled(e); err != nil {
+		log.Errorf("Error writing recipe status for recipe %s: %s", e.recipe.Name, err)
+	}
+}
+
+func (i *recipeInstaller) reportRecipeFailed(e recipeStatusEvent) {
+	if err := i.statusReporter.reportRecipeFailed(e); err != nil {
+		log.Errorf("Error writing recipe status for recipe %s: %s", e.recipe.Name, err)
+	}
 }
 
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {

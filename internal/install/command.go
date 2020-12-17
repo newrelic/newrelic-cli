@@ -47,6 +47,7 @@ var Command = &cobra.Command{
 			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
 			pf := newRegexProcessFilterer(rf)
 			ff := newRecipeFileFetcher()
+			er := newNerdStorageExecutionStatusReporter(&nrClient.NerdStorage)
 
 			i := newRecipeInstaller(ic,
 				newPSUtilDiscoverer(pf),
@@ -55,6 +56,7 @@ var Command = &cobra.Command{
 				newGoTaskRecipeExecutor(),
 				newPollingRecipeValidator(&nrClient.Nrdb),
 				ff,
+				er,
 			)
 
 			// Run the install.
