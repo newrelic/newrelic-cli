@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -58,8 +61,13 @@ const (
 )
 
 func (i *recipeInstaller) install() {
-	log.Infoln("Welcome to New Relic. Let's install some instrumentation.")
-	log.Infoln("Questions? Read more about our installation process at https://docs.newrelic.com/install-newrelic.")
+	fmt.Printf(`
+	Welcome to the New Relic. Let's install some instrumentation.
+
+	Questions? Read more about our installation process at
+	https://docs.newrelic.com/
+
+	`)
 
 	// Execute the discovery process if necessary, exiting on failure.
 	var m *discoveryManifest
@@ -102,15 +110,34 @@ func (i *recipeInstaller) install() {
 		}
 	}
 
-	log.Infoln("Success! Your data is available in New Relic.")
-	log.Infoln("Go to New Relic to confirm and start exploring your data.")
+	profile := credentials.DefaultProfile()
+	fmt.Printf(`
+	Success! Your data is available in New Relic.
+
+	Go to New Relic to confirm and start exploring your data.
+	https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d
+	`, profile.AccountID)
+
+	fmt.Println()
 }
 
 func (i *recipeInstaller) discoverFatal() *discoveryManifest {
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Suffix = " Discovering system information..."
+
+	s.Start()
+	defer func() {
+		s.Stop()
+		fmt.Println(s.Suffix)
+	}()
+
 	m, err := i.discoverer.discover(utils.SignalCtx)
 	if err != nil {
+		s.FinalMSG = "\u1F4A5"
 		log.Fatalf("Could not install New Relic.  There was an error discovering system info: %s", err)
 	}
+
+	s.FinalMSG = "\u2705"
 
 	return m
 }
@@ -170,10 +197,22 @@ func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []re
 }
 
 func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []recipe {
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Suffix = " Fetching recommended recipes..."
+
+	s.Start()
+	defer func() {
+		s.Stop()
+		fmt.Println(s.Suffix)
+	}()
+
 	recipes, err := i.recipeFetcher.fetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
+		s.FinalMSG = "\u1F4A5"
 		log.Fatalf("Could not install New Relic. Error retrieving recipe recommendations: %s", err)
 	}
+
+	s.FinalMSG = "\u2705"
 
 	return recipes
 }
@@ -212,16 +251,13 @@ func (i *recipeInstaller) fetchFatal(m *discoveryManifest, recipeName string) *r
 
 func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (bool, error) {
 	// Execute the recipe steps.
-	log.Infof("Installing %s...\n", r.Name)
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
 		i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
 		return false, errors.New(msg)
 	}
-	log.Infof("Installing %s...success\n", r.Name)
 
 	if r.ValidationNRQL != "" {
-		log.Info("Listening for data...")
 		ok, entityGUID, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
@@ -230,7 +266,6 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 		}
 
 		if !ok {
-			log.Infoln("failed.")
 			msg := "could not validate recipe data"
 			i.reportRecipeFailed(recipeStatusEvent{*r, msg, entityGUID})
 			return false, nil
@@ -240,8 +275,6 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 	} else {
 		log.Debugf("Skipping validation due to missing validation query.")
 	}
-
-	log.Infoln("success.")
 
 	return true, nil
 }
@@ -265,14 +298,27 @@ func (i *recipeInstaller) reportRecipeFailed(e recipeStatusEvent) {
 }
 
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Suffix = fmt.Sprintf(" Installing %s...", r.Name)
+
+	s.Start()
+	defer func() {
+		s.Stop()
+		fmt.Println(s.Suffix)
+	}()
+
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
+		s.FinalMSG = "\u1F4A5"
 		log.Fatalf("Could not install %s: %s", r.Name, err)
 	}
 
 	if !ok {
+		s.FinalMSG = "\u1F4A5"
 		log.Fatalf("Could not detect data from %s.", r.Name)
 	}
+
+	s.FinalMSG = "\u2705"
 }
 
 func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
