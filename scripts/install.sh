@@ -22,8 +22,8 @@ else
 	exit 1
 fi
 
-for x in curl cut tar gzip; do
-    which $x > /dev/null || (echo "Unable to continue.  Please install $x before proceed."; exit 1)
+for x in curl cut tar gzip sudo; do
+    which $x > /dev/null || (echo "Unable to continue.  Please install $x before proceeding."; exit 1)
 done
 
 # GitHub's URL for the latest release, will redirect.
@@ -52,10 +52,17 @@ RELEASE_URL="https://github.com/newrelic/newrelic-cli/releases/download/v${VERSI
 # Download & unpack the release tarball.
 curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
 
-echo "Installing to $DESTDIR"
-
-mv newrelic "$DESTDIR"
-chmod +x "$DESTDIR/newrelic"
+if [ "$UID" != "0" ]; then
+    echo "Installing to $DESTDIR using sudo"
+    sudo mv newrelic "$DESTDIR"
+    sudo chmod +x "$DESTDIR/newrelic"
+    sudo chown root:0 "$DESTDIR/newrelic"
+else
+    echo "Installing to $DESTDIR"
+    mv newrelic "$DESTDIR"
+    chmod +x "$DESTDIR/newrelic"
+    chown root:0 "$DESTDIR/newrelic"
+fi
 
 # Delete the working directory when the install was successful.
 rm -r "$SCRATCH"
