@@ -1,3 +1,19 @@
+<a name="v0.18.5"></a>
+## [v0.18.5] - 2020-12-17
+### Bug Fixes
+- **install:** replace package ID with default value
+- **install:** create default log folder if not exists
+
+<a name="v0.18.4"></a>
+## [v0.18.4] - 2020-12-17
+### Bug Fixes
+- **build:** skip go generate as part of build process
+- **install:** ignore region string case when checking profile
+- **install:** reduce sudo requirement of install.sh
+- **install:** detect and warn for empty NRQL validation
+- **install:** let dead processes stay dead
+- **install:** use string type for ID returned from the API
+
 <a name="v0.18.3"></a>
 ## [v0.18.3] - 2020-12-11
 <a name="v0.18.2"></a>
@@ -23,7 +39,7 @@
 - **diagnostics:** update download URL
 
 <a name="v0.17.0"></a>
-## [v0.17.0] - 2020-11-20
+## [v0.17.0] - 2020-11-23
 ### Bug Fixes
 - **install:** fix meltMatch struct to match spec
 
@@ -332,7 +348,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.5...HEAD
+[v0.18.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.4...v0.18.5
+[v0.18.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.3...v0.18.4
 [v0.18.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.2...v0.18.3
 [v0.18.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.1...v0.18.2
 [v0.18.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.0...v0.18.1
