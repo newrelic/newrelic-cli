@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	packageID    = "badfa35a-827d-428d-8f5b-33b836b0e2dd"
+	packageID    = "00000000-0000-0000-0000-000000000000"
 	collectionID = "openInstallLibrary"
 )
 
