@@ -18,14 +18,12 @@ func TestDiscovery(t *testing.T) {
 	}
 
 	mockRecipeFetcher := newMockRecipeFetcher()
-	mockRecipeFetcher.fetchRecipesFunc = func() ([]recipe, error) {
-		return []recipe{
-			{
-				ID:           "test",
-				Name:         "java",
-				ProcessMatch: []string{"java"},
-			},
-		}, nil
+	mockRecipeFetcher.fetchRecipesVal = []recipe{
+		{
+			ID:           "test",
+			Name:         "java",
+			ProcessMatch: []string{"java"},
+		},
 	}
 
 	pf := newRegexProcessFilterer(mockRecipeFetcher)

@@ -67,11 +67,6 @@ func (i *recipeInstaller) install() {
 		m = i.discoverFatal()
 	}
 
-	// Install the Infrastructure Agent if necessary, exiting on failure.
-	if i.ShouldInstallInfraAgent() {
-		i.installInfraAgentFatal(m)
-	}
-
 	var recipes []recipe
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -90,7 +85,7 @@ func (i *recipeInstaller) install() {
 		i.reportRecipesAvailable(recipes)
 	}
 
-	// Run the infra agent recipe, exiting on failure.
+	// Install the Infrastructure Agent if requested, exiting on failure.
 	if i.ShouldInstallInfraAgent() {
 		i.installInfraAgentFatal(m)
 	}
@@ -243,7 +238,7 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 
 		i.reportRecipeInstalled(recipeStatusEvent{*r, "", entityGUID})
 	} else {
-		log.Warnf("Skipping validation due to missing validation query.")
+		log.Debugf("Skipping validation due to missing validation query.")
 	}
 
 	log.Infoln("success.")

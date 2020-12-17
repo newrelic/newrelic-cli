@@ -3,15 +3,17 @@ package install
 import "context"
 
 type mockRecipeValidator struct {
-	result func(discoveryManifest, recipe) (bool, string, error)
+	validateErr           error
+	validateCallCount     int
+	validateVal           bool
+	validateEntityGUIDVal string
 }
 
 func newMockRecipeValidator() *mockRecipeValidator {
-	return &mockRecipeValidator{
-		result: func(discoveryManifest, recipe) (bool, string, error) { return false, "", nil },
-	}
+	return &mockRecipeValidator{}
 }
 
 func (m *mockRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, string, error) {
-	return m.result(dm, r)
+	m.validateCallCount++
+	return m.validateVal, m.validateEntityGUIDVal, m.validateErr
 }

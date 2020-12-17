@@ -1,42 +1,58 @@
 package install
 
-import "context"
+import (
+	"context"
+)
 
 type mockRecipeFetcher struct {
-	fetchRecipeFunc          func(*discoveryManifest, string) (*recipe, error)
-	fetchRecipesFunc         func() ([]recipe, error)
-	fetchRecommendationsFunc func(*discoveryManifest) ([]recipe, error)
+	fetchRecipeErr                error
+	fetchRecipesErr               error
+	fetchRecommendationsErr       error
+	fetchRecipeCallCount          int
+	fetchRecipesCallCount         int
+	fetchRecommendationsCallCount int
+	fetchRecipeVals               []recipe
+	fetchRecipeVal                *recipe
+	fetchRecipesVal               []recipe
+	fetchRecommendationsVal       []recipe
 }
 
 func newMockRecipeFetcher() *mockRecipeFetcher {
 	f := mockRecipeFetcher{}
-	f.fetchRecipeFunc = defaultFetchRecipeFunc
-	f.fetchRecipesFunc = defaultFetchRecipesFunc
-	f.fetchRecommendationsFunc = defaultFetchRecommendationsFunc
-
+	f.fetchRecipesVal = []recipe{}
+	f.fetchRecommendationsVal = []recipe{}
 	return &f
 }
 
 func (f *mockRecipeFetcher) fetchRecipe(ctx context.Context, manifest *discoveryManifest, friendlyName string) (*recipe, error) {
-	return f.fetchRecipeFunc(manifest, friendlyName)
+	f.fetchRecipeCallCount++
+
+	if len(f.fetchRecipeVals) > 0 {
+		i := minOf(f.fetchRecipeCallCount, len(f.fetchRecipeVals)) - 1
+		return &f.fetchRecipeVals[i], f.fetchRecipesErr
+	}
+
+	return f.fetchRecipeVal, f.fetchRecipeErr
 }
 
 func (f *mockRecipeFetcher) fetchRecipes(ctx context.Context) ([]recipe, error) {
-	return f.fetchRecipesFunc()
+	f.fetchRecipesCallCount++
+	return f.fetchRecipesVal, f.fetchRecipesErr
 }
 
 func (f *mockRecipeFetcher) fetchRecommendations(ctx context.Context, manifest *discoveryManifest) ([]recipe, error) {
-	return f.fetchRecommendationsFunc(manifest)
+	f.fetchRecommendationsCallCount++
+	return f.fetchRecommendationsVal, f.fetchRecommendationsErr
 }
 
-func defaultFetchRecipeFunc(manifest *discoveryManifest, friendlyName string) (*recipe, error) {
-	return &recipe{}, nil
-}
+func minOf(vars ...int) int {
+	min := vars[0]
 
-func defaultFetchRecommendationsFunc(manifest *discoveryManifest) ([]recipe, error) {
-	return []recipe{}, nil
-}
+	for _, i := range vars {
+		if min > i {
+			min = i
+		}
+	}
 
-func defaultFetchRecipesFunc() ([]recipe, error) {
-	return []recipe{}, nil
+	return min
 }

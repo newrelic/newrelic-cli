@@ -1,7 +1,12 @@
 package install
 
 type mockExecutionStatusReporter struct {
-	err error
+	reportRecipesAvailableErr       error
+	reportRecipeFailedErr           error
+	reportRecipeInstalledErr        error
+	reportRecipesAvailableCallCount int
+	reportRecipeFailedCallCount     int
+	reportRecipeInstalledCallCount  int
 }
 
 func newMockExecutionStatusReporter() *mockExecutionStatusReporter {
@@ -9,13 +14,16 @@ func newMockExecutionStatusReporter() *mockExecutionStatusReporter {
 }
 
 func (r *mockExecutionStatusReporter) reportRecipeFailed(event recipeStatusEvent) error {
-	return r.err
+	r.reportRecipeFailedCallCount++
+	return r.reportRecipeFailedErr
 }
 
 func (r *mockExecutionStatusReporter) reportRecipeInstalled(event recipeStatusEvent) error {
-	return r.err
+	r.reportRecipeInstalledCallCount++
+	return r.reportRecipeInstalledErr
 }
 
 func (r *mockExecutionStatusReporter) reportRecipesAvailable(recipes []recipe) error {
-	return r.err
+	r.reportRecipesAvailableCallCount++
+	return r.reportRecipesAvailableErr
 }

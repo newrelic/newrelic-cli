@@ -46,7 +46,6 @@ var Command = &cobra.Command{
 			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
 			pf := newRegexProcessFilterer(rf)
 			ff := newRecipeFileFetcher()
-
 			er := newNerdStorageExecutionStatusReporter(&nrClient.NerdStorage)
 
 			i := newRecipeInstaller(ic,
