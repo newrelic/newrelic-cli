@@ -32,7 +32,7 @@ newrelic edge trace-observer create --name 'My Observer' --accountId 12345678 --
 
 ```
   -a, --accountId int   A New Relic account ID
-      --format string   output text format [YAML, JSON, Text] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 

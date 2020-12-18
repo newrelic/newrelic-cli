@@ -29,7 +29,7 @@ newrelic entity tags get --guid <entityGUID>
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [YAML, JSON, Text] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
