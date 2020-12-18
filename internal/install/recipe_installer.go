@@ -73,8 +73,8 @@ func (i *recipeInstaller) install() error {
 
 	// Execute the discovery process if necessary, exiting on failure.
 	var m *discoveryManifest
+	var err error
 	if i.ShouldRunDiscovery() {
-		var err error
 		m, err = i.discover()
 		if err != nil {
 			return i.fail(err)
@@ -85,7 +85,8 @@ func (i *recipeInstaller) install() error {
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
 		for _, n := range i.recipePaths {
-			recipe, err := i.recipeFromPath(n)
+			var recipe *recipe
+			recipe, err = i.recipeFromPath(n)
 			if err != nil {
 				return i.fail(err)
 			}
@@ -100,11 +101,19 @@ func (i *recipeInstaller) install() error {
 		}
 	} else {
 		// Ask the recipe service for recommendations.
-		var err error
 		recipes, err = i.fetchRecommendations(m)
 		if err != nil {
 			return i.fail(err)
 		}
+
+		if len(recipes) == 0 {
+			log.Debugln("No available integrations found.")
+		}
+
+		for _, r := range recipes {
+			log.Debugf("Found available integration %s.", r.Name)
+		}
+
 		i.reportRecipesAvailable(recipes)
 	}
 
