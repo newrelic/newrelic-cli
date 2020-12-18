@@ -101,7 +101,6 @@ func (i *recipeInstaller) install() error {
 		}
 	} else {
 		// Ask the recipe service for recommendations.
-		log.Debugln("Fetching recommendations.")
 		recipes, err = i.fetchRecommendations(m)
 		if err != nil {
 			return i.fail(err)
