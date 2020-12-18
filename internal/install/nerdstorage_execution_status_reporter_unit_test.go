@@ -138,3 +138,23 @@ func TestReportRecipeFailed_EntityScopeError(t *testing.T) {
 	err := r.reportRecipeFailed(e)
 	require.Error(t, err)
 }
+
+func TestReportComplete_Basic(t *testing.T) {
+	c := newMockNerdstorageClient()
+	r := newNerdStorageExecutionStatusReporter(c)
+
+	err := r.reportComplete()
+	require.NoError(t, err)
+	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
+	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+}
+
+func TestReportComplete_UserScopeError(t *testing.T) {
+	c := newMockNerdstorageClient()
+	r := newNerdStorageExecutionStatusReporter(c)
+
+	c.userScopeError = errors.New("error")
+
+	err := r.reportComplete()
+	require.Error(t, err)
+}

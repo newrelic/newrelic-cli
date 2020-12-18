@@ -3,6 +3,7 @@
 package install
 
 import (
+	"errors"
 	"net/url"
 	"reflect"
 	"testing"
@@ -51,7 +52,8 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	ff.fetchRecipeFileFunc = fetchRecipeFileFunc
 	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff, nil)
 
-	recipe := i.recipeFromPathFatal("http://recipe/URL")
+	recipe, err := i.recipeFromPath("http://recipe/URL")
+	require.NoError(t, err)
 	require.NotNil(t, recipe)
 	require.Equal(t, recipe.Name, testRecipeName)
 }
@@ -62,7 +64,8 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	ff.loadRecipeFileFunc = loadRecipeFileFunc
 	i := newRecipeInstaller(ic, nil, nil, nil, nil, nil, ff, nil)
 
-	recipe := i.recipeFromPathFatal("file.txt")
+	recipe, err := i.recipeFromPath("file.txt")
+	require.NoError(t, err)
 	require.NotNil(t, recipe)
 	require.Equal(t, recipe.Name, testRecipeName)
 }
@@ -75,14 +78,16 @@ func TestInstall_Basic(t *testing.T) {
 		{Name: loggingRecipeName},
 	}
 	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
-	i.install()
+	err := i.install()
+	require.NoError(t, err)
 }
 
 func TestInstall_ReportRecipesAvailable(t *testing.T) {
 	ic := installContext{}
 	sr = newMockExecutionStatusReporter()
 	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
-	i.install()
+	err := i.install()
+	require.NoError(t, err)
 	require.Equal(t, 1, sr.reportRecipesAvailableCallCount)
 }
 
@@ -104,10 +109,10 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 		},
 	}
 	v = newMockRecipeValidator()
-	v.validateVal = true
 
 	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
-	i.install()
+	err := i.install()
+	require.NoError(t, err)
 	require.Equal(t, 3, sr.reportRecipeInstalledCallCount)
 }
 
@@ -123,11 +128,52 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	}}
 
 	v = newMockRecipeValidator()
-	v.validateVal = false
+	v.validateErr = errors.New("testError")
 
 	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
-	i.install()
+	err := i.install()
+	require.NoError(t, err)
 	require.Equal(t, 1, sr.reportRecipeFailedCallCount)
+}
+
+func TestInstall_ReportComplete(t *testing.T) {
+	ic := installContext{
+		skipInfraInstall:   true,
+		skipLoggingInstall: true,
+	}
+	sr = newMockExecutionStatusReporter()
+	f = newMockRecipeFetcher()
+	f.fetchRecommendationsVal = []recipe{}
+
+	v = newMockRecipeValidator()
+
+	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
+	err := i.install()
+	require.NoError(t, err)
+	require.Equal(t, 1, sr.reportCompleteCallCount)
+}
+
+func TestInstall_ReportCompleteError(t *testing.T) {
+	ic := installContext{
+		skipLoggingInstall: true,
+	}
+	sr = newMockExecutionStatusReporter()
+	f = newMockRecipeFetcher()
+	f.fetchRecommendationsVal = []recipe{}
+	f.fetchRecipeVals = []recipe{
+		{
+			Name:           infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	v = newMockRecipeValidator()
+	v.validateErr = errors.New("test error")
+
+	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
+	err := i.install()
+	require.NoError(t, err)
+	require.Equal(t, 1, sr.reportCompleteCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipeFile, error) {

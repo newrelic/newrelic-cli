@@ -62,7 +62,7 @@ const (
 	boom                 = "\u1F4A5"
 )
 
-func (i *recipeInstaller) install() {
+func (i *recipeInstaller) install() error {
 	fmt.Printf(`
 	Welcome to New Relic. Let's install some instrumentation.
 
@@ -74,14 +74,23 @@ func (i *recipeInstaller) install() {
 	// Execute the discovery process if necessary, exiting on failure.
 	var m *discoveryManifest
 	if i.ShouldRunDiscovery() {
-		m = i.discoverFatal()
+		var err error
+		m, err = i.discover()
+		if err != nil {
+			return i.fail(err)
+		}
 	}
 
 	var recipes []recipe
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
 		for _, n := range i.recipePaths {
-			recipes = append(recipes, *i.recipeFromPathFatal(n))
+			recipe, err := i.recipeFromPath(n)
+			if err != nil {
+				return i.fail(err)
+			}
+
+			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
 		// Fetch the provided recipes from the recipe service.
@@ -91,24 +100,35 @@ func (i *recipeInstaller) install() {
 		}
 	} else {
 		// Ask the recipe service for recommendations.
-		recipes = i.fetchRecommendationsFatal(m)
+		var err error
+		recipes, err = i.fetchRecommendations(m)
+		if err != nil {
+			return i.fail(err)
+		}
 		i.reportRecipesAvailable(recipes)
 	}
 
 	// Install the Infrastructure Agent if requested, exiting on failure.
 	if i.ShouldInstallInfraAgent() {
-		i.installInfraAgentFatal(m)
+		if err := i.installInfraAgent(m); err != nil {
+			return i.fail(err)
+		}
 	}
 
 	// Run the logging recipe if requested, exiting on failure.
 	if i.ShouldInstallLogging() {
-		i.installLoggingFatal(m, recipes)
+		if err := i.installLogging(m, recipes); err != nil {
+			return i.fail(err)
+		}
 	}
 
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
 		for _, r := range recipes {
-			i.executeAndValidateWarn(m, &r)
+			err := i.executeAndValidateWithStatus(m, &r)
+			if err != nil {
+				log.Warn(err)
+			}
 		}
 	}
 
@@ -121,9 +141,12 @@ func (i *recipeInstaller) install() {
 	`, profile.AccountID)
 
 	fmt.Println()
+
+	i.reportComplete()
+	return nil
 }
 
-func (i *recipeInstaller) discoverFatal() *discoveryManifest {
+func (i *recipeInstaller) discover() (*discoveryManifest, error) {
 	s := newSpinner()
 	s.Suffix = " Discovering system information..."
 
@@ -136,49 +159,52 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 	m, err := i.discoverer.discover(utils.SignalCtx)
 	if err != nil {
 		s.FinalMSG = boom
-		log.Fatalf("Could not install New Relic.  There was an error discovering system info: %s", err)
+		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
 	}
 
 	s.FinalMSG = checkMark
 
-	return m
+	return m, nil
 }
 
-func (i *recipeInstaller) recipeFromPathFatal(recipePath string) *recipe {
+func (i *recipeInstaller) recipeFromPath(recipePath string) (*recipe, error) {
 	recipeURL, parseErr := url.Parse(recipePath)
 	if parseErr == nil && recipeURL.Scheme != "" {
 		f, err := i.recipeFileFetcher.fetchRecipeFile(recipeURL)
 		if err != nil {
-			log.Fatalf("Could not fetch file %s: %s", recipePath, err)
+			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
 		}
 		return finalizeRecipe(f)
 	}
 
 	f, err := i.recipeFileFetcher.loadRecipeFile(recipePath)
 	if err != nil {
-		log.Fatalf("Could not load file %s: %s", recipePath, err)
+		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
 	}
 	return finalizeRecipe(f)
 }
 
-func finalizeRecipe(f *recipeFile) *recipe {
+func finalizeRecipe(f *recipeFile) (*recipe, error) {
 	r, err := f.ToRecipe()
 	if err != nil {
-		log.Fatalf("Could finalize recipe %s: %s", f.Name, err)
+		return nil, fmt.Errorf("could not finalize recipe %s: %s", f.Name, err)
 	}
-	return r
+	return r, nil
 }
 
-func (i *recipeInstaller) installInfraAgentFatal(m *discoveryManifest) {
-	i.fetchExecuteAndValidateFatal(m, infraAgentRecipeName)
+func (i *recipeInstaller) installInfraAgent(m *discoveryManifest) error {
+	return i.fetchExecuteAndValidate(m, infraAgentRecipeName)
 }
 
-func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []recipe) {
-	r := i.fetchFatal(m, loggingRecipeName)
+func (i *recipeInstaller) installLogging(m *discoveryManifest, recipes []recipe) error {
+	r, err := i.fetch(m, loggingRecipeName)
+	if err != nil {
+		return err
+	}
 
 	logMatches, err := i.fileFilterer.filter(utils.SignalCtx, recipes)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	var acceptedLogMatches []logMatch
@@ -195,10 +221,10 @@ func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []re
 
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
-	i.executeAndValidateFatal(m, r)
+	return i.executeAndValidateWithStatus(m, r)
 }
 
-func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []recipe {
+func (i *recipeInstaller) fetchRecommendations(m *discoveryManifest) ([]recipe, error) {
 	s := newSpinner()
 	s.Suffix = " Fetching recommended recipes..."
 
@@ -211,17 +237,25 @@ func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []reci
 	recipes, err := i.recipeFetcher.fetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
 		s.FinalMSG = boom
-		log.Fatalf("Could not install New Relic. Error retrieving recipe recommendations: %s", err)
+		return nil, fmt.Errorf("error retrieving recipe recommendations: %s", err)
 	}
 
 	s.FinalMSG = checkMark
 
-	return recipes
+	return recipes, nil
 }
 
-func (i *recipeInstaller) fetchExecuteAndValidateFatal(m *discoveryManifest, recipeName string) {
-	r := i.fetchFatal(m, recipeName)
-	i.executeAndValidateFatal(m, r)
+func (i *recipeInstaller) fetchExecuteAndValidate(m *discoveryManifest, recipeName string) error {
+	r, err := i.fetch(m, recipeName)
+	if err != nil {
+		return err
+	}
+
+	if err := i.executeAndValidateWithStatus(m, r); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (i *recipeInstaller) fetchWarn(m *discoveryManifest, recipeName string) *recipe {
@@ -238,39 +272,33 @@ func (i *recipeInstaller) fetchWarn(m *discoveryManifest, recipeName string) *re
 	return r
 }
 
-func (i *recipeInstaller) fetchFatal(m *discoveryManifest, recipeName string) *recipe {
+func (i *recipeInstaller) fetch(m *discoveryManifest, recipeName string) (*recipe, error) {
 	r, err := i.recipeFetcher.fetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {
-		log.Fatalf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
+		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
 	}
 
 	if r == nil {
-		log.Fatalf("Recipe %s not found.", recipeName)
+		return nil, fmt.Errorf("recipe %s not found", recipeName)
 	}
 
-	return r
+	return r, nil
 }
 
-func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (bool, error) {
+func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) error {
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.execute(utils.SignalCtx, *m, *r); err != nil {
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
 		i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
-		return false, errors.New(msg)
+		return errors.New(msg)
 	}
 
 	if r.ValidationNRQL != "" {
-		ok, entityGUID, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
+		entityGUID, err := i.recipeValidator.validate(utils.SignalCtx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.reportRecipeFailed(recipeStatusEvent{*r, msg, ""})
-			return false, errors.New(msg)
-		}
-
-		if !ok {
-			msg := "could not validate recipe data"
-			i.reportRecipeFailed(recipeStatusEvent{*r, msg, entityGUID})
-			return false, nil
+			return errors.New(msg)
 		}
 
 		i.reportRecipeInstalled(recipeStatusEvent{*r, "", entityGUID})
@@ -278,7 +306,7 @@ func (i *recipeInstaller) executeAndValidate(m *discoveryManifest, r *recipe) (b
 		log.Debugf("Skipping validation due to missing validation query.")
 	}
 
-	return true, nil
+	return nil
 }
 
 func (i *recipeInstaller) reportRecipesAvailable(recipes []recipe) {
@@ -299,7 +327,13 @@ func (i *recipeInstaller) reportRecipeFailed(e recipeStatusEvent) {
 	}
 }
 
-func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
+func (i *recipeInstaller) reportComplete() {
+	if err := i.statusReporter.reportComplete(); err != nil {
+		log.Errorf("Error writing execution status: %s", err)
+	}
+}
+
+func (i *recipeInstaller) executeAndValidateWithStatus(m *discoveryManifest, r *recipe) error {
 	s := newSpinner()
 	s.Suffix = fmt.Sprintf(" Installing %s...", r.Name)
 
@@ -309,29 +343,14 @@ func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recip
 		fmt.Println(s.Suffix)
 	}()
 
-	ok, err := i.executeAndValidate(m, r)
+	err := i.executeAndValidate(m, r)
 	if err != nil {
 		s.FinalMSG = boom
-		log.Fatalf("Could not install %s: %s", r.Name, err)
-	}
-
-	if !ok {
-		s.FinalMSG = boom
-		log.Fatalf("Could not detect data from %s.", r.Name)
+		return fmt.Errorf("could not install %s: %s", r.Name, err)
 	}
 
 	s.FinalMSG = checkMark
-}
-
-func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
-	ok, err := i.executeAndValidate(m, r)
-	if err != nil {
-		log.Warnf("Could not install %s: %s", r.Name, err)
-	}
-
-	if !ok {
-		log.Warnf("Could not detect data from %s.", r.Name)
-	}
+	return nil
 }
 
 func userAcceptLogFile(match logMatch) bool {
@@ -349,6 +368,16 @@ func userAcceptLogFile(match logMatch) bool {
 	}
 
 	return result == "Yes"
+}
+
+func (i *recipeInstaller) fail(err error) error {
+	log.Error(err)
+
+	if err = i.statusReporter.reportComplete(); err != nil {
+		log.Error(err)
+	}
+
+	return err
 }
 
 func newSpinner() *spinner.Spinner {

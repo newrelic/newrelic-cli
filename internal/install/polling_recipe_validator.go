@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"html/template"
 	"time"
 
@@ -38,11 +39,11 @@ func newPollingRecipeValidator(c nrdbClient) *pollingRecipeValidator {
 	return &v
 }
 
-func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (bool, string, error) {
+func (m *pollingRecipeValidator) validate(ctx context.Context, dm discoveryManifest, r recipe) (string, error) {
 	return m.waitForData(ctx, dm, r)
 }
 
-func (m *pollingRecipeValidator) waitForData(ctx context.Context, dm discoveryManifest, r recipe) (bool, string, error) {
+func (m *pollingRecipeValidator) waitForData(ctx context.Context, dm discoveryManifest, r recipe) (string, error) {
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
@@ -55,19 +56,19 @@ func (m *pollingRecipeValidator) waitForData(ctx context.Context, dm discoveryMa
 
 	for {
 		if count == m.maxAttempts {
-			return false, "", nil
+			return "", fmt.Errorf("reached max validation attempts")
 		}
 
 		log.Debugf("Validation attempt #%d...", count+1)
 		ok, entityGUID, err := m.tryValidate(ctx, dm, r)
 		if err != nil {
-			return false, "", err
+			return "", err
 		}
 
 		count++
 
 		if ok {
-			return true, entityGUID, nil
+			return entityGUID, nil
 		}
 
 		select {
@@ -75,7 +76,7 @@ func (m *pollingRecipeValidator) waitForData(ctx context.Context, dm discoveryMa
 			continue
 
 		case <-ctx.Done():
-			return false, "", nil
+			return "", fmt.Errorf("validation cancelled")
 		}
 	}
 }
