@@ -88,7 +88,7 @@ type recommendationsQueryOpenInstallation struct {
 }
 
 type recommendationsResult struct {
-	Results []OpenInstallationRecipe `json:"recipe"`
+	Results []OpenInstallationRecipe `json:"results"`
 }
 
 type recommendationsInput struct {

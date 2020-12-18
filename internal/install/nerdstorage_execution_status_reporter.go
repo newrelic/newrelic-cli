@@ -13,13 +13,14 @@ const (
 
 type nerdstorageExecutionStatusReporter struct {
 	client          nerdstorageClient
-	executionStatus executionStatusRollup
+	executionStatus *executionStatusRollup
 }
 
 func newNerdStorageExecutionStatusReporter(client nerdstorageClient) *nerdstorageExecutionStatusReporter {
+	rollup := newExecutionStatusRollup()
 	r := nerdstorageExecutionStatusReporter{
 		client:          client,
-		executionStatus: newExecutionStatusRollup(),
+		executionStatus: &rollup,
 	}
 
 	return &r
