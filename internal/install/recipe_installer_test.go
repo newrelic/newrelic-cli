@@ -130,6 +130,23 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	require.Equal(t, 1, sr.reportRecipeFailedCallCount)
 }
 
+func TestInstall_ReportComplete(t *testing.T) {
+	ic := installContext{
+		skipInfraInstall:   true,
+		skipLoggingInstall: true,
+	}
+	sr = newMockExecutionStatusReporter()
+	f = newMockRecipeFetcher()
+	f.fetchRecommendationsVal = []recipe{}
+
+	v = newMockRecipeValidator()
+	v.validateVal = true
+
+	i := newRecipeInstaller(ic, d, l, f, e, v, ff, sr)
+	i.install()
+	require.Equal(t, 1, sr.reportCompleteCallCount)
+}
+
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipeFile, error) {
 	return testRecipeFile, nil
 }

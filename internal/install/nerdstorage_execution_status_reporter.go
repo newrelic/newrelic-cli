@@ -70,6 +70,16 @@ func (r nerdstorageExecutionStatusReporter) reportRecipeInstalled(e recipeStatus
 	return nil
 }
 
+func (r nerdstorageExecutionStatusReporter) reportComplete() error {
+	r.executionStatus.Complete = true
+	r.executionStatus.Timestamp = getTimestamp()
+	if err := r.writeStatus(""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r nerdstorageExecutionStatusReporter) buildExecutionStatusDocument() nerdstorage.WriteDocumentInput {
 	return nerdstorage.WriteDocumentInput{
 		PackageID:  packageID,

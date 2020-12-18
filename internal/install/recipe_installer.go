@@ -110,6 +110,8 @@ func (i *recipeInstaller) install() {
 		}
 	}
 
+	i.reportComplete()
+
 	profile := credentials.DefaultProfile()
 	fmt.Printf(`
 	Success! Your data is available in New Relic.
@@ -294,6 +296,12 @@ func (i *recipeInstaller) reportRecipeInstalled(e recipeStatusEvent) {
 func (i *recipeInstaller) reportRecipeFailed(e recipeStatusEvent) {
 	if err := i.statusReporter.reportRecipeFailed(e); err != nil {
 		log.Errorf("Error writing recipe status for recipe %s: %s", e.recipe.Name, err)
+	}
+}
+
+func (i *recipeInstaller) reportComplete() {
+	if err := i.statusReporter.reportComplete(); err != nil {
+		log.Errorf("Error writing execution status: %s", err)
 	}
 }
 
