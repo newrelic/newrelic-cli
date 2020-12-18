@@ -65,6 +65,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	return &i
 }
 
+// nolint:gocyclo
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
 	 _   _                 ____      _ _
@@ -147,6 +148,7 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
+	recipeErrorsEncountered := false
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
 		if err := i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
@@ -154,15 +156,21 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
-	msg := `
-	Success! Your data is available in New Relic.
+	var msg string
+	if recipeErrorsEncountered {
+		msg = `
+		One or more integrations failed to install.  Check the log for more details.`
+	} else {
+		msg = `
+		Success! Your data is available in New Relic.
 
-	Go to New Relic to confirm and start exploring your data.`
+		Go to New Relic to confirm and start exploring your data.`
 
-	profile := credentials.DefaultProfile()
-	if profile != nil {
-		msg += fmt.Sprintf(`
-		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
+		profile := credentials.DefaultProfile()
+		if profile != nil {
+			msg += fmt.Sprintf(`
+			https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
+		}
 	}
 
 	fmt.Println(msg)
