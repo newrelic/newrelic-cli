@@ -58,11 +58,13 @@ func newRecipeInstaller(
 const (
 	infraAgentRecipeName = "Infrastructure Agent Installer"
 	loggingRecipeName    = "Logs integration"
+	checkMark            = "\u2705"
+	boom                 = "\u1F4A5"
 )
 
 func (i *recipeInstaller) install() {
 	fmt.Printf(`
-	Welcome to the New Relic. Let's install some instrumentation.
+	Welcome to New Relic. Let's install some instrumentation.
 
 	Questions? Read more about our installation process at
 	https://docs.newrelic.com/
@@ -122,7 +124,7 @@ func (i *recipeInstaller) install() {
 }
 
 func (i *recipeInstaller) discoverFatal() *discoveryManifest {
-	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s := newSpinner()
 	s.Suffix = " Discovering system information..."
 
 	s.Start()
@@ -133,11 +135,11 @@ func (i *recipeInstaller) discoverFatal() *discoveryManifest {
 
 	m, err := i.discoverer.discover(utils.SignalCtx)
 	if err != nil {
-		s.FinalMSG = "\u1F4A5"
+		s.FinalMSG = boom
 		log.Fatalf("Could not install New Relic.  There was an error discovering system info: %s", err)
 	}
 
-	s.FinalMSG = "\u2705"
+	s.FinalMSG = checkMark
 
 	return m
 }
@@ -197,7 +199,7 @@ func (i *recipeInstaller) installLoggingFatal(m *discoveryManifest, recipes []re
 }
 
 func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []recipe {
-	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s := newSpinner()
 	s.Suffix = " Fetching recommended recipes..."
 
 	s.Start()
@@ -208,11 +210,11 @@ func (i *recipeInstaller) fetchRecommendationsFatal(m *discoveryManifest) []reci
 
 	recipes, err := i.recipeFetcher.fetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
-		s.FinalMSG = "\u1F4A5"
+		s.FinalMSG = boom
 		log.Fatalf("Could not install New Relic. Error retrieving recipe recommendations: %s", err)
 	}
 
-	s.FinalMSG = "\u2705"
+	s.FinalMSG = checkMark
 
 	return recipes
 }
@@ -298,7 +300,7 @@ func (i *recipeInstaller) reportRecipeFailed(e recipeStatusEvent) {
 }
 
 func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recipe) {
-	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s := newSpinner()
 	s.Suffix = fmt.Sprintf(" Installing %s...", r.Name)
 
 	s.Start()
@@ -309,16 +311,16 @@ func (i *recipeInstaller) executeAndValidateFatal(m *discoveryManifest, r *recip
 
 	ok, err := i.executeAndValidate(m, r)
 	if err != nil {
-		s.FinalMSG = "\u1F4A5"
+		s.FinalMSG = boom
 		log.Fatalf("Could not install %s: %s", r.Name, err)
 	}
 
 	if !ok {
-		s.FinalMSG = "\u1F4A5"
+		s.FinalMSG = boom
 		log.Fatalf("Could not detect data from %s.", r.Name)
 	}
 
-	s.FinalMSG = "\u2705"
+	s.FinalMSG = checkMark
 }
 
 func (i *recipeInstaller) executeAndValidateWarn(m *discoveryManifest, r *recipe) {
@@ -347,4 +349,8 @@ func userAcceptLogFile(match logMatch) bool {
 	}
 
 	return result == "Yes"
+}
+
+func newSpinner() *spinner.Spinner {
+	return spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 }
