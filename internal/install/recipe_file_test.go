@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -54,33 +55,33 @@ func TestLoadRecipeFile(t *testing.T) {
 
 	defer os.Remove(tmpFile.Name())
 
-	ff := newRecipeFileFetcher()
+	ff := recipes.NewRecipeFileFetcher()
 
-	f, err := ff.loadRecipeFile(tmpFile.Name())
+	f, err := ff.LoadRecipeFile(tmpFile.Name())
 	require.NoError(t, err)
 	require.NotNil(t, f)
 }
 
 func TestFetchRecipeFile(t *testing.T) {
-	ff := newMockRecipeFileFetcher()
+	ff := recipes.NewMockRecipeFileFetcher()
 
-	f, err := ff.fetchRecipeFile(recipeURL)
+	f, err := ff.FetchRecipeFile(recipeURL)
 	require.NoError(t, err)
 	require.NotNil(t, f)
 }
 
 func TestNewRecipeFile(t *testing.T) {
-	var expected recipeFile
+	var expected recipes.RecipeFile
 	err := yaml.Unmarshal([]byte(testRecipeFileString), &expected)
 	require.NoError(t, err)
 
-	actual, err := newRecipeFile(testRecipeFileString)
+	actual, err := recipes.NewRecipeFile(testRecipeFileString)
 	require.NoError(t, err)
 	require.True(t, reflect.DeepEqual(&expected, actual))
 }
 
 func TestString(t *testing.T) {
-	var f recipeFile
+	var f recipes.RecipeFile
 	err := yaml.Unmarshal([]byte(testRecipeFileString), &f)
 	require.NoError(t, err)
 
@@ -90,7 +91,7 @@ func TestString(t *testing.T) {
 }
 
 func TestToRecipe(t *testing.T) {
-	var f recipeFile
+	var f recipes.RecipeFile
 	err := yaml.Unmarshal([]byte(testRecipeFileString), &f)
 	require.NoError(t, err)
 

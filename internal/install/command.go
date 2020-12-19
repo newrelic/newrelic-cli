@@ -28,13 +28,13 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		ic := installContext{
-			recipePaths:        recipePaths,
-			recipeNames:        recipeNames,
-			skipDiscovery:      skipDiscovery,
-			skipInfraInstall:   skipInfraInstall,
-			skipIntegrations:   skipIntegrations,
-			skipLoggingInstall: skipLoggingInstall,
+		ic := InstallContext{
+			RecipePaths:        recipePaths,
+			RecipeNames:        recipeNames,
+			SkipDiscovery:      skipDiscovery,
+			SkipInfraInstall:   skipInfraInstall,
+			SkipIntegrations:   skipIntegrations,
+			SkipLoggingInstall: skipLoggingInstall,
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
@@ -43,24 +43,10 @@ var Command = &cobra.Command{
 				log.Fatal(err)
 			}
 
-			// Wire up the recipe installer with dependency injection.
-			rf := newServiceRecipeFetcher(&nrClient.NerdGraph)
-			pf := newRegexProcessFilterer(rf)
-			ff := newRecipeFileFetcher()
-			er := newNerdStorageExecutionStatusReporter(&nrClient.NerdStorage)
-
-			i := newRecipeInstaller(ic,
-				newPSUtilDiscoverer(pf),
-				newGlobFileFilterer(),
-				rf,
-				newGoTaskRecipeExecutor(),
-				newPollingRecipeValidator(&nrClient.Nrdb),
-				ff,
-				er,
-			)
+			i := NewRecipeInstaller(ic, nrClient)
 
 			// Run the install.
-			if err := i.install(); err != nil {
+			if err := i.Install(); err != nil {
 				log.Fatalf("Could not install new Relic: %s", err)
 			}
 		})
