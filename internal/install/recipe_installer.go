@@ -142,15 +142,18 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
-	profile := credentials.DefaultProfile()
-	fmt.Printf(`
+	msg := `
 	Success! Your data is available in New Relic.
 
-	Go to New Relic to confirm and start exploring your data.
-	https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d
-	`, profile.AccountID)
+	Go to New Relic to confirm and start exploring your data.`
 
-	fmt.Println()
+	profile := credentials.DefaultProfile()
+	if profile != nil {
+		msg += fmt.Sprintf(`
+		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
+	}
+
+	fmt.Println(msg)
 
 	i.reportComplete()
 	return nil
