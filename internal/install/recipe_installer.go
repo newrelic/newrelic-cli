@@ -121,6 +121,7 @@ func (i *RecipeInstaller) Install() error {
 	// Install the Infrastructure Agent if requested, exiting on failure.
 	if i.ShouldInstallInfraAgent() {
 		if err := i.installInfraAgent(m); err != nil {
+			log.Error(i.failMessage(infraAgentRecipeName))
 			return i.fail(err)
 		}
 	}
@@ -128,6 +129,7 @@ func (i *RecipeInstaller) Install() error {
 	// Run the logging recipe if requested, exiting on failure.
 	if i.ShouldInstallLogging() {
 		if err := i.installLogging(m, recipes); err != nil {
+			log.Error(i.failMessage(loggingRecipeName))
 			return i.fail(err)
 		}
 	}
@@ -138,6 +140,7 @@ func (i *RecipeInstaller) Install() error {
 			err := i.executeAndValidateWithStatus(m, &r)
 			if err != nil {
 				log.Warn(err)
+				log.Warn(i.failMessage(r.Name))
 			}
 		}
 	}
@@ -401,6 +404,18 @@ func (i *RecipeInstaller) fail(err error) error {
 	}
 
 	return err
+}
+
+func (i *RecipeInstaller) failMessage(componentName string) error {
+
+	u, _ := url.Parse("https://docs.newrelic.com/search#")
+	q := u.Query()
+	q.Set("query", componentName)
+	u.RawQuery = q.Encode()
+
+	searchURL := u.String()
+
+	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
 
 func newSpinner() *spinner.Spinner {
