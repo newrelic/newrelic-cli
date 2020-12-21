@@ -21,7 +21,7 @@ import (
 )
 
 type RecipeInstaller struct {
-	InstallContext
+	InstallerContext
 	discoverer        discovery.Discoverer
 	fileFilterer      discovery.FileFilterer
 	recipeFetcher     recipes.RecipeFetcher
@@ -31,7 +31,7 @@ type RecipeInstaller struct {
 	statusReporter    execution.StatusReporter
 }
 
-func NewRecipeInstaller(ic InstallContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
+func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
 	rf := recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
 	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
@@ -51,7 +51,7 @@ func NewRecipeInstaller(ic InstallContext, nrClient *newrelic.NewRelic) *RecipeI
 		statusReporter:    er,
 	}
 
-	i.InstallContext = ic
+	i.InstallerContext = ic
 
 	return &i
 }
@@ -299,7 +299,10 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r); err != nil {
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
-		i.reportRecipeFailed(execution.RecipeStatusEvent{*r, msg, ""})
+		i.reportRecipeFailed(execution.RecipeStatusEvent{
+			Recipe: *r,
+			Msg:    msg,
+		})
 		return errors.New(msg)
 	}
 
@@ -307,11 +310,18 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 		entityGUID, err := i.recipeValidator.Validate(utils.SignalCtx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
-			i.reportRecipeFailed(execution.RecipeStatusEvent{*r, msg, ""})
+			i.reportRecipeFailed(execution.RecipeStatusEvent{
+				Recipe: *r,
+				Msg:    msg,
+			})
 			return errors.New(msg)
 		}
 
-		i.reportRecipeInstalled(execution.RecipeStatusEvent{*r, "", entityGUID})
+		i.reportRecipeInstalled(execution.RecipeStatusEvent{
+			Recipe:     *r,
+			Msg:        "",
+			EntityGUID: entityGUID,
+		})
 	} else {
 		log.Debugf("Skipping validation due to missing validation query.")
 	}

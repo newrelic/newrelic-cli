@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 // RecipeFile represents a recipe file as defined in the Open Installation Library.

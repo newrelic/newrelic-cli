@@ -7,9 +7,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 )
 
 var (

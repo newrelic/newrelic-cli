@@ -7,8 +7,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestFetchFilters(t *testing.T) {

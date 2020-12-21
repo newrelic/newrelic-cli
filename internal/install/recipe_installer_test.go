@@ -8,13 +8,14 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -36,8 +37,8 @@ func TestInstall(t *testing.T) {
 	assert.True(t, true)
 }
 
-func TestNewRecipeInstaller_InstallContextFields(t *testing.T) {
-	ic := InstallContext{
+func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
+	ic := InstallerContext{
 		RecipePaths:        []string{"testRecipePath"},
 		RecipeNames:        []string{"testRecipeName"},
 		SkipDiscovery:      true,
@@ -48,11 +49,11 @@ func TestNewRecipeInstaller_InstallContextFields(t *testing.T) {
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
 
-	require.True(t, reflect.DeepEqual(ic, i.InstallContext))
+	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 }
 
 func TestShouldGetRecipeFromURL(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
@@ -64,7 +65,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 }
 
 func TestShouldGetRecipeFromFile(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
@@ -76,7 +77,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 }
 
 func TestInstall_Basic(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
 		{Name: infraAgentRecipeName},
@@ -88,7 +89,7 @@ func TestInstall_Basic(t *testing.T) {
 }
 
 func TestInstall_ReportRecipesAvailable(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	sr = execution.NewMockStatusReporter()
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
 	err := i.Install()
@@ -97,7 +98,7 @@ func TestInstall_ReportRecipesAvailable(t *testing.T) {
 }
 
 func TestInstall_ReportRecipeInstalled(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	sr = execution.NewMockStatusReporter()
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
@@ -122,7 +123,7 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 }
 
 func TestInstall_ReportRecipeFailed(t *testing.T) {
-	ic := InstallContext{
+	ic := InstallerContext{
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
@@ -142,7 +143,7 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 }
 
 func TestInstall_ReportComplete(t *testing.T) {
-	ic := InstallContext{
+	ic := InstallerContext{
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
@@ -159,7 +160,7 @@ func TestInstall_ReportComplete(t *testing.T) {
 }
 
 func TestInstall_ReportCompleteError(t *testing.T) {
-	ic := InstallContext{
+	ic := InstallerContext{
 		SkipLoggingInstall: true,
 	}
 	sr = execution.NewMockStatusReporter()

@@ -9,8 +9,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestGlobFileFilter(t *testing.T) {

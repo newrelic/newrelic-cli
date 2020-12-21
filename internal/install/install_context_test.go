@@ -7,7 +7,7 @@ import (
 )
 
 func TestShouldRunDiscovery_Default(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	require.True(t, ic.ShouldRunDiscovery())
 
 	ic.SkipDiscovery = true
@@ -15,7 +15,7 @@ func TestShouldRunDiscovery_Default(t *testing.T) {
 }
 
 func TestShouldInstallInfraAgent_Default(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	require.True(t, ic.ShouldInstallInfraAgent())
 
 	ic.SkipInfraInstall = true
@@ -23,14 +23,14 @@ func TestShouldInstallInfraAgent_Default(t *testing.T) {
 }
 
 func TestShouldInstallInfraAgent_RecipePathsProvided(t *testing.T) {
-	ic := InstallContext{
+	ic := InstallerContext{
 		RecipePaths: []string{"testPath"},
 	}
 	require.False(t, ic.ShouldInstallInfraAgent())
 }
 
 func TestShouldInstallLogging_Default(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	require.True(t, ic.ShouldInstallLogging())
 
 	ic.SkipLoggingInstall = true
@@ -38,14 +38,14 @@ func TestShouldInstallLogging_Default(t *testing.T) {
 }
 
 func TestShouldInstallLogging_RecipesProvided(t *testing.T) {
-	ic := InstallContext{
+	ic := InstallerContext{
 		RecipePaths: []string{"testPath"},
 	}
 	require.False(t, ic.ShouldInstallLogging())
 }
 
 func TestShouldInstallIntegrations_Default(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	require.True(t, ic.ShouldInstallIntegrations())
 
 	ic.SkipIntegrations = true
@@ -53,14 +53,14 @@ func TestShouldInstallIntegrations_Default(t *testing.T) {
 }
 
 func TestShouldInstallLogging_RecipePathsProvided(t *testing.T) {
-	ic := InstallContext{
+	ic := InstallerContext{
 		RecipePaths: []string{"testPath"},
 	}
 	require.True(t, ic.ShouldInstallIntegrations())
 }
 
 func TestRecipeNamesProvided(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 
 	require.False(t, ic.RecipeNamesProvided())
 
@@ -69,7 +69,7 @@ func TestRecipeNamesProvided(t *testing.T) {
 }
 
 func TestRecipePathsProvided(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	require.False(t, ic.RecipePathsProvided())
 
 	ic.RecipePaths = []string{"testPath"}
@@ -77,7 +77,7 @@ func TestRecipePathsProvided(t *testing.T) {
 }
 
 func TestRecipesProvided(t *testing.T) {
-	ic := InstallContext{}
+	ic := InstallerContext{}
 	require.False(t, ic.RecipesProvided())
 
 	ic.RecipePaths = []string{"testPath"}

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type PSUtilDiscoverer struct {

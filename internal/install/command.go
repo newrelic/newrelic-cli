@@ -28,7 +28,7 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		ic := InstallContext{
+		ic := InstallerContext{
 			RecipePaths:        recipePaths,
 			RecipeNames:        recipeNames,
 			SkipDiscovery:      skipDiscovery,

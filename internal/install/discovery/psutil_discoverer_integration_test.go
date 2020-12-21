@@ -8,9 +8,10 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestDiscovery(t *testing.T) {

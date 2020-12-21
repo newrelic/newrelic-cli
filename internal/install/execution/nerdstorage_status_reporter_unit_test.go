@@ -6,8 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestReportRecipesAvailable_Basic(t *testing.T) {

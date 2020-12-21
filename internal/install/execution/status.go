@@ -2,6 +2,7 @@ package execution
 
 import (
 	"github.com/google/uuid"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )

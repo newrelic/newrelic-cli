@@ -4,8 +4,9 @@ package execution
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestNewStatus(t *testing.T) {

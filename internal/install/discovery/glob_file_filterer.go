@@ -4,8 +4,9 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 // GlobFileFilterer is an implementation of the FileFilterer interface that uses
