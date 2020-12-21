@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"syscall"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -166,7 +167,19 @@ func setVarsFromInput(t *taskfile.Taskfile, inputVars []recipes.VariableConfig) 
 
 			result, err := prompt.Run()
 			if err != nil {
-				return fmt.Errorf("prompt failed: %s", err)
+				if err == promptui.ErrInterrupt {
+					p, findProcessErr := os.FindProcess(syscall.Getpid())
+					if findProcessErr != nil {
+						log.Errorf("failed to lookup process for interrupt: %s", err)
+					}
+
+					signalErr := p.Signal(os.Interrupt)
+					if err != nil {
+						log.Errorf("failed to send interrupt signal: %s", signalErr)
+					}
+				} else {
+					log.Errorf("prompt failed: %s", err)
+				}
 			}
 
 			v.Set(envConfig.Name, taskfile.Var{Static: result})

@@ -3,6 +3,7 @@ package install
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
@@ -29,6 +31,11 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		go func() {
+			<-utils.SignalCtx.Done()
+			os.Exit(1)
+		}()
+
 		ic := InstallerContext{
 			RecipePaths:        recipePaths,
 			RecipeNames:        recipeNames,

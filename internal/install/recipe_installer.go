@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
+	"syscall"
 
+	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -391,7 +394,21 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 func (i *RecipeInstaller) userAccepts(msg string) bool {
 	val, err := i.prompter.PromptYesNo(msg)
 	if err != nil {
-		log.Error(err)
+		if err == promptui.ErrInterrupt {
+			p, findProcessErr := os.FindProcess(syscall.Getpid())
+			if findProcessErr != nil {
+				log.Errorf("failed to lookup process for interrupt: %s", err)
+			}
+
+			signalErr := p.Signal(os.Interrupt)
+			if err != nil {
+				log.Errorf("failed to send interrupt signal: %s", signalErr)
+			}
+		} else {
+			log.Errorf("prompt failed: %s", err)
+		}
+
+		return false
 	}
 
 	return val
