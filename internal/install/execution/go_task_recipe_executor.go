@@ -156,6 +156,10 @@ func setVarsFromInput(t *taskfile.Taskfile, inputVars []recipes.VariableConfig) 
 				Label: msg,
 			}
 
+			if envConfig.Secret {
+				prompt.HideEntered = true
+			}
+
 			if envConfig.Default != "" {
 				prompt.Default = envConfig.Default
 			}
