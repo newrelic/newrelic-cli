@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/mitchellh/go-homedir"
 
@@ -84,4 +85,22 @@ func GetDefaultConfigDirectory() (string, error) {
 	}
 
 	return fmt.Sprintf("%s/.newrelic", home), nil
+}
+
+// MinOf returns the minimum int value provided.
+func MinOf(vars ...int) int {
+	min := vars[0]
+
+	for _, i := range vars {
+		if min > i {
+			min = i
+		}
+	}
+
+	return min
+}
+
+// GetTimestamp returns the current epoch timestamp in seconds.
+func GetTimestamp() int64 {
+	return time.Now().Unix()
 }

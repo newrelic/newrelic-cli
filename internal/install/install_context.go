@@ -1,38 +1,38 @@
 package install
 
-type installContext struct {
-	skipDiscovery      bool
-	skipLoggingInstall bool
-	skipInfraInstall   bool
-	skipIntegrations   bool
-	recipeNames        []string
-	recipePaths        []string
+type InstallerContext struct {
+	SkipDiscovery      bool
+	SkipLoggingInstall bool
+	SkipInfraInstall   bool
+	SkipIntegrations   bool
+	RecipeNames        []string
+	RecipePaths        []string
 }
 
-func (i *installContext) ShouldRunDiscovery() bool {
-	return !i.skipDiscovery
+func (i *InstallerContext) ShouldRunDiscovery() bool {
+	return !i.SkipDiscovery
 }
 
-func (i *installContext) ShouldInstallInfraAgent() bool {
-	return !i.RecipesProvided() && !i.skipInfraInstall
+func (i *InstallerContext) ShouldInstallInfraAgent() bool {
+	return !i.RecipesProvided() && !i.SkipInfraInstall
 }
 
-func (i *installContext) ShouldInstallLogging() bool {
-	return !i.RecipesProvided() && !i.skipLoggingInstall
+func (i *InstallerContext) ShouldInstallLogging() bool {
+	return !i.RecipesProvided() && !i.SkipLoggingInstall
 }
 
-func (i *installContext) ShouldInstallIntegrations() bool {
-	return i.RecipesProvided() || !i.skipIntegrations
+func (i *InstallerContext) ShouldInstallIntegrations() bool {
+	return i.RecipesProvided() || !i.SkipIntegrations
 }
 
-func (i *installContext) RecipePathsProvided() bool {
-	return len(i.recipePaths) > 0
+func (i *InstallerContext) RecipePathsProvided() bool {
+	return len(i.RecipePaths) > 0
 }
 
-func (i *installContext) RecipeNamesProvided() bool {
-	return len(i.recipeNames) > 0
+func (i *InstallerContext) RecipeNamesProvided() bool {
+	return len(i.RecipeNames) > 0
 }
 
-func (i *installContext) RecipesProvided() bool {
+func (i *InstallerContext) RecipesProvided() bool {
 	return i.RecipePathsProvided() || i.RecipeNamesProvided()
 }
