@@ -10,7 +10,7 @@ import (
 const (
 	interval  = 100 * time.Millisecond
 	checkmark = "\u2705"
-	boom      = "\u1F4A5"
+	crossmark = "\u274C"
 )
 
 var (
@@ -30,7 +30,7 @@ func NewSpinner() *Spinner {
 
 func (s *Spinner) Start(msg string) {
 	s.Spinner = spinnerLib.New(charSet, interval)
-	s.Suffix = msg
+	s.Suffix = fmt.Sprintf(" %s", msg)
 	s.Spinner.Start()
 }
 
@@ -40,7 +40,7 @@ func (s *Spinner) Stop() {
 }
 
 func (s *Spinner) Fail() {
-	s.FinalMSG = boom
+	s.FinalMSG = crossmark
 }
 
 func (s *Spinner) Success() {
