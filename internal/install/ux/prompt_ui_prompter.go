@@ -4,6 +4,10 @@ import "github.com/manifoldco/promptui"
 
 type PromptUIPrompter struct{}
 
+func NewPromptUIPrompter() *PromptUIPrompter {
+	return &PromptUIPrompter{}
+}
+
 func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
 	prompt := promptui.Select{
 		Label: msg,

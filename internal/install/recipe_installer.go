@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"time"
 
-	"github.com/briandowns/spinner"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -30,6 +28,7 @@ type RecipeInstaller struct {
 	recipeFileFetcher recipes.RecipeFileFetcher
 	statusReporter    execution.StatusReporter
 	prompter          ux.Prompter
+	progressIndicator ux.ProgressIndicator
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -41,7 +40,8 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
-	p := &ux.PromptUIPrompter{}
+	p := ux.NewPromptUIPrompter()
+	s := ux.NewSpinner()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -52,6 +52,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		recipeFileFetcher: ff,
 		statusReporter:    er,
 		prompter:          p,
+		progressIndicator: s,
 	}
 
 	i.InstallerContext = ic
@@ -62,8 +63,6 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 const (
 	infraAgentRecipeName = "Infrastructure Agent Installer"
 	loggingRecipeName    = "Logs integration"
-	checkMark            = "\u2705"
-	boom                 = "\u1F4A5"
 )
 
 func (i *RecipeInstaller) Install() error {
@@ -79,7 +78,7 @@ func (i *RecipeInstaller) Install() error {
 	var m *types.DiscoveryManifest
 	var err error
 	if i.ShouldRunDiscovery() {
-		m, err = i.discover()
+		m, err = i.discoverWithStatus()
 		if err != nil {
 			return i.fail(err)
 		}
@@ -105,7 +104,7 @@ func (i *RecipeInstaller) Install() error {
 		}
 	} else {
 		// Ask the recipe service for recommendations.
-		recipes, err = i.fetchRecommendations(m)
+		recipes, err = i.fetchRecommendationsWithStatus(m)
 		if err != nil {
 			return i.fail(err)
 		}
@@ -153,7 +152,7 @@ func (i *RecipeInstaller) Install() error {
 				continue
 			}
 
-			_, err := i.executeAndValidateWithStatus(m, &r)
+			_, err := i.executeAndValidateWithProgress(m, &r)
 			if err != nil {
 				log.Warn(err)
 				log.Warn(i.failMessage(r.Name))
@@ -178,23 +177,19 @@ func (i *RecipeInstaller) Install() error {
 	return nil
 }
 
-func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
-	s := newSpinner()
-	s.Suffix = " Discovering system information..."
-
-	s.Start()
+func (i *RecipeInstaller) discoverWithStatus() (*types.DiscoveryManifest, error) {
+	i.progressIndicator.Start(" Discovering system information...")
 	defer func() {
-		s.Stop()
-		fmt.Println(s.Suffix)
+		i.progressIndicator.Stop()
 	}()
 
 	m, err := i.discoverer.Discover(utils.SignalCtx)
 	if err != nil {
-		s.FinalMSG = boom
+		i.progressIndicator.Fail()
 		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
 	}
 
-	s.FinalMSG = checkMark
+	i.progressIndicator.Success()
 
 	return m, nil
 }
@@ -253,26 +248,22 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []t
 
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
-	return i.executeAndValidateWithStatus(m, r)
+	return i.executeAndValidateWithProgress(m, r)
 }
 
-func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]types.Recipe, error) {
-	s := newSpinner()
-	s.Suffix = " Fetching recommended recipes..."
-
-	s.Start()
+func (i *RecipeInstaller) fetchRecommendationsWithStatus(m *types.DiscoveryManifest) ([]types.Recipe, error) {
+	i.progressIndicator.Start(" Fetching recommended recipes...")
 	defer func() {
-		s.Stop()
-		fmt.Println(s.Suffix)
+		i.progressIndicator.Stop()
 	}()
 
 	recipes, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
-		s.FinalMSG = boom
+		i.progressIndicator.Fail()
 		return nil, fmt.Errorf("error retrieving recipe recommendations: %s", err)
 	}
 
-	s.FinalMSG = checkMark
+	i.progressIndicator.Success()
 
 	return recipes, nil
 }
@@ -283,7 +274,7 @@ func (i *RecipeInstaller) fetchExecuteAndValidate(m *types.DiscoveryManifest, re
 		return "", err
 	}
 
-	entityGUID, err := i.executeAndValidateWithStatus(m, r)
+	entityGUID, err := i.executeAndValidateWithProgress(m, r)
 	if err != nil {
 		return "", err
 	}
@@ -383,23 +374,17 @@ func (i *RecipeInstaller) reportComplete() {
 	}
 }
 
-func (i *RecipeInstaller) executeAndValidateWithStatus(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
-	s := newSpinner()
-	s.Suffix = fmt.Sprintf(" Installing %s...", r.Name)
-
-	s.Start()
-	defer func() {
-		s.Stop()
-		fmt.Println(s.Suffix)
-	}()
+func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+	i.progressIndicator.Start(fmt.Sprintf(" Installing %s...", r.Name))
+	defer func() { i.progressIndicator.Stop() }()
 
 	entityGUID, err := i.executeAndValidate(m, r)
 	if err != nil {
-		s.FinalMSG = boom
+		i.progressIndicator.Fail()
 		return "", fmt.Errorf("could not install %s: %s", r.Name, err)
 	}
 
-	s.FinalMSG = checkMark
+	i.progressIndicator.Success()
 	return entityGUID, nil
 }
 
@@ -438,8 +423,4 @@ func (i *RecipeInstaller) failMessage(componentName string) error {
 	searchURL := u.String()
 
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
-}
-
-func newSpinner() *spinner.Spinner {
-	return spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 }
