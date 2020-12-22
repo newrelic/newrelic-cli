@@ -15,6 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 )
 
@@ -31,6 +32,8 @@ var (
 	v  = validation.NewMockRecipeValidator()
 	ff = recipes.NewMockRecipeFileFetcher()
 	sr = execution.NewMockStatusReporter()
+	p  = ux.NewMockPrompter()
+	s  = ux.NewMockProgressIndicator()
 )
 
 func TestInstall(t *testing.T) {
@@ -47,7 +50,7 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 
 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 }
@@ -56,7 +59,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	ic := InstallerContext{}
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 
 	recipe, err := i.recipeFromPath("http://recipe/URL")
 	require.NoError(t, err)
@@ -68,7 +71,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	ic := InstallerContext{}
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 
 	recipe, err := i.recipeFromPath("file.txt")
 	require.NoError(t, err)
@@ -83,7 +86,7 @@ func TestInstall_Basic(t *testing.T) {
 		{Name: infraAgentRecipeName},
 		{Name: loggingRecipeName},
 	}
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 }
@@ -91,7 +94,7 @@ func TestInstall_Basic(t *testing.T) {
 func TestInstall_ReportRecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
 	sr = execution.NewMockStatusReporter()
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, sr.ReportRecipesAvailableCallCount)
@@ -114,9 +117,14 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 			ValidationNRQL: "testNrql",
 		},
 	}
+
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
+	}
+
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, sr.ReportRecipeInstalledCallCount)
@@ -133,10 +141,14 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 		ValidationNRQL: "testNrql",
 	}}
 
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
+	}
+
 	v = validation.NewMockRecipeValidator()
 	v.ValidateErr = errors.New("testError")
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, sr.ReportRecipeFailedCallCount)
@@ -153,7 +165,7 @@ func TestInstall_ReportComplete(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, sr.ReportCompleteCallCount)
@@ -173,13 +185,40 @@ func TestInstall_ReportCompleteError(t *testing.T) {
 		},
 	}
 
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
+	}
+
 	v = validation.NewMockRecipeValidator()
 	v.ValidateErr = errors.New("test error")
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	err := i.Install()
+	require.Error(t, err)
+	require.Equal(t, 1, sr.ReportCompleteCallCount)
+}
+
+func TestInstall_ReportRecipeSkipped(t *testing.T) {
+	ic := InstallerContext{
+		SkipInfraInstall:   true,
+		SkipLoggingInstall: true,
+	}
+	sr = execution.NewMockStatusReporter()
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{{
+		ValidationNRQL: "testNrql",
+	}}
+
+	v = validation.NewMockRecipeValidator()
+	p = &ux.MockPrompter{
+		PromptYesNoVal: false,
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr.ReportCompleteCallCount)
+	require.Equal(t, 1, sr.ReportRecipeSkippedCallCount)
+	require.Equal(t, 0, sr.ReportRecipeInstalledCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {

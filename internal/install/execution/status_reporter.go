@@ -6,6 +6,7 @@ import "github.com/newrelic/newrelic-cli/internal/install/types"
 type StatusReporter interface {
 	ReportRecipeFailed(event RecipeStatusEvent) error
 	ReportRecipeInstalled(event RecipeStatusEvent) error
+	ReportRecipeSkipped(event RecipeStatusEvent) error
 	ReportRecipesAvailable(recipes []types.Recipe) error
 	ReportComplete() error
 }

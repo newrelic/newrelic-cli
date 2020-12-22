@@ -8,10 +8,12 @@ type MockStatusReporter struct {
 	ReportRecipesAvailableErr       error
 	ReportRecipeFailedErr           error
 	ReportRecipeInstalledErr        error
+	ReportRecipeSkippedErr          error
 	ReportCompleteErr               error
 	ReportRecipesAvailableCallCount int
 	ReportRecipeFailedCallCount     int
 	ReportRecipeInstalledCallCount  int
+	ReportRecipeSkippedCallCount    int
 	ReportCompleteCallCount         int
 }
 
@@ -28,6 +30,11 @@ func (r *MockStatusReporter) ReportRecipeFailed(event RecipeStatusEvent) error {
 func (r *MockStatusReporter) ReportRecipeInstalled(event RecipeStatusEvent) error {
 	r.ReportRecipeInstalledCallCount++
 	return r.ReportRecipeInstalledErr
+}
+
+func (r *MockStatusReporter) ReportRecipeSkipped(event RecipeStatusEvent) error {
+	r.ReportRecipeSkippedCallCount++
+	return r.ReportRecipeSkippedErr
 }
 
 func (r *MockStatusReporter) ReportRecipesAvailable(recipes []types.Recipe) error {

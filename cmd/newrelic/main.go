@@ -44,6 +44,7 @@ func init() {
 	Command.AddCommand(workload.Command)
 	Command.AddCommand(agent.Command)
 	Command.AddCommand(install.Command)
+	Command.AddCommand(install.TestCommand)
 	Command.AddCommand(apiaccess.Command)
 
 	CheckPrereleaseMode(Command)
