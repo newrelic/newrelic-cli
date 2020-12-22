@@ -20,6 +20,7 @@ var (
 	skipInfraInstall   bool
 	skipIntegrations   bool
 	skipLoggingInstall bool
+	testMode           bool
 )
 
 // Command represents the install command.
@@ -70,4 +71,5 @@ func init() {
 	Command.Flags().BoolVarP(&skipInfraInstall, "skipInfraInstall", "i", false, "skips installation of New Relic Infrastructure Agent")
 	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
+	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 }

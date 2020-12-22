@@ -60,6 +60,15 @@ func (r NerdstorageStatusReporter) ReportRecipeInstalled(e RecipeStatusEvent) er
 	return nil
 }
 
+func (r NerdstorageStatusReporter) ReportRecipeSkipped(e RecipeStatusEvent) error {
+	r.status.withRecipeEvent(e, StatusTypes.SKIPPED)
+	if err := r.writeStatus(e.EntityGUID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r NerdstorageStatusReporter) ReportComplete() error {
 	r.status.Complete = true
 	r.status.Timestamp = utils.GetTimestamp()
