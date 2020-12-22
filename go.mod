@@ -13,7 +13,7 @@ require (
 	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
 	github.com/imdario/mergo v0.3.11
 	github.com/jedib0t/go-pretty/v6 v6.0.5
-	github.com/joshdk/go-junit v0.0.0-20200702055522-6efcf4050909
+	github.com/joshdk/go-junit v0.0.0-20201221202203-061ee62ada40
 	github.com/llorllale/go-gitlint v0.0.0-20200802191503-5984945d4b80
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
