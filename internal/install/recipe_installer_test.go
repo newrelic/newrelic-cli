@@ -15,6 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 )
 
@@ -31,7 +32,7 @@ var (
 	v  = validation.NewMockRecipeValidator()
 	ff = recipes.NewMockRecipeFileFetcher()
 	sr = execution.NewMockStatusReporter()
-	p  = &mockPrompter{}
+	p  = &ux.MockPrompter{}
 )
 
 func TestInstall(t *testing.T) {
@@ -116,8 +117,8 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 		},
 	}
 
-	p = &mockPrompter{
-		promptYesNoVal: true,
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
 	}
 
 	v = validation.NewMockRecipeValidator()
@@ -139,8 +140,8 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 		ValidationNRQL: "testNrql",
 	}}
 
-	p = &mockPrompter{
-		promptYesNoVal: true,
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
 	}
 
 	v = validation.NewMockRecipeValidator()
@@ -183,8 +184,8 @@ func TestInstall_ReportCompleteError(t *testing.T) {
 		},
 	}
 
-	p = &mockPrompter{
-		promptYesNoVal: true,
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
 	}
 
 	v = validation.NewMockRecipeValidator()
@@ -208,8 +209,8 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 	}}
 
 	v = validation.NewMockRecipeValidator()
-	p = &mockPrompter{
-		promptYesNoVal: false,
+	p = &ux.MockPrompter{
+		PromptYesNoVal: false,
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p}

@@ -14,6 +14,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -28,7 +29,7 @@ type RecipeInstaller struct {
 	recipeValidator   validation.RecipeValidator
 	recipeFileFetcher recipes.RecipeFileFetcher
 	statusReporter    execution.StatusReporter
-	prompter          prompter
+	prompter          ux.Prompter
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -40,7 +41,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
-	p := &promptUIPrompter{}
+	p := &ux.PromptUIPrompter{}
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -403,7 +404,7 @@ func (i *RecipeInstaller) executeAndValidateWithStatus(m *types.DiscoveryManifes
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) bool {
-	val, err := i.prompter.promptYesNo(msg)
+	val, err := i.prompter.PromptYesNo(msg)
 	if err != nil {
 		log.Error(err)
 	}

@@ -1,10 +1,10 @@
-package install
+package ux
 
 import "github.com/manifoldco/promptui"
 
-type promptUIPrompter struct{}
+type PromptUIPrompter struct{}
 
-func (p *promptUIPrompter) promptYesNo(msg string) (bool, error) {
+func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
 	prompt := promptui.Select{
 		Label: msg,
 		Items: []string{"Yes", "No"},
