@@ -18,6 +18,11 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
+const (
+	infraAgentRecipeName = "Infrastructure Agent Installer"
+	loggingRecipeName    = "Logs integration"
+)
+
 type RecipeInstaller struct {
 	InstallerContext
 	discoverer        discovery.Discoverer
@@ -59,11 +64,6 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 
 	return &i
 }
-
-const (
-	infraAgentRecipeName = "Infrastructure Agent Installer"
-	loggingRecipeName    = "Logs integration"
-)
 
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
