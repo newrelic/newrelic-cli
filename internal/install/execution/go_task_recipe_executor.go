@@ -56,9 +56,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stdin:      os.Stdin,
-		Stdout:     os.Stdout,
-		Stderr:     os.Stderr,
+	}
+
+	// Only pipe child process output streams for the chattier log levels
+	l := log.StandardLogger().Level
+	if l == log.DebugLevel || l == log.TraceLevel {
+		e.Stdout = os.Stdout
+		e.Stderr = os.Stderr
 	}
 
 	if err = e.Setup(); err != nil {
