@@ -1,8 +1,15 @@
 package install
 
 import (
+	"fmt"
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+)
+
+var (
+	testScenario string
 )
 
 // TestCommand represents the test command for the install command.
@@ -20,7 +27,12 @@ var TestCommand = &cobra.Command{
 			SkipLoggingInstall: skipLoggingInstall,
 		}
 
-		i := NewRecipeInstallerIntegrationTester(ic)
+		b := NewScenarioBuilder(ic)
+		i := b.BuildScenario(TestScenario(testScenario))
+
+		if i == nil {
+			log.Fatalf("Scenario %s is not valid.  Valid values are %s", testScenario, strings.Join(TestScenarioValues(), ","))
+		}
 
 		if err := i.Install(); err != nil {
 			log.Fatalf("test failed: %s", err)
@@ -35,5 +47,5 @@ func init() {
 	TestCommand.Flags().BoolVarP(&skipInfraInstall, "skipInfraInstall", "i", false, "skips installation of New Relic Infrastructure Agent")
 	TestCommand.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	TestCommand.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
-	TestCommand.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
+	TestCommand.Flags().StringVarP(&testScenario, "testScenario", "s", string(Basic), fmt.Sprintf("test scenario to run, defaults to BASIC.  Valid values are %s", strings.Join(TestScenarioValues(), ",")))
 }

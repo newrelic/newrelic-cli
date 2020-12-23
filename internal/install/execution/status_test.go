@@ -67,3 +67,30 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 	require.Equal(t, StatusTypes.INSTALLED, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
 }
+
+func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
+	s := NewStatusRollup()
+	r := types.Recipe{Name: "testRecipe"}
+	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
+
+	s.Timestamp = 0
+	s.withRecipeEvent(e, StatusTypes.INSTALLED)
+
+	require.NotEmpty(t, s.EntityGUIDs)
+	require.Equal(t, 1, len(s.EntityGUIDs))
+	require.Equal(t, "testGUID", s.EntityGUIDs[0])
+}
+
+func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
+	s := NewStatusRollup()
+	s.withEntityGUID("testGUID")
+	r := types.Recipe{Name: "testRecipe"}
+	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
+
+	s.Timestamp = 0
+	s.withRecipeEvent(e, StatusTypes.INSTALLED)
+
+	require.NotEmpty(t, s.EntityGUIDs)
+	require.Equal(t, 1, len(s.EntityGUIDs))
+	require.Equal(t, "testGUID", s.EntityGUIDs[0])
+}
