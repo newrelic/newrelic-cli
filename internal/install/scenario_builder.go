@@ -9,12 +9,49 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 )
 
-type RecipeInstallerIntegrationTester struct {
-	*RecipeInstaller
+type TestScenario string
+
+const (
+	Basic TestScenario = "BASIC"
+)
+
+var (
+	TestScenarios = []TestScenario{
+		Basic,
+	}
+)
+
+func TestScenarioValues() []string {
+	v := make([]string, len(TestScenarios))
+	for i, s := range TestScenarios {
+		v[i] = string(s)
+	}
+
+	return v
 }
 
-func NewRecipeInstallerIntegrationTester(ic InstallerContext) *RecipeInstallerIntegrationTester {
-	t := RecipeInstallerIntegrationTester{}
+type ScenarioBuilder struct {
+	installerContext InstallerContext
+}
+
+func NewScenarioBuilder(ic InstallerContext) *ScenarioBuilder {
+	b := ScenarioBuilder{
+		installerContext: ic,
+	}
+
+	return &b
+}
+
+func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
+	switch s {
+	case Basic:
+		return b.Basic()
+	}
+
+	return nil
+}
+
+func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 
 	// mock implementations
 	rf := setupRecipeFetcher()
@@ -41,11 +78,9 @@ func NewRecipeInstallerIntegrationTester(ic InstallerContext) *RecipeInstallerIn
 		progressIndicator: s,
 	}
 
-	i.InstallerContext = ic
+	i.InstallerContext = b.installerContext
 
-	t.RecipeInstaller = &i
-
-	return &t
+	return &i
 }
 
 func setupRecipeFetcher() recipes.RecipeFetcher {
@@ -69,6 +104,20 @@ install:
 			File: `
 ---
 name: Logs integration
+install:
+  version: "3"
+  tasks:
+    default:
+`,
+		},
+	}
+	f.FetchRecommendationsVal = []types.Recipe{
+		{
+			Name:           "Recommended recipe",
+			ValidationNRQL: "test NRQL",
+			File: `
+---
+name: Recommended recipe
 install:
   version: "3"
   tasks:
