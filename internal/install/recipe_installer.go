@@ -184,7 +184,7 @@ func (i *RecipeInstaller) Install() error {
 }
 
 func (i *RecipeInstaller) discoverWithStatus() (*types.DiscoveryManifest, error) {
-	i.progressIndicator.Start(" Discovering system information...")
+	i.progressIndicator.Start("Discovering system information...")
 	defer func() {
 		i.progressIndicator.Stop()
 	}()
@@ -258,7 +258,7 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []t
 }
 
 func (i *RecipeInstaller) fetchRecommendationsWithStatus(m *types.DiscoveryManifest) ([]types.Recipe, error) {
-	i.progressIndicator.Start(" Fetching recommended recipes...")
+	i.progressIndicator.Start("Fetching recommended recipes...")
 	defer func() {
 		i.progressIndicator.Stop()
 	}()
@@ -381,7 +381,7 @@ func (i *RecipeInstaller) reportComplete() {
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
-	i.progressIndicator.Start(fmt.Sprintf(" Installing %s...", r.Name))
+	i.progressIndicator.Start(fmt.Sprintf("Installing %s...", r.Name))
 	defer func() { i.progressIndicator.Stop() }()
 
 	entityGUID, err := i.executeAndValidate(m, r)
@@ -414,7 +414,6 @@ func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) bool {
 }
 
 func (i *RecipeInstaller) fail(err error) error {
-	log.Error(err)
 	i.reportComplete()
 	return err
 }
