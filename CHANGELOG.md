@@ -1,3 +1,9 @@
+<a name="v0.18.8"></a>
+## [v0.18.8] - 2020-12-23
+### Bug Fixes
+- **install:** ensure secret input is hidden
+- **install:** skip account-based link if default profile does not exist
+
 <a name="v0.18.7"></a>
 ## [v0.18.7] - 2020-12-18
 ### Bug Fixes
@@ -356,7 +362,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.8...HEAD
+[v0.18.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.7...v0.18.8
 [v0.18.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.6...v0.18.7
 [v0.18.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.5...v0.18.6
 [v0.18.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.4...v0.18.5
