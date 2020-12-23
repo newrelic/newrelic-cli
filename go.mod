@@ -10,7 +10,7 @@ require (
 	github.com/golangci/golangci-lint v1.33.0
 	github.com/google/uuid v1.1.2
 	github.com/goreleaser/goreleaser v0.149.0
-	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e
+	github.com/hokaccha/go-prettyjson v0.0.0-20201222001619-a42f9ac2ec8e
 	github.com/imdario/mergo v0.3.11
 	github.com/jedib0t/go-pretty/v6 v6.0.5
 	github.com/joshdk/go-junit v0.0.0-20201221202203-061ee62ada40
