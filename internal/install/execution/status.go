@@ -10,7 +10,7 @@ import (
 type StatusRollup struct {
 	Complete    bool `json:"complete"`
 	DocumentID  string
-	EntityGuids []string `json:"entityGuids"`
+	EntityGUIDs []string `json:"entityGuids"`
 	Statuses    []Status `json:"recipes"`
 	Timestamp   int64    `json:"timestamp"`
 }
@@ -57,7 +57,21 @@ func (s *StatusRollup) withAvailableRecipes(recipes []types.Recipe) {
 	}
 }
 
+func (s *StatusRollup) withEntityGuid(entityGUID string) {
+	for _, e := range s.EntityGUIDs {
+		if e == entityGUID {
+			return
+		}
+	}
+
+	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
+}
+
 func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
+	if e.EntityGUID != "" {
+		s.withEntityGuid(e.EntityGUID)
+	}
+
 	found := s.getStatus(e.Recipe)
 
 	if found != nil {
