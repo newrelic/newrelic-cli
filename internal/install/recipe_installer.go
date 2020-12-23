@@ -84,7 +84,7 @@ func (i *RecipeInstaller) Install() error {
 	var m *types.DiscoveryManifest
 	var err error
 	if i.ShouldRunDiscovery() {
-		m, err = i.discoverWithStatus()
+		m, err = i.discoverWithProgress()
 		if err != nil {
 			return i.fail(err)
 		}
@@ -148,22 +148,10 @@ func (i *RecipeInstaller) Install() error {
 
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
-		for _, r := range recipes {
-			if !i.userAcceptsInstall(r) {
-				log.Infof("Skipping %s.", r.Name)
-				i.reportRecipeSkipped(execution.RecipeStatusEvent{
-					Recipe:     r,
-					EntityGUID: entityGUID,
-				})
-				continue
-			}
-
-			_, err := i.executeAndValidateWithProgress(m, &r)
-			if err != nil {
-				log.Warn(err)
-				log.Warn(i.failMessage(r.Name))
-			}
+		if err := i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
+			return err
 		}
+
 	}
 
 	msg := `
@@ -183,7 +171,33 @@ func (i *RecipeInstaller) Install() error {
 	return nil
 }
 
-func (i *RecipeInstaller) discoverWithStatus() (*types.DiscoveryManifest, error) {
+func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
+	for _, r := range recipes {
+		ok, err := i.userAcceptsInstall(r)
+		if err != nil {
+			return err
+		}
+
+		if !ok {
+			log.Infof("Skipping %s.", r.Name)
+			i.reportRecipeSkipped(execution.RecipeStatusEvent{
+				Recipe:     r,
+				EntityGUID: entityGUID,
+			})
+			continue
+		}
+
+		_, err = i.executeAndValidateWithProgress(m, &r)
+		if err != nil {
+			log.Warn(err)
+			log.Warn(i.failMessage(r.Name))
+		}
+	}
+
+	return nil
+}
+
+func (i *RecipeInstaller) discoverWithProgress() (*types.DiscoveryManifest, error) {
 	i.progressIndicator.Start(" Discovering system information...")
 	defer func() {
 		i.progressIndicator.Stop()
@@ -242,7 +256,12 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []t
 
 	var acceptedLogMatches []types.LogMatch
 	for _, match := range logMatches {
-		if i.userAcceptsLogFile(match) {
+		ok, err := i.userAcceptsLogFile(match)
+		if err != nil {
+			return "", err
+		}
+
+		if ok {
 			acceptedLogMatches = append(acceptedLogMatches, match)
 		}
 	}
@@ -394,21 +413,21 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) userAccepts(msg string) bool {
+func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 	val, err := i.prompter.PromptYesNo(msg)
 	if err != nil {
-		log.Error(err)
+		return false, err
 	}
 
-	return val
+	return val, nil
 }
 
-func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) bool {
+func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s\nDo you want to watch them? [Yes/No]", match.File)
 	return i.userAccepts(msg)
 }
 
-func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) bool {
+func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
 	msg := fmt.Sprintf("Would you like to enable %s?", r.Name)
 	return i.userAccepts(msg)
 }
