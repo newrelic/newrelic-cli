@@ -39,7 +39,7 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 		PlatformVersion: i.PlatformVersion,
 	}
 
-	pids, err := process.PidsWithContext(context.Background())
+	pids, err := process.PidsWithContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve processes: %s", err)
 	}
