@@ -57,7 +57,7 @@ func (s *StatusRollup) withAvailableRecipes(recipes []types.Recipe) {
 	}
 }
 
-func (s *StatusRollup) withEntityGuid(entityGUID string) {
+func (s *StatusRollup) withEntityGUID(entityGUID string) {
 	for _, e := range s.EntityGUIDs {
 		if e == entityGUID {
 			return
@@ -69,7 +69,7 @@ func (s *StatusRollup) withEntityGuid(entityGUID string) {
 
 func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
 	if e.EntityGUID != "" {
-		s.withEntityGuid(e.EntityGUID)
+		s.withEntityGUID(e.EntityGUID)
 	}
 
 	found := s.getStatus(e.Recipe)

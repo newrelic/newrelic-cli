@@ -83,7 +83,7 @@ func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 
 func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 	s := NewStatusRollup()
-	s.withEntityGuid("testGUID")
+	s.withEntityGUID("testGUID")
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
