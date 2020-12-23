@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"reflect"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/mitchellh/go-homedir"
@@ -20,6 +22,7 @@ var (
 func getSignalContext() context.Context {
 	ch := make(chan os.Signal, 1)
 	ctx, cancel := context.WithCancel(context.Background())
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-ch
 		log.Warnf("signal received: %s", sig)
