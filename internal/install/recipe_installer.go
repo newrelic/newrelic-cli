@@ -178,6 +178,7 @@ func (i *RecipeInstaller) Install() error {
 
 func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
 
+	// Determine if a given recipe is requested by name.
 	namedArgument := func(name string) bool {
 		for _, r := range i.RecipeNames {
 			if name == r {
@@ -191,6 +192,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		var ok bool
 		var err error
 
+		// Skip prompting the user if the recipe has been asked for directly.
 		if namedArgument(r.Name) {
 			ok = true
 		} else {
@@ -356,9 +358,9 @@ func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (
 	return r, nil
 }
 
-func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
-	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r); err != nil {
+	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
 		i.reportRecipeFailed(execution.RecipeStatusEvent{
 			Recipe: *r,
@@ -422,13 +424,18 @@ func (i *RecipeInstaller) reportComplete() {
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r)
+	if err != nil {
+		return "", fmt.Errorf("could not prepare recipe %s", err)
+	}
+
 	i.progressIndicator.Start(fmt.Sprintf("Installing %s...", r.Name))
 	defer func() { i.progressIndicator.Stop() }()
 
-	entityGUID, err := i.executeAndValidate(m, r)
+	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
 		i.progressIndicator.Fail()
-		return "", fmt.Errorf("could not install %s: %s", r.Name, err)
+		return "", fmt.Errorf("could not install recipe %s: %s", r.Name, err)
 	}
 
 	i.progressIndicator.Success()
