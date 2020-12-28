@@ -179,7 +179,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		}
 
 		if !ok {
-			log.Infof("Skipping %s.", r.Name)
+			log.Debugf("skipping %s.", r.Name)
 			i.reportRecipeSkipped(execution.RecipeStatusEvent{
 				Recipe:     r,
 				EntityGUID: entityGUID,
