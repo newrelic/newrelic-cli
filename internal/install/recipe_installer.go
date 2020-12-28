@@ -177,14 +177,31 @@ func (i *RecipeInstaller) Install() error {
 }
 
 func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
+
+	namedArgument := func(name string) bool {
+		for _, r := range i.RecipeNames {
+			if name == r {
+				return true
+			}
+		}
+		return false
+	}
+
 	for _, r := range recipes {
-		ok, err := i.userAcceptsInstall(r)
-		if err != nil {
-			return err
+		var ok bool
+		var err error
+
+		if namedArgument(r.Name) {
+			ok = true
+		} else {
+			ok, err = i.userAcceptsInstall(r)
+			if err != nil {
+				return err
+			}
 		}
 
 		if !ok {
-			log.Debugf("skipping %s.", r.Name)
+			log.Debugf("skipping recipe %s.", r.Name)
 			i.reportRecipeSkipped(execution.RecipeStatusEvent{
 				Recipe:     r,
 				EntityGUID: entityGUID,
