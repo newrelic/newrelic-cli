@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -30,7 +31,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 }
 
 func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.Recipe) error {
-	log.Debugf("Executing recipe %s", r.Name)
+	log.Debugf("executing recipe %s", r.Name)
 
 	f, err := recipes.RecipeToRecipeFile(r)
 	if err != nil {
@@ -54,13 +55,17 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
+	var stderrCapture bytes.Buffer
+	var stdoutCapture bytes.Buffer
+
 	e := task.Executor{
 		Entrypoint: file.Name(),
+		Stderr:     &stderrCapture,
+		Stdout:     &stdoutCapture,
 	}
 
 	// Only pipe child process output streams for the chattier log levels
-	l := log.StandardLogger().Level
-	if l == log.DebugLevel || l == log.TraceLevel {
+	if log.GetLevel() > log.InfoLevel {
 		e.Stdout = os.Stdout
 		e.Stderr = os.Stderr
 	}
@@ -93,6 +98,12 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
+		if log.GetLevel() > log.InfoLevel {
+			stderr := stderrCapture.String()
+			if stderr != "" {
+				log.Error(stderr)
+			}
+		}
 		return err
 	}
 
@@ -153,7 +164,7 @@ func setVarsFromInput(t *taskfile.Taskfile, inputVars []recipes.VariableConfig) 
 			msg := fmt.Sprintf("value for %s required", envConfig.Name)
 
 			if envConfig.Prompt != "" {
-				msg = envConfig.Prompt
+				msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
 			}
 
 			prompt := promptui.Prompt{
