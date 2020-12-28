@@ -19,8 +19,8 @@ import (
 )
 
 const (
-	infraAgentRecipeName = "Infrastructure Agent Installer"
-	loggingRecipeName    = "Logs integration"
+	infraAgentRecipeName = "infrastructure-agent-installer"
+	loggingRecipeName    = "logs-integration"
 )
 
 type RecipeInstaller struct {
