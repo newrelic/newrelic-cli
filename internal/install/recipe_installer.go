@@ -106,7 +106,12 @@ func (i *RecipeInstaller) Install() error {
 		// Fetch the provided recipes from the recipe service.
 		for _, n := range i.RecipeNames {
 			r := i.fetchWarn(m, n)
-			recipes = append(recipes, *r)
+			if r != nil {
+				// Skip anything that was returned by the service if it does not match the requested name.
+				if r.Name == n {
+					recipes = append(recipes, *r)
+				}
+			}
 		}
 	} else {
 		// Ask the recipe service for recommendations.
