@@ -104,86 +104,90 @@ var OpenInstallationTargetTypeTypes = struct {
 // OpenInstallationAttributes - Custom event data attributes
 type OpenInstallationAttributes struct {
 	// Built-in parsing rulesets
-	Logtype string `json:"logtype"`
+	Logtype string `json:"logtype,omitempty"`
 }
 
 // OpenInstallationLogMatch - Matches partial list of the Log forwarding parameters
 type OpenInstallationLogMatch struct {
 	// List of custom attributes, as key-value pairs, that can be used to send additional data with the logs which you can then query.
-	Attributes OpenInstallationAttributes `json:"attributes"`
+	Attributes OpenInstallationAttributes `json:"attributes,omitempty"`
 	// Path to the log file or files.
-	File string `json:"file"`
+	File string `json:"file,omitempty"`
 	// Name of the log or logs.
 	Name string `json:"name"`
 	// Regular expression for filtering records.
-	Pattern string `json:"pattern"`
+	Pattern string `json:"pattern,omitempty"`
 	// Service name (Linux Only).
-	Systemd string `json:"systemd"`
+	Systemd string `json:"systemd,omitempty"`
 }
 
 // OpenInstallationPreInstallConfiguration - Optional pre-install configuration items
 type OpenInstallationPreInstallConfiguration struct {
 	// Message/Docs notice displayed to user prior to running recipe
-	Prompt string `json:"prompt"`
+	Prompt string `json:"prompt,omitempty"`
 }
 
 // OpenInstallationRecipe - Installation instructions and definition of an instrumentation integration
 type OpenInstallationRecipe struct {
 	// Description of the recipe
 	Description string `json:"description"`
+	// Friendly name of the integration
+	DisplayName string `json:"displayName,omitempty"`
 	// The full contents of the recipe file (yaml)
 	File string `json:"file"`
 	// The ID
-	ID string `json:"id"`
+	ID string `json:"id,omitempty"`
 	// List of variables to prompt for input from the user
 	InputVars []OpenInstallationRecipeInputVariable `json:"inputVars"`
+	// Go-task's taskfile definition (see https://taskfile.dev/#/usage)
+	Install string `json:"install"`
 	// Object representing the intended install target
 	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets"`
 	// Tags
 	Keywords []string `json:"keywords"`
 	// # Partial list of possible Log forwarding parameters
 	LogMatch []OpenInstallationLogMatch `json:"logMatch"`
-	// Friendly name of the recipe
-	Name string `json:"name"`
+	// Short unique handle for the name of the integration
+	Name string `json:"name,omitempty"`
 	// Object representing optional pre-install configuration items
-	PreInstall OpenInstallationPreInstallConfiguration `json:"preInstall"`
+	PreInstall OpenInstallationPreInstallConfiguration `json:"preInstall,omitempty"`
 	// List of process definitions used to match CLI process detection
 	ProcessMatch []string `json:"processMatch"`
 	// Github repository url
 	Repository string `json:"repository"`
 	// NRQL the newrelic-cli uses to validate this recipe
 	// is successfully sending data to New Relic
-	ValidationNRQL NRQL `json:"validationNrql"`
+	ValidationNRQL NRQL `json:"validationNrql,omitempty"`
 }
 
 // OpenInstallationRecipeInputVariable - Recipe input variable prompts displayed to the user prior to execution
 type OpenInstallationRecipeInputVariable struct {
 	// Default value of variable
-	Default string `json:"default"`
+	Default string `json:"default,omitempty"`
 	// Name of the variable
 	Name string `json:"name"`
 	// Message to present to the user
-	Prompt string `json:"prompt"`
+	Prompt string `json:"prompt,omitempty"`
 	// Indicates a password field
-	Secret bool `json:"secret"`
+	Secret bool `json:"secret,omitempty"`
 }
 
 // OpenInstallationRecipeInstallTarget - Matrix of supported installation criteria for this recipe
 type OpenInstallationRecipeInstallTarget struct {
 	// OS kernel architecture
-	KernelArch string `json:"kernelArch"`
+	KernelArch string `json:"kernelArch,omitempty"`
 	// OS kernel version
-	KernelVersion string `json:"kernelVersion"`
+	KernelVersion string `json:"kernelVersion,omitempty"`
 	// Operating system
-	Os OpenInstallationOperatingSystem `json:"os"`
+	Os OpenInstallationOperatingSystem `json:"os,omitempty"`
 	// Operating System distribution
-	Platform OpenInstallationPlatform `json:"platform"`
+	Platform OpenInstallationPlatform `json:"platform,omitempty"`
 	// Operating System distribution family
-	PlatformFamily OpenInstallationPlatformFamily `json:"platformFamily"`
+	PlatformFamily OpenInstallationPlatformFamily `json:"platformFamily,omitempty"`
 	// OS distribution version
-	PlatformVersion string `json:"platformVersion"`
+	PlatformVersion string `json:"platformVersion,omitempty"`
 	// Target type
-	Type OpenInstallationTargetType `json:"type"`
+	Type OpenInstallationTargetType `json:"type,omitempty"`
 }
 
 // NRQL - This scalar represents a NRQL query string.
