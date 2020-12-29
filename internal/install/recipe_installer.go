@@ -189,6 +189,13 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 	}
 
 	for _, r := range recipes {
+		// The infra and logging install have their own install methods.  In the
+		// case where the recommendations come back with either of these recipes,
+		// we skip here to avoid duplicate installation.
+		if r.Name == infraAgentRecipeName || r.Name == loggingRecipeName {
+			continue
+		}
+
 		var ok bool
 		var err error
 
