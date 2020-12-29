@@ -209,13 +209,14 @@ func createRecipes(results []types.OpenInstallationRecipe) []types.Recipe {
 func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 	return types.Recipe{
 		ID:             result.ID,
-		File:           result.File,
-		Name:           result.Name,
 		Description:    result.Description,
-		Repository:     result.Repository,
+		DisplayName:    result.DisplayName,
+		File:           result.File,
 		Keywords:       result.Keywords,
-		ProcessMatch:   result.ProcessMatch,
 		LogMatch:       createLogMatches(result.LogMatch),
+		Name:           result.Name,
+		ProcessMatch:   result.ProcessMatch,
+		Repository:     result.Repository,
 		ValidationNRQL: string(result.ValidationNRQL),
 	}
 }
@@ -249,6 +250,7 @@ const (
 	recipeResultFragment = `
 		id
 		name
+		displayName
 		description
 		repository
 		installTargets {
