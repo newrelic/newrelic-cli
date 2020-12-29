@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	log "github.com/sirupsen/logrus"
 )
 
 // ServiceRecipeFetcher is an implementation of the recipeFetcher interface that
@@ -25,6 +26,10 @@ func NewServiceRecipeFetcher(client NerdGraphClient) RecipeFetcher {
 
 // FetchRecipe gets a recipe by name from the recipe service.
 func (f *ServiceRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
+	log.WithFields(log.Fields{
+		"name": friendlyName,
+	}).Debug("fetching recipe")
+
 	c, err := createRecipeSearchInput(manifest, friendlyName)
 	if err != nil {
 		return nil, err

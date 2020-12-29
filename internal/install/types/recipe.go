@@ -28,6 +28,8 @@ type LogMatchAttributes struct {
 	LogType string `yaml:"logtype"`
 }
 
+type RecipeVars map[string]string
+
 // AddVar is responsible for including a new variable on the recipe Vars
 // struct, which is used by go-task executor.
 func (r *Recipe) AddVar(key string, value interface{}) {

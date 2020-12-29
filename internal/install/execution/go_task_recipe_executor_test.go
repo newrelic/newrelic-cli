@@ -81,7 +81,10 @@ func TestExecute_SystemVariableInterpolation(t *testing.T) {
 		File: string(fs),
 	}
 
-	err = e.Execute(context.Background(), m, r)
+	v, err := e.Prepare(context.Background(), m, r)
+	require.NoError(t, err)
+
+	err = e.Execute(context.Background(), m, r, v)
 	require.NoError(t, err)
 
 	dat, err := ioutil.ReadFile(tmpFile.Name())
