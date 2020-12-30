@@ -94,20 +94,20 @@ func TestEntitiesReplaceTags(t *testing.T) {
 	}
 }
 
-func TestEntitiesAssembleTags(t *testing.T) {
+func TestEntitiesAssembleTagsInput(t *testing.T) {
 	var scenarios = []struct {
 		tags     []string
-		expected []entities.Tag
+		expected []entities.TaggingTagInput
 		err      error
 	}{
 		{
 			[]string{"one"},
-			[]entities.Tag{},
+			[]entities.TaggingTagInput{},
 			fmt.Errorf("tags must be specified as colon separated key:value pairs"),
 		},
 		{
 			[]string{"tag1:value1", "tag1:value2", "tag2:value1"},
-			[]entities.Tag{
+			[]entities.TaggingTagInput{
 				{Key: "tag1", Values: []string{"value1", "value2"}}, {Key: "tag2", Values: []string{"value1"}},
 			},
 			nil,
@@ -116,7 +116,7 @@ func TestEntitiesAssembleTags(t *testing.T) {
 
 	for _, s := range scenarios {
 
-		r, e := assembleTags(s.tags)
+		r, e := assembleTagsInput(s.tags)
 
 		assert.ElementsMatch(t, s.expected, r)
 		assert.Equal(t, s.err, e)
