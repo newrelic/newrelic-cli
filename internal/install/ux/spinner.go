@@ -31,7 +31,7 @@ func NewSpinner() *Spinner {
 
 func (s *Spinner) Start(msg string) {
 	// Only start the spinner of the log level is info or below.
-	if log.GetLevel() > log.InfoLevel {
+	if log.IsLevelEnabled(log.DebugLevel) {
 		log.Debug(msg)
 	} else {
 		s.Spinner = spinnerLib.New(charSet, interval)
@@ -42,7 +42,7 @@ func (s *Spinner) Start(msg string) {
 
 func (s *Spinner) Stop() {
 	// Only stop the spinner of the log level is info or below.
-	if log.GetLevel() <= log.InfoLevel {
+	if log.IsLevelEnabled(log.InfoLevel) {
 		s.Spinner.Stop()
 		fmt.Println(s.Suffix)
 	}
