@@ -27,7 +27,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.6.7
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1
+	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	golang.org/x/tools v0.0.0-20201208233053-a543418bbed2
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v0.6.0
