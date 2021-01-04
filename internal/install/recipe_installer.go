@@ -156,7 +156,6 @@ func (i *RecipeInstaller) Install() error {
 		if err := i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
 			return err
 		}
-
 	}
 
 	msg := `
@@ -178,16 +177,6 @@ func (i *RecipeInstaller) Install() error {
 
 func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
 
-	// Determine if a given recipe is requested by name.
-	namedArgument := func(name string) bool {
-		for _, r := range i.RecipeNames {
-			if name == r {
-				return true
-			}
-		}
-		return false
-	}
-
 	for _, r := range recipes {
 		// The infra and logging install have their own install methods.  In the
 		// case where the recommendations come back with either of these recipes,
@@ -200,7 +189,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		var err error
 
 		// Skip prompting the user if the recipe has been asked for directly.
-		if namedArgument(r.Name) {
+		if i.RecipesProvided() {
 			ok = true
 		} else {
 			ok, err = i.userAcceptsInstall(r)
