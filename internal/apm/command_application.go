@@ -41,7 +41,7 @@ The search command performs a query for an APM application name and/or account I
 		}
 
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var results []*entities.Entity
+			var entityResults []entities.EntityOutlineInterface
 			var err error
 
 			// Look for just the GUID if passed in
@@ -50,17 +50,14 @@ The search command performs a query for an APM application name and/or account I
 					log.Warnf("Searching for --guid only, ignoring --accountId and --name")
 				}
 
-				var singleResult *entities.Entity
-				singleResult, err = nrClient.Entities.GetEntity(appGUID)
+				var singleResult *entities.EntityInterface
+				singleResult, err = nrClient.Entities.GetEntity(entities.EntityGUID(appGUID))
 				utils.LogIfFatal(err)
-
-				if singleResult != nil {
-					results = append(results, singleResult)
-				}
+				utils.LogIfFatal(output.Print(*singleResult))
 			} else {
-				params := entities.SearchEntitiesParams{
-					Domain: entities.EntityDomainType("APM"),
-					Type:   entities.EntityType("APPLICATION"),
+				params := entities.EntitySearchQueryBuilder{
+					Domain: entities.EntitySearchQueryBuilderDomain("APM"),
+					Type:   entities.EntitySearchQueryBuilderType("APPLICATION"),
 				}
 
 				if appName != "" {
@@ -68,14 +65,21 @@ The search command performs a query for an APM application name and/or account I
 				}
 
 				if apmAccountID != "" {
-					params.Tags = &entities.TagValue{Key: "accountId", Value: apmAccountID}
+					params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: apmAccountID}}
 				}
 
-				results, err = nrClient.Entities.SearchEntities(params)
+				results, err := nrClient.Entities.GetEntitySearch(
+					entities.EntitySearchOptions{},
+					"",
+					params,
+					[]entities.EntitySearchSortCriteria{},
+				)
+
+				entityResults = results.Results.Entities
 				utils.LogIfFatal(err)
 			}
 
-			utils.LogIfFatal(output.Print(results))
+			utils.LogIfFatal(output.Print(entityResults))
 		})
 	},
 }
@@ -91,11 +95,11 @@ The get command performs a query for an APM application by GUID.
 	Example: "newrelic apm application get --guid <entityGUID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var results *entities.Entity
+			var results *entities.EntityInterface
 			var err error
 
 			if appGUID != "" {
-				results, err = nrClient.Entities.GetEntity(appGUID)
+				results, err = nrClient.Entities.GetEntity(entities.EntityGUID(appGUID))
 				utils.LogIfFatal(err)
 			} else {
 				utils.LogIfError(cmd.Help())
