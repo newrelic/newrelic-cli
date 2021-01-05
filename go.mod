@@ -8,7 +8,7 @@ require (
 	github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373
 	github.com/go-task/task/v3 v3.1.0
 	github.com/golangci/golangci-lint v1.34.1
-	github.com/google/uuid v1.1.3
+	github.com/google/uuid v1.1.4
 	github.com/goreleaser/goreleaser v0.152.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20201222001619-a42f9ac2ec8e
 	github.com/imdario/mergo v0.3.11
