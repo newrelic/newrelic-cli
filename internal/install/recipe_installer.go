@@ -65,6 +65,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	return &i
 }
 
+// nolint:gocyclo
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
 	 _   _                 ____      _ _
@@ -140,24 +141,30 @@ func (i *RecipeInstaller) Install() error {
 
 	// Run the logging recipe if requested, exiting on failure.
 	if i.ShouldInstallLogging() {
-		_, err := i.installLogging(m, recipes)
-		if err != nil {
+		if err = i.installLogging(m, recipes); err != nil {
 			log.Error(i.failMessage(loggingRecipeName))
 			return i.fail(err)
 		}
 	}
 
+	recipeErrorsEncountered := false
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
-		if err := i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
+		if recipeErrorsEncountered, err = i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
 			return err
 		}
 	}
 
-	msg := `
-	Success! Your data is available in New Relic.
+	i.reportComplete()
 
-	Go to New Relic to confirm and start exploring your data.`
+	if recipeErrorsEncountered {
+		return errors.New("one or more integrations failed to install, check the install log for more details")
+	}
+
+	msg := `
+		Success! Your data is available in New Relic.
+
+		Go to New Relic to confirm and start exploring your data.`
 
 	profile := credentials.DefaultProfile()
 	if profile != nil {
@@ -166,12 +173,11 @@ func (i *RecipeInstaller) Install() error {
 	}
 
 	fmt.Println(msg)
-
-	i.reportComplete()
 	return nil
 }
 
-func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
+func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) (bool, error) {
+	errorsEncountered := false
 
 	for _, r := range recipes {
 		// The infra and logging install have their own install methods.  In the
@@ -190,7 +196,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		} else {
 			ok, err = i.userAcceptsInstall(r)
 			if err != nil {
-				return err
+				return true, err
 			}
 		}
 
@@ -205,12 +211,13 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
+			errorsEncountered = true
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
 		}
 	}
 
-	return nil
+	return errorsEncountered, nil
 }
 
 func (i *RecipeInstaller) discoverWithProgress() (*types.DiscoveryManifest, error) {
@@ -259,22 +266,23 @@ func (i *RecipeInstaller) installInfraAgent(m *types.DiscoveryManifest) (string,
 	return i.fetchExecuteAndValidate(m, infraAgentRecipeName)
 }
 
-func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []types.Recipe) (string, error) {
+func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []types.Recipe) error {
 	r, err := i.fetch(m, loggingRecipeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	logMatches, err := i.fileFilterer.Filter(utils.SignalCtx, recipes)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var acceptedLogMatches []types.LogMatch
+	var ok bool
 	for _, match := range logMatches {
-		ok, err := i.userAcceptsLogFile(match)
+		ok, err = i.userAcceptsLogFile(match)
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		if ok {
@@ -289,7 +297,8 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []t
 
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
-	return i.executeAndValidateWithProgress(m, r)
+	_, err = i.executeAndValidateWithProgress(m, r)
+	return err
 }
 
 func (i *RecipeInstaller) fetchRecommendationsWithStatus(m *types.DiscoveryManifest) ([]types.Recipe, error) {
