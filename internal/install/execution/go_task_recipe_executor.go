@@ -200,7 +200,7 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 
 		if assumeYes {
 			if envConfig.Default == "" {
-				return vars, fmt.Errorf("no default value for environment variable %s and none provided", envConfig.Name)
+				return types.RecipeVars{}, fmt.Errorf("no default value for environment variable %s and none provided", envConfig.Name)
 			}
 
 			log.Debugf("required env var %s not found, using default value", envConfig.Name)
