@@ -79,6 +79,7 @@ func (i *RecipeInstaller) Install() error {
 	https://docs.newrelic.com/
 
 	`)
+	fmt.Println()
 
 	// Execute the discovery process if necessary, exiting on failure.
 	m, err := i.discoverWithProgress()
@@ -184,7 +185,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		var err error
 
 		// Skip prompting the user if the recipe has been asked for directly.
-		if i.RecipesProvided() {
+		if i.RecipesProvided() || i.InstallerContext.AssumeYes {
 			ok = true
 		} else {
 			ok, err = i.userAcceptsInstall(r)
@@ -415,7 +416,7 @@ func (i *RecipeInstaller) reportComplete() {
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
-	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r)
+	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
 		return "", fmt.Errorf("could not prepare recipe %s", err)
 	}
@@ -434,6 +435,10 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
+	if i.InstallerContext.AssumeYes {
+		return true, nil
+	}
+
 	val, err := i.prompter.PromptYesNo(msg)
 	if err != nil {
 		return false, err
@@ -443,11 +448,19 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
+	if i.InstallerContext.AssumeYes {
+		return true, nil
+	}
+
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s\nDo you want to watch them? [Yes/No]", match.File)
 	return i.userAccepts(msg)
 }
 
 func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
+	if i.InstallerContext.AssumeYes {
+		return true, nil
+	}
+
 	msg := fmt.Sprintf("Would you like to enable %s?", r.Name)
 	return i.userAccepts(msg)
 }
