@@ -156,26 +156,24 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
-	var msg string
+	i.reportComplete()
+
 	if recipeErrorsEncountered {
-		msg = `
-		One or more integrations failed to install.  Check the log for more details.`
-	} else {
-		msg = `
+		return errors.New("one or more integrations failed to install, check the install log for more details")
+	}
+
+	msg := `
 		Success! Your data is available in New Relic.
 
 		Go to New Relic to confirm and start exploring your data.`
 
-		profile := credentials.DefaultProfile()
-		if profile != nil {
-			msg += fmt.Sprintf(`
-			https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
-		}
+	profile := credentials.DefaultProfile()
+	if profile != nil {
+		msg += fmt.Sprintf(`
+		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
 	}
 
 	fmt.Println(msg)
-
-	i.reportComplete()
 	return nil
 }
 
