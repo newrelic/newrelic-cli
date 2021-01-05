@@ -15,8 +15,9 @@ import (
 )
 
 var (
-	recipePaths        []string
+	assumeYes          bool
 	recipeNames        []string
+	recipePaths        []string
 	skipDiscovery      bool
 	skipInfraInstall   bool
 	skipIntegrations   bool
@@ -33,8 +34,9 @@ var Command = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := InstallerContext{
-			RecipePaths:        recipePaths,
+			AssumeYes:          assumeYes,
 			RecipeNames:        recipeNames,
+			RecipePaths:        recipePaths,
 			SkipDiscovery:      skipDiscovery,
 			SkipInfraInstall:   skipInfraInstall,
 			SkipIntegrations:   skipIntegrations,
@@ -83,4 +85,5 @@ func init() {
 	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 	Command.Flags().BoolVar(&debug, "debug", false, "debug level logging")
 	Command.Flags().BoolVar(&trace, "trace", false, "trace level logging")
+	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 }

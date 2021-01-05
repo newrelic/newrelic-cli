@@ -1,12 +1,14 @@
 package install
 
+// nolint: maligned
 type InstallerContext struct {
-	SkipDiscovery      bool
-	SkipLoggingInstall bool
-	SkipInfraInstall   bool
-	SkipIntegrations   bool
+	AssumeYes          bool
 	RecipeNames        []string
 	RecipePaths        []string
+	SkipDiscovery      bool
+	SkipInfraInstall   bool
+	SkipIntegrations   bool
+	SkipLoggingInstall bool
 }
 
 func (i *InstallerContext) ShouldRunDiscovery() bool {
