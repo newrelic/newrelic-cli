@@ -13,6 +13,7 @@ type StatusRollup struct {
 	EntityGUIDs []string `json:"entityGuids"`
 	Statuses    []Status `json:"recipes"`
 	Timestamp   int64    `json:"timestamp"`
+	LogFilePath string   `json:"logFilePath"`
 }
 
 type Status struct {
