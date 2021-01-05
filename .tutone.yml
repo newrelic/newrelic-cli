@@ -41,7 +41,7 @@ packages:
           - name: apiAccessDeleteKeys
             clientPackageName: apiaccess
             clientMethod: nrClient.APIAccess.DeleteAPIAccessKey
-  - name: install
+  - name: types
     path: internal/install/types
     generators:
       - typegen

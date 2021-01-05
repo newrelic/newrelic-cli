@@ -2,7 +2,7 @@ package output
 
 import (
 	"github.com/hokaccha/go-prettyjson"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // New creates a new outputter with the specific config options
@@ -14,7 +14,7 @@ func New(opts ...ConfigOption) (*Output, error) {
 	}
 
 	// Set some defaults
-	w, _, err := terminal.GetSize(0)
+	w, _, err := term.GetSize(0)
 	if err == nil {
 		config.terminalWidth = w
 	}

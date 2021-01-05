@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -29,8 +30,49 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	return &GoTaskRecipeExecutor{}
 }
 
-func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.Recipe) error {
-	log.Debugf("Executing recipe %s", r.Name)
+func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe) (types.RecipeVars, error) {
+	vars := types.RecipeVars{}
+
+	results := []types.RecipeVars{}
+
+	systemInfoResult := varsFromSystemInfo(m)
+
+	profileResult, err := varsFromProfile()
+	if err != nil {
+		return types.RecipeVars{}, err
+	}
+
+	recipeResult, err := varsFromRecipe(r)
+	if err != nil {
+		return types.RecipeVars{}, err
+	}
+
+	f, err := recipes.RecipeToRecipeFile(r)
+	if err != nil {
+		return types.RecipeVars{}, err
+	}
+
+	inputVarsResult, err := varsFromInput(f.InputVars)
+	if err != nil {
+		return types.RecipeVars{}, err
+	}
+
+	results = append(results, systemInfoResult)
+	results = append(results, profileResult)
+	results = append(results, recipeResult)
+	results = append(results, inputVarsResult)
+
+	for _, result := range results {
+		for k, v := range result {
+			vars[k] = v
+		}
+	}
+
+	return vars, nil
+}
+
+func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, recipeVars types.RecipeVars) error {
+	log.Debugf("executing recipe %s", r.Name)
 
 	f, err := recipes.RecipeToRecipeFile(r)
 	if err != nil {
@@ -54,13 +96,17 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
+	var stderrCapture bytes.Buffer
+	var stdoutCapture bytes.Buffer
+
 	e := task.Executor{
 		Entrypoint: file.Name(),
+		Stderr:     &stderrCapture,
+		Stdout:     &stdoutCapture,
 	}
 
 	// Only pipe child process output streams for the chattier log levels
-	l := log.StandardLogger().Level
-	if l == log.DebugLevel || l == log.TraceLevel {
+	if log.GetLevel() > log.InfoLevel {
 		e.Stdout = os.Stdout
 		e.Stderr = os.Stderr
 	}
@@ -78,82 +124,79 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	calls, globals := taskargs.ParseV3()
 	e.Taskfile.Vars.Merge(globals)
 
-	setVarsFromSystemInfo(e.Taskfile, m)
-
-	if err := setVarsFromProfile(e.Taskfile); err != nil {
-		return err
-	}
-
-	if err := setVarsFromInput(e.Taskfile, f.InputVars); err != nil {
-		return err
-	}
-
-	if err := setStaticVars(e.Taskfile, r.Vars); err != nil {
-		return err
+	for k, val := range recipeVars {
+		e.Taskfile.Vars.Set(k, taskfile.Var{Static: val})
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
+		if log.GetLevel() > log.InfoLevel {
+			stderr := stderrCapture.String()
+			if stderr != "" {
+				log.Error(stderr)
+			}
+		}
 		return err
 	}
 
 	return nil
 }
 
-func setVarsFromProfile(t *taskfile.Taskfile) error {
+func varsFromProfile() (types.RecipeVars, error) {
 	defaultProfile := credentials.DefaultProfile()
 	if defaultProfile.LicenseKey == "" {
-		return errors.New("license key not found in default profile")
+		return types.RecipeVars{}, errors.New("license key not found in default profile")
 	}
 
-	v := taskfile.Vars{}
-	v.Set("NEW_RELIC_LICENSE_KEY", taskfile.Var{Static: defaultProfile.LicenseKey})
-	v.Set("NEW_RELIC_ACCOUNT_ID", taskfile.Var{Static: strconv.Itoa(defaultProfile.AccountID)})
-	v.Set("NEW_RELIC_API_KEY", taskfile.Var{Static: defaultProfile.APIKey})
-	v.Set("NEW_RELIC_REGION", taskfile.Var{Static: defaultProfile.Region})
+	vars := make(types.RecipeVars)
 
-	t.Vars.Merge(&v)
+	vars["NEW_RELIC_LICENSE_KEY"] = defaultProfile.LicenseKey
+	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(defaultProfile.AccountID)
+	vars["NEW_RELIC_API_KEY"] = defaultProfile.APIKey
+	vars["NEW_RELIC_REGION"] = defaultProfile.Region
 
-	return nil
+	return vars, nil
 }
 
-func setVarsFromSystemInfo(t *taskfile.Taskfile, m types.DiscoveryManifest) {
-	v := taskfile.Vars{}
-	v.Set("HOSTNAME", taskfile.Var{Static: m.Hostname})
-	v.Set("OS", taskfile.Var{Static: m.OS})
-	v.Set("PLATFORM", taskfile.Var{Static: m.Platform})
-	v.Set("PLATFORM_FAMILY", taskfile.Var{Static: m.PlatformFamily})
-	v.Set("PLATFORM_VERSION", taskfile.Var{Static: m.PlatformVersion})
-	v.Set("KERNEL_ARCH", taskfile.Var{Static: m.KernelArch})
-	v.Set("KERNEL_VERSION", taskfile.Var{Static: m.KernelVersion})
+func varsFromSystemInfo(m types.DiscoveryManifest) types.RecipeVars {
+	vars := make(types.RecipeVars)
 
-	t.Vars.Merge(&v)
+	vars["HOSTNAME"] = m.Hostname
+	vars["OS"] = m.OS
+	vars["PLATFORM"] = m.Platform
+	vars["PLATFORM_FAMILY"] = m.PlatformFamily
+	vars["PLATFORM_VERSION"] = m.PlatformVersion
+	vars["KERNEL_ARCH"] = m.KernelArch
+	vars["KERNEL_VERSION"] = m.KernelVersion
+
+	return vars
 }
 
-func setStaticVars(t *taskfile.Taskfile, vars map[string]interface{}) error {
-	for k, x := range vars {
+func varsFromRecipe(r types.Recipe) (types.RecipeVars, error) {
+	vars := make(types.RecipeVars)
 
+	for k, x := range r.Vars {
 		varData, err := yaml.Marshal(x)
 		if err != nil {
-			return err
+			return types.RecipeVars{}, err
 		}
 
-		t.Vars.Set(k, taskfile.Var{Static: string(varData)})
+		vars[k] = string(varData)
 	}
 
-	return nil
+	return vars, nil
 }
 
-func setVarsFromInput(t *taskfile.Taskfile, inputVars []recipes.VariableConfig) error {
-	for _, envConfig := range inputVars {
-		v := taskfile.Vars{}
+func varsFromInput(inputVars []recipes.VariableConfig) (types.RecipeVars, error) {
+	vars := make(types.RecipeVars)
 
+	for _, envConfig := range inputVars {
 		envValue := os.Getenv(envConfig.Name)
 		if envValue == "" {
 			log.Debugf("required env var %s not found", envConfig.Name)
 			msg := fmt.Sprintf("value for %s required", envConfig.Name)
 
 			if envConfig.Prompt != "" {
-				msg = envConfig.Prompt
+				msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
 			}
 
 			prompt := promptui.Prompt{
@@ -170,16 +213,14 @@ func setVarsFromInput(t *taskfile.Taskfile, inputVars []recipes.VariableConfig) 
 
 			result, err := prompt.Run()
 			if err != nil {
-				return fmt.Errorf("prompt failed: %s", err)
+				return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
 			}
 
-			v.Set(envConfig.Name, taskfile.Var{Static: result})
+			vars[envConfig.Name] = result
 		} else {
-			v.Set(envConfig.Name, taskfile.Var{Static: envValue})
+			vars[envConfig.Name] = envValue
 		}
-
-		t.Vars.Merge(&v)
 	}
 
-	return nil
+	return vars, nil
 }

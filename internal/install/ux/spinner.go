@@ -5,6 +5,7 @@ import (
 	"time"
 
 	spinnerLib "github.com/briandowns/spinner"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -29,14 +30,22 @@ func NewSpinner() *Spinner {
 }
 
 func (s *Spinner) Start(msg string) {
-	s.Spinner = spinnerLib.New(charSet, interval)
-	s.Suffix = fmt.Sprintf(" %s", msg)
-	s.Spinner.Start()
+	// Only start the spinner of the log level is info or below.
+	if log.IsLevelEnabled(log.DebugLevel) {
+		log.Debug(msg)
+	} else {
+		s.Spinner = spinnerLib.New(charSet, interval)
+		s.Suffix = fmt.Sprintf(" %s", msg)
+		s.Spinner.Start()
+	}
 }
 
 func (s *Spinner) Stop() {
-	s.Spinner.Stop()
-	fmt.Println(s.Suffix)
+	// Only stop the spinner of the log level is info or below.
+	if log.IsLevelEnabled(log.InfoLevel) {
+		s.Spinner.Stop()
+		fmt.Println(s.Suffix)
+	}
 }
 
 func (s *Spinner) Fail() {

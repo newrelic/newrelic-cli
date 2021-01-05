@@ -1,3 +1,13 @@
+<a name="v0.18.9"></a>
+## [v0.18.9] - 2020-12-29
+### Bug Fixes
+- **install:** avoid duplicate installs for logging and infra
+- **install:** include displayName in request and recipe constructor
+- **install:** avoid prompting when user has specified a named recipe
+- **install:** capture task output and print only when debug logging
+- **install:** avoid nil pointer and extra matches for service results
+- **install:** update recipe spec to support displayName
+
 <a name="v0.18.8"></a>
 ## [v0.18.8] - 2020-12-23
 ### Bug Fixes
@@ -362,7 +372,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.9...HEAD
+[v0.18.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.8...v0.18.9
 [v0.18.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.7...v0.18.8
 [v0.18.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.6...v0.18.7
 [v0.18.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.5...v0.18.6

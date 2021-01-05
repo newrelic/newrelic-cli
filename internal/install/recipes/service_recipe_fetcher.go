@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -25,6 +27,10 @@ func NewServiceRecipeFetcher(client NerdGraphClient) RecipeFetcher {
 
 // FetchRecipe gets a recipe by name from the recipe service.
 func (f *ServiceRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
+	log.WithFields(log.Fields{
+		"name": friendlyName,
+	}).Debug("fetching recipe")
+
 	c, err := createRecipeSearchInput(manifest, friendlyName)
 	if err != nil {
 		return nil, err
@@ -204,13 +210,14 @@ func createRecipes(results []types.OpenInstallationRecipe) []types.Recipe {
 func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 	return types.Recipe{
 		ID:             result.ID,
-		File:           result.File,
-		Name:           result.Name,
 		Description:    result.Description,
-		Repository:     result.Repository,
+		DisplayName:    result.DisplayName,
+		File:           result.File,
 		Keywords:       result.Keywords,
-		ProcessMatch:   result.ProcessMatch,
 		LogMatch:       createLogMatches(result.LogMatch),
+		Name:           result.Name,
+		ProcessMatch:   result.ProcessMatch,
+		Repository:     result.Repository,
 		ValidationNRQL: string(result.ValidationNRQL),
 	}
 }
@@ -244,6 +251,7 @@ const (
 	recipeResultFragment = `
 		id
 		name
+		displayName
 		description
 		repository
 		installTargets {

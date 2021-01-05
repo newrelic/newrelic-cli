@@ -23,7 +23,7 @@ The search command performs a search for New Relic entities.
 	Example: "newrelic entity search --name <applicationName>",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			params := entities.SearchEntitiesParams{}
+			params := entities.EntitySearchQueryBuilder{}
 
 			if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
 				utils.LogIfError(cmd.Help())
@@ -35,22 +35,22 @@ The search command performs a search for New Relic entities.
 			}
 
 			if entityType != "" {
-				params.Type = entities.EntityType(entityType)
+				params.Type = entities.EntitySearchQueryBuilderType(entityType)
 			}
 
 			if entityAlertSeverity != "" {
-				params.AlertSeverity = entities.EntityAlertSeverityType(entityAlertSeverity)
+				params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
 			}
 
 			if entityDomain != "" {
-				params.Domain = entities.EntityDomainType(entityDomain)
+				params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
 			}
 
 			if entityTag != "" {
-				tag, err := assembleTagValue(entityTag)
+				key, value, err := assembleTagValue(entityTag)
 				utils.LogIfFatal(err)
 
-				params.Tags = &tag
+				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
 			}
 
 			if entityReporting != "" {
@@ -60,11 +60,18 @@ The search command performs a search for New Relic entities.
 					log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
 				}
 
-				params.Reporting = &reporting
+				params.Reporting = reporting
 			}
 
-			entities, err := nrClient.Entities.SearchEntities(params)
+			results, err := nrClient.Entities.GetEntitySearch(
+				entities.EntitySearchOptions{},
+				"",
+				params,
+				[]entities.EntitySearchSortCriteria{},
+			)
 			utils.LogIfFatal(err)
+
+			entities := results.Results.Entities
 
 			var result interface{}
 
@@ -89,7 +96,7 @@ The search command performs a search for New Relic entities.
 	},
 }
 
-func mapEntities(entities []*entities.Entity, fields []string, fn utils.StructToMapCallback) []map[string]interface{} {
+func mapEntities(entities []entities.EntityOutlineInterface, fields []string, fn utils.StructToMapCallback) []map[string]interface{} {
 	mappedEntities := make([]map[string]interface{}, len(entities))
 
 	for i, v := range entities {

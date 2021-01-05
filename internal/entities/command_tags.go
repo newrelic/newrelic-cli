@@ -43,11 +43,11 @@ The get command returns JSON output of the tags for the requested entity.
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			// Temporary until bulk actions can be build into newrelic-client-go
 			if value, ok := pipe.Get("guid"); ok {
-				tags, err := nrClient.Entities.ListTags(value[0])
+				tags, err := nrClient.Entities.GetTagsForEntity(entities.EntityGUID(value[0]))
 				utils.LogIfFatal(err)
 				utils.LogIfError(output.Print(tags))
 			} else {
-				tags, err := nrClient.Entities.ListTags(entityGUID)
+				tags, err := nrClient.Entities.GetTagsForEntity(entities.EntityGUID(entityGUID))
 				utils.LogIfFatal(err)
 				utils.LogIfError(output.Print(tags))
 			}
@@ -66,7 +66,7 @@ that match the specified keys.
 	Example: "newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3,tag4",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			err := nrClient.Entities.DeleteTags(entityGUID, entityTags)
+			_, err := nrClient.Entities.TaggingDeleteTagFromEntity(entities.EntityGUID(entityGUID), entityTags)
 			utils.LogIfFatal(err)
 
 			log.Info("success")
@@ -84,10 +84,10 @@ The delete-values command deletes the specified tag:value pairs on a given entit
 	Example: "newrelic entity tags delete-values --guid <guid> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tagValues, err := assembleTagValues(entityValues)
+			tagValues, err := assembleTagValuesInput(entityValues)
 			utils.LogIfFatal(err)
 
-			err = nrClient.Entities.DeleteTagValues(entityGUID, tagValues)
+			_, err = nrClient.Entities.TaggingDeleteTagValuesFromEntity(entities.EntityGUID(entityGUID), tagValues)
 			utils.LogIfFatal(err)
 
 			log.Info("success")
@@ -105,10 +105,10 @@ The create command adds tag:value pairs to the given entity.
 	Example: "newrelic entity tags create --guid <entityGUID> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tags, err := assembleTags(entityTags)
+			tags, err := assembleTagsInput(entityTags)
 			utils.LogIfFatal(err)
 
-			err = nrClient.Entities.AddTags(entityGUID, tags)
+			_, err = nrClient.Entities.TaggingAddTagsToEntity(entities.EntityGUID(entityGUID), tags)
 			utils.LogIfFatal(err)
 
 			log.Info("success")
@@ -127,10 +127,10 @@ provided for the given entity.
 	Example: "newrelic entity tags replace --guid <entityGUID> --tag tag1:value1",
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tags, err := assembleTags(entityTags)
+			tags, err := assembleTagsInput(entityTags)
 			utils.LogIfFatal(err)
 
-			err = nrClient.Entities.ReplaceTags(entityGUID, tags)
+			_, err = nrClient.Entities.TaggingReplaceTagsOnEntity(entities.EntityGUID(entityGUID), tags)
 			utils.LogIfFatal(err)
 
 			log.Info("success")
@@ -138,14 +138,14 @@ provided for the given entity.
 	},
 }
 
-func assembleTags(tags []string) ([]entities.Tag, error) {
-	var t []entities.Tag
+func assembleTagsInput(tags []string) ([]entities.TaggingTagInput, error) {
+	var t []entities.TaggingTagInput
 
 	tagBuilder := make(map[string][]string)
 
 	for _, x := range tags {
 		if !strings.Contains(x, ":") {
-			return []entities.Tag{}, errors.New("tags must be specified as colon separated key:value pairs")
+			return []entities.TaggingTagInput{}, errors.New("tags must be specified as colon separated key:value pairs")
 		}
 
 		v := strings.SplitN(x, ":", 2)
@@ -154,7 +154,7 @@ func assembleTags(tags []string) ([]entities.Tag, error) {
 	}
 
 	for k, v := range tagBuilder {
-		tag := entities.Tag{
+		tag := entities.TaggingTagInput{
 			Key:    k,
 			Values: v,
 		}
@@ -165,42 +165,54 @@ func assembleTags(tags []string) ([]entities.Tag, error) {
 	return t, nil
 }
 
-func assembleTagValues(values []string) ([]entities.TagValue, error) {
-	var tagValues []entities.TagValue
+func assembleTagValues(values []string) ([]entities.EntitySearchQueryBuilderTag, error) {
+	var tagValues []entities.EntitySearchQueryBuilderTag
 
 	for _, x := range values {
-		tv, err := assembleTagValue(x)
+		key, value, err := assembleTagValue(x)
 
 		if err != nil {
-			return []entities.TagValue{}, err
+			return []entities.EntitySearchQueryBuilderTag{}, err
 		}
 
-		tagValues = append(tagValues, tv)
+		tagValues = append(tagValues, entities.EntitySearchQueryBuilderTag{Key: key, Value: value})
 	}
 
 	return tagValues, nil
 }
 
-func assembleTagValue(tagValueString string) (entities.TagValue, error) {
+// assembleTagValuesInput is the same as assembleTagValues
+func assembleTagValuesInput(values []string) ([]entities.TaggingTagValueInput, error) {
+	var tagValues []entities.TaggingTagValueInput
+
+	for _, x := range values {
+		key, value, err := assembleTagValue(x)
+
+		if err != nil {
+			return []entities.TaggingTagValueInput{}, err
+		}
+
+		tagValues = append(tagValues, entities.TaggingTagValueInput{Key: key, Value: value})
+	}
+
+	return tagValues, nil
+}
+
+func assembleTagValue(tagValueString string) (string, string, error) {
 	tagFormatError := errors.New("tag values must be specified as colon separated key:value pairs")
 
 	if !strings.Contains(tagValueString, ":") {
-		return entities.TagValue{}, tagFormatError
+		return "", "", tagFormatError
 	}
 
 	v := strings.SplitN(tagValueString, ":", 2)
 
 	// Handle incomplete tag where the value portion is empty
 	if v[1] == "" {
-		return entities.TagValue{}, tagFormatError
+		return "", "", tagFormatError
 	}
 
-	tv := entities.TagValue{
-		Key:   v[0],
-		Value: v[1],
-	}
-
-	return tv, nil
+	return v[0], v[1], nil
 }
 
 func init() {
