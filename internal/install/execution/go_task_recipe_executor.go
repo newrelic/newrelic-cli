@@ -195,7 +195,7 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 		if envValue == "" {
 			if assumeYes {
 				log.Debugf("required env var %s not found, using default value", envConfig.Name)
-				envValue = envConfig.Default
+				vars[envConfig.Name] = envConfig.Default
 			} else {
 				log.Debugf("required env var %s not found, prompting for input", envConfig.Name)
 				msg := fmt.Sprintf("value for %s required", envConfig.Name)
