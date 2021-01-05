@@ -76,7 +76,7 @@ To make the examples simpler, we'll export the environment variable
 `$ACCOUNT_ID`.
 
 ```sh
-export ACCOUNT_ID=<your_account_id>
+export NEW_RELIC_ACCOUNT_ID=<your_account_id>
 ```
 
 #### Tagging an application
