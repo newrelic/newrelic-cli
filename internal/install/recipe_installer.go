@@ -81,13 +81,9 @@ func (i *RecipeInstaller) Install() error {
 	`)
 
 	// Execute the discovery process if necessary, exiting on failure.
-	var m *types.DiscoveryManifest
-	var err error
-	if i.ShouldRunDiscovery() {
-		m, err = i.discoverWithProgress()
-		if err != nil {
-			return i.fail(err)
-		}
+	m, err := i.discoverWithProgress()
+	if err != nil {
+		return i.fail(err)
 	}
 
 	var recipes []types.Recipe
@@ -113,7 +109,7 @@ func (i *RecipeInstaller) Install() error {
 				}
 			}
 		}
-	} else {
+	} else if i.ShouldRunDiscovery() {
 		// Ask the recipe service for recommendations.
 		recipes, err = i.fetchRecommendationsWithStatus(m)
 		if err != nil {
@@ -139,7 +135,6 @@ func (i *RecipeInstaller) Install() error {
 			log.Error(i.failMessage(infraAgentRecipeName))
 			return i.fail(err)
 		}
-
 	}
 
 	// Run the logging recipe if requested, exiting on failure.
