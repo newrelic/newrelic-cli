@@ -184,7 +184,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		var err error
 
 		// Skip prompting the user if the recipe has been asked for directly.
-		if i.RecipesProvided() {
+		if i.RecipesProvided() || i.InstallerContext.AssumeYes {
 			ok = true
 		} else {
 			ok, err = i.userAcceptsInstall(r)
@@ -415,7 +415,7 @@ func (i *RecipeInstaller) reportComplete() {
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
-	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r)
+	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
 		return "", fmt.Errorf("could not prepare recipe %s", err)
 	}

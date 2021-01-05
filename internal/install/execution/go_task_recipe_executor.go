@@ -30,7 +30,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	return &GoTaskRecipeExecutor{}
 }
 
-func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe) (types.RecipeVars, error) {
+func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, y bool) (types.RecipeVars, error) {
 	vars := types.RecipeVars{}
 
 	results := []types.RecipeVars{}
@@ -52,7 +52,7 @@ func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryMa
 		return types.RecipeVars{}, err
 	}
 
-	inputVarsResult, err := varsFromInput(f.InputVars)
+	inputVarsResult, err := varsFromInput(f.InputVars, y)
 	if err != nil {
 		return types.RecipeVars{}, err
 	}
@@ -186,37 +186,43 @@ func varsFromRecipe(r types.Recipe) (types.RecipeVars, error) {
 	return vars, nil
 }
 
-func varsFromInput(inputVars []recipes.VariableConfig) (types.RecipeVars, error) {
+func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.RecipeVars, error) {
 	vars := make(types.RecipeVars)
 
 	for _, envConfig := range inputVars {
 		envValue := os.Getenv(envConfig.Name)
+
 		if envValue == "" {
-			log.Debugf("required env var %s not found", envConfig.Name)
-			msg := fmt.Sprintf("value for %s required", envConfig.Name)
+			if assumeYes {
+				log.Debugf("required env var %s not found, using default value", envConfig.Name)
+				envValue = envConfig.Default
+			} else {
+				log.Debugf("required env var %s not found, prompting for input", envConfig.Name)
+				msg := fmt.Sprintf("value for %s required", envConfig.Name)
 
-			if envConfig.Prompt != "" {
-				msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
+				if envConfig.Prompt != "" {
+					msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
+				}
+
+				prompt := promptui.Prompt{
+					Label: msg,
+				}
+
+				if envConfig.Secret {
+					prompt.HideEntered = true
+				}
+
+				if envConfig.Default != "" {
+					prompt.Default = envConfig.Default
+				}
+
+				result, err := prompt.Run()
+				if err != nil {
+					return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
+				}
+
+				vars[envConfig.Name] = result
 			}
-
-			prompt := promptui.Prompt{
-				Label: msg,
-			}
-
-			if envConfig.Secret {
-				prompt.HideEntered = true
-			}
-
-			if envConfig.Default != "" {
-				prompt.Default = envConfig.Default
-			}
-
-			result, err := prompt.Run()
-			if err != nil {
-				return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
-			}
-
-			vars[envConfig.Name] = result
 		} else {
 			vars[envConfig.Name] = envValue
 		}
