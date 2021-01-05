@@ -30,7 +30,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	return &GoTaskRecipeExecutor{}
 }
 
-func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, y bool) (types.RecipeVars, error) {
+func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, assumeYes bool) (types.RecipeVars, error) {
 	vars := types.RecipeVars{}
 
 	results := []types.RecipeVars{}
@@ -52,7 +52,7 @@ func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryMa
 		return types.RecipeVars{}, err
 	}
 
-	inputVarsResult, err := varsFromInput(f.InputVars, y)
+	inputVarsResult, err := varsFromInput(f.InputVars, assumeYes)
 	if err != nil {
 		return types.RecipeVars{}, err
 	}
@@ -190,47 +190,53 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 	vars := make(types.RecipeVars)
 
 	for _, envConfig := range inputVars {
+		var err error
 		envValue := os.Getenv(envConfig.Name)
 
-		if envValue == "" {
-			if assumeYes {
-				if envConfig.Default == "" {
-					return vars, fmt.Errorf("no default value for environment variable %s and none provided", envConfig.Name)
-				}
-
-				log.Debugf("required env var %s not found, using default value", envConfig.Name)
-				vars[envConfig.Name] = envConfig.Default
-			} else {
-				log.Debugf("required env var %s not found, prompting for input", envConfig.Name)
-				msg := fmt.Sprintf("value for %s required", envConfig.Name)
-
-				if envConfig.Prompt != "" {
-					msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
-				}
-
-				prompt := promptui.Prompt{
-					Label: msg,
-				}
-
-				if envConfig.Secret {
-					prompt.HideEntered = true
-				}
-
-				if envConfig.Default != "" {
-					prompt.Default = envConfig.Default
-				}
-
-				result, err := prompt.Run()
-				if err != nil {
-					return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
-				}
-
-				vars[envConfig.Name] = result
-			}
-		} else {
+		if envValue != "" {
 			vars[envConfig.Name] = envValue
+			continue
 		}
+
+		if assumeYes {
+			if envConfig.Default == "" {
+				return vars, fmt.Errorf("no default value for environment variable %s and none provided", envConfig.Name)
+			}
+
+			log.Debugf("required env var %s not found, using default value", envConfig.Name)
+			envValue = envConfig.Default
+		} else {
+			log.Debugf("required env var %s not found, prompting for input", envConfig.Name)
+			envValue, err = varFromPrompt(envConfig)
+			if err != nil {
+				return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
+			}
+		}
+
+		vars[envConfig.Name] = envValue
 	}
 
 	return vars, nil
+}
+
+func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
+	msg := fmt.Sprintf("value for %s required", envConfig.Name)
+
+	if envConfig.Prompt != "" {
+		msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
+	}
+
+	prompt := promptui.Prompt{
+		Label: msg,
+	}
+
+	if envConfig.Secret {
+		prompt.HideEntered = true
+	}
+
+	if envConfig.Default != "" {
+		prompt.Default = envConfig.Default
+	}
+
+	return prompt.Run()
 }

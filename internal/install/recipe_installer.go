@@ -185,7 +185,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		var err error
 
 		// Skip prompting the user if the recipe has been asked for directly.
-		if i.RecipesProvided() || i.InstallerContext.AssumeYes {
+		if i.RecipesProvided() || i.AssumeYes {
 			ok = true
 		} else {
 			ok, err = i.userAcceptsInstall(r)
@@ -435,7 +435,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
-	if i.InstallerContext.AssumeYes {
+	if i.AssumeYes {
 		return true, nil
 	}
 
@@ -448,7 +448,7 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
-	if i.InstallerContext.AssumeYes {
+	if i.AssumeYes {
 		return true, nil
 	}
 
@@ -457,7 +457,7 @@ func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error)
 }
 
 func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
-	if i.InstallerContext.AssumeYes {
+	if i.AssumeYes {
 		return true, nil
 	}
 
