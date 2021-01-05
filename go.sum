@@ -707,6 +707,7 @@ github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d h1:AREM5mwr4u1
 github.com/nbutton23/zxcvbn-go v0.0.0-20180912185939-ae427f1e4c1d/go.mod h1:o96djdrsSGy3AWPyBgZMAGfxZNfgntdJG+11KU4QvbU=
 github.com/newrelic/newrelic-client-go v0.54.0 h1:D3eb9nvkwWe/L4XkAximzIAkbd9AZ6U4UHfdzD/c5gk=
 github.com/newrelic/newrelic-client-go v0.54.0/go.mod h1:nrH9p9JKEN4c++wElg7cRe4RRgAPaDpGs2DzXPoDE1o=
+github.com/newrelic/tutone v0.5.0 h1:DZ5XtC9JgoyMUgQyy2O8e9W7s8neBJyow2Owd6SQhDc=
 github.com/newrelic/tutone v0.5.0/go.mod h1:q1puTNl77wSVapUTh+6AXlgXTON8hgGeXCxil3vwvrE=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
