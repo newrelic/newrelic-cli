@@ -7,6 +7,7 @@ type InstallerContext struct {
 	SkipIntegrations   bool
 	RecipeNames        []string
 	RecipePaths        []string
+	AssumeYes          bool
 }
 
 func (i *InstallerContext) ShouldRunDiscovery() bool {

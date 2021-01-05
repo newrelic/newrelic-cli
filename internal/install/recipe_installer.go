@@ -434,6 +434,10 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
+	if i.InstallerContext.AssumeYes {
+		return true, nil
+	}
+
 	val, err := i.prompter.PromptYesNo(msg)
 	if err != nil {
 		return false, err
@@ -443,11 +447,19 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
+	if i.InstallerContext.AssumeYes {
+		return true, nil
+	}
+
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s\nDo you want to watch them? [Yes/No]", match.File)
 	return i.userAccepts(msg)
 }
 
 func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
+	if i.InstallerContext.AssumeYes {
+		return true, nil
+	}
+
 	msg := fmt.Sprintf("Would you like to enable %s?", r.Name)
 	return i.userAccepts(msg)
 }
