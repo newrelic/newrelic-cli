@@ -79,6 +79,7 @@ func (i *RecipeInstaller) Install() error {
 	https://docs.newrelic.com/
 
 	`)
+	fmt.Println()
 
 	// Execute the discovery process if necessary, exiting on failure.
 	m, err := i.discoverWithProgress()
