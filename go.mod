@@ -18,7 +18,7 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
-	github.com/newrelic/newrelic-client-go v0.54.1
+	github.com/newrelic/newrelic-client-go v0.55.0
 	github.com/psampaz/go-mod-outdated v0.7.0
 	github.com/shirou/gopsutil v3.20.12+incompatible
 	github.com/sirupsen/logrus v1.7.0
