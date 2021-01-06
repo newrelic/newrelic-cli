@@ -3,6 +3,7 @@ module github.com/newrelic/newrelic-cli
 go 1.13
 
 require (
+	github.com/apex/log v1.9.0
 	github.com/briandowns/spinner v1.12.0
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.10.0

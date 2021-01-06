@@ -14,12 +14,13 @@ const (
 )
 
 var (
-	configDir           string
-	configFileName      = "config.json"
-	credsFileName       = "credentials.json"
-	viperConfig         *viper.Viper
-	viperCreds          *viper.Viper
-	viperDefaultProfile *viper.Viper
+	configDir              string
+	configFileName         = "config.json"
+	credsFileName          = "credentials.json"
+	defaultProfileFileName = "default-profile.json"
+	viperConfig            *viper.Viper
+	viperCreds             *viper.Viper
+	viperDefaultProfile    *viper.Viper
 )
 
 func GetConfigValue(key string) interface{} {
@@ -36,6 +37,10 @@ func load() error {
 	}
 
 	if err := loadCredsFile(); err != nil {
+		return err
+	}
+
+	if err := loadDefaultProfileFile(); err != nil {
 		return err
 	}
 
@@ -66,6 +71,21 @@ func loadCredsFile() error {
 	viperCreds.AutomaticEnv()
 
 	if err := loadFile(viperCreds); err != nil {
+		return fmt.Errorf("error loading credentials file: %s", err)
+	}
+
+	return nil
+}
+
+func loadDefaultProfileFile() error {
+	viperDefaultProfile = viper.New()
+	viperDefaultProfile.SetEnvPrefix(configEnvPrefix)
+	viperDefaultProfile.SetConfigName(defaultProfileFileName)
+	viperDefaultProfile.SetConfigType(configType)
+	viperDefaultProfile.AddConfigPath(configDir)
+	viperDefaultProfile.AutomaticEnv()
+
+	if err := loadFile(viperDefaultProfile); err != nil {
 		return fmt.Errorf("error loading credentials file: %s", err)
 	}
 
