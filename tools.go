@@ -22,4 +22,7 @@ import (
 
 	// build/test.mk
 	_ "gotest.tools/gotestsum"
+
+	// build/generate.mk
+	_ "github.com/newrelic/tutone/cmd/tutone"
 )
