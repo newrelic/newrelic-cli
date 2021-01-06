@@ -1,3 +1,14 @@
+<a name="v0.18.10"></a>
+## [v0.18.10] - 2021-01-05
+### Bug Fixes
+- **install:** return error when default value is needed and not provided
+- **install:** skip linting maligned struct
+- **install:** set better default value when running automatic
+- **install:** print newline after banner
+
+### Features
+- **install:** add -y flag
+
 <a name="v0.18.9"></a>
 ## [v0.18.9] - 2020-12-29
 ### Bug Fixes
@@ -372,7 +383,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.9...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.10...HEAD
+[v0.18.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.9...v0.18.10
 [v0.18.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.8...v0.18.9
 [v0.18.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.7...v0.18.8
 [v0.18.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.6...v0.18.7
