@@ -99,8 +99,7 @@ func (i *RecipeInstaller) Install() error {
 				log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
 				return i.fail(err)
 			}
-
-			log.Debugln("Found recipe from path %s.", n)
+			log.Debugln(fmt.Sprintf("Found recipe from path %s.", n))
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
@@ -156,7 +155,7 @@ func (i *RecipeInstaller) Install() error {
 			return i.fail(err)
 		}
 		log.Debugf("Done installing infrastructure agent.")
-	}	else {
+	} else {
 		log.Debugf("Skipping installing infrastructure agent")
 	}
 
@@ -168,7 +167,7 @@ func (i *RecipeInstaller) Install() error {
 			return i.fail(err)
 		}
 		log.Debugf("Done installing logging.")
-	}	else {
+	} else {
 		log.Debugf("Skipping installing logging")
 	}
 
@@ -180,7 +179,7 @@ func (i *RecipeInstaller) Install() error {
 			return err
 		}
 		log.Debugf("Done installing integrations.")
-	}	else {
+	} else {
 		log.Debugf("Skipping installing integrations")
 	}
 
@@ -214,7 +213,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		// The infra and logging install have their own install methods.  In the
 		// case where the recommendations come back with either of these recipes,
 		// we skip here to avoid duplicate installation.
-		if i.RecipesProvided() == false{
+		if !i.RecipesProvided() {
 			if r.Name == infraAgentRecipeName || r.Name == loggingRecipeName {
 				log.Debugf(fmt.Sprintf("Skipping recipe %s with prompts, matching either infra agent name %s or logging recipe name %s.", r.Name, infraAgentRecipeName, loggingRecipeName))
 				continue
@@ -233,9 +232,8 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 			if err != nil {
 				log.Debugf(fmt.Sprintf("Done installing recipes with prompts, exception:%s", err))
 				return true, err
-			} else {
-				log.Debugf(fmt.Sprintf("Done checking user accepts install ok:%t", ok))
 			}
+			log.Debugf(fmt.Sprintf("Done checking user accepts install ok:%t", ok))
 		}
 
 		if !ok {
