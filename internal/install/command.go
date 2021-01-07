@@ -44,8 +44,10 @@ var Command = &cobra.Command{
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
 			if trace {
 				log.SetLevel(log.TraceLevel)
+				nrClient.SetLogLevel("trace")
 			} else if debug {
 				log.SetLevel(log.DebugLevel)
+				nrClient.SetLogLevel("debug")
 			}
 
 			err := assertProfileIsValid(profile)
