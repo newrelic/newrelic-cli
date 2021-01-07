@@ -8,7 +8,6 @@ import (
 	"html/template"
 	"time"
 
-	"github.com/briandowns/spinner"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
@@ -52,12 +51,6 @@ func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.Disco
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
-
-	if isTest := ctx.Value(TestIdentifierKey); isTest == nil {
-		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
-		s.Start()
-		defer s.Stop()
-	}
 
 	for {
 		if count == m.maxAttempts {
