@@ -8,7 +8,7 @@ require (
 	github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373
 	github.com/go-task/task/v3 v3.1.0
 	github.com/golangci/golangci-lint v1.34.1
-	github.com/google/uuid v1.1.3
+	github.com/google/uuid v1.1.4
 	github.com/goreleaser/goreleaser v0.152.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20201222001619-a42f9ac2ec8e
 	github.com/imdario/mergo v0.3.11
@@ -18,7 +18,8 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.0
-	github.com/newrelic/newrelic-client-go v0.54.0
+	github.com/newrelic/newrelic-client-go v0.55.0
+	github.com/newrelic/tutone v0.5.0
 	github.com/psampaz/go-mod-outdated v0.7.0
 	github.com/shirou/gopsutil v3.20.12+incompatible
 	github.com/sirupsen/logrus v1.7.0
@@ -29,6 +30,7 @@ require (
 	github.com/tidwall/gjson v1.6.7
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	golang.org/x/tools v0.0.0-20210104081019-d8d6ddbec6ee
+	gopkg.in/AlecAivazis/survey.v1 v1.8.8 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v0.6.0
 )

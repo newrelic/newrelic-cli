@@ -17,7 +17,7 @@ Docker users can grab the latest [Docker image][docker_image] containing the
 
 ```sh
 docker pull newrelic/cli:latest
-docker run -i --rm -e NEW_RELIC_API_KEY newrelic/cli apm application search --name WebPortal --accountId $ACCOUNT_ID
+docker run -i --rm -e NEW_RELIC_API_KEY newrelic/cli apm application search --name WebPortal --accountId $NEW_RELIC_ACCOUNT_ID
 ```
 
 Binary releases are available on [GitHub][releases] as well and installed
@@ -73,10 +73,10 @@ In the examples that follow, we'll be using an example application,
 `WebPortal`.
 
 To make the examples simpler, we'll export the environment variable
-`$ACCOUNT_ID`.
+`$NEW_RELIC_ACCOUNT_ID`.
 
 ```sh
-export ACCOUNT_ID=<your_account_id>
+export NEW_RELIC_ACCOUNT_ID=<your_account_id>
 ```
 
 #### Tagging an application
@@ -85,7 +85,7 @@ In order to know which application we want to tag, we'll perform an APM search
 using the `apm application get` command.
 
 ```sh
-newrelic apm application search --accountId $ACCOUNT_ID --name WebPortal
+newrelic apm application search --accountId $NEW_RELIC_ACCOUNT_ID --name WebPortal
 ```
 
 This yields the following output about the application we're going to target.
@@ -194,7 +194,7 @@ Here we'll couple the `newrelic` CLI with the `jq`  command to tag each
 application returned in our query with a new tag.
 
 ```sh
-newrelic apm application search --accountId $ACCOUNT_ID | jq -r '.[].guid' | xargs -I {} newrelic entity tags create -g {} -t devkit:testing
+newrelic apm application search --accountId $NEW_RELIC_ACCOUNT_ID | jq -r '.[].guid' | xargs -I {} newrelic entity tags create -g {} -t devkit:testing
 ```
 In the above, we first run `apm application get` to return the applications for
 our given account.  This could be filtered further to reduce the set of

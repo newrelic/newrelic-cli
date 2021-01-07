@@ -65,6 +65,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	return &i
 }
 
+// nolint:gocyclo
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
 	 _   _                 ____      _ _
@@ -91,29 +92,36 @@ func (i *RecipeInstaller) Install() error {
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
 		for _, n := range i.RecipePaths {
+			log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
 			var recipe *types.Recipe
 			recipe, err = i.recipeFromPath(n)
 			if err != nil {
+				log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
 				return i.fail(err)
 			}
-
+			log.Debugln(fmt.Sprintf("Found recipe from path %s.", n))
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
 		// Fetch the provided recipes from the recipe service.
 		for _, n := range i.RecipeNames {
+			log.Debugln(fmt.Sprintf("Attempting to match recipeName %s.", n))
 			r := i.fetchWarn(m, n)
 			if r != nil {
 				// Skip anything that was returned by the service if it does not match the requested name.
 				if r.Name == n {
+					log.Debugln(fmt.Sprintf("Found recipe from name %s.", n))
 					recipes = append(recipes, *r)
+				} else {
+					log.Debugln(fmt.Sprintf("Skipping recipe, name %s does not match.", r.Name))
 				}
 			}
 		}
 	} else if i.ShouldRunDiscovery() {
-		// Ask the recipe service for recommendations.
+		log.Debugln("Ask the recipe service for recommendations.")
 		recipes, err = i.fetchRecommendationsWithStatus(m)
 		if err != nil {
+			log.Debugln(fmt.Sprintf("Error while finding recommendations, detail:%s.", err))
 			return i.fail(err)
 		}
 
@@ -122,42 +130,69 @@ func (i *RecipeInstaller) Install() error {
 		}
 
 		for _, r := range recipes {
-			log.Debugf("Found available integration %s.", r.Name)
+			log.Debugf(fmt.Sprintf("Found available integration %s.", r.Name))
 		}
 
 		i.reportRecipesAvailable(recipes)
 	}
 
+	log.Debugf(fmt.Sprintf("AssumeYes:%t.", i.AssumeYes))
+	log.Debugf(fmt.Sprintf("RecipeNames:%s.", i.RecipeNames))
+	log.Debugf(fmt.Sprintf("RecipePaths:%s.", i.RecipePaths))
+	log.Debugf(fmt.Sprintf("SkipDiscovery:%t.", i.SkipDiscovery))
+	log.Debugf(fmt.Sprintf("SkipInfraInstall:%t.", i.SkipInfraInstall))
+	log.Debugf(fmt.Sprintf("SkipLoggingInstall:%t.", i.SkipLoggingInstall))
+	log.Debugf(fmt.Sprintf("SkipIntegrations:%t.", i.SkipIntegrations))
+	log.Debugf(fmt.Sprintf("RecipesProvided:%t.", i.RecipesProvided()))
+
 	// Install the Infrastructure Agent if requested, exiting on failure.
 	var entityGUID string
 	if i.ShouldInstallInfraAgent() {
+		log.Debugf("Installing infrastructure agent...")
 		entityGUID, err = i.installInfraAgent(m)
 		if err != nil {
 			log.Error(i.failMessage(infraAgentRecipeName))
 			return i.fail(err)
 		}
+		log.Debugf("Done installing infrastructure agent.")
+	} else {
+		log.Debugf("Skipping installing infrastructure agent")
 	}
 
 	// Run the logging recipe if requested, exiting on failure.
 	if i.ShouldInstallLogging() {
-		_, err := i.installLogging(m, recipes)
-		if err != nil {
+		log.Debugf("Installing logging...")
+		if err = i.installLogging(m, recipes); err != nil {
 			log.Error(i.failMessage(loggingRecipeName))
 			return i.fail(err)
 		}
+		log.Debugf("Done installing logging.")
+	} else {
+		log.Debugf("Skipping installing logging")
 	}
 
+	recipeErrorsEncountered := false
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
-		if err := i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
+		log.Debugf("Installing integrations...")
+		if recipeErrorsEncountered, err = i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
 			return err
 		}
+		log.Debugf("Done installing integrations.")
+	} else {
+		log.Debugf("Skipping installing integrations")
+	}
+
+	i.reportComplete()
+
+	if recipeErrorsEncountered {
+		return errors.New("one or more integrations failed to install, check the install log for more details")
 	}
 
 	msg := `
-	Success! Your data is available in New Relic.
+		Success! Your data is available in New Relic.
 
-	Go to New Relic to confirm and start exploring your data.`
+		Go to New Relic to confirm and start exploring your data.`
 
 	profile := credentials.DefaultProfile()
 	if profile != nil {
@@ -166,36 +201,43 @@ func (i *RecipeInstaller) Install() error {
 	}
 
 	fmt.Println(msg)
-
-	i.reportComplete()
 	return nil
 }
 
-func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
+func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) (bool, error) {
+	errorsEncountered := false
+	log.Debugf("Installing recipes with prompts...")
 
 	for _, r := range recipes {
+		log.Debugf(fmt.Sprintf("Installing recipe %s with prompts...", r.Name))
 		// The infra and logging install have their own install methods.  In the
 		// case where the recommendations come back with either of these recipes,
 		// we skip here to avoid duplicate installation.
-		if r.Name == infraAgentRecipeName || r.Name == loggingRecipeName {
-			continue
+		if !i.RecipesProvided() {
+			if r.Name == infraAgentRecipeName || r.Name == loggingRecipeName {
+				log.Debugf(fmt.Sprintf("Skipping recipe %s with prompts, matching either infra agent name %s or logging recipe name %s.", r.Name, infraAgentRecipeName, loggingRecipeName))
+				continue
+			}
 		}
 
 		var ok bool
 		var err error
 
 		// Skip prompting the user if the recipe has been asked for directly.
-		if i.RecipesProvided() || i.InstallerContext.AssumeYes {
+		if i.RecipesProvided() || i.AssumeYes {
 			ok = true
 		} else {
+			log.Debugf("Checking user accepts install...")
 			ok, err = i.userAcceptsInstall(r)
 			if err != nil {
-				return err
+				log.Debugf(fmt.Sprintf("Done installing recipes with prompts, exception:%s", err))
+				return true, err
 			}
+			log.Debugf(fmt.Sprintf("Done checking user accepts install ok:%t", ok))
 		}
 
 		if !ok {
-			log.Debugf("skipping recipe %s.", r.Name)
+			log.Debugf(fmt.Sprintf("skipping not ok recipe %s.", r.Name))
 			i.reportRecipeSkipped(execution.RecipeStatusEvent{
 				Recipe:     r,
 				EntityGUID: entityGUID,
@@ -203,14 +245,19 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 			continue
 		}
 
+		log.Debugf(fmt.Sprintf("Executing and validating with progress for recipe name %s...", r.Name))
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
+			errorsEncountered = true
+			log.Debugf(fmt.Sprintf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err))
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
 		}
+		log.Debugf(fmt.Sprintf("Done executing and validating with progress for recipe name %s.", r.Name))
 	}
 
-	return nil
+	log.Debugf(fmt.Sprintf("Done installing recipes with prompts, errorsEncountered:%t", errorsEncountered))
+	return errorsEncountered, nil
 }
 
 func (i *RecipeInstaller) discoverWithProgress() (*types.DiscoveryManifest, error) {
@@ -259,22 +306,23 @@ func (i *RecipeInstaller) installInfraAgent(m *types.DiscoveryManifest) (string,
 	return i.fetchExecuteAndValidate(m, infraAgentRecipeName)
 }
 
-func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []types.Recipe) (string, error) {
+func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []types.Recipe) error {
 	r, err := i.fetch(m, loggingRecipeName)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	logMatches, err := i.fileFilterer.Filter(utils.SignalCtx, recipes)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var acceptedLogMatches []types.LogMatch
+	var ok bool
 	for _, match := range logMatches {
-		ok, err := i.userAcceptsLogFile(match)
+		ok, err = i.userAcceptsLogFile(match)
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		if ok {
@@ -289,7 +337,8 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []t
 
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
-	return i.executeAndValidateWithProgress(m, r)
+	_, err = i.executeAndValidateWithProgress(m, r)
+	return err
 }
 
 func (i *RecipeInstaller) fetchRecommendationsWithStatus(m *types.DiscoveryManifest) ([]types.Recipe, error) {
@@ -435,7 +484,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
-	if i.InstallerContext.AssumeYes {
+	if i.AssumeYes {
 		return true, nil
 	}
 
@@ -448,7 +497,7 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
-	if i.InstallerContext.AssumeYes {
+	if i.AssumeYes {
 		return true, nil
 	}
 
@@ -457,7 +506,7 @@ func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error)
 }
 
 func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
-	if i.InstallerContext.AssumeYes {
+	if i.AssumeYes {
 		return true, nil
 	}
 
