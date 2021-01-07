@@ -2,8 +2,6 @@ package install
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -68,9 +66,6 @@ var Command = &cobra.Command{
 func assertProfileIsValid(profile *credentials.Profile) error {
 	if profile == nil {
 		return errors.New("default profile has not been set")
-	}
-	if !strings.EqualFold(profile.Region, "US") {
-		return fmt.Errorf("only the US region is supported at this time. region %s is not supported", profile.Region)
 	}
 	return nil
 }
