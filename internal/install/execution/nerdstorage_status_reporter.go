@@ -44,6 +44,17 @@ func (r NerdstorageStatusReporter) ReportRecipesAvailable(recipes []types.Recipe
 	return nil
 }
 
+// ReportRecipeAvailable reports that a recipe is available for installation on
+// the underlying host.
+func (r NerdstorageStatusReporter) ReportRecipeAvailable(recipe types.Recipe) error {
+	r.status.withAvailableRecipe(recipe)
+	if err := r.writeStatus(""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r NerdstorageStatusReporter) ReportRecipeFailed(e RecipeStatusEvent) error {
 	r.status.withRecipeEvent(e, StatusTypes.FAILED)
 	if err := r.writeStatus(e.EntityGUID); err != nil {

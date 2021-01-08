@@ -53,9 +53,13 @@ func NewStatusRollup() StatusRollup {
 
 func (s *StatusRollup) withAvailableRecipes(recipes []types.Recipe) {
 	for _, r := range recipes {
-		e := RecipeStatusEvent{Recipe: r}
-		s.withRecipeEvent(e, StatusTypes.AVAILABLE)
+		s.withAvailableRecipe(r)
 	}
+}
+
+func (s *StatusRollup) withAvailableRecipe(r types.Recipe) {
+	e := RecipeStatusEvent{Recipe: r}
+	s.withRecipeEvent(e, StatusTypes.AVAILABLE)
 }
 
 func (s *StatusRollup) withEntityGUID(entityGUID string) {
