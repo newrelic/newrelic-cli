@@ -2,8 +2,12 @@ package configuration
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 
-	"github.com/apex/log"
+	"github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -11,6 +15,10 @@ const (
 	configType            = "json"
 	configEnvPrefix       = "NEW_RELIC_CLI"
 	globalScopeIdentifier = "*"
+	apiKeyKey             = "apiKey"
+	regionKey             = "region"
+	accountIDKey          = "accountID"
+	licenseKeyKey         = "licenseKey"
 )
 
 var (
@@ -18,20 +26,61 @@ var (
 	configFileName         = "config.json"
 	credsFileName          = "credentials.json"
 	defaultProfileFileName = "default-profile.json"
+	defaultProfileValue    string
 	viperConfig            *viper.Viper
 	viperCreds             *viper.Viper
 	viperDefaultProfile    *viper.Viper
 )
 
+// TODO: SetConfigValue(key string, value string) {}
+// TODO: SetDefaultProfile(profileName string) {}
+
 func GetConfigValue(key string) interface{} {
 	return viperConfig.Get(keyGlobalScope(key))
 }
 
-func GetProfileValue(key string) interface{} {
+func GetCredentialValue(key string) interface{} {
 	return viperCreds.Get(keyDefaultProfile(key))
 }
 
+func SetAPIKey(profileName string, apiKey string) error {
+	return setCredentialValue(profileName, apiKeyKey, apiKey)
+}
+
+func SetRegion(profileName string, region string) error {
+	return setCredentialValue(profileName, regionKey, region)
+}
+
+func SetAccountID(profileName string, accountID string) error {
+	return setCredentialValue(profileName, accountIDKey, accountID)
+}
+
+func SetLicenseKey(profileName string, licenseKey string) error {
+	return setCredentialValue(profileName, licenseKeyKey, licenseKey)
+}
+
+func setCredentialValue(profileName string, key string, value string) error {
+	keyPath := fmt.Sprintf("%s.%s", profileName, key)
+	viperCreds.Set(keyPath, value)
+
+	err := viperCreds.WriteConfig()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func load() error {
+	// if configDirectory == "" {
+	// 	configDir, err := getDefaultConfigDirectory()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// } else {
+	// 	configDir = configDirectory
+	// }
+
 	if err := loadConfigFile(); err != nil {
 		return err
 	}
@@ -78,16 +127,13 @@ func loadCredsFile() error {
 }
 
 func loadDefaultProfileFile() error {
-	viperDefaultProfile = viper.New()
-	viperDefaultProfile.SetEnvPrefix(configEnvPrefix)
-	viperDefaultProfile.SetConfigName(defaultProfileFileName)
-	viperDefaultProfile.SetConfigType(configType)
-	viperDefaultProfile.AddConfigPath(configDir)
-	viperDefaultProfile.AutomaticEnv()
-
-	if err := loadFile(viperDefaultProfile); err != nil {
-		return fmt.Errorf("error loading credentials file: %s", err)
+	defaultProfileFilePath := filepath.Join(configDir, defaultProfileFileName)
+	defaultProfileBytes, err := ioutil.ReadFile(defaultProfileFilePath)
+	if err != nil {
+		return err
 	}
+
+	defaultProfileValue = strings.Trim(string(defaultProfileBytes), "\"")
 
 	return nil
 }
@@ -115,4 +161,13 @@ func keyDefaultProfile(key string) string {
 
 func defaultProfile() string {
 	return "default"
+}
+
+func getDefaultConfigDirectory() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s/.newrelic", home), nil
 }
