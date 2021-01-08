@@ -15,10 +15,22 @@ const (
 	configType            = "json"
 	configEnvPrefix       = "NEW_RELIC_CLI"
 	globalScopeIdentifier = "*"
-	apiKeyKey             = "apiKey"
-	regionKey             = "region"
-	accountIDKey          = "accountID"
-	licenseKeyKey         = "licenseKey"
+)
+
+// Config keys
+const (
+	logLevelKey           = "loglevel"
+	pluginDirectoryKey    = "plugindir"
+	prereleaseFeaturesKey = "prereleasefeatures"
+	sendDataUsageKey      = "sendusagedata"
+)
+
+// Credential keys
+const (
+	apiKeyKey     = "apiKey"
+	regionKey     = "region"
+	accountIDKey  = "accountID"
+	licenseKeyKey = "licenseKey"
 )
 
 var (
@@ -32,11 +44,37 @@ var (
 	viperDefaultProfile    *viper.Viper
 )
 
-// TODO: SetConfigValue(key string, value string) {}
 // TODO: SetDefaultProfile(profileName string) {}
 
 func GetConfigValue(key string) interface{} {
 	return viperConfig.Get(keyGlobalScope(key))
+}
+
+func SetLogLevel(logLevel string) error {
+	return setConfigValue(logLevelKey, logLevel)
+}
+
+func SetPluginDirectory(directory string) error {
+	return setConfigValue(pluginDirectoryKey, directory)
+}
+
+func SetPreleaseFeatures(prereleaseFeatures string) error {
+	return setConfigValue(prereleaseFeaturesKey, prereleaseFeatures)
+}
+
+func SetSendUsageData(sendUsageData string) error {
+	return setConfigValue(sendDataUsageKey, sendUsageData)
+}
+
+func setConfigValue(key string, value string) error {
+	viperConfig.Set(keyGlobalScope(key), value)
+
+	err := viperConfig.WriteConfig()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetCredentialValue(key string) interface{} {

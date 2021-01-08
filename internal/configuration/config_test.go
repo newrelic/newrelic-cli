@@ -91,6 +91,32 @@ func TestLoad(t *testing.T) {
 	require.Equal(t, "default", defaultProfileValue)
 }
 
+func TestSetConfigValues(t *testing.T) {
+	// Must be called first
+	testScenario := setupTestScenario(t)
+	defer testScenario.teardown()
+
+	// Must load the config prior to tests
+	err := load()
+	require.NoError(t, err)
+
+	err = SetLogLevel("debug")
+	require.NoError(t, err)
+	require.Equal(t, "debug", GetConfigValue(logLevelKey))
+
+	err = SetPluginDirectory("/tmp")
+	require.NoError(t, err)
+	require.Equal(t, "/tmp", GetConfigValue(pluginDirectoryKey))
+
+	err = SetPreleaseFeatures("ALLOW")
+	require.NoError(t, err)
+	require.Equal(t, "ALLOW", GetConfigValue(prereleaseFeaturesKey))
+
+	err = SetSendUsageData("DISALLOW")
+	require.NoError(t, err)
+	require.Equal(t, "DISALLOW", GetConfigValue(sendDataUsageKey))
+}
+
 func TestSetCredentialValues(t *testing.T) {
 	// Must be called first
 	testScenario := setupTestScenario(t)
