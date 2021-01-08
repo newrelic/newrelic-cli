@@ -307,15 +307,26 @@ func (i *RecipeInstaller) installInfraAgent(m *types.DiscoveryManifest) (string,
 }
 
 func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []types.Recipe) error {
+	log.WithFields(log.Fields{
+		"name": loggingRecipeName,
+	}).Debug("fetching log recipe for install")
+
 	r, err := i.fetch(m, loggingRecipeName)
 	if err != nil {
 		return err
 	}
 
+	log.WithFields(log.Fields{
+		"recipe_count": len(recipes),
+	}).Debug("filtering log matches")
 	logMatches, err := i.fileFilterer.Filter(utils.SignalCtx, recipes)
 	if err != nil {
 		return err
 	}
+
+	log.WithFields(log.Fields{
+		"possible_matches": len(logMatches),
+	}).Debug("filtered log matches")
 
 	var acceptedLogMatches []types.LogMatch
 	var ok bool
@@ -329,6 +340,10 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, recipes []t
 			acceptedLogMatches = append(acceptedLogMatches, match)
 		}
 	}
+
+	log.WithFields(log.Fields{
+		"matches": acceptedLogMatches,
+	}).Debug("matches accepted")
 
 	// The struct to approximate the logging configuration file of the Infra Agent.
 	type loggingConfig struct {
@@ -355,10 +370,18 @@ func (i *RecipeInstaller) fetchRecommendationsWithStatus(m *types.DiscoveryManif
 
 	i.progressIndicator.Success()
 
+	log.WithFields(log.Fields{
+		"recipe_count": len(recipes),
+	}).Debug("recipes received")
+
 	return recipes, nil
 }
 
 func (i *RecipeInstaller) fetchExecuteAndValidate(m *types.DiscoveryManifest, recipeName string) (string, error) {
+	log.WithFields(log.Fields{
+		"name": recipeName,
+	}).Trace("fetching recipe by name")
+
 	r, err := i.fetch(m, recipeName)
 	if err != nil {
 		return "", err

@@ -203,10 +203,17 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 				return types.RecipeVars{}, fmt.Errorf("no default value for environment variable %s and none provided", envConfig.Name)
 			}
 
-			log.Debugf("required env var %s not found, using default value", envConfig.Name)
+			log.WithFields(log.Fields{
+				"name":    envConfig.Name,
+				"default": envConfig.Default,
+			}).Debug("required env var not found, using default")
+
 			envValue = envConfig.Default
 		} else {
-			log.Debugf("required env var %s not found, prompting for input", envConfig.Name)
+			log.WithFields(log.Fields{
+				"name": envConfig.Name,
+			}).Debug("required env var not found, prompting for input")
+
 			envValue, err = varFromPrompt(envConfig)
 			if err != nil {
 				return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
