@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/client9/misspell v0.3.4
-	github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373
+	github.com/git-chglog/git-chglog v0.0.0-20210108082821-41ad31326b6b
 	github.com/go-task/task/v3 v3.1.0
 	github.com/golangci/golangci-lint v1.34.1
 	github.com/google/uuid v1.1.4
@@ -30,7 +30,6 @@ require (
 	github.com/tidwall/gjson v1.6.7
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	golang.org/x/tools v0.0.0-20210104081019-d8d6ddbec6ee
-	gopkg.in/AlecAivazis/survey.v1 v1.8.8 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v0.6.0
 )
