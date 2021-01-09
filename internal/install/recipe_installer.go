@@ -146,7 +146,8 @@ func (i *RecipeInstaller) Install() error {
 		i.reportRecipesAvailable(recipes)
 	}
 
-	log.Debugf("InstallerContext: %+v\n", i.InstallerContext)
+	log.Debugf("InstallerContext: %+v", i.InstallerContext)
+	log.Debugf("RecipesProvided: %t", i.RecipesProvided())
 
 	// Install the Infrastructure Agent if requested, exiting on failure.
 	var entityGUID string
