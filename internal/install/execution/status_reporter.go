@@ -8,6 +8,7 @@ type StatusReporter interface {
 	ReportRecipeInstalled(event RecipeStatusEvent) error
 	ReportRecipeSkipped(event RecipeStatusEvent) error
 	ReportRecipesAvailable(recipes []types.Recipe) error
+	ReportRecipeAvailable(recipe types.Recipe) error
 	ReportComplete() error
 }
 

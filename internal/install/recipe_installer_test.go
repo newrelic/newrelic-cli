@@ -140,6 +140,7 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
 	}}
+	f.FetchRecipeVals = []types.Recipe{{}, {}}
 
 	p = &ux.MockPrompter{
 		PromptYesNoVal: true,
@@ -162,6 +163,7 @@ func TestInstall_ReportComplete(t *testing.T) {
 	sr = execution.NewMockStatusReporter()
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{}
+	f.FetchRecipeVals = []types.Recipe{{}, {}}
 
 	v = validation.NewMockRecipeValidator()
 
@@ -208,6 +210,7 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
 	}}
+	f.FetchRecipeVals = []types.Recipe{{}, {}}
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
@@ -217,7 +220,7 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr.ReportRecipeSkippedCallCount)
+	require.Equal(t, 3, sr.ReportRecipeSkippedCallCount)
 	require.Equal(t, 0, sr.ReportRecipeInstalledCallCount)
 }
 

@@ -5,11 +5,13 @@ import "github.com/newrelic/newrelic-cli/internal/install/types"
 // MockStatusReporter is a mock implementation of the ExecutionStatusReporter
 // interface that provides method spies for testing scenarios.
 type MockStatusReporter struct {
+	ReportRecipeAvailableErr        error
 	ReportRecipesAvailableErr       error
 	ReportRecipeFailedErr           error
 	ReportRecipeInstalledErr        error
 	ReportRecipeSkippedErr          error
 	ReportCompleteErr               error
+	ReportRecipeAvailableCallCount  int
 	ReportRecipesAvailableCallCount int
 	ReportRecipeFailedCallCount     int
 	ReportRecipeInstalledCallCount  int
@@ -35,6 +37,11 @@ func (r *MockStatusReporter) ReportRecipeInstalled(event RecipeStatusEvent) erro
 func (r *MockStatusReporter) ReportRecipeSkipped(event RecipeStatusEvent) error {
 	r.ReportRecipeSkippedCallCount++
 	return r.ReportRecipeSkippedErr
+}
+
+func (r *MockStatusReporter) ReportRecipeAvailable(recipe types.Recipe) error {
+	r.ReportRecipeAvailableCallCount++
+	return r.ReportRecipeAvailableErr
 }
 
 func (r *MockStatusReporter) ReportRecipesAvailable(recipes []types.Recipe) error {
