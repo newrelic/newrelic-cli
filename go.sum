@@ -260,8 +260,8 @@ github.com/gin-contrib/sse v0.1.0/go.mod h1:RHrZQHXnP2xjPF+u1gW/2HnVO7nvIa9PG3Gm
 github.com/gin-gonic/gin v1.6.3/go.mod h1:75u5sXoLsGZoRN5Sgbi1eraJ4GU3++wFwWzhwvtwp4M=
 github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373 h1:MHrlpWOOFhCfY1L9iCIUy5cv5HgDtempICenzJt+7ws=
 github.com/git-chglog/git-chglog v0.0.0-20200414013904-db796966b373/go.mod h1:Dcsy1kii/xFyNad5JqY/d0GO5mu91sungp5xotbm3Yk=
-github.com/git-chglog/git-chglog v0.0.0-20210108082821-41ad31326b6b h1:TiIVXGpur181HqqEPbvoG/Q3FlSSThP8Hac16XdYdaM=
-github.com/git-chglog/git-chglog v0.0.0-20210108082821-41ad31326b6b/go.mod h1:WUa9ClOuSj9JSAGvEtsmVew3urFQPCroKmR2xW3gLeI=
+github.com/git-chglog/git-chglog v0.0.0-20210110144858-d6315435a3ac h1:jOjt8IYy4bwbwzoDtcrwvhYNGjUXfMW6G8zedwtzshU=
+github.com/git-chglog/git-chglog v0.0.0-20210110144858-d6315435a3ac/go.mod h1:WUa9ClOuSj9JSAGvEtsmVew3urFQPCroKmR2xW3gLeI=
 github.com/gliderlabs/ssh v0.1.1 h1:j3L6gSLQalDETeEg/Jg0mGY0/y/N6zI2xX1978P0Uqw=
 github.com/gliderlabs/ssh v0.1.1/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=
 github.com/gliderlabs/ssh v0.2.2 h1:6zsha5zo/TWhRhwqCD3+EarCAgZ2yN28ipRnGPnwkI0=
