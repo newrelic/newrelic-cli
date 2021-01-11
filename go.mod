@@ -6,8 +6,8 @@ require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/client9/misspell v0.3.4
 	github.com/git-chglog/git-chglog v0.0.0-20210108082821-41ad31326b6b
-	github.com/golangci/golangci-lint v1.35.0
 	github.com/go-task/task/v3 v3.2.0
+	github.com/golangci/golangci-lint v1.35.2
 	github.com/google/uuid v1.1.4
 	github.com/goreleaser/goreleaser v0.154.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20201222001619-a42f9ac2ec8e
