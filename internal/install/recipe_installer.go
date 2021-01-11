@@ -88,16 +88,6 @@ func (i *RecipeInstaller) Install() error {
 		return i.fail(err)
 	}
 
-	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(m, infraAgentRecipeName)
-	if err != nil {
-		return err
-	}
-
-	loggingRecipe, err := i.fetchRecipeAndReportAvailable(m, loggingRecipeName)
-	if err != nil {
-		return err
-	}
-
 	var recipes []types.Recipe
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -142,43 +132,60 @@ func (i *RecipeInstaller) Install() error {
 		for _, r := range recipes {
 			log.Debugf("Found available integration %s.", r.Name)
 		}
-
-		i.reportRecipesAvailable(recipes)
 	}
 
 	log.Debugf("InstallerContext: %+v", i.InstallerContext)
 	log.Debugf("RecipesProvided: %t", i.RecipesProvided())
 
-	// Install the Infrastructure Agent if requested, exiting on failure.
 	var entityGUID string
-	if i.ShouldInstallInfraAgent() {
-		log.Debugf("Installing infrastructure agent...")
-		entityGUID, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
+	if !i.RecipesProvided() {
+		var infraAgentRecipe, loggingRecipe *types.Recipe
+		// Install the Infrastructure Agent if requested, exiting on failure.
+		infraAgentRecipe, err = i.fetchRecipeAndReportAvailable(m, infraAgentRecipeName)
 		if err != nil {
-			log.Error(i.failMessage(infraAgentRecipeName))
-			return i.fail(err)
+			return err
 		}
-		log.Debugf("Done installing infrastructure agent.")
-	} else {
-		log.Debugf("Skipping installation of infrastructure agent")
-		i.reportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
+
+		if i.SkipInfraInstall {
+			log.Debugf("Skipping installation of infrastructure agent")
+			i.reportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
+		} else {
+			log.Debugf("Installing infrastructure agent...")
+			entityGUID, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
+			if err != nil {
+				log.Error(i.failMessage(infraAgentRecipeName))
+				return i.fail(err)
+			}
+			log.Debugf("Done installing infrastructure agent.")
+		}
+
+		// Run the logging recipe if requested, exiting on failure.
+		log.Debugf("Fetching logging recipe...")
+		loggingRecipe, err = i.fetchRecipeAndReportAvailable(m, loggingRecipeName)
+		if err != nil {
+			return err
+		}
+
+		if i.SkipLoggingInstall {
+			log.Debugf("Skipping installation of logging")
+			i.reportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
+		} else {
+
+			log.Debugf("Installing logging...")
+			if err = i.installLogging(m, loggingRecipe, recipes); err != nil {
+				log.Error(i.failMessage(loggingRecipeName))
+				return i.fail(err)
+			}
+			log.Debugf("Done installing logging.")
+		}
+
+		// Report discovered rrecipes as available
+		log.Debugf("Reporting recipes available...")
+		i.reportRecipesAvailable(recipes)
 	}
 
-	// Run the logging recipe if requested, exiting on failure.
-	if i.ShouldInstallLogging() {
-		log.Debugf("Installing logging...")
-		if err = i.installLogging(m, loggingRecipe, recipes); err != nil {
-			log.Error(i.failMessage(loggingRecipeName))
-			return i.fail(err)
-		}
-		log.Debugf("Done installing logging.")
-	} else {
-		log.Debugf("Skipping installation of logging")
-		i.reportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
-	}
-
-	recipeErrorsEncountered := false
 	// Install integrations if necessary, continuing on failure with warnings.
+	recipeErrorsEncountered := false
 	if i.ShouldInstallIntegrations() {
 		log.Debugf("Installing integrations...")
 		if recipeErrorsEncountered, err = i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
