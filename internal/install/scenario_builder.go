@@ -12,12 +12,14 @@ import (
 type TestScenario string
 
 const (
-	Basic TestScenario = "BASIC"
+	Basic      TestScenario = "BASIC"
+	LogMatches TestScenario = "LOG_MATCHES"
 )
 
 var (
 	TestScenarios = []TestScenario{
 		Basic,
+		LogMatches,
 	}
 )
 
@@ -46,6 +48,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 	switch s {
 	case Basic:
 		return b.Basic()
+	case LogMatches:
+		return b.LogMatches()
 	}
 
 	return nil
@@ -65,6 +69,45 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewSpinner()
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		statusReporter:    er,
+		prompter:          p,
+		progressIndicator: s,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
+func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
+
+	// mock implementations
+	rf := setupRecipeFetcher()
+	er := execution.NewMockStatusReporter()
+	v := validation.NewMockRecipeValidator()
+	gff := discovery.NewMockFileFilterer()
+
+	pf := discovery.NewRegexProcessFilterer(rf)
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer(pf)
+	re := execution.NewGoTaskRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	s := ux.NewSpinner()
+
+	gff.FilterVal = []types.LogMatch{
+		{
+			Name: "asdf",
+			File: "asdf",
+		},
+	}
 
 	i := RecipeInstaller{
 		discoverer:        d,
