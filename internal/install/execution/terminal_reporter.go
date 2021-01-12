@@ -53,21 +53,20 @@ func (r TerminalStatusReporter) ReportComplete() error {
 
 	if r.hasFailed() {
 		return fmt.Errorf("one or more integrations failed to install, check the install log for more details: %s", r.status.LogFilePath)
-	} else {
-		msg := `
+	}
+
+	msg := `
 		Success! Your data is available in New Relic.
 
 		Go to New Relic to confirm and start exploring your data.`
 
-		profile := credentials.DefaultProfile()
-		if profile != nil {
-			msg += fmt.Sprintf(`
+	profile := credentials.DefaultProfile()
+	if profile != nil {
+		msg += fmt.Sprintf(`
 		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
-		}
-
-		fmt.Println(msg)
-
 	}
+
+	fmt.Println(msg)
 
 	return nil
 }
