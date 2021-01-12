@@ -14,12 +14,14 @@ type TestScenario string
 const (
 	Basic      TestScenario = "BASIC"
 	LogMatches TestScenario = "LOG_MATCHES"
+	Fail       TestScenario = "FAIL"
 )
 
 var (
 	TestScenarios = []TestScenario{
 		Basic,
 		LogMatches,
+		Fail,
 	}
 )
 
@@ -50,6 +52,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.Basic()
 	case LogMatches:
 		return b.LogMatches()
+	case Fail:
+		return b.Fail()
 	}
 
 	return nil
@@ -59,7 +63,10 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 
 	// mock implementations
 	rf := setupRecipeFetcher()
-	er := execution.NewMockStatusReporter()
+	ers := []execution.StatusReporter{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
 	v := validation.NewMockRecipeValidator()
 
 	pf := discovery.NewRegexProcessFilterer(rf)
@@ -77,7 +84,42 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporter:    er,
+		statusReporters:   ers,
+		prompter:          p,
+		progressIndicator: s,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
+func (b *ScenarioBuilder) Fail() *RecipeInstaller {
+
+	// mock implementations
+	rf := setupRecipeFetcher()
+	ers := []execution.StatusReporter{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
+	v := validation.NewMockRecipeValidator()
+
+	pf := discovery.NewRegexProcessFilterer(rf)
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer(pf)
+	gff := discovery.NewGlobFileFilterer()
+	re := execution.NewMockFailingRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	s := ux.NewSpinner()
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		statusReporters:   ers,
 		prompter:          p,
 		progressIndicator: s,
 	}
@@ -91,7 +133,10 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 
 	// mock implementations
 	rf := setupRecipeFetcher()
-	er := execution.NewMockStatusReporter()
+	ers := []execution.StatusReporter{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
 	v := validation.NewMockRecipeValidator()
 	gff := discovery.NewMockFileFilterer()
 
@@ -116,7 +161,7 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporter:    er,
+		statusReporters:   ers,
 		prompter:          p,
 		progressIndicator: s,
 	}
