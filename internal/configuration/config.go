@@ -17,20 +17,19 @@ const (
 	globalScopeIdentifier = "*"
 )
 
-// Config keys
-const (
-	logLevelKey           = "loglevel"
-	pluginDirectoryKey    = "plugindir"
-	prereleaseFeaturesKey = "prereleasefeatures"
-	sendDataUsageKey      = "sendusagedata"
-)
+type ConfigKey string
+type CredentialKey string
 
-// Credential keys
 const (
-	apiKeyKey     = "apiKey"
-	regionKey     = "region"
-	accountIDKey  = "accountID"
-	licenseKeyKey = "licenseKey"
+	LogLevel       ConfigKey = "loglevel"
+	PluginDir      ConfigKey = "plugindir"
+	PrereleaseMode ConfigKey = "prereleasefeatures"
+	SendUsageData  ConfigKey = "sendusagedata"
+
+	APIKey     CredentialKey = "apiKey"
+	Region     CredentialKey = "region"
+	AccountID  CredentialKey = "accountID"
+	LicenseKey CredentialKey = "licenseKey"
 )
 
 var (
@@ -41,33 +40,61 @@ var (
 	defaultProfileValue    string
 	viperConfig            *viper.Viper
 	viperCreds             *viper.Viper
-	viperDefaultProfile    *viper.Viper
 )
 
-// TODO: SetDefaultProfile(profileName string) {}
+func init() {
+	var err error
+	configDir, err = getDefaultConfigDirectory()
+	if err != nil {
+		log.Error("could not get config directory")
+	}
+}
 
-func GetConfigValue(key string) interface{} {
-	return viperConfig.Get(keyGlobalScope(key))
+// TODO: SetDefaultProfile(profileName string) {}
+// TODO: GetDefaultProfile() {}
+
+func GetConfigValue(key ConfigKey) interface{} {
+	return viperConfig.Get(keyGlobalScope(string(key)))
+}
+
+func GetCredentialValue(key CredentialKey) interface{} {
+	return viperCreds.Get(keyDefaultProfile(string(key)))
 }
 
 func SetLogLevel(logLevel string) error {
-	return setConfigValue(logLevelKey, logLevel)
+	return setConfigValue(LogLevel, logLevel)
 }
 
 func SetPluginDirectory(directory string) error {
-	return setConfigValue(pluginDirectoryKey, directory)
+	return setConfigValue(PluginDir, directory)
 }
 
 func SetPreleaseFeatures(prereleaseFeatures string) error {
-	return setConfigValue(prereleaseFeaturesKey, prereleaseFeatures)
+	return setConfigValue(PrereleaseMode, prereleaseFeatures)
 }
 
 func SetSendUsageData(sendUsageData string) error {
-	return setConfigValue(sendDataUsageKey, sendUsageData)
+	return setConfigValue(SendUsageData, sendUsageData)
 }
 
-func setConfigValue(key string, value string) error {
-	viperConfig.Set(keyGlobalScope(key), value)
+func SetAPIKey(profileName string, apiKey string) error {
+	return setCredentialValue(profileName, APIKey, apiKey)
+}
+
+func SetRegion(profileName string, region string) error {
+	return setCredentialValue(profileName, Region, region)
+}
+
+func SetAccountID(profileName string, accountID string) error {
+	return setCredentialValue(profileName, AccountID, accountID)
+}
+
+func SetLicenseKey(profileName string, licenseKey string) error {
+	return setCredentialValue(profileName, LicenseKey, licenseKey)
+}
+
+func setConfigValue(key ConfigKey, value string) error {
+	viperConfig.Set(keyGlobalScope(string(key)), value)
 
 	err := viperConfig.WriteConfig()
 	if err != nil {
@@ -77,27 +104,7 @@ func setConfigValue(key string, value string) error {
 	return nil
 }
 
-func GetCredentialValue(key string) interface{} {
-	return viperCreds.Get(keyDefaultProfile(key))
-}
-
-func SetAPIKey(profileName string, apiKey string) error {
-	return setCredentialValue(profileName, apiKeyKey, apiKey)
-}
-
-func SetRegion(profileName string, region string) error {
-	return setCredentialValue(profileName, regionKey, region)
-}
-
-func SetAccountID(profileName string, accountID string) error {
-	return setCredentialValue(profileName, accountIDKey, accountID)
-}
-
-func SetLicenseKey(profileName string, licenseKey string) error {
-	return setCredentialValue(profileName, licenseKeyKey, licenseKey)
-}
-
-func setCredentialValue(profileName string, key string, value string) error {
+func setCredentialValue(profileName string, key CredentialKey, value string) error {
 	keyPath := fmt.Sprintf("%s.%s", profileName, key)
 	viperCreds.Set(keyPath, value)
 
@@ -110,15 +117,6 @@ func setCredentialValue(profileName string, key string, value string) error {
 }
 
 func load() error {
-	// if configDirectory == "" {
-	// 	configDir, err := getDefaultConfigDirectory()
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// } else {
-	// 	configDir = configDirectory
-	// }
-
 	if err := loadConfigFile(); err != nil {
 		return err
 	}
@@ -178,12 +176,10 @@ func loadDefaultProfileFile() error {
 
 func loadFile(v *viper.Viper) error {
 	err := v.ReadInConfig()
-	if err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Debug("file not found, using defaults")
-		} else if e, ok := err.(viper.ConfigParseError); ok {
-			return e
-		}
+	if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+		log.Debug("file not found, using defaults")
+	} else if e, ok := err.(viper.ConfigParseError); ok {
+		return e
 	}
 
 	return nil

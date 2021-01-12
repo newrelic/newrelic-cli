@@ -27,7 +27,7 @@ func setupTestScenario(t *testing.T) testScenario {
 	configFile, err := ioutil.TempFile("", "config*.json")
 	require.NoError(t, err)
 
-	configJson := `
+	configJSON := `
 {
 	"*": {
 		"loglevel": "info",
@@ -37,13 +37,13 @@ func setupTestScenario(t *testing.T) testScenario {
 	}
 }
 `
-	_, err = configFile.Write([]byte(configJson))
+	_, err = configFile.Write([]byte(configJSON))
 	require.NoError(t, err)
 
 	credsFile, err := ioutil.TempFile("", "credentials*.json")
 	require.NoError(t, err)
 
-	credsJson := `
+	credsJSON := `
 {
 	"default": {
 		"apiKey": "testApiKey",
@@ -53,14 +53,14 @@ func setupTestScenario(t *testing.T) testScenario {
 	}
 }
 `
-	_, err = credsFile.Write(([]byte(credsJson)))
+	_, err = credsFile.Write(([]byte(credsJSON)))
 	require.NoError(t, err)
 
 	defaultProfileFile, err := ioutil.TempFile("", "default-profile*.json")
 	require.NoError(t, err)
 
-	defaultProfileJson := `"default"`
-	_, err = defaultProfileFile.Write(([]byte(defaultProfileJson)))
+	defaultProfileJSON := `"default"`
+	_, err = defaultProfileFile.Write(([]byte(defaultProfileJSON)))
 	require.NoError(t, err)
 
 	// package-level vars
@@ -69,13 +69,13 @@ func setupTestScenario(t *testing.T) testScenario {
 	defaultProfileFileName = filepath.Base(defaultProfileFile.Name())
 	configDir = filepath.Dir(configFile.Name())
 
-	testScenario := testScenario{
+	s := testScenario{
 		configFile:         configFile,
 		credsFile:          credsFile,
 		defaultProfileFile: defaultProfileFile,
 	}
 
-	return testScenario
+	return s
 }
 
 func TestLoad(t *testing.T) {
@@ -102,19 +102,19 @@ func TestSetConfigValues(t *testing.T) {
 
 	err = SetLogLevel("debug")
 	require.NoError(t, err)
-	require.Equal(t, "debug", GetConfigValue(logLevelKey))
+	require.Equal(t, "debug", GetConfigValue(LogLevel))
 
 	err = SetPluginDirectory("/tmp")
 	require.NoError(t, err)
-	require.Equal(t, "/tmp", GetConfigValue(pluginDirectoryKey))
+	require.Equal(t, "/tmp", GetConfigValue(PluginDir))
 
 	err = SetPreleaseFeatures("ALLOW")
 	require.NoError(t, err)
-	require.Equal(t, "ALLOW", GetConfigValue(prereleaseFeaturesKey))
+	require.Equal(t, "ALLOW", GetConfigValue(PrereleaseMode))
 
 	err = SetSendUsageData("DISALLOW")
 	require.NoError(t, err)
-	require.Equal(t, "DISALLOW", GetConfigValue(sendDataUsageKey))
+	require.Equal(t, "DISALLOW", GetConfigValue(SendUsageData))
 }
 
 func TestSetCredentialValues(t *testing.T) {
@@ -128,15 +128,15 @@ func TestSetCredentialValues(t *testing.T) {
 
 	err = SetAPIKey("default", "NRAK-abc123")
 	require.NoError(t, err)
-	require.Equal(t, "NRAK-abc123", GetCredentialValue(apiKeyKey))
+	require.Equal(t, "NRAK-abc123", GetCredentialValue(APIKey))
 
 	err = SetRegion("default", "US")
 	require.NoError(t, err)
-	require.Equal(t, "US", GetCredentialValue(regionKey))
+	require.Equal(t, "US", GetCredentialValue(Region))
 
 	err = SetAccountID("default", "123456789")
 	require.NoError(t, err)
-	require.Equal(t, "123456789", GetCredentialValue(accountIDKey))
+	require.Equal(t, "123456789", GetCredentialValue(AccountID))
 }
 
 // Create config files if they don't already exist.
