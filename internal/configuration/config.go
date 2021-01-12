@@ -3,6 +3,8 @@ package configuration
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -34,9 +36,9 @@ const (
 
 var (
 	configDir              string
-	configFileName         = "config.json"
-	credsFileName          = "credentials.json"
-	defaultProfileFileName = "default-profile.json"
+	configFilename         = "config.json"
+	credsFilename          = "credentials.json"
+	defaultProfileFilename = "default-profile.json"
 	defaultProfileValue    string
 	viperConfig            *viper.Viper
 	viperCreds             *viper.Viper
@@ -50,15 +52,16 @@ func init() {
 	}
 }
 
-// TODO: SetDefaultProfile(profileName string) {}
-// TODO: GetDefaultProfile() {}
-
 func GetConfigValue(key ConfigKey) interface{} {
 	return viperConfig.Get(keyGlobalScope(string(key)))
 }
 
 func GetCredentialValue(key CredentialKey) interface{} {
 	return viperCreds.Get(keyDefaultProfile(string(key)))
+}
+
+func GetDefaultProfileName() string {
+	return defaultProfileValue
 }
 
 func SetLogLevel(logLevel string) error {
@@ -93,11 +96,14 @@ func SetLicenseKey(profileName string, licenseKey string) error {
 	return setCredentialValue(profileName, LicenseKey, licenseKey)
 }
 
+func SetDefaultProfileName(profileName string) error {
+	return saveDefaultProfileName(profileName)
+}
+
 func setConfigValue(key ConfigKey, value string) error {
 	viperConfig.Set(keyGlobalScope(string(key)), value)
 
-	err := viperConfig.WriteConfig()
-	if err != nil {
+	if err := viperConfig.WriteConfigAs(path.Join(configDir, configFilename)); err != nil {
 		return err
 	}
 
@@ -108,8 +114,7 @@ func setCredentialValue(profileName string, key CredentialKey, value string) err
 	keyPath := fmt.Sprintf("%s.%s", profileName, key)
 	viperCreds.Set(keyPath, value)
 
-	err := viperCreds.WriteConfig()
-	if err != nil {
+	if err := viperCreds.WriteConfigAs(path.Join(configDir, credsFilename)); err != nil {
 		return err
 	}
 
@@ -135,13 +140,13 @@ func load() error {
 func loadConfigFile() error {
 	viperConfig = viper.New()
 	viperConfig.SetEnvPrefix(configEnvPrefix)
-	viperConfig.SetConfigName(configFileName)
+	viperConfig.SetConfigName(configFilename)
 	viperConfig.SetConfigType(configType)
 	viperConfig.AddConfigPath(configDir)
 	viperConfig.AutomaticEnv()
 
 	if err := loadFile(viperConfig); err != nil {
-		return fmt.Errorf("error loading config file: %s", err)
+		log.Debugf("config file not found: %s", path.Join(configDir, configFilename))
 	}
 
 	return nil
@@ -150,23 +155,23 @@ func loadConfigFile() error {
 func loadCredsFile() error {
 	viperCreds = viper.New()
 	viperCreds.SetEnvPrefix(configEnvPrefix)
-	viperCreds.SetConfigName(credsFileName)
+	viperCreds.SetConfigName(credsFilename)
 	viperCreds.SetConfigType(configType)
 	viperCreds.AddConfigPath(configDir)
 	viperCreds.AutomaticEnv()
 
 	if err := loadFile(viperCreds); err != nil {
-		return fmt.Errorf("error loading credentials file: %s", err)
+		log.Debugf("credentials file not found: %s", path.Join(configDir, configFilename))
 	}
 
 	return nil
 }
 
 func loadDefaultProfileFile() error {
-	defaultProfileFilePath := filepath.Join(configDir, defaultProfileFileName)
+	defaultProfileFilePath := filepath.Join(configDir, defaultProfileFilename)
 	defaultProfileBytes, err := ioutil.ReadFile(defaultProfileFilePath)
 	if err != nil {
-		return err
+		return nil
 	}
 
 	defaultProfileValue = strings.Trim(string(defaultProfileBytes), "\"")
@@ -181,6 +186,18 @@ func loadFile(v *viper.Viper) error {
 	} else if e, ok := err.(viper.ConfigParseError); ok {
 		return e
 	}
+
+	return nil
+}
+
+func saveDefaultProfileName(profileName string) error {
+	defaultProfileFilePath := filepath.Join(configDir, defaultProfileFilename)
+	flags := os.O_CREATE | os.O_TRUNC | os.O_WRONLY
+	if err := ioutil.WriteFile(defaultProfileFilePath, []byte(profileName), os.FileMode(flags)); err != nil {
+		return nil
+	}
+
+	defaultProfileValue = profileName
 
 	return nil
 }
