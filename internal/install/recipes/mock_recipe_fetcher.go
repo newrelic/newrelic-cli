@@ -18,17 +18,20 @@ type MockRecipeFetcher struct {
 	FetchRecipeVal                *types.Recipe
 	FetchRecipesVal               []types.Recipe
 	FetchRecommendationsVal       []types.Recipe
+	FetchRecipeNameCount          map[string]int
 }
 
 func NewMockRecipeFetcher() *MockRecipeFetcher {
 	f := MockRecipeFetcher{}
 	f.FetchRecipesVal = []types.Recipe{}
 	f.FetchRecommendationsVal = []types.Recipe{}
+	f.FetchRecipeNameCount = make(map[string]int)
 	return &f
 }
 
 func (f *MockRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
 	f.FetchRecipeCallCount++
+	f.FetchRecipeNameCount[friendlyName]++
 
 	if len(f.FetchRecipeVals) > 0 {
 		i := utils.MinOf(f.FetchRecipeCallCount, len(f.FetchRecipeVals)) - 1

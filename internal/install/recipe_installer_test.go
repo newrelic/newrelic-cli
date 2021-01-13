@@ -89,6 +89,8 @@ func TestInstall_Basic(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
+	require.Equal(t, f.FetchRecipeNameCount[infraAgentRecipeName], 1)
+	require.Equal(t, f.FetchRecipeNameCount[loggingRecipeName], 1)
 }
 
 func TestInstall_ReportRecipesAvailable(t *testing.T) {
