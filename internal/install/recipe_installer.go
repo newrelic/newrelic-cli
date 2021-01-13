@@ -304,7 +304,7 @@ func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManife
 		"name": recipeName,
 	}).Debug("fetching recipe for install")
 
-	r, err := i.fetch(m, infraAgentRecipeName)
+	r, err := i.fetch(m, recipeName)
 	if err != nil {
 		return nil, err
 	}
