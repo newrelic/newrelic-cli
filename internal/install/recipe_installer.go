@@ -449,6 +449,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 
 	i.progressIndicator.Start(fmt.Sprintf("Installing %s...", r.Name))
 	defer func() { i.progressIndicator.Stop() }()
+	i.status.ReportRecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
