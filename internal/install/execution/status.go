@@ -1,8 +1,8 @@
 package execution
 
 import (
-	"github.com/apex/log"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
