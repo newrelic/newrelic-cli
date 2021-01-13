@@ -244,8 +244,6 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 
 		log.Debugf("Executing and validating with progress for recipe name %s...", r.Name)
 
-		// TODO Handler the error here.  The tests indicate that this method should
-		// fail if we have an error here, but we only warn without a return.
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
