@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -49,24 +48,21 @@ func (r TerminalStatusReporter) ReportRecipeAvailable(recipe types.Recipe) error
 }
 
 func (r TerminalStatusReporter) ReportComplete() error {
-	// https://staging-one.newrelic.com/redirect/entity/<entity-guid>
 
 	if r.hasFailed() {
 		return fmt.Errorf("one or more integrations failed to install, check the install log for more details: %s", r.status.LogFilePath)
 	}
 
 	msg := `
-		Success! Your data is available in New Relic.
+	Success! Your data is available in New Relic.
 
-		Go to New Relic to confirm and start exploring your data.`
-
-	profile := credentials.DefaultProfile()
-	if profile != nil {
-		msg += fmt.Sprintf(`
-		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
-	}
+	Go to New Relic to confirm and start exploring your data.`
 
 	fmt.Println(msg)
+
+	for _, entityGUID := range r.status.EntityGUIDs {
+		fmt.Printf("\n\thttps://one.newrelic.com/redirect/entity/%s\n", entityGUID)
+	}
 
 	return nil
 }
