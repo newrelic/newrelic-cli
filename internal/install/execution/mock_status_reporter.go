@@ -9,12 +9,14 @@ type MockStatusReporter struct {
 	ReportRecipesAvailableErr       error
 	ReportRecipeFailedErr           error
 	ReportRecipeInstalledErr        error
+	ReportRecipeInstallingErr       error
 	ReportRecipeSkippedErr          error
 	ReportCompleteErr               error
 	ReportRecipeAvailableCallCount  int
 	ReportRecipesAvailableCallCount int
 	ReportRecipeFailedCallCount     int
 	ReportRecipeInstalledCallCount  int
+	ReportRecipeInstallingCallCount int
 	ReportRecipeSkippedCallCount    int
 	ReportCompleteCallCount         int
 }

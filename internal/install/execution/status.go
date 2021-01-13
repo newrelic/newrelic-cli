@@ -26,15 +26,17 @@ type Status struct {
 type StatusType string
 
 var StatusTypes = struct {
-	AVAILABLE StatusType
-	FAILED    StatusType
-	INSTALLED StatusType
-	SKIPPED   StatusType
+	AVAILABLE  StatusType
+	INSTALLING StatusType
+	FAILED     StatusType
+	INSTALLED  StatusType
+	SKIPPED    StatusType
 }{
-	AVAILABLE: "AVAILABLE",
-	FAILED:    "FAILED",
-	INSTALLED: "INSTALLED",
-	SKIPPED:   "SKIPPED",
+	AVAILABLE:  "AVAILABLE",
+	INSTALLING: "INSTALLING",
+	FAILED:     "FAILED",
+	INSTALLED:  "INSTALLED",
+	SKIPPED:    "SKIPPED",
 }
 
 type StatusRecipeError struct {
