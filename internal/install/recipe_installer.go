@@ -138,6 +138,10 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
+	// Report discovered recipes as available
+	log.Debugf("Reporting recipes available...")
+	i.status.ReportRecipesAvailable(recipes)
+
 	log.Debugf("InstallerContext: %+v", i.InstallerContext)
 	log.Debugf("RecipesProvided: %t", i.RecipesProvided())
 
@@ -183,9 +187,6 @@ func (i *RecipeInstaller) Install() error {
 			log.Debugf("Done installing logging.")
 		}
 
-		// Report discovered recipes as available
-		log.Debugf("Reporting recipes available...")
-		i.status.ReportRecipesAvailable(recipes)
 	}
 
 	// Install integrations if necessary, continuing on failure with warnings.
