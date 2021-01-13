@@ -31,7 +31,7 @@ var (
 	e  = execution.NewMockRecipeExecutor()
 	v  = validation.NewMockRecipeValidator()
 	ff = recipes.NewMockRecipeFileFetcher()
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	p  = ux.NewMockPrompter()
 	s  = ux.NewMockProgressIndicator()
 )
@@ -93,16 +93,16 @@ func TestInstall_Basic(t *testing.T) {
 
 func TestInstall_ReportRecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr.ReportRecipesAvailableCallCount)
+	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportRecipesAvailableCallCount)
 }
 
 func TestInstall_ReportRecipeInstalled(t *testing.T) {
 	ic := InstallerContext{}
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
@@ -127,7 +127,7 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 3, sr.ReportRecipeInstalledCallCount)
+	require.Equal(t, 3, sr[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
 func TestInstall_ReportRecipeFailed(t *testing.T) {
@@ -135,7 +135,7 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
@@ -147,12 +147,12 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	}
 
 	v = validation.NewMockRecipeValidator()
-	v.ValidateErr = errors.New("testError")
+	v.ValidateErr = errors.New("validationErr")
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
-	require.Error(t, err)
-	require.Equal(t, 1, sr.ReportRecipeFailedCallCount)
+	require.NoError(t, err)
+	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportRecipeFailedCallCount)
 }
 
 func TestInstall_ReportComplete(t *testing.T) {
@@ -160,7 +160,7 @@ func TestInstall_ReportComplete(t *testing.T) {
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{{}, {}}
@@ -170,14 +170,14 @@ func TestInstall_ReportComplete(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr.ReportCompleteCallCount)
+	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
 }
 
 func TestInstall_ReportCompleteError(t *testing.T) {
 	ic := InstallerContext{
 		SkipLoggingInstall: true,
 	}
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{
@@ -197,7 +197,7 @@ func TestInstall_ReportCompleteError(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.Error(t, err)
-	require.Equal(t, 1, sr.ReportCompleteCallCount)
+	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
 }
 
 func TestInstall_ReportRecipeSkipped(t *testing.T) {
@@ -205,7 +205,7 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
-	sr = execution.NewMockStatusReporter()
+	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
@@ -220,8 +220,8 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 3, sr.ReportRecipeSkippedCallCount)
-	require.Equal(t, 0, sr.ReportRecipeInstalledCallCount)
+	require.Equal(t, 3, sr[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 0, sr[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {

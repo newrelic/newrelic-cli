@@ -7,7 +7,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
@@ -31,7 +30,7 @@ type RecipeInstaller struct {
 	recipeExecutor    execution.RecipeExecutor
 	recipeValidator   validation.RecipeValidator
 	recipeFileFetcher recipes.RecipeFileFetcher
-	statusReporter    execution.StatusReporter
+	statusReporters   []execution.StatusReporter
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
 }
@@ -40,7 +39,10 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	rf := recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
 	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
-	er := execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage)
+	ers := []execution.StatusReporter{
+		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
+		execution.NewTerminalStatusReporter(),
+	}
 	d := discovery.NewPSUtilDiscoverer(pf)
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
@@ -55,7 +57,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporter:    er,
+		statusReporters:   ers,
 		prompter:          p,
 		progressIndicator: s,
 	}
@@ -185,10 +187,9 @@ func (i *RecipeInstaller) Install() error {
 	}
 
 	// Install integrations if necessary, continuing on failure with warnings.
-	recipeErrorsEncountered := false
 	if i.ShouldInstallIntegrations() {
 		log.Debugf("Installing integrations...")
-		if recipeErrorsEncountered, err = i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
+		if err = i.installRecipesWithPrompts(m, recipes, entityGUID); err != nil {
 			return err
 		}
 		log.Debugf("Done installing integrations.")
@@ -198,27 +199,10 @@ func (i *RecipeInstaller) Install() error {
 
 	i.reportComplete()
 
-	if recipeErrorsEncountered {
-		return errors.New("one or more integrations failed to install, check the install log for more details")
-	}
-
-	msg := `
-		Success! Your data is available in New Relic.
-
-		Go to New Relic to confirm and start exploring your data.`
-
-	profile := credentials.DefaultProfile()
-	if profile != nil {
-		msg += fmt.Sprintf(`
-		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%d`, profile.AccountID)
-	}
-
-	fmt.Println(msg)
 	return nil
 }
 
-func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) (bool, error) {
-	errorsEncountered := false
+func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, recipes []types.Recipe, entityGUID string) error {
 	log.Debugf("Installing recipes with prompts...")
 
 	for _, r := range recipes {
@@ -244,7 +228,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 			ok, err = i.userAcceptsInstall(r)
 			if err != nil {
 				log.Debugf("Done installing recipes with prompts, exception:%s", err)
-				return true, err
+				return err
 			}
 			log.Debugf("Done checking user accepts install ok:%t", ok)
 		}
@@ -259,9 +243,9 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		}
 
 		log.Debugf("Executing and validating with progress for recipe name %s...", r.Name)
+
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
-			errorsEncountered = true
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
@@ -269,8 +253,8 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
 
-	log.Debugf("Done installing recipes with prompts, errorsEncountered:%t", errorsEncountered)
-	return errorsEncountered, nil
+	log.Debug("Done installing recipes with prompts")
+	return nil
 }
 
 func (i *RecipeInstaller) discoverWithProgress() (*types.DiscoveryManifest, error) {
@@ -455,38 +439,50 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 }
 
 func (i *RecipeInstaller) reportRecipeAvailable(recipe types.Recipe) {
-	if err := i.statusReporter.ReportRecipeAvailable(recipe); err != nil {
-		log.Errorf("Could not report recipe execution status: %s", err)
+	for _, r := range i.statusReporters {
+		if err := r.ReportRecipeAvailable(recipe); err != nil {
+			log.Errorf("Could not report recipe execution status: %s", err)
+		}
 	}
 }
 
 func (i *RecipeInstaller) reportRecipesAvailable(recipes []types.Recipe) {
-	if err := i.statusReporter.ReportRecipesAvailable(recipes); err != nil {
-		log.Errorf("Could not report recipe execution status: %s", err)
+	for _, r := range i.statusReporters {
+		if err := r.ReportRecipesAvailable(recipes); err != nil {
+			log.Errorf("Could not report recipe execution status: %s", err)
+		}
 	}
 }
 
 func (i *RecipeInstaller) reportRecipeInstalled(e execution.RecipeStatusEvent) {
-	if err := i.statusReporter.ReportRecipeInstalled(e); err != nil {
-		log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
+	for _, r := range i.statusReporters {
+		if err := r.ReportRecipeInstalled(e); err != nil {
+			log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
+		}
 	}
 }
 
 func (i *RecipeInstaller) reportRecipeFailed(e execution.RecipeStatusEvent) {
-	if err := i.statusReporter.ReportRecipeFailed(e); err != nil {
-		log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
+	for _, r := range i.statusReporters {
+		if err := r.ReportRecipeFailed(e); err != nil {
+			log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
+		}
 	}
 }
 
 func (i *RecipeInstaller) reportRecipeSkipped(e execution.RecipeStatusEvent) {
-	if err := i.statusReporter.ReportRecipeSkipped(e); err != nil {
-		log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
+	for _, r := range i.statusReporters {
+		if err := r.ReportRecipeSkipped(e); err != nil {
+			log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
+		}
 	}
 }
 
 func (i *RecipeInstaller) reportComplete() {
-	if err := i.statusReporter.ReportComplete(); err != nil {
-		log.Errorf("Error writing execution status: %s", err)
+	for _, r := range i.statusReporters {
+		if err := r.ReportComplete(); err != nil {
+			log.Errorf("Error writing execution status: %s", err)
+		}
 	}
 }
 
@@ -527,7 +523,7 @@ func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error)
 		return true, nil
 	}
 
-	msg := fmt.Sprintf("Files match pattern \"%s\", do you want to watch them? [Yes/No]", match.File)
+	msg := fmt.Sprintf("Files have been found at the following pattern: %s\nDo you want to watch them? [Yes/No]", match.File)
 	return i.userAccepts(msg)
 }
 
