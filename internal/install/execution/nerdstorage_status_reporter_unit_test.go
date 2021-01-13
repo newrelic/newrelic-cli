@@ -14,10 +14,11 @@ import (
 func TestReportRecipesAvailable_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
+	status := NewStatusRollup(nil)
 
 	recipes := []types.Recipe{{}}
 
-	err := r.ReportRecipesAvailable(recipes)
+	err := r.ReportRecipesAvailable(status, recipes)
 	require.NoError(t, err)
 }
 

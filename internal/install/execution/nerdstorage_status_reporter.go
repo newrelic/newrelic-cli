@@ -3,9 +3,7 @@ package execution
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -18,16 +16,12 @@ const (
 // interface that reports esecution status into NerdStorage.
 type NerdstorageStatusReporter struct {
 	client NerdStorageClient
-	status *StatusRollup
 }
 
 // NewNerdStorageStatusReporter returns a new instance of NerdStorageExecutionStatusReporter.
 func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusReporter {
-	rollup := NewStatusRollup()
-	rollup.LogFilePath = config.DefaultConfigDirectory + "/" + config.DefaultLogFile
 	r := NerdstorageStatusReporter{
 		client: client,
-		status: &rollup,
 	}
 
 	return &r
@@ -35,9 +29,8 @@ func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusRe
 
 // ReportRecipesAvailable reports that recipes are available for installation on
 // the underlying host.
-func (r NerdstorageStatusReporter) ReportRecipesAvailable(recipes []types.Recipe) error {
-	r.status.withAvailableRecipes(recipes)
-	if err := r.writeStatus(""); err != nil {
+func (r NerdstorageStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
+	if err := r.writeStatus(status, ""); err != nil {
 		return err
 	}
 
@@ -46,54 +39,56 @@ func (r NerdstorageStatusReporter) ReportRecipesAvailable(recipes []types.Recipe
 
 // ReportRecipeAvailable reports that a recipe is available for installation on
 // the underlying host.
-func (r NerdstorageStatusReporter) ReportRecipeAvailable(recipe types.Recipe) error {
-	r.status.withAvailableRecipe(recipe)
-	if err := r.writeStatus(""); err != nil {
+func (r NerdstorageStatusReporter) ReportRecipeAvailable(status *StatusRollup, recipe types.Recipe) error {
+	if err := r.writeStatus(status, ""); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeFailed(e RecipeStatusEvent) error {
-	r.status.withRecipeEvent(e, StatusTypes.FAILED)
-	if err := r.writeStatus(e.EntityGUID); err != nil {
+func (r NerdstorageStatusReporter) ReportRecipeFailed(status *StatusRollup, event RecipeStatusEvent) error {
+	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeInstalled(e RecipeStatusEvent) error {
-	r.status.withRecipeEvent(e, StatusTypes.INSTALLED)
-	if err := r.writeStatus(e.EntityGUID); err != nil {
+func (r NerdstorageStatusReporter) ReportRecipeInstalling(status *StatusRollup, event RecipeStatusEvent) error {
+	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeSkipped(e RecipeStatusEvent) error {
-	r.status.withRecipeEvent(e, StatusTypes.SKIPPED)
-	if err := r.writeStatus(e.EntityGUID); err != nil {
+func (r NerdstorageStatusReporter) ReportRecipeInstalled(status *StatusRollup, event RecipeStatusEvent) error {
+	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportComplete() error {
-	r.status.Complete = true
-	r.status.Timestamp = utils.GetTimestamp()
-	if err := r.writeStatus(""); err != nil {
+func (r NerdstorageStatusReporter) ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error {
+	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) writeStatus(entityGUID string) error {
-	i := r.buildExecutionStatusDocument()
+func (r NerdstorageStatusReporter) ReportComplete(status *StatusRollup) error {
+	if err := r.writeStatus(status, ""); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r NerdstorageStatusReporter) writeStatus(status *StatusRollup, entityGUID string) error {
+	i := r.buildExecutionStatusDocument(status)
 	_, err := r.client.WriteDocumentWithUserScope(i)
 	if err != nil {
 		return err
@@ -110,11 +105,11 @@ func (r NerdstorageStatusReporter) writeStatus(entityGUID string) error {
 	return nil
 }
 
-func (r NerdstorageStatusReporter) buildExecutionStatusDocument() nerdstorage.WriteDocumentInput {
+func (r NerdstorageStatusReporter) buildExecutionStatusDocument(status *StatusRollup) nerdstorage.WriteDocumentInput {
 	return nerdstorage.WriteDocumentInput{
 		PackageID:  packageID,
 		Collection: collectionID,
-		DocumentID: r.status.DocumentID,
-		Document:   r.status,
+		DocumentID: status.DocumentID,
+		Document:   status,
 	}
 }

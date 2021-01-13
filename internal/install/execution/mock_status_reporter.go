@@ -26,32 +26,37 @@ func NewMockStatusReporter() *MockStatusReporter {
 	return &MockStatusReporter{}
 }
 
-func (r *MockStatusReporter) ReportRecipeFailed(event RecipeStatusEvent) error {
+func (r *MockStatusReporter) ReportRecipeFailed(status *StatusRollup, event RecipeStatusEvent) error {
 	r.ReportRecipeFailedCallCount++
 	return r.ReportRecipeFailedErr
 }
 
-func (r *MockStatusReporter) ReportRecipeInstalled(event RecipeStatusEvent) error {
+func (r *MockStatusReporter) ReportRecipeInstalled(status *StatusRollup, event RecipeStatusEvent) error {
 	r.ReportRecipeInstalledCallCount++
 	return r.ReportRecipeInstalledErr
 }
 
-func (r *MockStatusReporter) ReportRecipeSkipped(event RecipeStatusEvent) error {
+func (r *MockStatusReporter) ReportRecipeInstalling(status *StatusRollup, event RecipeStatusEvent) error {
+	r.ReportRecipeInstallingCallCount++
+	return r.ReportRecipeInstallingErr
+}
+
+func (r *MockStatusReporter) ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error {
 	r.ReportRecipeSkippedCallCount++
 	return r.ReportRecipeSkippedErr
 }
 
-func (r *MockStatusReporter) ReportRecipeAvailable(recipe types.Recipe) error {
+func (r *MockStatusReporter) ReportRecipeAvailable(status *StatusRollup, recipe types.Recipe) error {
 	r.ReportRecipeAvailableCallCount++
 	return r.ReportRecipeAvailableErr
 }
 
-func (r *MockStatusReporter) ReportRecipesAvailable(recipes []types.Recipe) error {
+func (r *MockStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
 	r.ReportRecipesAvailableCallCount++
 	return r.ReportRecipesAvailableErr
 }
 
-func (r *MockStatusReporter) ReportComplete() error {
+func (r *MockStatusReporter) ReportComplete(status *StatusRollup) error {
 	r.ReportCompleteCallCount++
 	return r.ReportCompleteErr
 }
