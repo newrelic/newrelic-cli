@@ -1,8 +1,13 @@
 package config
 
 import (
+	"os"
+
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -27,9 +32,11 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			utils.LogIfError(cfg.Set(key, value))
-		})
+		err := configuration.SetConfigValue(configuration.ConfigKey(key), value)
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
 	},
 }
 
@@ -42,9 +49,8 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			cfg.Get(key)
-		})
+		val := configuration.GetConfigValue(configuration.ConfigKey(key))
+		output.Text(val)
 	},
 }
 
@@ -57,9 +63,20 @@ The list command lists all persistent configuration values for the New Relic CLI
 `,
 	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			cfg.List()
-		})
+		vals := []Value{
+			{
+				Name:    "LogLevel",
+				Value:   configuration.GetConfigValue(configuration.LogLevel),
+				Default: "info",
+			},
+			{
+				Name:    "SendUsageData",
+				Value:   configuration.GetConfigValue(configuration.SendUsageData),
+				Default: TernaryValues.Unknown,
+			},
+		}
+
+		output.Text(vals)
 	},
 	Aliases: []string{
 		"ls",
@@ -76,9 +93,11 @@ This will have the effect of resetting the value to its default.
 `,
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			utils.LogIfError(cfg.Delete(key))
-		})
+		err := configuration.SetConfigValue(configuration.ConfigKey(key), "")
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+		}
 	},
 	Aliases: []string{
 		"rm",

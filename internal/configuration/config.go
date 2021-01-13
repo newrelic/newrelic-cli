@@ -42,7 +42,35 @@ var (
 	defaultProfileValue    string
 	viperConfig            *viper.Viper
 	viperCreds             *viper.Viper
+	configValues           = []configValue{
+		{
+			Name:    "LogLevel",
+			Key:     "loglevel",
+			Default: "info",
+		},
+		{
+			Name:    "SendUsageData",
+			Key:     "sendusagedata",
+			Default: string(TernaryValues.Unknown),
+		},
+		{
+			Name:    "PluginDir",
+			Key:     "plugindir",
+			Default: "info",
+		},
+		{
+			Name:    "PrereleaseFeatures",
+			Key:     "prereleasefeatures",
+			Default: string(TernaryValues.Unknown),
+		},
+	}
 )
+
+type configValue struct {
+	Name    ConfigKey
+	Key     string
+	Default string
+}
 
 func init() {
 	var err error
@@ -50,10 +78,16 @@ func init() {
 	if err != nil {
 		log.Error("could not get config directory")
 	}
+
+	load()
 }
 
-func GetConfigValue(key ConfigKey) interface{} {
-	return viperConfig.Get(keyGlobalScope(string(key)))
+func GetConfigValue(key ConfigKey) (interface{}, error) {
+	if ok := isValidConfigKey(key); !ok {
+		return nil, fmt.Errorf("config key %s is not valid.  valid keys are %s", key, validConfigKeys())
+	}
+
+	return viperConfig.Get(keyGlobalScope(string(key))), nil
 }
 
 func GetCredentialValue(key CredentialKey) interface{} {
@@ -65,42 +99,42 @@ func GetDefaultProfileName() string {
 }
 
 func SetLogLevel(logLevel string) error {
-	return setConfigValue(LogLevel, logLevel)
+	return SetConfigValue(LogLevel, logLevel)
 }
 
 func SetPluginDirectory(directory string) error {
-	return setConfigValue(PluginDir, directory)
+	return SetConfigValue(PluginDir, directory)
 }
 
 func SetPreleaseFeatures(prereleaseFeatures string) error {
-	return setConfigValue(PrereleaseMode, prereleaseFeatures)
+	return SetConfigValue(PrereleaseMode, prereleaseFeatures)
 }
 
 func SetSendUsageData(sendUsageData string) error {
-	return setConfigValue(SendUsageData, sendUsageData)
+	return SetConfigValue(SendUsageData, sendUsageData)
 }
 
 func SetAPIKey(profileName string, apiKey string) error {
-	return setCredentialValue(profileName, APIKey, apiKey)
+	return SetCredentialValue(profileName, APIKey, apiKey)
 }
 
 func SetRegion(profileName string, region string) error {
-	return setCredentialValue(profileName, Region, region)
+	return SetCredentialValue(profileName, Region, region)
 }
 
 func SetAccountID(profileName string, accountID string) error {
-	return setCredentialValue(profileName, AccountID, accountID)
+	return SetCredentialValue(profileName, AccountID, accountID)
 }
 
 func SetLicenseKey(profileName string, licenseKey string) error {
-	return setCredentialValue(profileName, LicenseKey, licenseKey)
+	return SetCredentialValue(profileName, LicenseKey, licenseKey)
 }
 
 func SetDefaultProfileName(profileName string) error {
 	return saveDefaultProfileName(profileName)
 }
 
-func setConfigValue(key ConfigKey, value string) error {
+func SetConfigValue(key ConfigKey, value string) error {
 	viperConfig.Set(keyGlobalScope(string(key)), value)
 
 	if err := viperConfig.WriteConfigAs(path.Join(configDir, configFilename)); err != nil {
@@ -110,7 +144,7 @@ func setConfigValue(key ConfigKey, value string) error {
 	return nil
 }
 
-func setCredentialValue(profileName string, key CredentialKey, value string) error {
+func SetCredentialValue(profileName string, key CredentialKey, value string) error {
 	keyPath := fmt.Sprintf("%s.%s", profileName, key)
 	viperCreds.Set(keyPath, value)
 
@@ -221,4 +255,24 @@ func getDefaultConfigDirectory() (string, error) {
 	}
 
 	return fmt.Sprintf("%s/.newrelic", home), nil
+}
+
+func isValidConfigKey(key ConfigKey) bool {
+	for _, v := range configValues {
+		if strings.EqualFold(v.Key, string(key)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func validConfigKeys() []string {
+	valid := make([]string, len(configValues))
+
+	for _, v := range configValues {
+		valid = append(valid, v.Key)
+	}
+
+	return valid
 }
