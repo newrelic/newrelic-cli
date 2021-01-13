@@ -64,6 +64,12 @@ var (
 			Default: string(TernaryValues.Unknown),
 		},
 	}
+	credentialKeys = []CredentialKey{
+		APIKey,
+		Region,
+		AccountID,
+		LicenseKey,
+	}
 )
 
 type configValue struct {
@@ -90,8 +96,12 @@ func GetConfigValue(key ConfigKey) (interface{}, error) {
 	return viperConfig.Get(keyGlobalScope(string(key))), nil
 }
 
-func GetCredentialValue(key CredentialKey) interface{} {
-	return viperCreds.Get(keyDefaultProfile(string(key)))
+func GetCredentialValue(key CredentialKey) (interface{}, error) {
+	if ok := isValidCredentialKey(key); !ok {
+		return nil, fmt.Errorf("credential key %s is not valid.  valid keys are %s", key, credentialKeys)
+	}
+
+	return viperCreds.Get(keyDefaultProfile(string(key))), nil
 }
 
 func GetDefaultProfileName() string {
@@ -260,6 +270,16 @@ func getDefaultConfigDirectory() (string, error) {
 func isValidConfigKey(key ConfigKey) bool {
 	for _, v := range configValues {
 		if strings.EqualFold(v.Key, string(key)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidCredentialKey(key CredentialKey) bool {
+	for _, k := range credentialKeys {
+		if strings.EqualFold(string(k), string(key)) {
 			return true
 		}
 	}
