@@ -67,6 +67,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
+	statusRollup := execution.NewStatusRollup(ers)
 	v := validation.NewMockRecipeValidator()
 
 	pf := discovery.NewRegexProcessFilterer(rf)
@@ -84,7 +85,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporters:   ers,
+		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: s,
 	}
@@ -102,6 +103,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
+	statusRollup := execution.NewStatusRollup(ers)
 	v := validation.NewMockRecipeValidator()
 
 	pf := discovery.NewRegexProcessFilterer(rf)
@@ -119,7 +121,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporters:   ers,
+		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: s,
 	}
@@ -137,6 +139,7 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
+	statusRollup := execution.NewStatusRollup(ers)
 	v := validation.NewMockRecipeValidator()
 	gff := discovery.NewMockFileFilterer()
 
@@ -161,7 +164,7 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporters:   ers,
+		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: s,
 	}
