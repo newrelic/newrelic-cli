@@ -32,10 +32,9 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.SetConfigValue(configuration.ConfigKey(key), value)
+		err := configuration.SetConfigValue(configuration.ConfigFieldKey(key), value)
 		if err != nil {
-			log.Error(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 	},
 }
@@ -49,7 +48,10 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		val := configuration.GetConfigValue(configuration.ConfigKey(key))
+		val, err := configuration.GetConfigValue(configuration.ConfigFieldKey(key))
+		if err != nil {
+			log.Fatal(err)
+		}
 		output.Text(val)
 	},
 }
@@ -63,17 +65,15 @@ The list command lists all persistent configuration values for the New Relic CLI
 `,
 	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		vals := []Value{
-			{
-				Name:    "LogLevel",
-				Value:   configuration.GetConfigValue(configuration.LogLevel),
-				Default: "info",
-			},
-			{
-				Name:    "SendUsageData",
-				Value:   configuration.GetConfigValue(configuration.SendUsageData),
-				Default: TernaryValues.Unknown,
-			},
+		vals := []Value{}
+		for _, v := range configuration.ConfigFields {
+			// Error can be ignored here since all keys will be valid
+			val, _ := configuration.GetConfigValue(v.Key)
+			vals = append(vals, Value{
+				Name:    v.Name,
+				Value:   val,
+				Default: v.Default,
+			})
 		}
 
 		output.Text(vals)
@@ -93,7 +93,7 @@ This will have the effect of resetting the value to its default.
 `,
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.SetConfigValue(configuration.ConfigKey(key), "")
+		err := configuration.SetConfigValue(configuration.ConfigFieldKey(key), "")
 		if err != nil {
 			log.Error(err)
 			os.Exit(1)

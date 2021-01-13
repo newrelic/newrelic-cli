@@ -27,7 +27,7 @@ func TestGetConfigValue_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "/tmp", configValue)
 
-	configValue, err = GetConfigValue(PrereleaseMode)
+	configValue, err = GetConfigValue(PrereleaseFeatures)
 	require.NoError(t, err)
 	require.Equal(t, TernaryValues.Unknown.String(), configValue)
 
@@ -53,6 +53,26 @@ func TestGetConfigValue_InvalidKey(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestGetConfigValue_DefaultValues(t *testing.T) {
+	setupBlankSlateScenario(t)
+
+	configValue, err := GetConfigValue(LogLevel)
+	require.NoError(t, err)
+	require.Equal(t, "info", configValue)
+
+	configValue, err = GetConfigValue(PluginDir)
+	require.NoError(t, err)
+	require.Equal(t, "", configValue)
+
+	configValue, err = GetConfigValue(PrereleaseFeatures)
+	require.NoError(t, err)
+	require.Equal(t, TernaryValues.Unknown.String(), configValue)
+
+	configValue, err = GetConfigValue(SendUsageData)
+	require.NoError(t, err)
+	require.Equal(t, TernaryValues.Unknown.String(), configValue)
+}
+
 func TestSetConfigValue_Basic(t *testing.T) {
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
@@ -74,7 +94,7 @@ func TestSetConfigValue_Basic(t *testing.T) {
 	err = SetPreleaseFeatures(TernaryValues.Allow.String())
 	require.NoError(t, err)
 
-	configValue, err = GetConfigValue(PrereleaseMode)
+	configValue, err = GetConfigValue(PrereleaseFeatures)
 	require.NoError(t, err)
 	require.Equal(t, TernaryValues.Allow.String(), configValue)
 
@@ -94,14 +114,10 @@ func TestSetConfigValue_FileNotExists(t *testing.T) {
 	_, err := os.Stat(configFilePath)
 	require.True(t, os.IsNotExist(err))
 
-	configValue, err := GetConfigValue(LogLevel)
-	require.NoError(t, err)
-	require.Nil(t, configValue)
-
 	err = SetLogLevel("debug")
 	require.NoError(t, err)
 
-	configValue, err = GetConfigValue(LogLevel)
+	configValue, err := GetConfigValue(LogLevel)
 	require.NoError(t, err)
 	require.Equal(t, "debug", configValue)
 
@@ -111,89 +127,122 @@ func TestSetConfigValue_FileNotExists(t *testing.T) {
 	os.Remove(configFilePath)
 }
 
-func TestGetCredentialValue_Basic(t *testing.T) {
+func TestGetActiveProfileValue_Basic(t *testing.T) {
+	envVarResolver = &mockEnvResolver{}
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	credsValue, err := GetCredentialValue(APIKey)
+	credsValue, err := GetActiveProfileValue(APIKey)
 	require.NoError(t, err)
 	require.Equal(t, "testApiKey", credsValue)
 
-	credsValue, err = GetCredentialValue(Region)
+	credsValue, err = GetActiveProfileValue(Region)
 	require.NoError(t, err)
 	require.Equal(t, "US", credsValue)
 
-	credsValue, err = GetCredentialValue(AccountID)
+	credsValue, err = GetActiveProfileValue(AccountID)
 	require.NoError(t, err)
 	require.Equal(t, float64(12345), credsValue)
+
+	credsValue, err = GetActiveProfileValue(LicenseKey)
+	require.NoError(t, err)
+	require.Equal(t, "testLicenseKey", credsValue)
 }
 
-func TestGetCredentialValue_InvalidKey(t *testing.T) {
+func TestGetActiveProfileValue_InvalidKey(t *testing.T) {
+	envVarResolver = &mockEnvResolver{}
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	_, err := GetCredentialValue("APIKEY")
+	_, err := GetActiveProfileValue("APIKEY")
 	require.NoError(t, err)
 
-	_, err = GetCredentialValue("apiKey")
+	_, err = GetActiveProfileValue("apiKey")
 	require.NoError(t, err)
 
-	_, err = GetCredentialValue("apikey")
+	_, err = GetActiveProfileValue("apikey")
 	require.NoError(t, err)
 
-	_, err = GetCredentialValue("invalidKey")
+	_, err = GetActiveProfileValue("invalidKey")
 	require.Error(t, err)
 }
 
-func TestSetCredentialValue_Basic(t *testing.T) {
+func TestGetActiveProfileValue_EnvVarOverride(t *testing.T) {
+	m := &mockEnvResolver{}
+	envVarResolver = m
+	mockConfigFiles := createMockConfigFiles(t)
+	defer mockConfigFiles.teardown()
+
+	m.GetenvVal = "newAPIKey"
+
+	credsValue, err := GetActiveProfileValue(APIKey)
+	require.NoError(t, err)
+	require.Equal(t, "newAPIKey", credsValue)
+}
+
+func TestSetProfileValue_Basic(t *testing.T) {
+	envVarResolver = &mockEnvResolver{}
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
 	err := SetAPIKey("default", "NRAK-abc123")
 	require.NoError(t, err)
 
-	credsValue, err := GetCredentialValue(APIKey)
+	credsValue, err := GetActiveProfileValue(APIKey)
 	require.NoError(t, err)
 	require.Equal(t, "NRAK-abc123", credsValue)
 
 	err = SetRegion("default", "US")
 	require.NoError(t, err)
 
-	credsValue, err = GetCredentialValue(Region)
+	credsValue, err = GetActiveProfileValue(Region)
 	require.NoError(t, err)
 	require.Equal(t, "US", credsValue)
 
-	err = SetAccountID("default", "123456789")
+	err = SetAccountID("default", 123456789)
 	require.NoError(t, err)
 
-	credsValue, err = GetCredentialValue(AccountID)
+	credsValue, err = GetActiveProfileValue(AccountID)
 	require.NoError(t, err)
-	require.Equal(t, "123456789", credsValue)
+	require.Equal(t, float64(123456789), credsValue)
+
+	err = SetLicenseKey("default", "license")
+	require.NoError(t, err)
+
+	credsValue, err = GetActiveProfileValue(LicenseKey)
+	require.NoError(t, err)
+	require.Equal(t, "license", credsValue)
 }
 
-func TestSetCredentialValue_FileNotExists(t *testing.T) {
+func TestSetProfileValue_FileNotExists(t *testing.T) {
+	envVarResolver = &mockEnvResolver{}
 	setupBlankSlateScenario(t)
 
 	credsFilePath := path.Join(configDir, credsFilename)
+	defaultProfileFilePath := path.Join(configDir, defaultProfileFilename)
 
 	_, err := os.Stat(credsFilePath)
 	require.True(t, os.IsNotExist(err))
 
-	credsValue, err := GetCredentialValue(APIKey)
+	credsValue, err := GetActiveProfileValue(APIKey)
 	require.NoError(t, err)
 	require.Nil(t, credsValue)
 
 	err = SetAPIKey("default", "NRAK-abc123")
 	require.NoError(t, err)
 
-	credsValue, err = GetCredentialValue(APIKey)
+	credsValue, err = GetActiveProfileValue(APIKey)
 	require.NoError(t, err)
 	require.Equal(t, "NRAK-abc123", credsValue)
 
 	_, err = os.Stat(credsFilePath)
 	require.NoError(t, err)
 
-	os.Remove(credsFilePath)
+	err = os.Remove(credsFilePath)
+	require.NoError(t, err)
+
+	err = os.Remove(defaultProfileFilePath)
+	require.NoError(t, err)
 }
 
 func TestGetDefaultProfileName_Basic(t *testing.T) {
@@ -204,6 +253,7 @@ func TestGetDefaultProfileName_Basic(t *testing.T) {
 }
 
 func TestSetDefaultProfileName_FileNotExists(t *testing.T) {
+	envVarResolver = &mockEnvResolver{}
 	setupBlankSlateScenario(t)
 
 	defaultProfileFilePath := path.Join(configDir, defaultProfileFilename)
@@ -288,9 +338,6 @@ func createMockConfigFiles(t *testing.T) mockConfigFiles {
 		defaultProfileFile: defaultProfileFile,
 	}
 
-	err = load()
-	require.NoError(t, err)
-
 	return s
 }
 
@@ -299,11 +346,7 @@ func setupBlankSlateScenario(t *testing.T) {
 	configFilename = fmt.Sprintf("config%s.json", randNumBytes(8))
 	credsFilename = fmt.Sprintf("creds%s.json", randNumBytes(8))
 	defaultProfileFilename = fmt.Sprintf("default-profile%s.json", randNumBytes(8))
-	defaultProfileValue = ""
 	configDir = os.TempDir()
-
-	err := load()
-	require.NoError(t, err)
 }
 
 const numBytes = "0123456789"

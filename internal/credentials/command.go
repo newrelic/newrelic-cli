@@ -4,6 +4,9 @@ import (
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
 var (
@@ -37,31 +40,32 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 `,
 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithCredentials(func(creds *Credentials) {
-			p := Profile{
-				Region:            flagRegion,
-				APIKey:            apiKey,
-				InsightsInsertKey: insightsInsertKey,
-				AccountID:         accountID,
-				LicenseKey:        licenseKey,
-			}
+		if err := configuration.SetAPIKey(profileName, apiKey); err != nil {
+			log.Fatal(err)
+		}
 
-			err := creds.AddProfile(profileName, p)
-			if err != nil {
-				log.Fatal(err)
-			}
+		if err := configuration.SetRegion(profileName, flagRegion); err != nil {
+			log.Fatal(err)
+		}
 
-			log.Infof("profile %s added", text.FgCyan.Sprint(profileName))
+		if err := configuration.SetAccountID(profileName, accountID); err != nil {
+			log.Fatal(err)
+		}
 
-			if len(creds.Profiles) == 1 {
-				err := creds.SetDefaultProfile(profileName)
-				if err != nil {
-					log.Fatal(err)
-				}
+		if err := configuration.SetLicenseKey(profileName, licenseKey); err != nil {
+			log.Fatal(err)
+		}
 
-				log.Infof("setting %s as default profile", text.FgCyan.Sprint(profileName))
-			}
-		})
+		log.Infof("profile %s added", text.FgCyan.Sprint(profileName))
+
+		if configuration.GetDefaultProfileName() != "" {
+			return
+		}
+
+		log.Infof("setting %s as default profile", text.FgCyan.Sprint(profileName))
+		if err := configuration.SetDefaultProfileName(profileName); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -74,14 +78,11 @@ The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic profile default --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithCredentials(func(creds *Credentials) {
-			err := creds.SetDefaultProfile(profileName)
-			if err != nil {
-				log.Fatal(err)
-			}
+		if err := configuration.SetDefaultProfileName(profileName); err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -94,13 +95,58 @@ The list command prints out the available profiles' credentials.
 `,
 	Example: "newrelic profile list",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithCredentials(func(creds *Credentials) {
-			if creds != nil {
-				creds.List()
-			} else {
-				log.Info("no profiles found")
-			}
-		})
+		c := configuration.GetProfileNames()
+
+		if len(c) == 0 {
+			log.Info("no profiles found")
+			return
+		}
+
+		// 	// Print them out
+		// 	for k, v := range c.Profiles {
+		// 		name := k
+
+		// 		if k == c.DefaultProfile {
+		// 			name += text.FgHiBlack.Sprint(defaultProfileString)
+		// 		}
+
+		// 		var accountID int
+		// 		if v.AccountID != 0 {
+		// 			accountID = v.AccountID
+		// 		}
+
+		// 		var apiKey string
+		// 		if v.APIKey != "" {
+		// 			apiKey = text.FgHiBlack.Sprint(hiddenKeyString)
+		// 		}
+
+		// 		var insightsInsertKey string
+		// 		if v.InsightsInsertKey != "" {
+		// 			insightsInsertKey = text.FgHiBlack.Sprint(hiddenKeyString)
+		// 		}
+
+		// 		var licenseKey string
+		// 		if v.LicenseKey != "" {
+		// 			licenseKey = text.FgHiBlack.Sprint(hiddenKeyString)
+		// 		}
+
+		// 		if showKeys {
+		// 			apiKey = v.APIKey
+		// 			insightsInsertKey = v.InsightsInsertKey
+		// 			licenseKey = v.LicenseKey
+		// 		}
+
+		// 		out = append(out, profileList{
+		// 			Name:              name,
+		// 			Region:            v.Region,
+		// 			APIKey:            apiKey,
+		// 			InsightsInsertKey: insightsInsertKey,
+		// 			AccountID:         accountID,
+		// 			LicenseKey:        licenseKey,
+		// 		})
+		// 	}
+
+		output.Text(c)
 	},
 	Aliases: []string{
 		"ls",

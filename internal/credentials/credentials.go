@@ -7,20 +7,18 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
 const (
 	// DefaultCredentialsFile is the default place to load profiles from
 	DefaultCredentialsFile = "credentials"
 
-	defaultConfigType    = "json"
-	defaultProfileString = " (default)"
-	hiddenKeyString      = "<hidden>"
+	defaultConfigType = "json"
+	//defaultProfileString = " (default)"
+	//hiddenKeyString      = "<hidden>"
 )
 
 // Credentials is the metadata around all configured profiles
@@ -157,61 +155,14 @@ func (c *Credentials) SetDefaultProfile(profileName string) error {
 
 // List outputs a list of all the configured Credentials
 func (c *Credentials) List() {
-	out := []profileList{}
-
-	// Print them out
-	for k, v := range c.Profiles {
-		name := k
-
-		if k == c.DefaultProfile {
-			name += text.FgHiBlack.Sprint(defaultProfileString)
-		}
-
-		var accountID int
-		if v.AccountID != 0 {
-			accountID = v.AccountID
-		}
-
-		var apiKey string
-		if v.APIKey != "" {
-			apiKey = text.FgHiBlack.Sprint(hiddenKeyString)
-		}
-
-		var insightsInsertKey string
-		if v.InsightsInsertKey != "" {
-			insightsInsertKey = text.FgHiBlack.Sprint(hiddenKeyString)
-		}
-
-		var licenseKey string
-		if v.LicenseKey != "" {
-			licenseKey = text.FgHiBlack.Sprint(hiddenKeyString)
-		}
-
-		if showKeys {
-			apiKey = v.APIKey
-			insightsInsertKey = v.InsightsInsertKey
-			licenseKey = v.LicenseKey
-		}
-
-		out = append(out, profileList{
-			Name:              name,
-			Region:            v.Region,
-			APIKey:            apiKey,
-			InsightsInsertKey: insightsInsertKey,
-			AccountID:         accountID,
-			LicenseKey:        licenseKey,
-		})
-	}
-
-	output.Text(out)
 }
 
 // The order of fields in this struct dictates the ordering of the output table.
-type profileList struct {
-	Name              string
-	AccountID         int
-	Region            string
-	APIKey            string
-	LicenseKey        string
-	InsightsInsertKey string
-}
+// type profileList struct {
+// 	Name              string
+// 	AccountID         int
+// 	Region            string
+// 	APIKey            string
+// 	LicenseKey        string
+// 	InsightsInsertKey string
+// }
