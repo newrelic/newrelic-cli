@@ -25,15 +25,16 @@ var (
 		Name: testRecipeName,
 	}
 
-	d  = discovery.NewMockDiscoverer()
-	l  = discovery.NewMockFileFilterer()
-	f  = recipes.NewMockRecipeFetcher()
-	e  = execution.NewMockRecipeExecutor()
-	v  = validation.NewMockRecipeValidator()
-	ff = recipes.NewMockRecipeFileFetcher()
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
-	p  = ux.NewMockPrompter()
-	s  = ux.NewMockProgressIndicator()
+	d               = discovery.NewMockDiscoverer()
+	l               = discovery.NewMockFileFilterer()
+	f               = recipes.NewMockRecipeFetcher()
+	e               = execution.NewMockRecipeExecutor()
+	v               = validation.NewMockRecipeValidator()
+	ff              = recipes.NewMockRecipeFileFetcher()
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status          = execution.NewStatusRollup(statusReporters)
+	p               = ux.NewMockPrompter()
+	s               = ux.NewMockProgressIndicator()
 )
 
 func TestInstall(t *testing.T) {
@@ -50,7 +51,7 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 
 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 }
@@ -59,7 +60,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	ic := InstallerContext{}
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 
 	recipe, err := i.recipeFromPath("http://recipe/URL")
 	require.NoError(t, err)
@@ -71,7 +72,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	ic := InstallerContext{}
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 
 	recipe, err := i.recipeFromPath("file.txt")
 	require.NoError(t, err)
@@ -86,7 +87,7 @@ func TestInstall_Basic(t *testing.T) {
 		{Name: infraAgentRecipeName},
 		{Name: loggingRecipeName},
 	}
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, f.FetchRecipeNameCount[infraAgentRecipeName], 1)
@@ -95,16 +96,18 @@ func TestInstall_Basic(t *testing.T) {
 
 func TestInstall_ReportRecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportRecipesAvailableCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipesAvailableCallCount)
 }
 
 func TestInstall_ReportRecipeInstalled(t *testing.T) {
 	ic := InstallerContext{}
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
@@ -126,10 +129,10 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 3, sr[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
 func TestInstall_ReportRecipeFailed(t *testing.T) {
@@ -137,7 +140,8 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
@@ -151,10 +155,10 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	v = validation.NewMockRecipeValidator()
 	v.ValidateErr = errors.New("validationErr")
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportRecipeFailedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeFailedCallCount)
 }
 
 func TestInstall_ReportComplete(t *testing.T) {
@@ -162,24 +166,26 @@ func TestInstall_ReportComplete(t *testing.T) {
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{{}, {}}
 
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
 }
 
 func TestInstall_ReportCompleteError(t *testing.T) {
 	ic := InstallerContext{
 		SkipLoggingInstall: true,
 	}
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{
@@ -196,10 +202,10 @@ func TestInstall_ReportCompleteError(t *testing.T) {
 	v = validation.NewMockRecipeValidator()
 	v.ValidateErr = errors.New("test error")
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.Error(t, err)
-	require.Equal(t, 1, sr[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
 }
 
 func TestInstall_ReportRecipeSkipped(t *testing.T) {
@@ -207,7 +213,8 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
-	sr = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		ValidationNRQL: "testNrql",
@@ -219,11 +226,11 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 		PromptYesNoVal: false,
 	}
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, sr, p, s}
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 3, sr[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
-	require.Equal(t, 0, sr[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {
