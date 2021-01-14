@@ -26,7 +26,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.7
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
 	golang.org/x/tools v0.0.0-20210105210202-9ed45478a130
