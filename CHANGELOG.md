@@ -1,3 +1,10 @@
+<a name="v0.18.11"></a>
+## [v0.18.11] - 2021-01-14
+### Bug Fixes
+- **install:** report available recipes as soon as we know the list
+- **install:** use the received name when fetching the recipe
+- **install:** lint for else condition
+
 <a name="v0.8.12"></a>
 ## [v0.8.12] - 2021-01-12
 ### Bug Fixes
@@ -394,7 +401,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.12...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.11...HEAD
+[v0.18.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.12...v0.18.11
 [v0.8.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.11...v0.8.12
 [v0.8.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.10...v0.8.11
 [v0.18.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.9...v0.18.10
