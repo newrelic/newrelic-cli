@@ -154,6 +154,11 @@ func (i *RecipeInstaller) Install() error {
 			return err
 		}
 
+		loggingRecipe, err = i.fetchRecipeAndReportAvailable(m, loggingRecipeName)
+		if err != nil {
+			return err
+		}
+
 		if i.SkipInfraInstall {
 			log.Debugf("Skipping installation of infrastructure agent")
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
@@ -165,13 +170,6 @@ func (i *RecipeInstaller) Install() error {
 				return i.fail(err)
 			}
 			log.Debugf("Done installing infrastructure agent.")
-		}
-
-		// Run the logging recipe if requested, exiting on failure.
-		log.Debugf("Fetching logging recipe...")
-		loggingRecipe, err = i.fetchRecipeAndReportAvailable(m, loggingRecipeName)
-		if err != nil {
-			return err
 		}
 
 		if i.SkipLoggingInstall {
