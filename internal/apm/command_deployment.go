@@ -4,10 +4,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -43,12 +43,19 @@ The list command returns deployments for a New Relic APM application.
 			log.Fatal("--applicationId is required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			deployments, err := nrClient.APM.ListDeployments(apmAppID)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(deployments))
-		})
+		deployments, err := nrClient.APM.ListDeployments(apmAppID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err = output.Print(deployments); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -67,12 +74,19 @@ application.
 			log.Fatal("--applicationId and --revision are required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			d, err := nrClient.APM.CreateDeployment(apmAppID, deployment)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(d))
-		})
+		d, err := nrClient.APM.CreateDeployment(apmAppID, deployment)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err = output.Print(d); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -90,12 +104,19 @@ The delete command performs a delete operation for an APM deployment.
 			log.Fatal("--applicationId is required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			d, err := nrClient.APM.DeleteDeployment(apmAppID, deployment.ID)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(d))
-		})
+		d, err := nrClient.APM.DeleteDeployment(apmAppID, deployment.ID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err = output.Print(d); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

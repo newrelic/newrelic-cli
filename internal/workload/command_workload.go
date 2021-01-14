@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
 
@@ -29,12 +29,19 @@ The get command retrieves a specific workload by its account ID and workload GUI
 `,
 	Example: `newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			workload, err := nrClient.Workloads.GetWorkload(accountID, guid)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(workload))
-		})
+		workload, err := nrClient.Workloads.GetWorkload(accountID, guid)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err := output.Print(workload); err != nil {
+			output.Print(workload)
+		}
 	},
 }
 
@@ -47,12 +54,19 @@ The list command retrieves the workloads for the given account ID.
 `,
 	Example: `newrelic workload list --accountId 12345678`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			workload, err := nrClient.Workloads.ListWorkloads(accountID)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(workload))
-		})
+		workload, err := nrClient.Workloads.ListWorkloads(accountID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err := output.Print(workload); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -70,33 +84,38 @@ you also have access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			createInput := workloads.CreateInput{
-				Name: name,
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		createInput := workloads.CreateInput{
+			Name: name,
+		}
+
+		if len(entityGUIDs) > 0 {
+			createInput.EntityGUIDs = entityGUIDs
+		}
+
+		if len(entitySearchQueries) > 0 {
+			var queryInputs []workloads.EntitySearchQueryInput
+			for _, q := range entitySearchQueries {
+				queryInputs = append(queryInputs, workloads.EntitySearchQueryInput{Query: q})
 			}
+			createInput.EntitySearchQueries = queryInputs
+		}
 
-			if len(entityGUIDs) > 0 {
-				createInput.EntityGUIDs = entityGUIDs
-			}
+		if len(scopeAccountIDs) > 0 {
+			createInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
+		}
 
-			if len(entitySearchQueries) > 0 {
-				var queryInputs []workloads.EntitySearchQueryInput
-				for _, q := range entitySearchQueries {
-					queryInputs = append(queryInputs, workloads.EntitySearchQueryInput{Query: q})
-				}
-				createInput.EntitySearchQueries = queryInputs
-			}
+		workload, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			if len(scopeAccountIDs) > 0 {
-				createInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
-			}
-
-			workload, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(workload))
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(workload))
+		log.Info("success")
 	},
 }
 
@@ -114,32 +133,37 @@ entities from different sub-accounts that you also have access to.
 `,
 	Example: `newrelic workload update --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --name 'Updated workflow'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			updateInput := workloads.UpdateInput{
-				Name: name,
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		updateInput := workloads.UpdateInput{
+			Name: name,
+		}
+
+		if len(entityGUIDs) > 0 {
+			updateInput.EntityGUIDs = entityGUIDs
+		}
+
+		if len(entitySearchQueries) > 0 {
+			var queryInputs []workloads.EntitySearchQueryInput
+			for _, q := range entitySearchQueries {
+				queryInputs = append(queryInputs, workloads.EntitySearchQueryInput{Query: q})
 			}
+			updateInput.EntitySearchQueries = queryInputs
+		}
 
-			if len(entityGUIDs) > 0 {
-				updateInput.EntityGUIDs = entityGUIDs
-			}
+		if len(scopeAccountIDs) > 0 {
+			updateInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
+		}
 
-			if len(entitySearchQueries) > 0 {
-				var queryInputs []workloads.EntitySearchQueryInput
-				for _, q := range entitySearchQueries {
-					queryInputs = append(queryInputs, workloads.EntitySearchQueryInput{Query: q})
-				}
-				updateInput.EntitySearchQueries = queryInputs
-			}
+		_, err = nrClient.Workloads.UpdateWorkload(guid, updateInput)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			if len(scopeAccountIDs) > 0 {
-				updateInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
-			}
-
-			_, err := nrClient.Workloads.UpdateWorkload(guid, updateInput)
-			utils.LogIfFatal(err)
-
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -155,17 +179,25 @@ compose the new name.
 `,
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			duplicateInput := &workloads.DuplicateInput{
-				Name: name,
-			}
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
-			utils.LogIfFatal(err)
+		duplicateInput := &workloads.DuplicateInput{
+			Name: name,
+		}
 
-			utils.LogIfFatal(output.Print(workload))
-			log.Info("success")
-		})
+		workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err := output.Print(workload); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
 }
 
@@ -178,12 +210,17 @@ The delete command accepts a workload's entity GUID.
 `,
 	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			_, err := nrClient.Workloads.DeleteWorkload(guid)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		_, err = nrClient.Workloads.DeleteWorkload(guid)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
 }
 

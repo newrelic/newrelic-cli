@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
@@ -22,77 +22,84 @@ The search command performs a search for New Relic entities.
 `,
 	Example: "newrelic entity search --name <applicationName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			params := entities.EntitySearchQueryBuilder{}
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
-				utils.LogIfError(cmd.Help())
-				log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
-			}
+		params := entities.EntitySearchQueryBuilder{}
 
-			if entityName != "" {
-				params.Name = entityName
-			}
+		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
+			utils.LogIfError(cmd.Help())
+			log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
+		}
 
-			if entityType != "" {
-				params.Type = entities.EntitySearchQueryBuilderType(entityType)
-			}
+		if entityName != "" {
+			params.Name = entityName
+		}
 
-			if entityAlertSeverity != "" {
-				params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
-			}
+		if entityType != "" {
+			params.Type = entities.EntitySearchQueryBuilderType(entityType)
+		}
 
-			if entityDomain != "" {
-				params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
-			}
+		if entityAlertSeverity != "" {
+			params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
+		}
 
-			if entityTag != "" {
-				key, value, err := assembleTagValue(entityTag)
-				utils.LogIfFatal(err)
+		if entityDomain != "" {
+			params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
+		}
 
-				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
-			}
-
-			if entityReporting != "" {
-				reporting, err := strconv.ParseBool(entityReporting)
-
-				if err != nil {
-					log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
-				}
-
-				params.Reporting = reporting
-			}
-
-			results, err := nrClient.Entities.GetEntitySearch(
-				entities.EntitySearchOptions{},
-				"",
-				params,
-				[]entities.EntitySearchSortCriteria{},
-			)
+		var key, value string
+		if entityTag != "" {
+			key, value, err = assembleTagValue(entityTag)
 			utils.LogIfFatal(err)
 
-			entities := results.Results.Entities
+			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
+		}
 
-			var result interface{}
+		var reporting bool
+		if entityReporting != "" {
+			reporting, err = strconv.ParseBool(entityReporting)
 
-			if len(entityFields) > 0 {
-				mapped := mapEntities(entities, entityFields, utils.StructToMap)
-
-				if len(mapped) == 1 {
-					result = mapped[0]
-				} else {
-					result = mapped
-				}
-			} else {
-				if len(entities) == 1 {
-					result = entities[0]
-				} else {
-					result = entities
-				}
+			if err != nil {
+				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
 			}
 
-			utils.LogIfFatal(output.Print(result))
-		})
+			params.Reporting = reporting
+		}
+
+		results, err := nrClient.Entities.GetEntitySearch(
+			entities.EntitySearchOptions{},
+			"",
+			params,
+			[]entities.EntitySearchSortCriteria{},
+		)
+		utils.LogIfFatal(err)
+
+		entities := results.Results.Entities
+
+		var result interface{}
+
+		if len(entityFields) > 0 {
+			mapped := mapEntities(entities, entityFields, utils.StructToMap)
+
+			if len(mapped) == 1 {
+				result = mapped[0]
+			} else {
+				result = mapped
+			}
+		} else {
+			if len(entities) == 1 {
+				result = entities[0]
+			} else {
+				result = entities
+			}
+		}
+
+		if err := output.Print(result); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

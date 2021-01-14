@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
@@ -28,15 +28,20 @@ issue the query against.
 `,
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			result, err := nrClient.Nrdb.Query(accountID, nrdb.NRQL(query))
-			if err != nil {
-				log.Fatal(err)
-			}
+		result, err := nrClient.Nrdb.Query(accountID, nrdb.NRQL(query))
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(result.Results))
-		})
+		err = output.Print(result.Results)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -49,26 +54,28 @@ The history command will fetch a list of the most recent NRQL queries you execut
 `,
 	Example: `newrelic nrql query history`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			result, err := nrClient.Nrdb.QueryHistory()
-			if err != nil {
-				log.Fatal(err)
-			}
+		result, err := nrClient.Nrdb.QueryHistory()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			if result == nil {
-				log.Info("no history found. Try using the 'newrelc nrql query' command")
-				return
-			}
+		if result == nil {
+			log.Info("no history found. Try using the 'newrelc nrql query' command")
+			return
+		}
 
-			count := len(*result)
+		count := len(*result)
 
-			if count < historyLimit {
-				historyLimit = count
-			}
+		if count < historyLimit {
+			historyLimit = count
+		}
 
-			output.Text((*result)[0:historyLimit])
-		})
+		output.Text((*result)[0:historyLimit])
 	},
 }
 

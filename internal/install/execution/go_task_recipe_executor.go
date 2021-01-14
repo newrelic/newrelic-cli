@@ -16,7 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -146,17 +146,37 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 }
 
 func varsFromProfile() (types.RecipeVars, error) {
-	defaultProfile := credentials.DefaultProfile()
-	if defaultProfile.LicenseKey == "" {
+	v, err := configuration.GetActiveProfileValue(configuration.LicenseKey)
+	if err != nil {
+		return nil, err
+	}
+
+	licenseKey := v.(string)
+	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found in default profile")
+	}
+
+	accountID, err := configuration.GetActiveProfileValue(configuration.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	apiKey, err := configuration.GetActiveProfileValue(configuration.APIKey)
+	if err != nil {
+		return nil, err
+	}
+
+	region, err := configuration.GetActiveProfileValue(configuration.Region)
+	if err != nil {
+		return nil, err
 	}
 
 	vars := make(types.RecipeVars)
 
-	vars["NEW_RELIC_LICENSE_KEY"] = defaultProfile.LicenseKey
-	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(defaultProfile.AccountID)
-	vars["NEW_RELIC_API_KEY"] = defaultProfile.APIKey
-	vars["NEW_RELIC_REGION"] = defaultProfile.Region
+	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
+	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(int(accountID.(float64)))
+	vars["NEW_RELIC_API_KEY"] = apiKey.(string)
+	vars["NEW_RELIC_REGION"] = region.(string)
 
 	return vars, nil
 }

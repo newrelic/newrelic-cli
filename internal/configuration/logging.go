@@ -1,4 +1,4 @@
-package config
+package configuration
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ var (
 	fileHookConfigured = false
 )
 
-func initLogger(logLevel string) {
+func InitLogger(logLevel string) {
 	l := log.StandardLogger()
 
 	l.SetFormatter(&log.TextFormatter{
@@ -29,16 +29,16 @@ func initLogger(logLevel string) {
 		EnvironmentOverrideColors: true,
 	})
 
-	_, err := os.Stat(DefaultConfigDirectory)
+	_, err := os.Stat(ConfigDir)
 
 	if os.IsNotExist(err) {
-		errDir := os.MkdirAll(DefaultConfigDirectory, 0750)
+		errDir := os.MkdirAll(ConfigDir, 0750)
 		if errDir != nil {
 			log.Warnf("Could not create log file folder: %s", err)
 		}
 	}
 
-	fileHook, err := NewLogrusFileHook(DefaultConfigDirectory+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
+	fileHook, err := NewLogrusFileHook(ConfigDir+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
 	if err == nil && !fileHookConfigured {
 		l.Hooks.Add(fileHook)
 		fileHookConfigured = true

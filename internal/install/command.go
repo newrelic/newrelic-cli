@@ -1,15 +1,11 @@
 package install
 
 import (
-	"errors"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
-	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 )
 
 var (
@@ -43,35 +39,29 @@ var Command = &cobra.Command{
 			SkipLoggingInstall: skipLoggingInstall,
 		}
 
-		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			if trace {
-				log.SetLevel(log.TraceLevel)
-				nrClient.SetLogLevel("trace")
-			} else if debug {
-				log.SetLevel(log.DebugLevel)
-				nrClient.SetLogLevel("debug")
-			}
+		activeProfile := configuration.GetActiveProfileName()
+		if activeProfile != "" {
+			log.Fatal("no active profile has been set")
+		}
 
-			err := assertProfileIsValid(profile)
-			if err != nil {
-				log.Fatal(err)
-			}
+		nrClient, err := client.NewClient(activeProfile)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			i := NewRecipeInstaller(ic, nrClient)
+		if trace {
+			log.SetLevel(log.TraceLevel)
+		} else if debug {
+			log.SetLevel(log.DebugLevel)
+		}
 
-			// Run the install.
-			if err := i.Install(); err != nil {
-				log.Fatalf("Could not install New Relic: %s, check the install log for details: %s", err, config.DefaultLogFile)
-			}
-		})
+		i := NewRecipeInstaller(ic, nrClient)
+
+		// Run the install.
+		if err := i.Install(); err != nil {
+			log.Fatalf("Could not install New Relic: %s, check the install log for details: %s", err, configuration.DefaultLogFile)
+		}
 	},
-}
-
-func assertProfileIsValid(profile *credentials.Profile) error {
-	if profile == nil {
-		return errors.New("default profile has not been set")
-	}
-	return nil
 }
 
 func init() {

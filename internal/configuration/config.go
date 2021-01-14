@@ -1,6 +1,8 @@
 package configuration
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -27,10 +29,11 @@ const (
 	PrereleaseFeatures ConfigFieldKey = "prereleasefeatures"
 	SendUsageData      ConfigFieldKey = "sendusagedata"
 
-	APIKey     ProfileFieldKey = "apiKey"
-	Region     ProfileFieldKey = "region"
-	AccountID  ProfileFieldKey = "accountID"
-	LicenseKey ProfileFieldKey = "licenseKey"
+	APIKey            ProfileFieldKey = "apiKey"
+	Region            ProfileFieldKey = "region"
+	AccountID         ProfileFieldKey = "accountID"
+	InsightsInsertKey ProfileFieldKey = "insightsInsertKey"
+	LicenseKey        ProfileFieldKey = "licenseKey"
 )
 
 var (
@@ -77,12 +80,18 @@ var (
 			Key:         LicenseKey,
 			EnvOverride: "NEW_RELIC_LICENSE_KEY",
 		},
+		{
+			Name:        "InsightsInsertKey",
+			Key:         InsightsInsertKey,
+			EnvOverride: "NEW_RELIC_INSIGHTS_INSERT_KEY",
+		},
 	}
-	configDir              string
-	configFilename                     = "config.json"
-	credsFilename                      = "credentials.json"
-	defaultProfileFilename             = "default-profile.json"
-	envVarResolver         envResolver = &osEnvResolver{}
+	ConfigDir                 string
+	EnvVarResolver            envResolver = &osEnvResolver{}
+	configFilename                        = "config.json"
+	credsFilename                         = "credentials.json"
+	defaultProfileFilename                = "default-profile.json"
+	defaultDefaultProfileName             = "default"
 )
 
 type ConfigField struct {
@@ -97,9 +106,24 @@ type ProfileField struct {
 	EnvOverride string
 }
 
+type ConfigValue struct {
+	Name    string
+	Value   interface{}
+	Default interface{}
+}
+
+// IsDefault returns true if the field's value is the default value.
+func (c *ConfigValue) IsDefault() bool {
+	if v, ok := c.Value.(string); ok {
+		return strings.EqualFold(v, c.Default.(string))
+	}
+
+	return c.Value == c.Default
+}
+
 func init() {
 	var err error
-	configDir, err = getDefaultConfigDirectory()
+	ConfigDir, err = getDefaultConfigDirectory()
 	if err != nil {
 		log.Debug(err)
 	}
@@ -123,7 +147,6 @@ func GetProfileValue(profileName string, key ProfileFieldKey) (interface{}, erro
 	}
 
 	return profiles().Get(keyDefaultProfile(string(key))), nil
-
 }
 
 func GetActiveProfileValue(key ProfileFieldKey) (interface{}, error) {
@@ -138,38 +161,6 @@ func GetDefaultProfileName() string {
 	return defaultProfileName()
 }
 
-func SetLogLevel(logLevel string) error {
-	return SetConfigValue(LogLevel, logLevel)
-}
-
-func SetPluginDirectory(directory string) error {
-	return SetConfigValue(PluginDir, directory)
-}
-
-func SetPreleaseFeatures(prereleaseFeatures string) error {
-	return SetConfigValue(PrereleaseFeatures, prereleaseFeatures)
-}
-
-func SetSendUsageData(sendUsageData string) error {
-	return SetConfigValue(SendUsageData, sendUsageData)
-}
-
-func SetAPIKey(profileName string, apiKey string) error {
-	return SetProfileValue(profileName, APIKey, apiKey)
-}
-
-func SetRegion(profileName string, region string) error {
-	return SetProfileValue(profileName, Region, region)
-}
-
-func SetAccountID(profileName string, accountID int) error {
-	return SetProfileValue(profileName, AccountID, accountID)
-}
-
-func SetLicenseKey(profileName string, licenseKey string) error {
-	return SetProfileValue(profileName, LicenseKey, licenseKey)
-}
-
 func SetDefaultProfileName(profileName string) error {
 	return saveDefaultProfileName(profileName)
 }
@@ -178,25 +169,30 @@ func SetConfigValue(key ConfigFieldKey, value string) error {
 	c := config()
 	c.Set(keyGlobalScope(string(key)), value)
 
-	if err := c.WriteConfigAs(path.Join(configDir, configFilename)); err != nil {
+	cfgFilePath := path.Join(ConfigDir, configFilename)
+	if err := c.WriteConfigAs(cfgFilePath); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func SetActiveProfileValue(key ProfileFieldKey, value interface{}) error {
+	return SetProfileValue(GetActiveProfileName(), key, value)
+}
+
 func SetProfileValue(profileName string, key ProfileFieldKey, value interface{}) error {
 	p := profiles()
-
 	keyPath := fmt.Sprintf("%s.%s", profileName, key)
 	p.Set(keyPath, value)
 
-	credsFilePath := path.Join(configDir, credsFilename)
+	credsFilePath := path.Join(ConfigDir, credsFilename)
 	if err := p.WriteConfigAs(credsFilePath); err != nil {
 		return err
 	}
 
 	if defaultProfileName() == "" {
+		log.Debugf("setting %s as default profile", defaultDefaultProfileName)
 		if err := SetDefaultProfileName(profileName); err != nil {
 			return err
 		}
@@ -205,13 +201,47 @@ func SetProfileValue(profileName string, key ProfileFieldKey, value interface{})
 	return nil
 }
 
+func RemoveProfile(profileName string) error {
+	p := profiles()
+	configMap := p.AllSettings()
+	delete(configMap, profileName)
+
+	encodedConfig, _ := json.MarshalIndent(configMap, "", " ")
+	err := viper.ReadConfig(bytes.NewReader(encodedConfig))
+	if err != nil {
+		return err
+	}
+
+	credsFilePath := path.Join(ConfigDir, credsFilename)
+	if err := p.WriteConfigAs(credsFilePath); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetProfileNames() []string {
+	profileMap := map[string]interface{}{}
+	if err := profiles().Unmarshal(&profileMap); err != nil {
+		log.Debug(err)
+		return []string{}
+	}
+
+	n := []string{}
+	for k := range profileMap {
+		n = append(n, k)
+	}
+
+	return n
+}
+
 func getProfileValueEnvOverride(key ProfileFieldKey) string {
 	for _, p := range ProfileFields {
-		if strings.EqualFold(string(p.Key), string(key)) {
+		if !strings.EqualFold(string(p.Key), string(key)) {
 			continue
 		}
 
-		e := envVarResolver.Getenv(p.EnvOverride)
+		e := EnvVarResolver.Getenv(p.EnvOverride)
 
 		if e != "" {
 			return e
@@ -252,33 +282,18 @@ func writeConfigDefaults(v *viper.Viper) error {
 		v.Set(keyGlobalScope(string(c.Key)), c.Default)
 	}
 
-	if err := v.WriteConfigAs(path.Join(configDir, configFilename)); err != nil {
+	if err := v.WriteConfigAs(path.Join(ConfigDir, configFilename)); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func GetProfileNames() []string {
-	profileMap := map[string]interface{}{}
-	if err := profiles().Unmarshal(&profileMap); err != nil {
-		fmt.Println(err)
-		return []string{}
-	}
-
-	n := make([]string, len(profileMap))
-	for k := range profileMap {
-		n = append(n, k)
-	}
-
-	return n
-}
-
 func loadConfigFile() (*viper.Viper, error) {
 	v := viper.New()
 	v.SetConfigName(configFilename)
 	v.SetConfigType(configType)
-	v.AddConfigPath(configDir)
+	v.AddConfigPath(ConfigDir)
 
 	for _, c := range ConfigFields {
 		v.SetDefault(fmt.Sprintf("*.%s", c.Key), c.Default)
@@ -295,10 +310,10 @@ func loadCredsFile() (*viper.Viper, error) {
 	v := viper.New()
 	v.SetConfigName(credsFilename)
 	v.SetConfigType(configType)
-	v.AddConfigPath(configDir)
+	v.AddConfigPath(ConfigDir)
 
 	if err := loadFile(v); err != nil {
-		return nil, fmt.Errorf("credentials file not found: %s", path.Join(configDir, credsFilename))
+		return nil, fmt.Errorf("credentials file not found: %s", path.Join(ConfigDir, credsFilename))
 	}
 
 	return v, nil
@@ -314,7 +329,7 @@ func defaultProfileName() string {
 }
 
 func loadDefaultProfileName() (string, error) {
-	defaultProfileFilePath := filepath.Join(configDir, defaultProfileFilename)
+	defaultProfileFilePath := filepath.Join(ConfigDir, defaultProfileFilename)
 	defaultProfileBytes, err := ioutil.ReadFile(defaultProfileFilePath)
 	if err != nil {
 		return "", err
@@ -337,7 +352,7 @@ func loadFile(v *viper.Viper) error {
 }
 
 func saveDefaultProfileName(profileName string) error {
-	defaultProfileFilePath := filepath.Join(configDir, defaultProfileFilename)
+	defaultProfileFilePath := filepath.Join(ConfigDir, defaultProfileFilename)
 
 	if err := ioutil.WriteFile(defaultProfileFilePath, []byte("\""+profileName+"\""), 0644); err != nil {
 		return err

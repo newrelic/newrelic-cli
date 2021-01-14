@@ -9,10 +9,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
 const junitEventType = "TestRun"
@@ -32,48 +31,52 @@ var cmdJUnit = &cobra.Command{
 `,
 	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			if profile.InsightsInsertKey == "" {
-				log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		insightsInsertKey, err := configuration.GetActiveProfileValue(configuration.InsightsInsertKey)
+		if err != nil || insightsInsertKey == "" {
+			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
+		}
+
+		id, err := uuid.NewRandom()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		xml, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		suites, err := junit.Ingest(xml)
+		if err != nil {
+			log.Fatalf("failed to ingest JUnit xml %v", err)
+		}
+
+		events := []map[string]interface{}{}
+
+		for _, suite := range suites {
+			for _, test := range suite.Tests {
+				events = append(events, createTestRunEvent(id, suite, test))
 			}
+		}
 
-			id, err := uuid.NewRandom()
-			if err != nil {
-				log.Fatal(err)
-			}
+		if outputEvents {
+			utils.LogIfFatal(output.Print(events))
+		}
 
-			xml, err := ioutil.ReadFile(path)
-			if err != nil {
-				log.Fatal(err)
-			}
+		if dryRun {
+			return
+		}
 
-			suites, err := junit.Ingest(xml)
-			if err != nil {
-				log.Fatalf("failed to ingest JUnit xml %v", err)
-			}
+		if err := nrClient.Events.CreateEvent(accountID, events); err != nil {
+			log.Fatal(err)
+		}
 
-			events := []map[string]interface{}{}
-
-			for _, suite := range suites {
-				for _, test := range suite.Tests {
-					events = append(events, createTestRunEvent(id, suite, test))
-				}
-			}
-
-			if outputEvents {
-				utils.LogIfFatal(output.Print(events))
-			}
-
-			if dryRun {
-				return
-			}
-
-			if err := nrClient.Events.CreateEvent(accountID, events); err != nil {
-				log.Fatal(err)
-			}
-
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 

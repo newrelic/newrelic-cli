@@ -1,7 +1,7 @@
-package credentials
+package profiles
 
 import (
-	"github.com/jedib0t/go-pretty/v6/text"
+	"github.com/jedib0t/go-pretty/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -40,32 +40,27 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 `,
 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := configuration.SetAPIKey(profileName, apiKey); err != nil {
+		if err := configuration.SetProfileValue(profileName, configuration.APIKey, apiKey); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetRegion(profileName, flagRegion); err != nil {
+		if err := configuration.SetProfileValue(profileName, configuration.Region, flagRegion); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetAccountID(profileName, accountID); err != nil {
+		if err := configuration.SetProfileValue(profileName, configuration.InsightsInsertKey, insightsInsertKey); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetLicenseKey(profileName, licenseKey); err != nil {
+		if err := configuration.SetProfileValue(profileName, configuration.AccountID, accountID); err != nil {
+			log.Fatal(err)
+		}
+
+		if err := configuration.SetProfileValue(profileName, configuration.LicenseKey, licenseKey); err != nil {
 			log.Fatal(err)
 		}
 
 		log.Infof("profile %s added", text.FgCyan.Sprint(profileName))
-
-		if configuration.GetDefaultProfileName() != "" {
-			return
-		}
-
-		log.Infof("setting %s as default profile", text.FgCyan.Sprint(profileName))
-		if err := configuration.SetDefaultProfileName(profileName); err != nil {
-			log.Fatal(err)
-		}
 	},
 }
 
@@ -162,14 +157,12 @@ The delete command removes the profile specified by name.
 `,
 	Example: "newrelic profile delete --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithCredentials(func(creds *Credentials) {
-			err := creds.RemoveProfile(profileName)
-			if err != nil {
-				log.Fatal(err)
-			}
+		err := configuration.RemoveProfile(profileName)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 	Aliases: []string{
 		"remove",

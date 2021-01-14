@@ -7,8 +7,7 @@ import (
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 )
 
 var (
@@ -16,35 +15,38 @@ var (
 	version     = "dev"
 )
 
-// CreateNRClient initializes the New Relic client.
-func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrelic.NewRelic, *credentials.Profile, error) {
-	var (
-		err               error
-		apiKey            string
-		insightsInsertKey string
-		regionValue       string
-	)
-
-	// Create the New Relic Client
-	defProfile := creds.Default()
-
-	if defProfile != nil {
-		apiKey = defProfile.APIKey
-		insightsInsertKey = defProfile.InsightsInsertKey
-		regionValue = defProfile.Region
+func NewClient(profileName string) (*newrelic.NewRelic, error) {
+	apiKey, err := configuration.GetProfileValue(profileName, configuration.APIKey)
+	if err != nil {
+		return nil, err
 	}
 
 	if apiKey == "" {
-		return nil, nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
+		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
+	}
+
+	region, err := configuration.GetProfileValue(profileName, configuration.Region)
+	if err != nil {
+		return nil, err
+	}
+
+	insightsInsertKey, err := configuration.GetProfileValue(profileName, configuration.InsightsInsertKey)
+	if err != nil {
+		return nil, err
+	}
+
+	logLevel, err := configuration.GetConfigValue(configuration.LogLevel)
+	if err != nil {
+		return nil, err
 	}
 
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	cfgOpts := []newrelic.ConfigOption{
-		newrelic.ConfigPersonalAPIKey(apiKey),
-		newrelic.ConfigInsightsInsertKey(insightsInsertKey),
-		newrelic.ConfigLogLevel(cfg.LogLevel),
-		newrelic.ConfigRegion(regionValue),
+		newrelic.ConfigPersonalAPIKey(apiKey.(string)),
+		newrelic.ConfigInsightsInsertKey(insightsInsertKey.(string)),
+		newrelic.ConfigLogLevel(logLevel.(string)),
+		newrelic.ConfigRegion(region.(string)),
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
 	}
@@ -55,10 +57,9 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 	}
 
 	nrClient, err := newrelic.New(cfgOpts...)
-
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to create New Relic client with error: %s", err)
+		return nil, fmt.Errorf("unable to create New Relic client with error: %s", err)
 	}
 
-	return nrClient, defProfile, nil
+	return nrClient, nil
 }

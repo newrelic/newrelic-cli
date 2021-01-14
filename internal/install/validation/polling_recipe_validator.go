@@ -6,11 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
@@ -139,14 +140,23 @@ func substituteHostname(dm types.DiscoveryManifest, r types.Recipe) (string, err
 }
 
 func (m *PollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	profile := credentials.DefaultProfile()
-	if profile == nil || profile.AccountID == 0 {
+	v, err := configuration.GetActiveProfileValue(configuration.AccountID)
+	if err != nil {
+		return nil, err
+	}
+
+	accountID, err := strconv.Atoi(v.(string))
+	if err != nil {
+		return nil, err
+	}
+
+	if accountID == 0 {
 		return nil, errors.New("no account ID found in default profile")
 	}
 
 	nrql := nrdb.NRQL(query)
 
-	result, err := m.client.QueryWithContext(ctx, profile.AccountID, nrql)
+	result, err := m.client.QueryWithContext(ctx, accountID, nrql)
 	if err != nil {
 		return nil, err
 	}

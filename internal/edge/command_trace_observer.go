@@ -5,9 +5,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/edge"
 )
 
@@ -43,12 +43,19 @@ The list command retrieves the trace observers for the given account ID.
 `,
 	Example: `newrelic edge trace-observer list --accountId 12345678`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			traceObservers, err := nrClient.Edge.ListTraceObservers(accountID)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(traceObservers))
-		})
+		traceObservers, err := nrClient.Edge.ListTraceObservers(accountID)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if utils.LogIfFatal(output.Print(traceObservers)); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -72,17 +79,25 @@ Valid provider regions are AWS_US_EAST_1 and AWS_US_EAST_2.
 `,
 	Example: `newrelic edge trace-observer create --name 'My Observer' --accountId 12345678 --providerRegion AWS_US_EAST_1`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			if ok := isValidProviderRegion(providerRegion); !ok {
-				log.Fatalf("%s is not a valid provider region, valid values are %s", providerRegion, validProviderRegions)
-			}
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			traceObserver, err := nrClient.Edge.CreateTraceObserver(accountID, name, edge.EdgeProviderRegion(providerRegion))
-			utils.LogIfFatal(err)
+		if ok := isValidProviderRegion(providerRegion); !ok {
+			log.Fatalf("%s is not a valid provider region, valid values are %s", providerRegion, validProviderRegions)
+		}
 
-			utils.LogIfFatal(output.Print(traceObserver))
-			log.Info("success")
-		})
+		traceObserver, err := nrClient.Edge.CreateTraceObserver(accountID, name, edge.EdgeProviderRegion(providerRegion))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if err = output.Print(traceObserver); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
 }
 
@@ -95,12 +110,17 @@ The delete command accepts a trace observer's ID.
 `,
 	Example: `newrelic edge trace-observer delete --accountId 12345678 --id 1234`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			_, err := nrClient.Edge.DeleteTraceObserver(accountID, id)
-			utils.LogIfFatal(err)
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		_, err = nrClient.Edge.DeleteTraceObserver(accountID, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
 }
 

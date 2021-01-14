@@ -7,6 +7,7 @@ require (
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.10.0
 	github.com/git-chglog/git-chglog v0.10.0
+	github.com/go-openapi/strfmt v0.19.11 // indirect
 	github.com/go-task/task/v3 v3.2.2
 	github.com/golangci/golangci-lint v1.35.2
 	github.com/google/uuid v1.1.5

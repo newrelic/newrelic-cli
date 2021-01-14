@@ -7,9 +7,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
 var (
@@ -30,24 +29,28 @@ represents the custom event's type.
 `,
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			if profile.InsightsInsertKey == "" {
-				log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
-			}
+		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			var e map[string]interface{}
+		insightsInsertKey, err := configuration.GetActiveProfileValue(configuration.InsightsInsertKey)
+		if err != nil || insightsInsertKey == "" {
+			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
+		}
 
-			err := json.Unmarshal([]byte(event), &e)
-			if err != nil {
-				log.Fatal(err)
-			}
+		var e map[string]interface{}
 
-			if err := nrClient.Events.CreateEvent(accountID, event); err != nil {
-				log.Fatal(err)
-			}
+		err = json.Unmarshal([]byte(event), &e)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		if err := nrClient.Events.CreateEvent(accountID, event); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
 }
 

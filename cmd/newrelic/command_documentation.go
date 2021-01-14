@@ -24,7 +24,9 @@ newrelic documentation --outputDir <my directory> --type (markdown|manpage)
 	Example: "newrelic documentation --outputDir /tmp",
 	Run: func(cmd *cobra.Command, args []string) {
 		if docOutputDir == "" {
-			utils.LogIfError(cmd.Help())
+			if err := cmd.Help(); err != nil {
+				log.Fatal(err)
+			}
 			log.Fatal("--outputDir <my directory> is required")
 		}
 

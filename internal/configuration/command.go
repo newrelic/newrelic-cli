@@ -1,4 +1,4 @@
-package config
+package configuration
 
 import (
 	"os"
@@ -6,7 +6,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -32,7 +31,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.SetConfigValue(configuration.ConfigFieldKey(key), value)
+		err := SetConfigValue(ConfigFieldKey(key), value)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -48,7 +47,7 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		val, err := configuration.GetConfigValue(configuration.ConfigFieldKey(key))
+		val, err := GetConfigValue(ConfigFieldKey(key))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -65,11 +64,11 @@ The list command lists all persistent configuration values for the New Relic CLI
 `,
 	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		vals := []Value{}
-		for _, v := range configuration.ConfigFields {
+		vals := []ConfigValue{}
+		for _, v := range ConfigFields {
 			// Error can be ignored here since all keys will be valid
-			val, _ := configuration.GetConfigValue(v.Key)
-			vals = append(vals, Value{
+			val, _ := GetConfigValue(v.Key)
+			vals = append(vals, ConfigValue{
 				Name:    v.Name,
 				Value:   val,
 				Default: v.Default,
@@ -93,7 +92,7 @@ This will have the effect of resetting the value to its default.
 `,
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.SetConfigValue(configuration.ConfigFieldKey(key), "")
+		err := SetConfigValue(ConfigFieldKey(key), "")
 		if err != nil {
 			log.Error(err)
 			os.Exit(1)
