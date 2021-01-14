@@ -16,6 +16,45 @@ const (
 	DefaultLogFile = "newrelic-cli.log"
 )
 
+// LogLevelValue represents a single log level value
+type LogLevelValue string
+
+func (l LogLevelValue) String() string {
+	return string(l)
+}
+
+// LogLevelValues provides the set of log level values
+var LogLevelValues = struct {
+	Panic LogLevelValue
+	Fatal LogLevelValue
+	Error LogLevelValue
+	Warn  LogLevelValue
+	Info  LogLevelValue
+	Debug LogLevelValue
+	Trace LogLevelValue
+}{
+	Panic: "panic",
+	Fatal: "fatal",
+	Error: "error",
+	Warn:  "warn",
+	Info:  "info",
+	Debug: "debug",
+	Trace: "trace",
+}
+
+// LogLevels returns a slice of valid log values
+func LogLevels() []string {
+	return []string{
+		LogLevelValues.Panic.String(),
+		LogLevelValues.Fatal.String(),
+		LogLevelValues.Error.String(),
+		LogLevelValues.Warn.String(),
+		LogLevelValues.Info.String(),
+		LogLevelValues.Debug.String(),
+		LogLevelValues.Trace.String(),
+	}
+}
+
 var (
 	fileHookConfigured = false
 )

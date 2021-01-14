@@ -106,6 +106,25 @@ func TestSetConfigValue_FileNotExists(t *testing.T) {
 	os.Remove(configFilePath)
 }
 
+func TestSetConfigValue_InvalidValue(t *testing.T) {
+	mockConfigFiles := createMockConfigFiles(t)
+	defer mockConfigFiles.teardown()
+
+	var err error
+
+	err = SetConfigValue(LogLevel, "invalid")
+	require.Error(t, err)
+
+	err = SetConfigValue(PrereleaseFeatures, "invalid")
+	require.Error(t, err)
+
+	err = SetConfigValue(SendUsageData, "invalid")
+	require.Error(t, err)
+
+	err = SetConfigValue(PluginDir, "/any/path/is/valid")
+	require.NoError(t, err)
+}
+
 func TestGetActiveProfileValue_Basic(t *testing.T) {
 	EnvVarResolver = &MockEnvResolver{}
 	mockConfigFiles := createMockConfigFiles(t)

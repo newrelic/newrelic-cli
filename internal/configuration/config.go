@@ -39,24 +39,36 @@ const (
 var (
 	ConfigFields = []ConfigField{
 		{
-			Name:    "LogLevel",
-			Key:     LogLevel,
-			Default: "info",
+			Name:        "LogLevel",
+			Key:         LogLevel,
+			Default:     "info",
+			ValidValues: LogLevels(),
 		},
 		{
 			Name:    "SendUsageData",
 			Key:     SendUsageData,
 			Default: string(TernaryValues.Unknown),
+			ValidValues: []string{
+				TernaryValues.Unknown.String(),
+				TernaryValues.Allow.String(),
+				TernaryValues.Disallow.String(),
+			},
 		},
 		{
-			Name:    "PluginDir",
-			Key:     PluginDir,
-			Default: "",
+			Name:        "PluginDir",
+			Key:         PluginDir,
+			Default:     "",
+			ValidValues: []string{},
 		},
 		{
 			Name:    "PrereleaseFeatures",
 			Key:     PrereleaseFeatures,
 			Default: string(TernaryValues.Unknown),
+			ValidValues: []string{
+				TernaryValues.Unknown.String(),
+				TernaryValues.Allow.String(),
+				TernaryValues.Disallow.String(),
+			},
 		},
 	}
 	ProfileFields = []ProfileField{
@@ -95,9 +107,10 @@ var (
 )
 
 type ConfigField struct {
-	Name    string
-	Key     ConfigFieldKey
-	Default string
+	Name        string
+	Key         ConfigFieldKey
+	Default     string
+	ValidValues []string
 }
 
 type ProfileField struct {
@@ -166,6 +179,14 @@ func SetDefaultProfileName(profileName string) error {
 }
 
 func SetConfigValue(key ConfigFieldKey, value string) error {
+	if ok := isValidConfigKey(key); !ok {
+		return fmt.Errorf("config key %s is not valid.  valid keys are %s", key, validConfigFieldKeys())
+	}
+
+	if ok := isValidConfigValue(key, value); !ok {
+		return fmt.Errorf("config value '%s' is invalid. Valid values for key %s are [%s]", value, key, strings.Join([]string{"todo", "implement", "this"}, " "))
+	}
+
 	c := config()
 	c.Set(keyGlobalScope(string(key)), value)
 
@@ -385,6 +406,32 @@ func isValidConfigKey(key ConfigFieldKey) bool {
 		}
 	}
 
+	return false
+}
+
+func isValidConfigValue(key ConfigFieldKey, value string) bool {
+	configKey := string(key)
+
+	for _, c := range ConfigFields {
+		if !strings.EqualFold(configKey, string(c.Key)) {
+			continue
+		}
+
+		// If the ConfigField.ValidValues slice is empty,
+		// any value can be considered valid.
+		if len(c.ValidValues) == 0 {
+			return true
+		}
+
+		for _, validValue := range c.ValidValues {
+			if strings.EqualFold(value, validValue) {
+				return true
+			}
+		}
+	}
+
+	// Should we return true here? Consider the case
+	// of the PluginsDir field.
 	return false
 }
 
