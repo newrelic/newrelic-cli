@@ -30,7 +30,7 @@ type RecipeInstaller struct {
 	recipeExecutor    execution.RecipeExecutor
 	recipeValidator   validation.RecipeValidator
 	recipeFileFetcher recipes.RecipeFileFetcher
-	statusReporters   []execution.StatusReporter
+	status            *execution.StatusRollup
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
 }
@@ -43,6 +43,8 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 	}
+	statusRollup := execution.NewStatusRollup(ers)
+
 	d := discovery.NewPSUtilDiscoverer(pf)
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
@@ -57,7 +59,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,
-		statusReporters:   ers,
+		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: s,
 	}
@@ -136,6 +138,10 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
+	// Report discovered recipes as available
+	log.Debugf("Reporting recipes available...")
+	i.status.ReportRecipesAvailable(recipes)
+
 	log.Debugf("InstallerContext: %+v", i.InstallerContext)
 	log.Debugf("RecipesProvided: %t", i.RecipesProvided())
 
@@ -150,7 +156,7 @@ func (i *RecipeInstaller) Install() error {
 
 		if i.SkipInfraInstall {
 			log.Debugf("Skipping installation of infrastructure agent")
-			i.reportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
+			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
 		} else {
 			log.Debugf("Installing infrastructure agent...")
 			entityGUID, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
@@ -170,7 +176,7 @@ func (i *RecipeInstaller) Install() error {
 
 		if i.SkipLoggingInstall {
 			log.Debugf("Skipping installation of logging")
-			i.reportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
+			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
 		} else {
 
 			log.Debugf("Installing logging...")
@@ -181,9 +187,6 @@ func (i *RecipeInstaller) Install() error {
 			log.Debugf("Done installing logging.")
 		}
 
-		// Report discovered rrecipes as available
-		log.Debugf("Reporting recipes available...")
-		i.reportRecipesAvailable(recipes)
 	}
 
 	// Install integrations if necessary, continuing on failure with warnings.
@@ -197,7 +200,7 @@ func (i *RecipeInstaller) Install() error {
 		log.Debugf("Skipping installing integrations")
 	}
 
-	i.reportComplete()
+	i.status.ReportComplete()
 
 	return nil
 }
@@ -235,7 +238,7 @@ func (i *RecipeInstaller) installRecipesWithPrompts(m *types.DiscoveryManifest, 
 
 		if !ok {
 			log.Debugf("skipping not ok recipe %s.", r.Name)
-			i.reportRecipeSkipped(execution.RecipeStatusEvent{
+			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{
 				Recipe:     r,
 				EntityGUID: entityGUID,
 			})
@@ -309,7 +312,7 @@ func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManife
 		return nil, err
 	}
 
-	i.reportRecipeAvailable(*r)
+	i.status.ReportRecipeAvailable(*r)
 
 	return r, nil
 }
@@ -407,7 +410,7 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
-		i.reportRecipeFailed(execution.RecipeStatusEvent{
+		i.status.ReportRecipeFailed(execution.RecipeStatusEvent{
 			Recipe: *r,
 			Msg:    msg,
 		})
@@ -420,14 +423,14 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 		entityGUID, err = i.recipeValidator.Validate(utils.SignalCtx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
-			i.reportRecipeFailed(execution.RecipeStatusEvent{
+			i.status.ReportRecipeFailed(execution.RecipeStatusEvent{
 				Recipe: *r,
 				Msg:    msg,
 			})
 			return "", errors.New(msg)
 		}
 
-		i.reportRecipeInstalled(execution.RecipeStatusEvent{
+		i.status.ReportRecipeInstalled(execution.RecipeStatusEvent{
 			Recipe:     *r,
 			EntityGUID: entityGUID,
 		})
@@ -438,54 +441,6 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) reportRecipeAvailable(recipe types.Recipe) {
-	for _, r := range i.statusReporters {
-		if err := r.ReportRecipeAvailable(recipe); err != nil {
-			log.Errorf("Could not report recipe execution status: %s", err)
-		}
-	}
-}
-
-func (i *RecipeInstaller) reportRecipesAvailable(recipes []types.Recipe) {
-	for _, r := range i.statusReporters {
-		if err := r.ReportRecipesAvailable(recipes); err != nil {
-			log.Errorf("Could not report recipe execution status: %s", err)
-		}
-	}
-}
-
-func (i *RecipeInstaller) reportRecipeInstalled(e execution.RecipeStatusEvent) {
-	for _, r := range i.statusReporters {
-		if err := r.ReportRecipeInstalled(e); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
-		}
-	}
-}
-
-func (i *RecipeInstaller) reportRecipeFailed(e execution.RecipeStatusEvent) {
-	for _, r := range i.statusReporters {
-		if err := r.ReportRecipeFailed(e); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
-		}
-	}
-}
-
-func (i *RecipeInstaller) reportRecipeSkipped(e execution.RecipeStatusEvent) {
-	for _, r := range i.statusReporters {
-		if err := r.ReportRecipeSkipped(e); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", e.Recipe.Name, err)
-		}
-	}
-}
-
-func (i *RecipeInstaller) reportComplete() {
-	for _, r := range i.statusReporters {
-		if err := r.ReportComplete(); err != nil {
-			log.Errorf("Error writing execution status: %s", err)
-		}
-	}
-}
-
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
 	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
@@ -494,6 +449,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 
 	i.progressIndicator.Start(fmt.Sprintf("Installing %s...", r.Name))
 	defer func() { i.progressIndicator.Stop() }()
+	i.status.ReportRecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
@@ -537,7 +493,7 @@ func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
 }
 
 func (i *RecipeInstaller) fail(err error) error {
-	i.reportComplete()
+	i.status.ReportComplete()
 	return err
 }
 

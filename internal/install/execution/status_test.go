@@ -1,4 +1,5 @@
-//+ build unit
+// +build unit
+
 package execution
 
 import (
@@ -10,13 +11,13 @@ import (
 )
 
 func TestNewStatus(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	require.NotEmpty(t, s.Timestamp)
 	require.NotEmpty(t, s.DocumentID)
 }
 
 func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := []types.Recipe{{
 		Name: "testRecipe1",
 	}, {
@@ -33,7 +34,7 @@ func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_Basic(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
@@ -47,7 +48,7 @@ func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 }
 
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
@@ -69,7 +70,7 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
@@ -82,7 +83,7 @@ func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	s.withEntityGUID("testGUID")
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
@@ -93,4 +94,43 @@ func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 	require.NotEmpty(t, s.EntityGUIDs)
 	require.Equal(t, 1, len(s.EntityGUIDs))
 	require.Equal(t, "testGUID", s.EntityGUIDs[0])
+}
+
+func TestStatusRollup_statusUpdateMethods(t *testing.T) {
+	s := NewStatusRollup([]StatusReporter{})
+	r := types.Recipe{Name: "testRecipe"}
+	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
+
+	s.ReportRecipesAvailable([]types.Recipe{r})
+
+	result := s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.AVAILABLE)
+
+	s.ReportRecipeInstalling(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.INSTALLING)
+
+	s.ReportRecipeInstalled(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.INSTALLED)
+
+	s.ReportRecipeFailed(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.FAILED)
+	require.True(t, s.hasFailed())
+
+	s.ReportRecipeSkipped(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.SKIPPED)
+	require.False(t, s.hasFailed())
+
+	s.ReportComplete()
+	require.True(t, s.Complete)
+	require.NotNil(t, s.Timestamp)
+
 }
