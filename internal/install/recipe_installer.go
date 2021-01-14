@@ -7,7 +7,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
@@ -225,24 +224,6 @@ func (i *RecipeInstaller) Install() error {
 
 	i.status.ReportComplete()
 
-<<<<<<< HEAD
-=======
-		Go to New Relic to confirm and start exploring your data.`
-
-	v, err := configuration.GetActiveProfileValue(configuration.AccountID)
-	if err != nil {
-		return err
-	}
-
-	accountID := v.(string)
-
-	if accountID != "" {
-		msg += fmt.Sprintf(`
-		https://one.newrelic.com/launcher/nrai.launcher?platform[accountId]=%s`, accountID)
-	}
-
-	fmt.Println(msg)
->>>>>>> chore(config): integrate new config mechanism throught codebase
 	return nil
 }
 

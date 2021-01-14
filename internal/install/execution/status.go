@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -52,7 +52,7 @@ func NewStatusRollup(reporters []StatusReporter) *StatusRollup {
 	s := StatusRollup{
 		DocumentID:      uuid.New().String(),
 		Timestamp:       utils.GetTimestamp(),
-		LogFilePath:     config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		LogFilePath:     configuration.ConfigDir + "/" + configuration.DefaultLogFile,
 		statusReporters: reporters,
 	}
 
