@@ -10,13 +10,13 @@ import (
 )
 
 func TestNewStatus(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	require.NotEmpty(t, s.Timestamp)
 	require.NotEmpty(t, s.DocumentID)
 }
 
 func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := []types.Recipe{{
 		Name: "testRecipe1",
 	}, {
@@ -33,7 +33,7 @@ func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_Basic(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
@@ -47,7 +47,7 @@ func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 }
 
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
@@ -69,7 +69,7 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
@@ -82,7 +82,7 @@ func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
-	s := NewStatusRollup()
+	s := NewStatusRollup([]StatusReporter{})
 	s.withEntityGUID("testGUID")
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
