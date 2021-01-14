@@ -1,4 +1,5 @@
-//+ build unit
+// +build unit
+
 package execution
 
 import (
@@ -93,4 +94,43 @@ func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 	require.NotEmpty(t, s.EntityGUIDs)
 	require.Equal(t, 1, len(s.EntityGUIDs))
 	require.Equal(t, "testGUID", s.EntityGUIDs[0])
+}
+
+func TestStatusRollup_statusUpdateMethods(t *testing.T) {
+	s := NewStatusRollup([]StatusReporter{})
+	r := types.Recipe{Name: "testRecipe"}
+	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
+
+	s.ReportRecipesAvailable([]types.Recipe{r})
+
+	result := s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.AVAILABLE)
+
+	s.ReportRecipeInstalling(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.INSTALLING)
+
+	s.ReportRecipeInstalled(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.INSTALLED)
+
+	s.ReportRecipeFailed(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.FAILED)
+	require.True(t, s.hasFailed())
+
+	s.ReportRecipeSkipped(e)
+	result = s.getStatus(r)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, StatusTypes.SKIPPED)
+	require.False(t, s.hasFailed())
+
+	s.ReportComplete()
+	require.True(t, s.Complete)
+	require.NotNil(t, s.Timestamp)
+
 }
