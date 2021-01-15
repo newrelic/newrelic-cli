@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -140,15 +139,7 @@ func substituteHostname(dm types.DiscoveryManifest, r types.Recipe) (string, err
 }
 
 func (m *PollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	v, err := configuration.GetActiveProfileValue(configuration.AccountID)
-	if err != nil {
-		return nil, err
-	}
-
-	accountID, err := strconv.Atoi(v.(string))
-	if err != nil {
-		return nil, err
-	}
+	accountID := configuration.GetActiveProfileValueInt(configuration.AccountID)
 
 	if accountID == 0 {
 		return nil, errors.New("no account ID found in default profile")

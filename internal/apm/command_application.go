@@ -7,7 +7,6 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -43,11 +42,6 @@ The search command performs a query for an APM application name and/or account I
 			log.Fatal("one of --accountId, --guid, --name are required")
 		}
 
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var entityResults []entities.EntityOutlineInterface
 
 		// Look for just the GUID if passed in
@@ -57,7 +51,7 @@ The search command performs a query for an APM application name and/or account I
 			}
 
 			var singleResult *entities.EntityInterface
-			singleResult, err = nrClient.Entities.GetEntity(entities.EntityGUID(appGUID))
+			singleResult, err := client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
 			utils.LogIfFatal(err)
 			utils.LogIfFatal(output.Print(*singleResult))
 		} else {
@@ -74,7 +68,7 @@ The search command performs a query for an APM application name and/or account I
 				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: apmAccountID}}
 			}
 
-			results, err := nrClient.Entities.GetEntitySearch(
+			results, err := client.Client.Entities.GetEntitySearch(
 				entities.EntitySearchOptions{},
 				"",
 				params,
@@ -101,12 +95,8 @@ The get command performs a query for an APM application by GUID.
 `,
 	Example: "newrelic apm application get --guid <entityGUID>",
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var results *entities.EntityInterface
+		var err error
 
 		if appGUID == "" {
 			if err = cmd.Help(); err != nil {
@@ -115,7 +105,7 @@ The get command performs a query for an APM application by GUID.
 			log.Fatal(" --guid <entityGUID> is required")
 		}
 
-		results, err = nrClient.Entities.GetEntity(entities.EntityGUID(appGUID))
+		results, err = client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
 		if err != nil {
 			log.Fatal(err)
 		}

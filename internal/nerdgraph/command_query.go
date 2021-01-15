@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	ng "github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
@@ -42,20 +41,15 @@ keys are the variables to be referenced in the GraphQL query.
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var variablesParsed map[string]interface{}
 
-		if err = json.Unmarshal([]byte(variables), &variablesParsed); err != nil {
+		if err := json.Unmarshal([]byte(variables), &variablesParsed); err != nil {
 			log.Fatal(err)
 		}
 
 		query := args[0]
 
-		result, err := nrClient.NerdGraph.Query(query, variablesParsed)
+		result, err := client.Client.NerdGraph.Query(query, variablesParsed)
 		if err != nil {
 			log.Fatal(err)
 		}

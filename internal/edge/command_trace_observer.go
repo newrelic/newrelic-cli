@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/edge"
@@ -43,12 +42,7 @@ The list command retrieves the trace observers for the given account ID.
 `,
 	Example: `newrelic edge trace-observer list --accountId 12345678`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		traceObservers, err := nrClient.Edge.ListTraceObservers(accountID)
+		traceObservers, err := client.Client.Edge.ListTraceObservers(accountID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -79,16 +73,11 @@ Valid provider regions are AWS_US_EAST_1 and AWS_US_EAST_2.
 `,
 	Example: `newrelic edge trace-observer create --name 'My Observer' --accountId 12345678 --providerRegion AWS_US_EAST_1`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		if ok := isValidProviderRegion(providerRegion); !ok {
 			log.Fatalf("%s is not a valid provider region, valid values are %s", providerRegion, validProviderRegions)
 		}
 
-		traceObserver, err := nrClient.Edge.CreateTraceObserver(accountID, name, edge.EdgeProviderRegion(providerRegion))
+		traceObserver, err := client.Client.Edge.CreateTraceObserver(accountID, name, edge.EdgeProviderRegion(providerRegion))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -110,12 +99,7 @@ The delete command accepts a trace observer's ID.
 `,
 	Example: `newrelic edge trace-observer delete --accountId 12345678 --id 1234`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		_, err = nrClient.Edge.DeleteTraceObserver(accountID, id)
+		_, err := client.Client.Edge.DeleteTraceObserver(accountID, id)
 		if err != nil {
 			log.Fatal(err)
 		}

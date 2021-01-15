@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
@@ -30,12 +29,7 @@ var cmdKey = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		resp, err := nrClient.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
+		resp, err := client.Client.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,18 +47,13 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessCreateKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var keys apiaccess.APIAccessCreateInput
-		err = json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
+		err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		resp, err := nrClient.APIAccess.CreateAPIAccessKeys(keys)
+		resp, err := client.Client.APIAccess.CreateAPIAccessKeys(keys)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,17 +71,12 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessUpdateKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var keys apiaccess.APIAccessUpdateInput
-		if err = json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys); err != nil {
+		if err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys); err != nil {
 			log.Fatal(err)
 		}
 
-		resp, err := nrClient.APIAccess.UpdateAPIAccessKeys(keys)
+		resp, err := client.Client.APIAccess.UpdateAPIAccessKeys(keys)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -110,17 +94,12 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessDeleteKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var keys apiaccess.APIAccessDeleteInput
-		if err = json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys); err != nil {
+		if err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys); err != nil {
 			log.Fatal(err)
 		}
 
-		resp, err := nrClient.APIAccess.DeleteAPIAccessKey(keys)
+		resp, err := client.Client.APIAccess.DeleteAPIAccessKey(keys)
 		if err != nil {
 			log.Fatal(err)
 		}

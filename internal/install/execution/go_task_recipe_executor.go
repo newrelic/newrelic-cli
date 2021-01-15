@@ -146,37 +146,21 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 }
 
 func varsFromProfile() (types.RecipeVars, error) {
-	v, err := configuration.GetActiveProfileValue(configuration.LicenseKey)
-	if err != nil {
-		return nil, err
-	}
-
-	licenseKey := v.(string)
+	licenseKey := configuration.GetActiveProfileValueString(configuration.LicenseKey)
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found in default profile")
 	}
 
-	accountID, err := configuration.GetActiveProfileValue(configuration.AccountID)
-	if err != nil {
-		return nil, err
-	}
-
-	apiKey, err := configuration.GetActiveProfileValue(configuration.APIKey)
-	if err != nil {
-		return nil, err
-	}
-
-	region, err := configuration.GetActiveProfileValue(configuration.Region)
-	if err != nil {
-		return nil, err
-	}
+	accountID := configuration.GetActiveProfileValueInt(configuration.AccountID)
+	apiKey := configuration.GetActiveProfileValueString(configuration.APIKey)
+	region := configuration.GetActiveProfileValueString(configuration.Region)
 
 	vars := make(types.RecipeVars)
 
 	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
-	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(int(accountID.(float64)))
-	vars["NEW_RELIC_API_KEY"] = apiKey.(string)
-	vars["NEW_RELIC_REGION"] = region.(string)
+	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(accountID)
+	vars["NEW_RELIC_API_KEY"] = apiKey
+	vars["NEW_RELIC_REGION"] = region
 
 	return vars, nil
 }

@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	Client      *newrelic.NewRelic
 	serviceName = "newrelic-cli"
 	version     = "dev"
 )

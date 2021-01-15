@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
@@ -148,6 +149,7 @@ func GetProfileValue(profileName string, key ProfileFieldKey) (interface{}, erro
 	}
 
 	if o := getProfileValueEnvOverride(key); o != "" {
+		log.Infof("using env var override for config field %s", key)
 		return o, nil
 	}
 
@@ -165,13 +167,14 @@ func GetActiveProfileValueInt(key ProfileFieldKey) int {
 		return 0
 	}
 
-	if i, ok := v.(int); ok {
-		return i
-	}
+	if s, ok := v.(string); ok {
+		i, err := strconv.Atoi(s)
+		if err != nil {
+			log.Debugf("could not get profile value %s, using default value", key)
+			return 0
+		}
 
-	// Why does viper interpret whole nubmers as float64?
-	if f, ok := v.(float64); ok {
-		return int(f)
+		return i
 	}
 
 	log.Debugf("could not get profile value %s, using default value", key)
@@ -224,7 +227,7 @@ func SetConfigValue(key ConfigFieldKey, value string) error {
 	}
 
 	if field.ValidationFunc != nil {
-		if err := field.ValidationFunc(string(value)); err != nil {
+		if err := field.ValidationFunc(value); err != nil {
 			return fmt.Errorf("config value %s is not valid for key %s: %s", value, key, err)
 		}
 	}

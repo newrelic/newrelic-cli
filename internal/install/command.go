@@ -44,18 +44,13 @@ var Command = &cobra.Command{
 			log.Fatal("no active profile has been set")
 		}
 
-		nrClient, err := client.NewClient(activeProfile)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		if trace {
 			log.SetLevel(log.TraceLevel)
 		} else if debug {
 			log.SetLevel(log.DebugLevel)
 		}
 
-		i := NewRecipeInstaller(ic, nrClient)
+		i := NewRecipeInstaller(ic, client.Client)
 
 		// Run the install.
 		if err := i.Install(); err != nil {

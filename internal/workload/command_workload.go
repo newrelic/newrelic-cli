@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
@@ -29,12 +28,7 @@ The get command retrieves a specific workload by its account ID and workload GUI
 `,
 	Example: `newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		workload, err := nrClient.Workloads.GetWorkload(accountID, guid)
+		workload, err := client.Client.Workloads.GetWorkload(accountID, guid)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -54,12 +48,7 @@ The list command retrieves the workloads for the given account ID.
 `,
 	Example: `newrelic workload list --accountId 12345678`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		workload, err := nrClient.Workloads.ListWorkloads(accountID)
+		workload, err := client.Client.Workloads.ListWorkloads(accountID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,11 +73,6 @@ you also have access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		createInput := workloads.CreateInput{
 			Name: name,
 		}
@@ -109,7 +93,7 @@ you also have access to.
 			createInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
 		}
 
-		workload, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
+		workload, err := client.Client.Workloads.CreateWorkload(accountID, createInput)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -133,11 +117,6 @@ entities from different sub-accounts that you also have access to.
 `,
 	Example: `newrelic workload update --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --name 'Updated workflow'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		updateInput := workloads.UpdateInput{
 			Name: name,
 		}
@@ -158,7 +137,7 @@ entities from different sub-accounts that you also have access to.
 			updateInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
 		}
 
-		_, err = nrClient.Workloads.UpdateWorkload(guid, updateInput)
+		_, err := client.Client.Workloads.UpdateWorkload(guid, updateInput)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -179,16 +158,11 @@ compose the new name.
 `,
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		duplicateInput := &workloads.DuplicateInput{
 			Name: name,
 		}
 
-		workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
+		workload, err := client.Client.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -210,12 +184,7 @@ The delete command accepts a workload's entity GUID.
 `,
 	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		_, err = nrClient.Workloads.DeleteWorkload(guid)
+		_, err := client.Client.Workloads.DeleteWorkload(guid)
 		if err != nil {
 			log.Fatal(err)
 		}

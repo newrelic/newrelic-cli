@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
@@ -41,11 +40,6 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage document get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var document interface{}
 
 		input := nerdstorage.GetDocumentInput{
@@ -54,13 +48,14 @@ GUID.  A valid Nerdpack package ID is required.
 			DocumentID: documentID,
 		}
 
+		var err error
 		switch strings.ToLower(scope) {
 		case "account":
-			document, err = nrClient.NerdStorage.GetDocumentWithAccountScope(accountID, input)
+			document, err = client.Client.NerdStorage.GetDocumentWithAccountScope(accountID, input)
 		case "entity":
-			document, err = nrClient.NerdStorage.GetDocumentWithEntityScope(entityGUID, input)
+			document, err = client.Client.NerdStorage.GetDocumentWithEntityScope(entityGUID, input)
 		case "user":
-			document, err = nrClient.NerdStorage.GetDocumentWithUserScope(input)
+			document, err = client.Client.NerdStorage.GetDocumentWithUserScope(input)
 		default:
 			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 		}
@@ -96,14 +91,8 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage document write --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		var unmarshaled map[string]interface{}
-		err = json.Unmarshal([]byte(document), &unmarshaled)
-		if err != nil {
+		if err := json.Unmarshal([]byte(document), &unmarshaled); err != nil {
 			log.Fatalf("error parsing provided document: %s", err)
 		}
 
@@ -114,13 +103,14 @@ GUID.  A valid Nerdpack package ID is required.
 			Document:   unmarshaled,
 		}
 
+		var err error
 		switch strings.ToLower(scope) {
 		case "account":
-			_, err = nrClient.NerdStorage.WriteDocumentWithAccountScope(accountID, input)
+			_, err = client.Client.NerdStorage.WriteDocumentWithAccountScope(accountID, input)
 		case "entity":
-			_, err = nrClient.NerdStorage.WriteDocumentWithEntityScope(entityGUID, input)
+			_, err = client.Client.NerdStorage.WriteDocumentWithEntityScope(entityGUID, input)
 		case "user":
-			_, err = nrClient.NerdStorage.WriteDocumentWithUserScope(input)
+			_, err = client.Client.NerdStorage.WriteDocumentWithUserScope(input)
 		default:
 			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 		}
@@ -152,27 +142,24 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage document delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		input := nerdstorage.DeleteDocumentInput{
 			PackageID:  packageID,
 			Collection: collection,
 			DocumentID: documentID,
 		}
 
+		var err error
 		switch strings.ToLower(scope) {
 		case "account":
-			_, err = nrClient.NerdStorage.DeleteDocumentWithAccountScope(accountID, input)
+			_, err = client.Client.NerdStorage.DeleteDocumentWithAccountScope(accountID, input)
 		case "entity":
-			_, err = nrClient.NerdStorage.DeleteDocumentWithEntityScope(entityGUID, input)
+			_, err = client.Client.NerdStorage.DeleteDocumentWithEntityScope(entityGUID, input)
 		case "user":
-			_, err = nrClient.NerdStorage.DeleteDocumentWithUserScope(input)
+			_, err = client.Client.NerdStorage.DeleteDocumentWithUserScope(input)
 		default:
 			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 		}
+
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -29,24 +29,18 @@ represents the custom event's type.
 `,
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		insightsInsertKey, err := configuration.GetActiveProfileValue(configuration.InsightsInsertKey)
-		if err != nil || insightsInsertKey == "" {
+		insightsInsertKey := configuration.GetActiveProfileValueString(configuration.InsightsInsertKey)
+		if insightsInsertKey == "" {
 			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
 		}
 
 		var e map[string]interface{}
 
-		err = json.Unmarshal([]byte(event), &e)
-		if err != nil {
+		if err := json.Unmarshal([]byte(event), &e); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := nrClient.Events.CreateEvent(accountID, event); err != nil {
+		if err := client.Client.Events.CreateEvent(accountID, event); err != nil {
 			log.Fatal(err)
 		}
 

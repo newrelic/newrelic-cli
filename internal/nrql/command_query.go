@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -28,12 +27,7 @@ issue the query against.
 `,
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		result, err := nrClient.Nrdb.Query(accountID, nrdb.NRQL(query))
+		result, err := client.Client.Nrdb.Query(accountID, nrdb.NRQL(query))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -54,12 +48,7 @@ The history command will fetch a list of the most recent NRQL queries you execut
 `,
 	Example: `newrelic nrql query history`,
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		result, err := nrClient.Nrdb.QueryHistory()
+		result, err := client.Client.Nrdb.QueryHistory()
 		if err != nil {
 			log.Fatal(err)
 		}

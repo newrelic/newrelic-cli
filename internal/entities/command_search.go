@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -22,11 +21,6 @@ The search command performs a search for New Relic entities.
 `,
 	Example: "newrelic entity search --name <applicationName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		params := entities.EntitySearchQueryBuilder{}
 
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
@@ -51,6 +45,7 @@ The search command performs a search for New Relic entities.
 		}
 
 		var key, value string
+		var err error
 		if entityTag != "" {
 			key, value, err = assembleTagValue(entityTag)
 			utils.LogIfFatal(err)
@@ -69,7 +64,7 @@ The search command performs a search for New Relic entities.
 			params.Reporting = reporting
 		}
 
-		results, err := nrClient.Entities.GetEntitySearch(
+		results, err := client.Client.Entities.GetEntitySearch(
 			entities.EntitySearchOptions{},
 			"",
 			params,

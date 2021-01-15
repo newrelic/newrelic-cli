@@ -45,6 +45,19 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 		log.Debug("default profile does not exist, attempting to initialize")
 		initializeProfile()
 	}
+
+	if client.Client == nil {
+		client.Client = createClient()
+	}
+}
+
+func createClient() *newrelic.NewRelic {
+	c, err := client.NewClient(configuration.GetActiveProfileName())
+	if err != nil {
+		log.Fatalf("error creating client: %s", err)
+	}
+
+	return c
 }
 
 func initializeProfile() {
@@ -90,16 +103,12 @@ func initializeProfile() {
 		return
 	}
 
-	// We should have an API key by this point, initialize the client.
-	nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-	if err != nil {
-		log.Debugf("couldn't initialize default profile: %s", err)
-		return
-	}
+	// We should have an API key by this point, initialize a client.
+	client.Client = createClient()
 
 	// If we still don't have an account ID try to look one up from the API.
 	if accountID == 0 {
-		accountID, err = fetchAccountID(nrClient)
+		accountID, err = fetchAccountID()
 		if err != nil {
 			log.Debugf("couldn't initialize default profile: %s", err)
 			return
@@ -108,7 +117,7 @@ func initializeProfile() {
 
 	if licenseKey == "" {
 		// We should have an account ID by now, so fetch the license key for it.
-		licenseKey, err = fetchLicenseKey(nrClient, accountID)
+		licenseKey, err = fetchLicenseKey(accountID)
 		if err != nil {
 			log.Debugf("couldn't initialize default profile: %s", err)
 			return
@@ -143,14 +152,14 @@ func hasProfileWithDefaultName(profileNames []string) bool {
 	return false
 }
 
-func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
+func fetchLicenseKey(accountID int) (string, error) {
 	query := ` query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
 
 	variables := map[string]interface{}{
 		"accountId": accountID,
 	}
 
-	resp, err := client.NerdGraph.Query(query, variables)
+	resp, err := client.Client.NerdGraph.Query(query, variables)
 	if err != nil {
 		return "", err
 	}
@@ -165,12 +174,12 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 
 // fetchAccountID will try and retrieve an account ID for the given user.  If it
 // finds more than one account it will returrn an error.
-func fetchAccountID(client *newrelic.NewRelic) (int, error) {
+func fetchAccountID() (int, error) {
 	params := accounts.ListAccountsParams{
 		Scope: &accounts.RegionScopeTypes.IN_REGION,
 	}
 
-	accounts, err := client.Accounts.ListAccounts(params)
+	accounts, err := client.Client.Accounts.ListAccounts(params)
 	if err != nil {
 		return 0, err
 	}
@@ -201,6 +210,7 @@ func init() {
 
 	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
+	Command.PersistentFlags().StringVar(&configuration.ProfileOverride, "profile", "", "the authentication profile to use")
 }
 
 func initConfig() {

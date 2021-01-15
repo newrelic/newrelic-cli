@@ -7,7 +7,6 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -43,12 +42,7 @@ The list command returns deployments for a New Relic APM application.
 			log.Fatal("--applicationId is required")
 		}
 
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		deployments, err := nrClient.APM.ListDeployments(apmAppID)
+		deployments, err := client.Client.APM.ListDeployments(apmAppID)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -74,12 +68,7 @@ application.
 			log.Fatal("--applicationId and --revision are required")
 		}
 
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		d, err := nrClient.APM.CreateDeployment(apmAppID, deployment)
+		d, err := client.Client.APM.CreateDeployment(apmAppID, deployment)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -104,12 +93,7 @@ The delete command performs a delete operation for an APM deployment.
 			log.Fatal("--applicationId is required")
 		}
 
-		nrClient, err := client.NewClient(configuration.GetActiveProfileName())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		d, err := nrClient.APM.DeleteDeployment(apmAppID, deployment.ID)
+		d, err := client.Client.APM.DeleteDeployment(apmAppID, deployment.ID)
 		if err != nil {
 			log.Fatal(err)
 		}
