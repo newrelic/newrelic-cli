@@ -55,10 +55,10 @@ var (
 			},
 		},
 		{
-			Name:        "PluginDir",
-			Key:         PluginDir,
-			Default:     "",
-			ValidValues: []string{},
+			Name:    "PluginDir",
+			Key:     PluginDir,
+			Default: "",
+			// ValidValues: []string{},
 		},
 		{
 			Name:    "PrereleaseFeatures",
@@ -409,29 +409,33 @@ func isValidConfigKey(key ConfigFieldKey) bool {
 	return false
 }
 
-func isValidConfigValue(key ConfigFieldKey, value string) bool {
+func findConfigField(key ConfigFieldKey) *ConfigField {
 	configKey := string(key)
 
 	for _, c := range ConfigFields {
-		if !strings.EqualFold(configKey, string(c.Key)) {
-			continue
+		if strings.EqualFold(configKey, string(c.Key)) {
+			return &c
 		}
+	}
 
-		// If the ConfigField.ValidValues slice is empty,
+	return nil
+}
+
+func isValidConfigValue(key ConfigFieldKey, value string) bool {
+	if configField := findConfigField(key); configField != nil {
+		// If the ConfigField.ValidValues is nil,
 		// any value can be considered valid.
-		if len(c.ValidValues) == 0 {
+		if configField.ValidValues == nil {
 			return true
 		}
 
-		for _, validValue := range c.ValidValues {
+		for _, validValue := range configField.ValidValues {
 			if strings.EqualFold(value, validValue) {
 				return true
 			}
 		}
 	}
 
-	// Should we return true here? Consider the case
-	// of the PluginsDir field.
 	return false
 }
 
