@@ -9,7 +9,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/agent"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
@@ -31,7 +31,7 @@ var (
 func init() {
 	// Bind imported sub-commands
 	Command.AddCommand(apm.Command)
-	Command.AddCommand(configuration.Command)
+	Command.AddCommand(config.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
 	Command.AddCommand(events.Command)
@@ -61,12 +61,12 @@ func main() {
 // CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
 // flag is active.
 func CheckPrereleaseMode(c *cobra.Command) {
-	v, err := configuration.GetConfigValue(configuration.PrereleaseFeatures)
+	v, err := config.GetConfigValue(config.PrereleaseFeatures)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if !configuration.Ternary(v.(string)).Bool() {
+	if !config.Ternary(v.(string)).Bool() {
 		return
 	}
 

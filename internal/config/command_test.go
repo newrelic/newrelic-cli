@@ -1,6 +1,6 @@
 // +build unit
 
-package configuration
+package config
 
 import (
 	"testing"

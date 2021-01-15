@@ -1,6 +1,6 @@
 // +build integration
 
-package configuration
+package config
 
 import (
 	"fmt"

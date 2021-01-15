@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"bytes"
@@ -21,14 +21,14 @@ const (
 	globalScopeIdentifier = "*"
 )
 
-type ConfigFieldKey string
+type CfgFieldKey string
 type ProfileFieldKey string
 
 const (
-	LogLevel           ConfigFieldKey = "loglevel"
-	PluginDir          ConfigFieldKey = "plugindir"
-	PrereleaseFeatures ConfigFieldKey = "prereleasefeatures"
-	SendUsageData      ConfigFieldKey = "sendusagedata"
+	LogLevel           CfgFieldKey = "loglevel"
+	PluginDir          CfgFieldKey = "plugindir"
+	PrereleaseFeatures CfgFieldKey = "prereleasefeatures"
+	SendUsageData      CfgFieldKey = "sendusagedata"
 
 	APIKey            ProfileFieldKey = "apiKey"
 	Region            ProfileFieldKey = "region"
@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	ConfigFields = []ConfigField{
+	ConfigFields = []CfgField{
 		{
 			Name:           "LogLevel",
 			Key:            LogLevel,
@@ -99,9 +99,9 @@ var (
 	defaultDefaultProfileName = "default"
 )
 
-type ConfigField struct {
+type CfgField struct {
 	Name           string
-	Key            ConfigFieldKey
+	Key            CfgFieldKey
 	Default        string
 	ValidationFunc func(string) error
 }
@@ -112,14 +112,14 @@ type ProfileField struct {
 	EnvOverride string
 }
 
-type ConfigValue struct {
+type CfgValue struct {
 	Name    string
 	Value   interface{}
 	Default interface{}
 }
 
 // IsDefault returns true if the field's value is the default value.
-func (c *ConfigValue) IsDefault() bool {
+func (c *CfgValue) IsDefault() bool {
 	if v, ok := c.Value.(string); ok {
 		return strings.EqualFold(v, c.Default.(string))
 	}
@@ -135,7 +135,7 @@ func init() {
 	}
 }
 
-func GetConfigValue(key ConfigFieldKey) (interface{}, error) {
+func GetConfigValue(key CfgFieldKey) (interface{}, error) {
 	if ok := isValidConfigKey(key); !ok {
 		return nil, fmt.Errorf("config key %s is not valid.  valid keys are %s", key, validConfigFieldKeys())
 	}
@@ -161,7 +161,11 @@ func GetActiveProfileValue(key ProfileFieldKey) (interface{}, error) {
 }
 
 func GetActiveProfileValueInt(key ProfileFieldKey) int {
-	v, err := GetProfileValue(GetActiveProfileName(), key)
+	return GetProfileValueInt(GetActiveProfileName(), key)
+}
+
+func GetProfileValueInt(profileName string, key ProfileFieldKey) int {
+	v, err := GetProfileValue(profileName, key)
 	if err != nil {
 		log.Debugf("could not get profile value %s, using default value", key)
 		return 0
@@ -182,7 +186,11 @@ func GetActiveProfileValueInt(key ProfileFieldKey) int {
 }
 
 func GetActiveProfileValueString(key ProfileFieldKey) string {
-	v, err := GetProfileValue(GetActiveProfileName(), key)
+	return GetProfileValueString(GetActiveProfileName(), key)
+}
+
+func GetProfileValueString(profileName string, key ProfileFieldKey) string {
+	v, err := GetProfileValue(profileName, key)
 	if err != nil {
 		log.Debugf("could not get profile value %s, using default value", key)
 		return ""
@@ -219,7 +227,7 @@ func SetDefaultProfileName(profileName string) error {
 	return saveDefaultProfileName(profileName)
 }
 
-func SetConfigValue(key ConfigFieldKey, value string) error {
+func SetConfigValue(key CfgFieldKey, value string) error {
 	field := findConfigField(key)
 
 	if field == nil {
@@ -454,11 +462,11 @@ func getDefaultConfigDirectory() (string, error) {
 	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
-func isValidConfigKey(key ConfigFieldKey) bool {
+func isValidConfigKey(key CfgFieldKey) bool {
 	return findConfigField(key) != nil
 }
 
-func findConfigField(key ConfigFieldKey) *ConfigField {
+func findConfigField(key CfgFieldKey) *CfgField {
 	configKey := string(key)
 
 	for _, c := range ConfigFields {

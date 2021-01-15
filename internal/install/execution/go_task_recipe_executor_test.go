@@ -15,14 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
-	configuration.EnvVarResolver = configuration.NewMockEnvResolver()
-	err := configuration.SetActiveProfileValue(configuration.LicenseKey, "testLicenseKey")
+	config.EnvVarResolver = config.NewMockEnvResolver()
+	err := config.SetActiveProfileValue(config.LicenseKey, "testLicenseKey")
 	require.NoError(t, err)
 
 	e := NewGoTaskRecipeExecutor()

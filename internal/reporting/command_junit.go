@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -31,7 +31,7 @@ var cmdJUnit = &cobra.Command{
 `,
 	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml`,
 	Run: func(cmd *cobra.Command, args []string) {
-		insightsInsertKey := configuration.GetActiveProfileValueString(configuration.InsightsInsertKey)
+		insightsInsertKey := config.GetActiveProfileValueString(config.InsightsInsertKey)
 		if insightsInsertKey == "" {
 			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
 		}

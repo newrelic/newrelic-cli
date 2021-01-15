@@ -16,7 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -146,14 +146,14 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 }
 
 func varsFromProfile() (types.RecipeVars, error) {
-	licenseKey := configuration.GetActiveProfileValueString(configuration.LicenseKey)
+	licenseKey := config.GetActiveProfileValueString(config.LicenseKey)
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found in default profile")
 	}
 
-	accountID := configuration.GetActiveProfileValueInt(configuration.AccountID)
-	apiKey := configuration.GetActiveProfileValueString(configuration.APIKey)
-	region := configuration.GetActiveProfileValueString(configuration.Region)
+	accountID := config.GetActiveProfileValueInt(config.AccountID)
+	apiKey := config.GetActiveProfileValueString(config.APIKey)
+	region := config.GetActiveProfileValueString(config.Region)
 
 	vars := make(types.RecipeVars)
 

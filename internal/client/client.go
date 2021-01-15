@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-
-	"github.com/newrelic/newrelic-cli/internal/configuration"
 )
 
 var (
@@ -17,7 +16,7 @@ var (
 )
 
 func NewClient(profileName string) (*newrelic.NewRelic, error) {
-	apiKey, err := configuration.GetProfileValue(profileName, configuration.APIKey)
+	apiKey, err := config.GetProfileValue(profileName, config.APIKey)
 	if err != nil {
 		return nil, err
 	}
@@ -26,17 +25,17 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
 	}
 
-	region, err := configuration.GetProfileValue(profileName, configuration.Region)
+	region, err := config.GetProfileValue(profileName, config.Region)
 	if err != nil {
 		return nil, err
 	}
 
-	insightsInsertKey, err := configuration.GetProfileValue(profileName, configuration.InsightsInsertKey)
+	insightsInsertKey, err := config.GetProfileValue(profileName, config.InsightsInsertKey)
 	if err != nil {
 		return nil, err
 	}
 
-	logLevel, err := configuration.GetConfigValue(configuration.LogLevel)
+	logLevel, err := config.GetConfigValue(config.LogLevel)
 	if err != nil {
 		return nil, err
 	}

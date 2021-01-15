@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 var (
@@ -39,7 +39,7 @@ var Command = &cobra.Command{
 			SkipLoggingInstall: skipLoggingInstall,
 		}
 
-		activeProfile := configuration.GetActiveProfileName()
+		activeProfile := config.GetActiveProfileName()
 		if activeProfile != "" {
 			log.Fatal("no active profile has been set")
 		}
@@ -54,7 +54,7 @@ var Command = &cobra.Command{
 
 		// Run the install.
 		if err := i.Install(); err != nil {
-			log.Fatalf("Could not install New Relic: %s, check the install log for details: %s", err, configuration.DefaultLogFile)
+			log.Fatalf("Could not install New Relic: %s, check the install log for details: %s", err, config.DefaultLogFile)
 		}
 	},
 }

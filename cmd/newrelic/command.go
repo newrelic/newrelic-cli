@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -34,14 +34,14 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	logLevel, err := configuration.GetConfigValue(configuration.LogLevel)
+	logLevel, err := config.GetConfigValue(config.LogLevel)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	configuration.InitLogger(logLevel.(string))
+	config.InitLogger(logLevel.(string))
 
-	if configuration.GetDefaultProfileName() == "" {
+	if config.GetDefaultProfileName() == "" {
 		log.Debug("default profile does not exist, attempting to initialize")
 		initializeProfile()
 	}
@@ -52,7 +52,7 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 }
 
 func createClient() *newrelic.NewRelic {
-	c, err := client.NewClient(configuration.GetActiveProfileName())
+	c, err := client.NewClient(config.GetActiveProfileName())
 	if err != nil {
 		log.Fatalf("error creating client: %s", err)
 	}
@@ -91,14 +91,14 @@ func initializeProfile() {
 		}
 	}
 
-	if !hasProfileWithDefaultName(configuration.GetProfileNames()) {
-		if err = configuration.SetDefaultProfileName(defaultProfileName); err != nil {
+	if !hasProfileWithDefaultName(config.GetProfileNames()) {
+		if err = config.SetDefaultProfileName(defaultProfileName); err != nil {
 			log.Debugf("couldn't initialize default profile: %s", err)
 			return
 		}
 	}
 
-	if err = configuration.SetActiveProfileValue(configuration.APIKey, apiKey); err != nil {
+	if err = config.SetActiveProfileValue(config.APIKey, apiKey); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
@@ -124,17 +124,17 @@ func initializeProfile() {
 		}
 	}
 
-	if err = configuration.SetActiveProfileValue(configuration.Region, region); err != nil {
+	if err = config.SetActiveProfileValue(config.Region, region); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
 
-	if err = configuration.SetActiveProfileValue(configuration.AccountID, accountID); err != nil {
+	if err = config.SetActiveProfileValue(config.AccountID, accountID); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
 
-	if err = configuration.SetActiveProfileValue(configuration.LicenseKey, licenseKey); err != nil {
+	if err = config.SetActiveProfileValue(config.LicenseKey, licenseKey); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
@@ -210,7 +210,7 @@ func init() {
 
 	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
-	Command.PersistentFlags().StringVar(&configuration.ProfileOverride, "profile", "", "the authentication profile to use")
+	Command.PersistentFlags().StringVar(&config.ProfileOverride, "profile", "", "the authentication profile to use")
 }
 
 func initConfig() {

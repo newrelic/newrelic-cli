@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"os"
@@ -31,7 +31,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := SetConfigValue(ConfigFieldKey(key), value)
+		err := SetConfigValue(CfgFieldKey(key), value)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -47,7 +47,7 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		val, err := GetConfigValue(ConfigFieldKey(key))
+		val, err := GetConfigValue(CfgFieldKey(key))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -64,11 +64,11 @@ The list command lists all persistent configuration values for the New Relic CLI
 `,
 	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		vals := []ConfigValue{}
+		vals := []CfgValue{}
 		for _, v := range ConfigFields {
 			// Error can be ignored here since all keys will be valid
 			val, _ := GetConfigValue(v.Key)
-			vals = append(vals, ConfigValue{
+			vals = append(vals, CfgValue{
 				Name:    v.Name,
 				Value:   val,
 				Default: v.Default,
@@ -92,7 +92,7 @@ This will have the effect of resetting the value to its default.
 `,
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := SetConfigValue(ConfigFieldKey(key), "")
+		err := SetConfigValue(CfgFieldKey(key), "")
 		if err != nil {
 			log.Error(err)
 			os.Exit(1)

@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
@@ -28,7 +28,7 @@ var (
 )
 
 func TestValidate(t *testing.T) {
-	err := configuration.SetActiveProfileValue(configuration.AccountID, 12345)
+	err := config.SetActiveProfileValue(config.AccountID, 12345)
 	require.NoError(t, err)
 
 	c := NewMockNRDBClient()
@@ -46,7 +46,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestValidate_PassAfterNAttempts(t *testing.T) {
-	err := configuration.SetActiveProfileValue(configuration.AccountID, 12345)
+	err := config.SetActiveProfileValue(config.AccountID, 12345)
 	require.NoError(t, err)
 
 	c := NewMockNRDBClient()
@@ -66,7 +66,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterNAttempts(t *testing.T) {
-	err := configuration.SetActiveProfileValue(configuration.AccountID, 12345)
+	err := config.SetActiveProfileValue(config.AccountID, 12345)
 	require.NoError(t, err)
 
 	c := NewMockNRDBClient()
@@ -84,7 +84,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterMaxAttempts(t *testing.T) {
-	err := configuration.SetActiveProfileValue(configuration.AccountID, 12345)
+	err := config.SetActiveProfileValue(config.AccountID, 12345)
 	require.NoError(t, err)
 
 	c := NewMockNRDBClient()
@@ -104,7 +104,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 }
 
 func TestValidate_FailIfContextDone(t *testing.T) {
-	err := configuration.SetActiveProfileValue(configuration.AccountID, 12345)
+	err := config.SetActiveProfileValue(config.AccountID, 12345)
 	require.NoError(t, err)
 	c := NewMockNRDBClient()
 
@@ -125,7 +125,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 }
 
 func TestValidate_QueryError(t *testing.T) {
-	err := configuration.SetActiveProfileValue(configuration.AccountID, 12345)
+	err := config.SetActiveProfileValue(config.AccountID, 12345)
 	require.NoError(t, err)
 	c := NewMockNRDBClient()
 

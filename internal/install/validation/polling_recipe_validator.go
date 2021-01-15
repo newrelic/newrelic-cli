@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
@@ -139,7 +139,7 @@ func substituteHostname(dm types.DiscoveryManifest, r types.Recipe) (string, err
 }
 
 func (m *PollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	accountID := configuration.GetActiveProfileValueInt(configuration.AccountID)
+	accountID := config.GetActiveProfileValueInt(config.AccountID)
 
 	if accountID == 0 {
 		return nil, errors.New("no account ID found in default profile")

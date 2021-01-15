@@ -7,7 +7,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
@@ -47,23 +47,23 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 `,
 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := configuration.SetProfileValue(profileName, configuration.APIKey, apiKey); err != nil {
+		if err := config.SetProfileValue(profileName, config.APIKey, apiKey); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetProfileValue(profileName, configuration.Region, flagRegion); err != nil {
+		if err := config.SetProfileValue(profileName, config.Region, flagRegion); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetProfileValue(profileName, configuration.InsightsInsertKey, insightsInsertKey); err != nil {
+		if err := config.SetProfileValue(profileName, config.InsightsInsertKey, insightsInsertKey); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetProfileValue(profileName, configuration.AccountID, accountID); err != nil {
+		if err := config.SetProfileValue(profileName, config.AccountID, accountID); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := configuration.SetProfileValue(profileName, configuration.LicenseKey, licenseKey); err != nil {
+		if err := config.SetProfileValue(profileName, config.LicenseKey, licenseKey); err != nil {
 			log.Fatal(err)
 		}
 
@@ -80,7 +80,7 @@ The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic profile default --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := configuration.SetDefaultProfileName(profileName); err != nil {
+		if err := config.SetDefaultProfileName(profileName); err != nil {
 			log.Fatal(err)
 		}
 
@@ -98,7 +98,7 @@ The list command prints out the available profiles' credentials.
 	Example: "newrelic profile list",
 	Run: func(cmd *cobra.Command, args []string) {
 		out := []profileList{}
-		profileNames := configuration.GetProfileNames()
+		profileNames := config.GetProfileNames()
 
 		if len(profileNames) == 0 {
 			log.Info("no profiles found")
@@ -108,20 +108,20 @@ The list command prints out the available profiles' credentials.
 		// Print them out
 		for _, n := range profileNames {
 
-			if n == configuration.GetDefaultProfileName() {
+			if n == config.GetDefaultProfileName() {
 				n += text.FgHiBlack.Sprint(defaultProfileString)
 			}
 
 			var accountIDStr string
-			accountIDVal := configuration.GetActiveProfileValueInt(configuration.AccountID)
+			accountIDVal := config.GetProfileValueInt(n, config.AccountID)
 			if accountIDVal != 0 {
 				accountIDStr = strconv.Itoa(accountIDVal)
 			}
 
-			apiKeyStr := configuration.GetActiveProfileValueString(configuration.AccountID)
-			insightsInsertKeyStr := configuration.GetActiveProfileValueString(configuration.AccountID)
-			licenseKeyStr := configuration.GetActiveProfileValueString(configuration.AccountID)
-			regionStr := configuration.GetActiveProfileValueString(configuration.Region)
+			apiKeyStr := config.GetProfileValueString(n, config.AccountID)
+			insightsInsertKeyStr := config.GetProfileValueString(n, config.AccountID)
+			licenseKeyStr := config.GetProfileValueString(n, config.AccountID)
+			regionStr := config.GetProfileValueString(n, config.Region)
 
 			if !showKeys {
 				if apiKeyStr != "" {
@@ -163,7 +163,7 @@ The delete command removes the profile specified by name.
 `,
 	Example: "newrelic profile delete --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.RemoveProfile(profileName)
+		err := config.RemoveProfile(profileName)
 		if err != nil {
 			log.Fatal(err)
 		}

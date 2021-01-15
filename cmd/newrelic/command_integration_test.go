@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 func TestInitializeProfile(t *testing.T) {
@@ -17,7 +17,7 @@ func TestInitializeProfile(t *testing.T) {
 	defer os.RemoveAll(f)
 	assert.NoError(t, err)
 
-	configuration.ConfigDir = f
+	config.ConfigDir = f
 
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
@@ -28,8 +28,8 @@ func TestInitializeProfile(t *testing.T) {
 	initializeProfile()
 
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(configuration.GetProfileNames()))
-	assert.Equal(t, "", configuration.GetDefaultProfileName())
+	assert.Equal(t, 0, len(config.GetProfileNames()))
+	assert.Equal(t, "", config.GetDefaultProfileName())
 
 	// Init with environment
 	os.Setenv("NEW_RELIC_API_KEY", apiKey)
@@ -39,20 +39,20 @@ func TestInitializeProfile(t *testing.T) {
 	os.Setenv("NEW_RELIC_API_KEY", "")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
 
-	actualAPIKey, err := configuration.GetActiveProfileValue(configuration.APIKey)
+	actualAPIKey, err := config.GetActiveProfileValue(config.APIKey)
 	assert.NoError(t, err)
 
-	actualRegion, err := configuration.GetActiveProfileValue(configuration.Region)
+	actualRegion, err := config.GetActiveProfileValue(config.Region)
 	assert.NoError(t, err)
 
-	actualAccountID, err := configuration.GetActiveProfileValue(configuration.AccountID)
+	actualAccountID, err := config.GetActiveProfileValue(config.AccountID)
 	assert.NoError(t, err)
 
-	actualLicenseKey, err := configuration.GetActiveProfileValue(configuration.LicenseKey)
+	actualLicenseKey, err := config.GetActiveProfileValue(config.LicenseKey)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 1, len(configuration.GetProfileNames()))
-	assert.Equal(t, defaultProfileName, configuration.GetDefaultProfileName())
+	assert.Equal(t, 1, len(config.GetProfileNames()))
+	assert.Equal(t, defaultProfileName, config.GetDefaultProfileName())
 	assert.Equal(t, apiKey, actualAPIKey)
 	assert.NotEmpty(t, actualRegion)
 	assert.NotEmpty(t, actualLicenseKey)
