@@ -24,6 +24,12 @@ var TernaryValues = struct {
 	Unknown:  "NOT_ASKED",
 }
 
+var ValidTernaryValues = []string{
+	TernaryValues.Allow.String(),
+	TernaryValues.Disallow.String(),
+	TernaryValues.Unknown.String(),
+}
+
 // Valid returns true for a valid value, false otherwise
 func (t Ternary) Valid() error {
 	val := string(t)

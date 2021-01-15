@@ -41,7 +41,10 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 
 	configuration.InitLogger(logLevel.(string))
 
-	initializeProfile()
+	if configuration.GetDefaultProfileName() == "" {
+		log.Debug("default profile does not exist, attempting to initialize")
+		initializeProfile()
+	}
 }
 
 func initializeProfile() {
@@ -50,11 +53,6 @@ func initializeProfile() {
 	var licenseKey string
 	var err error
 
-	if configuration.GetDefaultProfileName() != "" {
-		log.Debug("default profile already exists, not attempting to initialize")
-		return
-	}
-
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	region = os.Getenv("NEW_RELIC_REGION")
@@ -62,7 +60,7 @@ func initializeProfile() {
 
 	// If we don't have a personal API key we can't initialize a profile.
 	if apiKey == "" {
-		log.Debug("api key not provided, not attempting to initialize default profile")
+		log.Debug("api key not provided, cannot initialize default profile")
 		return
 	}
 

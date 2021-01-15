@@ -39,36 +39,27 @@ const (
 var (
 	ConfigFields = []ConfigField{
 		{
-			Name:        "LogLevel",
-			Key:         LogLevel,
-			Default:     "info",
-			ValidValues: LogLevels(),
+			Name:           "LogLevel",
+			Key:            LogLevel,
+			Default:        "info",
+			ValidationFunc: stringInSlice(LogLevels(), false),
 		},
 		{
-			Name:    "SendUsageData",
-			Key:     SendUsageData,
-			Default: string(TernaryValues.Unknown),
-			ValidValues: []string{
-				TernaryValues.Unknown.String(),
-				TernaryValues.Allow.String(),
-				TernaryValues.Disallow.String(),
-			},
+			Name:           "SendUsageData",
+			Key:            SendUsageData,
+			Default:        string(TernaryValues.Unknown),
+			ValidationFunc: stringInSlice(ValidTernaryValues, false),
 		},
 		{
 			Name:    "PluginDir",
 			Key:     PluginDir,
 			Default: "",
-			// ValidValues: []string{},
 		},
 		{
-			Name:    "PrereleaseFeatures",
-			Key:     PrereleaseFeatures,
-			Default: string(TernaryValues.Unknown),
-			ValidValues: []string{
-				TernaryValues.Unknown.String(),
-				TernaryValues.Allow.String(),
-				TernaryValues.Disallow.String(),
-			},
+			Name:           "PrereleaseFeatures",
+			Key:            PrereleaseFeatures,
+			Default:        string(TernaryValues.Unknown),
+			ValidationFunc: stringInSlice(ValidTernaryValues, false),
 		},
 	}
 	ProfileFields = []ProfileField{
@@ -100,17 +91,18 @@ var (
 	}
 	ConfigDir                 string
 	EnvVarResolver            envResolver = &osEnvResolver{}
-	configFilename                        = "config.json"
-	credsFilename                         = "credentials.json"
-	defaultProfileFilename                = "default-profile.json"
-	defaultDefaultProfileName             = "default"
+	ProfileOverride           string
+	configFilename            = "config.json"
+	credsFilename             = "credentials.json"
+	defaultProfileFilename    = "default-profile.json"
+	defaultDefaultProfileName = "default"
 )
 
 type ConfigField struct {
-	Name        string
-	Key         ConfigFieldKey
-	Default     string
-	ValidValues []string
+	Name           string
+	Key            ConfigFieldKey
+	Default        string
+	ValidationFunc func(string) error
 }
 
 type ProfileField struct {
@@ -166,8 +158,54 @@ func GetActiveProfileValue(key ProfileFieldKey) (interface{}, error) {
 	return GetProfileValue(GetActiveProfileName(), key)
 }
 
+func GetActiveProfileValueInt(key ProfileFieldKey) int {
+	v, err := GetProfileValue(GetActiveProfileName(), key)
+	if err != nil {
+		log.Debugf("could not get profile value %s, using default value", key)
+		return 0
+	}
+
+	if i, ok := v.(int); ok {
+		return i
+	}
+
+	// Why does viper interpret whole nubmers as float64?
+	if f, ok := v.(float64); ok {
+		return int(f)
+	}
+
+	log.Debugf("could not get profile value %s, using default value", key)
+	return 0
+}
+
+func GetActiveProfileValueString(key ProfileFieldKey) string {
+	v, err := GetProfileValue(GetActiveProfileName(), key)
+	if err != nil {
+		log.Debugf("could not get profile value %s, using default value", key)
+		return ""
+	}
+
+	if s, ok := v.(string); ok {
+		return s
+	}
+
+	log.Debugf("could not get profile value %s, using default value", key)
+	return ""
+}
+
 func GetActiveProfileName() string {
-	return defaultProfileName()
+	defaultProfile := defaultProfileName()
+	if ProfileOverride != "" {
+		if !profileExists(ProfileOverride) {
+			log.Warnf("profile %s requested but not found.  using default profile %s", ProfileOverride, defaultProfile)
+			return defaultProfile
+		}
+
+		log.Warnf("using requested profile %s", ProfileOverride)
+		return ProfileOverride
+	}
+
+	return defaultProfile
 }
 
 func GetDefaultProfileName() string {
@@ -179,12 +217,16 @@ func SetDefaultProfileName(profileName string) error {
 }
 
 func SetConfigValue(key ConfigFieldKey, value string) error {
-	if ok := isValidConfigKey(key); !ok {
+	field := findConfigField(key)
+
+	if field == nil {
 		return fmt.Errorf("config key %s is not valid.  valid keys are %s", key, validConfigFieldKeys())
 	}
 
-	if ok := isValidConfigValue(key, value); !ok {
-		return fmt.Errorf("config value '%s' is invalid. Valid values for key %s are [%s]", value, key, strings.Join([]string{"todo", "implement", "this"}, " "))
+	if field.ValidationFunc != nil {
+		if err := field.ValidationFunc(string(value)); err != nil {
+			return fmt.Errorf("config value %s is not valid for key %s: %s", value, key, err)
+		}
 	}
 
 	c := config()
@@ -298,6 +340,16 @@ func profiles() *viper.Viper {
 	return v
 }
 
+func profileExists(profile string) bool {
+	for _, p := range GetProfileNames() {
+		if strings.EqualFold(profile, p) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func writeConfigDefaults(v *viper.Viper) error {
 	for _, c := range ConfigFields {
 		v.Set(keyGlobalScope(string(c.Key)), c.Default)
@@ -400,13 +452,7 @@ func getDefaultConfigDirectory() (string, error) {
 }
 
 func isValidConfigKey(key ConfigFieldKey) bool {
-	for _, v := range ConfigFields {
-		if strings.EqualFold(string(v.Key), string(key)) {
-			return true
-		}
-	}
-
-	return false
+	return findConfigField(key) != nil
 }
 
 func findConfigField(key ConfigFieldKey) *ConfigField {
@@ -419,24 +465,6 @@ func findConfigField(key ConfigFieldKey) *ConfigField {
 	}
 
 	return nil
-}
-
-func isValidConfigValue(key ConfigFieldKey, value string) bool {
-	if configField := findConfigField(key); configField != nil {
-		// If the ConfigField.ValidValues is nil,
-		// any value can be considered valid.
-		if configField.ValidValues == nil {
-			return true
-		}
-
-		for _, validValue := range configField.ValidValues {
-			if strings.EqualFold(value, validValue) {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func isValidCredentialKey(key ProfileFieldKey) bool {
@@ -467,4 +495,21 @@ func validProfileFieldKeys() []string {
 	}
 
 	return valid
+}
+
+func stringInSlice(validVals []string, caseSensitive bool) func(string) error {
+	return func(val string) error {
+		for _, v := range validVals {
+
+			if !caseSensitive && strings.EqualFold(v, val) {
+				return nil
+			}
+
+			if v == val {
+				return nil
+			}
+		}
+
+		return fmt.Errorf("valid values are %s", validVals)
+	}
 }
