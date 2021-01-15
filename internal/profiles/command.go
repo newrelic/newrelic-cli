@@ -1,6 +1,8 @@
 package profiles
 
 import (
+	"strconv"
+
 	"github.com/jedib0t/go-pretty/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -18,6 +20,11 @@ var (
 	insightsInsertKey string
 	accountID         int
 	licenseKey        string
+)
+
+const (
+	defaultProfileString = " (default)"
+	hiddenKeyString      = "<hidden>"
 )
 
 // Command is the base command for managing profiles
@@ -90,58 +97,57 @@ The list command prints out the available profiles' credentials.
 `,
 	Example: "newrelic profile list",
 	Run: func(cmd *cobra.Command, args []string) {
-		c := configuration.GetProfileNames()
+		out := []profileList{}
+		profileNames := configuration.GetProfileNames()
 
-		if len(c) == 0 {
+		if len(profileNames) == 0 {
 			log.Info("no profiles found")
 			return
 		}
 
-		// 	// Print them out
-		// 	for k, v := range c.Profiles {
-		// 		name := k
+		// Print them out
+		for _, n := range profileNames {
 
-		// 		if k == c.DefaultProfile {
-		// 			name += text.FgHiBlack.Sprint(defaultProfileString)
-		// 		}
+			if n == configuration.GetDefaultProfileName() {
+				n += text.FgHiBlack.Sprint(defaultProfileString)
+			}
 
-		// 		var accountID int
-		// 		if v.AccountID != 0 {
-		// 			accountID = v.AccountID
-		// 		}
+			var accountIDStr string
+			accountIDVal := configuration.GetActiveProfileValueInt(configuration.AccountID)
+			if accountIDVal != 0 {
+				accountIDStr = strconv.Itoa(accountIDVal)
+			}
 
-		// 		var apiKey string
-		// 		if v.APIKey != "" {
-		// 			apiKey = text.FgHiBlack.Sprint(hiddenKeyString)
-		// 		}
+			apiKeyStr := configuration.GetActiveProfileValueString(configuration.AccountID)
+			insightsInsertKeyStr := configuration.GetActiveProfileValueString(configuration.AccountID)
+			licenseKeyStr := configuration.GetActiveProfileValueString(configuration.AccountID)
+			regionStr := configuration.GetActiveProfileValueString(configuration.Region)
 
-		// 		var insightsInsertKey string
-		// 		if v.InsightsInsertKey != "" {
-		// 			insightsInsertKey = text.FgHiBlack.Sprint(hiddenKeyString)
-		// 		}
+			if !showKeys {
+				if apiKeyStr != "" {
+					apiKeyStr = text.FgHiBlack.Sprint(hiddenKeyString)
+				}
 
-		// 		var licenseKey string
-		// 		if v.LicenseKey != "" {
-		// 			licenseKey = text.FgHiBlack.Sprint(hiddenKeyString)
-		// 		}
+				if insightsInsertKeyStr != "" {
+					insightsInsertKeyStr = text.FgHiBlack.Sprint(hiddenKeyString)
+				}
 
-		// 		if showKeys {
-		// 			apiKey = v.APIKey
-		// 			insightsInsertKey = v.InsightsInsertKey
-		// 			licenseKey = v.LicenseKey
-		// 		}
+				if licenseKeyStr != "" {
+					licenseKeyStr = text.FgHiBlack.Sprint(hiddenKeyString)
+				}
+			}
 
-		// 		out = append(out, profileList{
-		// 			Name:              name,
-		// 			Region:            v.Region,
-		// 			APIKey:            apiKey,
-		// 			InsightsInsertKey: insightsInsertKey,
-		// 			AccountID:         accountID,
-		// 			LicenseKey:        licenseKey,
-		// 		})
-		// 	}
+			out = append(out, profileList{
+				Name:              n,
+				Region:            regionStr,
+				APIKey:            apiKeyStr,
+				InsightsInsertKey: insightsInsertKeyStr,
+				AccountID:         accountIDStr,
+				LicenseKey:        licenseKeyStr,
+			})
+		}
 
-		output.Text(c)
+		output.Text(out)
 	},
 	Aliases: []string{
 		"ls",
@@ -215,4 +221,13 @@ func init() {
 	if err != nil {
 		log.Error(err)
 	}
+}
+
+type profileList struct {
+	Name              string
+	AccountID         string
+	Region            string
+	APIKey            string
+	LicenseKey        string
+	InsightsInsertKey string
 }
