@@ -237,7 +237,7 @@ func GetActiveProfileName() string {
 	defaultProfile := defaultProfileName()
 	if ProfileOverride != "" {
 		if !ProfileExists(ProfileOverride) {
-			log.Warnf("profile %s requested but not found.  using default profile %s", ProfileOverride, defaultProfile)
+			log.Warnf("profile %s requested but not found.  using default profile: %s", ProfileOverride, defaultProfile)
 			return defaultProfile
 		}
 
@@ -316,9 +316,9 @@ func RemoveProfile(profileName string) error {
 	p := profiles()
 	configMap := p.AllSettings()
 	delete(configMap, profileName)
-
+t
 	encodedConfig, _ := json.MarshalIndent(configMap, "", " ")
-	err := viper.ReadConfig(bytes.NewReader(encodedConfig))
+	err := p.ReadConfig(bytes.NewReader(encodedConfig))
 	if err != nil {
 		return err
 	}

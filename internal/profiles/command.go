@@ -56,18 +56,30 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 		}
 
 		if err := config.SaveValueToProfile(profileName, config.Region, flagRegion); err != nil {
+			if e := config.RemoveProfile(profileName); e != nil {
+				log.Error(e)
+			}
 			log.Fatal(err)
 		}
 
 		if err := config.SaveValueToProfile(profileName, config.InsightsInsertKey, insightsInsertKey); err != nil {
+			if e := config.RemoveProfile(profileName); e != nil {
+				log.Error(e)
+			}
 			log.Fatal(err)
 		}
 
 		if err := config.SaveValueToProfile(profileName, config.AccountID, accountID); err != nil {
+			if e := config.RemoveProfile(profileName); e != nil {
+				log.Error(e)
+			}
 			log.Fatal(err)
 		}
 
 		if err := config.SaveValueToProfile(profileName, config.LicenseKey, licenseKey); err != nil {
+			if e := config.RemoveProfile(profileName); e != nil {
+				log.Error(e)
+			}
 			log.Fatal(err)
 		}
 

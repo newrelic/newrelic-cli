@@ -28,7 +28,7 @@ func TestInitializeProfile(t *testing.T) {
 	// Init without the necessary environment variables
 	os.Setenv("NEW_RELIC_API_KEY", "")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
-	initializeProfile()
+	initializeDefaultProfile()
 
 	require.NoError(t, err)
 	require.Equal(t, 0, len(config.GetProfileNames()))
@@ -37,7 +37,7 @@ func TestInitializeProfile(t *testing.T) {
 	// Init with environment
 	os.Setenv("NEW_RELIC_API_KEY", envAPIKey)
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", envAccountID)
-	initializeProfile()
+	initializeDefaultProfile()
 
 	os.Setenv("NEW_RELIC_API_KEY", "")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
@@ -61,5 +61,5 @@ func TestInitializeProfile(t *testing.T) {
 	require.NotEmpty(t, actualLicenseKey)
 	require.NotEmpty(t, actualAccountID)
 
-	initializeProfile()
+	initializeDefaultProfile()
 }

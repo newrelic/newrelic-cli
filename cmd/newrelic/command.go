@@ -38,8 +38,8 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 	config.InitLogger(logLevel)
 
 	if config.GetDefaultProfileName() == "" {
-		log.Debug("default profile does not exist, attempting to initialize")
-		initializeProfile()
+		log.Infof("default profile does not exist, attempting to initialize")
+		initializeDefaultProfile()
 	}
 
 	if client.Client == nil {
@@ -56,7 +56,7 @@ func createClient() *newrelic.NewRelic {
 	return c
 }
 
-func initializeProfile() {
+func initializeDefaultProfile() {
 	var accountID int
 	var region string
 	var licenseKey string
@@ -69,8 +69,23 @@ func initializeProfile() {
 
 	// If we don't have a personal API key we can't initialize a profile.
 	if apiKey == "" {
-		log.Debug("api key not provided, cannot initialize default profile")
+		log.Warnf("NEW_RELIC_API_KEY key not set, cannot initialize default profile")
 		return
+	}
+
+	// Create a profile with the default name if one does not exist.
+	if hasProfileWithDefaultName(config.GetProfileNames()) {
+		log.Warnf("a profile named %s already exists, cannot initialize default profile", defaultProfileName)
+	} else {
+		if err = config.SaveValueToProfile(defaultProfileName, config.APIKey, apiKey); err != nil {
+			log.Warnf("error saving API key to profile, cannot initialize default profile: %s", err)
+			return
+		}
+
+		if err = config.SaveDefaultProfileName(defaultProfileName); err != nil {
+			log.Warnf("error saving default profile name, cannot initialize default profile: %s", err)
+			return
+		}
 	}
 
 	// Default the region to US if it's not in the environment
@@ -78,61 +93,48 @@ func initializeProfile() {
 		region = "US"
 	}
 
+	if err = config.SaveValueToActiveProfile(config.Region, region); err != nil {
+		log.Warnf("couldn't save region to default profile: %s", err)
+	}
+
+	// Initialize a client.
+	client.Client = createClient()
+
 	// Use the accountID from the environment if we have it.
 	if envAccountID != "" {
 		accountID, err = strconv.Atoi(envAccountID)
 		if err != nil {
-			log.Errorf("couldn't parse account ID: %s", err)
-			return
+			log.Warnf("NEW_RELIC_ACCOUNT_ID has invalid value, attempting to fetch account ID", err)
 		}
 	}
-
-	if !hasProfileWithDefaultName(config.GetProfileNames()) {
-		if err = config.SaveDefaultProfileName(defaultProfileName); err != nil {
-			log.Debugf("couldn't initialize default profile: %s", err)
-			return
-		}
-	}
-
-	if err = config.SaveValueToActiveProfile(config.APIKey, apiKey); err != nil {
-		log.Debugf("couldn't initialize default profile: %s", err)
-		return
-	}
-
-	// We should have an API key by this point, initialize a client.
-	client.Client = createClient()
 
 	// If we still don't have an account ID try to look one up from the API.
 	if accountID == 0 {
 		accountID, err = fetchAccountID()
 		if err != nil {
-			log.Debugf("couldn't initialize default profile: %s", err)
-			return
+			log.Warnf("couldn't fetch account ID: %s", err)
 		}
 	}
 
-	if licenseKey == "" {
-		// We should have an account ID by now, so fetch the license key for it.
-		licenseKey, err = fetchLicenseKey(accountID)
-		if err != nil {
-			log.Debugf("couldn't initialize default profile: %s", err)
-			return
+	if accountID != 0 {
+		if err = config.SaveValueToActiveProfile(config.AccountID, accountID); err != nil {
+			log.Warnf("couldn't save account ID to default profile: %s", err)
+		}
+
+		if licenseKey == "" {
+			log.Infof("attempting to resolve license key for account ID %d", accountID)
+
+			licenseKey, err = fetchLicenseKey(accountID)
+			if err != nil {
+				log.Warnf("couldn't fetch license key for account ID %d: %s", accountID, err)
+			}
 		}
 	}
 
-	if err = config.SaveValueToActiveProfile(config.Region, region); err != nil {
-		log.Debugf("couldn't initialize default profile: %s", err)
-		return
-	}
-
-	if err = config.SaveValueToActiveProfile(config.AccountID, accountID); err != nil {
-		log.Debugf("couldn't initialize default profile: %s", err)
-		return
-	}
-
-	if err = config.SaveValueToActiveProfile(config.LicenseKey, licenseKey); err != nil {
-		log.Debugf("couldn't initialize default profile: %s", err)
-		return
+	if licenseKey != "" {
+		if err = config.SaveValueToActiveProfile(config.LicenseKey, licenseKey); err != nil {
+			log.Warnf("couldn't save license key to default profile: %s", err)
+		}
 	}
 
 	log.Infof("profile %s added", text.FgCyan.Sprint(defaultProfileName))
