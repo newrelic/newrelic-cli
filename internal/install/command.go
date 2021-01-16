@@ -40,7 +40,7 @@ var Command = &cobra.Command{
 		}
 
 		activeProfile := config.GetActiveProfileName()
-		if activeProfile != "" {
+		if activeProfile == "" {
 			log.Fatal("no active profile has been set")
 		}
 

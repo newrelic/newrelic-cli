@@ -6,10 +6,14 @@ type envResolver interface {
 	Getenv(key string) string
 }
 
-type osEnvResolver struct{}
+type OSEnvResolver struct{}
 
-func (r *osEnvResolver) Getenv(key string) string {
+func (r *OSEnvResolver) Getenv(key string) string {
 	return os.Getenv(key)
+}
+
+func NewOSEnvResolver() *OSEnvResolver {
+	return &OSEnvResolver{}
 }
 
 type MockEnvResolver struct {
@@ -21,6 +25,10 @@ func NewMockEnvResolver() *MockEnvResolver {
 	return &MockEnvResolver{
 		GetenvVals: map[string]string{},
 	}
+}
+
+func (r *MockEnvResolver) Setenv(key string, val string) {
+	r.GetenvVals[key] = val
 }
 
 func (r *MockEnvResolver) Getenv(key string) string {

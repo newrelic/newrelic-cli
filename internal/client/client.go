@@ -16,30 +16,15 @@ var (
 )
 
 func NewClient(profileName string) (*newrelic.NewRelic, error) {
-	apiKey, err := config.GetProfileValue(profileName, config.APIKey)
-	if err != nil {
-		return nil, err
-	}
-
+	apiKey := config.GetProfileValueString(profileName, config.APIKey)
 	if apiKey == "" {
 		return nil, errors.New("an API key is required, set a default profile or use the NEW_RELIC_API_KEY environment variable")
 	}
 
-	region, err := config.GetProfileValue(profileName, config.Region)
-	if err != nil {
-		return nil, err
-	}
+	region := config.GetProfileValueString(profileName, config.Region)
+	insightsInsertKey := config.GetProfileValueString(profileName, config.InsightsInsertKey)
 
-	insightsInsertKey, err := config.GetProfileValue(profileName, config.InsightsInsertKey)
-	if err != nil {
-		return nil, err
-	}
-
-	logLevel, err := config.GetConfigValue(config.LogLevel)
-	if err != nil {
-		return nil, err
-	}
-
+	logLevel := config.GetConfigValueString(config.LogLevel)
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	cfgOpts := []newrelic.ConfigOption{

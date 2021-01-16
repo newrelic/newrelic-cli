@@ -77,7 +77,7 @@ func TestSetConfigValue_Basic(t *testing.T) {
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	err := SetConfigValue(LogLevel, "debug")
+	err := SaveConfigValue(LogLevel, "debug")
 	require.NoError(t, err)
 
 	configValue, err := GetConfigValue(LogLevel)
@@ -93,7 +93,7 @@ func TestSetConfigValue_FileNotExists(t *testing.T) {
 	_, err := os.Stat(configFilePath)
 	require.True(t, os.IsNotExist(err))
 
-	err = SetConfigValue(LogLevel, "debug")
+	err = SaveConfigValue(LogLevel, "debug")
 	require.NoError(t, err)
 
 	configValue, err := GetConfigValue(LogLevel)
@@ -112,16 +112,16 @@ func TestSetConfigValue_InvalidValue(t *testing.T) {
 
 	var err error
 
-	err = SetConfigValue(LogLevel, "invalid")
+	err = SaveConfigValue(LogLevel, "invalid")
 	require.Error(t, err)
 
-	err = SetConfigValue(PrereleaseFeatures, "invalid")
+	err = SaveConfigValue(PrereleaseFeatures, "invalid")
 	require.Error(t, err)
 
-	err = SetConfigValue(SendUsageData, "invalid")
+	err = SaveConfigValue(SendUsageData, "invalid")
 	require.Error(t, err)
 
-	err = SetConfigValue(PluginDir, "/any/path/is/valid")
+	err = SaveConfigValue(PluginDir, "/any/path/is/valid")
 	require.NoError(t, err)
 }
 
@@ -171,7 +171,7 @@ func TestSetProfileValue_Basic(t *testing.T) {
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	err := SetProfileValue(defaultDefaultProfileName, APIKey, "NRAK-abc123")
+	err := SaveValueToProfile(defaultDefaultProfileName, APIKey, "NRAK-abc123")
 	require.NoError(t, err)
 
 	credsValue, err := GetProfileValue(defaultDefaultProfileName, APIKey)
@@ -193,7 +193,7 @@ func TestSetProfileValue_FileNotExists(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, credsValue)
 
-	err = SetProfileValue("default", APIKey, "NRAK-abc123")
+	err = SaveValueToProfile("default", APIKey, "NRAK-abc123")
 	require.NoError(t, err)
 
 	credsValue, err = GetActiveProfileValue(APIKey)
@@ -228,7 +228,7 @@ func TestSetDefaultProfileName_FileNotExists(t *testing.T) {
 
 	require.Empty(t, GetDefaultProfileName())
 
-	err = SetDefaultProfileName("default")
+	err = SaveDefaultProfileName("default")
 	require.NoError(t, err)
 	require.Equal(t, "default", GetDefaultProfileName())
 

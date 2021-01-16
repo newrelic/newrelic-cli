@@ -14,6 +14,8 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
 const (
@@ -70,14 +72,16 @@ var (
 			EnvOverride: "NEW_RELIC_API_KEY",
 		},
 		{
-			Name:        "Region",
-			Key:         Region,
-			EnvOverride: "NEW_RELIC_REGION",
+			Name:           "Region",
+			Key:            Region,
+			EnvOverride:    "NEW_RELIC_REGION",
+			ValidationFunc: stringInSlice(validRegions(), false),
 		},
 		{
-			Name:        "AccountID",
-			Key:         AccountID,
-			EnvOverride: "NEW_RELIC_ACCOUNT_ID",
+			Name:           "AccountID",
+			Key:            AccountID,
+			EnvOverride:    "NEW_RELIC_ACCOUNT_ID",
+			ValidationFunc: isNumber(),
 		},
 		{
 			Name:        "LicenseKey",
@@ -91,7 +95,7 @@ var (
 		},
 	}
 	ConfigDir                 string
-	EnvVarResolver            envResolver = &osEnvResolver{}
+	EnvVarResolver            envResolver = &OSEnvResolver{}
 	ProfileOverride           string
 	configFilename            = "config.json"
 	credsFilename             = "credentials.json"
@@ -103,13 +107,14 @@ type CfgField struct {
 	Name           string
 	Key            CfgFieldKey
 	Default        string
-	ValidationFunc func(string) error
+	ValidationFunc func(interface{}) error
 }
 
 type ProfileField struct {
-	Name        string
-	Key         ProfileFieldKey
-	EnvOverride string
+	Name           string
+	Key            ProfileFieldKey
+	EnvOverride    string
+	ValidationFunc func(interface{}) error
 }
 
 type CfgValue struct {
@@ -133,6 +138,22 @@ func init() {
 	if err != nil {
 		log.Debug(err)
 	}
+}
+
+func GetConfigValueString(key CfgFieldKey) string {
+	f := findConfigField(key)
+	v, err := GetConfigValue(key)
+	if err != nil {
+		log.Debugf("could not get config value %s, using default value %s", key, f.Default)
+		return f.Default
+	}
+
+	if s, ok := v.(string); ok {
+		return s
+	}
+
+	log.Debugf("could not get config value %s, using default value %s", key, f.Default)
+	return f.Default
 }
 
 func GetConfigValue(key CfgFieldKey) (interface{}, error) {
@@ -171,6 +192,14 @@ func GetProfileValueInt(profileName string, key ProfileFieldKey) int {
 		return 0
 	}
 
+	if i, ok := v.(int); ok {
+		return i
+	}
+
+	if i, ok := v.(float64); ok {
+		return int(i)
+	}
+
 	if s, ok := v.(string); ok {
 		i, err := strconv.Atoi(s)
 		if err != nil {
@@ -207,7 +236,7 @@ func GetProfileValueString(profileName string, key ProfileFieldKey) string {
 func GetActiveProfileName() string {
 	defaultProfile := defaultProfileName()
 	if ProfileOverride != "" {
-		if !profileExists(ProfileOverride) {
+		if !ProfileExists(ProfileOverride) {
 			log.Warnf("profile %s requested but not found.  using default profile %s", ProfileOverride, defaultProfile)
 			return defaultProfile
 		}
@@ -223,11 +252,11 @@ func GetDefaultProfileName() string {
 	return defaultProfileName()
 }
 
-func SetDefaultProfileName(profileName string) error {
+func SaveDefaultProfileName(profileName string) error {
 	return saveDefaultProfileName(profileName)
 }
 
-func SetConfigValue(key CfgFieldKey, value string) error {
+func SaveConfigValue(key CfgFieldKey, value string) error {
 	field := findConfigField(key)
 
 	if field == nil {
@@ -251,11 +280,19 @@ func SetConfigValue(key CfgFieldKey, value string) error {
 	return nil
 }
 
-func SetActiveProfileValue(key ProfileFieldKey, value interface{}) error {
-	return SetProfileValue(GetActiveProfileName(), key, value)
+func SaveValueToActiveProfile(key ProfileFieldKey, value interface{}) error {
+	return SaveValueToProfile(GetActiveProfileName(), key, value)
 }
 
-func SetProfileValue(profileName string, key ProfileFieldKey, value interface{}) error {
+func SaveValueToProfile(profileName string, key ProfileFieldKey, value interface{}) error {
+	field := findProfileField(key)
+
+	if field.ValidationFunc != nil {
+		if err := field.ValidationFunc(value); err != nil {
+			return fmt.Errorf("config value %s is not valid for key %s: %s", value, key, err)
+		}
+	}
+
 	p := profiles()
 	keyPath := fmt.Sprintf("%s.%s", profileName, key)
 	p.Set(keyPath, value)
@@ -267,7 +304,7 @@ func SetProfileValue(profileName string, key ProfileFieldKey, value interface{})
 
 	if defaultProfileName() == "" {
 		log.Debugf("setting %s as default profile", defaultDefaultProfileName)
-		if err := SetDefaultProfileName(profileName); err != nil {
+		if err := SaveDefaultProfileName(profileName); err != nil {
 			return err
 		}
 	}
@@ -310,16 +347,9 @@ func GetProfileNames() []string {
 }
 
 func getProfileValueEnvOverride(key ProfileFieldKey) string {
-	for _, p := range ProfileFields {
-		if !strings.EqualFold(string(p.Key), string(key)) {
-			continue
-		}
-
-		e := EnvVarResolver.Getenv(p.EnvOverride)
-
-		if e != "" {
-			return e
-		}
+	field := findProfileField(key)
+	if e := EnvVarResolver.Getenv(field.EnvOverride); e != "" {
+		return e
 	}
 
 	return ""
@@ -351,7 +381,7 @@ func profiles() *viper.Viper {
 	return v
 }
 
-func profileExists(profile string) bool {
+func ProfileExists(profile string) bool {
 	for _, p := range GetProfileNames() {
 		if strings.EqualFold(profile, p) {
 			return true
@@ -466,6 +496,18 @@ func isValidConfigKey(key CfgFieldKey) bool {
 	return findConfigField(key) != nil
 }
 
+func findProfileField(key ProfileFieldKey) *ProfileField {
+	profileKey := string(key)
+
+	for _, c := range ProfileFields {
+		if strings.EqualFold(profileKey, string(c.Key)) {
+			return &c
+		}
+	}
+
+	return nil
+}
+
 func findConfigField(key CfgFieldKey) *CfgField {
 	configKey := string(key)
 
@@ -508,11 +550,11 @@ func validProfileFieldKeys() []string {
 	return valid
 }
 
-func stringInSlice(validVals []string, caseSensitive bool) func(string) error {
-	return func(val string) error {
+func stringInSlice(validVals []string, caseSensitive bool) func(interface{}) error {
+	return func(val interface{}) error {
 		for _, v := range validVals {
 
-			if !caseSensitive && strings.EqualFold(v, val) {
+			if !caseSensitive && strings.EqualFold(v, val.(string)) {
 				return nil
 			}
 
@@ -522,5 +564,24 @@ func stringInSlice(validVals []string, caseSensitive bool) func(string) error {
 		}
 
 		return fmt.Errorf("valid values are %s", validVals)
+	}
+}
+
+func validRegions() []string {
+	validRegions := []string{}
+	for k := range region.Regions {
+		validRegions = append(validRegions, string(k))
+	}
+
+	return validRegions
+}
+
+func isNumber() func(interface{}) error {
+	return func(val interface{}) error {
+		if _, ok := val.(int); ok {
+			return nil
+		}
+
+		return fmt.Errorf("value is required to be numeric")
 	}
 }

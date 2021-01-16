@@ -34,12 +34,8 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	logLevel, err := config.GetConfigValue(config.LogLevel)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	config.InitLogger(logLevel.(string))
+	logLevel := config.GetConfigValueString(config.LogLevel)
+	config.InitLogger(logLevel)
 
 	if config.GetDefaultProfileName() == "" {
 		log.Debug("default profile does not exist, attempting to initialize")
@@ -92,13 +88,13 @@ func initializeProfile() {
 	}
 
 	if !hasProfileWithDefaultName(config.GetProfileNames()) {
-		if err = config.SetDefaultProfileName(defaultProfileName); err != nil {
+		if err = config.SaveDefaultProfileName(defaultProfileName); err != nil {
 			log.Debugf("couldn't initialize default profile: %s", err)
 			return
 		}
 	}
 
-	if err = config.SetActiveProfileValue(config.APIKey, apiKey); err != nil {
+	if err = config.SaveValueToActiveProfile(config.APIKey, apiKey); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
@@ -124,17 +120,17 @@ func initializeProfile() {
 		}
 	}
 
-	if err = config.SetActiveProfileValue(config.Region, region); err != nil {
+	if err = config.SaveValueToActiveProfile(config.Region, region); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
 
-	if err = config.SetActiveProfileValue(config.AccountID, accountID); err != nil {
+	if err = config.SaveValueToActiveProfile(config.AccountID, accountID); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}
 
-	if err = config.SetActiveProfileValue(config.LicenseKey, licenseKey); err != nil {
+	if err = config.SaveValueToActiveProfile(config.LicenseKey, licenseKey); err != nil {
 		log.Debugf("couldn't initialize default profile: %s", err)
 		return
 	}

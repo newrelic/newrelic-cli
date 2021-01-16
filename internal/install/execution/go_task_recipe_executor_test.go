@@ -21,9 +21,9 @@ import (
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
-	config.EnvVarResolver = config.NewMockEnvResolver()
-	err := config.SetActiveProfileValue(config.LicenseKey, "testLicenseKey")
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	mockEnvVarResolver.Setenv("NEW_RELIC_LICENSE_KEY", "testLicenseKey")
+	config.EnvVarResolver = mockEnvVarResolver
 
 	e := NewGoTaskRecipeExecutor()
 

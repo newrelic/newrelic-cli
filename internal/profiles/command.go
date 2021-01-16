@@ -47,23 +47,27 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 `,
 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := config.SetProfileValue(profileName, config.APIKey, apiKey); err != nil {
+		if config.ProfileExists(profileName) {
+			log.Fatalf("profile already exists: %s", profileName)
+		}
+
+		if err := config.SaveValueToProfile(profileName, config.APIKey, apiKey); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := config.SetProfileValue(profileName, config.Region, flagRegion); err != nil {
+		if err := config.SaveValueToProfile(profileName, config.Region, flagRegion); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := config.SetProfileValue(profileName, config.InsightsInsertKey, insightsInsertKey); err != nil {
+		if err := config.SaveValueToProfile(profileName, config.InsightsInsertKey, insightsInsertKey); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := config.SetProfileValue(profileName, config.AccountID, accountID); err != nil {
+		if err := config.SaveValueToProfile(profileName, config.AccountID, accountID); err != nil {
 			log.Fatal(err)
 		}
 
-		if err := config.SetProfileValue(profileName, config.LicenseKey, licenseKey); err != nil {
+		if err := config.SaveValueToProfile(profileName, config.LicenseKey, licenseKey); err != nil {
 			log.Fatal(err)
 		}
 
@@ -80,7 +84,7 @@ The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic profile default --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := config.SetDefaultProfileName(profileName); err != nil {
+		if err := config.SaveDefaultProfileName(profileName); err != nil {
 			log.Fatal(err)
 		}
 

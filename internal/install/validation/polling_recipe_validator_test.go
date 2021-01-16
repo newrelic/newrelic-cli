@@ -28,8 +28,9 @@ var (
 )
 
 func TestValidate(t *testing.T) {
-	err := config.SetActiveProfileValue(config.AccountID, 12345)
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	config.EnvVarResolver = mockEnvVarResolver
+	mockEnvVarResolver.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 
 	c := NewMockNRDBClient()
 
@@ -40,14 +41,15 @@ func TestValidate(t *testing.T) {
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
 
-	_, err = v.Validate(getTestContext(), m, r)
+	_, err := v.Validate(getTestContext(), m, r)
 
 	require.NoError(t, err)
 }
 
 func TestValidate_PassAfterNAttempts(t *testing.T) {
-	err := config.SetActiveProfileValue(config.AccountID, 12345)
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	config.EnvVarResolver = mockEnvVarResolver
+	mockEnvVarResolver.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 
 	c := NewMockNRDBClient()
 	v := NewPollingRecipeValidator(c)
@@ -59,15 +61,16 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
 
-	_, err = v.Validate(getTestContext(), m, r)
+	_, err := v.Validate(getTestContext(), m, r)
 
 	require.NoError(t, err)
 	require.Equal(t, 5, c.Attempts())
 }
 
 func TestValidate_FailAfterNAttempts(t *testing.T) {
-	err := config.SetActiveProfileValue(config.AccountID, 12345)
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	config.EnvVarResolver = mockEnvVarResolver
+	mockEnvVarResolver.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 
 	c := NewMockNRDBClient()
 	v := NewPollingRecipeValidator(c)
@@ -77,15 +80,16 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
 
-	_, err = v.Validate(getTestContext(), m, r)
+	_, err := v.Validate(getTestContext(), m, r)
 
 	require.Error(t, err)
 	require.Equal(t, 3, c.Attempts())
 }
 
 func TestValidate_FailAfterMaxAttempts(t *testing.T) {
-	err := config.SetActiveProfileValue(config.AccountID, 12345)
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	config.EnvVarResolver = mockEnvVarResolver
+	mockEnvVarResolver.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 
 	c := NewMockNRDBClient()
 
@@ -98,14 +102,16 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
 
-	_, err = v.Validate(getTestContext(), m, r)
+	_, err := v.Validate(getTestContext(), m, r)
 
 	require.Error(t, err)
 }
 
 func TestValidate_FailIfContextDone(t *testing.T) {
-	err := config.SetActiveProfileValue(config.AccountID, 12345)
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	config.EnvVarResolver = mockEnvVarResolver
+	mockEnvVarResolver.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+
 	c := NewMockNRDBClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -119,14 +125,16 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 	ctx, cancel := context.WithCancel(getTestContext())
 	cancel()
 
-	_, err = v.Validate(ctx, m, r)
+	_, err := v.Validate(ctx, m, r)
 
 	require.Error(t, err)
 }
 
 func TestValidate_QueryError(t *testing.T) {
-	err := config.SetActiveProfileValue(config.AccountID, 12345)
-	require.NoError(t, err)
+	mockEnvVarResolver := config.NewMockEnvResolver()
+	config.EnvVarResolver = mockEnvVarResolver
+	mockEnvVarResolver.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+
 	c := NewMockNRDBClient()
 
 	c.ThrowError("test error")
@@ -136,7 +144,7 @@ func TestValidate_QueryError(t *testing.T) {
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
 
-	_, err = v.Validate(getTestContext(), m, r)
+	_, err := v.Validate(getTestContext(), m, r)
 
 	require.EqualError(t, err, "test error")
 }
