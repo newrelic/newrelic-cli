@@ -21,6 +21,21 @@ func TestFetchFilters(t *testing.T) {
 				"test",
 			},
 		},
+		// Include a duplicate name
+		{
+			ID:   "MAo=",
+			Name: "test",
+			ProcessMatch: []string{
+				"test",
+			},
+		},
+		{
+			ID:   "MAo=",
+			Name: "othername",
+			ProcessMatch: []string{
+				"test",
+			},
+		},
 	}
 
 	c := newMockNerdGraphClient()
@@ -32,7 +47,7 @@ func TestFetchFilters(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
-	require.Equal(t, 1, len(recipes))
+	require.Equal(t, 2, len(recipes))
 	require.True(t, reflect.DeepEqual(createRecipes(r), recipes))
 }
 

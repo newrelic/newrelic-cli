@@ -199,9 +199,26 @@ func createInstallTarget(d *types.DiscoveryManifest) installTarget {
 }
 
 func createRecipes(results []types.OpenInstallationRecipe) []types.Recipe {
-	r := make([]types.Recipe, len(results))
-	for i, result := range results {
-		r[i] = createRecipe(result)
+	r := []types.Recipe{}
+
+	recipeIncluded := func(recipe types.Recipe, recipes []types.Recipe) bool {
+		for _, r := range recipes {
+			if recipe.Name == r.Name {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	for _, result := range results {
+		recipe := createRecipe(result)
+
+		if recipeIncluded(recipe, r) {
+			continue
+		}
+
+		r = append(r, recipe)
 	}
 
 	return r
