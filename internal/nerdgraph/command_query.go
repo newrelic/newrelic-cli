@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	ng "github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
@@ -39,6 +40,9 @@ keys are the variables to be referenced in the GraphQL query.
 		}
 
 		return nil
+	},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var variablesParsed map[string]interface{}

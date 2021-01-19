@@ -172,7 +172,6 @@ func init() {
 	Command.AddCommand(cmdDocument)
 
 	cmdDocument.AddCommand(cmdDocumentGet)
-	cmdDocumentGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdDocumentGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdDocumentGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdDocumentGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
@@ -192,7 +191,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdDocument.AddCommand(cmdDocumentWrite)
-	cmdDocumentWrite.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdDocumentWrite.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdDocumentWrite.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdDocumentWrite.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to write the document to")
@@ -216,7 +214,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdDocument.AddCommand(cmdDocumentDelete)
-	cmdDocumentDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdDocumentDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdDocumentDelete.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdDocumentDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")

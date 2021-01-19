@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
@@ -28,6 +29,9 @@ var cmdKey = &cobra.Command{
 	Short:   "Fetch a single key by ID and type.\n\n---\n**NR Internal** | [#help-unified-api](https://newrelic.slack.com/archives/CBHJRSPSA) | visibility(customer)\n\n",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := client.Client.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
 		if err != nil {

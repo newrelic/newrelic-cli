@@ -18,8 +18,12 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
-var outputFormat string
-var outputPlain bool
+var (
+	outputFormat string
+	outputPlain  bool
+	debug        bool
+	trace        bool
+)
 
 const defaultProfileName string = "default"
 
@@ -34,12 +38,18 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	logLevel := config.GetConfigValueString(config.LogLevel)
-	config.InitLogger(logLevel)
+	initializeLogger()
 
+	// If default profile has not been set, atteempt to initialize it
 	if config.GetDefaultProfileName() == "" {
-		log.Infof("default profile does not exist, attempting to initialize")
 		initializeDefaultProfile()
+	}
+
+	// If profile has been overridden, verify it exists
+	if config.ProfileOverride == "" {
+		if !config.ProfileExists(config.ProfileOverride) {
+			log.Fatalf("profile not found: %s", config.ProfileOverride)
+		}
 	}
 
 	if client.Client == nil {
@@ -47,10 +57,24 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 	}
 }
 
+func initializeLogger() {
+	var logLevel string
+	if debug {
+		logLevel = "DEBUG"
+	} else if trace {
+		logLevel = "TRACE"
+	} else {
+		logLevel = config.GetConfigValueString(config.LogLevel)
+	}
+	config.InitLogger(logLevel)
+}
+
 func createClient() *newrelic.NewRelic {
 	c, err := client.NewClient(config.GetActiveProfileName())
 	if err != nil {
-		log.Fatalf("error creating client: %s", err)
+		// An error was encountered initializing the client.  This may not be a
+		// problem since many commands don't require the use of an initialized client
+		log.Debugf("error initializing client: %s", err)
 	}
 
 	return c
@@ -69,9 +93,11 @@ func initializeDefaultProfile() {
 
 	// If we don't have a personal API key we can't initialize a profile.
 	if apiKey == "" {
-		log.Warnf("NEW_RELIC_API_KEY key not set, cannot initialize default profile")
+		log.Debugf("NEW_RELIC_API_KEY key not set, cannot initialize default profile")
 		return
 	}
+
+	log.Infof("default profile does not exist and API key detected. attempting to initialize")
 
 	// Create a profile with the default name if one does not exist.
 	if hasProfileWithDefaultName(config.GetProfileNames()) {
@@ -208,7 +234,10 @@ func init() {
 
 	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
+	Command.PersistentFlags().BoolVar(&debug, "debug", false, "debug level logging")
+	Command.PersistentFlags().BoolVar(&trace, "trace", false, "trace level logging")
 	Command.PersistentFlags().StringVar(&config.ProfileOverride, "profile", "", "the authentication profile to use")
+	Command.PersistentFlags().IntVar(&config.AccountIDOverride, "accountId", 0, "the account ID to use for this command")
 }
 
 func initConfig() {

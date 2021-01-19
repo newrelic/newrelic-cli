@@ -17,9 +17,6 @@ var (
 	skipInfraInstall   bool
 	skipIntegrations   bool
 	skipLoggingInstall bool
-	testMode           bool
-	debug              bool
-	trace              bool
 )
 
 // Command represents the install command.
@@ -27,6 +24,10 @@ var Command = &cobra.Command{
 	Use:    "install",
 	Short:  "Install New Relic.",
 	Hidden: true,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		config.FatalIfAccountIDNotPresent()
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := InstallerContext{
 			AdvancedMode:       advancedMode,
@@ -42,12 +43,6 @@ var Command = &cobra.Command{
 		activeProfile := config.GetActiveProfileName()
 		if activeProfile == "" {
 			log.Fatal("no active profile has been set")
-		}
-
-		if trace {
-			log.SetLevel(log.TraceLevel)
-		} else if debug {
-			log.SetLevel(log.DebugLevel)
 		}
 
 		i := NewRecipeInstaller(ic, client.Client)
@@ -66,9 +61,6 @@ func init() {
 	Command.Flags().BoolVarP(&skipInfraInstall, "skipInfraInstall", "i", false, "skips installation of New Relic Infrastructure Agent")
 	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
-	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
-	Command.Flags().BoolVar(&debug, "debug", false, "debug level logging")
-	Command.Flags().BoolVar(&trace, "trace", false, "trace level logging")
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 	Command.Flags().BoolVarP(&advancedMode, "advanced", "", false, "use \"advanced\" mode")
 }

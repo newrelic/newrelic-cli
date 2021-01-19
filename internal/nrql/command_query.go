@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -26,6 +27,9 @@ This command requires the --accountId <int> flag, which specifies the account to
 issue the query against.
 `,
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		accountID = config.FatalIfAccountIDNotPresent()
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := client.Client.Nrdb.Query(accountID, nrdb.NRQL(query))
 		if err != nil {
@@ -70,9 +74,6 @@ The history command will fetch a list of the most recent NRQL queries you execut
 
 func init() {
 	Command.AddCommand(cmdQuery)
-	cmdQuery.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to query")
-	utils.LogIfError(cmdQuery.MarkFlagRequired("accountId"))
-
 	cmdQuery.Flags().StringVarP(&query, "query", "q", "", "the NRQL query you want to execute")
 	utils.LogIfError(cmdQuery.MarkFlagRequired("query"))
 

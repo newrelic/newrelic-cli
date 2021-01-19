@@ -97,6 +97,7 @@ var (
 	ConfigDir                 string
 	EnvVarResolver            envResolver = &OSEnvResolver{}
 	ProfileOverride           string
+	AccountIDOverride         int
 	configFilename            = "config.json"
 	credsFilename             = "credentials.json"
 	defaultProfileFilename    = "default-profile.json"
@@ -174,11 +175,19 @@ func GetProfileValue(profileName string, key ProfileFieldKey) (interface{}, erro
 		return o, nil
 	}
 
-	return profiles().Get(keyDefaultProfile(string(key))), nil
+	return profiles().Get(keyProfile(profileName, key)), nil
 }
 
 func GetActiveProfileValue(key ProfileFieldKey) (interface{}, error) {
 	return GetProfileValue(GetActiveProfileName(), key)
+}
+
+func GetActiveProfileAccountID() int {
+	if AccountIDOverride != 0 {
+		return AccountIDOverride
+	}
+
+	return GetProfileValueInt(GetActiveProfileName(), AccountID)
 }
 
 func GetActiveProfileValueInt(key ProfileFieldKey) int {
@@ -241,7 +250,7 @@ func GetActiveProfileName() string {
 			return defaultProfile
 		}
 
-		log.Warnf("using requested profile %s", ProfileOverride)
+		log.Infof("using requested profile %s", ProfileOverride)
 		return ProfileOverride
 	}
 
@@ -303,7 +312,7 @@ func SaveValueToProfile(profileName string, key ProfileFieldKey, value interface
 	}
 
 	if defaultProfileName() == "" {
-		log.Debugf("setting %s as default profile", defaultDefaultProfileName)
+		log.Infof("setting %s as default profile", profileName)
 		if err := SaveDefaultProfileName(profileName); err != nil {
 			return err
 		}
@@ -313,6 +322,10 @@ func SaveValueToProfile(profileName string, key ProfileFieldKey, value interface
 }
 
 func RemoveProfile(profileName string) error {
+	if !ProfileExists(profileName) {
+		log.Fatalf("profile not found: %s", profileName)
+	}
+
 	p := profiles()
 	configMap := p.AllSettings()
 	delete(configMap, profileName)
@@ -326,6 +339,13 @@ func RemoveProfile(profileName string) error {
 	credsFilePath := path.Join(ConfigDir, credsFilename)
 	if err := p.WriteConfigAs(credsFilePath); err != nil {
 		return err
+	}
+
+	if defaultProfileName() == profileName {
+		log.Infof("unsetting %s as default profile.", profileName)
+		if err := SaveDefaultProfileName(""); err != nil {
+			log.Warnf("could not unset default profile %s", profileName)
+		}
 	}
 
 	return nil
@@ -344,6 +364,36 @@ func GetProfileNames() []string {
 	}
 
 	return n
+}
+
+func FatalIfAccountIDNotPresent() int {
+	v := GetActiveProfileAccountID()
+	if v == 0 {
+		f := findProfileField(AccountID)
+		log.Fatalf("%s is required, set it in your default profile or use the %s environment variable", AccountID, f.EnvOverride)
+	}
+
+	return v
+}
+
+func FatalIfActiveProfileFieldIntNotPresent(key ProfileFieldKey) int {
+	v := GetActiveProfileValueInt(key)
+	if v == 0 {
+		f := findProfileField(key)
+		log.Fatalf("%s is required, set it in your default profile or use the %s environment variable", key, f.EnvOverride)
+	}
+
+	return v
+}
+
+func FatalIfActiveProfileFieldStringNotPresent(key ProfileFieldKey) string {
+	v := GetActiveProfileValueString(key)
+	if v == "" {
+		f := findProfileField(key)
+		log.Fatalf("%s is required, set it in your default profile or use the %s environment variable", key, f.EnvOverride)
+	}
+
+	return v
 }
 
 func getProfileValueEnvOverride(key ProfileFieldKey) string {
@@ -479,8 +529,8 @@ func keyGlobalScope(key string) string {
 	return fmt.Sprintf("%s.%s", globalScopeIdentifier, key)
 }
 
-func keyDefaultProfile(key string) string {
-	return fmt.Sprintf("%s.%s", defaultProfileName(), key)
+func keyProfile(profileName string, key ProfileFieldKey) string {
+	return fmt.Sprintf("%s.%s", profileName, key)
 }
 
 func getDefaultConfigDirectory() (string, error) {

@@ -139,7 +139,7 @@ func substituteHostname(dm types.DiscoveryManifest, r types.Recipe) (string, err
 }
 
 func (m *PollingRecipeValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	accountID := config.GetActiveProfileValueInt(config.AccountID)
+	accountID := config.GetActiveProfileAccountID()
 
 	if accountID == 0 {
 		return nil, errors.New("no account ID found in default profile")

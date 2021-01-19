@@ -7,6 +7,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -26,6 +27,9 @@ the user, revision, or change-log). APM displays a vertical line, or
 “marker,” on charts and graphs at the deployment event's timestamp.
 `,
 	Example: "newrelic apm deployment list --applicationId <appID>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	},
 }
 
 var cmdDeploymentList = &cobra.Command{

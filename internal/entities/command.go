@@ -2,6 +2,8 @@ package entities
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 // Should these be moved out or made into higher-level flags?
@@ -20,4 +22,7 @@ var (
 var Command = &cobra.Command{
 	Use:   "entity",
 	Short: "Interact with New Relic entities",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	},
 }

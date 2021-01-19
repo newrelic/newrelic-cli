@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/edge"
@@ -31,6 +32,10 @@ var cmdTraceObserver = &cobra.Command{
 	provides visualization for the most actionable data so you can investigate and
 	solve issues faster.`,
 	Example: "newrelic edge trace-observer list --accountId <accountID>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		accountID = config.FatalIfAccountIDNotPresent()
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	},
 }
 
 var cmdList = &cobra.Command{
@@ -111,8 +116,6 @@ The delete command accepts a trace observer's ID.
 func init() {
 	// Root sub-command
 	Command.AddCommand(cmdTraceObserver)
-	cmdTraceObserver.PersistentFlags().IntVarP(&accountID, "accountId", "a", 0, "A New Relic account ID")
-	utils.LogIfError(cmdTraceObserver.MarkPersistentFlagRequired("accountId"))
 
 	// List
 	cmdTraceObserver.AddCommand(cmdList)

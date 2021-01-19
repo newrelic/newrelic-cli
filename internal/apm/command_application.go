@@ -7,6 +7,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -22,6 +23,9 @@ var cmdApp = &cobra.Command{
 	Short:   "Interact with New Relic APM applications",
 	Example: "newrelic apm application --help",
 	Long:    "Interact with New Relic APM applications",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	},
 }
 
 var cmdAppSearch = &cobra.Command{

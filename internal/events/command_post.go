@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	accountID int
 	event     string
+	accountID int
 )
 
 var cmdPost = &cobra.Command{
@@ -28,12 +28,11 @@ The accepted payload requires the use of an ` + "`eventType`" + `field that
 represents the custom event's type.
 `,
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		accountID = config.FatalIfAccountIDNotPresent()
+		config.FatalIfActiveProfileFieldStringNotPresent(config.InsightsInsertKey)
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		insightsInsertKey := config.GetActiveProfileValueString(config.InsightsInsertKey)
-		if insightsInsertKey == "" {
-			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
-		}
-
 		var e map[string]interface{}
 
 		if err := json.Unmarshal([]byte(event), &e); err != nil {
@@ -50,8 +49,6 @@ represents the custom event's type.
 
 func init() {
 	Command.AddCommand(cmdPost)
-	cmdPost.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID to create the custom event in")
 	cmdPost.Flags().StringVarP(&event, "event", "e", "{}", "a JSON-formatted event payload to post")
-	utils.LogIfError(cmdPost.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdPost.MarkFlagRequired("event"))
 }

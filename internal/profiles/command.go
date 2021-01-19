@@ -52,6 +52,9 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 		}
 
 		if err := config.SaveValueToProfile(profileName, config.APIKey, apiKey); err != nil {
+			if e := config.RemoveProfile(profileName); e != nil {
+				log.Error(e)
+			}
 			log.Fatal(err)
 		}
 
@@ -123,20 +126,15 @@ The list command prints out the available profiles' credentials.
 
 		// Print them out
 		for _, n := range profileNames {
-
-			if n == config.GetDefaultProfileName() {
-				n += text.FgHiBlack.Sprint(defaultProfileString)
-			}
-
 			var accountIDStr string
 			accountIDVal := config.GetProfileValueInt(n, config.AccountID)
 			if accountIDVal != 0 {
 				accountIDStr = strconv.Itoa(accountIDVal)
 			}
 
-			apiKeyStr := config.GetProfileValueString(n, config.AccountID)
-			insightsInsertKeyStr := config.GetProfileValueString(n, config.AccountID)
-			licenseKeyStr := config.GetProfileValueString(n, config.AccountID)
+			apiKeyStr := config.GetProfileValueString(n, config.APIKey)
+			insightsInsertKeyStr := config.GetProfileValueString(n, config.InsightsInsertKey)
+			licenseKeyStr := config.GetProfileValueString(n, config.LicenseKey)
 			regionStr := config.GetProfileValueString(n, config.Region)
 
 			if !showKeys {
@@ -151,6 +149,10 @@ The list command prints out the available profiles' credentials.
 				if licenseKeyStr != "" {
 					licenseKeyStr = text.FgHiBlack.Sprint(hiddenKeyString)
 				}
+			}
+
+			if n == config.GetDefaultProfileName() {
+				n += text.FgHiBlack.Sprint(defaultProfileString)
 			}
 
 			out = append(out, profileList{

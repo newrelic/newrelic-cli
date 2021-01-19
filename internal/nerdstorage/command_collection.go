@@ -117,7 +117,6 @@ func init() {
 	Command.AddCommand(cmdCollection)
 
 	cmdCollection.AddCommand(cmdCollectionGet)
-	cmdCollectionGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdCollectionGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdCollectionGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdCollectionGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
@@ -133,7 +132,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdCollection.AddCommand(cmdCollectionDelete)
-	cmdCollectionDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdCollectionDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdCollectionDelete.Flags().StringVarP(&packageID, "packageId", "", "p", "the external package ID")
 	cmdCollectionDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")

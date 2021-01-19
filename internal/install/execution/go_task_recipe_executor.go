@@ -151,7 +151,7 @@ func varsFromProfile() (types.RecipeVars, error) {
 		return types.RecipeVars{}, errors.New("license key not found in default profile")
 	}
 
-	accountID := config.GetActiveProfileValueInt(config.AccountID)
+	accountID := config.GetActiveProfileAccountID()
 	apiKey := config.GetActiveProfileValueString(config.APIKey)
 	region := config.GetActiveProfileValueString(config.Region)
 
