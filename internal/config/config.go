@@ -316,7 +316,7 @@ func RemoveProfile(profileName string) error {
 	p := profiles()
 	configMap := p.AllSettings()
 	delete(configMap, profileName)
-t
+
 	encodedConfig, _ := json.MarshalIndent(configMap, "", " ")
 	err := p.ReadConfig(bytes.NewReader(encodedConfig))
 	if err != nil {

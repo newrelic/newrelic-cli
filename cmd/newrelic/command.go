@@ -104,7 +104,7 @@ func initializeDefaultProfile() {
 	if envAccountID != "" {
 		accountID, err = strconv.Atoi(envAccountID)
 		if err != nil {
-			log.Warnf("NEW_RELIC_ACCOUNT_ID has invalid value, attempting to fetch account ID", err)
+			log.Warnf("NEW_RELIC_ACCOUNT_ID has invalid value %s, attempting to fetch account ID", envAccountID)
 		}
 	}
 
