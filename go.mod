@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/briandowns/spinner v1.12.0
 	github.com/client9/misspell v0.3.4
-	github.com/git-chglog/git-chglog v0.0.0-20210110144858-d6315435a3ac
+	github.com/git-chglog/git-chglog v0.10.0
 	github.com/go-task/task/v3 v3.2.2
 	github.com/golangci/golangci-lint v1.35.2
 	github.com/google/uuid v1.1.5
