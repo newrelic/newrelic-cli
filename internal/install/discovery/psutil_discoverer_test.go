@@ -3,6 +3,7 @@
 package discovery
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,11 +13,13 @@ import (
 
 func TestIsValidOpenInstallationPlatform(t *testing.T) {
 	require.True(t, isValidOpenInstallationPlatform(string(types.OpenInstallationPlatformTypes.AMAZON)))
+	require.True(t, isValidOpenInstallationPlatform(strings.ToLower(string(types.OpenInstallationPlatformTypes.AMAZON))))
 	require.False(t, isValidOpenInstallationPlatform("invalidValue"))
 }
 
 func TestIsValidOpenInstallationPlatformFamily(t *testing.T) {
 	require.True(t, isValidOpenInstallationPlatformFamily(string(types.OpenInstallationPlatformFamilyTypes.SUSE)))
+	require.True(t, isValidOpenInstallationPlatform(strings.ToLower(string(types.OpenInstallationPlatformFamilyTypes.SUSE))))
 	require.False(t, isValidOpenInstallationPlatformFamily("invalidValue"))
 }
 
