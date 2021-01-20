@@ -5,8 +5,9 @@ package discovery
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestIsValidOpenInstallationPlatform(t *testing.T) {

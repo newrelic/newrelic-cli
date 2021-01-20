@@ -6,8 +6,8 @@ type DiscoveryManifest struct {
 	KernelArch      string           `json:"kernelArch"`
 	KernelVersion   string           `json:"kernelVersion"`
 	OS              string           `json:"os"`
-	Platform        string           `json:"platform,omitempty"`
-	PlatformFamily  string           `json:"platformFamily,omitempty"`
+	Platform        string           `json:"platform"`
+	PlatformFamily  string           `json:"platformFamily"`
 	PlatformVersion string           `json:"platformVersion"`
 	Processes       []GenericProcess `json:"processes"`
 }
