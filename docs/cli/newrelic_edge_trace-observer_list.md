@@ -29,7 +29,7 @@ newrelic edge trace-observer list --accountId 12345678
 
 ```
   -a, --accountId int   A New Relic account ID
-      --format string   output text format [Text, YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
