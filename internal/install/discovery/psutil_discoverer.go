@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/process"
@@ -88,7 +89,7 @@ func isValidOpenInstallationPlatform(platform string) bool {
 
 	for i := 0; i < s.NumField(); i++ {
 		v := s.Field(i).Interface().(types.OpenInstallationPlatform)
-		if string(v) == platform {
+		if strings.EqualFold(string(v), platform) {
 			return true
 		}
 	}
@@ -101,7 +102,7 @@ func isValidOpenInstallationPlatformFamily(platformFamily string) bool {
 
 	for i := 0; i < s.NumField(); i++ {
 		v := s.Field(i).Interface().(types.OpenInstallationPlatformFamily)
-		if string(v) == platformFamily {
+		if strings.EqualFold(string(v), platformFamily) {
 			return true
 		}
 	}
