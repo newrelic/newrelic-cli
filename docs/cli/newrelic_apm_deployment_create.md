@@ -35,7 +35,7 @@ newrelic apm deployment create --applicationId <appID> --revision <deploymentRev
 ```
   -a, --accountId string    A New Relic account ID
       --applicationId int   A New Relic APM application ID
-      --format string       output text format [Text, YAML, JSON] (default "JSON")
+      --format string       output text format [JSON, Text, YAML] (default "JSON")
       --plain               output compact text
 ```
 
