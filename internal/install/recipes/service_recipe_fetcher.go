@@ -119,7 +119,7 @@ type recipeSearchInput struct {
 type installTarget struct {
 	Type            string `json:"type"`
 	OS              string `json:"os"`
-	Platform        string `json:"platform"`
+	Platform        string `json:"platform,omitempty"`
 	PlatformFamily  string `json:"platformFamily,omitempty"`
 	PlatformVersion string `json:"platformVersion"`
 	KernelArch      string `json:"kernelArch,omitempty"`
