@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/process"
@@ -39,6 +40,8 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 		PlatformVersion: i.PlatformVersion,
 	}
 
+	m = filterValues(m)
+
 	pids, err := process.PidsWithContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve processes: %s", err)
@@ -66,4 +69,42 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 	}
 
 	return &m, nil
+}
+
+func filterValues(m types.DiscoveryManifest) types.DiscoveryManifest {
+	if !isValidOpenInstallationPlatform(m.Platform) {
+		m.Platform = ""
+	}
+
+	if !isValidOpenInstallationPlatformFamily(m.PlatformFamily) {
+		m.PlatformFamily = ""
+	}
+
+	return m
+}
+
+func isValidOpenInstallationPlatform(platform string) bool {
+	s := reflect.ValueOf(&types.OpenInstallationPlatformTypes).Elem()
+
+	for i := 0; i < s.NumField(); i++ {
+		v := s.Field(i).Interface().(types.OpenInstallationPlatform)
+		if string(v) == platform {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidOpenInstallationPlatformFamily(platformFamily string) bool {
+	s := reflect.ValueOf(&types.OpenInstallationPlatformFamilyTypes).Elem()
+
+	for i := 0; i < s.NumField(); i++ {
+		v := s.Field(i).Interface().(types.OpenInstallationPlatformFamily)
+		if string(v) == platformFamily {
+			return true
+		}
+	}
+
+	return false
 }
