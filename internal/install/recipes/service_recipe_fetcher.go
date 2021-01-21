@@ -77,7 +77,29 @@ func (f *ServiceRecipeFetcher) FetchRecommendations(ctx context.Context, manifes
 		return nil, err
 	}
 
-	return resp.Docs.OpenInstallation.Recommendations.ToRecipes(), nil
+	allRecipes := resp.Docs.OpenInstallation.Recommendations.ToRecipes()
+
+	r := []types.Recipe{}
+
+	recipeIncluded := func(recipe types.Recipe, recipes []types.Recipe) bool {
+		for _, r := range recipes {
+			if recipe.Name == r.Name {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	for _, recipe := range allRecipes {
+		if recipeIncluded(recipe, r) {
+			continue
+		}
+
+		r = append(r, recipe)
+	}
+
+	return r, nil
 }
 
 // FetchRecipes fetches all available recipes from the recipe service.
@@ -196,22 +218,8 @@ func createInstallTarget(d *types.DiscoveryManifest) installTarget {
 func createRecipes(results []types.OpenInstallationRecipe) []types.Recipe {
 	r := []types.Recipe{}
 
-	recipeIncluded := func(recipe types.Recipe, recipes []types.Recipe) bool {
-		for _, r := range recipes {
-			if recipe.Name == r.Name {
-				return true
-			}
-		}
-
-		return false
-	}
-
 	for _, result := range results {
 		recipe := createRecipe(result)
-
-		if recipeIncluded(recipe, r) {
-			continue
-		}
 
 		r = append(r, recipe)
 	}

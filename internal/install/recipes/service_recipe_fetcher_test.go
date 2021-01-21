@@ -47,17 +47,37 @@ func TestFetchFilters(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
-	require.Equal(t, 2, len(recipes))
+	// The duplicate name should still be included when we perform the FetchRecipes() call.
+	require.Equal(t, 3, len(recipes))
 	require.True(t, reflect.DeepEqual(createRecipes(r), recipes))
 }
 
 func TestFetchRecommendations(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
-			ID: "MAo=",
+			ID:   "MAo=",
+			Name: "testing1",
 			File: `
 ---
 name: Test recipe file
+description: test description
+`,
+		},
+		{
+			ID:   "non-zero",
+			Name: "testing1",
+			File: `
+---
+name: Test recipe file2
+description: test description
+`,
+		},
+		{
+			ID:   "non-zero2",
+			Name: "testing2",
+			File: `
+---
+name: Test recipe file3
 description: test description
 `,
 		},
@@ -74,7 +94,8 @@ description: test description
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
-	require.Equal(t, 1, len(recipes))
+	// The duplicate name should be removed from the set when we fetch the reecommendations.
+	require.Equal(t, 2, len(recipes))
 }
 
 func wrapRecipes(r []types.OpenInstallationRecipe) recipeSearchQueryResult {
