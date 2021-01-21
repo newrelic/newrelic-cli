@@ -171,10 +171,10 @@ func TestSetProfileValue_Basic(t *testing.T) {
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	err := SaveValueToProfile(defaultDefaultProfileName, UserKey, "NRAK-abc123")
+	err := SaveValueToProfile(DefaultDefaultProfileName, UserKey, "NRAK-abc123")
 	require.NoError(t, err)
 
-	credsValue, err := GetProfileValue(defaultDefaultProfileName, UserKey)
+	credsValue, err := GetProfileValue(DefaultDefaultProfileName, UserKey)
 	require.NoError(t, err)
 	require.Equal(t, "NRAK-abc123", credsValue)
 }

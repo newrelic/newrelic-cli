@@ -55,7 +55,7 @@ func TestInitializeProfile(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(config.GetProfileNames()))
-	require.Equal(t, defaultProfileName, config.GetDefaultProfileName())
+	require.Equal(t, config.DefaultDefaultProfileName, config.GetDefaultProfileName())
 	require.Equal(t, envUserKey, actualUserKey)
 	require.NotEmpty(t, actualRegion)
 	require.NotEmpty(t, actualLicenseKey)

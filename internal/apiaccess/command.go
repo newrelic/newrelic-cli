@@ -18,6 +18,11 @@ var Command = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiaccess apiAccess --help",
 	Hidden:  true, // Mark as pre-release
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 }
 
 var apiAccessGetKeyid string
@@ -28,11 +33,6 @@ var cmdKey = &cobra.Command{
 	Short:   "Fetch a single key by ID and type.\n\n---\n**NR Internal** | [#help-unified-api](https://newrelic.slack.com/archives/CBHJRSPSA) | visibility(customer)\n\n",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		if _, err := config.RequireUserKey(); err != nil {
-			log.Fatal(err)
-		}
-	},
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := client.Client.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
 		if err != nil {
@@ -129,15 +129,11 @@ func init() {
 	}
 
 	Command.AddCommand(cmdAPIAccessCreateKeys)
-
 	cmdAPIAccessCreateKeys.Flags().StringVar(&apiAccessCreateKeysInput, "keys", "", "A list of the configurations for each key you want to create.")
 
 	Command.AddCommand(cmdAPIAccessUpdateKeys)
-
 	cmdAPIAccessUpdateKeys.Flags().StringVar(&apiAccessUpdateKeysInput, "keys", "", "The configurations of each key you want to update.")
 
 	Command.AddCommand(cmdAPIAccessDeleteKeys)
-
 	cmdAPIAccessDeleteKeys.Flags().StringVar(&apiAccessDeleteKeysInput, "keys", "", "A list of each key `id` that you want to delete. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).")
-
 }

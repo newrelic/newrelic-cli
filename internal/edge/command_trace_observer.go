@@ -31,7 +31,7 @@ var cmdTraceObserver = &cobra.Command{
 	provides visualization for the most actionable data so you can investigate and
 	solve issues faster.`,
 	Example: "newrelic edge trace-observer list --accountId <accountID>",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
 		if accountID, err = config.RequireAccountID(); err != nil {
 			log.Fatal(err)

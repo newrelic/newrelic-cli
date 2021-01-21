@@ -19,7 +19,7 @@ import (
 const (
 	configType                = "json"
 	globalScopeIdentifier     = "*"
-	defaultDefaultProfileName = "default"
+	DefaultDefaultProfileName = "default"
 )
 
 type CfgFieldKey string
@@ -122,15 +122,6 @@ type CfgValue struct {
 	Name    string
 	Value   interface{}
 	Default interface{}
-}
-
-// IsDefault returns true if the field's value is the default value.
-func (c *CfgValue) IsDefault() bool {
-	if v, ok := c.Value.(string); ok {
-		return strings.EqualFold(v, c.Default.(string))
-	}
-
-	return c.Value == c.Default
 }
 
 func init() {
@@ -268,17 +259,17 @@ func GetProfileValueString(profileName string, key ProfileFieldKey) string {
 
 func GetActiveProfileName() string {
 	defaultProfile := defaultProfileName()
-	if ProfileOverride != "" {
-		if !ProfileExists(ProfileOverride) {
-			log.Warnf("profile %s requested but not found.  using default profile: %s", ProfileOverride, defaultProfile)
-			return defaultProfile
-		}
-
-		log.Infof("using requested profile %s", ProfileOverride)
-		return ProfileOverride
+	if ProfileOverride == "" {
+		return defaultProfile
 	}
 
-	return defaultProfile
+	if !ProfileExists(ProfileOverride) {
+		log.Warnf("profile %s requested but not found.  using default profile: %s", ProfileOverride, defaultProfile)
+		return defaultProfile
+	}
+
+	log.Infof("using requested profile %s", ProfileOverride)
+	return ProfileOverride
 }
 
 func GetDefaultProfileName() string {
@@ -367,7 +358,9 @@ func RemoveProfile(profileName string) error {
 
 	if defaultProfileName() == profileName {
 		log.Infof("unsetting %s as default profile.", profileName)
-		if err := SaveDefaultProfileName(""); err != nil {
+
+		defaultProfileFilePath := filepath.Join(ConfigDir, defaultProfileFilename)
+		if err := os.Remove(defaultProfileFilePath); err != nil {
 			log.Warnf("could not unset default profile %s", profileName)
 		}
 	}
@@ -512,7 +505,7 @@ func loadFile(v *viper.Viper) error {
 func saveDefaultProfileName(profileName string) error {
 	defaultProfileFilePath := filepath.Join(ConfigDir, defaultProfileFilename)
 
-	if err := ioutil.WriteFile(defaultProfileFilePath, []byte("\""+profileName+"\""), 0644); err != nil {
+	if err := ioutil.WriteFile(defaultProfileFilePath, []byte("\""+profileName+"\""), 0640); err != nil {
 		return err
 	}
 

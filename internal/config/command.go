@@ -1,8 +1,6 @@
 package config
 
 import (
-	"os"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -89,8 +87,7 @@ This will have the effect of resetting the value to its default.
 	Run: func(cmd *cobra.Command, args []string) {
 		err := SaveConfigValue(CfgFieldKey(key), "")
 		if err != nil {
-			log.Error(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 	},
 	Aliases: []string{

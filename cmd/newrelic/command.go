@@ -24,8 +24,6 @@ var (
 	trace        bool
 )
 
-const defaultProfileName string = "default"
-
 // Command represents the base command when called without any subcommands
 var Command = &cobra.Command{
 	PersistentPreRun:  initializeCLI,
@@ -101,13 +99,13 @@ func initializeDefaultProfile() {
 
 	log.Infof("default profile does not exist and API key detected. attempting to initialize")
 
-	if config.ProfileExists(defaultProfileName) {
-		log.Warnf("a profile named %s already exists, cannot initialize default profile", defaultProfileName)
+	if config.ProfileExists(config.DefaultDefaultProfileName) {
+		log.Warnf("a profile named %s already exists, cannot initialize default profile", config.DefaultDefaultProfileName)
 		return
 	}
 
 	// Saving an initial value will also set the default profile.
-	if err = config.SaveValueToProfile(defaultProfileName, config.UserKey, userKey); err != nil {
+	if err = config.SaveValueToProfile(config.DefaultDefaultProfileName, config.UserKey, userKey); err != nil {
 		log.Warnf("error saving API key to profile, cannot initialize default profile: %s", err)
 		return
 	}
@@ -161,7 +159,7 @@ func initializeDefaultProfile() {
 		}
 	}
 
-	log.Infof("profile %s added", text.FgCyan.Sprint(defaultProfileName))
+	log.Infof("profile %s added", text.FgCyan.Sprint(config.DefaultDefaultProfileName))
 }
 
 func fetchLicenseKey(accountID int) (string, error) {
