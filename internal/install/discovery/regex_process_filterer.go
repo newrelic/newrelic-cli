@@ -23,12 +23,9 @@ func NewRegexProcessFilterer(r recipes.RecipeFetcher) *RegexProcessFilterer {
 	return &f
 }
 
-func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.GenericProcess) ([]types.ProcessInfoWrap, error) {
-	processesInfo := getProcessesInfo(processes)
-	log.Debugf("Filtering recipes with %d processes...", len(processesInfo))
-	for _, p := range processesInfo {
-		log.Debugf("Match using processInfo: %s", p.Info)
-	}
+func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.GenericProcess) ([]types.MatchedProcess, error) {
+	matchedProcesses := getMatchedProcesses(processes)
+	log.Debugf("Filtering recipes with %d processes...", len(matchedProcesses))
 
 	recipes, err := f.recipeFetcher.FetchRecipes(ctx)
 	if err != nil {
@@ -38,8 +35,9 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 		log.Debugf("Match using recipe DisplayName: %s RecipeProcessMatch: %s", r.DisplayName, r.ProcessMatch)
 	}
 
-	matches := []types.ProcessInfoWrap{}
-	for _, p := range processesInfo {
+	matches := []types.MatchedProcess{}
+	for _, p := range matchedProcesses {
+		log.Debugf("Match using process command: %s", p.Command)
 		isMatch := false
 		for _, r := range recipes {
 			isMatch = isMatch || match(r, &p)
@@ -54,17 +52,17 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 	return matches, nil
 }
 
-func match(r types.Recipe, processInfo *types.ProcessInfoWrap) bool {
+func match(r types.Recipe, matchedProcess *types.MatchedProcess) bool {
 	for _, pattern := range r.ProcessMatch {
-		matched, err := regexp.Match(pattern, []byte(processInfo.Info))
+		matched, err := regexp.Match(pattern, []byte(matchedProcess.Command))
 		if err != nil {
-			log.Debugf("could not execute pattern %s against process invocation %s", pattern, processInfo.Info)
+			log.Debugf("could not execute pattern %s against process invocation %s", pattern, matchedProcess.Command)
 			continue
 		}
 
 		if matched {
-			processInfo.MatchingPattern = pattern
-			log.Debugf("Process matching pattern %s with %s for recipe %s.", pattern, processInfo.Info, r.DisplayName)
+			matchedProcess.MatchingPattern = pattern
+			log.Debugf("Process matching pattern %s with %s for recipe %s.", pattern, matchedProcess.Command, r.DisplayName)
 			return matched
 		}
 	}
@@ -72,19 +70,20 @@ func match(r types.Recipe, processInfo *types.ProcessInfoWrap) bool {
 	return false
 }
 
-func getProcessesInfo(processes []types.GenericProcess) []types.ProcessInfoWrap {
-	processesInfo := []types.ProcessInfoWrap{}
+func getMatchedProcesses(processes []types.GenericProcess) []types.MatchedProcess {
+	matchedProcesses := []types.MatchedProcess{}
 	for _, p := range processes {
 		cmdLine, err := p.Cmdline()
-		if err == nil {
-			if len(cmdLine) > 0 {
-				processInfo := types.ProcessInfoWrap{
-					Info:    cmdLine,
-					Process: p,
-				}
-				processesInfo = append(processesInfo, processInfo)
+		if err != nil {
+			continue
+		}
+		if cmdLine != "" {
+			matchedProcess := types.MatchedProcess{
+				Command: cmdLine,
+				Process: p,
 			}
+			matchedProcesses = append(matchedProcesses, matchedProcess)
 		}
 	}
-	return processesInfo
+	return matchedProcesses
 }

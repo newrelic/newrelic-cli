@@ -26,11 +26,11 @@ func TestFilter(t *testing.T) {
 
 	processes := []types.GenericProcess{
 		mockProcess{
-			name: "java",
+			name:    "java",
 			cmdline: "java",
 		},
 		mockProcess{
-			name: "somethingElse",
+			name:    "somethingElse",
 			cmdline: "somethingElse",
 		},
 	}
@@ -55,11 +55,11 @@ func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
 
 	processes := []types.GenericProcess{
 		mockProcess{
-			name: "java",
+			name:    "java",
 			cmdline: "java -xyz processSomething/cassandra",
 		},
 		mockProcess{
-			name: "somethingElse",
+			name:    "somethingElse",
 			cmdline: "somethingElse",
 		},
 	}
