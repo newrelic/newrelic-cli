@@ -7,19 +7,16 @@ require (
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.10.0
 	github.com/git-chglog/git-chglog v0.10.0
-	github.com/go-openapi/strfmt v0.19.11 // indirect
 	github.com/go-task/task/v3 v3.2.2
 	github.com/golangci/golangci-lint v1.35.2
 	github.com/google/uuid v1.1.5
 	github.com/goreleaser/goreleaser v0.155.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
-	github.com/imdario/mergo v0.3.11
 	github.com/jedib0t/go-pretty/v6 v6.1.0
 	github.com/joshdk/go-junit v0.0.0-20201221202203-061ee62ada40
 	github.com/llorllale/go-gitlint v0.0.0-20200802191503-5984945d4b80
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/mitchellh/mapstructure v1.4.1
 	github.com/newrelic/newrelic-client-go v0.57.1
 	github.com/newrelic/tutone v0.5.0
 	github.com/psampaz/go-mod-outdated v0.7.0

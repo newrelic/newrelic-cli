@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	configType            = "json"
-	globalScopeIdentifier = "*"
+	configType                = "json"
+	globalScopeIdentifier     = "*"
+	defaultDefaultProfileName = "default"
 )
 
 type CfgFieldKey string
@@ -92,14 +93,15 @@ var (
 			EnvOverride: "NEW_RELIC_INSIGHTS_INSERT_KEY",
 		},
 	}
-	ConfigDir                 string
-	EnvVarResolver            envResolver = &OSEnvResolver{}
-	ProfileOverride           string
-	AccountIDOverride         int
-	configFilename            = "config.json"
-	credsFilename             = "credentials.json"
-	defaultProfileFilename    = "default-profile.json"
-	defaultDefaultProfileName = "default"
+
+	EnvVarResolver         envResolver = &OSEnvResolver{}
+	ConfigDir              string
+	ProfileOverride        string
+	AccountIDOverride      int
+	LogLevelOverride       string
+	configFilename         = "config.json"
+	credsFilename          = "credentials.json"
+	defaultProfileFilename = "default-profile.json"
 )
 
 type CfgField struct {
@@ -137,6 +139,14 @@ func init() {
 	if err != nil {
 		log.Debug(err)
 	}
+}
+
+func GetLogLevel() string {
+	if LogLevelOverride != "" {
+		return LogLevelOverride
+	}
+
+	return GetConfigValueString(LogLevel)
 }
 
 func GetConfigValueString(key CfgFieldKey) string {

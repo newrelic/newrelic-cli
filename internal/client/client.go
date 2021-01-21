@@ -23,14 +23,14 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	}
 
 	region := config.GetProfileValueString(profileName, config.Region)
-	logLevel := config.GetConfigValueString(config.LogLevel)
+	logLevel := config.GetLogLevel()
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	cfgOpts := []newrelic.ConfigOption{
-		newrelic.ConfigPersonalAPIKey(userKey.(string)),
-		newrelic.ConfigInsightsInsertKey(insightsInsertKey.(string)),
-		newrelic.ConfigLogLevel(logLevel.(string)),
-		newrelic.ConfigRegion(region.(string)),
+		newrelic.ConfigPersonalAPIKey(userKey),
+		newrelic.ConfigInsightsInsertKey(insightsInsertKey),
+		newrelic.ConfigLogLevel(logLevel),
+		newrelic.ConfigRegion(region),
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
 	}

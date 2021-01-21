@@ -60,11 +60,14 @@ func initializeLogger() {
 	var logLevel string
 	if debug {
 		logLevel = "DEBUG"
+		config.LogLevelOverride = logLevel
 	} else if trace {
 		logLevel = "TRACE"
+		config.LogLevelOverride = logLevel
 	} else {
-		logLevel = config.GetConfigValueString(config.LogLevel)
+		logLevel = config.GetLogLevel()
 	}
+
 	config.InitLogger(logLevel)
 }
 
