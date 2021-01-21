@@ -13,9 +13,9 @@ import (
 )
 
 func TestInitializeProfile(t *testing.T) {
-	envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
+	envUserKey := os.Getenv("NEW_RELIC_API_KEY")
 	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
-	if envAPIKey == "" || envAccountID == "" {
+	if envUserKey == "" || envAccountID == "" {
 		t.Skipf("NEW_RELIC_API_KEY and NEW_RELIC_ACCOUNT_ID are required to run this test")
 	}
 
@@ -35,14 +35,14 @@ func TestInitializeProfile(t *testing.T) {
 	require.Equal(t, "", config.GetDefaultProfileName())
 
 	// Init with environment
-	os.Setenv("NEW_RELIC_API_KEY", envAPIKey)
+	os.Setenv("NEW_RELIC_API_KEY", envUserKey)
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", envAccountID)
 	initializeDefaultProfile()
 
 	os.Setenv("NEW_RELIC_API_KEY", "")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
 
-	actualAPIKey, err := config.GetActiveProfileValue(config.APIKey)
+	actualUserKey, err := config.GetActiveProfileValue(config.UserKey)
 	require.NoError(t, err)
 
 	actualRegion, err := config.GetActiveProfileValue(config.Region)
@@ -56,7 +56,7 @@ func TestInitializeProfile(t *testing.T) {
 
 	require.Equal(t, 1, len(config.GetProfileNames()))
 	require.Equal(t, defaultProfileName, config.GetDefaultProfileName())
-	require.Equal(t, envAPIKey, actualAPIKey)
+	require.Equal(t, envUserKey, actualUserKey)
 	require.NotEmpty(t, actualRegion)
 	require.NotEmpty(t, actualLicenseKey)
 	require.NotEmpty(t, actualAccountID)

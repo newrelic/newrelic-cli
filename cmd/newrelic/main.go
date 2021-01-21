@@ -61,9 +61,9 @@ func main() {
 // CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
 // flag is active.
 func CheckPrereleaseMode(c *cobra.Command) {
-	v := config.GetConfigValueString(config.PrereleaseFeatures)
+	v := config.GetConfigValueTernary(config.PrereleaseFeatures)
 
-	if !config.Ternary(v).Bool() {
+	if !v.Bool() {
 		return
 	}
 

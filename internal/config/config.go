@@ -14,8 +14,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-
-	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
 const (
@@ -32,7 +30,7 @@ const (
 	PrereleaseFeatures CfgFieldKey = "prereleasefeatures"
 	SendUsageData      CfgFieldKey = "sendusagedata"
 
-	APIKey            ProfileFieldKey = "apiKey"
+	UserKey           ProfileFieldKey = "apiKey"
 	Region            ProfileFieldKey = "region"
 	AccountID         ProfileFieldKey = "accountID"
 	InsightsInsertKey ProfileFieldKey = "insightsInsertKey"
@@ -50,7 +48,7 @@ var (
 		{
 			Name:           "SendUsageData",
 			Key:            SendUsageData,
-			Default:        string(TernaryValues.Unknown),
+			Default:        TernaryValues.Unknown,
 			ValidationFunc: stringInSlice(ValidTernaryValues, false),
 		},
 		{
@@ -61,14 +59,14 @@ var (
 		{
 			Name:           "PrereleaseFeatures",
 			Key:            PrereleaseFeatures,
-			Default:        string(TernaryValues.Unknown),
+			Default:        TernaryValues.Unknown,
 			ValidationFunc: stringInSlice(ValidTernaryValues, false),
 		},
 	}
 	ProfileFields = []ProfileField{
 		{
 			Name:        "APIKey",
-			Key:         APIKey,
+			Key:         UserKey,
 			EnvOverride: "NEW_RELIC_API_KEY",
 		},
 		{
@@ -107,7 +105,7 @@ var (
 type CfgField struct {
 	Name           string
 	Key            CfgFieldKey
-	Default        string
+	Default        interface{}
 	ValidationFunc func(interface{}) error
 }
 
@@ -146,7 +144,7 @@ func GetConfigValueString(key CfgFieldKey) string {
 	v, err := GetConfigValue(key)
 	if err != nil {
 		log.Debugf("could not get config value %s, using default value %s", key, f.Default)
-		return f.Default
+		return f.Default.(string)
 	}
 
 	if s, ok := v.(string); ok {
@@ -154,7 +152,23 @@ func GetConfigValueString(key CfgFieldKey) string {
 	}
 
 	log.Debugf("could not get config value %s, using default value %s", key, f.Default)
-	return f.Default
+	return f.Default.(string)
+}
+
+func GetConfigValueTernary(key CfgFieldKey) Ternary {
+	f := findConfigField(key)
+	v, err := GetConfigValue(key)
+	if err != nil {
+		log.Debugf("could not get config value %s, using default value %s", key, f.Default)
+		return f.Default.(Ternary)
+	}
+
+	if s, ok := v.(string); ok {
+		return Ternary(s)
+	}
+
+	log.Debugf("could not get config value %s, using default value %s", key, f.Default)
+	return f.Default.(Ternary)
 }
 
 func GetConfigValue(key CfgFieldKey) (interface{}, error) {
@@ -166,7 +180,7 @@ func GetConfigValue(key CfgFieldKey) (interface{}, error) {
 }
 
 func GetProfileValue(profileName string, key ProfileFieldKey) (interface{}, error) {
-	if ok := isValidCredentialKey(key); !ok {
+	if ok := isValidProfileKey(key); !ok {
 		return nil, fmt.Errorf("credential key %s is not valid.  valid keys are %s", key, validProfileFieldKeys())
 	}
 
@@ -366,36 +380,6 @@ func GetProfileNames() []string {
 	return n
 }
 
-func FatalIfAccountIDNotPresent() int {
-	v := GetActiveProfileAccountID()
-	if v == 0 {
-		f := findProfileField(AccountID)
-		log.Fatalf("%s is required, set it in your default profile or use the %s environment variable", AccountID, f.EnvOverride)
-	}
-
-	return v
-}
-
-func FatalIfActiveProfileFieldIntNotPresent(key ProfileFieldKey) int {
-	v := GetActiveProfileValueInt(key)
-	if v == 0 {
-		f := findProfileField(key)
-		log.Fatalf("%s is required, set it in your default profile or use the %s environment variable", key, f.EnvOverride)
-	}
-
-	return v
-}
-
-func FatalIfActiveProfileFieldStringNotPresent(key ProfileFieldKey) string {
-	v := GetActiveProfileValueString(key)
-	if v == "" {
-		f := findProfileField(key)
-		log.Fatalf("%s is required, set it in your default profile or use the %s environment variable", key, f.EnvOverride)
-	}
-
-	return v
-}
-
 func getProfileValueEnvOverride(key ProfileFieldKey) string {
 	field := findProfileField(key)
 	if e := EnvVarResolver.Getenv(field.EnvOverride); e != "" {
@@ -542,10 +526,6 @@ func getDefaultConfigDirectory() (string, error) {
 	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
-func isValidConfigKey(key CfgFieldKey) bool {
-	return findConfigField(key) != nil
-}
-
 func findProfileField(key ProfileFieldKey) *ProfileField {
 	profileKey := string(key)
 
@@ -568,70 +548,4 @@ func findConfigField(key CfgFieldKey) *CfgField {
 	}
 
 	return nil
-}
-
-func isValidCredentialKey(key ProfileFieldKey) bool {
-	for _, v := range ProfileFields {
-		if strings.EqualFold(string(v.Key), string(key)) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func validConfigFieldKeys() []string {
-	valid := make([]string, len(ConfigFields))
-
-	for _, v := range ConfigFields {
-		valid = append(valid, string(v.Key))
-	}
-
-	return valid
-}
-
-func validProfileFieldKeys() []string {
-	valid := make([]string, len(ProfileFields))
-
-	for _, v := range ProfileFields {
-		valid = append(valid, string(v.Key))
-	}
-
-	return valid
-}
-
-func stringInSlice(validVals []string, caseSensitive bool) func(interface{}) error {
-	return func(val interface{}) error {
-		for _, v := range validVals {
-
-			if !caseSensitive && strings.EqualFold(v, val.(string)) {
-				return nil
-			}
-
-			if v == val {
-				return nil
-			}
-		}
-
-		return fmt.Errorf("valid values are %s", validVals)
-	}
-}
-
-func validRegions() []string {
-	validRegions := []string{}
-	for k := range region.Regions {
-		validRegions = append(validRegions, string(k))
-	}
-
-	return validRegions
-}
-
-func isNumber() func(interface{}) error {
-	return func(val interface{}) error {
-		if _, ok := val.(int); ok {
-			return nil
-		}
-
-		return fmt.Errorf("value is required to be numeric")
-	}
 }

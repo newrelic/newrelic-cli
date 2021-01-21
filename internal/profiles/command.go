@@ -16,7 +16,7 @@ var (
 	showKeys          bool
 	profileName       string
 	flagRegion        string
-	apiKey            string
+	userKey           string
 	insightsInsertKey string
 	accountID         int
 	licenseKey        string
@@ -51,7 +51,7 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 			log.Fatalf("profile already exists: %s", profileName)
 		}
 
-		if err := config.SaveValueToProfile(profileName, config.APIKey, apiKey); err != nil {
+		if err := config.SaveValueToProfile(profileName, config.UserKey, userKey); err != nil {
 			if e := config.RemoveProfile(profileName); e != nil {
 				log.Error(e)
 			}
@@ -132,14 +132,14 @@ The list command prints out the available profiles' credentials.
 				accountIDStr = strconv.Itoa(accountIDVal)
 			}
 
-			apiKeyStr := config.GetProfileValueString(n, config.APIKey)
+			userKeyStr := config.GetProfileValueString(n, config.UserKey)
 			insightsInsertKeyStr := config.GetProfileValueString(n, config.InsightsInsertKey)
 			licenseKeyStr := config.GetProfileValueString(n, config.LicenseKey)
 			regionStr := config.GetProfileValueString(n, config.Region)
 
 			if !showKeys {
-				if apiKeyStr != "" {
-					apiKeyStr = text.FgHiBlack.Sprint(hiddenKeyString)
+				if userKeyStr != "" {
+					userKeyStr = text.FgHiBlack.Sprint(hiddenKeyString)
 				}
 
 				if insightsInsertKeyStr != "" {
@@ -158,7 +158,7 @@ The list command prints out the available profiles' credentials.
 			out = append(out, profileList{
 				Name:              n,
 				Region:            regionStr,
-				APIKey:            apiKeyStr,
+				UserKey:           userKeyStr,
 				InsightsInsertKey: insightsInsertKeyStr,
 				AccountID:         accountIDStr,
 				LicenseKey:        licenseKeyStr,
@@ -195,36 +195,30 @@ The delete command removes the profile specified by name.
 }
 
 func init() {
-	var err error
-
 	// Add
 	Command.AddCommand(cmdAdd)
 	cmdAdd.Flags().StringVarP(&profileName, "name", "n", "", "unique profile name to add")
 	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
-	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
+	cmdAdd.Flags().StringVarP(&userKey, "apiKey", "", "", "your User API key")
 	cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
 	cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
 	cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
-	err = cmdAdd.MarkFlagRequired("name")
-	if err != nil {
+	if err := cmdAdd.MarkFlagRequired("name"); err != nil {
 		log.Error(err)
 	}
 
-	err = cmdAdd.MarkFlagRequired("region")
-	if err != nil {
+	if err := cmdAdd.MarkFlagRequired("region"); err != nil {
 		log.Error(err)
 	}
 
-	err = cmdAdd.MarkFlagRequired("apiKey")
-	if err != nil {
+	if err := cmdAdd.MarkFlagRequired("apiKey"); err != nil {
 		log.Error(err)
 	}
 
 	// Default
 	Command.AddCommand(cmdDefault)
 	cmdDefault.Flags().StringVarP(&profileName, "name", "n", "", "the profile name to set as default")
-	err = cmdDefault.MarkFlagRequired("name")
-	if err != nil {
+	if err := cmdDefault.MarkFlagRequired("name"); err != nil {
 		log.Error(err)
 	}
 
@@ -235,8 +229,7 @@ func init() {
 	// Remove
 	Command.AddCommand(cmdDelete)
 	cmdDelete.Flags().StringVarP(&profileName, "name", "n", "", "the profile name to delete")
-	err = cmdDelete.MarkFlagRequired("name")
-	if err != nil {
+	if err := cmdDelete.MarkFlagRequired("name"); err != nil {
 		log.Error(err)
 	}
 }
@@ -245,7 +238,7 @@ type profileList struct {
 	Name              string
 	AccountID         string
 	Region            string
-	APIKey            string
+	UserKey           string
 	LicenseKey        string
 	InsightsInsertKey string
 }

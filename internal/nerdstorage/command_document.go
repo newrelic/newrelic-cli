@@ -9,7 +9,6 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -178,17 +177,21 @@ func init() {
 	cmdDocumentGet.Flags().StringVarP(&documentID, "documentId", "d", "", "the document ID")
 	cmdDocumentGet.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to get the document from")
 
-	err := cmdDocumentGet.MarkFlagRequired("packageId")
-	utils.LogIfError(err)
+	if err := cmdDocumentGet.MarkFlagRequired("packageId"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentGet.MarkFlagRequired("scope")
-	utils.LogIfError(err)
+	if err := cmdDocumentGet.MarkFlagRequired("scope"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentGet.MarkFlagRequired("collection")
-	utils.LogIfError(err)
+	if err := cmdDocumentGet.MarkFlagRequired("collection"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentGet.MarkFlagRequired("documentId")
-	utils.LogIfError(err)
+	if err := cmdDocumentGet.MarkFlagRequired("documentId"); err != nil {
+		log.Error(err)
+	}
 
 	cmdDocument.AddCommand(cmdDocumentWrite)
 	cmdDocumentWrite.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
@@ -198,20 +201,25 @@ func init() {
 	cmdDocumentWrite.Flags().StringVarP(&document, "document", "o", "{}", "the document to be written, in JSON format")
 	cmdDocumentWrite.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to write the document to")
 
-	err = cmdDocumentWrite.MarkFlagRequired("packageId")
-	utils.LogIfError(err)
+	if err := cmdDocumentWrite.MarkFlagRequired("packageId"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentWrite.MarkFlagRequired("scope")
-	utils.LogIfError(err)
+	if err := cmdDocumentWrite.MarkFlagRequired("scope"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentWrite.MarkFlagRequired("document")
-	utils.LogIfError(err)
+	if err := cmdDocumentWrite.MarkFlagRequired("document"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentWrite.MarkFlagRequired("collection")
-	utils.LogIfError(err)
+	if err := cmdDocumentWrite.MarkFlagRequired("collection"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentWrite.MarkFlagRequired("documentId")
-	utils.LogIfError(err)
+	if err := cmdDocumentWrite.MarkFlagRequired("documentId"); err != nil {
+		log.Error(err)
+	}
 
 	cmdDocument.AddCommand(cmdDocumentDelete)
 	cmdDocumentDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
@@ -220,15 +228,19 @@ func init() {
 	cmdDocumentDelete.Flags().StringVarP(&documentID, "documentId", "d", "", "the document ID")
 	cmdDocumentDelete.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to delete the document from")
 
-	err = cmdDocumentDelete.MarkFlagRequired("packageId")
-	utils.LogIfError(err)
+	if err := cmdDocumentDelete.MarkFlagRequired("packageId"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentDelete.MarkFlagRequired("scope")
-	utils.LogIfError(err)
+	if err := cmdDocumentDelete.MarkFlagRequired("scope"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentDelete.MarkFlagRequired("collection")
-	utils.LogIfError(err)
+	if err := cmdDocumentDelete.MarkFlagRequired("collection"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdDocumentDelete.MarkFlagRequired("documentId")
-	utils.LogIfError(err)
+	if err := cmdDocumentDelete.MarkFlagRequired("documentId"); err != nil {
+		log.Error(err)
+	}
 }

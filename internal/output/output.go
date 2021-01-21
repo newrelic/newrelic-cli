@@ -1,11 +1,10 @@
 package output
 
 import (
+	"log"
 	"strings"
 
 	"github.com/hokaccha/go-prettyjson"
-
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 // globalOutput is the package level config of Output
@@ -102,5 +101,7 @@ func ensureGlobalOutput() (err error) {
 }
 
 func init() {
-	utils.LogIfFatal(ensureGlobalOutput())
+	if err := ensureGlobalOutput(); err != nil {
+		log.Fatal(err)
+	}
 }

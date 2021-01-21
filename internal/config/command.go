@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -105,14 +104,23 @@ func init() {
 	Command.AddCommand(cmdSet)
 	cmdSet.Flags().StringVarP(&key, "key", "k", "", "the key to set")
 	cmdSet.Flags().StringVarP(&value, "value", "v", "", "the value to set")
-	utils.LogIfError(cmdSet.MarkFlagRequired("key"))
-	utils.LogIfError(cmdSet.MarkFlagRequired("value"))
+	if err := cmdSet.MarkFlagRequired("key"); err != nil {
+		log.Error(err)
+	}
+
+	if err := cmdSet.MarkFlagRequired("value"); err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(cmdGet)
 	cmdGet.Flags().StringVarP(&key, "key", "k", "", "the key to get")
-	utils.LogIfError(cmdGet.MarkFlagRequired("key"))
+	if err := cmdGet.MarkFlagRequired("key"); err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(cmdDelete)
 	cmdDelete.Flags().StringVarP(&key, "key", "k", "", "the key to delete")
-	utils.LogIfError(cmdDelete.MarkFlagRequired("key"))
+	if err := cmdDelete.MarkFlagRequired("key"); err != nil {
+		log.Error(err)
+	}
 }

@@ -1,6 +1,7 @@
 package nrql
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -10,7 +11,9 @@ import (
 var Command = &cobra.Command{
 	Use:   "nrql",
 	Short: "Commands for interacting with the New Relic Database",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }

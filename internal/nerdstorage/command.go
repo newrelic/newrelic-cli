@@ -1,6 +1,7 @@
 package nerdstorage
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -20,8 +21,14 @@ var (
 var Command = &cobra.Command{
 	Use:   "nerdstorage",
 	Short: "Read, write, and delete NerdStorage documents and collections.",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }

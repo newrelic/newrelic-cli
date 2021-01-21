@@ -25,8 +25,13 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	Hidden: true,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		config.FatalIfAccountIDNotPresent()
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+		if _, err := config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := InstallerContext{

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"reflect"
@@ -10,16 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mitchellh/go-homedir"
-
 	log "github.com/sirupsen/logrus"
 )
 
 var (
-	SignalCtx context.Context = getSignalContext()
+	SignalCtx context.Context = createSignalContext()
 )
 
-func getSignalContext() context.Context {
+func createSignalContext() context.Context {
 	ch := make(chan os.Signal, 1)
 	ctx, cancel := context.WithCancel(context.Background())
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -61,33 +58,6 @@ func StructToMap(item interface{}, fields []string) map[string]interface{} {
 	}
 
 	return mapped
-}
-
-// LogIfError wraps the err nil check to cleanup the code.
-// Logs at Error level
-func LogIfError(err error) {
-	if err != nil {
-		log.Error(err)
-	}
-}
-
-// LogIfFatal wraps the err nil check to cleanup the code.
-// Logs at Fatal level
-func LogIfFatal(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-// GetDefaultConfigDirectory returns the full path to the .newrelic
-// directory within the user's home directory.
-func GetDefaultConfigDirectory() (string, error) {
-	home, err := homedir.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf("%s/.newrelic", home), nil
 }
 
 // MinOf returns the minimum int value provided.

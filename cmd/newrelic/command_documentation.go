@@ -4,8 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
-
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -25,7 +23,7 @@ newrelic documentation --outputDir <my directory> --type (markdown|manpage)
 	Run: func(cmd *cobra.Command, args []string) {
 		if docOutputDir == "" {
 			if err := cmd.Help(); err != nil {
-				log.Fatal(err)
+				log.Warn(err)
 			}
 			log.Fatal("--outputDir <my directory> is required")
 		}
@@ -46,7 +44,9 @@ newrelic documentation --outputDir <my directory> --type (markdown|manpage)
 				log.Error(err)
 			}
 		default:
-			utils.LogIfError(cmd.Help())
+			if err := cmd.Help(); err != nil {
+				log.Error(err)
+			}
 			log.Error("--type must be one of [markdown, manpage]")
 		}
 	},
@@ -57,5 +57,7 @@ func init() {
 
 	cmdDocumentation.Flags().StringVarP(&docOutputDir, "outputDir", "o", "", "Output directory for generated documentation")
 	cmdDocumentation.Flags().StringVar(&docFormat, "format", "markdown", "Documentation format [markdown, manpage] default 'markdown'")
-	utils.LogIfError(cmdDocumentation.MarkFlagRequired("outputDir"))
+	if err := cmdDocumentation.MarkFlagRequired("outputDir"); err != nil {
+		log.Error(err)
+	}
 }

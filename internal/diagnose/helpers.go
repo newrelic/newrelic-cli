@@ -12,7 +12,7 @@ import (
 	"path"
 	"runtime"
 
-	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-cli/internal/config"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -42,8 +42,7 @@ func downloadBinary() error {
 	resp, err := http.Get(downloadURL)
 	if err != nil {
 		log.Warnf("failed to download the latest nrdiag: %s", err)
-		home, _ := utils.GetDefaultConfigDirectory()
-		log.Infof("If this problem persists, you can download the zip file from https://download.newrelic.com/nrdiag/nrdiag_latest.zip and place the appropriate binary for your system in %s/bin, then try again.", home)
+		log.Infof("If this problem persists, you can download the zip file from https://download.newrelic.com/nrdiag/nrdiag_latest.zip and place the appropriate binary for your system in %s/bin, then try again.", config.ConfigDir)
 		return err
 	}
 	defer resp.Body.Close()
@@ -125,11 +124,7 @@ func runDiagnostics(args ...string) error {
 }
 
 func getBinaryPath() string {
-	configDirectory, err := utils.GetDefaultConfigDirectory()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return path.Join(configDirectory, "bin", "nrdiag")
+	return path.Join(config.ConfigDir, "bin", "nrdiag")
 }
 
 const downloadURL = "https://download.newrelic.com/nrdiag/nrdiag_latest.zip"

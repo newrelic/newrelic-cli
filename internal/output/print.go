@@ -2,8 +2,7 @@ package output
 
 import (
 	"fmt"
-
-	"github.com/newrelic/newrelic-cli/internal/utils"
+	"log"
 )
 
 // Print outputs the data in the expected format
@@ -28,30 +27,49 @@ func Print(data interface{}) (err error) {
 
 // Printf renders output based on the format and data provided
 func Printf(format string, a ...interface{}) {
-	utils.LogIfFatal(ensureGlobalOutput())
+	if err := ensureGlobalOutput(); err != nil {
+		log.Fatal(err)
+	}
 
 	data := fmt.Sprintf(format, a...)
 
-	utils.LogIfFatal(globalOutput.text(data))
+	if err := globalOutput.text(data); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // JSON allows you to override the default output method and
 // explicitly print JSON to the screen
 func JSON(data interface{}) {
-	utils.LogIfFatal(ensureGlobalOutput())
-	utils.LogIfFatal(globalOutput.json(data))
+	if err := ensureGlobalOutput(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := globalOutput.json(data); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Text allows you to override the default output method and
 // explicitly print text to the screen
 func Text(data interface{}) {
-	utils.LogIfFatal(ensureGlobalOutput())
-	utils.LogIfFatal(globalOutput.text(data))
+	if err := ensureGlobalOutput(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := globalOutput.text(data); err != nil {
+		log.Fatal(err)
+	}
 }
 
 // YAML allows you to override the default output method and
 // explicitly print YAML to the screen
 func YAML(data interface{}) {
-	utils.LogIfFatal(ensureGlobalOutput())
-	utils.LogIfFatal(globalOutput.yaml(data))
+	if err := ensureGlobalOutput(); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := globalOutput.yaml(data); err != nil {
+		log.Fatal(err)
+	}
 }

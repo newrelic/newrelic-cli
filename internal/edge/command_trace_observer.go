@@ -7,7 +7,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/edge"
 )
 
@@ -33,8 +32,14 @@ var cmdTraceObserver = &cobra.Command{
 	solve issues faster.`,
 	Example: "newrelic edge trace-observer list --accountId <accountID>",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -52,7 +57,7 @@ The list command retrieves the trace observers for the given account ID.
 			log.Fatal(err)
 		}
 
-		if utils.LogIfFatal(output.Print(traceObservers)); err != nil {
+		if err := output.Print(traceObservers); err != nil {
 			log.Fatal(err)
 		}
 	},
@@ -124,11 +129,18 @@ func init() {
 	cmdTraceObserver.AddCommand(cmdCreate)
 	cmdCreate.Flags().StringVarP(&name, "name", "n", "", "the name of the trace observer")
 	cmdCreate.Flags().StringVarP(&providerRegion, "providerRegion", "r", "", "the provider region in which to create the trace observer")
-	utils.LogIfError(cmdCreate.MarkFlagRequired("name"))
-	utils.LogIfError(cmdCreate.MarkFlagRequired("providerRegion"))
+	if err := cmdCreate.MarkFlagRequired("name"); err != nil {
+		log.Error(err)
+	}
+
+	if err := cmdCreate.MarkFlagRequired("providerRegion"); err != nil {
+		log.Error(err)
+	}
 
 	// Delete
 	cmdTraceObserver.AddCommand(cmdDelete)
 	cmdDelete.Flags().IntVarP(&id, "id", "i", 0, "the ID of the trace observer to delete")
-	utils.LogIfError(cmdDelete.MarkFlagRequired("id"))
+	if err := cmdDelete.MarkFlagRequired("id"); err != nil {
+		log.Error(err)
+	}
 }

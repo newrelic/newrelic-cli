@@ -8,7 +8,6 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -122,14 +121,17 @@ func init() {
 	cmdCollectionGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
 	cmdCollectionGet.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to get the document from")
 
-	err := cmdCollectionGet.MarkFlagRequired("packageId")
-	utils.LogIfError(err)
+	if err := cmdCollectionGet.MarkFlagRequired("packageId"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdCollectionGet.MarkFlagRequired("scope")
-	utils.LogIfError(err)
+	if err := cmdCollectionGet.MarkFlagRequired("scope"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdCollectionGet.MarkFlagRequired("collection")
-	utils.LogIfError(err)
+	if err := cmdCollectionGet.MarkFlagRequired("collection"); err != nil {
+		log.Error(err)
+	}
 
 	cmdCollection.AddCommand(cmdCollectionDelete)
 	cmdCollectionDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
@@ -137,12 +139,15 @@ func init() {
 	cmdCollectionDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")
 	cmdCollectionDelete.Flags().StringVarP(&scope, "scope", "s", "USER", "the scope to delete the document from")
 
-	err = cmdCollectionDelete.MarkFlagRequired("packageId")
-	utils.LogIfError(err)
+	if err := cmdCollectionDelete.MarkFlagRequired("packageId"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdCollectionDelete.MarkFlagRequired("scope")
-	utils.LogIfError(err)
+	if err := cmdCollectionDelete.MarkFlagRequired("scope"); err != nil {
+		log.Error(err)
+	}
 
-	err = cmdCollectionDelete.MarkFlagRequired("collection")
-	utils.LogIfError(err)
+	if err := cmdCollectionDelete.MarkFlagRequired("collection"); err != nil {
+		log.Error(err)
+	}
 }

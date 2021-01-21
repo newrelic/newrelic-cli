@@ -37,14 +37,20 @@ var {{ $cmdVarName }} = &cobra.Command{
       var {{ .Name }} {{ .ClientType }}
 
       err := json.Unmarshal([]byte({{ .VariableName }}), &{{ .Name }})
-      utils.LogIfFatal(err)
+      if err != nil {
+        log.Fatal(err)
+      }
       {{- end -}}
       {{ end }}
 
       resp, err := {{ .ClientMethod }}({{ .ClientMethodArgs | join ", " }})
-      utils.LogIfFatal(err)
+      if err != nil {
+        log.Fatal(err)
+      }
 
-      utils.LogIfFatal(output.Print(resp))
+      if err := output.Print(resp); err != nil {
+        log.Fatal(err)
+      }
     })
   },
 }
@@ -68,7 +74,9 @@ func init() {
 
   {{ $cmdVarName }}.Flags().{{- .FlagMethodName -}}(&{{ .VariableName }}, {{ .Name | quote }}, {{ $defaultVal }}, {{ .Description | quote }})
   {{- if .Required }}
-  utils.LogIfError({{- $cmdVarName -}}.MarkFlagRequired({{.Name | quote }}))
+  if err := {{- $cmdVarName -}}.MarkFlagRequired({{.Name | quote }}); err != nil {
+    log.Error(err)
+  }
   {{ end }}
 {{- end }}
 {{- end }}

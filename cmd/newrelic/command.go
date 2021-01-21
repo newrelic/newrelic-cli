@@ -12,7 +12,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/accounts"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
@@ -86,32 +85,28 @@ func initializeDefaultProfile() {
 	var licenseKey string
 	var err error
 
-	apiKey := os.Getenv("NEW_RELIC_API_KEY")
+	userKey := os.Getenv("NEW_RELIC_API_KEY")
 	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	region = os.Getenv("NEW_RELIC_REGION")
 	licenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
 
 	// If we don't have a personal API key we can't initialize a profile.
-	if apiKey == "" {
+	if userKey == "" {
 		log.Debugf("NEW_RELIC_API_KEY key not set, cannot initialize default profile")
 		return
 	}
 
 	log.Infof("default profile does not exist and API key detected. attempting to initialize")
 
-	// Create a profile with the default name if one does not exist.
-	if hasProfileWithDefaultName(config.GetProfileNames()) {
+	if config.ProfileExists(defaultProfileName) {
 		log.Warnf("a profile named %s already exists, cannot initialize default profile", defaultProfileName)
-	} else {
-		if err = config.SaveValueToProfile(defaultProfileName, config.APIKey, apiKey); err != nil {
-			log.Warnf("error saving API key to profile, cannot initialize default profile: %s", err)
-			return
-		}
+		return
+	}
 
-		if err = config.SaveDefaultProfileName(defaultProfileName); err != nil {
-			log.Warnf("error saving default profile name, cannot initialize default profile: %s", err)
-			return
-		}
+	// Saving an initial value will also set the default profile.
+	if err = config.SaveValueToProfile(defaultProfileName, config.UserKey, userKey); err != nil {
+		log.Warnf("error saving API key to profile, cannot initialize default profile: %s", err)
+		return
 	}
 
 	// Default the region to US if it's not in the environment
@@ -164,16 +159,6 @@ func initializeDefaultProfile() {
 	}
 
 	log.Infof("profile %s added", text.FgCyan.Sprint(defaultProfileName))
-}
-
-func hasProfileWithDefaultName(profileNames []string) bool {
-	for _, profileName := range profileNames {
-		if profileName == defaultProfileName {
-			return true
-		}
-	}
-
-	return false
 }
 
 func fetchLicenseKey(accountID int) (string, error) {
@@ -241,6 +226,11 @@ func init() {
 }
 
 func initConfig() {
-	utils.LogIfError(output.SetFormat(output.ParseFormat(outputFormat)))
-	utils.LogIfError(output.SetPrettyPrint(!outputPlain))
+	if err := output.SetFormat(output.ParseFormat(outputFormat)); err != nil {
+		log.Error(err)
+	}
+
+	if err := output.SetPrettyPrint(!outputPlain); err != nil {
+		log.Error(err)
+	}
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -27,8 +26,10 @@ the user, revision, or change-log). APM displays a vertical line, or
 “marker,” on charts and graphs at the deployment event's timestamp.
 `,
 	Example: "newrelic apm deployment list --applicationId <appID>",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -42,7 +43,9 @@ The list command returns deployments for a New Relic APM application.
 	Example: "newrelic apm deployment list --applicationId <appID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
-			utils.LogIfError(cmd.Help())
+			if err := cmd.Help(); err != nil {
+				log.Error(err)
+			}
 			log.Fatal("--applicationId is required")
 		}
 
@@ -68,7 +71,9 @@ application.
 	Example: "newrelic apm deployment create --applicationId <appID> --revision <deploymentRevision>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
-			utils.LogIfError(cmd.Help())
+			if err := cmd.Help(); err != nil {
+				log.Error(err)
+			}
 			log.Fatal("--applicationId and --revision are required")
 		}
 
@@ -93,7 +98,9 @@ The delete command performs a delete operation for an APM deployment.
 	Example: "newrelic apm deployment delete --applicationId <appID> --deploymentID <deploymentID>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
-			utils.LogIfError(cmd.Help())
+			if err := cmd.Help(); err != nil {
+				log.Error(err)
+			}
 			log.Fatal("--applicationId is required")
 		}
 
@@ -119,9 +126,13 @@ func init() {
 	cmdDeploymentCreate.Flags().StringVarP(&deployment.Changelog, "change-log", "", "", "the change log stored with the deployment")
 
 	cmdDeploymentCreate.Flags().StringVarP(&deployment.Revision, "revision", "r", "", "a freeform string representing the revision of the deployment")
-	utils.LogIfError(cmdDeploymentCreate.MarkFlagRequired("revision"))
+	if err := cmdDeploymentCreate.MarkFlagRequired("revision"); err != nil {
+		log.Error(err)
+	}
 
 	cmdDeployment.AddCommand(cmdDeploymentDelete)
 	cmdDeploymentDelete.Flags().IntVarP(&deployment.ID, "deploymentID", "d", 0, "the ID of the deployment to be deleted")
-	utils.LogIfError(cmdDeploymentDelete.MarkFlagRequired("deploymentID"))
+	if err := cmdDeploymentDelete.MarkFlagRequired("deploymentID"); err != nil {
+		log.Error(err)
+	}
 }

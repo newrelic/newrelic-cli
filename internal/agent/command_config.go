@@ -1,10 +1,10 @@
 package agent
 
 import (
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -30,7 +30,9 @@ should be placed in the Agent configuration or in an environment variable."
 			ObfuscatedValue: obfuscateStringWithKey(textToEncode, encodeKey),
 		}
 
-		utils.LogIfFatal(output.Print(result))
+		if err := output.Print(result); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -43,6 +45,10 @@ func init() {
 	cmdConfigObfuscate.Flags().StringVarP(&encodeKey, "key", "k", "", "the key to use when obfuscating the clear-text value")
 	cmdConfigObfuscate.Flags().StringVarP(&textToEncode, "value", "v", "", "the value, in clear text, to be obfuscated")
 
-	utils.LogIfError(cmdConfigObfuscate.MarkFlagRequired("key"))
-	utils.LogIfError(cmdConfigObfuscate.MarkFlagRequired("value"))
+	if err := cmdConfigObfuscate.MarkFlagRequired("key"); err != nil {
+		log.Error(err)
+	}
+	if err := cmdConfigObfuscate.MarkFlagRequired("value"); err != nil {
+		log.Error(err)
+	}
 }

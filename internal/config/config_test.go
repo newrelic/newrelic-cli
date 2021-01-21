@@ -66,11 +66,11 @@ func TestGetConfigValue_DefaultValues(t *testing.T) {
 
 	configValue, err = GetConfigValue(PrereleaseFeatures)
 	require.NoError(t, err)
-	require.Equal(t, TernaryValues.Unknown.String(), configValue)
+	require.Equal(t, TernaryValues.Unknown, configValue)
 
 	configValue, err = GetConfigValue(SendUsageData)
 	require.NoError(t, err)
-	require.Equal(t, TernaryValues.Unknown.String(), configValue)
+	require.Equal(t, TernaryValues.Unknown, configValue)
 }
 
 func TestSetConfigValue_Basic(t *testing.T) {
@@ -130,7 +130,7 @@ func TestGetActiveProfileValue_Basic(t *testing.T) {
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	credsValue, err := GetActiveProfileValue(APIKey)
+	credsValue, err := GetActiveProfileValue(UserKey)
 	require.NoError(t, err)
 	require.Equal(t, "testApiKey", credsValue)
 }
@@ -161,7 +161,7 @@ func TestGetActiveProfileValue_EnvVarOverride(t *testing.T) {
 
 	m.GetenvVal = "newAPIKey"
 
-	credsValue, err := GetActiveProfileValue(APIKey)
+	credsValue, err := GetActiveProfileValue(UserKey)
 	require.NoError(t, err)
 	require.Equal(t, "newAPIKey", credsValue)
 }
@@ -171,10 +171,10 @@ func TestSetProfileValue_Basic(t *testing.T) {
 	mockConfigFiles := createMockConfigFiles(t)
 	defer mockConfigFiles.teardown()
 
-	err := SaveValueToProfile(defaultDefaultProfileName, APIKey, "NRAK-abc123")
+	err := SaveValueToProfile(defaultDefaultProfileName, UserKey, "NRAK-abc123")
 	require.NoError(t, err)
 
-	credsValue, err := GetProfileValue(defaultDefaultProfileName, APIKey)
+	credsValue, err := GetProfileValue(defaultDefaultProfileName, UserKey)
 	require.NoError(t, err)
 	require.Equal(t, "NRAK-abc123", credsValue)
 }
@@ -189,14 +189,14 @@ func TestSetProfileValue_FileNotExists(t *testing.T) {
 	_, err := os.Stat(credsFilePath)
 	require.True(t, os.IsNotExist(err))
 
-	credsValue, err := GetActiveProfileValue(APIKey)
+	credsValue, err := GetActiveProfileValue(UserKey)
 	require.NoError(t, err)
 	require.Nil(t, credsValue)
 
-	err = SaveValueToProfile("default", APIKey, "NRAK-abc123")
+	err = SaveValueToProfile("default", UserKey, "NRAK-abc123")
 	require.NoError(t, err)
 
-	credsValue, err = GetActiveProfileValue(APIKey)
+	credsValue, err = GetActiveProfileValue(UserKey)
 	require.NoError(t, err)
 	require.Equal(t, "NRAK-abc123", credsValue)
 

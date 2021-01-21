@@ -16,9 +16,9 @@ var (
 )
 
 func NewClient(profileName string) (*newrelic.NewRelic, error) {
-	apiKey := config.GetProfileValueString(profileName, config.APIKey)
+	userKey := config.GetProfileValueString(profileName, config.UserKey)
 	insightsInsertKey := config.GetProfileValueString(profileName, config.InsightsInsertKey)
-	if apiKey == "" && insightsInsertKey == "" {
+	if userKey == "" && insightsInsertKey == "" {
 		return nil, errors.New("a User API key or Ingest API key is required, set a default profile or use the NEW_RELIC_API_KEY or NEW_RELIC_INSIGHTS_INSERT_KEY environment variables")
 	}
 
@@ -27,7 +27,7 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	cfgOpts := []newrelic.ConfigOption{
-		newrelic.ConfigPersonalAPIKey(apiKey.(string)),
+		newrelic.ConfigPersonalAPIKey(userKey.(string)),
 		newrelic.ConfigInsightsInsertKey(insightsInsertKey.(string)),
 		newrelic.ConfigLogLevel(logLevel.(string)),
 		newrelic.ConfigRegion(region.(string)),

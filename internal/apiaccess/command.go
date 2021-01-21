@@ -2,14 +2,13 @@ package apiaccess
 
 import (
 	"encoding/json"
-	"log"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
 )
 
@@ -30,7 +29,9 @@ var cmdKey = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
 	PreRun: func(cmd *cobra.Command, args []string) {
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := client.Client.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
@@ -118,10 +119,14 @@ func init() {
 	Command.AddCommand(cmdKey)
 
 	cmdKey.Flags().StringVar(&apiAccessGetKeyid, "id", "", "The `id` of the key. This can be used to identify a key without revealing the key itself (used to update and delete).")
-	utils.LogIfError(cmdKey.MarkFlagRequired("id"))
+	if err := cmdKey.MarkFlagRequired("id"); err != nil {
+		log.Error(err)
+	}
 
 	cmdKey.Flags().StringVar(&apiAccessGetKeykeyType, "keyType", "", "The type of key.")
-	utils.LogIfError(cmdKey.MarkFlagRequired("keyType"))
+	if err := cmdKey.MarkFlagRequired("keyType"); err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(cmdAPIAccessCreateKeys)
 

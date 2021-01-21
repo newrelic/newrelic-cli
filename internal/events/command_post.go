@@ -8,7 +8,6 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -29,8 +28,14 @@ represents the custom event's type.
 `,
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
-		config.FatalIfActiveProfileFieldStringNotPresent(config.InsightsInsertKey)
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireInsightsInsertKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var e map[string]interface{}
@@ -50,5 +55,7 @@ represents the custom event's type.
 func init() {
 	Command.AddCommand(cmdPost)
 	cmdPost.Flags().StringVarP(&event, "event", "e", "{}", "a JSON-formatted event payload to post")
-	utils.LogIfError(cmdPost.MarkFlagRequired("event"))
+	if err := cmdPost.MarkFlagRequired("event"); err != nil {
+		log.Error(err)
+	}
 }

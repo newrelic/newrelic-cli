@@ -12,22 +12,18 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/config"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
 
 func TestReportRecipeSucceeded_Basic(t *testing.T) {
-	apiKey := os.Getenv("NEW_RELIC_API_KEY")
+	userKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
-	if apiKey == "" || accountID == "" {
+	if userKey == "" || accountID == "" {
 		t.Skipf("NEW_RELIC_API_KEY and NEW_RELIC_ACCOUNT_ID are required to run this test")
 	}
 
-	cfg := config.Config{
-		PersonalAPIKey: apiKey,
-	}
-	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(cfg.PersonalAPIKey))
+	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(userKey))
 	if err != nil {
 		t.Fatalf("error creating integration test client")
 	}
@@ -66,16 +62,13 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 	require.NotEmpty(t, s)
 }
 func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
-	apiKey := os.Getenv("NEW_RELIC_API_KEY")
+	userKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
-	if apiKey == "" || accountID == "" {
+	if userKey == "" || accountID == "" {
 		t.Skipf("NEW_RELIC_API_KEY and NEW_RELIC_ACCOUNT_ID are required to run this test")
 	}
 
-	cfg := config.Config{
-		PersonalAPIKey: apiKey,
-	}
-	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(cfg.PersonalAPIKey))
+	c, err := newrelic.New(newrelic.ConfigPersonalAPIKey(userKey))
 	if err != nil {
 		t.Fatalf("error creating integration test client")
 	}

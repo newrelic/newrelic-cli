@@ -9,7 +9,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -23,8 +22,10 @@ var cmdApp = &cobra.Command{
 	Short:   "Interact with New Relic APM applications",
 	Example: "newrelic apm application --help",
 	Long:    "Interact with New Relic APM applications",
-	PreRun: func(cmd *cobra.Command, args []string) {
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -56,8 +57,13 @@ The search command performs a query for an APM application name and/or account I
 
 			var singleResult *entities.EntityInterface
 			singleResult, err := client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
-			utils.LogIfFatal(err)
-			utils.LogIfFatal(output.Print(*singleResult))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if err := output.Print(*singleResult); err != nil {
+				log.Fatal(err)
+			}
 		} else {
 			params := entities.EntitySearchQueryBuilder{
 				Domain: entities.EntitySearchQueryBuilderDomain("APM"),
@@ -80,7 +86,9 @@ The search command performs a query for an APM application name and/or account I
 			)
 
 			entityResults = results.Results.Entities
-			utils.LogIfFatal(err)
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		if err := output.Print(entityResults); err != nil {

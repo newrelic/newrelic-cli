@@ -7,7 +7,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
 
@@ -29,7 +28,10 @@ The get command retrieves a specific workload by its account ID and workload GUI
 `,
 	Example: `newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		workload, err := client.Client.Workloads.GetWorkload(accountID, guid)
@@ -38,7 +40,7 @@ The get command retrieves a specific workload by its account ID and workload GUI
 		}
 
 		if err := output.Print(workload); err != nil {
-			output.Print(workload)
+			log.Fatal(err)
 		}
 	},
 }
@@ -52,7 +54,10 @@ The list command retrieves the workloads for the given account ID.
 `,
 	Example: `newrelic workload list --accountId 12345678`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		workload, err := client.Client.Workloads.ListWorkloads(accountID)
@@ -80,7 +85,10 @@ you also have access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		createInput := workloads.CreateInput{
@@ -108,7 +116,10 @@ you also have access to.
 			log.Fatal(err)
 		}
 
-		utils.LogIfFatal(output.Print(workload))
+		if err := output.Print(workload); err != nil {
+			log.Fatal(err)
+		}
+
 		log.Info("success")
 	},
 }
@@ -168,7 +179,10 @@ compose the new name.
 `,
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		duplicateInput := &workloads.DuplicateInput{
@@ -210,7 +224,9 @@ func init() {
 	// Get
 	Command.AddCommand(cmdGet)
 	cmdGet.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload")
-	utils.LogIfError(cmdGet.MarkFlagRequired("guid"))
+	if err := cmdGet.MarkFlagRequired("guid"); err != nil {
+		log.Error(err)
+	}
 
 	// List
 	Command.AddCommand(cmdList)
@@ -221,7 +237,9 @@ func init() {
 	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
-	utils.LogIfError(cmdCreate.MarkFlagRequired("name"))
+	if err := cmdCreate.MarkFlagRequired("name"); err != nil {
+		log.Error(err)
+	}
 
 	// Update
 	Command.AddCommand(cmdUpdate)
@@ -230,16 +248,22 @@ func init() {
 	cmdUpdate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdUpdate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdUpdate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
-	utils.LogIfError(cmdUpdate.MarkFlagRequired("guid"))
+	if err := cmdUpdate.MarkFlagRequired("guid"); err != nil {
+		log.Error(err)
+	}
 
 	// Duplicate
 	Command.AddCommand(cmdDuplicate)
 	cmdDuplicate.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload you want to duplicate")
 	cmdDuplicate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload to duplicate")
-	utils.LogIfError(cmdDuplicate.MarkFlagRequired("guid"))
+	if err := cmdDuplicate.MarkFlagRequired("guid"); err != nil {
+		log.Error(err)
+	}
 
 	// Delete
 	Command.AddCommand(cmdDelete)
 	cmdDelete.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload to delete")
-	utils.LogIfError(cmdDelete.MarkFlagRequired("guid"))
+	if err := cmdDelete.MarkFlagRequired("guid"); err != nil {
+		log.Error(err)
+	}
 }

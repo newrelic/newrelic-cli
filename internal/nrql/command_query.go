@@ -7,7 +7,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
@@ -28,7 +27,10 @@ issue the query against.
 `,
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := client.Client.Nrdb.Query(accountID, nrdb.NRQL(query))
@@ -36,8 +38,7 @@ issue the query against.
 			log.Fatal(err)
 		}
 
-		err = output.Print(result.Results)
-		if err != nil {
+		if err := output.Print(result.Results); err != nil {
 			log.Fatal(err)
 		}
 	},
@@ -75,7 +76,9 @@ The history command will fetch a list of the most recent NRQL queries you execut
 func init() {
 	Command.AddCommand(cmdQuery)
 	cmdQuery.Flags().StringVarP(&query, "query", "q", "", "the NRQL query you want to execute")
-	utils.LogIfError(cmdQuery.MarkFlagRequired("query"))
+	if err := cmdQuery.MarkFlagRequired("query"); err != nil {
+		log.Error(err)
+	}
 
 	Command.AddCommand(cmdHistory)
 	cmdHistory.Flags().IntVarP(&historyLimit, "limit", "l", 10, "history items to return (default: 10, max: 100)")

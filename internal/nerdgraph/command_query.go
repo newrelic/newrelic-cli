@@ -42,7 +42,9 @@ keys are the variables to be referenced in the GraphQL query.
 		return nil
 	},
 	PreRun: func(cmd *cobra.Command, args []string) {
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var variablesParsed map[string]interface{}

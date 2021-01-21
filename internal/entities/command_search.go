@@ -24,7 +24,10 @@ The search command performs a search for New Relic entities.
 		params := entities.EntitySearchQueryBuilder{}
 
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
-			utils.LogIfError(cmd.Help())
+			if err := cmd.Help(); err != nil {
+				log.Error(err)
+			}
+
 			log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
 		}
 
@@ -48,7 +51,9 @@ The search command performs a search for New Relic entities.
 		var err error
 		if entityTag != "" {
 			key, value, err = assembleTagValue(entityTag)
-			utils.LogIfFatal(err)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
 		}
@@ -70,7 +75,9 @@ The search command performs a search for New Relic entities.
 			params,
 			[]entities.EntitySearchSortCriteria{},
 		)
-		utils.LogIfFatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		entities := results.Results.Entities
 

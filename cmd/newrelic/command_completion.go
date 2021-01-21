@@ -5,8 +5,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -64,5 +62,7 @@ func init() {
 	Command.AddCommand(cmdCompletion)
 
 	cmdCompletion.Flags().StringVar(&completionShell, "shell", "", "Output completion for the specified shell.  (bash, powershell, zsh)")
-	utils.LogIfError(cmdCompletion.MarkFlagRequired("shell"))
+	if err := cmdCompletion.MarkFlagRequired("shell"); err != nil {
+		log.Error(err)
+	}
 }

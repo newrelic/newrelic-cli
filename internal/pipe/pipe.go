@@ -12,9 +12,8 @@ import (
 	"os"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
-
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 // Created Interface and struct to surround io.Reader for easy mocking
@@ -104,7 +103,7 @@ func getPipeInputInnerFunc(pipe pipeReader, pipeInputExists bool, acceptedPipeIn
 		pipeInputMap := map[string][]string{}
 		inputArray, err := readStdin(pipe, acceptedPipeInput)
 		if err != nil {
-			utils.LogIfError(err)
+			log.Error(err)
 			return map[string][]string{}
 		}
 		for _, key := range acceptedPipeInput {

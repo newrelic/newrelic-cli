@@ -152,14 +152,14 @@ func varsFromProfile() (types.RecipeVars, error) {
 	}
 
 	accountID := config.GetActiveProfileAccountID()
-	apiKey := config.GetActiveProfileValueString(config.APIKey)
+	userKey := config.GetActiveProfileValueString(config.UserKey)
 	region := config.GetActiveProfileValueString(config.Region)
 
 	vars := make(types.RecipeVars)
 
 	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
 	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(accountID)
-	vars["NEW_RELIC_API_KEY"] = apiKey
+	vars["NEW_RELIC_API_KEY"] = userKey
 	vars["NEW_RELIC_REGION"] = region
 
 	return vars, nil

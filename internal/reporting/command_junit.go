@@ -11,7 +11,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 const junitEventType = "TestRun"
@@ -31,8 +30,14 @@ var cmdJUnit = &cobra.Command{
 `,
 	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml`,
 	PreRun: func(cmd *cobra.Command, args []string) {
-		accountID = config.FatalIfAccountIDNotPresent()
-		config.FatalIfActiveProfileFieldStringNotPresent(config.APIKey)
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		insightsInsertKey := config.GetActiveProfileValueString(config.InsightsInsertKey)
@@ -64,7 +69,9 @@ var cmdJUnit = &cobra.Command{
 		}
 
 		if outputEvents {
-			utils.LogIfFatal(output.Print(events))
+			if err := output.Print(events); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		if dryRun {
@@ -110,5 +117,7 @@ func init() {
 	cmdJUnit.Flags().StringVarP(&path, "path", "p", "", "the path to a JUnit-formatted test results file")
 	cmdJUnit.Flags().BoolVarP(&outputEvents, "output", "o", false, "output generated custom events to stdout")
 	cmdJUnit.Flags().BoolVar(&dryRun, "dryRun", false, "suppress posting custom events to NRDB")
-	utils.LogIfError(cmdJUnit.MarkFlagRequired("path"))
+	if err := cmdJUnit.MarkFlagRequired("path"); err != nil {
+		log.Error(err)
+	}
 }
