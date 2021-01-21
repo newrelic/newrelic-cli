@@ -1,6 +1,8 @@
 package ux
 
-import "github.com/manifoldco/promptui"
+import (
+	"github.com/manifoldco/promptui"
+)
 
 type PromptUIPrompter struct{}
 
@@ -9,15 +11,29 @@ func NewPromptUIPrompter() *PromptUIPrompter {
 }
 
 func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
-	prompt := promptui.Select{
-		Label: msg,
-		Items: []string{"Yes", "No"},
+
+	// templates := &promptui.PromptTemplates{
+	// 	Prompt:  "{{ . }} ",
+	// 	Valid:   "{{ . | green }} ",
+	// 	Invalid: "{{ . | red }} ",
+	// 	Success: "{{ . | bold }} ",
+	// }
+
+	prompt := promptui.Prompt{
+		Label:     msg,
+		IsConfirm: true,
+		Default:   "y",
+		// Templates: templates,
 	}
 
-	_, result, err := prompt.Run()
+	_, err := prompt.Run()
 	if err != nil {
+		if err == promptui.ErrAbort {
+			return false, nil
+		}
+
 		return false, err
 	}
 
-	return result == "Yes", nil
+	return true, nil
 }
