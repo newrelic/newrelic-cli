@@ -3,6 +3,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
 
@@ -39,14 +40,21 @@ func CreateNRClient(cfg *config.Config, creds *credentials.Credentials) (*newrel
 
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
-	nrClient, err := newrelic.New(
+	cfgOpts := []newrelic.ConfigOption{
 		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigInsightsInsertKey(insightsInsertKey),
 		newrelic.ConfigLogLevel(cfg.LogLevel),
 		newrelic.ConfigRegion(regionValue),
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
-	)
+	}
+
+	nerdGraphURLOverride := os.Getenv("NEW_RELIC_NERDGRAPH_URL")
+	if nerdGraphURLOverride != "" {
+		cfgOpts = append(cfgOpts, newrelic.ConfigNerdGraphBaseURL(nerdGraphURLOverride))
+	}
+
+	nrClient, err := newrelic.New(cfgOpts...)
 
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to create New Relic client with error: %s", err)
