@@ -169,13 +169,8 @@ func createRecommendationsInput(d *types.DiscoveryManifest) (*recommendationsInp
 	}
 
 	for _, process := range d.Processes {
-		n, err := process.Name()
-		if err != nil {
-			continue
-		}
-
 		p := processDetailInput{
-			Name: n,
+			Name: process.MatchingPattern,
 		}
 		c.ProcessDetails = append(c.ProcessDetails, p)
 	}
