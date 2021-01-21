@@ -29,7 +29,7 @@ newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
+      --format string   output text format [Text, YAML, JSON] (default "JSON")
       --plain           output compact text
 ```
 
