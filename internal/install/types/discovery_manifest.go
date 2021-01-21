@@ -9,16 +9,23 @@ type DiscoveryManifest struct {
 	Platform        string           `json:"platform"`
 	PlatformFamily  string           `json:"platformFamily"`
 	PlatformVersion string           `json:"platformVersion"`
-	Processes       []GenericProcess `json:"processes"`
+	Processes       []MatchedProcess `json:"processes"`
 }
 
 // GenericProcess is an abstracted representation of a process.
 type GenericProcess interface {
 	Name() (string, error)
+	Cmdline() (string, error)
 	PID() int32
 }
 
-// AddProcess adds a discovered process to the underlying manifest.
-func (d *DiscoveryManifest) AddProcess(p GenericProcess) {
+type MatchedProcess struct {
+	Command         string
+	Process         GenericProcess
+	MatchingPattern string
+}
+
+// AddMatchedProcess adds a discovered process to the underlying manifest.
+func (d *DiscoveryManifest) AddMatchedProcess(p MatchedProcess) {
 	d.Processes = append(d.Processes, p)
 }
