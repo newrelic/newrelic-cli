@@ -119,9 +119,13 @@ func (s *StatusRollup) ReportRecipeSkipped(event RecipeStatusEvent) {
 	}
 }
 
-func (s *StatusRollup) ReportComplete() {
+func (s *StatusRollup) ReportComplete(event RecipeStatusEvent) {
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
+
+	if event.EntityGUID != "" {
+		s.withEntityGUID(event.EntityGUID)
+	}
 
 	for _, r := range s.statusReporters {
 		if err := r.ReportComplete(s); err != nil {

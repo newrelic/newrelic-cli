@@ -198,7 +198,7 @@ func (i *RecipeInstaller) Install() error {
 		log.Debugf("Skipping installing integrations")
 	}
 
-	i.status.ReportComplete()
+	i.status.ReportComplete(execution.RecipeStatusEvent{EntityGUID: entityGUID})
 
 	return nil
 }
@@ -491,7 +491,7 @@ func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
 }
 
 func (i *RecipeInstaller) fail(err error) error {
-	i.status.ReportComplete()
+	i.status.ReportComplete(execution.RecipeStatusEvent{Msg: err.Error()})
 	return err
 }
 

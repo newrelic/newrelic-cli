@@ -129,8 +129,9 @@ func TestStatusRollup_statusUpdateMethods(t *testing.T) {
 	require.Equal(t, result.Status, StatusTypes.SKIPPED)
 	require.False(t, s.hasFailed())
 
-	s.ReportComplete()
+	s.ReportComplete(RecipeStatusEvent{EntityGUID: "123"})
+	require.Equal(t, s.EntityGUIDs[0], "testGUID")
+	require.Equal(t, s.EntityGUIDs[1], "123")
 	require.True(t, s.Complete)
 	require.NotNil(t, s.Timestamp)
-
 }
