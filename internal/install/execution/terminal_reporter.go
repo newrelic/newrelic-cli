@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	log "github.com/sirupsen/logrus"
 )
 
 type TerminalStatusReporter struct {
@@ -33,6 +34,24 @@ func (r TerminalStatusReporter) ReportRecipeSkipped(status *StatusRollup, event 
 }
 
 func (r TerminalStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
+	if len(recipes) > 0 {
+		fmt.Println("The following will be installed, based on what has been discovered on your system.")
+	}
+
+	for _, r := range recipes {
+		log.WithFields(log.Fields{
+			"name": r.Name,
+		}).Debug("found available integration")
+
+		if r.DisplayName != "" {
+			fmt.Printf("\t%s\n", r.DisplayName)
+		} else {
+			fmt.Printf("\t%s\n", r.Name)
+		}
+	}
+
+	fmt.Println()
+
 	return nil
 }
 

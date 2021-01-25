@@ -212,7 +212,7 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 		} else {
 			log.WithFields(log.Fields{
 				"name": envConfig.Name,
-			}).Debug("required env var not found, prompting for input")
+			}).Debug("required environment variable not found")
 
 			envValue, err = varFromPrompt(envConfig)
 			if err != nil {
@@ -230,7 +230,7 @@ func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
 	msg := fmt.Sprintf("value for %s required", envConfig.Name)
 
 	if envConfig.Prompt != "" {
-		msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
+		msg = envConfig.Prompt
 	}
 
 	prompt := promptui.Prompt{
