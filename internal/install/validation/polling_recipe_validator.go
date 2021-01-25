@@ -98,9 +98,17 @@ func (m *PollingRecipeValidator) tryValidate(ctx context.Context, dm types.Disco
 	count := results[0]["count"].(float64)
 
 	if count > 0 {
-		// Try and parse an entity GUID from the results
-		// The query is assumed to optionally use a facet over entityGuid
+		// Try and parse an entity GUID from the results.  The query is assumed to
+		// optionally use a facet over entityGuid.  The standard case seems to be
+		// that all entities contain a facet of "entityGuid", and so if we find it
+		// here, we return it.
 		if entityGUID, ok := results[0]["entityGuid"]; ok {
+			return true, entityGUID.(string), nil
+		}
+
+		// In the logs integration, the facet doesn't contain "entityGuid", but
+		// does contain, "entity.guid", so here we check for that also.
+		if entityGUID, ok := results[0]["entity.guids"]; ok {
 			return true, entityGUID.(string), nil
 		}
 
