@@ -53,7 +53,9 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 		var pp *process.Process
 		pp, err = process.NewProcess(pid)
 		if err != nil {
-			log.Debugf("cannot read pid %d: %s", pid, err)
+			if err != process.ErrorProcessNotRunning {
+				log.Debugf("cannot read pid %d: %s", pid, err)
+			}
 			continue
 		}
 
