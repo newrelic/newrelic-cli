@@ -95,11 +95,12 @@ func (r NerdstorageStatusReporter) writeStatus(status *StatusRollup, entityGUID 
 	}
 
 	if entityGUID != "" {
-		log.Debug("No entity GUID available, skipping entity-scoped status update.")
 		_, err := r.client.WriteDocumentWithEntityScope(entityGUID, i)
 		if err != nil {
 			return err
 		}
+	} else {
+		log.Debug("No entity GUID available, skipping entity-scoped status update.")
 	}
 
 	return nil
