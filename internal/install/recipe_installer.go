@@ -203,12 +203,9 @@ func (i *RecipeInstaller) Install() error {
 				}
 				log.Debugf("Done installing logging.")
 			} else {
-				log.Debugf("Skipping installation of logging")
 				i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
 			}
-
 		}
-
 	}
 
 	// Install integrations if necessary, continuing on failure with warnings.
@@ -220,6 +217,9 @@ func (i *RecipeInstaller) Install() error {
 		log.Debugf("Done installing integrations.")
 	} else {
 		log.Debugf("Skipping installing integrations")
+		for _, r := range recipes {
+			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+		}
 	}
 
 	i.status.ReportComplete()

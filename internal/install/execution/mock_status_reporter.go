@@ -1,6 +1,8 @@
 package execution
 
-import "github.com/newrelic/newrelic-cli/internal/install/types"
+import (
+	"github.com/newrelic/newrelic-cli/internal/install/types"
+)
 
 // MockStatusReporter is a mock implementation of the ExecutionStatusReporter
 // interface that provides method spies for testing scenarios.
