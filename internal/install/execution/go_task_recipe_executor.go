@@ -237,8 +237,16 @@ func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
 		msg = envConfig.Prompt
 	}
 
+	templates := &promptui.PromptTemplates{
+		Prompt:  "{{ . }} ",
+		Valid:   "{{ . }} ",
+		Invalid: "{{ . }} ",
+		Success: "  - {{ . }} ",
+	}
+
 	prompt := promptui.Prompt{
-		Label: msg,
+		Label:     msg,
+		Templates: templates,
 	}
 
 	if envConfig.Secret {
