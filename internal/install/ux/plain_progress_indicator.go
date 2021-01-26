@@ -18,7 +18,11 @@ func NewPlainProgress() *PlainProgress {
 func (p *PlainProgress) Start(msg string) {
 	c := color.New(color.FgCyan)
 	c.Printf("==>")
-	fmt.Printf(" %s... ", msg)
+
+	x := color.New(color.Bold)
+	x.Printf(" %s", msg)
+
+	fmt.Printf("... ")
 }
 
 func (p *PlainProgress) Success() {
