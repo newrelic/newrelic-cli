@@ -44,9 +44,9 @@ func (r TerminalStatusReporter) ReportRecipesAvailable(status *StatusRollup, rec
 		}).Debug("found available integration")
 
 		if r.DisplayName != "" {
-			fmt.Printf("\t%s\n", r.DisplayName)
+			fmt.Printf("  %s\n", r.DisplayName)
 		} else {
-			fmt.Printf("\t%s\n", r.Name)
+			fmt.Printf("  %s\n", r.Name)
 		}
 	}
 
@@ -66,15 +66,17 @@ func (r TerminalStatusReporter) ReportComplete(status *StatusRollup) error {
 	}
 
 	msg := `
-	Success! Your data is available in New Relic.
+  Success! Your data is available in New Relic.
 
-	Go to New Relic to confirm and start exploring your data.`
+  Go to New Relic to confirm and start exploring your data.`
 
 	fmt.Println(msg)
 
 	for _, entityGUID := range status.EntityGUIDs {
 		fmt.Printf("\n\thttps://one.newrelic.com/redirect/entity/%s\n", entityGUID)
 	}
+
+	fmt.Println()
 
 	return nil
 }

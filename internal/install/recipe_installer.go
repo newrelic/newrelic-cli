@@ -73,16 +73,16 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 // nolint:gocyclo
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
-	 _   _                 ____      _ _
-	| \ | | _____      __ |  _ \ ___| (_) ___
-	|  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
-	| |\  |  __/\ V  V /  |  _ |  __| | | (__
-	|_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
+   _   _                 ____      _ _
+  | \ | | _____      __ |  _ \ ___| (_) ___
+  |  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
+  | |\  |  __/\ V  V /  |  _ |  __| | | (__
+  |_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
 
-	Welcome to New Relic. Let's install some instrumentation.
+  Welcome to New Relic. Let's install some instrumentation.
 
-	Questions? Read more about our installation process at
-	https://docs.newrelic.com/
+  Questions? Read more about our installation process at
+  https://docs.newrelic.com/
 
 	`)
 	fmt.Println()
