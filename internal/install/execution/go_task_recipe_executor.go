@@ -31,6 +31,10 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 }
 
 func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, assumeYes bool) (types.RecipeVars, error) {
+	log.WithFields(log.Fields{
+		"name": r.Name,
+	}).Debug("preparing recipe")
+
 	vars := types.RecipeVars{}
 
 	results := []types.RecipeVars{}
