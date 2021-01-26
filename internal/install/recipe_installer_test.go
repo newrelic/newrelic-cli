@@ -144,6 +144,7 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           "test-recipe",
 		ValidationNRQL: "testNrql",
 	}}
 	f.FetchRecipeVals = []types.Recipe{{}, {}}
@@ -158,6 +159,7 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
+	require.Equal(t, 1, v.ValidateCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeFailedCallCount)
 }
 
