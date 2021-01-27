@@ -73,7 +73,7 @@ func (r TerminalStatusReporter) ReportComplete(status *StatusRollup) error {
 	fmt.Println(msg)
 
 	for _, entityGUID := range status.EntityGUIDs {
-		fmt.Printf("\n\thttps://one.newrelic.com/redirect/entity/%s\n", entityGUID)
+		fmt.Printf("\n  https://one.newrelic.com/redirect/entity/%s\n", entityGUID)
 	}
 
 	fmt.Println()
