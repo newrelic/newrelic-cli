@@ -50,9 +50,10 @@ func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
 
 func validateYesNo(msg string) error {
 	lowerMsg := strings.ToLower(msg)
+
 	if strings.HasPrefix(lowerMsg, "y") || strings.HasPrefix(lowerMsg, "n") {
 		return nil
 	}
 
-	return fmt.Errorf("Response must begin with 'y' or 'n'.")
+	return fmt.Errorf("response must begin with 'y' or 'n'")
 }

@@ -169,7 +169,7 @@ func (i *RecipeInstaller) Install() error {
 	log.WithFields(log.Fields{
 		"ShouldPrompt":    i.ShouldPrompt(),
 		"RecipesProvided": i.RecipesProvided(),
-	}).Debug("flag sumary")
+	}).Debug("flag summary")
 
 	var entityGUID string
 	if !i.RecipesProvided() {
@@ -190,9 +190,9 @@ func (i *RecipeInstaller) Install() error {
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
 		} else {
 
-			ok, err := i.userAcceptsInstall(*loggingRecipe)
+			ok, acceptErr := i.userAcceptsInstall(*loggingRecipe)
 			if err != nil {
-				return fmt.Errorf("error prompting user: %s", err)
+				return fmt.Errorf("error prompting user: %s", acceptErr)
 			}
 
 			if ok {

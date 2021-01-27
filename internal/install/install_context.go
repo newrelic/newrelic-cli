@@ -40,7 +40,7 @@ func (i *InstallerContext) RecipesProvided() bool {
 	return i.RecipePathsProvided() || i.RecipeNamesProvided()
 }
 
-// ShouldPrompt determins if the user should be prompted for input.
+// ShouldPrompt determines if the user should be prompted for input.
 func (i *InstallerContext) ShouldPrompt() bool {
 	if i.AdvancedMode {
 		return true
