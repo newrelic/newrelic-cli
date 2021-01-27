@@ -238,9 +238,9 @@ func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
 	}
 
 	templates := &promptui.PromptTemplates{
-		Prompt:  "{{ . }} ",
-		Valid:   "{{ . }} ",
-		Invalid: "{{ . }} ",
+		Prompt:  "{{ . | bold }} ",
+		Valid:   "{{ . | bold }} ",
+		Invalid: "{{ . | bold }} ",
 		Success: "  - {{ . }} ",
 	}
 
