@@ -36,7 +36,7 @@ func TestFilter(t *testing.T) {
 	}
 
 	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes)
+	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -67,7 +67,7 @@ func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
 	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
 	mockRecipeFetcher.FetchRecipesVal = r
 	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes)
+	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)

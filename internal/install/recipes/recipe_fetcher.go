@@ -10,5 +10,5 @@ import (
 type RecipeFetcher interface {
 	FetchRecipe(context.Context, *types.DiscoveryManifest, string) (*types.Recipe, error)
 	FetchRecommendations(context.Context, *types.DiscoveryManifest) ([]types.Recipe, error)
-	FetchRecipes(context.Context) ([]types.Recipe, error)
+	FetchRecipes(context.Context, *types.DiscoveryManifest) ([]types.Recipe, error)
 }

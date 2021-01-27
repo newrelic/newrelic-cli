@@ -41,7 +41,7 @@ func (f *MockRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.Dis
 	return f.FetchRecipeVal, f.FetchRecipeErr
 }
 
-func (f *MockRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.Recipe, error) {
+func (f *MockRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 	f.FetchRecipesCallCount++
 	return f.FetchRecipesVal, f.FetchRecipesErr
 }
