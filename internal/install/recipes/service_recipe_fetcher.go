@@ -103,9 +103,18 @@ func (f *ServiceRecipeFetcher) FetchRecommendations(ctx context.Context, manifes
 }
 
 // FetchRecipes fetches all available recipes from the recipe service.
-func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.Recipe, error) {
+func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 	var resp recipeSearchQueryResult
-	if err := f.client.QueryWithResponseAndContext(ctx, recipeSearchQuery, nil, &resp); err != nil {
+
+	criteria := recipeSearchInput{
+		InstallTarget: createInstallTarget(manifest),
+	}
+
+	vars := map[string]interface{}{
+		"criteria": criteria,
+	}
+
+	if err := f.client.QueryWithResponseAndContext(ctx, recipeSearchQuery, vars, &resp); err != nil {
 		return nil, err
 	}
 
