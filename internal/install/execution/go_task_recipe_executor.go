@@ -31,6 +31,10 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 }
 
 func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, assumeYes bool) (types.RecipeVars, error) {
+	log.WithFields(log.Fields{
+		"name": r.Name,
+	}).Debug("preparing recipe")
+
 	vars := types.RecipeVars{}
 
 	results := []types.RecipeVars{}
@@ -212,7 +216,7 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 		} else {
 			log.WithFields(log.Fields{
 				"name": envConfig.Name,
-			}).Debug("required env var not found, prompting for input")
+			}).Debug("required environment variable not found")
 
 			envValue, err = varFromPrompt(envConfig)
 			if err != nil {
@@ -230,11 +234,19 @@ func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
 	msg := fmt.Sprintf("value for %s required", envConfig.Name)
 
 	if envConfig.Prompt != "" {
-		msg = fmt.Sprintf("%s: %s", envConfig.Name, envConfig.Prompt)
+		msg = envConfig.Prompt
+	}
+
+	templates := &promptui.PromptTemplates{
+		Prompt:  "{{ . | bold }} ",
+		Valid:   "{{ . | bold }} ",
+		Invalid: "{{ . | bold }} ",
+		Success: "  - {{ . }} ",
 	}
 
 	prompt := promptui.Prompt{
-		Label: msg,
+		Label:     msg,
+		Templates: templates,
 	}
 
 	if envConfig.Secret {

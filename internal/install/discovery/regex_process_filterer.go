@@ -32,12 +32,12 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 		return nil, fmt.Errorf("could not retrieve process filter criteria: %s", err)
 	}
 	for _, r := range recipes {
-		log.Debugf("Match using recipe DisplayName: %s RecipeProcessMatch: %s", r.DisplayName, r.ProcessMatch)
+		log.Tracef("Match using recipe DisplayName: %s RecipeProcessMatch: %s", r.DisplayName, r.ProcessMatch)
 	}
 
 	matches := []types.MatchedProcess{}
 	for _, p := range matchedProcesses {
-		log.Debugf("Match using process command: %s", p.Command)
+		log.Tracef("Match using process command: %s", p.Command)
 		isMatch := false
 		for _, r := range recipes {
 			isMatch = isMatch || match(r, &p)

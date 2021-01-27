@@ -166,6 +166,11 @@ func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
 		s.withEntityGUID(e.EntityGUID)
 	}
 
+	log.WithFields(log.Fields{
+		"recipe_name": e.Recipe.Name,
+		"status":      rs,
+	}).Debug("recipe event")
+
 	found := s.getStatus(e.Recipe)
 
 	if found != nil {
