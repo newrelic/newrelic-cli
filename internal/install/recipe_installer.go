@@ -494,7 +494,7 @@ func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error)
 		return true, nil
 	}
 
-	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them? [Yes/No]", match.File)
+	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them?", match.File)
 	return i.userAccepts(msg)
 }
 

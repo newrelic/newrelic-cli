@@ -251,6 +251,7 @@ func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
 
 	if envConfig.Secret {
 		prompt.HideEntered = true
+		prompt.Mask = '*'
 	}
 
 	if envConfig.Default != "" {
