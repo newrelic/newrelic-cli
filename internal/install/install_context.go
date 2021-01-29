@@ -46,5 +46,5 @@ func (i *InstallerContext) ShouldPrompt() bool {
 		return true
 	}
 
-	return i.RecipesProvided() || i.AssumeYes
+	return false
 }
