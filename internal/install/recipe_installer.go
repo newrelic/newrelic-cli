@@ -105,7 +105,13 @@ func (i *RecipeInstaller) Install() error {
 				log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
 				return i.fail(err)
 			}
-			log.Debugln(fmt.Sprintf("Found recipe from path %s.", n))
+
+			log.WithFields(log.Fields{
+				"name":         recipe.Name,
+				"display_name": recipe.DisplayName,
+				"path":         n,
+			}).Debug("found recipe")
+
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
@@ -310,6 +316,7 @@ func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.Recipe, erro
 	if err != nil {
 		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
 	}
+
 	return finalizeRecipe(f)
 }
 
@@ -505,7 +512,8 @@ func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
 	}
 
 	log.WithFields(log.Fields{
-		"name": r.Name,
+		"name":         r.Name,
+		"display_name": r.DisplayName,
 	}).Debug("prompting user for install confirmation")
 
 	msg := fmt.Sprintf("Would you like to enable %s?", r.DisplayName)
