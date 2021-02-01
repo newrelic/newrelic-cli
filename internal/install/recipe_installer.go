@@ -188,38 +188,37 @@ func (i *RecipeInstaller) Install() error {
 
 		if i.SkipInfraInstall {
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
-		} else {
-			if i.ShouldInstallInfraAgent() {
-				log.Debugf("Installing infrastructure agent")
-				entityGUID, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
-				if err != nil {
-					log.Error(i.failMessage(infraAgentRecipeName))
-					return i.fail(err)
-				}
-				log.Debugf("Done installing infrastructure agent.")
+		}
+
+		if i.ShouldInstallInfraAgent() {
+			log.Debugf("Installing infrastructure agent")
+			entityGUID, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
+			if err != nil {
+				log.Error(i.failMessage(infraAgentRecipeName))
+				return i.fail(err)
 			}
+			log.Debugf("Done installing infrastructure agent.")
 		}
 
 		if i.SkipLoggingInstall {
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
-		} else {
-			if i.ShouldInstallLogging() {
+		}
 
-				ok, acceptErr := i.userAcceptsInstall(*loggingRecipe)
-				if err != nil {
-					return fmt.Errorf("error prompting user: %s", acceptErr)
-				}
+		if i.ShouldInstallLogging() {
+			ok, acceptErr := i.userAcceptsInstall(*loggingRecipe)
+			if err != nil {
+				return fmt.Errorf("error prompting user: %s", acceptErr)
+			}
 
-				if ok {
-					log.Debugf("Installing logging")
-					if err = i.installLogging(m, loggingRecipe, recipes); err != nil {
-						log.Error(i.failMessage(loggingRecipeName))
-						return i.fail(err)
-					}
-					log.Debugf("Done installing logging.")
-				} else {
-					i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
+			if ok {
+				log.Debugf("Installing logging")
+				if err = i.installLogging(m, loggingRecipe, recipes); err != nil {
+					log.Error(i.failMessage(loggingRecipeName))
+					return i.fail(err)
 				}
+				log.Debugf("Done installing logging.")
+			} else {
+				i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
 			}
 		}
 	}
