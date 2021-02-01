@@ -87,6 +87,18 @@ func (i *RecipeInstaller) Install() error {
 	`)
 	fmt.Println()
 
+	log.Tracef("InstallerContext: %+v", i.InstallerContext)
+	log.WithFields(log.Fields{
+		"ShouldRunDiscovery":        i.ShouldRunDiscovery(),
+		"ShouldInstallInfraAgent":   i.ShouldInstallInfraAgent(),
+		"ShouldInstallLogging":      i.ShouldInstallLogging(),
+		"ShouldInstallIntegrations": i.ShouldInstallIntegrations(),
+		"ShouldPrompt":              i.ShouldPrompt(),
+		"RecipesProvided":           i.RecipesProvided(),
+		"RecipePathsProvided":       i.RecipePathsProvided(),
+		"RecipeNamesProvided":       i.RecipeNamesProvided(),
+	}).Debug("context summary")
+
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover()
 	if err != nil {
@@ -105,7 +117,13 @@ func (i *RecipeInstaller) Install() error {
 				log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
 				return i.fail(err)
 			}
-			log.Debugln(fmt.Sprintf("Found recipe from path %s.", n))
+
+			log.WithFields(log.Fields{
+				"name":         recipe.Name,
+				"display_name": recipe.DisplayName,
+				"path":         n,
+			}).Debug("found recipe at path")
+
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
@@ -148,13 +166,13 @@ func (i *RecipeInstaller) Install() error {
 		return err
 	}
 
-	if !i.SkipInfraInstall {
+	if i.ShouldInstallInfraAgent() {
 		if infraAgentRecipe != nil {
 			recipesForReport = append(recipesForReport, *infraAgentRecipe)
 		}
 	}
 
-	if !i.SkipLoggingInstall {
+	if i.ShouldInstallLogging() {
 		if loggingRecipe != nil {
 			recipesForReport = append(recipesForReport, *loggingRecipe)
 		}
@@ -165,18 +183,14 @@ func (i *RecipeInstaller) Install() error {
 	// Report discovered recipes as available
 	i.status.ReportRecipesAvailable(recipesForReport)
 
-	log.Debugf("InstallerContext: %+v", i.InstallerContext)
-	log.WithFields(log.Fields{
-		"ShouldPrompt":    i.ShouldPrompt(),
-		"RecipesProvided": i.RecipesProvided(),
-	}).Debug("flag summary")
-
 	var entityGUID string
 	if !i.RecipesProvided() {
 
 		if i.SkipInfraInstall {
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *infraAgentRecipe})
-		} else {
+		}
+
+		if i.ShouldInstallInfraAgent() {
 			log.Debugf("Installing infrastructure agent")
 			entityGUID, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
 			if err != nil {
@@ -188,8 +202,9 @@ func (i *RecipeInstaller) Install() error {
 
 		if i.SkipLoggingInstall {
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
-		} else {
+		}
 
+		if i.ShouldInstallLogging() {
 			ok, acceptErr := i.userAcceptsInstall(*loggingRecipe)
 			if err != nil {
 				return fmt.Errorf("error prompting user: %s", acceptErr)
@@ -249,18 +264,14 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 		var ok bool
 		var err error
 
-		if i.ShouldPrompt() {
-			ok, err = i.userAcceptsInstall(r)
-			if err != nil {
-				return fmt.Errorf("error prompting user: %s", err)
-			}
-
-			log.WithFields(log.Fields{
-				"accepted": ok,
-			}).Debug("done prompting for install")
-		} else {
-			ok = true
+		ok, err = i.userAcceptsInstall(r)
+		if err != nil {
+			return fmt.Errorf("error prompting user: %s", err)
 		}
+
+		log.WithFields(log.Fields{
+			"accepted": ok,
+		}).Debug("done prompting for install")
 
 		if ok {
 			log.WithFields(log.Fields{
@@ -310,6 +321,7 @@ func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.Recipe, erro
 	if err != nil {
 		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
 	}
+
 	return finalizeRecipe(f)
 }
 
@@ -475,8 +487,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
-	// Honor AssumeYes, but not when using AdvancedMode
-	if i.AssumeYes && !i.AdvancedMode {
+	if !i.ShouldPrompt() {
 		return true, nil
 	}
 
@@ -489,8 +500,7 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
-	// Honor AssumeYes, but not when using AdvancedMode
-	if i.AssumeYes && !i.AdvancedMode {
+	if !i.ShouldPrompt() {
 		return true, nil
 	}
 
@@ -499,13 +509,13 @@ func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error)
 }
 
 func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
-	// Honor AssumeYes, but not when using AdvancedMode
-	if i.AssumeYes && !i.AdvancedMode {
+	if !i.ShouldPrompt() {
 		return true, nil
 	}
 
 	log.WithFields(log.Fields{
-		"name": r.Name,
+		"name":         r.Name,
+		"display_name": r.DisplayName,
 	}).Debug("prompting user for install confirmation")
 
 	msg := fmt.Sprintf("Would you like to enable %s?", r.DisplayName)
