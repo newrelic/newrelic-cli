@@ -2,6 +2,7 @@
 
 Decode a New Relic String to reveal information about the page application
 
+
 ### Synopsis
 
 Use the decode command to print out information encrypted within the URL. 
@@ -20,7 +21,9 @@ newrelic decode https://one.newrelic.com/launcher/nr1-core.home?pane=eyJuZXJkbGV
 ### Options
 
 ```
-  -h, --help   help for Decoded
+  -h, --help    Help for Decoded
+  -p, --param   The param you want to decode
+  -j, --json    The json element you want returned
 ```
 
 ### Options inherited from parent commands
