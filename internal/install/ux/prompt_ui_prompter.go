@@ -23,9 +23,8 @@ func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
 	}
 
 	prompt := promptui.Prompt{
-		Default:   "y",
+		Default:   "Y",
 		AllowEdit: true,
-		// IsConfirm: true,
 		Label:     msg,
 		Templates: templates,
 		Validate:  validateYesNo,

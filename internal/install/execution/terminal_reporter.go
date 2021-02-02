@@ -3,8 +3,9 @@ package execution
 import (
 	"fmt"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type TerminalStatusReporter struct {
