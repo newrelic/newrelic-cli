@@ -19,6 +19,7 @@ type RecipeFile struct {
 	Keywords       []string               `yaml:"keywords"`
 	LogMatch       []types.LogMatch       `yaml:"logMatch"`
 	Name           string                 `yaml:"name"`
+	DisplayName    string                 `yaml:"displayName"`
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
 	ValidationNRQL string                 `yaml:"validationNrql"`
@@ -119,6 +120,7 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 	r := types.Recipe{
 		File:           fileStr,
 		Name:           f.Name,
+		DisplayName:    f.DisplayName,
 		Description:    f.Description,
 		Repository:     f.Repository,
 		Keywords:       f.Keywords,
