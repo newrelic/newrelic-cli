@@ -43,7 +43,7 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 	}
 
 	// If profile has been overridden, verify it exists
-	if config.ProfileOverride == "" {
+	if config.ProfileOverride != "" {
 		if !config.ProfileExists(config.ProfileOverride) {
 			log.Fatalf("profile not found: %s", config.ProfileOverride)
 		}

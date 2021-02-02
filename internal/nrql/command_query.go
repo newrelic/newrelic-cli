@@ -27,6 +27,9 @@ issue the query against.
 `,
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
 		var err error
 		if accountID, err = config.RequireAccountID(); err != nil {
 			log.Fatal(err)
@@ -52,6 +55,11 @@ var cmdHistory = &cobra.Command{
 The history command will fetch a list of the most recent NRQL queries you executed.
 `,
 	Example: `newrelic nrql query history`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := client.Client.Nrdb.QueryHistory()
 		if err != nil {

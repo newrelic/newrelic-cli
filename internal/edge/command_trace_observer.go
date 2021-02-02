@@ -18,6 +18,8 @@ var (
 	validProviderRegions = []string{
 		string(edge.EdgeProviderRegionTypes.AWS_US_EAST_1),
 		string(edge.EdgeProviderRegionTypes.AWS_US_EAST_2),
+		string(edge.EdgeProviderRegionTypes.AWS_US_WEST_2),
+		string(edge.EdgeProviderRegionTypes.AWS_EU_WEST_1),
 	}
 )
 
@@ -31,16 +33,6 @@ var cmdTraceObserver = &cobra.Command{
 	provides visualization for the most actionable data so you can investigate and
 	solve issues faster.`,
 	Example: "newrelic edge trace-observer list --accountId <accountID>",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		var err error
-		if accountID, err = config.RequireAccountID(); err != nil {
-			log.Fatal(err)
-		}
-
-		if _, err = config.RequireUserKey(); err != nil {
-			log.Fatal(err)
-		}
-	},
 }
 
 var cmdList = &cobra.Command{
@@ -51,6 +43,16 @@ var cmdList = &cobra.Command{
 The list command retrieves the trace observers for the given account ID.
 `,
 	Example: `newrelic edge trace-observer list --accountId 12345678`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		traceObservers, err := client.Client.Edge.ListTraceObservers(accountID)
 		if err != nil {
@@ -82,6 +84,16 @@ The create command requires an account ID, observer name, and provider region.
 Valid provider regions are AWS_US_EAST_1 and AWS_US_EAST_2.
 `,
 	Example: `newrelic edge trace-observer create --name 'My Observer' --accountId 12345678 --providerRegion AWS_US_EAST_1`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if ok := isValidProviderRegion(providerRegion); !ok {
 			log.Fatalf("%s is not a valid provider region, valid values are %s", providerRegion, validProviderRegions)
@@ -108,6 +120,16 @@ var cmdDelete = &cobra.Command{
 The delete command accepts a trace observer's ID.
 `,
 	Example: `newrelic edge trace-observer delete --accountId 12345678 --id 1234`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		var err error
+		if accountID, err = config.RequireAccountID(); err != nil {
+			log.Fatal(err)
+		}
+
+		if _, err = config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := client.Client.Edge.DeleteTraceObserver(accountID, id)
 		if err != nil {

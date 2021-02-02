@@ -23,7 +23,7 @@ func RequireActiveProfileFieldString(key ProfileFieldKey) (string, error) {
 	v := GetActiveProfileValueString(key)
 	if v == "" {
 		f := findProfileField(key)
-		return "", fmt.Errorf("%s is required, set it in your default profile or use the %s environment variable", AccountID, f.EnvOverride)
+		return "", fmt.Errorf("%s is required, set it in your default profile or use the %s environment variable", key, f.EnvOverride)
 	}
 
 	return v, nil
@@ -50,8 +50,8 @@ func isValidProfileKey(key ProfileFieldKey) bool {
 func validConfigFieldKeys() []string {
 	valid := make([]string, len(ConfigFields))
 
-	for _, v := range ConfigFields {
-		valid = append(valid, string(v.Key))
+	for i, v := range ConfigFields {
+		valid[i] = string(v.Key)
 	}
 
 	return valid
@@ -60,8 +60,8 @@ func validConfigFieldKeys() []string {
 func validProfileFieldKeys() []string {
 	valid := make([]string, len(ProfileFields))
 
-	for _, v := range ProfileFields {
-		valid = append(valid, string(v.Key))
+	for i, v := range ProfileFields {
+		valid[i] = string(v.Key)
 	}
 
 	return valid

@@ -85,7 +85,12 @@ This will have the effect of resetting the value to its default.
 `,
 	Example: "newrelic config delete --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := SaveConfigValue(CfgFieldKey(key), "")
+		f := findConfigField(CfgFieldKey(key))
+		if f == nil {
+			log.Fatalf("config value not found: %s, value must be one of %s", key, validConfigFieldKeys())
+		}
+
+		err := SaveConfigValue(CfgFieldKey(key), f.Default)
 		if err != nil {
 			log.Fatal(err)
 		}

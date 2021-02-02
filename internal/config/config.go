@@ -148,6 +148,10 @@ func GetConfigValueString(key CfgFieldKey) string {
 		return f.Default.(string)
 	}
 
+	if s, ok := v.(Ternary); ok {
+		return s.String()
+	}
+
 	if s, ok := v.(string); ok {
 		return s
 	}
@@ -280,7 +284,7 @@ func SaveDefaultProfileName(profileName string) error {
 	return saveDefaultProfileName(profileName)
 }
 
-func SaveConfigValue(key CfgFieldKey, value string) error {
+func SaveConfigValue(key CfgFieldKey, value interface{}) error {
 	field := findConfigField(key)
 
 	if field == nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -20,6 +21,11 @@ var cmdEntitySearch = &cobra.Command{
 The search command performs a search for New Relic entities.
 `,
 	Example: "newrelic entity search --name <applicationName>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		params := entities.EntitySearchQueryBuilder{}
 

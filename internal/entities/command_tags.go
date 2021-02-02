@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/pipe"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -37,6 +38,11 @@ var cmdTagsGet = &cobra.Command{
 The get command returns JSON output of the tags for the requested entity.
 `,
 	Example: "newrelic entity tags get --guid <entityGUID>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Temporary until bulk actions can be build into newrelic-client-go
 		if value, ok := pipe.Get("guid"); ok {
@@ -70,6 +76,11 @@ The delete command deletes all tags on the given entity
 that match the specified keys.
 `,
 	Example: "newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3,tag4",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := client.Client.Entities.TaggingDeleteTagFromEntity(entities.EntityGUID(entityGUID), entityTags)
 		if err != nil {
@@ -88,6 +99,11 @@ var cmdTagsDeleteValues = &cobra.Command{
 The delete-values command deletes the specified tag:value pairs on a given entity.
 `,
 	Example: "newrelic entity tags delete-values --guid <guid> --tag tag1:value1",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tagValues, err := assembleTagValuesInput(entityValues)
 		if err != nil {
@@ -111,6 +127,11 @@ var cmdTagsCreate = &cobra.Command{
 The create command adds tag:value pairs to the given entity.
 `,
 	Example: "newrelic entity tags create --guid <entityGUID> --tag tag1:value1",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tags, err := assembleTagsInput(entityTags)
 		if err != nil {
@@ -135,6 +156,11 @@ The replace command replaces any existing tag:value pairs with those
 provided for the given entity.
 `,
 	Example: "newrelic entity tags replace --guid <entityGUID> --tag tag1:value1",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		tags, err := assembleTagsInput(entityTags)
 		if err != nil {

@@ -28,6 +28,10 @@ The get command retrieves a specific workload by its account ID and workload GUI
 `,
 	Example: `newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+
 		var err error
 		if accountID, err = config.RequireAccountID(); err != nil {
 			log.Fatal(err)
@@ -54,6 +58,10 @@ The list command retrieves the workloads for the given account ID.
 `,
 	Example: `newrelic workload list --accountId 12345678`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+
 		var err error
 		if accountID, err = config.RequireAccountID(); err != nil {
 			log.Fatal(err)
@@ -85,6 +93,10 @@ you also have access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+
 		var err error
 		if accountID, err = config.RequireAccountID(); err != nil {
 			log.Fatal(err)
@@ -137,6 +149,11 @@ together with an OR.  Multiple account scope IDs can optionally be provided to i
 entities from different sub-accounts that you also have access to.
 `,
 	Example: `newrelic workload update --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --name 'Updated workflow'`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		updateInput := workloads.UpdateInput{
 			Name: name,
@@ -179,6 +196,10 @@ compose the new name.
 `,
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
 	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+
 		var err error
 		if accountID, err = config.RequireAccountID(); err != nil {
 			log.Fatal(err)
@@ -210,6 +231,11 @@ var cmdDelete = &cobra.Command{
 The delete command accepts a workload's entity GUID.
 `,
 	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := client.Client.Workloads.DeleteWorkload(guid)
 		if err != nil {

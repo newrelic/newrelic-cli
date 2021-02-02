@@ -21,7 +21,7 @@ var cmdConfigObfuscate = &cobra.Command{
 	Use:   "obfuscate",
 	Short: "Obfuscate a configuration value using a key",
 	Long: `Obfuscate a configuration value using a key.  The obfuscated value
-should be placed in the Agent configuration or in an environment variable." 
+should be placed in the Agent configuration or in an environment variable.
 `,
 	Example: "newrelic agent config obfuscate --value <config_value> --key <obfuscation_key>",
 	Run: func(cmd *cobra.Command, args []string) {

@@ -26,11 +26,6 @@ the user, revision, or change-log). APM displays a vertical line, or
 “marker,” on charts and graphs at the deployment event's timestamp.
 `,
 	Example: "newrelic apm deployment list --applicationId <appID>",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if _, err := config.RequireUserKey(); err != nil {
-			log.Fatal(err)
-		}
-	},
 }
 
 var cmdDeploymentList = &cobra.Command{
@@ -41,6 +36,11 @@ var cmdDeploymentList = &cobra.Command{
 The list command returns deployments for a New Relic APM application.
 `,
 	Example: "newrelic apm deployment list --applicationId <appID>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
 			if err := cmd.Help(); err != nil {
@@ -69,6 +69,11 @@ The create command creates a new deployment marker for a New Relic APM
 application.
 `,
 	Example: "newrelic apm deployment create --applicationId <appID> --revision <deploymentRevision>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
 			if err := cmd.Help(); err != nil {
@@ -96,6 +101,11 @@ var cmdDeploymentDelete = &cobra.Command{
 The delete command performs a delete operation for an APM deployment.
 `,
 	Example: "newrelic apm deployment delete --applicationId <appID> --deploymentID <deploymentID>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
 			if err := cmd.Help(); err != nil {

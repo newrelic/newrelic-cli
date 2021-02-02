@@ -22,11 +22,6 @@ var cmdApp = &cobra.Command{
 	Short:   "Interact with New Relic APM applications",
 	Example: "newrelic apm application --help",
 	Long:    "Interact with New Relic APM applications",
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if _, err := config.RequireUserKey(); err != nil {
-			log.Fatal(err)
-		}
-	},
 }
 
 var cmdAppSearch = &cobra.Command{
@@ -37,6 +32,11 @@ var cmdAppSearch = &cobra.Command{
 The search command performs a query for an APM application name and/or account ID.
 `,
 	Example: "newrelic apm application search --name <appName>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if appGUID == "" && appName == "" && apmAccountID == "" {
@@ -97,7 +97,6 @@ The search command performs a query for an APM application name and/or account I
 	},
 }
 
-//
 var cmdAppGet = &cobra.Command{
 	Use:   "get",
 	Short: "Get a New Relic application",
@@ -106,6 +105,11 @@ var cmdAppGet = &cobra.Command{
 The get command performs a query for an APM application by GUID.
 `,
 	Example: "newrelic apm application get --guid <entityGUID>",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if _, err := config.RequireUserKey(); err != nil {
+			log.Fatal(err)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		var results *entities.EntityInterface
 		var err error
