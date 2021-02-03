@@ -225,17 +225,18 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 		Name:           testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{{}, {}}
+	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
-		PromptYesNoVal: false,
+		PromptYesNoVal: true,
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
@@ -252,11 +253,12 @@ func TestInstall_ReportRecipeSkipped_skipping_integrations(t *testing.T) {
 		Name:           "test-recipe",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{{}, {}}
+	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
-		PromptYesNoVal: false,
+		PromptYesNoVal:       false,
+		PromptMultiSelectVal: []string{},
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
@@ -264,6 +266,35 @@ func TestInstall_ReportRecipeSkipped_skipping_integrations(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+}
+
+func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
+	ic := InstallerContext{
+		// SkipInfraInstall:   true,
+		// SkipLoggingInstall: true,
+	}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           testRecipeName,
+		DisplayName:    testRecipeName,
+		ValidationNRQL: "testNrql",
+	}}
+	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
+
+	v = validation.NewMockRecipeValidator()
+	p = &ux.MockPrompter{
+		PromptYesNoVal:       false,
+		PromptMultiSelectVal: []string{testRecipeName},
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
 func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {

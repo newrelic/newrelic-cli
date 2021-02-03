@@ -15,7 +15,6 @@ func NewPromptUIPrompter() *PromptUIPrompter {
 }
 
 func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
-
 	templates := &promptui.PromptTemplates{
 		Prompt:  "{{ . | bold }} [Y/n] ",
 		Valid:   "{{ . | bold }} [Y/n] ",
