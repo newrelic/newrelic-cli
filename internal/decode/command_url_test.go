@@ -1,6 +1,6 @@
 // +build unit
 
-package main
+package decode
 
 import (
 	"testing"
@@ -10,8 +10,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
-func TestDecodeCommand(t *testing.T) {
-	assert.Equal(t, "newrelic-dev", Command.Name())
+func TestDecodeURLCommand(t *testing.T) {
+	assert.Equal(t, "url", Command.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdDecode)
 	testcobra.CheckCobraRequiredFlags(t, cmdDecode, []string{})

@@ -8,7 +8,7 @@ Decode a New Relic String to reveal information about the page application
 Use the decode command to print out information encrypted within the URL. 
 
 ```
-newrelic decode [flags]
+newrelic decode url [flags]
 ```
 
 ### Examples
@@ -35,5 +35,5 @@ newrelic decode https://one.newrelic.com/launcher/nr1-core.home?pane=eyJuZXJkbGV
 
 ### SEE ALSO
 
-* [newrelic](newrelic.md)	 - The New Relic CLI
+* [New Relic](newrelic.md)	 - The New Relic CLI
 

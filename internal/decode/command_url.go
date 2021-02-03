@@ -1,4 +1,4 @@
-package main
+package decode
 
 import (
 	"encoding/base64"
@@ -20,9 +20,9 @@ var (
 
 // Command represents the decode command.
 var cmdDecode = &cobra.Command{
-	Use:     "decode",
+	Use:     "url",
 	Short:   "Decodes NR1 URL Strings ",
-	Example: `newrelic decode -p="pane" -j="entityId" https://one.newrelic.com/launcher/nr1-core.home?pane=eyJuZXJkbGV0SWQiOiJucjEtY29yZS5ob21lLXNjcmVlbiJ9&platform[accountId]=1`,
+	Example: `newrelic decode url -p="pane" -j="entityId" https://one.newrelic.com/launcher/nr1-core.home?pane=eyJuZXJkbGV0SWQiOiJucjEtY29yZS5ob21lLXNjcmVlbiJ9&platform[accountId]=1`,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		relicString := strings.Join(args, "")

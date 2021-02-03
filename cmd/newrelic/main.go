@@ -11,6 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/decode"
 	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
@@ -33,6 +34,7 @@ func init() {
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(config.Command)
 	Command.AddCommand(credentials.Command)
+	Command.AddCommand(decode.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
 	Command.AddCommand(events.Command)
