@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/manifoldco/promptui"
 )
 
@@ -14,7 +15,6 @@ func NewPromptUIPrompter() *PromptUIPrompter {
 }
 
 func (p *PromptUIPrompter) PromptYesNo(msg string) (bool, error) {
-
 	templates := &promptui.PromptTemplates{
 		Prompt:  "{{ . | bold }} [Y/n] ",
 		Valid:   "{{ . | bold }} [Y/n] ",
@@ -55,4 +55,19 @@ func validateYesNo(msg string) error {
 	}
 
 	return fmt.Errorf("response must begin with 'y' or 'n'")
+}
+
+func (p *PromptUIPrompter) MultiSelect(msg string, options []string) ([]string, error) {
+	selected := []string{}
+	prompt := &survey.MultiSelect{
+		Message: msg,
+		Options: options,
+	}
+
+	err := survey.AskOne(prompt, &selected)
+	if err != nil {
+		return nil, err
+	}
+
+	return selected, nil
 }
