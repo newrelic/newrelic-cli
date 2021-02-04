@@ -11,7 +11,7 @@ import (
 )
 
 func TestDecodeURLCommand(t *testing.T) {
-	assert.Equal(t, "url", Command.Name())
+	assert.Equal(t, "decode", Command.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdDecode)
 	testcobra.CheckCobraRequiredFlags(t, cmdDecode, []string{})
