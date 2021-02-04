@@ -25,6 +25,17 @@ newrelic decode entity -k=ID  MXxBUE18QVBQTElDQVRJT058Mzk4NDkyNDQw
 
 ```
 
+### Key List
+
+```
+  account     Returns the AccountID
+  product     Returns the New Relic Product Name
+  feature     Returns the Feature Type
+  ID          Returns the ProductID
+
+```
+
+
 ### Options inherited from parent commands
 
 ```
