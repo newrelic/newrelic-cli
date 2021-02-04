@@ -23,7 +23,7 @@ require (
 	github.com/newrelic/newrelic-client-go v0.57.1
 	github.com/newrelic/tutone v0.5.0
 	github.com/psampaz/go-mod-outdated v0.7.0
-	github.com/shirou/gopsutil v3.20.12+incompatible
+	github.com/shirou/gopsutil v3.21.1+incompatible
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
