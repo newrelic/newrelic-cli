@@ -93,7 +93,6 @@ func (i *RecipeInstaller) Install() error {
 		"ShouldInstallInfraAgent":   i.ShouldInstallInfraAgent(),
 		"ShouldInstallLogging":      i.ShouldInstallLogging(),
 		"ShouldInstallIntegrations": i.ShouldInstallIntegrations(),
-		"ShouldPrompt":              i.ShouldPrompt(),
 		"RecipesProvided":           i.RecipesProvided(),
 		"RecipePathsProvided":       i.RecipePathsProvided(),
 		"RecipeNamesProvided":       i.RecipeNamesProvided(),
@@ -563,19 +562,11 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
-	if !i.ShouldPrompt() {
-		return true, nil
-	}
-
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them?", match.File)
 	return i.userAccepts(msg)
 }
 
 func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
-	if !i.ShouldPrompt() {
-		return true, nil
-	}
-
 	log.WithFields(log.Fields{
 		"name":         r.Name,
 		"display_name": r.DisplayName,

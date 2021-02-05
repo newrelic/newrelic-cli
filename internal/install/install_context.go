@@ -2,7 +2,6 @@ package install
 
 // nolint: maligned
 type InstallerContext struct {
-	AdvancedMode       bool
 	AssumeYes          bool
 	RecipeNames        []string
 	RecipePaths        []string
@@ -38,9 +37,4 @@ func (i *InstallerContext) RecipeNamesProvided() bool {
 
 func (i *InstallerContext) RecipesProvided() bool {
 	return i.RecipePathsProvided() || i.RecipeNamesProvided()
-}
-
-// ShouldPrompt determines if the user should be prompted for input.
-func (i *InstallerContext) ShouldPrompt() bool {
-	return i.AdvancedMode
 }
