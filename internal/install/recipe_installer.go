@@ -203,7 +203,9 @@ func (i *RecipeInstaller) Install() error {
 
 		reportedDisplayNames := []string{}
 		for _, r := range recipesForReport {
-			reportedDisplayNames = append(reportedDisplayNames, r.DisplayName)
+			if !r.RecommendationOnly {
+				reportedDisplayNames = append(reportedDisplayNames, r.DisplayName)
+			}
 		}
 
 		selectedRecipeNames, promptErr := i.prompter.MultiSelect("Please choose what instrumentation you would like to install:", reportedDisplayNames)
@@ -291,6 +293,10 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 	}).Debug("installing recipes")
 
 	for _, r := range recipes {
+		if r.RecommendationOnly {
+			continue
+		}
+
 		// The infra and logging install have their own install methods.  In the
 		// case where the recommendations come back with either of these recipes,
 		// we skip here to avoid duplicate installation.

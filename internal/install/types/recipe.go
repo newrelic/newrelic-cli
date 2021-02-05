@@ -1,17 +1,18 @@
 package types
 
 type Recipe struct {
-	ID             string     `json:"id"`
-	File           string     `json:"file"`
-	Name           string     `json:"name"`
-	DisplayName    string     `json:"displayName"`
-	Description    string     `json:"description"`
-	Repository     string     `json:"repository"`
-	Keywords       []string   `json:"keywords"`
-	ProcessMatch   []string   `json:"processMatch"`
-	LogMatch       []LogMatch `json:"logMatch"`
-	ValidationNRQL string     `json:"validationNrql"`
-	Vars           map[string]interface{}
+	ID                 string     `json:"id"`
+	File               string     `json:"file"`
+	Name               string     `json:"name"`
+	DisplayName        string     `json:"displayName"`
+	Description        string     `json:"description"`
+	Repository         string     `json:"repository"`
+	Keywords           []string   `json:"keywords"`
+	ProcessMatch       []string   `json:"processMatch"`
+	RecommendationOnly bool       `json:"recommendationOnly"`
+	LogMatch           []LogMatch `json:"logMatch"`
+	ValidationNRQL     string     `json:"validationNrql"`
+	Vars               map[string]interface{}
 }
 
 // LogMatch represents a pattern that may match one or more logs on the underlying host.

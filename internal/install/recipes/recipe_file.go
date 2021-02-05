@@ -12,17 +12,18 @@ import (
 
 // RecipeFile represents a recipe file as defined in the Open Installation Library.
 type RecipeFile struct {
-	Description    string                 `yaml:"description"`
-	InputVars      []VariableConfig       `yaml:"inputVars"`
-	Install        map[string]interface{} `yaml:"install"`
-	InstallTargets []RecipeInstallTarget  `yaml:"installTargets"`
-	Keywords       []string               `yaml:"keywords"`
-	LogMatch       []types.LogMatch       `yaml:"logMatch"`
-	Name           string                 `yaml:"name"`
-	DisplayName    string                 `yaml:"displayName"`
-	ProcessMatch   []string               `yaml:"processMatch"`
-	Repository     string                 `yaml:"repository"`
-	ValidationNRQL string                 `yaml:"validationNrql"`
+	Description        string                 `yaml:"description"`
+	InputVars          []VariableConfig       `yaml:"inputVars"`
+	Install            map[string]interface{} `yaml:"install"`
+	InstallTargets     []RecipeInstallTarget  `yaml:"installTargets"`
+	Keywords           []string               `yaml:"keywords"`
+	LogMatch           []types.LogMatch       `yaml:"logMatch"`
+	Name               string                 `yaml:"name"`
+	DisplayName        string                 `yaml:"displayName"`
+	ProcessMatch       []string               `yaml:"processMatch"`
+	Repository         string                 `yaml:"repository"`
+	RecommendationOnly bool                   `yaml:"recommendationOnly"`
+	ValidationNRQL     string                 `yaml:"validationNrql"`
 }
 
 type VariableConfig struct {
@@ -118,15 +119,16 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 	}
 
 	r := types.Recipe{
-		File:           fileStr,
-		Name:           f.Name,
-		DisplayName:    f.DisplayName,
-		Description:    f.Description,
-		Repository:     f.Repository,
-		Keywords:       f.Keywords,
-		ProcessMatch:   f.ProcessMatch,
-		LogMatch:       f.LogMatch,
-		ValidationNRQL: f.ValidationNRQL,
+		Description:        f.Description,
+		DisplayName:        f.DisplayName,
+		File:               fileStr,
+		Keywords:           f.Keywords,
+		LogMatch:           f.LogMatch,
+		Name:               f.Name,
+		ProcessMatch:       f.ProcessMatch,
+		RecommendationOnly: f.RecommendationOnly,
+		Repository:         f.Repository,
+		ValidationNRQL:     f.ValidationNRQL,
 	}
 
 	return &r, nil

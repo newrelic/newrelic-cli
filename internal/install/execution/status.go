@@ -23,7 +23,18 @@ type Status struct {
 	Name        string              `json:"name"`
 	DisplayName string              `json:"displayName"`
 	Status      StatusType          `json:"status"`
+	Scope       ScopeType           `json:"scope"`
 	Errors      []StatusRecipeError `json:"errors"`
+}
+
+type ScopeType string
+
+var ScopeTypes = struct {
+	All        ScopeType
+	EntityOnly ScopeType
+}{
+	All:        "ALL",
+	EntityOnly: "ENTITY_ONLY",
 }
 
 type StatusType string
@@ -176,10 +187,17 @@ func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
 	if found != nil {
 		found.Status = rs
 	} else {
+		var scope ScopeType = ScopeTypes.All
+
+		if e.Recipe.RecommendationOnly {
+			scope = ScopeTypes.EntityOnly
+		}
+
 		e := &Status{
 			Name:        e.Recipe.Name,
 			DisplayName: e.Recipe.DisplayName,
 			Status:      rs,
+			Scope:       scope,
 		}
 		s.Statuses = append(s.Statuses, *e)
 	}
