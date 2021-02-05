@@ -14,7 +14,6 @@ import (
 
 var (
 	assumeYes          bool
-	advancedMode       bool
 	recipeNames        []string
 	recipePaths        []string
 	skipDiscovery      bool
@@ -33,7 +32,6 @@ var Command = &cobra.Command{
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := InstallerContext{
-			AdvancedMode:       advancedMode,
 			AssumeYes:          assumeYes,
 			RecipeNames:        recipeNames,
 			RecipePaths:        recipePaths,
@@ -85,5 +83,4 @@ func init() {
 	Command.Flags().BoolVar(&debug, "debug", false, "debug level logging")
 	Command.Flags().BoolVar(&trace, "trace", false, "trace level logging")
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
-	Command.Flags().BoolVarP(&advancedMode, "advanced", "", false, "use \"advanced\" mode")
 }

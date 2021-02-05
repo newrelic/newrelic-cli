@@ -59,42 +59,6 @@ func TestShouldInstallLogging_RecipePathsProvided(t *testing.T) {
 	require.True(t, ic.ShouldInstallIntegrations())
 }
 
-func TestShouldPrompt(t *testing.T) {
-	cases := []struct {
-		ctx      InstallerContext
-		expected bool
-	}{
-		{
-			ctx:      InstallerContext{},
-			expected: false,
-		},
-		{
-			ctx: InstallerContext{
-				AdvancedMode: true,
-			},
-			expected: true,
-		},
-		{
-			ctx: InstallerContext{
-				AssumeYes: true,
-			},
-			expected: false,
-		},
-		{
-			ctx: InstallerContext{
-				RecipeNames: []string{"namegoeshere"},
-			},
-			expected: false,
-		},
-	}
-
-	for _, tc := range cases {
-		if tc.expected != tc.ctx.ShouldPrompt() {
-			t.Errorf("expected ShouldPrompt()=%t with context: %+v", tc.expected, tc.ctx)
-		}
-	}
-}
-
 func TestRecipeNamesProvided(t *testing.T) {
 	ic := InstallerContext{}
 

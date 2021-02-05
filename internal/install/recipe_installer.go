@@ -93,7 +93,6 @@ func (i *RecipeInstaller) Install() error {
 		"ShouldInstallInfraAgent":   i.ShouldInstallInfraAgent(),
 		"ShouldInstallLogging":      i.ShouldInstallLogging(),
 		"ShouldInstallIntegrations": i.ShouldInstallIntegrations(),
-		"ShouldPrompt":              i.ShouldPrompt(),
 		"RecipesProvided":           i.RecipesProvided(),
 		"RecipePathsProvided":       i.RecipePathsProvided(),
 		"RecipeNamesProvided":       i.RecipeNamesProvided(),
@@ -305,38 +304,21 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 			}
 		}
 
-		var ok bool
 		var err error
 
-		ok, err = i.userAcceptsInstall(r)
-		if err != nil {
-			return fmt.Errorf("error prompting user: %s", err)
-		}
-
 		log.WithFields(log.Fields{
-			"accepted": ok,
-		}).Debug("done prompting for install")
+			"name": r.Name,
+		}).Debug("installing recipe")
 
-		if ok {
-			log.WithFields(log.Fields{
-				"name": r.Name,
-			}).Debug("installing recipe")
-
-			_, err = i.executeAndValidateWithProgress(m, &r)
-			if err != nil {
-				log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-				log.Warn(err)
-				log.Warn(i.failMessage(r.Name))
-			}
-			log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
-		} else {
-			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{
-				Recipe: r,
-			})
+		_, err = i.executeAndValidateWithProgress(m, &r)
+		if err != nil {
+			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
+			log.Warn(err)
+			log.Warn(i.failMessage(r.Name))
 		}
+		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
 
-	log.Debug("Done installing recipes with prompts")
 	return nil
 }
 
@@ -563,25 +545,7 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 }
 
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
-	if !i.ShouldPrompt() {
-		return true, nil
-	}
-
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them?", match.File)
-	return i.userAccepts(msg)
-}
-
-func (i *RecipeInstaller) userAcceptsInstall(r types.Recipe) (bool, error) {
-	if !i.ShouldPrompt() {
-		return true, nil
-	}
-
-	log.WithFields(log.Fields{
-		"name":         r.Name,
-		"display_name": r.DisplayName,
-	}).Debug("prompting user for install confirmation")
-
-	msg := fmt.Sprintf("Would you like to enable %s?", r.DisplayName)
 	return i.userAccepts(msg)
 }
 

@@ -270,8 +270,8 @@ func TestInstall_ReportRecipeSkipped_skipping_integrations(t *testing.T) {
 
 func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
 	ic := InstallerContext{
-		// SkipInfraInstall:   true,
-		// SkipLoggingInstall: true,
+		SkipInfraInstall:   true,
+		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	status = execution.NewStatusRollup(statusReporters)
@@ -285,7 +285,7 @@ func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
-		PromptYesNoVal:       false,
+		PromptYesNoVal:       true,
 		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
@@ -298,9 +298,7 @@ func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
 }
 
 func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {
-	ic := InstallerContext{
-		AdvancedMode: true,
-	}
+	ic := InstallerContext{}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
