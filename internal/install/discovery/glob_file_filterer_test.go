@@ -46,7 +46,7 @@ func TestGlobFileFilter(t *testing.T) {
 			ID: "nginx",
 			LogMatch: []types.LogMatch{
 				{
-					File: "/var/log/nginx/*.log",
+					File: "/var/log/nope/*.log",
 				},
 			},
 		},
