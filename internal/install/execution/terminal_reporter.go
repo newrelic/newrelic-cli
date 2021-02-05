@@ -36,7 +36,7 @@ func (r TerminalStatusReporter) ReportRecipeSkipped(status *StatusRollup, event 
 
 func (r TerminalStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
 	if len(recipes) > 0 {
-		fmt.Println("The following will be installed, based on what has been discovered on your system.")
+		fmt.Println("The following will be installed:")
 	}
 
 	for _, r := range recipes {

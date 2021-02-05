@@ -25,6 +25,7 @@ var TestCommand = &cobra.Command{
 			SkipInfraInstall:   skipInfraInstall,
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
+			AssumeYes:          assumeYes,
 		}
 
 		b := NewScenarioBuilder(ic)
@@ -48,4 +49,5 @@ func init() {
 	TestCommand.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	TestCommand.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 	TestCommand.Flags().StringVarP(&testScenario, "testScenario", "s", string(Basic), fmt.Sprintf("test scenario to run, defaults to BASIC.  Valid values are %s", strings.Join(TestScenarioValues(), ",")))
+	TestCommand.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 }
