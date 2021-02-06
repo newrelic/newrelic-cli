@@ -1,11 +1,6 @@
-## NewRelic decode
+## newrelic decode entity
 
-Decode a New Relic String to reveal information about the page application
-
-
-### Synopsis
-
-Use the decode url command to print out information encrypted within the URL. 
+Decodes NR1 Entitys 
 
 ```
 newrelic decode entity [flags]
@@ -14,37 +9,24 @@ newrelic decode entity [flags]
 ### Examples
 
 ```
-newrelic decode entity -k=ID  MXxBUE18QVBQTElDQVRJT058Mzk4NDkyNDQw 
+newrelic decode entity MXxBUE18QVBQTElDQVRJT058Mzk4NDkyNDQw
 ```
 
 ### Options
 
 ```
-  -h, --help           Help for Decoded
-  -k, --key string     The key you want returned from an entity
-
+  -h, --help         help for entity
+  -k, --key string   the key you require back from an entity
 ```
-
-### Key List
-
-```
-  account     Returns the AccountID
-  product     Returns the New Relic Product Name
-  feature     Returns the Feature Type
-  ID          Returns the ProductID
-
-```
-
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [Text, YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
 ### SEE ALSO
 
-* [NewRelic](newrelic.md)	 - The New Relic CLI
-
+* [newrelic decode](newrelic_decode.md)	 - Decodes NR1 URL Strings 
 
