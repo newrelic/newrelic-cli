@@ -31,7 +31,7 @@ newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [Text, YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 

@@ -30,7 +30,7 @@ newrelic edge trace-observer delete --accountId 12345678 --id 1234
 
 ```
   -a, --accountId int   A New Relic account ID
-      --format string   output text format [Text, YAML, JSON] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
       --plain           output compact text
 ```
 
