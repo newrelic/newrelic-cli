@@ -241,6 +241,16 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
 
+	isHostTarget := func(recipe types.Recipe) bool {
+		for _, target := range recipe.InstallTargets {
+			if target.Type != types.OpenInstallationTargetTypeTypes.HOST {
+				return false
+			}
+		}
+
+		return true
+	}
+
 	for _, r := range recipes {
 		// The infra and logging install have their own install methods.  In the
 		// case where the recommendations come back with either of these recipes,
@@ -253,6 +263,19 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 
 				continue
 			}
+		}
+
+		// Skip non-HOST recipes, but report status of them.
+		if !isHostTarget(r) {
+			log.WithFields(log.Fields{
+				"name": r.Name,
+			}).Debug("skipping non-HOST recipe")
+
+			i.status.ReportRecipeRecommended(execution.RecipeStatusEvent{
+				Recipe:     r,
+				EntityGUID: entityGUID,
+			})
+			continue
 		}
 
 		var err error

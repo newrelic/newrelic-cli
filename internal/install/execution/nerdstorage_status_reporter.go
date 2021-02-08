@@ -71,6 +71,14 @@ func (r NerdstorageStatusReporter) ReportRecipeInstalled(status *StatusRollup, e
 	return nil
 }
 
+func (r NerdstorageStatusReporter) ReportRecipeRecommended(status *StatusRollup, event RecipeStatusEvent) error {
+	if err := r.writeStatus(status, event.EntityGUID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r NerdstorageStatusReporter) ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error {
 	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err

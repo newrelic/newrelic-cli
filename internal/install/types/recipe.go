@@ -1,16 +1,17 @@
 package types
 
 type Recipe struct {
-	ID             string     `json:"id"`
-	File           string     `json:"file"`
-	Name           string     `json:"name"`
-	DisplayName    string     `json:"displayName"`
-	Description    string     `json:"description"`
-	Repository     string     `json:"repository"`
-	Keywords       []string   `json:"keywords"`
-	ProcessMatch   []string   `json:"processMatch"`
-	LogMatch       []LogMatch `json:"logMatch"`
-	ValidationNRQL string     `json:"validationNrql"`
+	ID             string                                `json:"id"`
+	Description    string                                `json:"description"`
+	DisplayName    string                                `json:"displayName"`
+	File           string                                `json:"file"`
+	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets"`
+	Keywords       []string                              `json:"keywords"`
+	LogMatch       []LogMatch                            `json:"logMatch"`
+	Name           string                                `json:"name"`
+	ProcessMatch   []string                              `json:"processMatch"`
+	Repository     string                                `json:"repository"`
+	ValidationNRQL string                                `json:"validationNrql"`
 	Vars           map[string]interface{}
 }
 
