@@ -34,6 +34,10 @@ func (r TerminalStatusReporter) ReportRecipeSkipped(status *StatusRollup, event 
 	return nil
 }
 
+func (r TerminalStatusReporter) ReportRecipeRecommended(status *StatusRollup, event RecipeStatusEvent) error {
+	return nil
+}
+
 func (r TerminalStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
 	if len(recipes) > 0 {
 		fmt.Println("The following will be installed:")

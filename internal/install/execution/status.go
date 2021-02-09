@@ -29,17 +29,19 @@ type Status struct {
 type StatusType string
 
 var StatusTypes = struct {
-	AVAILABLE  StatusType
-	INSTALLING StatusType
-	FAILED     StatusType
-	INSTALLED  StatusType
-	SKIPPED    StatusType
+	AVAILABLE   StatusType
+	INSTALLING  StatusType
+	FAILED      StatusType
+	INSTALLED   StatusType
+	SKIPPED     StatusType
+	RECOMMENDED StatusType
 }{
-	AVAILABLE:  "AVAILABLE",
-	INSTALLING: "INSTALLING",
-	FAILED:     "FAILED",
-	INSTALLED:  "INSTALLED",
-	SKIPPED:    "SKIPPED",
+	AVAILABLE:   "AVAILABLE",
+	INSTALLING:  "INSTALLING",
+	FAILED:      "FAILED",
+	INSTALLED:   "INSTALLED",
+	SKIPPED:     "SKIPPED",
+	RECOMMENDED: "RECOMMENDED",
 }
 
 type StatusRecipeError struct {
@@ -84,6 +86,21 @@ func (s *StatusRollup) ReportRecipeInstalled(event RecipeStatusEvent) {
 
 	for _, r := range s.statusReporters {
 		if err := r.ReportRecipeInstalled(s, event); err != nil {
+			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+		}
+	}
+}
+
+// ReportRecipeRecommended is responsible for setting the nerstorage scopes
+// when a recipe is recommended.  This is used when a recipe is found, but not
+// a "HOST" type, and is used to indicate to the user that it is something they
+// should consider integrating, but not something that the recipe framework
+// will currently assist with.
+func (s *StatusRollup) ReportRecipeRecommended(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, StatusTypes.RECOMMENDED)
+
+	for _, r := range s.statusReporters {
+		if err := r.ReportRecipeRecommended(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}

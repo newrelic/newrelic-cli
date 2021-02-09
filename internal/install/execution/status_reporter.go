@@ -9,6 +9,7 @@ type StatusReporter interface {
 	ReportRecipeFailed(status *StatusRollup, event RecipeStatusEvent) error
 	ReportRecipeInstalled(status *StatusRollup, event RecipeStatusEvent) error
 	ReportRecipeInstalling(status *StatusRollup, event RecipeStatusEvent) error
+	ReportRecipeRecommended(status *StatusRollup, event RecipeStatusEvent) error
 	ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error
 	ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error
 }

@@ -297,6 +297,47 @@ func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
+func TestInstall_ReportRecipeRecommended(t *testing.T) {
+	ic := InstallerContext{}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{
+		{
+			Name:           testRecipeName,
+			ValidationNRQL: "testNrql",
+			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
+				{
+					Type: types.OpenInstallationTargetTypeTypes.HOST,
+				},
+			},
+		},
+		{
+			Name:           "java-java-java",
+			ValidationNRQL: "testNrql",
+			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
+				{
+					Type: types.OpenInstallationTargetTypeTypes.APPLICATION,
+				},
+			},
+		},
+	}
+	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
+
+	v = validation.NewMockRecipeValidator()
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeRecommendedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
+}
+
 func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
