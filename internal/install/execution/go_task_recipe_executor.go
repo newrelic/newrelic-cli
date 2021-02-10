@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -100,17 +99,11 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
-	var stderrCapture bytes.Buffer
-	var stdoutCapture bytes.Buffer
-
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stderr:     &stderrCapture,
-		Stdout:     &stdoutCapture,
+		Stderr:     os.Stderr,
+		Stdout:     os.Stdout,
 	}
-
-	e.Stdout = os.Stdout
-	e.Stderr = os.Stderr
 
 	if err = e.Setup(); err != nil {
 		return err
@@ -130,12 +123,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
-		if log.GetLevel() > log.InfoLevel {
-			stderr := stderrCapture.String()
-			if stderr != "" {
-				log.Error(stderr)
-			}
-		}
 		return err
 	}
 
