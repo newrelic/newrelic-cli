@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -100,19 +99,10 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
-	var stderrCapture bytes.Buffer
-	var stdoutCapture bytes.Buffer
-
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stderr:     &stderrCapture,
-		Stdout:     &stdoutCapture,
-	}
-
-	// Only pipe child process output streams for the chattier log levels
-	if log.GetLevel() > log.InfoLevel {
-		e.Stdout = os.Stdout
-		e.Stderr = os.Stderr
+		Stderr:     os.Stderr,
+		Stdout:     os.Stdout,
 	}
 
 	if err = e.Setup(); err != nil {
@@ -133,12 +123,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
-		if log.GetLevel() > log.InfoLevel {
-			stderr := stderrCapture.String()
-			if stderr != "" {
-				log.Error(stderr)
-			}
-		}
 		return err
 	}
 
