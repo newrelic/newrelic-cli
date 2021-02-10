@@ -109,11 +109,8 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		Stdout:     &stdoutCapture,
 	}
 
-	// Only pipe child process output streams for the chattier log levels
-	if log.GetLevel() > log.InfoLevel {
-		e.Stdout = os.Stdout
-		e.Stderr = os.Stderr
-	}
+	e.Stdout = os.Stdout
+	e.Stderr = os.Stderr
 
 	if err = e.Setup(); err != nil {
 		return err
