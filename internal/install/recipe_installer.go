@@ -236,16 +236,6 @@ func (i *RecipeInstaller) Install() error {
 		log.Debugf("Done installing integrations.")
 	}
 
-	isAppTarget := func(recipe types.Recipe) bool {
-		for _, target := range recipe.InstallTargets {
-			if target.Type != types.OpenInstallationTargetTypeTypes.APPLICATION {
-				return false
-			}
-		}
-
-		return true
-	}
-
 	for _, r := range allRecipes {
 		if isAppTarget(r) {
 			i.status.ReportRecipeRecommended(execution.RecipeStatusEvent{
@@ -651,4 +641,14 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 	}
 
 	return filteredRecipes, nil
+}
+
+func isAppTarget(recipe types.Recipe) bool {
+	for _, target := range recipe.InstallTargets {
+		if target.Type != types.OpenInstallationTargetTypeTypes.APPLICATION {
+			return false
+		}
+	}
+
+	return true
 }
