@@ -589,7 +589,7 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 	log.Debugf("reportedDisplayNames: %+v", reportedDisplayNames)
 	log.Debugf("recipes: %+v", recipes)
 
-	selectedRecipeNames := []string{}
+	var selectedRecipeNames []string
 	if i.AssumeYes {
 		// When -y is supplied, select all the recipes that were in the report for install.
 		selectedRecipeNames = reportedDisplayNames
