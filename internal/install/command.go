@@ -17,7 +17,6 @@ var (
 	recipeNames        []string
 	recipePaths        []string
 	skipDiscovery      bool
-	skipInfraInstall   bool
 	skipIntegrations   bool
 	skipLoggingInstall bool
 	testMode           bool
@@ -36,7 +35,6 @@ var Command = &cobra.Command{
 			RecipeNames:        recipeNames,
 			RecipePaths:        recipePaths,
 			SkipDiscovery:      skipDiscovery,
-			SkipInfraInstall:   skipInfraInstall,
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
 		}
@@ -76,7 +74,6 @@ func init() {
 	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
 	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
 	Command.Flags().BoolVarP(&skipDiscovery, "skipDiscovery", "d", false, "skips discovery of recommended New Relic integrations")
-	Command.Flags().BoolVarP(&skipInfraInstall, "skipInfraInstall", "i", false, "skips installation of New Relic Infrastructure Agent")
 	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
