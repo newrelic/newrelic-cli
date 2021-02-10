@@ -105,6 +105,7 @@ func (i *RecipeInstaller) Install() error {
 	}
 
 	var recipes []types.Recipe
+	var allRecipes []types.Recipe
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -200,6 +201,8 @@ func (i *RecipeInstaller) Install() error {
 			return i.fail(err)
 		}
 
+		// Save the original results from the Recommendations endpoint call
+		allRecipes = append(allRecipes, recipes...)
 		recipes = filteredRecipes
 	}
 
@@ -231,6 +234,25 @@ func (i *RecipeInstaller) Install() error {
 			return err
 		}
 		log.Debugf("Done installing integrations.")
+	}
+
+	isAppTarget := func(recipe types.Recipe) bool {
+		for _, target := range recipe.InstallTargets {
+			if target.Type != types.OpenInstallationTargetTypeTypes.APPLICATION {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	for _, r := range allRecipes {
+		if isAppTarget(r) {
+			i.status.ReportRecipeRecommended(execution.RecipeStatusEvent{
+				Recipe:     r,
+				EntityGUID: entityGUID,
+			})
+		}
 	}
 
 	i.status.ReportComplete()
@@ -273,10 +295,6 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 				"name": r.Name,
 			}).Debug("skipping non-HOST recipe")
 
-			i.status.ReportRecipeRecommended(execution.RecipeStatusEvent{
-				Recipe:     r,
-				EntityGUID: entityGUID,
-			})
 			continue
 		}
 
@@ -585,9 +603,6 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 
 		reportedDisplayNames = append(reportedDisplayNames, r.DisplayName)
 	}
-
-	log.Debugf("reportedDisplayNames: %+v", reportedDisplayNames)
-	log.Debugf("recipes: %+v", recipes)
 
 	var selectedRecipeNames []string
 	if i.AssumeYes {

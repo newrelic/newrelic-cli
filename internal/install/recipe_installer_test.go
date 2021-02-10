@@ -330,6 +330,7 @@ func TestInstall_ReportRecipeRecommended(t *testing.T) {
 	f.FetchRecommendationsVal = []types.Recipe{
 		{
 			Name:           testRecipeName,
+			DisplayName:    testRecipeName,
 			ValidationNRQL: "testNrql",
 			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
 				{
@@ -351,15 +352,18 @@ func TestInstall_ReportRecipeRecommended(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
-		PromptYesNoVal: true,
+		PromptYesNoVal:       true,
+		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeRecommendedCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	// The infra agent is always installed
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled["one"])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeRecommendedCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
 }
 
