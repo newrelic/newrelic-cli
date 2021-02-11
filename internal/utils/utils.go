@@ -25,7 +25,7 @@ func getSignalContext() context.Context {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-ch
-		log.Warnf("signal received: %s", sig)
+		log.Debugf("signal received: %s", sig)
 		cancel()
 	}()
 	return ctx
