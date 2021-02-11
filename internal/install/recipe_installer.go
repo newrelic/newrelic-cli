@@ -293,6 +293,10 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
+
+			if len(recipes) == 1 {
+				return err
+			}
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}

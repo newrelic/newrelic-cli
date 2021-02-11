@@ -158,7 +158,7 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.Equal(t, 1, v.ValidateCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeFailedCallCount)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
