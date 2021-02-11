@@ -286,6 +286,10 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
+			if serr, ok := err.(*types.ErrInterrupt); ok {
+				return serr
+			}
+
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
@@ -457,6 +461,10 @@ func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (
 func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
+		if serr, ok := err.(*types.ErrInterrupt); ok {
+			return "", serr
+		}
+
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
 		i.status.ReportRecipeFailed(execution.RecipeStatusEvent{
 			Recipe: *r,
@@ -492,7 +500,7 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
 	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
-		return "", fmt.Errorf("could not prepare recipe %s", err)
+		return "", err
 	}
 
 	i.progressIndicator.Start(fmt.Sprintf("Installing %s", r.Name))
@@ -502,7 +510,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
 		i.progressIndicator.Fail()
-		return "", fmt.Errorf("could not install recipe %s: %s", r.Name, err)
+		return "", err
 	}
 
 	i.progressIndicator.Success()
