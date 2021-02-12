@@ -502,6 +502,10 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+	if r.PreInstall.Info != "" {
+		fmt.Println(r.PreInstall.Info)
+	}
+
 	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
 		return "", err

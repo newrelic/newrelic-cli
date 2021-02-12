@@ -9,10 +9,16 @@ type Recipe struct {
 	Keywords       []string                              `json:"keywords"`
 	LogMatch       []LogMatch                            `json:"logMatch"`
 	Name           string                                `json:"name"`
+	PreInstall     RecipePreInstall                      `json:"preInstall"`
 	ProcessMatch   []string                              `json:"processMatch"`
 	Repository     string                                `json:"repository"`
 	ValidationNRQL string                                `json:"validationNrql"`
 	Vars           map[string]interface{}
+}
+
+// RecipePreInstall represents the information used prior to recipe execution.
+type RecipePreInstall struct {
+	Info string `yaml:"info"`
 }
 
 // LogMatch represents a pattern that may match one or more logs on the underlying host.
