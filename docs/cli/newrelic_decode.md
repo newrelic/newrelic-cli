@@ -17,7 +17,7 @@ newrelic decode <subcommand>
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
+      --format string   output text format [YAML, JSON, Text] (default "JSON")
       --plain           output compact text
 ```
 
