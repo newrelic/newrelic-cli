@@ -1,3 +1,8 @@
+<a name="v0.18.24"></a>
+## [v0.18.24] - 2021-02-12
+### Bug Fixes
+- **install:** Ensure error bubbles up when executing only 1 recipe and failing
+
 <a name="v0.18.23"></a>
 ## [v0.18.23] - 2021-02-11
 ### Bug Fixes
@@ -465,7 +470,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.23...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.24...HEAD
+[v0.18.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.23...v0.18.24
 [v0.18.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.22...v0.18.23
 [v0.18.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.21...v0.18.22
 [v0.18.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.20...v0.18.21
