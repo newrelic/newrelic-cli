@@ -185,6 +185,12 @@ This is the Infrastructure Agent Installer preinstall message.
 It is made up of a multi line string.
 				`,
 			},
+			PostInstall: types.RecipePostInstall{
+				Info: `
+This is the Infrastructure Agent Installer postinstall message.
+It is made up of a multi line string.
+				`,
+			},
 			ValidationNRQL: "test NRQL",
 			File: `
 ---
