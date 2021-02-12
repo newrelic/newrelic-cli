@@ -178,7 +178,19 @@ func setupRecipeFetcher() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           "Infrastructure Agent Installer",
+			Name: "Infrastructure Agent Installer",
+			PreInstall: types.RecipePreInstall{
+				Info: `
+This is the Infrastructure Agent Installer preinstall message.
+It is made up of a multi line string.
+				`,
+			},
+			PostInstall: types.RecipePostInstall{
+				Info: `
+This is the Infrastructure Agent Installer postinstall message.
+It is made up of a multi line string.
+				`,
+			},
 			ValidationNRQL: "test NRQL",
 			File: `
 ---
