@@ -146,6 +146,7 @@ func varsFromProfile() (types.RecipeVars, error) {
 
 	vars["NEW_RELIC_LICENSE_KEY"] = defaultProfile.LicenseKey
 	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(defaultProfile.AccountID)
+	vars["NEW_RELIC_INSIGHTS_INSERT_KEY"] = defaultProfile.InsightsInsertKey
 	vars["NEW_RELIC_API_KEY"] = defaultProfile.APIKey
 	vars["NEW_RELIC_REGION"] = defaultProfile.Region
 

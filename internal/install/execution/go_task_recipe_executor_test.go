@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -22,7 +23,9 @@ import (
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
 	p := credentials.Profile{
-		LicenseKey: "testLicenseKey",
+		LicenseKey:        "testLicenseKey",
+		InsightsInsertKey: "testInsightsInsertKey",
+		AccountID:         12345,
 	}
 	credentials.SetDefaultProfile(p)
 
@@ -53,6 +56,12 @@ func TestExecute_SystemVariableInterpolation(t *testing.T) {
 		\"platformFamily\": \"{{.PLATFORM_FAMILY}}\",
 		\"platformVersion\": \"{{.PLATFORM_VERSION}}\", 
 		\"kernelArch\": \"{{.KERNEL_ARCH}}\", 
+		\"kernelVersion\": \"{{.KERNEL_VERSION}}\",
+		\"accountID\": \"{{.NEW_RELIC_ACCOUNT_ID}}\",
+		\"licenseKey\": \"{{.NEW_RELIC_LICENSE_KEY}}\",
+		\"apiKey\": \"{{.NEW_RELIC_API_KEY}}\",
+		\"region\": \"{{.NEW_RELIC_REGION}}\",
+		\"insightsInsertKey\": \"{{.NEW_RELIC_INSIGHTS_INSERT_KEY}}\",
 		\"kernelVersion\": \"{{.KERNEL_VERSION}}\"
 	}`
 
@@ -92,16 +101,35 @@ func TestExecute_SystemVariableInterpolation(t *testing.T) {
 		t.Fatalf("error reading temp file %s", tmpFile.Name())
 	}
 
-	var actual types.DiscoveryManifest
-	if err := json.Unmarshal(dat, &actual); err != nil {
-		t.Fatalf("error unmarshaling temp file contents")
+	var actualM types.DiscoveryManifest
+	if err := json.Unmarshal(dat, &actualM); err != nil {
+		t.Fatalf("error unmarshaling temp file contents: %s", err)
+	}
+
+	var actualP profile
+	if err := json.Unmarshal(dat, &actualP); err != nil {
+		t.Fatalf("error unmarshaling temp file contents: %s", err)
 	}
 
 	require.NotEmpty(t, string(dat))
-	require.Equal(t, m.OS, actual.OS)
-	require.Equal(t, m.Platform, actual.Platform)
-	require.Equal(t, m.PlatformVersion, actual.PlatformVersion)
-	require.Equal(t, m.PlatformFamily, actual.PlatformFamily)
-	require.Equal(t, m.KernelArch, actual.KernelArch)
-	require.Equal(t, m.KernelVersion, actual.KernelVersion)
+	require.Equal(t, m.OS, actualM.OS)
+	require.Equal(t, m.Platform, actualM.Platform)
+	require.Equal(t, m.PlatformVersion, actualM.PlatformVersion)
+	require.Equal(t, m.PlatformFamily, actualM.PlatformFamily)
+	require.Equal(t, m.KernelArch, actualM.KernelArch)
+	require.Equal(t, m.KernelVersion, actualM.KernelVersion)
+
+	require.Equal(t, p.APIKey, actualP.APIKey)
+	require.Equal(t, strconv.Itoa(p.AccountID), actualP.AccountID)
+	require.Equal(t, p.LicenseKey, actualP.LicenseKey)
+	require.Equal(t, p.Region, actualP.Region)
+	require.Equal(t, p.InsightsInsertKey, actualP.InsightsInsertKey)
+}
+
+type profile struct {
+	APIKey            string `json:"apiKey"`
+	InsightsInsertKey string `json:"insightsInsertKey"`
+	Region            string `json:"region"`
+	AccountID         string `json:"accountID"`
+	LicenseKey        string `json:"licenseKey"`
 }
