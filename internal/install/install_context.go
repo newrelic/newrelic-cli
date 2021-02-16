@@ -6,7 +6,6 @@ type InstallerContext struct {
 	RecipeNames        []string
 	RecipePaths        []string
 	SkipDiscovery      bool
-	SkipInfraInstall   bool
 	SkipIntegrations   bool
 	SkipLoggingInstall bool
 }
@@ -16,7 +15,7 @@ func (i *InstallerContext) ShouldRunDiscovery() bool {
 }
 
 func (i *InstallerContext) ShouldInstallInfraAgent() bool {
-	return !i.RecipesProvided() && !i.SkipInfraInstall
+	return !i.RecipesProvided()
 }
 
 func (i *InstallerContext) ShouldInstallLogging() bool {
