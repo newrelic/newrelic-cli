@@ -17,9 +17,6 @@ func TestShouldRunDiscovery_Default(t *testing.T) {
 func TestShouldInstallInfraAgent_Default(t *testing.T) {
 	ic := InstallerContext{}
 	require.True(t, ic.ShouldInstallInfraAgent())
-
-	ic.SkipInfraInstall = true
-	require.False(t, ic.ShouldInstallInfraAgent())
 }
 
 func TestShouldInstallInfraAgent_RecipePathsProvided(t *testing.T) {
