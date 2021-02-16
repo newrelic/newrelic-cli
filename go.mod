@@ -20,18 +20,18 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
-	github.com/newrelic/newrelic-client-go v0.57.1
-	github.com/newrelic/tutone v0.5.0
+	github.com/newrelic/newrelic-client-go v0.58.0
+	github.com/newrelic/tutone v0.6.1
 	github.com/psampaz/go-mod-outdated v0.7.0
 	github.com/shirou/gopsutil v3.21.1+incompatible
-	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.1
+	github.com/sirupsen/logrus v1.7.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
 	golang.org/x/term v0.0.0-20201210144234-2321bbc49cbf
-	golang.org/x/tools v0.0.0-20210105210202-9ed45478a130
+	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.1
 )

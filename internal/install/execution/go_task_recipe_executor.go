@@ -1,13 +1,13 @@
 package execution
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -100,19 +100,10 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
-	var stderrCapture bytes.Buffer
-	var stdoutCapture bytes.Buffer
-
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stderr:     &stderrCapture,
-		Stdout:     &stdoutCapture,
-	}
-
-	// Only pipe child process output streams for the chattier log levels
-	if log.GetLevel() > log.InfoLevel {
-		e.Stdout = os.Stdout
-		e.Stderr = os.Stderr
+		Stderr:     os.Stderr,
+		Stdout:     os.Stdout,
 	}
 
 	if err = e.Setup(); err != nil {
@@ -133,12 +124,12 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
-		if log.GetLevel() > log.InfoLevel {
-			stderr := stderrCapture.String()
-			if stderr != "" {
-				log.Error(stderr)
-			}
+		// go-task does not provide an error type to denote context cancelation
+		// Therefore we need to match inside the error message
+		if strings.Contains(err.Error(), "context canceled") {
+			return types.NewErrInterrupt()
 		}
+
 		return err
 	}
 
@@ -220,6 +211,10 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 
 			envValue, err = varFromPrompt(envConfig)
 			if err != nil {
+				if err == promptui.ErrInterrupt {
+					return types.RecipeVars{}, types.NewErrInterrupt()
+				}
+
 				return types.RecipeVars{}, fmt.Errorf("prompt failed: %s", err)
 			}
 		}

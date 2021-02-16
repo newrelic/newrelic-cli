@@ -105,6 +105,7 @@ func (i *RecipeInstaller) Install() error {
 	}
 
 	var recipes []types.Recipe
+	var allRecipes []types.Recipe
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -190,64 +191,19 @@ func (i *RecipeInstaller) Install() error {
 	// Report discovered recipes as available
 	i.status.ReportRecipesAvailable(recipesForReport)
 
-	installRecommendations, err := i.userAccepts("Would you like to install the recommended instrumentation?")
-	if err != nil {
-		return err
-	}
-
-	if !installRecommendations {
-		// Start off skipping everything
-		i.SkipInfraInstall = true
-		i.SkipLoggingInstall = true
-		i.SkipIntegrations = true
-
-		reportedDisplayNames := []string{}
-		for _, r := range recipesForReport {
-			reportedDisplayNames = append(reportedDisplayNames, r.DisplayName)
+	// If guided installation, prompt user to determine what to skip and what to
+	// include.  Infra install is required and so we should not ask the user if
+	// they want to install it.
+	if !i.RecipesProvided() {
+		var filteredRecipes []types.Recipe
+		filteredRecipes, err = i.filterSkippedRecipes(recipesForReport)
+		if err != nil {
+			return i.fail(err)
 		}
 
-		selectedRecipeNames, promptErr := i.prompter.MultiSelect("Please choose what instrumentation you would like to install:", reportedDisplayNames)
-		if promptErr != nil {
-			return promptErr
-		}
-
-		newRecipes := []types.Recipe{}
-
-		// Find the intersection of the selected recipes by DisplayName and the
-		// recipesForReport, which is the infra and logging recipe + the OHIs.
-		for _, selectedRecipeName := range selectedRecipeNames {
-			for _, r := range recipesForReport {
-				if r.DisplayName == selectedRecipeName {
-					// Disable skip if logging was selected
-					if r.Name == loggingRecipeName {
-						i.SkipLoggingInstall = false
-					}
-
-					// Disable skip if infra was selected
-					if r.Name == infraAgentRecipeName {
-						i.SkipInfraInstall = false
-					}
-
-					// Disable skip if what we have is neither logging no infra
-					if r.Name != infraAgentRecipeName && r.Name != loggingRecipeName {
-						i.SkipIntegrations = false
-					}
-
-					newRecipes = append(newRecipes, r)
-				}
-			}
-		}
-
-		log.Debug("skipping recipes that were not selected")
-		for _, r := range recipesForReport {
-			if !i.recipeInRecipes(r, newRecipes) {
-				i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{
-					Recipe: r,
-				})
-			}
-		}
-
-		recipes = newRecipes
+		// Save the original results from the Recommendations endpoint call
+		allRecipes = append(allRecipes, recipes...)
+		recipes = filteredRecipes
 	}
 
 	var entityGUID string
@@ -280,6 +236,15 @@ func (i *RecipeInstaller) Install() error {
 		log.Debugf("Done installing integrations.")
 	}
 
+	for _, r := range allRecipes {
+		if isAppTarget(r) {
+			i.status.ReportRecipeRecommended(execution.RecipeStatusEvent{
+				Recipe:     r,
+				EntityGUID: entityGUID,
+			})
+		}
+	}
+
 	i.status.ReportComplete()
 
 	return nil
@@ -289,6 +254,16 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
+
+	isHostTarget := func(recipe types.Recipe) bool {
+		for _, target := range recipe.InstallTargets {
+			if target.Type != types.OpenInstallationTargetTypeTypes.HOST {
+				return false
+			}
+		}
+
+		return true
+	}
 
 	for _, r := range recipes {
 		// The infra and logging install have their own install methods.  In the
@@ -304,6 +279,15 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 			}
 		}
 
+		// Skip non-HOST recipes, but report status of them.
+		if !isHostTarget(r) {
+			log.WithFields(log.Fields{
+				"name": r.Name,
+			}).Debug("skipping non-HOST recipe")
+
+			continue
+		}
+
 		var err error
 
 		log.WithFields(log.Fields{
@@ -312,9 +296,17 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
+			if serr, ok := err.(*types.ErrInterrupt); ok {
+				return serr
+			}
+
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
+
+			if len(recipes) == 1 {
+				return err
+			}
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
@@ -370,12 +362,6 @@ func (i *RecipeInstaller) fetchRecipeAndReport(m *types.DiscoveryManifest, recip
 	}
 
 	switch recipeName {
-	case infraAgentRecipeName:
-		if i.SkipInfraInstall {
-			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *r})
-		} else {
-			i.status.ReportRecipeAvailable(*r)
-		}
 	case loggingRecipeName:
 		if i.SkipLoggingInstall {
 			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{Recipe: *r})
@@ -483,6 +469,10 @@ func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (
 func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
+		if serr, ok := err.(*types.ErrInterrupt); ok {
+			return "", serr
+		}
+
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
 		i.status.ReportRecipeFailed(execution.RecipeStatusEvent{
 			Recipe: *r,
@@ -503,22 +493,26 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 			})
 			return "", errors.New(msg)
 		}
-
-		i.status.ReportRecipeInstalled(execution.RecipeStatusEvent{
-			Recipe:     *r,
-			EntityGUID: entityGUID,
-		})
 	} else {
 		log.Debugf("Skipping validation due to missing validation query.")
 	}
+
+	i.status.ReportRecipeInstalled(execution.RecipeStatusEvent{
+		Recipe:     *r,
+		EntityGUID: entityGUID,
+	})
 
 	return entityGUID, nil
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+	if r.PreInstallMessage() != "" {
+		fmt.Println(r.PreInstallMessage())
+	}
+
 	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
-		return "", fmt.Errorf("could not prepare recipe %s", err)
+		return "", err
 	}
 
 	i.progressIndicator.Start(fmt.Sprintf("Installing %s", r.Name))
@@ -528,7 +522,11 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
 		i.progressIndicator.Fail()
-		return "", fmt.Errorf("could not install recipe %s: %s", r.Name, err)
+		return "", err
+	}
+
+	if r.PostInstallMessage() != "" {
+		fmt.Println(r.PostInstallMessage())
 	}
 
 	i.progressIndicator.Success()
@@ -536,6 +534,10 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
+	if i.AssumeYes {
+		return true, nil
+	}
+
 	val, err := i.prompter.PromptYesNo(msg)
 	if err != nil {
 		return false, err
@@ -574,4 +576,79 @@ func (i *RecipeInstaller) recipeInRecipes(recipe types.Recipe, recipes []types.R
 	}
 
 	return false
+}
+
+func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.Recipe, error) {
+	var filteredRecipes []types.Recipe
+	// Start off skipping everything
+	i.SkipLoggingInstall = true
+	i.SkipIntegrations = true
+
+	reportedDisplayNames := []string{}
+	for _, r := range recipes {
+		// Never offer to skip the infra agent installation
+		if r.Name == infraAgentRecipeName {
+			continue
+		}
+
+		reportedDisplayNames = append(reportedDisplayNames, r.DisplayName)
+	}
+
+	var selectedRecipeNames []string
+	if i.AssumeYes {
+		// When -y is supplied, select all the recipes that were in the report for install.
+		selectedRecipeNames = reportedDisplayNames
+	} else {
+		var promptErr error
+		selectedRecipeNames, promptErr = i.prompter.MultiSelect("Please choose what instrumentation you would like to install:", reportedDisplayNames)
+		if promptErr != nil {
+			return nil, promptErr
+		}
+	}
+
+	// Find the intersection of the selected recipes by DisplayName and the
+	// recipesForReport, which is the infra and logging recipe + the OHIs.
+	for _, selectedRecipeName := range selectedRecipeNames {
+		for _, r := range recipes {
+			if r.DisplayName == selectedRecipeName {
+				// Disable skip if logging was selected
+				if r.Name == loggingRecipeName {
+					i.SkipLoggingInstall = false
+				}
+
+				// Disable skip if what we have is neither logging no infra
+				if r.Name != infraAgentRecipeName && r.Name != loggingRecipeName {
+					i.SkipIntegrations = false
+				}
+
+				filteredRecipes = append(filteredRecipes, r)
+			}
+		}
+	}
+
+	log.Debug("skipping recipes that were not selected")
+	for _, r := range recipes {
+		// Never offer to skip the infra agent installation
+		if r.Name == infraAgentRecipeName {
+			continue
+		}
+
+		if !i.recipeInRecipes(r, filteredRecipes) {
+			i.status.ReportRecipeSkipped(execution.RecipeStatusEvent{
+				Recipe: r,
+			})
+		}
+	}
+
+	return filteredRecipes, nil
+}
+
+func isAppTarget(recipe types.Recipe) bool {
+	for _, target := range recipe.InstallTargets {
+		if target.Type != types.OpenInstallationTargetTypeTypes.APPLICATION {
+			return false
+		}
+	}
+
+	return true
 }

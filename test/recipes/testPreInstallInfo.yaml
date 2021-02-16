@@ -1,0 +1,36 @@
+name: test-preinstall-info
+displayName: Test PreInstall Info Message
+
+inputVars:
+  - name: 'SOME_VAR'
+    prompt: 'Input something:'
+
+preInstall:
+  info: |
+    This is a multi-line pre-install message.
+    It will tell you about what's coming next.
+
+postInstall:
+  info: |
+    This is a multi-line post-install message.
+    It will display after the recipe has completed successfully.
+
+install:
+  version: '3'
+  silent: true
+
+  tasks:
+    default:
+      cmds:
+        - task: assert_pre_req
+        - task: execute
+
+    assert_pre_req:
+      cmds:
+        - |
+          echo -e "\nThe prereq script goes here.\n"
+    execute:
+      label: 'Installing test recipe...'
+      cmds:
+        - |
+          echo -e "\nThe execution script goes here.\n"

@@ -2,6 +2,7 @@ package ux
 
 type MockPrompter struct {
 	PromptYesNoVal             bool
+	PromptMultiSelectAll       bool
 	PromptYesNoErr             error
 	PromptYesNoCallCount       int
 	PromptMultiSelectVal       []string
@@ -20,5 +21,10 @@ func (p *MockPrompter) PromptYesNo(msg string) (bool, error) {
 
 func (p *MockPrompter) MultiSelect(msg string, options []string) ([]string, error) {
 	p.PromptMultiSelectCallCount++
+
+	if p.PromptMultiSelectAll {
+		return options, nil
+	}
+
 	return p.PromptMultiSelectVal, p.PromptMultiSelectErr
 }

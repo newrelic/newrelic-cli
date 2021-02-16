@@ -7,26 +7,29 @@ import (
 // MockStatusReporter is a mock implementation of the ExecutionStatusReporter
 // interface that provides method spies for testing scenarios.
 type MockStatusReporter struct {
-	ReportRecipeAvailableErr        error
-	ReportRecipesAvailableErr       error
-	ReportRecipeFailedErr           error
-	ReportRecipeInstalledErr        error
-	ReportRecipeInstallingErr       error
-	ReportRecipeSkippedErr          error
-	ReportCompleteErr               error
-	ReportRecipeAvailableCallCount  int
-	ReportRecipesAvailableCallCount int
-	ReportRecipeFailedCallCount     int
-	ReportRecipeInstalledCallCount  int
-	ReportRecipeInstallingCallCount int
-	ReportRecipeSkippedCallCount    int
-	ReportCompleteCallCount         int
+	ReportRecipeAvailableErr         error
+	ReportRecipesAvailableErr        error
+	ReportRecipeFailedErr            error
+	ReportRecipeInstalledErr         error
+	ReportRecipeInstallingErr        error
+	ReportRecipeRecommendedErr       error
+	ReportRecipeSkippedErr           error
+	ReportCompleteErr                error
+	ReportRecipeAvailableCallCount   int
+	ReportRecipesAvailableCallCount  int
+	ReportRecipeFailedCallCount      int
+	ReportRecipeInstalledCallCount   int
+	ReportRecipeInstallingCallCount  int
+	ReportRecipeRecommendedCallCount int
+	ReportRecipeSkippedCallCount     int
+	ReportCompleteCallCount          int
 
-	ReportSkipped    map[string]int
-	ReportInstalled  map[string]int
-	ReportInstalling map[string]int
-	ReportFailed     map[string]int
-	ReportAvailable  map[string]int
+	ReportSkipped     map[string]int
+	ReportInstalled   map[string]int
+	ReportInstalling  map[string]int
+	ReportRecommended map[string]int
+	ReportFailed      map[string]int
+	ReportAvailable   map[string]int
 }
 
 // NewMockStatusReporter returns a new instance of MockExecutionStatusReporter.
@@ -59,6 +62,15 @@ func (r *MockStatusReporter) ReportRecipeInstalling(status *StatusRollup, event 
 	}
 	r.ReportInstalling[event.Recipe.Name]++
 	return r.ReportRecipeInstallingErr
+}
+
+func (r *MockStatusReporter) ReportRecipeRecommended(status *StatusRollup, event RecipeStatusEvent) error {
+	r.ReportRecipeRecommendedCallCount++
+	if len(r.ReportRecommended) == 0 {
+		r.ReportRecommended = make(map[string]int)
+	}
+	r.ReportRecommended[event.Recipe.Name]++
+	return r.ReportRecipeRecommendedErr
 }
 
 func (r *MockStatusReporter) ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error {

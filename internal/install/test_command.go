@@ -22,9 +22,9 @@ var TestCommand = &cobra.Command{
 			RecipePaths:        recipePaths,
 			RecipeNames:        recipeNames,
 			SkipDiscovery:      skipDiscovery,
-			SkipInfraInstall:   skipInfraInstall,
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
+			AssumeYes:          assumeYes,
 		}
 
 		b := NewScenarioBuilder(ic)
@@ -44,8 +44,8 @@ func init() {
 	TestCommand.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
 	TestCommand.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
 	TestCommand.Flags().BoolVarP(&skipDiscovery, "skipDiscovery", "d", false, "skips discovery of recommended New Relic integrations")
-	TestCommand.Flags().BoolVarP(&skipInfraInstall, "skipInfraInstall", "i", false, "skips installation of New Relic Infrastructure Agent")
 	TestCommand.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	TestCommand.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 	TestCommand.Flags().StringVarP(&testScenario, "testScenario", "s", string(Basic), fmt.Sprintf("test scenario to run, defaults to BASIC.  Valid values are %s", strings.Join(TestScenarioValues(), ",")))
+	TestCommand.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 }

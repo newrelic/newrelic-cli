@@ -242,6 +242,7 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 		Description:    result.Description,
 		DisplayName:    result.DisplayName,
 		File:           result.File,
+		InstallTargets: result.InstallTargets,
 		Keywords:       result.Keywords,
 		LogMatch:       createLogMatches(result.LogMatch),
 		Name:           result.Name,

@@ -46,7 +46,6 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 		RecipePaths:        []string{"testRecipePath"},
 		RecipeNames:        []string{"testRecipeName"},
 		SkipDiscovery:      true,
-		SkipInfraInstall:   true,
 		SkipIntegrations:   true,
 		SkipLoggingInstall: true,
 	}
@@ -110,21 +109,26 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           testRecipeName,
+		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
 			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
 			Name:           loggingRecipeName,
+			DisplayName:    loggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
 
 	p = &ux.MockPrompter{
-		PromptYesNoVal: true,
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
 	}
 
 	v = validation.NewMockRecipeValidator()
@@ -137,20 +141,32 @@ func TestInstall_ReportRecipeInstalled(t *testing.T) {
 
 func TestInstall_ReportRecipeFailed(t *testing.T) {
 	ic := InstallerContext{
-		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
 	status = execution.NewStatusRollup(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
-		Name:           "test-recipe",
+		Name:           testRecipeName,
+		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{{}, {}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+		{
+			Name:           loggingRecipeName,
+			DisplayName:    loggingRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
 
 	p = &ux.MockPrompter{
-		PromptYesNoVal: true,
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
 	}
 
 	v = validation.NewMockRecipeValidator()
@@ -158,15 +174,14 @@ func TestInstall_ReportRecipeFailed(t *testing.T) {
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
-	require.NoError(t, err)
+	require.Error(t, err)
 	require.Equal(t, 1, v.ValidateCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeFailedCallCount)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
 }
 
 func TestInstall_ReportComplete(t *testing.T) {
 	ic := InstallerContext{
-		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
@@ -181,7 +196,7 @@ func TestInstall_ReportComplete(t *testing.T) {
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportCompleteCallCount)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
 }
 
 func TestInstall_ReportCompleteError(t *testing.T) {
@@ -215,7 +230,6 @@ func TestInstall_ReportCompleteError(t *testing.T) {
 
 func TestInstall_ReportRecipeSkipped(t *testing.T) {
 	ic := InstallerContext{
-		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
@@ -223,26 +237,36 @@ func TestInstall_ReportRecipeSkipped(t *testing.T) {
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{{
 		Name:           testRecipeName,
+		DisplayName:    "test displayName",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:        infraAgentRecipeName,
+			DisplayName: "Infra Recipe",
+		},
+		{
+			Name:        loggingRecipeName,
+			DisplayName: "Logging Recipe",
+		},
+	}
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
-		PromptYesNoVal: true,
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
-func TestInstall_ReportRecipeSkipped_skipping_integrations(t *testing.T) {
+func TestInstall_ReportRecipeSkipped_skipping_everything(t *testing.T) {
 	ic := InstallerContext{
-		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 		SkipIntegrations:   true,
 	}
@@ -265,12 +289,12 @@ func TestInstall_ReportRecipeSkipped_skipping_integrations(t *testing.T) {
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
-	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	// The infra agent always gets installed
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
 func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
 	ic := InstallerContext{
-		SkipInfraInstall:   true,
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
@@ -293,8 +317,54 @@ func TestInstall_ReportRecipeSkipped_multiselect(t *testing.T) {
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	// The infra agent always gets installed
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+}
+
+func TestInstall_ReportRecipeRecommended(t *testing.T) {
+	ic := InstallerContext{}
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{
+		{
+			Name:           testRecipeName,
+			DisplayName:    testRecipeName,
+			ValidationNRQL: "testNrql",
+			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
+				{
+					Type: types.OpenInstallationTargetTypeTypes.HOST,
+				},
+			},
+		},
+		{
+			Name:           "java-java-java",
+			ValidationNRQL: "testNrql",
+			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
+				{
+					Type: types.OpenInstallationTargetTypeTypes.APPLICATION,
+				},
+			},
+		},
+	}
+	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
+
+	v = validation.NewMockRecipeValidator()
+	p = &ux.MockPrompter{
+		PromptYesNoVal:       true,
+		PromptMultiSelectVal: []string{testRecipeName},
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
+	err := i.Install()
+	require.NoError(t, err)
+	// The infra agent is always installed
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled["one"])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeRecommendedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
 }
 
 func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {
@@ -326,7 +396,45 @@ func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
+}
+
+func TestInstall_ReportRecipeSkipped_assumeYes(t *testing.T) {
+	ic := InstallerContext{
+		AssumeYes: true,
+	}
+
+	statusReporters = []execution.StatusReporter{execution.NewMockStatusReporter()}
+	status = execution.NewStatusRollup(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           testRecipeName,
+		DisplayName:    "test displayName",
+		ValidationNRQL: "testNrql",
+	}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:        infraAgentRecipeName,
+			DisplayName: "Infra Recipe",
+		},
+		{
+			Name:        loggingRecipeName,
+			DisplayName: "Logging Recipe",
+		},
+	}
+
+	v = validation.NewMockRecipeValidator()
+	p = &ux.MockPrompter{
+		PromptYesNoVal: true,
+		// PromptMultiSelectAll: true,
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
+	err := i.Install()
+	require.NoError(t, err)
 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeSkippedCallCount)
+	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstallingCallCount)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).ReportRecipeInstalledCallCount)
 }
 
