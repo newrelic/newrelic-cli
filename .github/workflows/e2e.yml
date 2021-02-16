@@ -1,6 +1,7 @@
 name: End to end testing
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -28,6 +29,59 @@ jobs:
 
       - name: Compile
         run: make compile
+
+      # Inject newrelic cli path to any of the smoke tests
+      - name: Add newrelic cli path to smoke tests
+        id: get-test-definition-files
+        if: env.RECIPES != ''
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const fs = require('fs');
+            const fsp = fs.promises;
+            const path = require('path');
+
+            // readdir recursive directory search
+            const { resolve } = path;
+            const { readdir } = fsp;
+
+            async function getFiles(dir) {
+              const dirents = await readdir(dir, { withFileTypes: true });
+              const files = await Promise.all(dirents.map((dirent) => {
+                const res = path.join(dir, dirent.name);
+                return dirent.isDirectory() ? getFiles(res) : res;
+              }));
+              return Array.prototype.concat(...files);
+            }
+
+            const testFiles = await getFiles('open-install-library/test/definitions/smoke');
+            console.log(`Detected Test Files: ${JSON.stringify(testFiles, null, 2)}`);
+
+            testFiles.forEach(testFile => {
+              const outputPath = `${process.env.GITHUB_WORKSPACE}/${testFile}`;
+              const jsonContent = require(outputPath);
+              var isUpdated = false
+
+              if (jsonContent.instrumentations) {
+                if (jsonContent.instrumentations.resources) {
+                  jsonContent.instrumentations.resources.forEach(resource => {
+                    if (resource.params) {
+                      isUpdated = true;
+                      resource.params.newrelic_cli_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
+                    }
+                  });
+                }
+              }
+
+              if (isUpdated) {
+                // Write file back to workspace
+                console.log("Updated Deploy Config File: ", outputPath);
+                console.log("Deploy Config content: ", jsonContent);
+                fs.writeFileSync(outputPath, jsonContent);
+              }
+            });
+
+            return null;
 
       - name: Write AWS Certificate to File
         env:
