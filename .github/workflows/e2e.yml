@@ -32,8 +32,7 @@ jobs:
 
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
-        id: get-test-definition-files
-        if: env.RECIPES != ''
+        id: add-newrelic-cli-path-smoke-tests
         uses: actions/github-script@v3
         with:
           script: |
@@ -53,13 +52,11 @@ jobs:
               }));
               return Array.prototype.concat(...files);
             }
-
-            const testFiles = await getFiles('open-install-library/test/definitions/smoke');
+            const testFiles = await getFiles(`${process.env.GITHUB_WORKSPACE}/open-install-library/test/definitions/smoke`);
             console.log(`Detected Test Files: ${JSON.stringify(testFiles, null, 2)}`);
 
             testFiles.forEach(testFile => {
-              const outputPath = `${process.env.GITHUB_WORKSPACE}/${testFile}`;
-              const jsonContent = require(outputPath);
+              const jsonContent = require(testFile);
               var isUpdated = false
 
               if (jsonContent.instrumentations) {
@@ -75,9 +72,9 @@ jobs:
 
               if (isUpdated) {
                 // Write file back to workspace
-                console.log("Updated Deploy Config File: ", outputPath);
+                console.log("Updated Deploy Config File: ", testFile);
                 console.log("Deploy Config content: ", jsonContent);
-                fs.writeFileSync(outputPath, jsonContent);
+                fs.writeFileSync(testFile, jsonContent);
               }
             });
 
@@ -110,8 +107,8 @@ jobs:
           set +e
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
-            -v ${{ github.workspace }}/test/:/mnt/deployer/test/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d open-install-library/test/definitions/smoke -s 20 -m deploy -l debug
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m deploy -l debug
           echo ::set-output name=exit_status::$?
 
       - name: Cleanup all resources
@@ -120,8 +117,8 @@ jobs:
         run: |
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
-            -v ${{ github.workspace }}/test/:/mnt/deployer/test/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d open-install-library/test/definitions/smoke -s 20 -m teardown -i
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m teardown -i
 
       - name: Report any error
         if: steps.deployerRun.outputs.exit_status != 0
