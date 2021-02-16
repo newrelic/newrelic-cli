@@ -312,7 +312,7 @@ const (
 		}
 		validationNrql
 		preInstall {
-			prompt
+			info
 		}
 		file
 	`
