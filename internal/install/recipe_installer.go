@@ -293,6 +293,10 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.Name))
+
+			if len(recipes) == 1 {
+				return err
+			}
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
@@ -498,6 +502,10 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+	if r.PreInstallMessage() != "" {
+		fmt.Println(r.PreInstallMessage())
+	}
+
 	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
 	if err != nil {
 		return "", err
@@ -511,6 +519,10 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 	if err != nil {
 		i.progressIndicator.Fail()
 		return "", err
+	}
+
+	if r.PostInstallMessage() != "" {
+		fmt.Println(r.PostInstallMessage())
 	}
 
 	i.progressIndicator.Success()

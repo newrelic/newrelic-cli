@@ -20,9 +20,21 @@ type RecipeFile struct {
 	LogMatch       []types.LogMatch       `yaml:"logMatch"`
 	Name           string                 `yaml:"name"`
 	DisplayName    string                 `yaml:"displayName"`
+	PreInstall     RecipePreInstall       `yaml:"preInstall"`
+	PostInstall    RecipePostInstall      `yaml:"postInstall"`
 	ProcessMatch   []string               `yaml:"processMatch"`
 	Repository     string                 `yaml:"repository"`
 	ValidationNRQL string                 `yaml:"validationNrql"`
+}
+
+type RecipePreInstall struct {
+	Info   string `yaml:"info"`
+	Prompt string `yaml:"prompt"`
+}
+
+type RecipePostInstall struct {
+	Info   string `yaml:"info"`
+	Prompt string `yaml:"prompt"`
 }
 
 type VariableConfig struct {
@@ -118,12 +130,20 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 	}
 
 	r := types.Recipe{
-		File:           fileStr,
-		Name:           f.Name,
-		DisplayName:    f.DisplayName,
-		Description:    f.Description,
-		Repository:     f.Repository,
-		Keywords:       f.Keywords,
+		File:        fileStr,
+		Name:        f.Name,
+		DisplayName: f.DisplayName,
+		Description: f.Description,
+		Repository:  f.Repository,
+		Keywords:    f.Keywords,
+		PreInstall: types.RecipePreInstall{
+			Info:   f.PreInstall.Info,
+			Prompt: f.PreInstall.Prompt,
+		},
+		PostInstall: types.RecipePostInstall{
+			Info:   f.PostInstall.Info,
+			Prompt: f.PostInstall.Prompt,
+		},
 		ProcessMatch:   f.ProcessMatch,
 		LogMatch:       f.LogMatch,
 		ValidationNRQL: f.ValidationNRQL,

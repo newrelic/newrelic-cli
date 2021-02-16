@@ -9,10 +9,48 @@ type Recipe struct {
 	Keywords       []string                              `json:"keywords"`
 	LogMatch       []LogMatch                            `json:"logMatch"`
 	Name           string                                `json:"name"`
+	PreInstall     RecipePreInstall                      `json:"preInstall"`
+	PostInstall    RecipePostInstall                     `json:"postInstall"`
 	ProcessMatch   []string                              `json:"processMatch"`
 	Repository     string                                `json:"repository"`
 	ValidationNRQL string                                `json:"validationNrql"`
 	Vars           map[string]interface{}
+}
+
+// RecipePreInstall represents the information used prior to recipe execution.
+type RecipePreInstall struct {
+	Info   string `yaml:"info"`
+	Prompt string `yaml:"prompt"`
+}
+
+// RecipePostInstall represents the information used after recipe execution has completed.
+type RecipePostInstall struct {
+	Info   string `yaml:"info"`
+	Prompt string `yaml:"prompt"`
+}
+
+func (r *Recipe) PostInstallMessage() string {
+	if r.PostInstall.Info != "" {
+		return r.PostInstall.Info
+	}
+
+	if r.PostInstall.Prompt != "" {
+		return r.PostInstall.Prompt
+	}
+
+	return ""
+}
+
+func (r *Recipe) PreInstallMessage() string {
+	if r.PreInstall.Info != "" {
+		return r.PreInstall.Info
+	}
+
+	if r.PreInstall.Prompt != "" {
+		return r.PreInstall.Prompt
+	}
+
+	return ""
 }
 
 // LogMatch represents a pattern that may match one or more logs on the underlying host.
