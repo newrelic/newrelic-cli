@@ -86,7 +86,6 @@ jobs:
                 fs.writeFileSync(testFile, jsonContent);
               }
             });
-
             return null;
 
       - name: Write AWS Certificate to File
