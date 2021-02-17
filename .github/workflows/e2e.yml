@@ -45,10 +45,11 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
-            const newrelic_cli_path = `/mnt/deployer/bin/linux/newrelic`;
-            console.log(`Using cli path ${newrelic_cli_path}`);
-            if (!fs.existsSync(newrelic_cli_path)) {
-              throw new Error(`The newrelic cli does NOT exist ${newrelic_cli_path}`);
+            const newrelic_cli_source_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
+            const newrelic_cli_docker_path = `/mnt/deployer/bin/linux/newrelic`;
+            console.log(`Using cli source path ${newrelic_cli_source_path}`);
+            if (!fs.existsSync(newrelic_cli_source_path)) {
+              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_source_path}`);
             }
 
             async function getFiles(dir) {
@@ -71,7 +72,7 @@ jobs:
                   jsonData.instrumentations.resources.forEach(resource => {
                     if (resource.params) {
                       isUpdated = true;
-                      resource.params.newrelic_cli_path = `${newrelic_cli_path}`;
+                      resource.params.newrelic_cli_path = `${newrelic_cli_docker_path}`;
                     }
                   });
                 }
