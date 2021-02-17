@@ -147,6 +147,18 @@ func (s *StatusRollup) ReportComplete() {
 	}
 }
 
+func (s *StatusRollup) recommendations() []Status {
+	var statuses []Status
+
+	for _, st := range s.Statuses {
+		if st.Status == StatusTypes.RECOMMENDED {
+			statuses = append(statuses, st)
+		}
+	}
+
+	return statuses
+}
+
 func (s *StatusRollup) hasFailed() bool {
 	for _, ss := range s.Statuses {
 		if ss.Status == StatusTypes.FAILED {

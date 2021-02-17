@@ -65,20 +65,31 @@ func (r TerminalStatusReporter) ReportRecipeAvailable(status *StatusRollup, reci
 }
 
 func (r TerminalStatusReporter) ReportComplete(status *StatusRollup) error {
-
 	if status.hasFailed() {
 		return fmt.Errorf("one or more integrations failed to install, check the install log for more details: %s", status.LogFilePath)
 	}
 
-	msg := `
-  Success! Your data is available in New Relic.
+	recs := status.recommendations()
 
-  Go to New Relic to confirm and start exploring your data.`
+	if len(recs) > 0 {
+		fmt.Println("  ---")
+		fmt.Println("  Instrumentation recommendations")
+		fmt.Println("  We discovered some additional instrumentation opportunities:")
 
-	fmt.Println(msg)
+		for _, recommendation := range recs {
+			fmt.Printf("  - %s\n", recommendation.DisplayName)
+		}
 
-	for _, entityGUID := range status.EntityGUIDs {
-		fmt.Printf("\n  https://one.newrelic.com/redirect/entity/%s\n", entityGUID)
+		fmt.Println("Please refer to the \"Detected observability gaps\" section in the link to your data.")
+		fmt.Println("  ---")
+	}
+
+	fmt.Println("  New Relic installation complete!")
+
+	if len(status.EntityGUIDs) > 0 {
+		infraLink := fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", status.EntityGUIDs[0])
+
+		fmt.Printf("  Your data is available at %s", infraLink)
 	}
 
 	fmt.Println()
