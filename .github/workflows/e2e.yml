@@ -28,7 +28,7 @@ jobs:
           path: open-install-library
 
       - name: Compile
-        run: make compile
+        run: make compile-all
 
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
@@ -45,11 +45,17 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
-            const newrelic_cli_source_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
-            const newrelic_cli_docker_path = `/mnt/deployer/bin/linux/newrelic`;
-            console.log(`Using cli source path ${newrelic_cli_source_path}`);
-            if (!fs.existsSync(newrelic_cli_source_path)) {
-              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_source_path}`);
+            const newrelic_cli_linux_source_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
+            const newrelic_cli_linux_docker_path = `/mnt/deployer/bin/linux/newrelic`;
+            const newrelic_cli_windows_source_path = `${process.env.GITHUB_WORKSPACE}/bin/windows/newrelic`;
+            const newrelic_cli_windows_docker_path = `/mnt/deployer/bin/windows/newrelic`;
+            console.log(`Using cli linux source path ${newrelic_cli_linux_source_path}`);
+            if (!fs.existsSync(newrelic_cli_linux_source_path)) {
+              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_linux_source_path}`);
+            }
+            console.log(`Using cli windows source path ${newrelic_cli_windows_source_path}`);
+            if (!fs.existsSync(newrelic_cli_windows_source_path)) {
+              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_windows_source_path}`);
             }
 
             async function getFiles(dir) {
@@ -66,13 +72,27 @@ jobs:
             testFiles.forEach(testFile => {
               const jsonData = require(testFile);
               var isUpdated = false
+              var isWindows = false
+
+              if (jsonData.resources) {
+                jsonData.resources.forEach(resource => {
+                  if (resource.is_windows) {
+                    isWindows = true;
+                  }
+                });
+              }
 
               if (jsonData.instrumentations) {
                 if (jsonData.instrumentations.resources) {
                   jsonData.instrumentations.resources.forEach(resource => {
                     if (resource.params) {
                       isUpdated = true;
-                      resource.params.newrelic_cli_path = `${newrelic_cli_docker_path}`;
+                      if (isWindows) {
+                        resource.params.newrelic_cli_path = `${newrelic_cli_windows_docker_path}`;
+                      }
+                      else {
+                        resource.params.newrelic_cli_path = `${newrelic_cli_linux_docker_path}`;
+                      }
                     }
                   });
                 }
