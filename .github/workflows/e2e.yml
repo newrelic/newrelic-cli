@@ -45,10 +45,10 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
-            console.log(`Using cli path ${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`);
-            if (!fs.existsSync(`${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`)) {
-              throw new Error(`The newrelic cli does NOT exist`);
-            }
+            # console.log(`Using cli path ${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`);
+            # if (!fs.existsSync(`${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`)) {
+            #   throw new Error(`The newrelic cli does NOT exist`);
+            # }
 
             async function getFiles(dir) {
               const dirents = await readdir(dir, { withFileTypes: true });
