@@ -56,12 +56,12 @@ jobs:
             console.log(`Detected Test Files: ${JSON.stringify(testFiles, null, 2)}`);
 
             testFiles.forEach(testFile => {
-              const jsonContent = require(testFile);
+              const jsonData = require(testFile);
               var isUpdated = false
 
-              if (jsonContent.instrumentations) {
-                if (jsonContent.instrumentations.resources) {
-                  jsonContent.instrumentations.resources.forEach(resource => {
+              if (jsonData.instrumentations) {
+                if (jsonData.instrumentations.resources) {
+                  jsonData.instrumentations.resources.forEach(resource => {
                     if (resource.params) {
                       isUpdated = true;
                       resource.params.newrelic_cli_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
@@ -72,6 +72,7 @@ jobs:
 
               if (isUpdated) {
                 // Write file back to workspace
+                let jsonContent = JSON.stringify(jsonData, null, 2);
                 console.log("Updated Deploy Config File: ", testFile);
                 console.log("Deploy Config content: ", jsonContent);
                 fs.writeFileSync(testFile, jsonContent);
