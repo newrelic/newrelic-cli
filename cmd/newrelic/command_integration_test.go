@@ -15,13 +15,17 @@ import (
 )
 
 func TestInitializeProfile(t *testing.T) {
+
+	apiKey := os.Getenv("NEW_RELIC_API_KEY")
+	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
+	if apiKey == "" || envAccountID == "" {
+		t.Skipf("NEW_RELIC_API_KEY and NEW_RELIC_ACCOUNT_ID are required to run this test")
+	}
+
 	f, err := ioutil.TempDir("/tmp", "newrelic")
 	defer os.RemoveAll(f)
 	assert.NoError(t, err)
 	config.DefaultConfigDirectory = f
-
-	apiKey := os.Getenv("NEW_RELIC_API_KEY")
-	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 
 	// Init without the necessary environment variables
 	os.Setenv("NEW_RELIC_API_KEY", "")
