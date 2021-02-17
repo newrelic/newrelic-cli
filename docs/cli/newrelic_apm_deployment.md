@@ -29,7 +29,7 @@ newrelic apm deployment list --applicationId <appID>
 ```
   -a, --accountId string    A New Relic account ID
       --applicationId int   A New Relic APM application ID
-      --format string       output text format [JSON, Text, YAML] (default "JSON")
+      --format string       output text format [YAML, JSON, Text] (default "JSON")
       --plain               output compact text
 ```
 
