@@ -134,3 +134,13 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	require.NotNil(t, s.Timestamp)
 
 }
+
+func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{})
+	r := types.Recipe{Name: "testRecipe"}
+
+	s.RecipesAvailable([]types.Recipe{r})
+
+	s.InstallComplete()
+	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
+}

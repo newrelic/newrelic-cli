@@ -145,8 +145,7 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 }
 
 func (s *InstallStatus) InstallComplete() {
-	s.Complete = true
-	s.Timestamp = utils.GetTimestamp()
+	s.completed()
 
 	for _, r := range s.statusReporters {
 		if err := r.InstallComplete(s); err != nil {
@@ -222,6 +221,18 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	}
 
 	s.Timestamp = utils.GetTimestamp()
+}
+
+func (s *InstallStatus) completed() {
+	s.Complete = true
+	s.Timestamp = utils.GetTimestamp()
+
+	// Exiting early will cause available recipes to be marked as failed.
+	for i, ss := range s.Statuses {
+		if ss.Status == RecipeStatusTypes.AVAILABLE {
+			s.Statuses[i].Status = RecipeStatusTypes.FAILED
+		}
+	}
 }
 
 func (s *InstallStatus) getStatus(r types.Recipe) *RecipeStatus {
