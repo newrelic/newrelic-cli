@@ -1,10 +1,10 @@
 name: End to end testing
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - master
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
   validate-all:
@@ -45,7 +45,7 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
-            const newrelic_cli_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
+            const newrelic_cli_path = `/mnt/deployer/bin/linux/newrelic`;
             console.log(`Using cli path ${newrelic_cli_path}`);
             if (!fs.existsSync(newrelic_cli_path)) {
               throw new Error(`The newrelic cli does NOT exist ${newrelic_cli_path}`);
@@ -116,6 +116,7 @@ jobs:
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m deploy -l debug
           echo ::set-output name=exit_status::$?
 
@@ -126,6 +127,7 @@ jobs:
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m teardown -i
 
       - name: Report any error
