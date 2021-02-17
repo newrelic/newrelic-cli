@@ -47,11 +47,8 @@ jobs:
 
             const newrelic_cli_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
             console.log(`Using cli path ${newrelic_cli_path}`);
-            if (fs.existsSync(`${newrelic_cli_path}`) == false) {
-              let errorMessage = `The newrelic cli does NOT exist at ${newrelic_cli_path}`;
-              console.log(errorMessage);
-              process.exit(1);
-              # throw new Error(errorMessage);
+            if (!fs.existsSync(newrelic_cli_path)) {
+              throw new Error(`The newrelic cli does NOT exist at ${newrelic_cli_path}`);
             }
 
             async function getFiles(dir) {
