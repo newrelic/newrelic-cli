@@ -44,6 +44,11 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
+            const newrelic_cli_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`
+            if (fs.existsSync(newrelic_cli_path) == false) {
+              throw new Error(`The newrelic cli does NOT exist at ${newrelic_cli_path}`);
+            }
+
             async function getFiles(dir) {
               const dirents = await readdir(dir, { withFileTypes: true });
               const files = await Promise.all(dirents.map((dirent) => {
@@ -64,7 +69,7 @@ jobs:
                   jsonData.instrumentations.resources.forEach(resource => {
                     if (resource.params) {
                       isUpdated = true;
-                      resource.params.newrelic_cli_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
+                      resource.params.newrelic_cli_path = `${newrelic_cli_path}`;
                     }
                   });
                 }
@@ -74,7 +79,7 @@ jobs:
                 // Write file back to workspace
                 let jsonContent = JSON.stringify(jsonData, null, 2);
                 console.log("Updated Deploy Config File: ", testFile);
-                console.log("Deploy Config content: ", jsonContent);
+                # console.log("Deploy Config content: ", jsonContent);
                 fs.writeFileSync(testFile, jsonContent);
               }
             });
