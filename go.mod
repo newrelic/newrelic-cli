@@ -11,7 +11,7 @@ require (
 	github.com/go-task/task/v3 v3.2.2
 	github.com/golangci/golangci-lint v1.37.0
 	github.com/google/uuid v1.2.0
-	github.com/goreleaser/goreleaser v0.155.0
+	github.com/goreleaser/goreleaser v0.156.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/imdario/mergo v0.3.11
 	github.com/jedib0t/go-pretty/v6 v6.1.0
