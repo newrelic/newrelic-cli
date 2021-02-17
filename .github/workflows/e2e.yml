@@ -48,7 +48,9 @@ jobs:
             console.log(`Using cli path ${newrelic_cli_path}`);
             if (fs.existsSync(`${newrelic_cli_path}`) == false) {
               let errorMessage = `The newrelic cli does NOT exist at ${newrelic_cli_path}`;
-              throw new Error(errorMessage);
+              console.log(errorMessage);
+              exit 1;
+              # throw new Error(errorMessage);
             }
 
             async function getFiles(dir) {
