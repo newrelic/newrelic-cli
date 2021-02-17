@@ -63,11 +63,11 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 
 	// mock implementations
 	rf := setupRecipeFetcher()
-	ers := []execution.StatusReporter{
+	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewStatusRollup(ers)
+	statusRollup := execution.NewInstallStatus(ers)
 	v := validation.NewMockRecipeValidator()
 
 	pf := discovery.NewRegexProcessFilterer(rf)
@@ -99,11 +99,11 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 
 	// mock implementations
 	rf := setupRecipeFetcher()
-	ers := []execution.StatusReporter{
+	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewStatusRollup(ers)
+	statusRollup := execution.NewInstallStatus(ers)
 	v := validation.NewMockRecipeValidator()
 
 	pf := discovery.NewRegexProcessFilterer(rf)
@@ -135,11 +135,11 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 
 	// mock implementations
 	rf := setupRecipeFetcher()
-	ers := []execution.StatusReporter{
+	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewStatusRollup(ers)
+	statusRollup := execution.NewInstallStatus(ers)
 	v := validation.NewMockRecipeValidator()
 	gff := discovery.NewMockFileFilterer()
 

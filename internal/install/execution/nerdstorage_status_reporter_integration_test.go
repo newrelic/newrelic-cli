@@ -40,7 +40,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 	entityGUID := createEntity(t, a, c)
 
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
-	status := NewStatusRollup([]StatusReporter{r})
+	status := NewInstallStatus([]StatusSubscriber{r})
 
 	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
@@ -52,7 +52,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 		EntityGUID: entityGUID,
 	}
 
-	err = r.ReportRecipeInstalled(status, evt)
+	err = r.RecipeInstalled(status, evt)
 	require.NoError(t, err)
 
 	time.Sleep(1 * time.Second)
@@ -88,7 +88,7 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 	entityGUID := createEntity(t, a, c)
 
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
-	status := NewStatusRollup([]StatusReporter{r})
+	status := NewInstallStatus([]StatusSubscriber{r})
 
 	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
@@ -99,7 +99,7 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 		Recipe: rec,
 	}
 
-	err = r.ReportRecipeInstalled(status, evt)
+	err = r.RecipeInstalled(status, evt)
 	require.NoError(t, err)
 
 	s, err := getUserStatusCollection(t, c.NerdStorage)

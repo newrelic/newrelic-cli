@@ -9,32 +9,32 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
-type StatusRollup struct {
+type InstallStatus struct {
 	Complete        bool `json:"complete"`
 	DocumentID      string
-	EntityGUIDs     []string `json:"entityGuids"`
-	Statuses        []Status `json:"recipes"`
-	Timestamp       int64    `json:"timestamp"`
-	LogFilePath     string   `json:"logFilePath"`
-	statusReporters []StatusReporter
+	EntityGUIDs     []string       `json:"entityGuids"`
+	Statuses        []RecipeStatus `json:"recipes"`
+	Timestamp       int64          `json:"timestamp"`
+	LogFilePath     string         `json:"logFilePath"`
+	statusReporters []StatusSubscriber
 }
 
-type Status struct {
+type RecipeStatus struct {
 	Name        string              `json:"name"`
 	DisplayName string              `json:"displayName"`
-	Status      StatusType          `json:"status"`
+	Status      RecipeStatusType    `json:"status"`
 	Errors      []StatusRecipeError `json:"errors"`
 }
 
-type StatusType string
+type RecipeStatusType string
 
-var StatusTypes = struct {
-	AVAILABLE   StatusType
-	INSTALLING  StatusType
-	FAILED      StatusType
-	INSTALLED   StatusType
-	SKIPPED     StatusType
-	RECOMMENDED StatusType
+var RecipeStatusTypes = struct {
+	AVAILABLE   RecipeStatusType
+	INSTALLING  RecipeStatusType
+	FAILED      RecipeStatusType
+	INSTALLED   RecipeStatusType
+	SKIPPED     RecipeStatusType
+	RECOMMENDED RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
 	INSTALLING:  "INSTALLING",
@@ -49,9 +49,9 @@ type StatusRecipeError struct {
 	Details string `json:"details"`
 }
 
-func NewStatusRollup(reporters []StatusReporter) *StatusRollup {
+func NewInstallStatus(reporters []StatusSubscriber) *InstallStatus {
 
-	s := StatusRollup{
+	s := InstallStatus{
 		DocumentID:      uuid.New().String(),
 		Timestamp:       utils.GetTimestamp(),
 		LogFilePath:     config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
@@ -61,97 +61,105 @@ func NewStatusRollup(reporters []StatusReporter) *StatusRollup {
 	return &s
 }
 
-func (s *StatusRollup) ReportRecipeAvailable(recipe types.Recipe) {
+func (s *InstallStatus) RecipeAvailable(recipe types.Recipe) {
 	s.withAvailableRecipe(recipe)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipeAvailable(s, recipe); err != nil {
+		if err := r.RecipeAvailable(s, recipe); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
 		}
 	}
 }
 
-func (s *StatusRollup) ReportRecipesAvailable(recipes []types.Recipe) {
+func (s *InstallStatus) RecipesAvailable(recipes []types.Recipe) {
 	s.withAvailableRecipes(recipes)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipesAvailable(s, recipes); err != nil {
+		if err := r.RecipesAvailable(s, recipes); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
 		}
 	}
 }
 
-func (s *StatusRollup) ReportRecipeInstalled(event RecipeStatusEvent) {
-	s.withRecipeEvent(event, StatusTypes.INSTALLED)
+func (s *InstallStatus) RecipesSelected(recipes []types.Recipe) {
+	for _, r := range s.statusReporters {
+		if err := r.RecipesSelected(s, recipes); err != nil {
+			log.Errorf("Could not report recipe execution status: %s", err)
+		}
+	}
+}
+
+func (s *InstallStatus) RecipeInstalled(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.INSTALLED)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipeInstalled(s, event); err != nil {
+		if err := r.RecipeInstalled(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
 
-// ReportRecipeRecommended is responsible for setting the nerstorage scopes
+// RecipeRecommended is responsible for setting the nerstorage scopes
 // when a recipe is recommended.  This is used when a recipe is found, but not
 // a "HOST" type, and is used to indicate to the user that it is something they
 // should consider integrating, but not something that the recipe framework
 // will currently assist with.
-func (s *StatusRollup) ReportRecipeRecommended(event RecipeStatusEvent) {
-	s.withRecipeEvent(event, StatusTypes.RECOMMENDED)
+func (s *InstallStatus) RecipeRecommended(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.RECOMMENDED)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipeRecommended(s, event); err != nil {
+		if err := r.RecipeRecommended(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
 
-func (s *StatusRollup) ReportRecipeInstalling(event RecipeStatusEvent) {
-	s.withRecipeEvent(event, StatusTypes.INSTALLING)
+func (s *InstallStatus) RecipeInstalling(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.INSTALLING)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipeInstalling(s, event); err != nil {
+		if err := r.RecipeInstalling(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
 
-func (s *StatusRollup) ReportRecipeFailed(event RecipeStatusEvent) {
-	s.withRecipeEvent(event, StatusTypes.FAILED)
+func (s *InstallStatus) RecipeFailed(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.FAILED)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipeFailed(s, event); err != nil {
+		if err := r.RecipeFailed(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
 
-func (s *StatusRollup) ReportRecipeSkipped(event RecipeStatusEvent) {
-	s.withRecipeEvent(event, StatusTypes.SKIPPED)
+func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.SKIPPED)
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportRecipeSkipped(s, event); err != nil {
+		if err := r.RecipeSkipped(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
 
-func (s *StatusRollup) ReportComplete() {
+func (s *InstallStatus) InstallComplete() {
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
 
 	for _, r := range s.statusReporters {
-		if err := r.ReportComplete(s); err != nil {
+		if err := r.InstallComplete(s); err != nil {
 			log.Errorf("Error writing execution status: %s", err)
 		}
 	}
 }
 
-func (s *StatusRollup) recommendations() []Status {
-	var statuses []Status
+func (s *InstallStatus) recommendations() []RecipeStatus {
+	var statuses []RecipeStatus
 
 	for _, st := range s.Statuses {
-		if st.Status == StatusTypes.RECOMMENDED {
+		if st.Status == RecipeStatusTypes.RECOMMENDED {
 			statuses = append(statuses, st)
 		}
 	}
@@ -159,9 +167,9 @@ func (s *StatusRollup) recommendations() []Status {
 	return statuses
 }
 
-func (s *StatusRollup) hasFailed() bool {
+func (s *InstallStatus) hasFailed() bool {
 	for _, ss := range s.Statuses {
-		if ss.Status == StatusTypes.FAILED {
+		if ss.Status == RecipeStatusTypes.FAILED {
 			return true
 		}
 	}
@@ -169,18 +177,18 @@ func (s *StatusRollup) hasFailed() bool {
 	return false
 }
 
-func (s *StatusRollup) withAvailableRecipes(recipes []types.Recipe) {
+func (s *InstallStatus) withAvailableRecipes(recipes []types.Recipe) {
 	for _, r := range recipes {
 		s.withAvailableRecipe(r)
 	}
 }
 
-func (s *StatusRollup) withAvailableRecipe(r types.Recipe) {
+func (s *InstallStatus) withAvailableRecipe(r types.Recipe) {
 	e := RecipeStatusEvent{Recipe: r}
-	s.withRecipeEvent(e, StatusTypes.AVAILABLE)
+	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
 }
 
-func (s *StatusRollup) withEntityGUID(entityGUID string) {
+func (s *InstallStatus) withEntityGUID(entityGUID string) {
 	for _, e := range s.EntityGUIDs {
 		if e == entityGUID {
 			return
@@ -190,7 +198,7 @@ func (s *StatusRollup) withEntityGUID(entityGUID string) {
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
 }
 
-func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
+func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType) {
 	if e.EntityGUID != "" {
 		s.withEntityGUID(e.EntityGUID)
 	}
@@ -205,7 +213,7 @@ func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
 	if found != nil {
 		found.Status = rs
 	} else {
-		e := &Status{
+		e := &RecipeStatus{
 			Name:        e.Recipe.Name,
 			DisplayName: e.Recipe.DisplayName,
 			Status:      rs,
@@ -216,8 +224,8 @@ func (s *StatusRollup) withRecipeEvent(e RecipeStatusEvent, rs StatusType) {
 	s.Timestamp = utils.GetTimestamp()
 }
 
-func (s *StatusRollup) getStatus(r types.Recipe) *Status {
-	var found *Status
+func (s *InstallStatus) getStatus(r types.Recipe) *RecipeStatus {
+	var found *RecipeStatus
 	for i, recipe := range s.Statuses {
 		if recipe.Name == r.Name {
 			found = &s.Statuses[i]

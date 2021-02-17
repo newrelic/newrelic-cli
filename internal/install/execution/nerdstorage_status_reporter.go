@@ -27,9 +27,9 @@ func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusRe
 	return &r
 }
 
-// ReportRecipesAvailable reports that recipes are available for installation on
+// RecipesAvailable reports that recipes are available for installation on
 // the underlying host.
-func (r NerdstorageStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
+func (r NerdstorageStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.Recipe) error {
 	if err := r.writeStatus(status, ""); err != nil {
 		return err
 	}
@@ -37,9 +37,13 @@ func (r NerdstorageStatusReporter) ReportRecipesAvailable(status *StatusRollup, 
 	return nil
 }
 
-// ReportRecipeAvailable reports that a recipe is available for installation on
+func (r NerdstorageStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.Recipe) error {
+	return nil
+}
+
+// RecipeAvailable reports that a recipe is available for installation on
 // the underlying host.
-func (r NerdstorageStatusReporter) ReportRecipeAvailable(status *StatusRollup, recipe types.Recipe) error {
+func (r NerdstorageStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.Recipe) error {
 	if err := r.writeStatus(status, ""); err != nil {
 		return err
 	}
@@ -47,7 +51,7 @@ func (r NerdstorageStatusReporter) ReportRecipeAvailable(status *StatusRollup, r
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeFailed(status *StatusRollup, event RecipeStatusEvent) error {
+func (r NerdstorageStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
@@ -55,7 +59,7 @@ func (r NerdstorageStatusReporter) ReportRecipeFailed(status *StatusRollup, even
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeInstalling(status *StatusRollup, event RecipeStatusEvent) error {
+func (r NerdstorageStatusReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
 	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
@@ -63,7 +67,7 @@ func (r NerdstorageStatusReporter) ReportRecipeInstalling(status *StatusRollup, 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeInstalled(status *StatusRollup, event RecipeStatusEvent) error {
+func (r NerdstorageStatusReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
 	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
@@ -71,7 +75,7 @@ func (r NerdstorageStatusReporter) ReportRecipeInstalled(status *StatusRollup, e
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeRecommended(status *StatusRollup, event RecipeStatusEvent) error {
+func (r NerdstorageStatusReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
 	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
@@ -79,7 +83,7 @@ func (r NerdstorageStatusReporter) ReportRecipeRecommended(status *StatusRollup,
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error {
+func (r NerdstorageStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
 	if err := r.writeStatus(status, event.EntityGUID); err != nil {
 		return err
 	}
@@ -87,7 +91,7 @@ func (r NerdstorageStatusReporter) ReportRecipeSkipped(status *StatusRollup, eve
 	return nil
 }
 
-func (r NerdstorageStatusReporter) ReportComplete(status *StatusRollup) error {
+func (r NerdstorageStatusReporter) InstallComplete(status *InstallStatus) error {
 	if err := r.writeStatus(status, ""); err != nil {
 		return err
 	}
@@ -95,7 +99,7 @@ func (r NerdstorageStatusReporter) ReportComplete(status *StatusRollup) error {
 	return nil
 }
 
-func (r NerdstorageStatusReporter) writeStatus(status *StatusRollup, entityGUID string) error {
+func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus, entityGUID string) error {
 	i := r.buildExecutionStatusDocument(status)
 	_, err := r.client.WriteDocumentWithUserScope(i)
 	if err != nil {
@@ -114,7 +118,7 @@ func (r NerdstorageStatusReporter) writeStatus(status *StatusRollup, entityGUID 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) buildExecutionStatusDocument(status *StatusRollup) nerdstorage.WriteDocumentInput {
+func (r NerdstorageStatusReporter) buildExecutionStatusDocument(status *InstallStatus) nerdstorage.WriteDocumentInput {
 	return nerdstorage.WriteDocumentInput{
 		PackageID:  packageID,
 		Collection: collectionID,

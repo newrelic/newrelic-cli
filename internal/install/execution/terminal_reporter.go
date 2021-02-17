@@ -8,8 +8,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type TerminalStatusReporter struct {
-}
+type TerminalStatusReporter struct{}
 
 // NewTerminalStatusReporter is an implementation of the ExecutionStatusReporter interface that reports execution status to STDOUT.
 func NewTerminalStatusReporter() *TerminalStatusReporter {
@@ -18,27 +17,31 @@ func NewTerminalStatusReporter() *TerminalStatusReporter {
 	return &r
 }
 
-func (r TerminalStatusReporter) ReportRecipeFailed(status *StatusRollup, event RecipeStatusEvent) error {
+func (r TerminalStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportRecipeInstalling(status *StatusRollup, event RecipeStatusEvent) error {
+func (r TerminalStatusReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportRecipeInstalled(status *StatusRollup, event RecipeStatusEvent) error {
+func (r TerminalStatusReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportRecipeSkipped(status *StatusRollup, event RecipeStatusEvent) error {
+func (r TerminalStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportRecipeRecommended(status *StatusRollup, event RecipeStatusEvent) error {
+func (r TerminalStatusReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportRecipesAvailable(status *StatusRollup, recipes []types.Recipe) error {
+func (r TerminalStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.Recipe) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.Recipe) error {
 	if len(recipes) > 0 {
 		fmt.Println("The following will be installed:")
 	}
@@ -60,11 +63,11 @@ func (r TerminalStatusReporter) ReportRecipesAvailable(status *StatusRollup, rec
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportRecipeAvailable(status *StatusRollup, recipe types.Recipe) error {
+func (r TerminalStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.Recipe) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ReportComplete(status *StatusRollup) error {
+func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	if status.hasFailed() {
 		return fmt.Errorf("one or more integrations failed to install, check the install log for more details: %s", status.LogFilePath)
 	}
