@@ -34,6 +34,7 @@ jobs:
       - name: Add newrelic cli path to smoke tests
         id: add-newrelic-cli-path-smoke-tests
         uses: actions/github-script@v3
+        continue-on-error: false
         with:
           script: |
             const fs = require('fs');
@@ -49,7 +50,7 @@ jobs:
             if (fs.existsSync(`${newrelic_cli_path}`) == false) {
               let errorMessage = `The newrelic cli does NOT exist at ${newrelic_cli_path}`;
               console.log(errorMessage);
-              exit 1;
+              process.exit(1);
               # throw new Error(errorMessage);
             }
 
