@@ -9,6 +9,6 @@ import (
 )
 
 func TestTerminalStatusReporter_interface(t *testing.T) {
-	var r StatusReporter = NewTerminalStatusReporter()
+	var r StatusSubscriber = NewTerminalStatusReporter()
 	require.NotNil(t, r)
 }

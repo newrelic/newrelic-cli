@@ -9,6 +9,6 @@ import (
 )
 
 func TestMockStatusReporter_interface(t *testing.T) {
-	var r StatusReporter = NewMockStatusReporter()
+	var r StatusSubscriber = NewMockStatusReporter()
 	require.NotNil(t, r)
 }

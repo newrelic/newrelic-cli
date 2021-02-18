@@ -10,14 +10,14 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestNewStatus(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+func TestNewInstallStatus(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{})
 	require.NotEmpty(t, s.Timestamp)
 	require.NotEmpty(t, s.DocumentID)
 }
 
 func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+	s := NewInstallStatus([]StatusSubscriber{})
 	r := []types.Recipe{{
 		Name: "testRecipe1",
 	}, {
@@ -29,53 +29,53 @@ func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
 	require.NotEmpty(t, s.Statuses)
 	require.Equal(t, len(r), len(s.Statuses))
 	for _, recipeStatus := range s.Statuses {
-		require.Equal(t, StatusTypes.AVAILABLE, recipeStatus.Status)
+		require.Equal(t, RecipeStatusTypes.AVAILABLE, recipeStatus.Status)
 	}
 }
 
 func TestStatusWithRecipeEvent_Basic(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+	s := NewInstallStatus([]StatusSubscriber{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
 	s.Timestamp = 0
-	s.withRecipeEvent(e, StatusTypes.INSTALLED)
+	s.withRecipeEvent(e, RecipeStatusTypes.INSTALLED)
 
 	require.NotEmpty(t, s.Statuses)
 	require.Equal(t, 1, len(s.Statuses))
-	require.Equal(t, StatusTypes.INSTALLED, s.Statuses[0].Status)
+	require.Equal(t, RecipeStatusTypes.INSTALLED, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
 }
 
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+	s := NewInstallStatus([]StatusSubscriber{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
 	s.Timestamp = 0
-	s.withRecipeEvent(e, StatusTypes.AVAILABLE)
+	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
 
 	require.NotEmpty(t, s.Statuses)
 	require.Equal(t, 1, len(s.Statuses))
-	require.Equal(t, StatusTypes.AVAILABLE, s.Statuses[0].Status)
+	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
 
 	s.Timestamp = 0
-	s.withRecipeEvent(e, StatusTypes.INSTALLED)
+	s.withRecipeEvent(e, RecipeStatusTypes.INSTALLED)
 
 	require.NotEmpty(t, s.Statuses)
 	require.Equal(t, 1, len(s.Statuses))
-	require.Equal(t, StatusTypes.INSTALLED, s.Statuses[0].Status)
+	require.Equal(t, RecipeStatusTypes.INSTALLED, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
 }
 
 func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+	s := NewInstallStatus([]StatusSubscriber{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
 	s.Timestamp = 0
-	s.withRecipeEvent(e, StatusTypes.INSTALLED)
+	s.withRecipeEvent(e, RecipeStatusTypes.INSTALLED)
 
 	require.NotEmpty(t, s.EntityGUIDs)
 	require.Equal(t, 1, len(s.EntityGUIDs))
@@ -83,54 +83,64 @@ func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 }
 
 func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+	s := NewInstallStatus([]StatusSubscriber{})
 	s.withEntityGUID("testGUID")
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
 	s.Timestamp = 0
-	s.withRecipeEvent(e, StatusTypes.INSTALLED)
+	s.withRecipeEvent(e, RecipeStatusTypes.INSTALLED)
 
 	require.NotEmpty(t, s.EntityGUIDs)
 	require.Equal(t, 1, len(s.EntityGUIDs))
 	require.Equal(t, "testGUID", s.EntityGUIDs[0])
 }
 
-func TestStatusRollup_statusUpdateMethods(t *testing.T) {
-	s := NewStatusRollup([]StatusReporter{})
+func TestInstallStatus_statusUpdateMethods(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{})
 	r := types.Recipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
-	s.ReportRecipesAvailable([]types.Recipe{r})
+	s.RecipesAvailable([]types.Recipe{r})
 
 	result := s.getStatus(r)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, StatusTypes.AVAILABLE)
+	require.Equal(t, result.Status, RecipeStatusTypes.AVAILABLE)
 
-	s.ReportRecipeInstalling(e)
+	s.RecipeInstalling(e)
 	result = s.getStatus(r)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, StatusTypes.INSTALLING)
+	require.Equal(t, result.Status, RecipeStatusTypes.INSTALLING)
 
-	s.ReportRecipeInstalled(e)
+	s.RecipeInstalled(e)
 	result = s.getStatus(r)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, StatusTypes.INSTALLED)
+	require.Equal(t, result.Status, RecipeStatusTypes.INSTALLED)
 
-	s.ReportRecipeFailed(e)
+	s.RecipeFailed(e)
 	result = s.getStatus(r)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, StatusTypes.FAILED)
+	require.Equal(t, result.Status, RecipeStatusTypes.FAILED)
 	require.True(t, s.hasFailed())
 
-	s.ReportRecipeSkipped(e)
+	s.RecipeSkipped(e)
 	result = s.getStatus(r)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, StatusTypes.SKIPPED)
+	require.Equal(t, result.Status, RecipeStatusTypes.SKIPPED)
 	require.False(t, s.hasFailed())
 
-	s.ReportComplete()
+	s.InstallComplete()
 	require.True(t, s.Complete)
 	require.NotNil(t, s.Timestamp)
 
+}
+
+func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{})
+	r := types.Recipe{Name: "testRecipe"}
+
+	s.RecipesAvailable([]types.Recipe{r})
+
+	s.InstallComplete()
+	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
 }
