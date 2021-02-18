@@ -10,13 +10,13 @@ import (
 )
 
 type InstallStatus struct {
-	Complete        bool `json:"complete"`
-	DocumentID      string
-	EntityGUIDs     []string       `json:"entityGuids"`
-	Statuses        []RecipeStatus `json:"recipes"`
-	Timestamp       int64          `json:"timestamp"`
-	LogFilePath     string         `json:"logFilePath"`
-	statusReporters []StatusSubscriber
+	Complete         bool `json:"complete"`
+	DocumentID       string
+	EntityGUIDs      []string       `json:"entityGuids"`
+	Statuses         []RecipeStatus `json:"recipes"`
+	Timestamp        int64          `json:"timestamp"`
+	LogFilePath      string         `json:"logFilePath"`
+	statusSubscriber []StatusSubscriber
 }
 
 type RecipeStatus struct {
@@ -52,10 +52,10 @@ type StatusRecipeError struct {
 func NewInstallStatus(reporters []StatusSubscriber) *InstallStatus {
 
 	s := InstallStatus{
-		DocumentID:      uuid.New().String(),
-		Timestamp:       utils.GetTimestamp(),
-		LogFilePath:     config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
-		statusReporters: reporters,
+		DocumentID:       uuid.New().String(),
+		Timestamp:        utils.GetTimestamp(),
+		LogFilePath:      config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		statusSubscriber: reporters,
 	}
 
 	return &s
@@ -64,7 +64,7 @@ func NewInstallStatus(reporters []StatusSubscriber) *InstallStatus {
 func (s *InstallStatus) RecipeAvailable(recipe types.Recipe) {
 	s.withAvailableRecipe(recipe)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipeAvailable(s, recipe); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
 		}
@@ -74,7 +74,7 @@ func (s *InstallStatus) RecipeAvailable(recipe types.Recipe) {
 func (s *InstallStatus) RecipesAvailable(recipes []types.Recipe) {
 	s.withAvailableRecipes(recipes)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipesAvailable(s, recipes); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
 		}
@@ -82,7 +82,7 @@ func (s *InstallStatus) RecipesAvailable(recipes []types.Recipe) {
 }
 
 func (s *InstallStatus) RecipesSelected(recipes []types.Recipe) {
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipesSelected(s, recipes); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
 		}
@@ -92,7 +92,7 @@ func (s *InstallStatus) RecipesSelected(recipes []types.Recipe) {
 func (s *InstallStatus) RecipeInstalled(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.INSTALLED)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipeInstalled(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
@@ -107,7 +107,7 @@ func (s *InstallStatus) RecipeInstalled(event RecipeStatusEvent) {
 func (s *InstallStatus) RecipeRecommended(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.RECOMMENDED)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipeRecommended(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
@@ -117,7 +117,7 @@ func (s *InstallStatus) RecipeRecommended(event RecipeStatusEvent) {
 func (s *InstallStatus) RecipeInstalling(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.INSTALLING)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipeInstalling(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
@@ -127,7 +127,7 @@ func (s *InstallStatus) RecipeInstalling(event RecipeStatusEvent) {
 func (s *InstallStatus) RecipeFailed(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.FAILED)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipeFailed(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
@@ -137,7 +137,7 @@ func (s *InstallStatus) RecipeFailed(event RecipeStatusEvent) {
 func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.SKIPPED)
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.RecipeSkipped(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
@@ -147,7 +147,7 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 func (s *InstallStatus) InstallComplete() {
 	s.completed()
 
-	for _, r := range s.statusReporters {
+	for _, r := range s.statusSubscriber {
 		if err := r.InstallComplete(s); err != nil {
 			log.Errorf("Error writing execution status: %s", err)
 		}
