@@ -106,6 +106,7 @@ func (i *RecipeInstaller) Install() error {
 
 	var recipes []types.Recipe
 	var allRecipes []types.Recipe
+	var selectedRecipes []types.Recipe
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -159,6 +160,9 @@ func (i *RecipeInstaller) Install() error {
 		}
 	}
 
+	// Selected recipes will be displayed to the user to show what will be installed.
+	selectedRecipes = recipes
+
 	infraAgentRecipe, err := i.fetchRecipeAndReport(m, infraAgentRecipeName)
 	if err != nil {
 		return err
@@ -188,7 +192,7 @@ func (i *RecipeInstaller) Install() error {
 		recipesForReport = append(recipesForReport, recipes...)
 	}
 
-	// Report discovered recipes as available, and always finish by reporting complete.
+	// Report recipes as available, and always finish by reporting complete.
 	i.status.RecipesAvailable(recipesForReport)
 	defer i.status.InstallComplete()
 
@@ -205,9 +209,10 @@ func (i *RecipeInstaller) Install() error {
 		// Save the original results from the Recommendations endpoint call
 		allRecipes = append(allRecipes, recipes...)
 		recipes = filteredRecipes
+		selectedRecipes = append([]types.Recipe{*infraAgentRecipe}, filteredRecipes...)
 	}
 
-	i.status.RecipesSelected(recipes)
+	i.status.RecipesSelected(selectedRecipes)
 
 	var entityGUID string
 
@@ -580,6 +585,8 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 	i.SkipLoggingInstall = true
 	i.SkipIntegrations = true
 
+	fmt.Printf("The guided installation will begin by installing the New Relic Infrastructure agent, which is required for instrumentation.\n\n")
+
 	reportedDisplayNames := []string{}
 	for _, r := range recipes {
 		// Never offer to skip the infra agent installation
@@ -600,6 +607,8 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 		if promptErr != nil {
 			return nil, promptErr
 		}
+
+		fmt.Println()
 	}
 
 	// Find the intersection of the selected recipes by DisplayName and the
@@ -640,6 +649,10 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 }
 
 func isAppTarget(recipe types.Recipe) bool {
+	if len(recipe.InstallTargets) == 0 {
+		return false
+	}
+
 	for _, target := range recipe.InstallTargets {
 		if target.Type != types.OpenInstallationTargetTypeTypes.APPLICATION {
 			return false
