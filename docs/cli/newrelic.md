@@ -9,7 +9,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 ### Options
 
 ```
-      --format string   output text format [YAML, JSON, Text] (default "JSON")
+      --format string   output text format [JSON, Text, YAML] (default "JSON")
   -h, --help            help for newrelic
       --plain           output compact text
 ```
@@ -26,6 +26,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 * [newrelic edge](newrelic_edge.md)	 - Interact with New Relic Edge
 * [newrelic entity](newrelic_entity.md)	 - Interact with New Relic entities
 * [newrelic events](newrelic_events.md)	 - Send custom events to New Relic
+* [newrelic install](newrelic_install.md)	 - Install New Relic.
 * [newrelic nerdgraph](newrelic_nerdgraph.md)	 - Execute GraphQL requests to the NerdGraph API
 * [newrelic nerdstorage](newrelic_nerdstorage.md)	 - Read, write, and delete NerdStorage documents and collections.
 * [newrelic nrql](newrelic_nrql.md)	 - Commands for interacting with the New Relic Database
