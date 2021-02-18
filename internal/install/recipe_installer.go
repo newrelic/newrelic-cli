@@ -585,7 +585,7 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 	i.SkipLoggingInstall = true
 	i.SkipIntegrations = true
 
-	fmt.Printf("The guided installation will begin by installing the New Relic Infrastructure agent, which is required for instrumentation.\n\n")
+	fmt.Printf("The guided installation will begin by installing the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
 
 	reportedDisplayNames := []string{}
 	for _, r := range recipes {
