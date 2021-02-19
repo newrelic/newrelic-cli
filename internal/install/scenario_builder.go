@@ -217,7 +217,8 @@ func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name: "Infrastructure Agent Installer",
+			Name:        "infrastructure-agent-installer",
+			DisplayName: "Infrastructure Agent",
 			PreInstall: types.OpenInstallationPreInstallConfiguration{
 				Info: `
 This is the Infrastructure Agent Installer preinstall message.
