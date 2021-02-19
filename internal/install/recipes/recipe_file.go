@@ -12,29 +12,19 @@ import (
 
 // RecipeFile represents a recipe file as defined in the Open Installation Library.
 type RecipeFile struct {
-	Description    string                 `yaml:"description"`
-	InputVars      []VariableConfig       `yaml:"inputVars"`
-	Install        map[string]interface{} `yaml:"install"`
-	InstallTargets []RecipeInstallTarget  `yaml:"installTargets"`
-	Keywords       []string               `yaml:"keywords"`
-	LogMatch       []types.LogMatch       `yaml:"logMatch"`
-	Name           string                 `yaml:"name"`
-	DisplayName    string                 `yaml:"displayName"`
-	PreInstall     RecipePreInstall       `yaml:"preInstall"`
-	PostInstall    RecipePostInstall      `yaml:"postInstall"`
-	ProcessMatch   []string               `yaml:"processMatch"`
-	Repository     string                 `yaml:"repository"`
-	ValidationNRQL string                 `yaml:"validationNrql"`
-}
-
-type RecipePreInstall struct {
-	Info   string `yaml:"info"`
-	Prompt string `yaml:"prompt"`
-}
-
-type RecipePostInstall struct {
-	Info   string `yaml:"info"`
-	Prompt string `yaml:"prompt"`
+	Description    string                                        `yaml:"description"`
+	InputVars      []VariableConfig                              `yaml:"inputVars"`
+	Install        map[string]interface{}                        `yaml:"install"`
+	InstallTargets []RecipeInstallTarget                         `yaml:"installTargets"`
+	Keywords       []string                                      `yaml:"keywords"`
+	LogMatch       []types.LogMatch                              `yaml:"logMatch"`
+	Name           string                                        `yaml:"name"`
+	DisplayName    string                                        `yaml:"displayName"`
+	PreInstall     types.OpenInstallationPreInstallConfiguration `yaml:"preInstall"`
+	PostInstall    types.RecipePostInstall                       `yaml:"postInstall"`
+	ProcessMatch   []string                                      `yaml:"processMatch"`
+	Repository     string                                        `yaml:"repository"`
+	ValidationNRQL string                                        `yaml:"validationNrql"`
 }
 
 type VariableConfig struct {
@@ -128,22 +118,15 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	r := types.Recipe{
-		File:        fileStr,
-		Name:        f.Name,
-		DisplayName: f.DisplayName,
-		Description: f.Description,
-		Repository:  f.Repository,
-		Keywords:    f.Keywords,
-		PreInstall: types.RecipePreInstall{
-			Info:   f.PreInstall.Info,
-			Prompt: f.PreInstall.Prompt,
-		},
-		PostInstall: types.RecipePostInstall{
-			Info:   f.PostInstall.Info,
-			Prompt: f.PostInstall.Prompt,
-		},
+		File:           fileStr,
+		Name:           f.Name,
+		DisplayName:    f.DisplayName,
+		Description:    f.Description,
+		Repository:     f.Repository,
+		Keywords:       f.Keywords,
+		PreInstall:     f.PreInstall,
+		PostInstall:    f.PostInstall,
 		ProcessMatch:   f.ProcessMatch,
 		LogMatch:       f.LogMatch,
 		ValidationNRQL: f.ValidationNRQL,

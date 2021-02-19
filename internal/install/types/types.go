@@ -125,6 +125,8 @@ type OpenInstallationLogMatch struct {
 type OpenInstallationPreInstallConfiguration struct {
 	// Message/Docs notice displayed to user prior to running recipe
 	Prompt string `json:"prompt,omitempty"`
+	// Message/Docs notice displayed to user prior to running recipe
+	Info string `json:"info,omitempty"`
 }
 
 // OpenInstallationRecipe - Installation instructions and definition of an instrumentation integration

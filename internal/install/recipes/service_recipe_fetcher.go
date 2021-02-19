@@ -249,6 +249,7 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 		ProcessMatch:   result.ProcessMatch,
 		Repository:     result.Repository,
 		ValidationNRQL: string(result.ValidationNRQL),
+		PreInstall:     result.PreInstall,
 	}
 }
 
