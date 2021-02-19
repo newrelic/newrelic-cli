@@ -22,7 +22,7 @@ func (p *PlainProgress) Start(msg string) {
 	x := color.New(color.Bold)
 	x.Printf(" %s", msg)
 
-	fmt.Printf("... ")
+	fmt.Printf("...\n")
 }
 
 func (p *PlainProgress) Success() {

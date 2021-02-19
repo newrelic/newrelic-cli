@@ -507,6 +507,9 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+	i.progressIndicator.Start(fmt.Sprintf("Installing %s", r.Name))
+	defer func() { i.progressIndicator.Stop() }()
+
 	if r.PreInstallMessage() != "" {
 		fmt.Println(r.PreInstallMessage())
 	}
@@ -516,8 +519,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 		return "", err
 	}
 
-	i.progressIndicator.Start(fmt.Sprintf("Installing %s", r.Name))
-	defer func() { i.progressIndicator.Stop() }()
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	entityGUID, err := i.executeAndValidate(m, r, vars)
