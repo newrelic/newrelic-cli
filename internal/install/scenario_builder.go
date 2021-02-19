@@ -12,9 +12,10 @@ import (
 type TestScenario string
 
 const (
-	Basic      TestScenario = "BASIC"
-	LogMatches TestScenario = "LOG_MATCHES"
-	Fail       TestScenario = "FAIL"
+	Basic        TestScenario = "BASIC"
+	LogMatches   TestScenario = "LOG_MATCHES"
+	Fail         TestScenario = "FAIL"
+	StitchedPath TestScenario = "STITCHED_PATH"
 )
 
 var (
@@ -22,6 +23,7 @@ var (
 		Basic,
 		LogMatches,
 		Fail,
+		StitchedPath,
 	}
 )
 
@@ -54,6 +56,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.LogMatches()
 	case Fail:
 		return b.Fail()
+	case StitchedPath:
+		return b.StitchedPath()
 	}
 
 	return nil
@@ -62,7 +66,7 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 
 	// mock implementations
-	rf := setupRecipeFetcher()
+	rf := setupRecipeFetcherGuidedInstall()
 	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
@@ -98,7 +102,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 
 	// mock implementations
-	rf := setupRecipeFetcher()
+	rf := setupRecipeFetcherGuidedInstall()
 	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
@@ -134,7 +138,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 
 	// mock implementations
-	rf := setupRecipeFetcher()
+	rf := setupRecipeFetcherGuidedInstall()
 	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
@@ -174,7 +178,42 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 	return &i
 }
 
-func setupRecipeFetcher() recipes.RecipeFetcher {
+func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
+	// mock implementations
+	rf := setupRecipeFetcherStitchedPath()
+	ers := []execution.StatusSubscriber{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
+	statusRollup := execution.NewInstallStatus(ers)
+	v := validation.NewMockRecipeValidator()
+
+	pf := discovery.NewRegexProcessFilterer(rf)
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer(pf)
+	gff := discovery.NewGlobFileFilterer()
+	re := execution.NewGoTaskRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	s := ux.NewSpinner()
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		progressIndicator: s,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
+func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
 		{
@@ -194,7 +233,8 @@ It is made up of a multi line string.
 			ValidationNRQL: "test NRQL",
 			File: `
 ---
-name: Infrastructure Agent Installer
+name: infra-agent
+displayName: Infrastructure Agent
 install:
   version: "3"
   tasks:
@@ -202,11 +242,13 @@ install:
 `,
 		},
 		{
-			Name:           "Logs integration",
+			Name:           "logs-integration",
+			DisplayName:    "Logs integration",
 			ValidationNRQL: "test NRQL",
 			File: `
 ---
-name: Logs integration
+name: logs-integration
+displayName: Logs integration
 install:
   version: "3"
   tasks:
@@ -216,11 +258,49 @@ install:
 	}
 	f.FetchRecommendationsVal = []types.Recipe{
 		{
-			Name:           "Recommended recipe",
+			Name:           "recommended-recipe",
+			DisplayName:    "Recommended recipe",
 			ValidationNRQL: "test NRQL",
 			File: `
 ---
-name: Recommended recipe
+name: recommended-recipe
+displayName: Recommended recipe
+install:
+  version: "3"
+  tasks:
+    default:
+`,
+		},
+	}
+
+	return f
+}
+
+func setupRecipeFetcherStitchedPath() recipes.RecipeFetcher {
+	f := recipes.NewMockRecipeFetcher()
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           "recommended-recipe",
+			DisplayName:    "Recommended recipe",
+			ValidationNRQL: "test NRQL",
+			File: `
+---
+name: recommended-recipe
+displayName: Recommended recipe
+install:
+  version: "3"
+  tasks:
+    default:
+`,
+		},
+		{
+			Name:           "another-recommended-recipe",
+			DisplayName:    "Another Recommended recipe",
+			ValidationNRQL: "test NRQL",
+			File: `
+---
+name: another-recommended-recipe
+displayName: Another Recommended recipe
 install:
   version: "3"
   tasks:

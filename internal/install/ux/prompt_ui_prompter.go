@@ -6,6 +6,8 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/manifoldco/promptui"
+
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 type PromptUIPrompter struct{}
@@ -58,10 +60,12 @@ func validateYesNo(msg string) error {
 }
 
 func (p *PromptUIPrompter) MultiSelect(msg string, options []string) ([]string, error) {
+	defaults := utils.MakeRange(0, len(options)-1)
 	selected := []string{}
 	prompt := &survey.MultiSelect{
 		Message: msg,
 		Options: options,
+		Default: defaults,
 	}
 
 	err := survey.AskOne(prompt, &selected)
