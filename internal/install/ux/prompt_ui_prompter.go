@@ -6,6 +6,7 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/manifoldco/promptui"
+
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
