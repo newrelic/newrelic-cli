@@ -179,7 +179,7 @@ func setupRecipeFetcher() recipes.RecipeFetcher {
 	f.FetchRecipeVals = []types.Recipe{
 		{
 			Name: "Infrastructure Agent Installer",
-			PreInstall: types.RecipePreInstall{
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
 				Info: `
 This is the Infrastructure Agent Installer preinstall message.
 It is made up of a multi line string.
