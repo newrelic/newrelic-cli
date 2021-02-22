@@ -56,7 +56,7 @@ var Command = &cobra.Command{
 
 			// Run the install.
 			if err := i.Install(); err != nil {
-				log.Fatalf("Could not install New Relic: %s, check the install log for details: %s", err, config.DefaultLogFile)
+				log.Fatalf("We encountered an error with the installation, if this problem persists please visit the documentation and support page for additional help here: https://one.nr/06vjAeZLKjP")
 			}
 		})
 	},
