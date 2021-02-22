@@ -189,7 +189,11 @@ func (i *RecipeInstaller) Install() error {
 	}
 
 	if !i.SkipIntegrations {
-		recipesForReport = append(recipesForReport, recipes...)
+		for _, r := range recipes {
+			if isHostTarget(r) {
+				recipesForReport = append(recipesForReport, r)
+			}
+		}
 	}
 
 	// Report recipes as available, and always finish by reporting complete.
@@ -260,16 +264,6 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
-
-	isHostTarget := func(recipe types.Recipe) bool {
-		for _, target := range recipe.InstallTargets {
-			if target.Type != types.OpenInstallationTargetTypeTypes.HOST {
-				return false
-			}
-		}
-
-		return true
-	}
 
 	for _, r := range recipes {
 		// The infra and logging install have their own install methods.  In the
@@ -647,6 +641,20 @@ func (i *RecipeInstaller) filterSkippedRecipes(recipes []types.Recipe) ([]types.
 	}
 
 	return filteredRecipes, nil
+}
+
+func isHostTarget(recipe types.Recipe) bool {
+	if len(recipe.InstallTargets) == 0 {
+		return false
+	}
+
+	for _, target := range recipe.InstallTargets {
+		if target.Type != types.OpenInstallationTargetTypeTypes.HOST {
+			return false
+		}
+	}
+
+	return true
 }
 
 func isAppTarget(recipe types.Recipe) bool {
