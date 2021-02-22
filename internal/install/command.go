@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
@@ -56,7 +55,7 @@ var Command = &cobra.Command{
 
 			// Run the install.
 			if err := i.Install(); err != nil {
-				log.Fatalf("Could not install New Relic: %s, check the install log for details: %s", err, config.DefaultLogFile)
+				log.Fatalf("We encountered an error during the installation. If this problem persists please visit the documentation and support page for additional help here: https://one.nr/06vjAeZLKjP")
 			}
 		})
 	},
