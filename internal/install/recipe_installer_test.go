@@ -409,6 +409,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[infraAgentRecipeName])

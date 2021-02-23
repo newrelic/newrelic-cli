@@ -129,6 +129,19 @@ func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManife
 	return r, nil
 }
 
+func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
+	}
+
+	if r == nil {
+		return nil, fmt.Errorf("recipe %s not found", recipeName)
+	}
+
+	return r, nil
+}
+
 func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, r *types.Recipe, recipes []types.Recipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
@@ -214,6 +227,19 @@ func (i *RecipeInstaller) filterRecommendations(recipes []types.Recipe) []types.
 	return filteredRecommendations
 }
 
+func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
+	if i.AssumeYes {
+		return true, nil
+	}
+
+	val, err := i.prompter.PromptYesNo(msg)
+	if err != nil {
+		return false, err
+	}
+
+	return val, nil
+}
+
 func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them?", match.File)
 	return i.userAccepts(msg)
@@ -242,6 +268,12 @@ func (i *RecipeInstaller) removeRecipes(recipes []types.Recipe, remove ...types.
 	return filtered
 }
 
+// filterIntegration has several purposes:
+//   - create a filtered list of install candidates based on command flags and user prompt input
+//   - mark recipes as SKIPPED based on the SkipIntegrations command flag
+//   - mark recipes as SKIPPED if designated by user prompt input
+//   - ensure the logging recipe is skipped if designated by user prompt input
+//   - filter out recipes with APPLICATION target types
 func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Recipe) ([]types.Recipe, error) {
 	installCandidates := []types.Recipe{}
 	for _, r := range recommendedIntegrations {

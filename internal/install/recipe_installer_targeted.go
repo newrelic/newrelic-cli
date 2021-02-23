@@ -8,6 +8,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 func (i *RecipeInstaller) targetedInstall(m *types.DiscoveryManifest) error {
@@ -88,4 +89,18 @@ func finalizeRecipe(f *recipes.RecipeFile) (*types.Recipe, error) {
 		return nil, fmt.Errorf("could not finalize recipe %s: %s", f.Name, err)
 	}
 	return r, nil
+}
+
+func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.Recipe {
+	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
+	if err != nil {
+		log.Warnf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
+		return nil
+	}
+
+	if r == nil {
+		log.Warnf("Recipe %s not found. Skipping installation.", recipeName)
+	}
+
+	return r
 }

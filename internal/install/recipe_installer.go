@@ -152,33 +152,6 @@ func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
 	return m, nil
 }
 
-func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.Recipe {
-	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
-	if err != nil {
-		log.Warnf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
-		return nil
-	}
-
-	if r == nil {
-		log.Warnf("Recipe %s not found. Skipping installation.", recipeName)
-	}
-
-	return r
-}
-
-func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
-	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
-	}
-
-	if r == nil {
-		return nil, fmt.Errorf("recipe %s not found", recipeName)
-	}
-
-	return r, nil
-}
-
 func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
@@ -245,19 +218,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 
 	i.progressIndicator.Success()
 	return entityGUID, nil
-}
-
-func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
-	if i.AssumeYes {
-		return true, nil
-	}
-
-	val, err := i.prompter.PromptYesNo(msg)
-	if err != nil {
-		return false, err
-	}
-
-	return val, nil
 }
 
 func (i *RecipeInstaller) failMessage(componentName string) error {
