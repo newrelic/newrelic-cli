@@ -95,6 +95,19 @@ sudo snap install newrelic-cli
 ### Pre-built binaries
 Pre-built binaries are created on the GitHub releases page for all of the above platforms.  You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases).  The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
 
+Verify that the fingerprint for the downloaded key matches the following:
+
+```
+gpg --fingerprint developer-toolkit-team@newrelic.com
+86BE 01DA 9B1D A1FC F828  1409 DC9F C6B1 FCE4 7986
+```
+
+When verifying pre-built binaries and checksums, use the long format (the short format is not secure). For example:
+
+```
+gpg --keyid-format long --verify checksums.txt.sig checksums.txt
+```
+
 ### Docker
 
 There is an official [docker image](https://hub.docker.com/r/newrelic/cli) that can be utilized for running commands as well.
