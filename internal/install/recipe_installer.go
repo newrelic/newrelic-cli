@@ -152,21 +152,6 @@ func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
 	return m, nil
 }
 
-func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
-	log.WithFields(log.Fields{
-		"name": recipeName,
-	}).Debug("fetching recipe for install")
-
-	r, err := i.fetch(m, recipeName)
-	if err != nil {
-		return nil, err
-	}
-
-	i.status.RecipeAvailable(*r)
-
-	return r, nil
-}
-
 func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.Recipe {
 	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {

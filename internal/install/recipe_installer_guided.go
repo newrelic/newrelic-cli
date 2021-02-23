@@ -114,6 +114,21 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	return nil
 }
 
+func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+	log.WithFields(log.Fields{
+		"name": recipeName,
+	}).Debug("fetching recipe for install")
+
+	r, err := i.fetch(m, recipeName)
+	if err != nil {
+		return nil, err
+	}
+
+	i.status.RecipeAvailable(*r)
+
+	return r, nil
+}
+
 func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, r *types.Recipe, recipes []types.Recipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
