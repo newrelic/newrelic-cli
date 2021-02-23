@@ -6,6 +6,8 @@ import (
 
 	spinnerLib "github.com/briandowns/spinner"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 const (
@@ -29,7 +31,9 @@ func NewSpinner() *Spinner {
 	return &s
 }
 
-func (s *Spinner) Start(msg string) {
+func (s *Spinner) Start(recipe types.Recipe) {
+	msg := fmt.Sprintf("Installing %s", recipe.Name)
+
 	// Only start the spinner of the log level is info or below.
 	if log.IsLevelEnabled(log.DebugLevel) {
 		log.Debug(msg)
@@ -48,10 +52,10 @@ func (s *Spinner) Stop() {
 	}
 }
 
-func (s *Spinner) Fail() {
+func (s *Spinner) Fail(recipe types.Recipe) {
 	s.FinalMSG = crossmark
 }
 
-func (s *Spinner) Success() {
+func (s *Spinner) Success(recipe types.Recipe) {
 	s.FinalMSG = checkmark
 }

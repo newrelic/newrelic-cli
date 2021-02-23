@@ -45,7 +45,6 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	p := ux.NewPromptUIPrompter()
-	// s := ux.NewSpinner()
 	s := ux.NewPlainProgress()
 
 	i := RecipeInstaller{
@@ -192,7 +191,7 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
-	i.progressIndicator.Start(fmt.Sprintf("Installing %s", r.Name))
+	i.progressIndicator.Start(*r)
 	defer func() { i.progressIndicator.Stop() }()
 
 	if r.PreInstallMessage() != "" {
@@ -208,7 +207,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 
 	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
-		i.progressIndicator.Fail()
+		i.progressIndicator.Fail(*r)
 		return "", err
 	}
 
@@ -216,7 +215,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 		fmt.Println(r.PostInstallMessage())
 	}
 
-	i.progressIndicator.Success()
+	i.progressIndicator.Success(*r)
 	return entityGUID, nil
 }
 
