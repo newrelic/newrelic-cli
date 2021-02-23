@@ -70,11 +70,6 @@ scoop install newrelic-cli
 ```
 
 #### Chocolatey
-
-Currently the `newrelic-cli` is in review with in the Chocolatey system, and
-should be published in the next few days.  That means that you must include the
-version spec, as follows.
-
 ```powershell
 choco install newrelic-cli
 ```
