@@ -37,12 +37,13 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	if i.SkipLoggingInstall {
 		i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: *loggingRecipe})
 	} else {
-		recipesForInstallation = append(recipesForInstallation, *loggingRecipe)
+		recommendedIntegrations = append(recommendedIntegrations, *loggingRecipe)
 	}
 
 	// If necessary, fetch additional integration recommendations from the recipe service.
 	if !i.SkipDiscovery {
-		recommendedIntegrations, err = i.fetchRecommendations(m)
+		var recommended []types.Recipe
+		recommended, err = i.fetchRecommendations(m)
 		if err != nil {
 			log.Debugf("error fetching additional integrations: %s", err)
 			return err
@@ -52,16 +53,23 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 			log.Debug("no additional integrations found")
 		}
 
-		// Filter integrations, based on recipe metadata, command flags and prompts.
-		integrationsForInstallation, err = i.filterIntegrations(recommendedIntegrations)
-		if err != nil {
-			return err
-		}
-		recipesForInstallation = append(recipesForInstallation, integrationsForInstallation...)
-		i.status.RecipesAvailable(integrationsForInstallation)
+		recommendedIntegrations = append(recommendedIntegrations, recommended...)
 	}
 
+	// Filter integrations, based on recipe metadata, command flags and prompts.
+	integrationsForInstallation, err = i.filterIntegrations(recommendedIntegrations)
+	if err != nil {
+		return err
+	}
+
+	// Remove logging from the integrations list since it will be handled explicitly.
+	integrationsForInstallation = i.removeRecipes(integrationsForInstallation, *loggingRecipe)
+
+	// Mark all recommended integrations as available.
+	i.status.RecipesAvailable(integrationsForInstallation)
+
 	// Show the user what will be installed.
+	recipesForInstallation = append(recipesForInstallation, integrationsForInstallation...)
 	i.status.RecipesSelected(recipesForInstallation)
 
 	// Install the infra agent.
@@ -150,26 +158,26 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, r *types.Re
 func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]types.Recipe, error) {
 	log.Debug("fetching recommended recipes")
 
-	recipes, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
+	recommendations, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving recipe recommendations: %s", err)
 	}
 
-	filteredRecommendations := i.filterRecommendations(recipes)
+	recommendations = i.filterRecommendations(recommendations)
 
 	if log.IsLevelEnabled(log.DebugLevel) {
 		names := []string{}
-		for _, r := range recipes {
+		for _, r := range recommendations {
 			names = append(names, r.Name)
 		}
 
 		log.WithFields(log.Fields{
 			"names":        names,
-			"recipe_count": len(recipes),
+			"recipe_count": len(recommendations),
 		}).Debug("recommended integrations")
 	}
 
-	return filteredRecommendations, nil
+	return recommendations, nil
 }
 
 // Filter out infra and logging recipes from recommendations, since they are
@@ -204,6 +212,19 @@ func (i *RecipeInstaller) recipeInRecipes(recipe types.Recipe, recipes []types.R
 	}
 
 	return false
+}
+
+func (i *RecipeInstaller) removeRecipes(recipes []types.Recipe, remove ...types.Recipe) []types.Recipe {
+	filtered := []types.Recipe{}
+	for _, recipe := range recipes {
+		for _, r := range remove {
+			if recipe.Name != r.Name {
+				filtered = append(filtered, recipe)
+			}
+		}
+	}
+
+	return filtered
 }
 
 func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Recipe) ([]types.Recipe, error) {
@@ -252,6 +273,10 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 	for _, r := range recommendedIntegrations {
 		if !i.recipeInRecipes(r, integrationsForInstall) {
 			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+
+			if r.Name == loggingRecipeName {
+				i.SkipLoggingInstall = true
+			}
 		}
 	}
 
