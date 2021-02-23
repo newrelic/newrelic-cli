@@ -57,7 +57,7 @@ func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.Disco
 			return "", fmt.Errorf("reached max validation attempts")
 		}
 
-		log.Debugf("Validation attempt #%d...", count+1)
+		log.Infof("Checking for data in New Relic, attempt #%d...", count+1)
 		ok, entityGUID, err := m.tryValidate(ctx, dm, r)
 		if err != nil {
 			return "", err
