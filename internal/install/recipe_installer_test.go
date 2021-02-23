@@ -414,6 +414,8 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[infraAgentRecipeName])
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeRecommendedCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipesAvailableCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
 }
 
