@@ -227,9 +227,9 @@ func (s *InstallStatus) completed() {
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
 
-	// Exiting early will cause available recipes to be marked as failed.
+	// Exiting early will cause unresolved recipes to be marked as failed.
 	for i, ss := range s.Statuses {
-		if ss.Status == RecipeStatusTypes.AVAILABLE {
+		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
 			s.Statuses[i].Status = RecipeStatusTypes.FAILED
 		}
 	}
