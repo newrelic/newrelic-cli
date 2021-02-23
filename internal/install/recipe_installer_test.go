@@ -97,6 +97,24 @@ func TestInstall_RecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
+	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           testRecipeName,
+		DisplayName:    testRecipeName,
+		ValidationNRQL: "testNrql",
+	}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+		{
+			Name:           loggingRecipeName,
+			DisplayName:    loggingRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
@@ -188,7 +206,12 @@ func TestInstall_InstallComplete(t *testing.T) {
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{{}, {}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
 
 	v = validation.NewMockRecipeValidator()
 
@@ -265,7 +288,7 @@ func TestInstall_RecipeSkipped(t *testing.T) {
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
 
-func TestInstall_RecipeSkipped_skipping_everything(t *testing.T) {
+func TestInstall_RecipeSkipped_SkipAll(t *testing.T) {
 	ic := InstallerContext{
 		SkipLoggingInstall: true,
 		SkipIntegrations:   true,
@@ -277,7 +300,16 @@ func TestInstall_RecipeSkipped_skipping_everything(t *testing.T) {
 		Name:           "test-recipe",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+		{
+			Name:           loggingRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
@@ -289,11 +321,10 @@ func TestInstall_RecipeSkipped_skipping_everything(t *testing.T) {
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	// The infra agent always gets installed
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
 
-func TestInstall_RecipeSkipped_multiselect(t *testing.T) {
+func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 	ic := InstallerContext{
 		SkipLoggingInstall: true,
 	}
@@ -305,7 +336,16 @@ func TestInstall_RecipeSkipped_multiselect(t *testing.T) {
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+		{
+			Name:           loggingRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
@@ -316,14 +356,15 @@ func TestInstall_RecipeSkipped_multiselect(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	// The infra agent always gets installed
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstallingCallCount)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
 
 func TestInstall_RecipeRecommended(t *testing.T) {
-	ic := InstallerContext{}
+	ic := InstallerContext{
+		SkipLoggingInstall: true,
+	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
@@ -348,35 +389,6 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 			},
 		},
 	}
-	f.FetchRecipeVals = []types.Recipe{{Name: "one"}, {Name: "two"}}
-
-	v = validation.NewMockRecipeValidator()
-	p = &ux.MockPrompter{
-		PromptYesNoVal:       true,
-		PromptMultiSelectVal: []string{testRecipeName},
-	}
-
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
-	err := i.Install()
-	require.NoError(t, err)
-	// The infra agent is always installed
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled["one"])
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeRecommendedCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
-}
-
-func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {
-	ic := InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
-	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
-		Name:           "test-recipe",
-		ValidationNRQL: "testNrql",
-	}}
-
 	f.FetchRecipeVals = []types.Recipe{
 		{
 			Name:           infraAgentRecipeName,
@@ -390,17 +402,24 @@ func TestInstallAdvancedMode_bounce_on_enter(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
-		PromptYesNoVal: true,
+		PromptYesNoVal:       true,
+		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, s}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[infraAgentRecipeName])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeRecommendedCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipesAvailableCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
 }
 
-func TestInstall_RecipeSkipped_assumeYes(t *testing.T) {
+func TestInstall_RecipeSkipped_AssumeYes(t *testing.T) {
 	ic := InstallerContext{
 		AssumeYes: true,
 	}

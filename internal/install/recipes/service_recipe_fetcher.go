@@ -143,12 +143,12 @@ type recommendationsInput struct {
 }
 
 type recipeSearchInput struct {
-	Name          string        `json:"name"`
+	Name          string        `json:"name,omitempty"`
 	InstallTarget installTarget `json:"installTarget"`
 }
 
 type installTarget struct {
-	Type            string `json:"type"`
+	Type            string `json:"type,omitempty"`
 	OS              string `json:"os"`
 	Platform        string `json:"platform,omitempty"`
 	PlatformFamily  string `json:"platformFamily,omitempty"`
@@ -216,7 +216,6 @@ func createInstallTarget(d *types.DiscoveryManifest) installTarget {
 		//KernelVersion:   strings.ToUpper(d.KernelVersion),
 	}
 
-	i.Type = "HOST"
 	i.OS = strings.ToUpper(d.OS)
 	i.Platform = strings.ToUpper(d.Platform)
 	//i.PlatformFamily = strings.ToUpper(d.PlatformFamily)

@@ -63,3 +63,25 @@ func (r *Recipe) AddVar(key string, value interface{}) {
 
 	r.Vars[key] = value
 }
+
+func (r *Recipe) HasHostTargetType() bool {
+	return r.HasTargetType(OpenInstallationTargetTypeTypes.HOST)
+}
+
+func (r *Recipe) HasApplicationTargetType() bool {
+	return r.HasTargetType(OpenInstallationTargetTypeTypes.APPLICATION)
+}
+
+func (r *Recipe) HasTargetType(t OpenInstallationTargetType) bool {
+	if len(r.InstallTargets) == 0 {
+		return false
+	}
+
+	for _, target := range r.InstallTargets {
+		if target.Type == t {
+			return true
+		}
+	}
+
+	return false
+}
