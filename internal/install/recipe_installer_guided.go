@@ -317,7 +317,7 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 	}
 
 	log.Debug("skipping recipes that were not selected")
-	for _, r := range recommendedIntegrations {
+	for _, r := range installCandidates {
 		if !i.recipeInRecipes(r, integrationsForInstall) {
 			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 

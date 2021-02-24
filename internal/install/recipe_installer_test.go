@@ -20,8 +20,9 @@ import (
 )
 
 var (
-	testRecipeName = "Test Recipe"
-	testRecipeFile = &recipes.RecipeFile{
+	testRecipeName        = "Test Recipe"
+	anotherTestRecipeName = "Another Test Recipe"
+	testRecipeFile        = &recipes.RecipeFile{
 		Name: testRecipeName,
 	}
 
@@ -320,7 +321,7 @@ func TestInstall_RecipeSkipped_SkipAll(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
 
@@ -372,6 +373,16 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 		{
 			Name:           testRecipeName,
 			DisplayName:    testRecipeName,
+			ValidationNRQL: "testNrql",
+			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
+				{
+					Type: types.OpenInstallationTargetTypeTypes.HOST,
+				},
+			},
+		},
+		{
+			Name:           anotherTestRecipeName,
+			DisplayName:    anotherTestRecipeName,
 			ValidationNRQL: "testNrql",
 			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
 				{
