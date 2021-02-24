@@ -45,7 +45,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	p := ux.NewPromptUIPrompter()
-	s := ux.NewPlainProgress()
+	pi := ux.NewPlainProgress()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -56,7 +56,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		recipeFileFetcher: ff,
 		status:            statusRollup,
 		prompter:          p,
-		progressIndicator: s,
+		progressIndicator: pi,
 	}
 
 	i.InstallerContext = ic
@@ -191,7 +191,8 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
-	i.progressIndicator.Start(*r)
+	msg := fmt.Sprintf("Installing %s", r.Name)
+	i.progressIndicator.Start(msg)
 	defer func() { i.progressIndicator.Stop() }()
 
 	if r.PreInstallMessage() != "" {
@@ -207,7 +208,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 
 	entityGUID, err := i.executeAndValidate(m, r, vars)
 	if err != nil {
-		i.progressIndicator.Fail(*r)
+		i.progressIndicator.Fail(msg)
 		return "", err
 	}
 
@@ -215,7 +216,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 		fmt.Println(r.PostInstallMessage())
 	}
 
-	i.progressIndicator.Success(*r)
+	i.progressIndicator.Success(msg)
 	return entityGUID, nil
 }
 

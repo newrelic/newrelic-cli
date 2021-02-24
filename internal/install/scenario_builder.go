@@ -7,6 +7,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
+	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
 type TestScenario string
@@ -24,6 +25,16 @@ var (
 		LogMatches,
 		Fail,
 		StitchedPath,
+	}
+	emptyResults = []nrdb.NRDBResult{
+		map[string]interface{}{
+			"count": 0.0,
+		},
+	}
+	nonEmptyResults = []nrdb.NRDBResult{
+		map[string]interface{}{
+			"count": 1.0,
+		},
 	}
 )
 
@@ -72,7 +83,9 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		execution.NewTerminalStatusReporter(),
 	}
 	statusRollup := execution.NewInstallStatus(ers)
-	v := validation.NewMockRecipeValidator()
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
 
 	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
@@ -80,7 +93,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
-	s := ux.NewSpinner()
+	s := ux.NewPlainProgress()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -108,7 +121,9 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		execution.NewTerminalStatusReporter(),
 	}
 	statusRollup := execution.NewInstallStatus(ers)
-	v := validation.NewMockRecipeValidator()
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
 
 	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
@@ -116,7 +131,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewMockFailingRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
-	s := ux.NewSpinner()
+	pi := ux.NewPlainProgress()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -127,7 +142,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		recipeFileFetcher: ff,
 		status:            statusRollup,
 		prompter:          p,
-		progressIndicator: s,
+		progressIndicator: pi,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -144,7 +159,9 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 		execution.NewTerminalStatusReporter(),
 	}
 	statusRollup := execution.NewInstallStatus(ers)
-	v := validation.NewMockRecipeValidator()
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
 	gff := discovery.NewMockFileFilterer()
 
 	pf := discovery.NewRegexProcessFilterer(rf)
@@ -152,7 +169,7 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 	d := discovery.NewPSUtilDiscoverer(pf)
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
-	s := ux.NewSpinner()
+	pi := ux.NewPlainProgress()
 
 	gff.FilterVal = []types.LogMatch{
 		{
@@ -170,7 +187,7 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 		recipeFileFetcher: ff,
 		status:            statusRollup,
 		prompter:          p,
-		progressIndicator: s,
+		progressIndicator: pi,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -186,7 +203,9 @@ func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
 		execution.NewTerminalStatusReporter(),
 	}
 	statusRollup := execution.NewInstallStatus(ers)
-	v := validation.NewMockRecipeValidator()
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
 
 	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
@@ -194,7 +213,7 @@ func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
-	s := ux.NewSpinner()
+	pi := ux.NewPlainProgress()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -205,7 +224,7 @@ func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
 		recipeFileFetcher: ff,
 		status:            statusRollup,
 		prompter:          p,
-		progressIndicator: s,
+		progressIndicator: pi,
 	}
 
 	i.InstallerContext = b.installerContext

@@ -41,6 +41,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
 	status := NewInstallStatus([]StatusSubscriber{r})
+	status.withEntityGUID(entityGUID)
 
 	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)

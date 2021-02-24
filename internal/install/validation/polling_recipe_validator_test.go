@@ -11,6 +11,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
@@ -33,7 +34,9 @@ func TestValidate(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 1)
 
+	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
+	v.progressIndicator = pi
 
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
@@ -46,7 +49,9 @@ func TestValidate(t *testing.T) {
 func TestValidate_PassAfterNAttempts(t *testing.T) {
 	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := NewMockNRDBClient()
+	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
+	v.progressIndicator = pi
 	v.maxAttempts = 5
 	v.interval = 10 * time.Millisecond
 
@@ -64,7 +69,9 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 func TestValidate_FailAfterNAttempts(t *testing.T) {
 	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := NewMockNRDBClient()
+	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
+	v.progressIndicator = pi
 	v.maxAttempts = 3
 	v.interval = 10 * time.Millisecond
 
@@ -83,7 +90,9 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 
+	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
+	v.progressIndicator = pi
 	v.maxAttempts = 1
 	v.interval = 10 * time.Millisecond
 
@@ -101,7 +110,9 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 
+	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
+	v.progressIndicator = pi
 	v.interval = 1 * time.Second
 
 	r := types.Recipe{}
@@ -121,7 +132,9 @@ func TestValidate_QueryError(t *testing.T) {
 
 	c.ThrowError("test error")
 
+	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
+	v.progressIndicator = pi
 
 	r := types.Recipe{}
 	m := types.DiscoveryManifest{}
