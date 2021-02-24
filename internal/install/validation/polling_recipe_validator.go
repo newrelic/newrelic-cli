@@ -8,10 +8,9 @@ import (
 	"html/template"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
@@ -26,17 +25,19 @@ const (
 // PollingRecipeValidator is an implementation of the RecipeValidator interface
 // that polls NRDB to assert data is being reported for the given recipe.
 type PollingRecipeValidator struct {
-	maxAttempts int
-	interval    time.Duration
-	client      nrdbClient
+	maxAttempts       int
+	interval          time.Duration
+	client            nrdbClient
+	progressIndicator ux.ProgressIndicator
 }
 
 // NewPollingRecipeValidator returns a new instance of PollingRecipeValidator.
 func NewPollingRecipeValidator(c nrdbClient) *PollingRecipeValidator {
 	v := PollingRecipeValidator{
-		maxAttempts: defaultMaxAttempts,
-		interval:    defaultInterval,
-		client:      c,
+		maxAttempts:       defaultMaxAttempts,
+		interval:          defaultInterval,
+		client:            c,
+		progressIndicator: ux.NewSpinner(),
 	}
 
 	return &v
@@ -52,20 +53,26 @@ func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.Disco
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
 
+	progressMsg := "Checking for data in New Relic..."
+	m.progressIndicator.Start(progressMsg)
+	defer m.progressIndicator.Stop()
+
 	for {
 		if count == m.maxAttempts {
+			m.progressIndicator.Fail("")
 			return "", fmt.Errorf("reached max validation attempts")
 		}
 
-		log.Infof("Checking for data in New Relic, attempt #%d...", count+1)
 		ok, entityGUID, err := m.tryValidate(ctx, dm, r)
 		if err != nil {
+			m.progressIndicator.Fail("")
 			return "", err
 		}
 
 		count++
 
 		if ok {
+			m.progressIndicator.Success("")
 			return entityGUID, nil
 		}
 
@@ -74,6 +81,7 @@ func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.Disco
 			continue
 
 		case <-ctx.Done():
+			m.progressIndicator.Fail("")
 			return "", fmt.Errorf("validation cancelled")
 		}
 	}
