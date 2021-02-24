@@ -30,7 +30,7 @@ func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusRe
 // RecipesAvailable reports that recipes are available for installation on
 // the underlying host.
 func (r NerdstorageStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.Recipe) error {
-	if err := r.writeStatus(status, ""); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -44,7 +44,7 @@ func (r NerdstorageStatusReporter) RecipesSelected(status *InstallStatus, recipe
 // RecipeAvailable reports that a recipe is available for installation on
 // the underlying host.
 func (r NerdstorageStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.Recipe) error {
-	if err := r.writeStatus(status, ""); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -52,7 +52,7 @@ func (r NerdstorageStatusReporter) RecipeAvailable(status *InstallStatus, recipe
 }
 
 func (r NerdstorageStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status, event.EntityGUID); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -60,7 +60,7 @@ func (r NerdstorageStatusReporter) RecipeFailed(status *InstallStatus, event Rec
 }
 
 func (r NerdstorageStatusReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status, event.EntityGUID); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -68,7 +68,7 @@ func (r NerdstorageStatusReporter) RecipeInstalling(status *InstallStatus, event
 }
 
 func (r NerdstorageStatusReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status, event.EntityGUID); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -76,7 +76,7 @@ func (r NerdstorageStatusReporter) RecipeInstalled(status *InstallStatus, event 
 }
 
 func (r NerdstorageStatusReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status, event.EntityGUID); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (r NerdstorageStatusReporter) RecipeRecommended(status *InstallStatus, even
 }
 
 func (r NerdstorageStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status, event.EntityGUID); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
@@ -92,27 +92,29 @@ func (r NerdstorageStatusReporter) RecipeSkipped(status *InstallStatus, event Re
 }
 
 func (r NerdstorageStatusReporter) InstallComplete(status *InstallStatus) error {
-	if err := r.writeStatus(status, ""); err != nil {
+	if err := r.writeStatus(status); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus, entityGUID string) error {
+func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 	i := r.buildExecutionStatusDocument(status)
 	_, err := r.client.WriteDocumentWithUserScope(i)
 	if err != nil {
 		return err
 	}
 
-	if entityGUID != "" {
-		_, err := r.client.WriteDocumentWithEntityScope(entityGUID, i)
+	for _, g := range status.EntityGUIDs {
+		_, err := r.client.WriteDocumentWithEntityScope(g, i)
 		if err != nil {
 			return err
 		}
-	} else {
-		log.Debug("No entity GUID available, skipping entity-scoped status update.")
+	}
+
+	if len(status.EntityGUIDs) == 0 {
+		log.Debug("No entity GUIDs available, skipping entity-scoped status updates.")
 	}
 
 	return nil

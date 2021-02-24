@@ -39,10 +39,8 @@ func TestRecipeInstalled_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
-
-	e := RecipeStatusEvent{
-		EntityGUID: "testGuid",
-	}
+	status.withEntityGUID("testGuid")
+	e := RecipeStatusEvent{}
 
 	err := r.RecipeInstalled(status, e)
 	require.NoError(t, err)
@@ -54,7 +52,6 @@ func TestRecipeInstalled_UserScopeOnly(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
-
 	e := RecipeStatusEvent{}
 
 	err := r.RecipeInstalled(status, e)
@@ -63,16 +60,28 @@ func TestRecipeInstalled_UserScopeOnly(t *testing.T) {
 	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
 }
 
+func TestRecipeInstalled_MultipleEntityGUIDs(t *testing.T) {
+	c := NewMockNerdStorageClient()
+	r := NewNerdStorageStatusReporter(c)
+	status := NewInstallStatus([]StatusSubscriber{r})
+	status.withEntityGUID("testGuid")
+	status.withEntityGUID("testGuid2")
+	e := RecipeStatusEvent{}
+
+	err := r.RecipeInstalled(status, e)
+	require.NoError(t, err)
+	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
+	require.Equal(t, 2, c.writeDocumentWithEntityScopeCallCount)
+}
+
 func TestRecipeInstalled_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
+	status.withEntityGUID("testGuid")
+	e := RecipeStatusEvent{}
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
-
-	e := RecipeStatusEvent{
-		EntityGUID: "testGuid",
-	}
 
 	err := r.RecipeInstalled(status, e)
 	require.Error(t, err)
@@ -82,12 +91,10 @@ func TestRecipeInstalled_EntityScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
+	status.withEntityGUID("testGuid")
+	e := RecipeStatusEvent{}
 
 	c.WriteDocumentWithEntityScopeErr = errors.New("error")
-
-	e := RecipeStatusEvent{
-		EntityGUID: "testGuid",
-	}
 
 	err := r.RecipeInstalled(status, e)
 	require.Error(t, err)
@@ -97,10 +104,8 @@ func TestRecipeFailed_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
-
-	e := RecipeStatusEvent{
-		EntityGUID: "testGuid",
-	}
+	status.withEntityGUID("testGuid")
+	e := RecipeStatusEvent{}
 
 	err := r.RecipeFailed(status, e)
 	require.NoError(t, err)
@@ -125,12 +130,10 @@ func TestRecipeFailed_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
+	status.withEntityGUID("testGuid")
+	e := RecipeStatusEvent{}
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
-
-	e := RecipeStatusEvent{
-		EntityGUID: "testGuid",
-	}
 
 	err := r.RecipeFailed(status, e)
 	require.Error(t, err)
@@ -140,12 +143,10 @@ func TestRecipeFailed_EntityScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus([]StatusSubscriber{r})
+	status.withEntityGUID("testGuid")
+	e := RecipeStatusEvent{}
 
 	c.WriteDocumentWithEntityScopeErr = errors.New("error")
-
-	e := RecipeStatusEvent{
-		EntityGUID: "testGuid",
-	}
 
 	err := r.RecipeFailed(status, e)
 	require.Error(t, err)
