@@ -80,14 +80,12 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 
 	f, err := recipes.RecipeToRecipeFile(r)
 	if err != nil {
-		log.Errorf("Error while making a file recipe %s.", err)
-		return err
+		return fmt.Errorf("could not convert recipe to recipe file: %s", err)
 	}
 
 	out, err := yaml.Marshal(f.Install)
 	if err != nil {
-		log.Errorf("Error while marshal %s.", err)
-		return err
+		return fmt.Errorf("could not marshal recipe file: %s", err)
 	}
 
 	// Create a temporary task file.
@@ -109,15 +107,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	}
 
 	if err = e.Setup(); err != nil {
-		log.Errorf("Error while setup %s.", err)
-		return err
+		return fmt.Errorf("could not set up task executor: %s", err)
 	}
 
 	var tf taskfile.Taskfile
 	err = yaml.Unmarshal(out, &tf)
 	if err != nil {
-		log.Errorf("Error while unmarshal %s.", err)
-		return err
+		return fmt.Errorf("could not unmarshal taskfile: %s", err)
 	}
 
 	calls, globals := taskargs.ParseV3()
