@@ -244,7 +244,7 @@ This is the Infrastructure Agent Installer preinstall message.
 It is made up of a multi line string.
 				`,
 			},
-			PostInstall: types.RecipePostInstall{
+			PostInstall: types.OpenInstallationPostInstallConfiguration{
 				Info: `
 This is the Infrastructure Agent Installer postinstall message.
 It is made up of a multi line string.

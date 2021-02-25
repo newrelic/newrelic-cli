@@ -249,6 +249,7 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 		Repository:     result.Repository,
 		ValidationNRQL: string(result.ValidationNRQL),
 		PreInstall:     result.PreInstall,
+		PostInstall:    result.PostInstall,
 	}
 }
 
@@ -312,6 +313,9 @@ const (
 		}
 		validationNrql
 		preInstall {
+			info
+		}
+		postInstall {
 			info
 		}
 		file

@@ -1,25 +1,20 @@
 package types
 
 type Recipe struct {
-	ID             string                                  `json:"id"`
-	Description    string                                  `json:"description"`
-	DisplayName    string                                  `json:"displayName"`
-	File           string                                  `json:"file"`
-	InstallTargets []OpenInstallationRecipeInstallTarget   `json:"installTargets"`
-	Keywords       []string                                `json:"keywords"`
-	LogMatch       []LogMatch                              `json:"logMatch"`
-	Name           string                                  `json:"name"`
-	PreInstall     OpenInstallationPreInstallConfiguration `json:"preInstall"`
-	PostInstall    RecipePostInstall                       `json:"postInstall"`
-	ProcessMatch   []string                                `json:"processMatch"`
-	Repository     string                                  `json:"repository"`
-	ValidationNRQL string                                  `json:"validationNrql"`
+	ID             string                                   `json:"id"`
+	Description    string                                   `json:"description"`
+	DisplayName    string                                   `json:"displayName"`
+	File           string                                   `json:"file"`
+	InstallTargets []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
+	Keywords       []string                                 `json:"keywords"`
+	LogMatch       []LogMatch                               `json:"logMatch"`
+	Name           string                                   `json:"name"`
+	PreInstall     OpenInstallationPreInstallConfiguration  `json:"preInstall"`
+	PostInstall    OpenInstallationPostInstallConfiguration `json:"postInstall"`
+	ProcessMatch   []string                                 `json:"processMatch"`
+	Repository     string                                   `json:"repository"`
+	ValidationNRQL string                                   `json:"validationNrql"`
 	Vars           map[string]interface{}
-}
-
-// RecipePostInstall represents the information used after recipe execution has completed.
-type RecipePostInstall struct {
-	Info string `yaml:"info"`
 }
 
 func (r *Recipe) PostInstallMessage() string {

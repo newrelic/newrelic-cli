@@ -129,6 +129,12 @@ type OpenInstallationPreInstallConfiguration struct {
 	Info string `json:"info,omitempty"`
 }
 
+// OpenInstallationPostInstallConfiguration - Optional post-install configuration items
+type OpenInstallationPostInstallConfiguration struct {
+	// Message/Docs notice displayed to user after running the recipe
+	Info string `json:"info,omitempty"`
+}
+
 // OpenInstallationRecipe - Installation instructions and definition of an instrumentation integration
 type OpenInstallationRecipe struct {
 	// Description of the recipe
@@ -153,6 +159,8 @@ type OpenInstallationRecipe struct {
 	Name string `json:"name,omitempty"`
 	// Object representing optional pre-install configuration items
 	PreInstall OpenInstallationPreInstallConfiguration `json:"preInstall,omitempty"`
+	// Object representing optional post-install configuration items
+	PostInstall OpenInstallationPostInstallConfiguration `json:"postInstall,omitempty"`
 	// List of process definitions used to match CLI process detection
 	ProcessMatch []string `json:"processMatch"`
 	// Github repository url
