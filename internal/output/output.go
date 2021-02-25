@@ -25,6 +25,12 @@ const (
 	//FormatCSV
 )
 
+var formatKeys = []Format{
+	FormatJSON,
+	FormatText,
+	FormatYAML,
+}
+
 var formatStrings = map[Format]string{
 	FormatJSON: "JSON",
 	FormatText: "Text",
@@ -50,11 +56,12 @@ func (f Format) String() string {
 }
 
 func FormatOptions() string {
-	ret := make([]string, 0, len(formatStrings))
+	ret := make([]string, 0, len(formatKeys))
 
-	for _, v := range formatStrings {
-		ret = append(ret, v)
+	for _, k := range formatKeys {
+		ret = append(ret, formatStrings[k])
 	}
+
 	return strings.Join(ret, ", ")
 }
 
