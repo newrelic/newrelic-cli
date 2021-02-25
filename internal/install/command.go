@@ -55,7 +55,7 @@ var Command = &cobra.Command{
 
 			// Run the install.
 			if err := i.Install(); err != nil {
-				log.Fatalf("We encountered an error during the installation. If this problem persists please visit the documentation and support page for additional help here: https://one.nr/06vjAeZLKjP")
+				log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.nr/06vjAeZLKjP", err)
 			}
 		})
 	},

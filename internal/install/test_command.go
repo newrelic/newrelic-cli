@@ -34,6 +34,12 @@ var TestCommand = &cobra.Command{
 			log.Fatalf("Scenario %s is not valid.  Valid values are %s", testScenario, strings.Join(TestScenarioValues(), ","))
 		}
 
+		if trace {
+			log.SetLevel(log.TraceLevel)
+		} else if debug {
+			log.SetLevel(log.DebugLevel)
+		}
+
 		if err := i.Install(); err != nil {
 			log.Fatalf("test failed: %s", err)
 		}
@@ -47,5 +53,7 @@ func init() {
 	TestCommand.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	TestCommand.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 	TestCommand.Flags().StringVarP(&testScenario, "testScenario", "s", string(Basic), fmt.Sprintf("test scenario to run, defaults to BASIC.  Valid values are %s", strings.Join(TestScenarioValues(), ",")))
+	TestCommand.Flags().BoolVar(&debug, "debug", false, "debug level logging")
+	TestCommand.Flags().BoolVar(&trace, "trace", false, "trace level logging")
 	TestCommand.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 }
