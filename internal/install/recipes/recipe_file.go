@@ -12,19 +12,19 @@ import (
 
 // RecipeFile represents a recipe file as defined in the Open Installation Library.
 type RecipeFile struct {
-	Description    string                                        `yaml:"description"`
-	InputVars      []VariableConfig                              `yaml:"inputVars"`
-	Install        map[string]interface{}                        `yaml:"install"`
-	InstallTargets []RecipeInstallTarget                         `yaml:"installTargets"`
-	Keywords       []string                                      `yaml:"keywords"`
-	LogMatch       []types.LogMatch                              `yaml:"logMatch"`
-	Name           string                                        `yaml:"name"`
-	DisplayName    string                                        `yaml:"displayName"`
-	PreInstall     types.OpenInstallationPreInstallConfiguration `yaml:"preInstall"`
-	PostInstall    types.RecipePostInstall                       `yaml:"postInstall"`
-	ProcessMatch   []string                                      `yaml:"processMatch"`
-	Repository     string                                        `yaml:"repository"`
-	ValidationNRQL string                                        `yaml:"validationNrql"`
+	Description    string                                         `yaml:"description"`
+	InputVars      []VariableConfig                               `yaml:"inputVars"`
+	Install        map[string]interface{}                         `yaml:"install"`
+	InstallTargets []RecipeInstallTarget                          `yaml:"installTargets"`
+	Keywords       []string                                       `yaml:"keywords"`
+	LogMatch       []types.LogMatch                               `yaml:"logMatch"`
+	Name           string                                         `yaml:"name"`
+	DisplayName    string                                         `yaml:"displayName"`
+	PreInstall     types.OpenInstallationPreInstallConfiguration  `yaml:"preInstall"`
+	PostInstall    types.OpenInstallationPostInstallConfiguration `yaml:"postInstall"`
+	ProcessMatch   []string                                       `yaml:"processMatch"`
+	Repository     string                                         `yaml:"repository"`
+	ValidationNRQL string                                         `yaml:"validationNrql"`
 }
 
 type VariableConfig struct {
