@@ -17,7 +17,7 @@ const (
 
 func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	var recipesForInstallation []types.Recipe
-	var integrationsForInstallation []types.Recipe
+	var selectedIntegrations []types.Recipe
 	var recommendedIntegrations []types.Recipe
 
 	// Fetch the infra agent recipe and mark it as available.
@@ -57,20 +57,20 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	}
 
 	// Filter integrations, based on recipe metadata, command flags and prompts.
-	integrationsForInstallation, err = i.filterIntegrations(recommendedIntegrations)
+	selectedIntegrations, err = i.filterIntegrations(recommendedIntegrations)
 	if err != nil {
 		return err
 	}
 
-	// Remove logging from the integrations list since it will be handled explicitly.
-	integrationsForInstallation = i.removeRecipes(integrationsForInstallation, *loggingRecipe)
-
 	// Mark all recommended integrations as available.
-	i.status.RecipesAvailable(integrationsForInstallation)
+	i.status.RecipesAvailable(selectedIntegrations)
 
 	// Show the user what will be installed.
-	recipesForInstallation = append(recipesForInstallation, integrationsForInstallation...)
+	recipesForInstallation = append(recipesForInstallation, selectedIntegrations...)
 	i.status.RecipesSelected(recipesForInstallation)
+
+	// Remove logging from the integrations list since it will be installed explicitly.
+	selectedIntegrations = i.removeRecipes(selectedIntegrations, *loggingRecipe)
 
 	// Install the infra agent.
 	log.Debugf("Installing infrastructure agent")
@@ -105,7 +105,7 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
 		log.Debugf("Installing integrations")
-		if err = i.installRecipes(m, integrationsForInstallation); err != nil {
+		if err = i.installRecipes(m, selectedIntegrations); err != nil {
 			return err
 		}
 		log.Debugf("Done installing integrations.")
@@ -295,7 +295,7 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 	if i.AssumeYes {
 		// When -y is supplied, select all the recipes that were in the report for install.
 		selectedIntegrationNames = installCandidateNames
-	} else {
+	} else if len(installCandidateNames) > 0 {
 		fmt.Printf("The guided installation will begin by installing the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
 
 		var promptErr error
