@@ -23,13 +23,14 @@ require (
 	github.com/newrelic/newrelic-client-go v0.58.3
 	github.com/newrelic/tutone v0.6.1
 	github.com/psampaz/go-mod-outdated v0.7.0
-	github.com/shirou/gopsutil v3.21.1+incompatible
+	github.com/shirou/gopsutil v3.21.2+incompatible
 	github.com/sirupsen/logrus v1.8.0
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
+	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	golang.org/x/term v0.0.0-20210220032956-6a3ed077a48d
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
