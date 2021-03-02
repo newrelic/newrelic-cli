@@ -40,7 +40,7 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 	for _, p := range matchedProcesses {
 		log.Tracef("Match using process command: %s", p.Command)
 		for _, r := range recipes {
-			if match(r, &p) == true {
+			if match(r, &p) {
 				matches = append(matches, p)
 			}
 		}
