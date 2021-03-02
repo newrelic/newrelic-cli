@@ -230,3 +230,31 @@ func (i *RecipeInstaller) failMessage(componentName string) error {
 
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
+
+func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+	log.WithFields(log.Fields{
+		"name": recipeName,
+	}).Debug("fetching recipe for install")
+
+	r, err := i.fetch(m, recipeName)
+	if err != nil {
+		return nil, err
+	}
+
+	i.status.RecipeAvailable(*r)
+
+	return r, nil
+}
+
+func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
+	}
+
+	if r == nil {
+		return nil, fmt.Errorf("recipe %s not found", recipeName)
+	}
+
+	return r, nil
+}
