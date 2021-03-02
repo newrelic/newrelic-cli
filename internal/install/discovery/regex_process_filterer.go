@@ -39,13 +39,10 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 	matches := []types.MatchedProcess{}
 	for _, p := range matchedProcesses {
 		log.Tracef("Match using process command: %s", p.Command)
-		isMatch := false
 		for _, r := range recipes {
-			isMatch = isMatch || match(r, &p)
-		}
-
-		if isMatch {
-			matches = append(matches, p)
+			if match(r, &p) == true {
+				matches = append(matches, p)
+			}
 		}
 	}
 
@@ -54,6 +51,7 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 }
 
 func match(r types.Recipe, matchedProcess *types.MatchedProcess) bool {
+	// log.Println("here")
 	for _, pattern := range r.ProcessMatch {
 		matched, err := regexp.Match(pattern, []byte(matchedProcess.Command))
 		if err != nil {
