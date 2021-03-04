@@ -114,34 +114,6 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	return nil
 }
 
-func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
-	log.WithFields(log.Fields{
-		"name": recipeName,
-	}).Debug("fetching recipe for install")
-
-	r, err := i.fetch(m, recipeName)
-	if err != nil {
-		return nil, err
-	}
-
-	i.status.RecipeAvailable(*r)
-
-	return r, nil
-}
-
-func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
-	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
-	}
-
-	if r == nil {
-		return nil, fmt.Errorf("recipe %s not found", recipeName)
-	}
-
-	return r, nil
-}
-
 func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, r *types.Recipe, recipes []types.Recipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
@@ -296,7 +268,7 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 		// When -y is supplied, select all the recipes that were in the report for install.
 		selectedIntegrationNames = installCandidateNames
 	} else if len(installCandidateNames) > 0 {
-		fmt.Printf("The guided installation will begin by installing the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+		fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
 
 		var promptErr error
 		selectedIntegrationNames, promptErr = i.prompter.MultiSelect("Please choose from the additional recommended instrumentation to be installed:", installCandidateNames)

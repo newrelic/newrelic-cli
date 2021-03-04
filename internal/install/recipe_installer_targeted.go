@@ -51,10 +51,28 @@ func (i *RecipeInstaller) targetedInstall(m *types.DiscoveryManifest) error {
 		}
 	}
 
+	fmt.Printf("The installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+
+	// Fetch the infra agent recipe and mark it as available.
+	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(m, infraAgentRecipeName)
+	if err != nil {
+		return err
+	}
+
 	// Show the user what will be installed.
 	i.status.RecipesAvailable(recipes)
-	i.status.RecipesSelected(recipes)
+	i.status.RecipesSelected(append([]types.Recipe{*infraAgentRecipe}, recipes...))
 
+	// Install the infra agent.
+	log.Debugf("Installing infrastructure agent")
+	_, err = i.executeAndValidateWithProgress(m, infraAgentRecipe)
+	if err != nil {
+		log.Error(i.failMessage(infraAgentRecipeName))
+		return err
+	}
+	log.Debugf("Done installing infrastructure agent.")
+
+	// Install the requested integrations.
 	log.Debugf("Installing integrations")
 	if err = i.installRecipes(m, recipes); err != nil {
 		return err
