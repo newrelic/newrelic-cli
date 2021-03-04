@@ -20,7 +20,7 @@ type GenericProcess interface {
 }
 
 type MatchedProcess struct {
-	Command         string
+	Command         string `json:"command"`
 	Process         GenericProcess
 	MatchingPattern string
 }
