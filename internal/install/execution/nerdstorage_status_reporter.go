@@ -30,11 +30,7 @@ func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusRe
 // RecipesAvailable reports that recipes are available for installation on
 // the underlying host.
 func (r NerdstorageStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.Recipe) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.Recipe) error {
@@ -44,54 +40,34 @@ func (r NerdstorageStatusReporter) RecipesSelected(status *InstallStatus, recipe
 // RecipeAvailable reports that a recipe is available for installation on
 // the underlying host.
 func (r NerdstorageStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.Recipe) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) InstallComplete(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	if err := r.writeStatus(status); err != nil {
 		return err
 	}

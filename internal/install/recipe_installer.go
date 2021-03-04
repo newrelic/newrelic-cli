@@ -91,13 +91,15 @@ func (i *RecipeInstaller) Install() error {
 		"RecipeNamesProvided":       i.RecipeNamesProvided(),
 	}).Debug("context summary")
 
+	defer i.status.InstallComplete()
+
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover()
 	if err != nil {
 		return err
 	}
 
-	defer i.status.InstallComplete()
+	i.status.DiscoveryComplete(*m)
 
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.

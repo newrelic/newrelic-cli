@@ -99,3 +99,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 	return nil
 }
+
+func (r TerminalStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
+	return nil
+}

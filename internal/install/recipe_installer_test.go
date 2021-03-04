@@ -95,6 +95,26 @@ func TestInstall_Basic(t *testing.T) {
 	require.Equal(t, f.FetchRecipeNameCount[loggingRecipeName], 1)
 }
 
+func TestInstall_DiscoveryComplete(t *testing.T) {
+	ic := InstallerContext{}
+	statusReporter := execution.NewMockStatusReporter()
+	statusReporters = []execution.StatusSubscriber{statusReporter}
+	status = execution.NewInstallStatus(statusReporters)
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
+
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
+}
+
 func TestInstall_RecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
