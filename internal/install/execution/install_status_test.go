@@ -47,6 +47,25 @@ func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 	require.NotEmpty(t, s.Timestamp)
 }
 
+func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{})
+	r := types.Recipe{Name: "testRecipe"}
+	e := RecipeStatusEvent{
+		Recipe: r,
+		Msg:    "thing failed for a reason",
+	}
+
+	s.Timestamp = 0
+	s.withRecipeEvent(e, RecipeStatusTypes.FAILED)
+
+	require.NotEmpty(t, s.Statuses)
+	require.Equal(t, 1, len(s.Statuses))
+	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
+	require.NotEmpty(t, s.Timestamp)
+	require.Equal(t, s.Statuses[0].Error, s.Error)
+	require.Equal(t, e.Msg, s.Error.Message)
+}
+
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
 	r := types.Recipe{Name: "testRecipe"}

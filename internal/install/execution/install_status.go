@@ -10,21 +10,22 @@ import (
 )
 
 type InstallStatus struct {
-	Complete          bool `json:"complete"`
-	DocumentID        string
+	Complete          bool                    `json:"complete"`
+	DiscoveryManifest types.DiscoveryManifest `json:"discoveryManifest"`
 	EntityGUIDs       []string                `json:"entityGuids"`
+	Error             StatusError             `json:"error"`
+	LogFilePath       string                  `json:"logFilePath"`
 	Statuses          []RecipeStatus          `json:"recipes"`
 	Timestamp         int64                   `json:"timestamp"`
-	LogFilePath       string                  `json:"logFilePath"`
-	DiscoveryManifest types.DiscoveryManifest `json:"discoveryManifest"`
+	DocumentID        string
 	statusSubscriber  []StatusSubscriber
 }
 
 type RecipeStatus struct {
-	Name        string              `json:"name"`
-	DisplayName string              `json:"displayName"`
-	Status      RecipeStatusType    `json:"status"`
-	Errors      []StatusRecipeError `json:"errors"`
+	DisplayName string           `json:"displayName"`
+	Error       StatusError      `json:"error"`
+	Name        string           `json:"name"`
+	Status      RecipeStatusType `json:"status"`
 }
 
 type RecipeStatusType string
@@ -45,13 +46,12 @@ var RecipeStatusTypes = struct {
 	RECOMMENDED: "RECOMMENDED",
 }
 
-type StatusRecipeError struct {
+type StatusError struct {
 	Message string `json:"message"`
 	Details string `json:"details"`
 }
 
 func NewInstallStatus(reporters []StatusSubscriber) *InstallStatus {
-
 	s := InstallStatus{
 		DocumentID:       uuid.New().String(),
 		Timestamp:        utils.GetTimestamp(),
@@ -218,9 +218,16 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		s.withEntityGUID(e.EntityGUID)
 	}
 
+	statusError := StatusError{
+		Message: e.Msg,
+	}
+
+	s.Error = statusError
+
 	log.WithFields(log.Fields{
 		"recipe_name": e.Recipe.Name,
 		"status":      rs,
+		"error":       statusError.Message,
 	}).Debug("recipe event")
 
 	found := s.getStatus(e.Recipe)
@@ -232,6 +239,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 			Name:        e.Recipe.Name,
 			DisplayName: e.Recipe.DisplayName,
 			Status:      rs,
+			Error:       statusError,
 		}
 		s.Statuses = append(s.Statuses, *e)
 	}
