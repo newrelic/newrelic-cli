@@ -10,13 +10,14 @@ import (
 )
 
 type InstallStatus struct {
-	Complete         bool `json:"complete"`
-	DocumentID       string
-	EntityGUIDs      []string       `json:"entityGuids"`
-	Statuses         []RecipeStatus `json:"recipes"`
-	Timestamp        int64          `json:"timestamp"`
-	LogFilePath      string         `json:"logFilePath"`
-	statusSubscriber []StatusSubscriber
+	Complete          bool `json:"complete"`
+	DocumentID        string
+	EntityGUIDs       []string                `json:"entityGuids"`
+	Statuses          []RecipeStatus          `json:"recipes"`
+	Timestamp         int64                   `json:"timestamp"`
+	LogFilePath       string                  `json:"logFilePath"`
+	DiscoveryManifest types.DiscoveryManifest `json:"discoveryManifest"`
+	statusSubscriber  []StatusSubscriber
 }
 
 type RecipeStatus struct {
@@ -59,6 +60,16 @@ func NewInstallStatus(reporters []StatusSubscriber) *InstallStatus {
 	}
 
 	return &s
+}
+
+func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
+	s.withDiscoveryInfo(dm)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.DiscoveryComplete(s, dm); err != nil {
+			log.Errorf("Could not report discovery info: %s", err)
+		}
+	}
 }
 
 func (s *InstallStatus) RecipeAvailable(recipe types.Recipe) {
@@ -195,6 +206,11 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 	}
 
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
+}
+
+func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
+	s.DiscoveryManifest = dm
+	s.Timestamp = utils.GetTimestamp()
 }
 
 func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType) {
