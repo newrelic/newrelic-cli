@@ -110,6 +110,10 @@ func (r *MockStatusReporter) InstallComplete(status *InstallStatus) error {
 	return r.InstallCompleteErr
 }
 
+func (r MockStatusReporter) InstallCanceled(status *InstallStatus) error {
+	return nil
+}
+
 func (r *MockStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	r.DiscoveryCompleteCallCount++
 	return r.DiscoveryCompleteErr

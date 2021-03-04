@@ -103,11 +103,27 @@ func (i *RecipeInstaller) Install() error {
 
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.
-		return i.targetedInstall(m)
+		if err := i.targetedInstall(m); err != nil {
+			if _, ok := err.(*types.ErrInterrupt); ok {
+				i.status.InstallCanceled()
+			}
+
+			return err
+		}
+
+		return nil
 	}
 
 	// Run the guided installer.
-	return i.guidedInstall(m)
+	if err := i.guidedInstall(m); err != nil {
+		if _, ok := err.(*types.ErrInterrupt); ok {
+			i.status.InstallCanceled()
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []types.Recipe) error {
@@ -156,8 +172,8 @@ func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
 func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
-		if serr, ok := err.(*types.ErrInterrupt); ok {
-			return "", serr
+		if _, ok := err.(*types.ErrInterrupt); ok {
+			return "", err
 		}
 
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
