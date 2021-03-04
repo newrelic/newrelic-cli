@@ -83,7 +83,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 			fmt.Printf("  - %s\n", recommendation.DisplayName)
 		}
 
-		fmt.Println("Please refer to the \"Detected observability gaps\" section in the link to your data.")
+		fmt.Println("Please refer to the \"Data gaps\" section in the link to your data.")
 		fmt.Println("  ---")
 	}
 
