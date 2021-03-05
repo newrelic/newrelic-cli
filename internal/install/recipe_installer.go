@@ -95,7 +95,7 @@ func (i *RecipeInstaller) Install() error {
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
 	defer cancel()
 
-	var errChan chan error
+	errChan := make(chan error)
 	var err error
 
 	go func(ctx context.Context) {
@@ -104,11 +104,9 @@ func (i *RecipeInstaller) Install() error {
 
 	select {
 	case <-ctx.Done():
-		log.Warn("cancel from context")
 		i.status.InstallCanceled()
 		return nil
 	case err = <-errChan:
-		log.Warn("cancel from error")
 		if err == types.ErrInterrupt {
 			i.status.InstallCanceled()
 			return err

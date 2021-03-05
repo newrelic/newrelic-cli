@@ -1,9 +1,6 @@
 package execution
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -117,12 +114,6 @@ func (r *MockStatusReporter) InstallComplete(status *InstallStatus) error {
 
 func (r *MockStatusReporter) InstallCanceled(status *InstallStatus) error {
 	r.InstallCanceledCallCount++
-
-	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n MockStatusReporter:  %+v \n", status)
-	fmt.Print("\n **************************** \n\n")
-	time.Sleep(7 * time.Second)
-
 	return r.InstallCanceledErr
 }
 
