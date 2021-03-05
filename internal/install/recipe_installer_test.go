@@ -259,7 +259,7 @@ func TestInstall_InstallCanceled(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
 	err := i.Install()
 	require.Error(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
+	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCanceledCallCount)
 }
 
