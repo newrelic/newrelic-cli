@@ -93,6 +93,18 @@ func (i *RecipeInstaller) Install() error {
 
 	defer i.status.InstallComplete()
 
+	if err := i.discoverAndRun(); err != nil {
+		if err == types.ErrInterrupt {
+			i.status.InstallCanceled()
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (i *RecipeInstaller) discoverAndRun() error {
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover()
 	if err != nil {
@@ -103,27 +115,11 @@ func (i *RecipeInstaller) Install() error {
 
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.
-		if err := i.targetedInstall(m); err != nil {
-			if _, ok := err.(*types.ErrInterrupt); ok {
-				i.status.InstallCanceled()
-			}
-
-			return err
-		}
-
-		return nil
+		return i.targetedInstall(m)
 	}
 
 	// Run the guided installer.
-	if err := i.guidedInstall(m); err != nil {
-		if _, ok := err.(*types.ErrInterrupt); ok {
-			i.status.InstallCanceled()
-		}
-
-		return err
-	}
-
-	return nil
+	return i.guidedInstall(m)
 }
 
 func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []types.Recipe) error {
@@ -140,8 +136,8 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 
 		_, err = i.executeAndValidateWithProgress(m, &r)
 		if err != nil {
-			if serr, ok := err.(*types.ErrInterrupt); ok {
-				return serr
+			if err == types.ErrInterrupt {
+				return err
 			}
 
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
@@ -172,7 +168,7 @@ func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
 func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
-		if _, ok := err.(*types.ErrInterrupt); ok {
+		if err == types.ErrInterrupt {
 			return "", err
 		}
 
