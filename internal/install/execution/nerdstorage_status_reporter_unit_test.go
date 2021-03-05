@@ -174,6 +174,28 @@ func TestInstallComplete_UserScopeError(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestInstallCanceled_Basic(t *testing.T) {
+	c := NewMockNerdStorageClient()
+	r := NewNerdStorageStatusReporter(c)
+	status := NewInstallStatus([]StatusSubscriber{r})
+
+	err := r.InstallCanceled(status)
+	require.NoError(t, err)
+	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
+	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+}
+
+func TestInstallCanceled_UserScopeError(t *testing.T) {
+	c := NewMockNerdStorageClient()
+	r := NewNerdStorageStatusReporter(c)
+	status := NewInstallStatus([]StatusSubscriber{r})
+
+	c.WriteDocumentWithUserScopeErr = errors.New("error")
+
+	err := r.InstallCanceled(status)
+	require.Error(t, err)
+}
+
 func TestDiscoveryComplete_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)

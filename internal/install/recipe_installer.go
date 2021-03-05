@@ -263,7 +263,8 @@ func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManife
 func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
 	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
+		log.Errorf("error retrieving recipe %s: %s", recipeName, err)
+		return nil, err
 	}
 
 	if r == nil {

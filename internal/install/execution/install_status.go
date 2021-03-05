@@ -172,7 +172,7 @@ func (s *InstallStatus) InstallCanceled() {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.InstallCanceled(s); err != nil {
-			log.Errorf("Installation canceled: %s", err)
+			log.Errorf("Error writing execution status: %s", err)
 		}
 	}
 }
