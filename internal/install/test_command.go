@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -41,6 +42,10 @@ var TestCommand = &cobra.Command{
 		}
 
 		if err := i.Install(); err != nil {
+			if err == types.ErrInterrupt {
+				return
+			}
+
 			log.Fatalf("test failed: %s", err)
 		}
 	},
