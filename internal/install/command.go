@@ -2,7 +2,6 @@ package install
 
 import (
 	"errors"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -58,7 +57,6 @@ var Command = &cobra.Command{
 			// Run the install.
 			if err := i.Install(); err != nil {
 				if err == types.ErrInterrupt {
-					fmt.Println("DS:DNFLKSDJFNLKJSDNFLJSKDNFKLJSDNFKLJNFLJSKDNFKJLn")
 					return
 				}
 
