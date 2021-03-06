@@ -407,26 +407,15 @@ validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTN
 install:
   version: "3"
   silent: true
-
   tasks:
     default:
       cmds:
         - task: run
-
     run:
       cmds:
         - |
-          echo ""
-          echo "ctl+c right MEOW!!!!"
-          echo ""
-
+          echo "sleeping 10 seconds"
           sleep 10
-
-postInstall:
-  info: |2
-      ⚙️  The Infrastructure Agent configuration file can be found in /etc/newrelic-infra.yml
-      Edit this file to make changes or configure advanced features for the agent. See the docs for options:
-      https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/configuration/infrastructure-agent-configuration-settings
 `,
 		},
 	}
