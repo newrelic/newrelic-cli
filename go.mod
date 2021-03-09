@@ -9,7 +9,7 @@ require (
 	github.com/fatih/color v1.10.0
 	github.com/git-chglog/git-chglog v0.10.0
 	github.com/go-task/task/v3 v3.2.2
-	github.com/golangci/golangci-lint v1.37.1
+	github.com/golangci/golangci-lint v1.38.0
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.157.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
@@ -24,7 +24,7 @@ require (
 	github.com/newrelic/tutone v0.6.1
 	github.com/psampaz/go-mod-outdated v0.7.0
 	github.com/shirou/gopsutil v3.21.2+incompatible
-	github.com/sirupsen/logrus v1.8.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
