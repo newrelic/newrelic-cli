@@ -163,3 +163,13 @@ func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
 	s.InstallComplete()
 	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
 }
+
+func TestInstallStatus_cancelAvailable(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{})
+	r := types.Recipe{Name: "testRecipe"}
+
+	s.RecipesAvailable([]types.Recipe{r})
+
+	s.InstallCanceled()
+	require.Equal(t, RecipeStatusTypes.CANCELED, s.Statuses[0].Status)
+}

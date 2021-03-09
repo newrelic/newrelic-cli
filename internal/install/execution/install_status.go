@@ -32,6 +32,7 @@ type RecipeStatusType string
 
 var RecipeStatusTypes = struct {
 	AVAILABLE   RecipeStatusType
+	CANCELED    RecipeStatusType
 	INSTALLING  RecipeStatusType
 	FAILED      RecipeStatusType
 	INSTALLED   RecipeStatusType
@@ -39,6 +40,7 @@ var RecipeStatusTypes = struct {
 	RECOMMENDED RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
+	CANCELED:    "CANCELED",
 	INSTALLING:  "INSTALLING",
 	FAILED:      "FAILED",
 	INSTALLED:   "INSTALLED",
@@ -165,6 +167,16 @@ func (s *InstallStatus) InstallComplete() {
 	}
 }
 
+func (s *InstallStatus) InstallCanceled() {
+	s.canceled()
+
+	for _, r := range s.statusSubscriber {
+		if err := r.InstallCanceled(s); err != nil {
+			log.Errorf("Error writing execution status: %s", err)
+		}
+	}
+}
+
 func (s *InstallStatus) recommendations() []RecipeStatus {
 	var statuses []RecipeStatus
 
@@ -180,6 +192,16 @@ func (s *InstallStatus) recommendations() []RecipeStatus {
 func (s *InstallStatus) hasFailed() bool {
 	for _, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.FAILED {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *InstallStatus) isCanceled() bool {
+	for _, ss := range s.Statuses {
+		if ss.Status == RecipeStatusTypes.CANCELED {
 			return true
 		}
 	}
@@ -255,6 +277,17 @@ func (s *InstallStatus) completed() {
 	for i, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
 			s.Statuses[i].Status = RecipeStatusTypes.FAILED
+		}
+	}
+}
+
+func (s *InstallStatus) canceled() {
+	s.Timestamp = utils.GetTimestamp()
+
+	// Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
+	for i, ss := range s.Statuses {
+		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
+			s.Statuses[i].Status = RecipeStatusTypes.CANCELED
 		}
 	}
 }

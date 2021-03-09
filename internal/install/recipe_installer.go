@@ -1,6 +1,7 @@
 package install
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -91,10 +92,35 @@ func (i *RecipeInstaller) Install() error {
 		"RecipeNamesProvided":       i.RecipeNamesProvided(),
 	}).Debug("context summary")
 
-	defer i.status.InstallComplete()
+	ctx, cancel := context.WithCancel(utils.SignalCtx)
+	defer cancel()
 
+	errChan := make(chan error)
+	var err error
+
+	go func(ctx context.Context) {
+		errChan <- i.discoverAndRun(ctx)
+	}(ctx)
+
+	select {
+	case <-ctx.Done():
+		i.status.InstallCanceled()
+		return nil
+	case err = <-errChan:
+		if err == types.ErrInterrupt {
+			i.status.InstallCanceled()
+			return err
+		}
+
+		i.status.InstallComplete()
+
+		return err
+	}
+}
+
+func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 	// Execute the discovery process, exiting on failure.
-	m, err := i.discover()
+	m, err := i.discover(ctx)
 	if err != nil {
 		return err
 	}
@@ -103,14 +129,14 @@ func (i *RecipeInstaller) Install() error {
 
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.
-		return i.targetedInstall(m)
+		return i.targetedInstall(ctx, m)
 	}
 
 	// Run the guided installer.
-	return i.guidedInstall(m)
+	return i.guidedInstall(ctx, m)
 }
 
-func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []types.Recipe) error {
+func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.Recipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
@@ -122,10 +148,10 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 			"name": r.Name,
 		}).Debug("installing recipe")
 
-		_, err = i.executeAndValidateWithProgress(m, &r)
+		_, err = i.executeAndValidateWithProgress(ctx, m, &r)
 		if err != nil {
-			if serr, ok := err.(*types.ErrInterrupt); ok {
-				return serr
+			if err == types.ErrInterrupt {
+				return err
 			}
 
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
@@ -142,10 +168,10 @@ func (i *RecipeInstaller) installRecipes(m *types.DiscoveryManifest, recipes []t
 	return nil
 }
 
-func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
+func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
 	log.Debug("discovering system information")
 
-	m, err := i.discoverer.Discover(utils.SignalCtx)
+	m, err := i.discoverer.Discover(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
 	}
@@ -153,11 +179,11 @@ func (i *RecipeInstaller) discover() (*types.DiscoveryManifest, error) {
 	return m, nil
 }
 
-func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
 	// Execute the recipe steps.
-	if err := i.recipeExecutor.Execute(utils.SignalCtx, *m, *r, vars); err != nil {
-		if serr, ok := err.(*types.ErrInterrupt); ok {
-			return "", serr
+	if err := i.recipeExecutor.Execute(ctx, *m, *r, vars); err != nil {
+		if err == types.ErrInterrupt {
+			return "", err
 		}
 
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
@@ -171,7 +197,7 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 	var entityGUID string
 	var err error
 	if r.ValidationNRQL != "" {
-		entityGUID, err = i.recipeValidator.Validate(utils.SignalCtx, *m, *r)
+		entityGUID, err = i.recipeValidator.Validate(ctx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.status.RecipeFailed(execution.RecipeStatusEvent{
@@ -192,7 +218,7 @@ func (i *RecipeInstaller) executeAndValidate(m *types.DiscoveryManifest, r *type
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
 	msg := fmt.Sprintf("Installing %s", r.Name)
 	i.progressIndicator.Start(msg)
 	defer func() { i.progressIndicator.Stop() }()
@@ -201,14 +227,14 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(m *types.DiscoveryManif
 		fmt.Println(r.PreInstallMessage())
 	}
 
-	vars, err := i.recipeExecutor.Prepare(utils.SignalCtx, *m, *r, i.AssumeYes)
+	vars, err := i.recipeExecutor.Prepare(ctx, *m, *r, i.AssumeYes)
 	if err != nil {
 		return "", err
 	}
 
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
-	entityGUID, err := i.executeAndValidate(m, r, vars)
+	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 	if err != nil {
 		i.progressIndicator.Fail(msg)
 		return "", err
@@ -233,12 +259,12 @@ func (i *RecipeInstaller) failMessage(componentName string) error {
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
 
-func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+func (i *RecipeInstaller) fetchRecipeAndReportAvailable(ctx context.Context, m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
 	log.WithFields(log.Fields{
 		"name": recipeName,
 	}).Debug("fetching recipe for install")
 
-	r, err := i.fetch(m, recipeName)
+	r, err := i.fetch(ctx, m, recipeName)
 	if err != nil {
 		return nil, err
 	}
@@ -248,10 +274,11 @@ func (i *RecipeInstaller) fetchRecipeAndReportAvailable(m *types.DiscoveryManife
 	return r, nil
 }
 
-func (i *RecipeInstaller) fetch(m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
-	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
+func (i *RecipeInstaller) fetch(ctx context.Context, m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+	r, err := i.recipeFetcher.FetchRecipe(ctx, m, recipeName)
 	if err != nil {
-		return nil, fmt.Errorf("error retrieving recipe %s: %s", recipeName, err)
+		log.Errorf("error retrieving recipe %s: %s", recipeName, err)
+		return nil, err
 	}
 
 	if r == nil {

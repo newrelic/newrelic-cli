@@ -17,6 +17,7 @@ const (
 	LogMatches   TestScenario = "LOG_MATCHES"
 	Fail         TestScenario = "FAIL"
 	StitchedPath TestScenario = "STITCHED_PATH"
+	Canceled     TestScenario = "CANCELED"
 )
 
 var (
@@ -25,6 +26,7 @@ var (
 		LogMatches,
 		Fail,
 		StitchedPath,
+		Canceled,
 	}
 	emptyResults = []nrdb.NRDBResult{
 		map[string]interface{}{
@@ -69,6 +71,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.Fail()
 	case StitchedPath:
 		return b.StitchedPath()
+	case Canceled:
+		return b.CanceledInstall()
 	}
 
 	return nil
@@ -232,6 +236,43 @@ func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
 	return &i
 }
 
+func (b *ScenarioBuilder) CanceledInstall() *RecipeInstaller {
+	// mock implementations
+	rf := setupRecipeCanceledInstall()
+	ers := []execution.StatusSubscriber{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
+	statusRollup := execution.NewInstallStatus(ers)
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
+
+	pf := discovery.NewRegexProcessFilterer(rf)
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer(pf)
+	gff := discovery.NewGlobFileFilterer()
+	re := execution.NewGoTaskRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	pi := ux.NewPlainProgress()
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		progressIndicator: pi,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
@@ -325,6 +366,56 @@ install:
   version: "3"
   tasks:
     default:
+`,
+		},
+	}
+
+	return f
+}
+
+func setupRecipeCanceledInstall() recipes.RecipeFetcher {
+	f := recipes.NewMockRecipeFetcher()
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           "infrastructure-agent-installer",
+			DisplayName:    "Infrastructure Agent",
+			ValidationNRQL: "test NRQL",
+			File: `
+---
+name: infra-agent
+displayName: Infrastructure Agent
+install:
+  version: "3"
+  tasks:
+    default:
+`,
+		},
+		{
+			Name:           "test-canceled-installation",
+			DisplayName:    "Test Canceled Installation",
+			ValidationNRQL: "test NRQL",
+			File: `
+---
+name: test-canceled-installation
+displayName: Test Canceled Installation
+description: Scenario to test when a user cancels installation via ctl+c
+
+processMatch: []
+
+validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTNAME}}' FACET entityGuid SINCE 10 minutes ago"
+
+install:
+  version: "3"
+  silent: true
+  tasks:
+    default:
+      cmds:
+        - task: run
+    run:
+      cmds:
+        - |
+          echo "sleeping 10 seconds"
+          sleep 10
 `,
 		},
 	}

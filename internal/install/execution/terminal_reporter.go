@@ -68,6 +68,10 @@ func (r TerminalStatusReporter) RecipeAvailable(status *InstallStatus, recipe ty
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
+	if status.isCanceled() {
+		return nil
+	}
+
 	if status.hasFailed() {
 		return fmt.Errorf("one or more integrations failed to install, check the install log for more details: %s", status.LogFilePath)
 	}
@@ -97,6 +101,10 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 	fmt.Println()
 
+	return nil
+}
+
+func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
 	return nil
 }
 

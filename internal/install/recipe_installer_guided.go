@@ -1,6 +1,7 @@
 package install
 
 import (
+	"context"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
@@ -15,20 +16,20 @@ const (
 	loggingRecipeName    = "logs-integration"
 )
 
-func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
+func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
 	var recipesForInstallation []types.Recipe
 	var selectedIntegrations []types.Recipe
 	var recommendedIntegrations []types.Recipe
 
 	// Fetch the infra agent recipe and mark it as available.
-	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(m, infraAgentRecipeName)
+	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, infraAgentRecipeName)
 	if err != nil {
 		return err
 	}
 	recipesForInstallation = append(recipesForInstallation, *infraAgentRecipe)
 
 	// Fetch the logging recipe and mark it as available.
-	loggingRecipe, err := i.fetchRecipeAndReportAvailable(m, loggingRecipeName)
+	loggingRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, loggingRecipeName)
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,7 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 
 	// Install the infra agent.
 	log.Debugf("Installing infrastructure agent")
-	entityGUID, err := i.executeAndValidateWithProgress(m, infraAgentRecipe)
+	entityGUID, err := i.executeAndValidateWithProgress(ctx, m, infraAgentRecipe)
 	if err != nil {
 		log.Error(i.failMessage(infraAgentRecipeName))
 		return err
@@ -95,7 +96,7 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	// Install logging if necessary.
 	if i.ShouldInstallLogging() {
 		log.Debugf("Installing logging")
-		if err = i.installLogging(m, loggingRecipe, recipesForInstallation); err != nil {
+		if err = i.installLogging(ctx, m, loggingRecipe, recipesForInstallation); err != nil {
 			log.Error(i.failMessage(loggingRecipeName))
 			return err
 		}
@@ -105,7 +106,7 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	// Install integrations if necessary, continuing on failure with warnings.
 	if i.ShouldInstallIntegrations() {
 		log.Debugf("Installing integrations")
-		if err = i.installRecipes(m, selectedIntegrations); err != nil {
+		if err = i.installRecipes(ctx, m, selectedIntegrations); err != nil {
 			return err
 		}
 		log.Debugf("Done installing integrations.")
@@ -114,7 +115,7 @@ func (i *RecipeInstaller) guidedInstall(m *types.DiscoveryManifest) error {
 	return nil
 }
 
-func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, r *types.Recipe, recipes []types.Recipe) error {
+func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe, recipes []types.Recipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("filtering log matches")
@@ -151,7 +152,7 @@ func (i *RecipeInstaller) installLogging(m *types.DiscoveryManifest, r *types.Re
 
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
-	_, err = i.executeAndValidateWithProgress(m, r)
+	_, err = i.executeAndValidateWithProgress(ctx, m, r)
 	return err
 }
 

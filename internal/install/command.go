@@ -8,6 +8,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
@@ -55,6 +56,10 @@ var Command = &cobra.Command{
 
 			// Run the install.
 			if err := i.Install(); err != nil {
+				if err == types.ErrInterrupt {
+					return
+				}
+
 				log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.nr/06vjAeZLKjP", err)
 			}
 		})

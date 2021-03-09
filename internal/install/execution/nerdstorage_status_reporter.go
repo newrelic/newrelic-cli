@@ -67,6 +67,10 @@ func (r NerdstorageStatusReporter) InstallComplete(status *InstallStatus) error 
 	return r.writeStatus(status)
 }
 
+func (r NerdstorageStatusReporter) InstallCanceled(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
 func (r NerdstorageStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	if err := r.writeStatus(status); err != nil {
 		return err

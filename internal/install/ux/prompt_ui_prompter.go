@@ -6,7 +6,9 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/manifoldco/promptui"
+	"gopkg.in/AlecAivazis/survey.v1/terminal"
 
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -70,6 +72,14 @@ func (p *PromptUIPrompter) MultiSelect(msg string, options []string) ([]string, 
 
 	err := survey.AskOne(prompt, &selected)
 	if err != nil {
+		if err == terminal.InterruptErr {
+			return nil, types.ErrInterrupt
+		}
+
+		if err.Error() == terminal.InterruptErr.Error() {
+			return nil, types.ErrInterrupt
+		}
+
 		return nil, err
 	}
 
