@@ -1,5 +1,5 @@
 <a name="v0.19.1"></a>
-## [v0.19.1] - 2021-03-04
+## [v0.19.1] - 2021-03-05
 ### Bug Fixes
 - Replace Detected observability gaps by Data Gaps
 
@@ -76,7 +76,7 @@
 <a name="v0.18.19"></a>
 ## [v0.18.19] - 2021-01-27
 ### Bug Fixes
-- **install:** ensure prompt respones are handled correctly
+- **install:** ensure prompt response are handled correctly
 
 <a name="v0.18.18"></a>
 ## [v0.18.18] - 2021-01-25
