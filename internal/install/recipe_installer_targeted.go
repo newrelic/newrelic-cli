@@ -13,15 +13,14 @@ import (
 )
 
 func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
-	var err error
 	var recipes []types.Recipe
+	var infraAgentRecipe *types.Recipe
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
 		for _, n := range i.RecipePaths {
 			log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
-			var recipe *types.Recipe
-			recipe, err = i.recipeFromPath(n)
+			recipe, err := i.recipeFromPath(n)
 			if err != nil {
 				log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
 				return err
@@ -33,7 +32,11 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				"path":         n,
 			}).Debug("found recipe at path")
 
-			recipes = append(recipes, *recipe)
+			if recipe.Name == infraAgentRecipeName {
+				infraAgentRecipe = recipe
+			} else {
+				recipes = append(recipes, *recipe)
+			}
 		}
 	} else if i.RecipeNamesProvided() {
 		// Fetch the provided recipes from the recipe service.
@@ -44,7 +47,11 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				// Skip anything that was returned by the service if it does not match the requested name.
 				if r.Name == n {
 					log.Debugln(fmt.Sprintf("Found recipe from name %s.", n))
-					recipes = append(recipes, *r)
+					if r.Name == infraAgentRecipeName {
+						infraAgentRecipe = r
+					} else {
+						recipes = append(recipes, *r)
+					}
 				} else {
 					log.Debugln(fmt.Sprintf("Skipping recipe, name %s does not match.", r.Name))
 				}
@@ -52,12 +59,14 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 		}
 	}
 
-	fmt.Printf("The installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
-
-	// Fetch the infra agent recipe and mark it as available.
-	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, infraAgentRecipeName)
-	if err != nil {
-		return err
+	if infraAgentRecipe == nil {
+		fmt.Printf("The installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+		// Fetch the infra agent recipe and mark it as available.
+		recipe, err := i.fetchRecipeAndReportAvailable(ctx, m, infraAgentRecipeName)
+		if err != nil {
+			return err
+		}
+		infraAgentRecipe = recipe
 	}
 
 	// Show the user what will be installed.
@@ -66,7 +75,7 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 
 	// Install the infra agent.
 	log.Debugf("Installing infrastructure agent")
-	_, err = i.executeAndValidateWithProgress(ctx, m, infraAgentRecipe)
+	_, err := i.executeAndValidateWithProgress(ctx, m, infraAgentRecipe)
 	if err != nil {
 		log.Error(i.failMessage(infraAgentRecipeName))
 		return err
@@ -75,7 +84,7 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 
 	// Install the requested integrations.
 	log.Debugf("Installing integrations")
-	if err = i.installRecipes(ctx, m, recipes); err != nil {
+	if err := i.installRecipes(ctx, m, recipes); err != nil {
 		return err
 	}
 
