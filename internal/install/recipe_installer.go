@@ -156,7 +156,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
-			log.Warn(i.failMessage(r.Name))
+			log.Warn(i.failMessage(r.DisplayName))
 
 			if len(recipes) == 1 {
 				return err
@@ -249,9 +249,9 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 }
 
 func (i *RecipeInstaller) failMessage(componentName string) error {
-	u, _ := url.Parse("https://docs.newrelic.com/search#")
+	u, _ := url.Parse("https://docs.newrelic.com/search/#")
 	q := u.Query()
-	q.Set("query", componentName)
+	q.Set("q", componentName)
 	u.RawQuery = q.Encode()
 
 	searchURL := u.String()
