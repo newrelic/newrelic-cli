@@ -537,6 +537,31 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 }
 
+func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+	ic := InstallerContext{
+		RecipeNames: []string{infraAgentRecipeName},
+	}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	v = validation.NewMockRecipeValidator()
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
+}
+
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {
 	return testRecipeFile, nil
 }

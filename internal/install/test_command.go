@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 var (
