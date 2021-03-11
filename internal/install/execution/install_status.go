@@ -28,6 +28,7 @@ type RecipeStatus struct {
 	Error       StatusError      `json:"error"`
 	Name        string           `json:"name"`
 	Status      RecipeStatusType `json:"status"`
+	EntityGUID  string           `json:"entityGuid,omitempty"`
 }
 
 type RecipeStatusType string
@@ -267,13 +268,18 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	if found != nil {
 		found.Status = rs
 	} else {
-		e := &RecipeStatus{
+		recipeStatus := &RecipeStatus{
 			Name:        e.Recipe.Name,
 			DisplayName: e.Recipe.DisplayName,
 			Status:      rs,
 			Error:       statusError,
 		}
-		s.Statuses = append(s.Statuses, *e)
+
+		if e.EntityGUID != "" {
+			recipeStatus.EntityGUID = e.EntityGUID
+		}
+
+		s.Statuses = append(s.Statuses, *recipeStatus)
 	}
 
 	s.Timestamp = utils.GetTimestamp()

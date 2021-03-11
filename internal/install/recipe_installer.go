@@ -180,6 +180,8 @@ func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifes
 }
 
 func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
+	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
+
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(ctx, *m, *r, vars); err != nil {
 		if err == types.ErrInterrupt {
@@ -207,7 +209,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", errors.New(msg)
 		}
 	} else {
-		log.Debugf("Skipping validation due to missing validation query.")
+		log.Debugf("skipping validation due to missing validation query")
 	}
 
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
@@ -231,8 +233,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 	if err != nil {
 		return "", err
 	}
-
-	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 	if err != nil {
