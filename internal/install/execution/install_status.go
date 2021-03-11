@@ -9,6 +9,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
+// nolint: maligned
 type InstallStatus struct {
 	Complete          bool                    `json:"complete"`
 	DiscoveryManifest types.DiscoveryManifest `json:"discoveryManifest"`
@@ -18,6 +19,7 @@ type InstallStatus struct {
 	Statuses          []RecipeStatus          `json:"recipes"`
 	Timestamp         int64                   `json:"timestamp"`
 	DocumentID        string
+	targetedInstall   bool
 	statusSubscriber  []StatusSubscriber
 }
 
@@ -207,6 +209,14 @@ func (s *InstallStatus) isCanceled() bool {
 	}
 
 	return false
+}
+
+func (s *InstallStatus) SetTargetdInstall() {
+	s.targetedInstall = true
+}
+
+func (s *InstallStatus) IsTargetdInstall() bool {
+	return s.targetedInstall
 }
 
 func (s *InstallStatus) withAvailableRecipes(recipes []types.Recipe) {
