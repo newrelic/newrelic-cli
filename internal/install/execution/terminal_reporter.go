@@ -93,8 +93,21 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 	fmt.Println("  New Relic installation complete!")
 
+	var linkGUID string
+
+	// When we have performed a targeted installation, we want the link to be for
+	// the last GUID in the list.
 	if len(status.EntityGUIDs) > 0 {
-		infraLink := fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", status.EntityGUIDs[0])
+		if status.IsTargetdInstall() {
+			linkGUID = status.EntityGUIDs[len(status.EntityGUIDs)-1]
+		} else {
+
+			linkGUID = status.EntityGUIDs[0]
+		}
+	}
+
+	if linkGUID != "" {
+		infraLink := fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", linkGUID)
 
 		fmt.Printf("  Your data is available at %s", infraLink)
 	}

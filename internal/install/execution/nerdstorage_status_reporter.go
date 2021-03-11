@@ -94,7 +94,7 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 	}
 
 	if len(status.EntityGUIDs) == 0 {
-		log.Debug("No entity GUIDs available, skipping entity-scoped status updates.")
+		log.Debug("no entity GUIDs available, skipping entity-scoped status updates")
 	}
 
 	return nil

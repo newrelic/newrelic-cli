@@ -9,6 +9,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
+// nolint: maligned
 type InstallStatus struct {
 	Complete          bool                    `json:"complete"`
 	DiscoveryManifest types.DiscoveryManifest `json:"discoveryManifest"`
@@ -18,6 +19,7 @@ type InstallStatus struct {
 	Statuses          []RecipeStatus          `json:"recipes"`
 	Timestamp         int64                   `json:"timestamp"`
 	DocumentID        string
+	targetedInstall   bool
 	statusSubscriber  []StatusSubscriber
 }
 
@@ -26,6 +28,7 @@ type RecipeStatus struct {
 	Error       StatusError      `json:"error"`
 	Name        string           `json:"name"`
 	Status      RecipeStatusType `json:"status"`
+	EntityGUID  string           `json:"entityGuid,omitempty"`
 }
 
 type RecipeStatusType string
@@ -209,6 +212,14 @@ func (s *InstallStatus) isCanceled() bool {
 	return false
 }
 
+func (s *InstallStatus) SetTargetdInstall() {
+	s.targetedInstall = true
+}
+
+func (s *InstallStatus) IsTargetdInstall() bool {
+	return s.targetedInstall
+}
+
 func (s *InstallStatus) withAvailableRecipes(recipes []types.Recipe) {
 	for _, r := range recipes {
 		s.withAvailableRecipe(r)
@@ -257,13 +268,18 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	if found != nil {
 		found.Status = rs
 	} else {
-		e := &RecipeStatus{
+		recipeStatus := &RecipeStatus{
 			Name:        e.Recipe.Name,
 			DisplayName: e.Recipe.DisplayName,
 			Status:      rs,
 			Error:       statusError,
 		}
-		s.Statuses = append(s.Statuses, *e)
+
+		if e.EntityGUID != "" {
+			recipeStatus.EntityGUID = e.EntityGUID
+		}
+
+		s.Statuses = append(s.Statuses, *recipeStatus)
 	}
 
 	s.Timestamp = utils.GetTimestamp()
