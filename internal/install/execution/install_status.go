@@ -21,6 +21,7 @@ type InstallStatus struct {
 	DocumentID        string
 	targetedInstall   bool
 	statusSubscriber  []StatusSubscriber
+	successLink       types.SuccessLink
 }
 
 type RecipeStatus struct {
@@ -212,12 +213,27 @@ func (s *InstallStatus) isCanceled() bool {
 	return false
 }
 
-func (s *InstallStatus) SetTargetdInstall() {
+func (s *InstallStatus) SetTargetedInstall() {
 	s.targetedInstall = true
 }
 
-func (s *InstallStatus) IsTargetdInstall() bool {
+func (s *InstallStatus) IsTargetedInstall() bool {
 	return s.targetedInstall
+}
+
+func (s *InstallStatus) RollupEntityGUID() string {
+	var guid string
+
+	// When we have performed a targeted installation, we want to roll up to the last GUID in the list.
+	if len(s.EntityGUIDs) > 0 {
+		if s.IsTargetedInstall() {
+			guid = s.EntityGUIDs[len(s.EntityGUIDs)-1]
+		} else {
+			guid = s.EntityGUIDs[0]
+		}
+	}
+
+	return guid
 }
 
 func (s *InstallStatus) withAvailableRecipes(recipes []types.Recipe) {
@@ -229,6 +245,10 @@ func (s *InstallStatus) withAvailableRecipes(recipes []types.Recipe) {
 func (s *InstallStatus) withAvailableRecipe(r types.Recipe) {
 	e := RecipeStatusEvent{Recipe: r}
 	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
+}
+
+func (s *InstallStatus) withSuccessLink(l types.SuccessLink) {
+	s.successLink = l
 }
 
 func (s *InstallStatus) withEntityGUID(entityGUID string) {
@@ -250,6 +270,8 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	if e.EntityGUID != "" {
 		s.withEntityGUID(e.EntityGUID)
 	}
+
+	s.withSuccessLink(e.Recipe.SuccessLink)
 
 	statusError := StatusError{
 		Message: e.Msg,

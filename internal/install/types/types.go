@@ -204,3 +204,8 @@ type OpenInstallationRecipeInstallTarget struct {
 //
 // See the [NRQL Docs](https://docs.newrelic.com/docs/insights/nrql-new-relic-query-language/nrql-resources/nrql-syntax-components-functions) for more information about NRQL syntax.
 type NRQL string
+
+type SuccessLink struct {
+	Type   string `json:"type"`
+	Filter string `json:"filter"`
+}
