@@ -73,7 +73,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	}
 
 	if status.hasFailed() {
-		return fmt.Errorf("one or more integrations failed to install, check the install log for more details: %s", status.LogFilePath)
+		fmt.Printf("  One or more integrations failed to install.  Check the install log for more details: %s\n", status.LogFilePath)
 	}
 
 	recs := status.recommendations()
@@ -101,7 +101,6 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		if status.IsTargetdInstall() {
 			linkGUID = status.EntityGUIDs[len(status.EntityGUIDs)-1]
 		} else {
-
 			linkGUID = status.EntityGUIDs[0]
 		}
 	}

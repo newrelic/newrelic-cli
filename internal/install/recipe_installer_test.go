@@ -292,6 +292,47 @@ func TestInstall_InstallCompleteError(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeFailedCallCount)
 }
 
+// TestInstall_InstallCompleteError_guidedRecipeFail ensures that when we
+// perform a guided install, that we only exit with an error if the infra-agent
+// recipe fails.  If a recommended recipe fails, a log is emittd, but we do not
+// want the error being returned.
+// https://newrelic.atlassian.net/browse/VIRTUOSO-454
+func TestInstall_InstallCompleteError_guidedRecipeFail(t *testing.T) {
+	ic := InstallerContext{
+		SkipLoggingInstall: true,
+	}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           "badRecipe",
+		ValidationNRQL: "testNrql",
+	}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	p = &ux.MockPrompter{
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
+	}
+
+	v = validation.NewMockRecipeValidator()
+	v.ValidateErrs = []error{
+		nil,
+		errors.New("testing error"),
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeFailedCallCount)
+}
+
 func TestInstall_RecipeSkipped(t *testing.T) {
 	ic := InstallerContext{
 		SkipLoggingInstall: true,
@@ -497,7 +538,6 @@ func TestInstall_RecipeSkipped_AssumeYes(t *testing.T) {
 	v = validation.NewMockRecipeValidator()
 	p = &ux.MockPrompter{
 		PromptYesNoVal: true,
-		// PromptMultiSelectAll: true,
 	}
 
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}

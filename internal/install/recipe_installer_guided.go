@@ -16,6 +16,10 @@ const (
 	loggingRecipeName    = "logs-integration"
 )
 
+// guidedInstall walks the user through and installation, prompting for input
+// when needed.  An error is returned only when the infra or logging recipes
+// have an error.  If an OHI recipe fails, we warn the user.  This allows the
+// desired user experience.
 func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
 	var recipesForInstallation []types.Recipe
 	var selectedIntegrations []types.Recipe
@@ -107,7 +111,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 	if i.ShouldInstallIntegrations() {
 		log.Debugf("Installing integrations")
 		if err = i.installRecipes(ctx, m, selectedIntegrations); err != nil {
-			return err
+			return nil
 		}
 		log.Debugf("Done installing integrations.")
 	}
