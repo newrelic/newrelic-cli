@@ -221,7 +221,7 @@ func (s *InstallStatus) IsTargetedInstall() bool {
 	return s.targetedInstall
 }
 
-func (s *InstallStatus) RollupEntityGUID() string {
+func (s *InstallStatus) HostEntityGUID() string {
 	var guid string
 
 	// When we have performed a targeted installation, we want to roll up to the last GUID in the list.

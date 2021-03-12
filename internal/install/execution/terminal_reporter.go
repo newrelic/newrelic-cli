@@ -115,7 +115,8 @@ func (r *TerminalStatusReporter) getSuccessLink(status *InstallStatus) string {
 	case strings.EqualFold(t, "explorer"):
 		link = r.successLinkGenerator.GenerateExplorerLink(status.successLink.Filter)
 	default:
-		link = r.successLinkGenerator.GenerateEntityLink(status.RollupEntityGUID())
+		link = r.successLinkGenerator.GenerateEntityLink(status.HostEntityGUID())
+
 	}
 
 	return link

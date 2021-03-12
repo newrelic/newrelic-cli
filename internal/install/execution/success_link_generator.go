@@ -21,18 +21,18 @@ func NewConcreteSuccessLinkGenerator() *ConcreteSuccessLinkGenerator {
 }
 
 func (g *ConcreteSuccessLinkGenerator) GenerateExplorerLink(filter string) string {
-	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s", getPlatformHost(), utils.Base64Encode(filter))
+	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s", nrPlatformHostname(), utils.Base64Encode(filter))
 }
 
 func (g *ConcreteSuccessLinkGenerator) GenerateEntityLink(entityGUID string) string {
 	return fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", entityGUID)
 }
 
-// getPlatformHost returns the host for the platform based oin the region set.
-func getPlatformHost() string {
+// nrPlatformHostname returns the host for the platform based on the region set.
+func nrPlatformHostname() string {
 	switch defaultProfile := credentials.DefaultProfile(); {
 	case strings.EqualFold(defaultProfile.Region, region.Staging.String()):
-		return "staging.newrelic.com"
+		return "staging-one.newrelic.com"
 	case strings.EqualFold(defaultProfile.Region, region.EU.String()):
 		return "one.eu.newrelic.com"
 	default:
