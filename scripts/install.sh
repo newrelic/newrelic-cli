@@ -22,7 +22,7 @@ else
 	exit 1
 fi
 
-for x in curl cut tar gzip sudo grep sed awk; do
+for x in curl cut tar gzip sudo grep sed awk cat tee touch; do
     which $x > /dev/null || (echo "Unable to continue.  Please install $x before proceeding."; exit 1)
 done
 
