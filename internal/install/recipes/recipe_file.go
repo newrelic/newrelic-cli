@@ -1,6 +1,7 @@
 package recipes
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -69,6 +70,11 @@ func (f *RecipeFileFetcherImpl) FetchRecipeFile(recipeURL *url.URL) (*RecipeFile
 	if err != nil {
 		return nil, err
 	}
+
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("received non-2xx status code %d when retrieving recipe", response.StatusCode)
+	}
+
 	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
