@@ -1,3 +1,10 @@
+<a name="v0.19.2"></a>
+## [v0.19.2] - 2021-03-11
+### Bug Fixes
+- **install:** only add infra agent for targeted install when not already specified
+- **install:** revert on master
+- **install:** only add infra agent for targeted install when not already specified
+
 <a name="v0.19.1"></a>
 ## [v0.19.1] - 2021-03-05
 ### Bug Fixes
@@ -512,7 +519,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.2...HEAD
+[v0.19.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.1...v0.19.2
 [v0.19.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.0...v0.19.1
 [v0.19.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.32...v0.19.0
 [v0.18.32]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.31...v0.18.32
