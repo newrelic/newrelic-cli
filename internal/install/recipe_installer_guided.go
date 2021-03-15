@@ -111,6 +111,10 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 	if i.ShouldInstallIntegrations() {
 		log.Debugf("Installing integrations")
 		if err = i.installRecipes(ctx, m, selectedIntegrations); err != nil {
+			if err == types.ErrInterrupt {
+				return err
+			}
+
 			return nil
 		}
 		log.Debugf("Done installing integrations.")
