@@ -289,9 +289,16 @@ func (s *InstallStatus) completed() {
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
 
+	log.WithFields(log.Fields{
+		"timestamp": s.Timestamp,
+	}).Debug("completed")
+
 	// Exiting early will cause unresolved recipes to be marked as failed.
 	for i, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
+			log.WithFields(log.Fields{
+				"recipe": s.Statuses[i].Name,
+			}).Debug("marking recipe failed")
 			s.Statuses[i].Status = RecipeStatusTypes.FAILED
 		}
 	}
@@ -300,9 +307,16 @@ func (s *InstallStatus) completed() {
 func (s *InstallStatus) canceled() {
 	s.Timestamp = utils.GetTimestamp()
 
+	log.WithFields(log.Fields{
+		"timestamp": s.Timestamp,
+	}).Debug("canceled")
+
 	// Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
 	for i, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
+			log.WithFields(log.Fields{
+				"recipe": s.Statuses[i].Name,
+			}).Debug("marking recipe canceled")
 			s.Statuses[i].Status = RecipeStatusTypes.CANCELED
 		}
 	}
