@@ -17,7 +17,7 @@ import (
 type contextKey int
 
 const (
-	defaultMaxAttempts            = 24
+	defaultMaxAttempts            = 60
 	defaultInterval               = 5 * time.Second
 	TestIdentifierKey  contextKey = iota
 )

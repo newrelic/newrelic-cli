@@ -12,6 +12,7 @@ type MockRecipeValidator struct {
 	ValidateErr       error
 	ValidateCallCount int
 	ValidateVal       string
+	ValidateVals      []string
 }
 
 func NewMockRecipeValidator() *MockRecipeValidator {
@@ -22,6 +23,7 @@ func (m *MockRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryMa
 	m.ValidateCallCount++
 
 	var err error
+	var val string
 
 	if len(m.ValidateErrs) > 0 {
 		i := utils.MinOf(m.ValidateCallCount, len(m.ValidateErrs)) - 1
@@ -30,5 +32,12 @@ func (m *MockRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryMa
 		err = m.ValidateErr
 	}
 
-	return m.ValidateVal, err
+	if len(m.ValidateVals) > 0 {
+		i := utils.MinOf(m.ValidateCallCount, len(m.ValidateVals)) - 1
+		val = m.ValidateVals[i]
+	} else {
+		val = m.ValidateVal
+	}
+
+	return val, err
 }
