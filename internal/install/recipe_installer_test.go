@@ -602,6 +602,53 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 }
 
+func TestInstall_GuidReport(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	ic := InstallerContext{
+		SkipLoggingInstall: true,
+	}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           testRecipeName,
+		DisplayName:    testRecipeName,
+		ValidationNRQL: "testNrql",
+	}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+		{
+			Name:           loggingRecipeName,
+			DisplayName:    loggingRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	p = &ux.MockPrompter{
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
+	}
+
+	v = validation.NewMockRecipeValidator()
+	v.ValidateVals = []string{
+		"INFRAGUID",
+		"TESTRECIPEGUID",
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 2, v.ValidateCallCount)
+	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeFailedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
+	require.Equal(t, v.ValidateVals[0], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[infraAgentRecipeName])
+	require.Equal(t, v.ValidateVals[1], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
+}
+
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {
 	return testRecipeFile, nil
 }

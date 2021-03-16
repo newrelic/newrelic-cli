@@ -36,6 +36,9 @@ type MockStatusReporter struct {
 	ReportRecommended map[string]int
 	ReportFailed      map[string]int
 	ReportAvailable   map[string]int
+
+	GUIDs      []string
+	RecipeGUID map[string]string
 }
 
 // NewMockStatusReporter returns a new instance of MockExecutionStatusReporter.
@@ -58,6 +61,17 @@ func (r *MockStatusReporter) RecipeInstalled(status *InstallStatus, event Recipe
 		r.ReportInstalled = make(map[string]int)
 	}
 	r.ReportInstalled[event.Recipe.Name]++
+
+	r.GUIDs = status.EntityGUIDs
+
+	if len(r.RecipeGUID) == 0 {
+		r.RecipeGUID = make(map[string]string)
+	}
+
+	for _, s := range status.Statuses {
+		r.RecipeGUID[s.Name] = s.EntityGUID
+	}
+
 	return r.RecipeInstalledErr
 }
 
