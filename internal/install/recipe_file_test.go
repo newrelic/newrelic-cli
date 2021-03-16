@@ -48,7 +48,6 @@ logMatch:
     pattern: testPattern
     systemd: testSystemd
 `
-	recipeURL, _ = url.Parse("http://localhost/anywhere")
 )
 
 func TestLoadRecipeFile(t *testing.T) {
@@ -98,14 +97,6 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 
 	ff.HTTPGetFunc = makeHTTPGetFunc(299)
 	f, err = ff.FetchRecipeFile(u)
-	require.NoError(t, err)
-	require.NotNil(t, f)
-}
-
-func TestFetchRecipeFile(t *testing.T) {
-	ff := recipes.NewMockRecipeFileFetcher()
-
-	f, err := ff.FetchRecipeFile(recipeURL)
 	require.NoError(t, err)
 	require.NotNil(t, f)
 }
