@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -50,6 +52,8 @@ func init() {
 	Command.AddCommand(apiaccess.Command)
 
 	CheckPrereleaseMode(Command)
+
+	os.Setenv("NEW_RELIC_CLI_VERSION", version)
 }
 
 func main() {
