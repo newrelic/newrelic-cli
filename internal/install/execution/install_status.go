@@ -16,7 +16,7 @@ type InstallStatus struct {
 	EntityGUIDs       []string                `json:"entityGuids"`
 	Error             StatusError             `json:"error"`
 	LogFilePath       string                  `json:"logFilePath"`
-	Statuses          []RecipeStatus          `json:"recipes"`
+	Statuses          []*RecipeStatus         `json:"recipes"`
 	Timestamp         int64                   `json:"timestamp"`
 	DocumentID        string
 	targetedInstall   bool
@@ -180,8 +180,8 @@ func (s *InstallStatus) InstallCanceled() {
 	}
 }
 
-func (s *InstallStatus) recommendations() []RecipeStatus {
-	var statuses []RecipeStatus
+func (s *InstallStatus) recommendations() []*RecipeStatus {
+	var statuses []*RecipeStatus
 
 	for _, st := range s.Statuses {
 		if st.Status == RecipeStatusTypes.RECOMMENDED {
@@ -238,6 +238,10 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 		}
 	}
 
+	log.WithFields(log.Fields{
+		"guid": entityGUID,
+	}).Debug("new GUID")
+
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
 }
 
@@ -261,12 +265,17 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		"recipe_name": e.Recipe.Name,
 		"status":      rs,
 		"error":       statusError.Message,
+		"guid":        e.EntityGUID,
 	}).Debug("recipe event")
 
 	found := s.getStatus(e.Recipe)
 
 	if found != nil {
 		found.Status = rs
+
+		if e.EntityGUID != "" {
+			found.EntityGUID = e.EntityGUID
+		}
 	} else {
 		recipeStatus := &RecipeStatus{
 			Name:        e.Recipe.Name,
@@ -279,7 +288,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 			recipeStatus.EntityGUID = e.EntityGUID
 		}
 
-		s.Statuses = append(s.Statuses, *recipeStatus)
+		s.Statuses = append(s.Statuses, recipeStatus)
 	}
 
 	s.Timestamp = utils.GetTimestamp()
@@ -323,12 +332,11 @@ func (s *InstallStatus) canceled() {
 }
 
 func (s *InstallStatus) getStatus(r types.Recipe) *RecipeStatus {
-	var found *RecipeStatus
-	for i, recipe := range s.Statuses {
+	for _, recipe := range s.Statuses {
 		if recipe.Name == r.Name {
-			found = &s.Statuses[i]
+			return recipe
 		}
 	}
 
-	return found
+	return nil
 }
