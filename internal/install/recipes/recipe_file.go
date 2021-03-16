@@ -26,6 +26,12 @@ type RecipeFile struct {
 	ProcessMatch   []string                                       `yaml:"processMatch"`
 	Repository     string                                         `yaml:"repository"`
 	ValidationNRQL string                                         `yaml:"validationNrql"`
+	SuccessLink    types.SuccessLink                              `yaml:"successLink"`
+}
+
+type SuccessLink struct {
+	Type   string `yaml:"type"`
+	Filter string `yaml:"filter"`
 }
 
 type VariableConfig struct {
@@ -134,6 +140,7 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 		PreInstall:     f.PreInstall,
 		PostInstall:    f.PostInstall,
 		ProcessMatch:   f.ProcessMatch,
+		SuccessLink:    f.SuccessLink,
 		LogMatch:       f.LogMatch,
 		ValidationNRQL: f.ValidationNRQL,
 	}
