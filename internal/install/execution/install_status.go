@@ -1,6 +1,8 @@
 package execution
 
 import (
+	"os"
+
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
@@ -18,6 +20,7 @@ type InstallStatus struct {
 	LogFilePath       string                  `json:"logFilePath"`
 	Statuses          []*RecipeStatus         `json:"recipes"`
 	Timestamp         int64                   `json:"timestamp"`
+	CLIVersion        string                  `json:"cliVersion"`
 	DocumentID        string
 	targetedInstall   bool
 	statusSubscriber  []StatusSubscriber
@@ -268,6 +271,11 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
 	s.DiscoveryManifest = dm
 	s.Timestamp = utils.GetTimestamp()
+
+	version := os.Getenv("NEW_RELIC_CLI_VERSION")
+	if version != "" {
+		s.CLIVersion = version
+	}
 }
 
 func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType) {

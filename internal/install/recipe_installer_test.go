@@ -5,6 +5,7 @@ package install
 import (
 	"errors"
 	"net/url"
+	"os"
 	"reflect"
 	"testing"
 
@@ -639,6 +640,9 @@ func TestInstall_GuidReport(t *testing.T) {
 		"TESTRECIPEGUID",
 	}
 
+	// Test for NEW_RELIC_CLI_VERSION
+	os.Setenv("NEW_RELIC_CLI_VERSION", "testversion0.0.1")
+
 	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi}
 	err := i.Install()
 	require.NoError(t, err)
@@ -647,6 +651,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, v.ValidateVals[0], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[infraAgentRecipeName])
 	require.Equal(t, v.ValidateVals[1], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
+	require.Equal(t, status.CLIVersion, "testversion0.0.1")
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {
