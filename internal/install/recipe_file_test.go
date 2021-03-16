@@ -1,7 +1,10 @@
+// +build unit
+
 package install
 
 import (
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"reflect"
@@ -45,7 +48,6 @@ logMatch:
     pattern: testPattern
     systemd: testSystemd
 `
-	recipeURL, _ = url.Parse("http://localhost/anywhere")
 )
 
 func TestLoadRecipeFile(t *testing.T) {
@@ -63,10 +65,38 @@ func TestLoadRecipeFile(t *testing.T) {
 	require.NotNil(t, f)
 }
 
-func TestFetchRecipeFile(t *testing.T) {
-	ff := recipes.NewMockRecipeFileFetcher()
+func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
+	ff := recipes.RecipeFileFetcherImpl{}
 
-	f, err := ff.FetchRecipeFile(recipeURL)
+	makeHTTPGetFunc := func(statusCode int) func(string) (*http.Response, error) {
+		return func(recipeURL string) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: statusCode,
+				Body:       ioutil.NopCloser(os.Stdin),
+			}, nil
+		}
+	}
+
+	u, err := url.Parse("https://localhost/404")
+	require.NoError(t, err)
+
+	ff.HTTPGetFunc = makeHTTPGetFunc(404)
+	f, err := ff.FetchRecipeFile(u)
+	require.Error(t, err)
+	require.Nil(t, f)
+
+	ff.HTTPGetFunc = makeHTTPGetFunc(199)
+	f, err = ff.FetchRecipeFile(u)
+	require.Error(t, err)
+	require.Nil(t, f)
+
+	ff.HTTPGetFunc = makeHTTPGetFunc(200)
+	f, err = ff.FetchRecipeFile(u)
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	ff.HTTPGetFunc = makeHTTPGetFunc(299)
+	f, err = ff.FetchRecipeFile(u)
 	require.NoError(t, err)
 	require.NotNil(t, f)
 }
