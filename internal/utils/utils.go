@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"fmt"
 	"os"
 	"os/signal"
@@ -115,4 +116,9 @@ func MakeRange(min, max int) []int {
 		a[i] = min + i
 	}
 	return a
+}
+
+// Base64Encode base 64 encodes a string.
+func Base64Encode(data string) string {
+	return b64.StdEncoding.EncodeToString([]byte(data))
 }

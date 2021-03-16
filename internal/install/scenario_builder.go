@@ -1,6 +1,9 @@
 package install
 
 import (
+	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
@@ -13,11 +16,12 @@ import (
 type TestScenario string
 
 const (
-	Basic        TestScenario = "BASIC"
-	LogMatches   TestScenario = "LOG_MATCHES"
-	Fail         TestScenario = "FAIL"
-	StitchedPath TestScenario = "STITCHED_PATH"
-	Canceled     TestScenario = "CANCELED"
+	Basic               TestScenario = "BASIC"
+	LogMatches          TestScenario = "LOG_MATCHES"
+	Fail                TestScenario = "FAIL"
+	StitchedPath        TestScenario = "STITCHED_PATH"
+	Canceled            TestScenario = "CANCELED"
+	DisplayExplorerLink TestScenario = "DISPLAY_EXPLORER_LINK"
 )
 
 var (
@@ -27,6 +31,7 @@ var (
 		Fail,
 		StitchedPath,
 		Canceled,
+		DisplayExplorerLink,
 	}
 	emptyResults = []nrdb.NRDBResult{
 		map[string]interface{}{
@@ -73,6 +78,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.StitchedPath()
 	case Canceled:
 		return b.CanceledInstall()
+	case DisplayExplorerLink:
+		return b.DisplayExplorerLink()
 	}
 
 	return nil
@@ -273,6 +280,45 @@ func (b *ScenarioBuilder) CanceledInstall() *RecipeInstaller {
 	return &i
 }
 
+func (b *ScenarioBuilder) DisplayExplorerLink() *RecipeInstaller {
+	log.StandardLogger().SetLevel(logrus.DebugLevel)
+
+	// mock implementations
+	rf := setupDisplayExplorerLink()
+	ers := []execution.StatusSubscriber{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
+	statusRollup := execution.NewInstallStatus(ers)
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
+
+	pf := discovery.NewRegexProcessFilterer(rf)
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer(pf)
+	gff := discovery.NewGlobFileFilterer()
+	re := execution.NewGoTaskRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	pi := ux.NewPlainProgress()
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		progressIndicator: pi,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
@@ -416,6 +462,63 @@ install:
         - |
           echo "sleeping 10 seconds"
           sleep 10
+`,
+		},
+	}
+
+	return f
+}
+
+func setupDisplayExplorerLink() recipes.RecipeFetcher {
+	f := recipes.NewMockRecipeFetcher()
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           "test-display-explorer-link",
+			DisplayName:    "Test Display Explorer Link",
+			ValidationNRQL: "test NRQL",
+			SuccessLink: types.SuccessLink{
+				Type:   "explorer",
+				Filter: "\"`tags.language` = 'java'\"",
+			},
+			File: `
+---
+name: test-display-explorer-link
+displayName: Test Display Explorer Link
+description: Scenario to test when a recipe designates a filtered explorer link
+
+processMatch: []
+
+validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTNAME}}' FACET entityGuid SINCE 10 minutes ago"
+
+successLink:
+  type: explorer
+  filter: "` + "`tags.language`" + ` = 'java'"
+
+install:
+  version: "3"
+  silent: true
+  tasks:
+    default:
+      cmds:
+        - task: run
+    run:
+      cmds:
+        - |
+          echo "executing recipe steps"
+`,
+		},
+		{
+			Name:           "infrastructure-agent-installer",
+			DisplayName:    "Infrastructure Agent",
+			ValidationNRQL: "test NRQL",
+			File: `
+---
+name: infra-agent
+displayName: Infrastructure Agent
+install:
+  version: "3"
+  tasks:
+    default:
 `,
 		},
 	}

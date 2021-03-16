@@ -16,7 +16,7 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 	var recipes []types.Recipe
 	var infraAgentRecipe *types.Recipe
 
-	i.status.SetTargetdInstall()
+	i.status.SetTargetedInstall()
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.

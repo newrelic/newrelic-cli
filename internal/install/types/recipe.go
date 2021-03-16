@@ -13,6 +13,7 @@ type Recipe struct {
 	PostInstall    OpenInstallationPostInstallConfiguration `json:"postInstall"`
 	ProcessMatch   []string                                 `json:"processMatch"`
 	Repository     string                                   `json:"repository"`
+	SuccessLink    SuccessLink                              `json:"successLink"`
 	ValidationNRQL string                                   `json:"validationNrql"`
 	Vars           map[string]interface{}
 }
