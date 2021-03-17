@@ -38,6 +38,7 @@ type MockStatusReporter struct {
 	ReportAvailable   map[string]int
 
 	GUIDs      []string
+	Durations  []int64
 	RecipeGUID map[string]string
 }
 
@@ -70,6 +71,10 @@ func (r *MockStatusReporter) RecipeInstalled(status *InstallStatus, event Recipe
 
 	for _, s := range status.Statuses {
 		r.RecipeGUID[s.Name] = s.EntityGUID
+
+		if s.ValidationDurationMilliseconds > 0 {
+			r.Durations = append(r.Durations, s.ValidationDurationMilliseconds)
+		}
 	}
 
 	return r.RecipeInstalledErr

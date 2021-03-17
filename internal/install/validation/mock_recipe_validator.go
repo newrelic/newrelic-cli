@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"time"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -38,6 +39,8 @@ func (m *MockRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryMa
 	} else {
 		val = m.ValidateVal
 	}
+
+	time.Sleep(1 * time.Millisecond)
 
 	return val, err
 }

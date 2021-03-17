@@ -33,6 +33,8 @@ type RecipeStatus struct {
 	Name        string           `json:"name"`
 	Status      RecipeStatusType `json:"status"`
 	EntityGUID  string           `json:"entityGuid,omitempty"`
+	// ValidationDurationMilliseconds is duration in Milliseconds that a recipe took to validate data was flowing.
+	ValidationDurationMilliseconds int64 `json:"validationDurationMilliseconds,omitempty"`
 }
 
 type RecipeStatusType string
@@ -292,10 +294,11 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	s.Error = statusError
 
 	log.WithFields(log.Fields{
-		"recipe_name": e.Recipe.Name,
-		"status":      rs,
-		"error":       statusError.Message,
-		"guid":        e.EntityGUID,
+		"recipe_name":                    e.Recipe.Name,
+		"status":                         rs,
+		"error":                          statusError.Message,
+		"guid":                           e.EntityGUID,
+		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
 	}).Debug("recipe event")
 
 	found := s.getStatus(e.Recipe)
@@ -305,6 +308,10 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 
 		if e.EntityGUID != "" {
 			found.EntityGUID = e.EntityGUID
+		}
+
+		if e.ValidationDurationMilliseconds > 0 {
+			found.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
 		}
 	} else {
 		recipeStatus := &RecipeStatus{
@@ -316,6 +323,10 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 
 		if e.EntityGUID != "" {
 			recipeStatus.EntityGUID = e.EntityGUID
+		}
+
+		if e.ValidationDurationMilliseconds > 0 {
+			recipeStatus.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
 		}
 
 		s.Statuses = append(s.Statuses, recipeStatus)
