@@ -652,6 +652,10 @@ func TestInstall_GuidReport(t *testing.T) {
 	require.Equal(t, v.ValidateVals[0], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[infraAgentRecipeName])
 	require.Equal(t, v.ValidateVals[1], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
 	require.Equal(t, status.CLIVersion, "testversion0.0.1")
+	require.Equal(t, 3, len(statusReporters[0].(*execution.MockStatusReporter).Durations))
+	for _, duration := range statusReporters[0].(*execution.MockStatusReporter).Durations {
+		require.Less(t, int64(0), duration)
+	}
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {

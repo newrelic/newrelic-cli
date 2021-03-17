@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -198,7 +199,9 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 	var entityGUID string
 	var err error
+	var validationDurationMilliseconds int64
 	if r.ValidationNRQL != "" {
+		start := time.Now()
 		entityGUID, err = i.recipeValidator.Validate(ctx, *m, *r)
 		if err != nil {
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
@@ -208,13 +211,16 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			})
 			return "", errors.New(msg)
 		}
+
+		validationDurationMilliseconds = time.Since(start).Milliseconds()
 	} else {
 		log.Debugf("skipping validation due to missing validation query")
 	}
 
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
-		Recipe:     *r,
-		EntityGUID: entityGUID,
+		Recipe:                         *r,
+		EntityGUID:                     entityGUID,
+		ValidationDurationMilliseconds: validationDurationMilliseconds,
 	})
 
 	return entityGUID, nil

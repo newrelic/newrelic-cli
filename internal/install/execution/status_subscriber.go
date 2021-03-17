@@ -19,7 +19,8 @@ type StatusSubscriber interface {
 
 // RecipeStatusEvent represents an event in a recipe's execution.
 type RecipeStatusEvent struct {
-	Recipe     types.Recipe
-	Msg        string
-	EntityGUID string
+	Recipe                         types.Recipe
+	Msg                            string
+	EntityGUID                     string
+	ValidationDurationMilliseconds int64
 }
