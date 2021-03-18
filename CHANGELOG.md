@@ -1,3 +1,9 @@
+<a name="v0.20.1"></a>
+## [v0.20.1] - 2021-03-18
+### Bug Fixes
+- **install:** fix lint
+- **install:** capture time when validating and timing out
+
 <a name="v0.20.0"></a>
 ## [v0.20.0] - 2021-03-17
 ### Bug Fixes
@@ -532,7 +538,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.1...HEAD
+[v0.20.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.0...v0.20.1
 [v0.20.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.2...v0.20.0
 [v0.19.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.1...v0.19.2
 [v0.19.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.0...v0.19.1
