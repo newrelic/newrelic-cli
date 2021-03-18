@@ -207,8 +207,8 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			validationDurationMilliseconds = time.Since(start).Milliseconds()
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.status.RecipeFailed(execution.RecipeStatusEvent{
-				Recipe: *r,
-				Msg:    msg,
+				Recipe:                         *r,
+				Msg:                            msg,
 				ValidationDurationMilliseconds: validationDurationMilliseconds,
 			})
 			return "", errors.New(msg)
