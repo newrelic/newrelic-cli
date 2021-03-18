@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -256,12 +255,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 }
 
 func (i *RecipeInstaller) failMessage(componentName string) error {
-	u, _ := url.Parse("https://docs.newrelic.com/search/#")
-	q := u.Query()
-	q.Set("q", componentName)
-	u.RawQuery = q.Encode()
-
-	searchURL := u.String()
+	searchURL := "https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/not-seeing-data/"
 
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
