@@ -200,23 +200,24 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var entityGUID string
 	var err error
 	var validationDurationMilliseconds int64
+	start := time.Now()
 	if r.ValidationNRQL != "" {
-		start := time.Now()
 		entityGUID, err = i.recipeValidator.Validate(ctx, *m, *r)
 		if err != nil {
+			validationDurationMilliseconds = time.Since(start).Milliseconds()
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.status.RecipeFailed(execution.RecipeStatusEvent{
-				Recipe: *r,
-				Msg:    msg,
+				Recipe:                         *r,
+				Msg:                            msg,
+				ValidationDurationMilliseconds: validationDurationMilliseconds,
 			})
 			return "", errors.New(msg)
 		}
-
-		validationDurationMilliseconds = time.Since(start).Milliseconds()
 	} else {
 		log.Debugf("skipping validation due to missing validation query")
 	}
 
+	validationDurationMilliseconds = time.Since(start).Milliseconds()
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
 		Recipe:                         *r,
 		EntityGUID:                     entityGUID,
