@@ -104,6 +104,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		Entrypoint: file.Name(),
 		Stderr:     os.Stderr,
 		Stdout:     os.Stdout,
+		Stdin:      os.Stdin,
 	}
 
 	if err = e.Setup(); err != nil {
