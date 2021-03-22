@@ -153,12 +153,19 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 		"matches": acceptedLogMatches,
 	}).Debug("matches accepted")
 
-	// The struct to approximate the logging configuration file of the Infra Agent.
-	type loggingConfig struct {
-		Logs []types.LogMatch `yaml:"logs"`
-	}
+	if len(acceptedLogMatches) > 0 {
+		// The struct to approximate the logging configuration file of the Infra Agent.
+		type loggingConfig struct {
+			Logs []types.LogMatch `yaml:"logs"`
+		}
 
-	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
+		logConfig := loggingConfig{Logs: acceptedLogMatches}
+		log.WithFields(log.Fields{
+			"name":  "DISCOVERED_LOG_FILES",
+			"value": logConfig,
+		}).Debug("Using field")
+		r.AddVar("DISCOVERED_LOG_FILES", logConfig)
+	}
 
 	_, err = i.executeAndValidateWithProgress(ctx, m, r)
 	return err

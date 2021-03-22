@@ -220,6 +220,11 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 			}
 		}
 
+		log.WithFields(log.Fields{
+			"name":  envConfig.Name,
+			"value": envValue,
+		}).Debug("Using field")
+
 		vars[envConfig.Name] = envValue
 	}
 
