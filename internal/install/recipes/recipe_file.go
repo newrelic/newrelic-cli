@@ -13,23 +13,23 @@ import (
 
 // RecipeFile represents a recipe file as defined in the Open Installation Library.
 type RecipeFile struct {
-	Description    string                                         `yaml:"description"`
-	InputVars      []VariableConfig                               `yaml:"inputVars"`
-	Install        map[string]interface{}                         `yaml:"install"`
-	InstallTargets []RecipeInstallTarget                          `yaml:"installTargets"`
-	Keywords       []string                                       `yaml:"keywords"`
-	LogMatch       []types.LogMatch                               `yaml:"logMatch"`
-	Name           string                                         `yaml:"name"`
-	DisplayName    string                                         `yaml:"displayName"`
-	PreInstall     types.OpenInstallationPreInstallConfiguration  `yaml:"preInstall"`
-	PostInstall    types.OpenInstallationPostInstallConfiguration `yaml:"postInstall"`
-	ProcessMatch   []string                                       `yaml:"processMatch"`
-	Repository     string                                         `yaml:"repository"`
-	ValidationNRQL string                                         `yaml:"validationNrql"`
-	SuccessLink    types.SuccessLink                              `yaml:"successLink"`
+	Description       string                                         `yaml:"description"`
+	InputVars         []VariableConfig                               `yaml:"inputVars"`
+	Install           map[string]interface{}                         `yaml:"install"`
+	InstallTargets    []RecipeInstallTarget                          `yaml:"installTargets"`
+	Keywords          []string                                       `yaml:"keywords"`
+	LogMatch          []types.LogMatch                               `yaml:"logMatch"`
+	Name              string                                         `yaml:"name"`
+	DisplayName       string                                         `yaml:"displayName"`
+	PreInstall        types.OpenInstallationPreInstallConfiguration  `yaml:"preInstall"`
+	PostInstall       types.OpenInstallationPostInstallConfiguration `yaml:"postInstall"`
+	ProcessMatch      []string                                       `yaml:"processMatch"`
+	Repository        string                                         `yaml:"repository"`
+	ValidationNRQL    string                                         `yaml:"validationNrql"`
+	SuccessLinkConfig types.SuccessLinkConfig                        `yaml:"successLinkConfig"`
 }
 
-type SuccessLink struct {
+type SuccessLinkConfig struct {
 	Type   string `yaml:"type"`
 	Filter string `yaml:"filter"`
 }
@@ -131,18 +131,18 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 		return nil, err
 	}
 	r := types.Recipe{
-		File:           fileStr,
-		Name:           f.Name,
-		DisplayName:    f.DisplayName,
-		Description:    f.Description,
-		Repository:     f.Repository,
-		Keywords:       f.Keywords,
-		PreInstall:     f.PreInstall,
-		PostInstall:    f.PostInstall,
-		ProcessMatch:   f.ProcessMatch,
-		SuccessLink:    f.SuccessLink,
-		LogMatch:       f.LogMatch,
-		ValidationNRQL: f.ValidationNRQL,
+		File:              fileStr,
+		Name:              f.Name,
+		DisplayName:       f.DisplayName,
+		Description:       f.Description,
+		Repository:        f.Repository,
+		Keywords:          f.Keywords,
+		PreInstall:        f.PreInstall,
+		PostInstall:       f.PostInstall,
+		ProcessMatch:      f.ProcessMatch,
+		SuccessLinkConfig: f.SuccessLinkConfig,
+		LogMatch:          f.LogMatch,
+		ValidationNRQL:    f.ValidationNRQL,
 	}
 
 	return &r, nil
