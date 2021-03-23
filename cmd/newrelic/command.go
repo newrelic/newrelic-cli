@@ -137,7 +137,7 @@ func hasProfileWithDefaultName(profiles map[string]credentials.Profile) bool {
 }
 
 func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
-	query := ` query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
+	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
 
 	variables := map[string]interface{}{
 		"accountId": accountID,
@@ -151,9 +151,12 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 	queryResp := resp.(nerdgraph.QueryResponse)
 	actor := queryResp.Actor.(map[string]interface{})
 	account := actor["account"].(map[string]interface{})
-	licenseKey := account["licenseKey"].(string)
 
-	return licenseKey, nil
+	if licenseKey, ok := account["licenseKey"]; ok {
+		return licenseKey.(string), nil
+	}
+
+	return "", fmt.Errorf("license key unavailable")
 }
 
 // fetchAccountID will try and retrieve an account ID for the given user.  If it
