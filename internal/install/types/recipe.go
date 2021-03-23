@@ -1,21 +1,21 @@
 package types
 
 type Recipe struct {
-	ID             string                                   `json:"id"`
-	Description    string                                   `json:"description"`
-	DisplayName    string                                   `json:"displayName"`
-	File           string                                   `json:"file"`
-	InstallTargets []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
-	Keywords       []string                                 `json:"keywords"`
-	LogMatch       []LogMatch                               `json:"logMatch"`
-	Name           string                                   `json:"name"`
-	PreInstall     OpenInstallationPreInstallConfiguration  `json:"preInstall"`
-	PostInstall    OpenInstallationPostInstallConfiguration `json:"postInstall"`
-	ProcessMatch   []string                                 `json:"processMatch"`
-	Repository     string                                   `json:"repository"`
-	SuccessLink    SuccessLink                              `json:"successLink"`
-	ValidationNRQL string                                   `json:"validationNrql"`
-	Vars           map[string]interface{}
+	ID                string                                   `json:"id"`
+	Description       string                                   `json:"description"`
+	DisplayName       string                                   `json:"displayName"`
+	File              string                                   `json:"file"`
+	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
+	Keywords          []string                                 `json:"keywords"`
+	LogMatch          []LogMatch                               `json:"logMatch"`
+	Name              string                                   `json:"name"`
+	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall"`
+	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall"`
+	ProcessMatch      []string                                 `json:"processMatch"`
+	Repository        string                                   `json:"repository"`
+	SuccessLinkConfig SuccessLinkConfig                        `json:"successLinkConfig"`
+	ValidationNRQL    string                                   `json:"validationNrql"`
+	Vars              map[string]interface{}
 }
 
 func (r *Recipe) PostInstallMessage() string {

@@ -24,7 +24,7 @@ type InstallStatus struct {
 	DocumentID        string
 	targetedInstall   bool
 	statusSubscriber  []StatusSubscriber
-	successLink       types.SuccessLink
+	successLinkConfig types.SuccessLinkConfig
 }
 
 type RecipeStatus struct {
@@ -252,8 +252,8 @@ func (s *InstallStatus) withAvailableRecipe(r types.Recipe) {
 	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
 }
 
-func (s *InstallStatus) withSuccessLink(l types.SuccessLink) {
-	s.successLink = l
+func (s *InstallStatus) withSuccessLinkConfig(l types.SuccessLinkConfig) {
+	s.successLinkConfig = l
 }
 
 func (s *InstallStatus) withEntityGUID(entityGUID string) {
@@ -285,7 +285,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		s.withEntityGUID(e.EntityGUID)
 	}
 
-	s.withSuccessLink(e.Recipe.SuccessLink)
+	s.withSuccessLinkConfig(e.Recipe.SuccessLinkConfig)
 
 	statusError := StatusError{
 		Message: e.Msg,
