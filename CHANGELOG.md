@@ -1,3 +1,8 @@
+<a name="v2.20.4"></a>
+## [v2.20.4] - 2021-03-24
+### Bug Fixes
+- avoid nil pointer when fetching a license key
+
 <a name="v0.20.3"></a>
 ## [v0.20.3] - 2021-03-23
 ### Features
@@ -546,7 +551,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v2.20.4...HEAD
+[v2.20.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.3...v2.20.4
 [v0.20.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.2...v0.20.3
 [v0.20.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.1...v0.20.2
 [v0.20.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.0...v0.20.1
