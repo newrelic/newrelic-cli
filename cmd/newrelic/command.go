@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
@@ -158,6 +159,8 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 		if licenseKey, ok := account["licenseKey"]; ok {
 			return licenseKey.(string), nil
 		}
+
+		time.Sleep(1 * time.Second)
 	}
 
 	return "", types.ErrorFetchingLicenseKey
