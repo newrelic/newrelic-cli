@@ -12,6 +12,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -159,7 +160,7 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("unable to fetch license key, giving up")
+	return "", types.ErrorFetchingLicenseKey
 }
 
 // fetchAccountID will try and retrieve an account ID for the given user.  If it
