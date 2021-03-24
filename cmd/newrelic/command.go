@@ -89,6 +89,7 @@ func initializeProfile() {
 				// We should have an account ID by now, so fetch the license key for it.
 				licenseKey, err = fetchLicenseKey(nrClient, accountID)
 				if err != nil {
+					log.Error(err)
 					return
 				}
 			}
@@ -143,20 +144,22 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 		"accountId": accountID,
 	}
 
-	resp, err := client.NerdGraph.Query(query, variables)
-	if err != nil {
-		return "", err
+	for i := 0; i < 3; i++ {
+		resp, err := client.NerdGraph.Query(query, variables)
+		if err != nil {
+			return "", err
+		}
+
+		queryResp := resp.(nerdgraph.QueryResponse)
+		actor := queryResp.Actor.(map[string]interface{})
+		account := actor["account"].(map[string]interface{})
+
+		if licenseKey, ok := account["licenseKey"]; ok {
+			return licenseKey.(string), nil
+		}
 	}
 
-	queryResp := resp.(nerdgraph.QueryResponse)
-	actor := queryResp.Actor.(map[string]interface{})
-	account := actor["account"].(map[string]interface{})
-
-	if licenseKey, ok := account["licenseKey"]; ok {
-		return licenseKey.(string), nil
-	}
-
-	return "", fmt.Errorf("license key unavailable")
+	return "", fmt.Errorf("unable to fetch license key, giving up")
 }
 
 // fetchAccountID will try and retrieve an account ID for the given user.  If it
