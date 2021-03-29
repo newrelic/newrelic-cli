@@ -398,16 +398,22 @@ install:
   version: "3"
   tasks:
     default:
+      cmds:
+        - task: run
+    run:
+      cmds:
+        - |
+          exit 1
 `,
 		},
 		{
-			Name:           "another-recommended-recipe",
-			DisplayName:    "Another Recommended recipe",
+			Name:           "infrastructure-agent-installer",
+			DisplayName:    "Infrastructure Agent",
 			ValidationNRQL: "test NRQL",
 			File: `
 ---
-name: another-recommended-recipe
-displayName: Another Recommended recipe
+name: infra-agent
+displayName: Infrastructure Agent
 install:
   version: "3"
   tasks:
@@ -415,7 +421,6 @@ install:
 `,
 		},
 	}
-
 	return f
 }
 
