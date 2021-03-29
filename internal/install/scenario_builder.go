@@ -19,7 +19,7 @@ const (
 	Basic               TestScenario = "BASIC"
 	LogMatches          TestScenario = "LOG_MATCHES"
 	Fail                TestScenario = "FAIL"
-	StitchedPath        TestScenario = "STITCHED_PATH"
+	TargetedInstall     TestScenario = "TARGETED_INSTALL"
 	Canceled            TestScenario = "CANCELED"
 	DisplayExplorerLink TestScenario = "DISPLAY_EXPLORER_LINK"
 )
@@ -29,7 +29,7 @@ var (
 		Basic,
 		LogMatches,
 		Fail,
-		StitchedPath,
+		TargetedInstall,
 		Canceled,
 		DisplayExplorerLink,
 	}
@@ -74,8 +74,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.LogMatches()
 	case Fail:
 		return b.Fail()
-	case StitchedPath:
-		return b.StitchedPath()
+	case TargetedInstall:
+		return b.TargetedInstall()
 	case Canceled:
 		return b.CanceledInstall()
 	case DisplayExplorerLink:
@@ -206,9 +206,9 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 	return &i
 }
 
-func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
+func (b *ScenarioBuilder) TargetedInstall() *RecipeInstaller {
 	// mock implementations
-	rf := setupRecipeFetcherStitchedPath()
+	rf := setupRecipeFetcherTargetedInstall()
 	ers := []execution.StatusSubscriber{
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
@@ -383,7 +383,7 @@ install:
 	return f
 }
 
-func setupRecipeFetcherStitchedPath() recipes.RecipeFetcher {
+func setupRecipeFetcherTargetedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
 		{
