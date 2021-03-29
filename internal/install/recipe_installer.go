@@ -29,7 +29,6 @@ type RecipeInstaller struct {
 	status            *execution.InstallStatus
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
-	licenseKeyFetcher *LicenseKeyFetcher
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -40,7 +39,6 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 	}
-	lkf := NewLicenseKeyFetcher(&nrClient.NerdGraph)
 	statusRollup := execution.NewInstallStatus(ers)
 
 	d := discovery.NewPSUtilDiscoverer(pf)
@@ -60,7 +58,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: pi,
-		licenseKeyFetcher: lkf}
+	}
 
 	i.InstallerContext = ic
 
@@ -128,8 +126,6 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 	}
 
 	i.status.DiscoveryComplete(*m)
-
-	i.licenseKeyFetcher.FetchLicenseKey(ctx)
 
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.
