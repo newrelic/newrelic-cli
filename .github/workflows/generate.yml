@@ -1,9 +1,9 @@
 name: Tutone Generate
 on:
   push:
-    branches: [master]
+    branches: [main]
   schedule:
-    - cron: "5 5 * * 1"
+    - cron: '5 5 * * 1'
 
 jobs:
   createPullRequest:
@@ -26,10 +26,10 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-          commit-message: "chore(tutone): update generated code"
+          commit-message: 'chore(tutone): update generated code'
           signoff: false
           branch: tutone-updates
-          title: "chore(tutone): update generated code"
+          title: 'chore(tutone): update generated code'
           body: |
             Update generated code using tutone
             - make generate
