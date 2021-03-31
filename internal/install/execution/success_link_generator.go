@@ -28,7 +28,7 @@ func (g *ConcreteSuccessLinkGenerator) GenerateExplorerLink(filter string) strin
 }
 
 func (g *ConcreteSuccessLinkGenerator) GenerateEntityLink(entityGUID string) string {
-	return fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", entityGUID)
+	return fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
 }
 
 // nrPlatformHostname returns the host for the platform based on the region set.
