@@ -6,7 +6,7 @@
 [![Security Scan](https://github.com/newrelic/newrelic-cli/workflows/Security%20Scan/badge.svg)](https://github.com/newrelic/newrelic-cli/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/newrelic/newrelic-cli?style=flat-square)](https://goreportcard.com/report/github.com/newrelic/newrelic-cli)
 [![GoDoc](https://godoc.org/github.com/newrelic/newrelic-cli?status.svg)](https://godoc.org/github.com/newrelic/newrelic-cli)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/master/LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/main/LICENSE)
 [![CLA assistant](https://cla-assistant.io/readme/badge/newrelic/newrelic-cli)](https://cla-assistant.io/newrelic/newrelic-cli)
 [![Release](https://img.shields.io/github/v/release/newrelic/newrelic-cli?sort=semver)](https://github.com/newrelic/newrelic-cli/releases/latest)
 
@@ -20,64 +20,70 @@ The New Relic CLI is an officially supported command line interface for New Reli
 ## Overview
 
 The New Relic CLI is a project to consolidate some of the tools that New Relic
-offers for managing resources.  Current scope is limited while the framework is
+offers for managing resources. Current scope is limited while the framework is
 being developed, but the tool as-is does perform a subset of tasks.
 
-* Entity Search: Search for entities across all your New Relic accounts
-* Entity Tagging: Manage tags across all of your entities
-* Deployment Markers: Easily record an APM Application deployment within
+- Entity Search: Search for entities across all your New Relic accounts
+- Entity Tagging: Manage tags across all of your entities
+- Deployment Markers: Easily record an APM Application deployment within
   New Relic.
 
 ### Getting Started
 
 For a quick guide on getting started with the New Relic CLI, see our [Getting
-Started](https://github.com/newrelic/newrelic-cli/blob/master/docs/GETTING_STARTED.md)
+Started](https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md)
 page.
 
-The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/master/docs/cli/newrelic.md).
+The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/main/docs/cli/newrelic.md).
 
 ### Other Resources
 
-There are a handful of other useful tools that this does not replace.  Here are
+There are a handful of other useful tools that this does not replace. Here are
 some useful links to other tools that you might be interested in using at this
 time.
 
-* [NR1 CLI](https://developer.newrelic.com/build-tools/new-relic-one-applications/cli):
+- [NR1 CLI](https://developer.newrelic.com/build-tools/new-relic-one-applications/cli):
   Command line interface for managing development workflows for custom Nerdpacks on New Relic One.
-* [New Relic Lambda CLI](https://github.com/newrelic/newrelic-lambda-cli): A
+- [New Relic Lambda CLI](https://github.com/newrelic/newrelic-lambda-cli): A
   CLI to install the New Relic AWS Lambda integration and layers.
-* [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
+- [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
   A utility that automatically detects common problems with New Relic agents.
 
-
 ## Installation
+
 Installation options are available for various platforms.
 
 ### MacOS
-Install the New Relic CLI on MacOS via [`homebrew`](https://brew.sh/).  With `homebrew` installed, run:
+
+Install the New Relic CLI on MacOS via [`homebrew`](https://brew.sh/). With `homebrew` installed, run:
 
 ```
 brew install newrelic-cli
 ```
 
 ### Windows
+
 Installation is supported on 64-bit Windows.
 
 #### Scoop
+
 ```powershell
 scoop bucket add newrelic-cli https://github.com/newrelic/newrelic-cli.git
 scoop install newrelic-cli
 ```
 
 #### Chocolatey
+
 ```powershell
 choco install newrelic-cli
 ```
 
 #### Standalone installer
-A standalone MSI installer is available on the GitHub releases page.  You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
+
+A standalone MSI installer is available on the GitHub releases page. You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
 
 #### Powershell
+
 Silent installation of the latest version of the CLI can be achieved via the follwing Powershell command:
 
 ```powershell
@@ -86,14 +92,16 @@ msiexec.exe /qn /i "$env:TEMP\NewRelicCLIInstaller.msi" | Out-Null; `
 ```
 
 ### Linux
-Linux binaries can be installed via [Snapcraft](https://snapcraft.io/).  With the `snapd` daemon installed, run:
+
+Linux binaries can be installed via [Snapcraft](https://snapcraft.io/). With the `snapd` daemon installed, run:
 
 ```
 sudo snap install newrelic-cli
 ```
 
 ### Pre-built binaries
-Pre-built binaries are created on the GitHub releases page for all of the above platforms.  You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases).  The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
+
+Pre-built binaries are created on the GitHub releases page for all of the above platforms. You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases). The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
 
 Verify that the fingerprint for the downloaded key matches the following:
 
@@ -144,18 +152,17 @@ $ docker run -it --rm \
 
 See the [Getting Started guide](docs/GETTING_STARTED.md) for a more in-depth introduction to the capabilities of the New Relic CLI.
 
-
 ### Getting Help
 
 In order to get help about what commands are available, the trusty `--help`
-flag is here to assist.  Alternatively, using just the `help` subcommand also works.
+flag is here to assist. Alternatively, using just the `help` subcommand also works.
 
 ```
 newrelic --help
 newrelic help
 ```
 
-Help is also available for the nested sub-commands.  For example, the with the
+Help is also available for the nested sub-commands. For example, the with the
 following command, you can retrieve help for the `apm` sub-command.
 
 ```
@@ -168,7 +175,7 @@ available, with some instruction on their usage.
 
 ### Patterns
 
-Throughout the help, you may notice common patterns.  The term `describe` is
+Throughout the help, you may notice common patterns. The term `describe` is
 used to perform list or get operations, while the `create` and `delete` terms
 are used to construct or destroy an item, respectively.
 
@@ -176,10 +183,9 @@ are used to construct or destroy an item, respectively.
 
 ### Requirements
 
-* Go 1.13.0+
-* GNU Make
-* git
-
+- Go 1.13.0+
+- GNU Make
+- git
 
 ### Building
 
@@ -196,10 +202,9 @@ $ make build
 # make build-ci
 ```
 
-
 ### Testing
 
-Before contributing, all linting and tests must pass.  Tests can be run directly via:
+Before contributing, all linting and tests must pass. Tests can be run directly via:
 
 ```
 # Tests and Linting
@@ -221,30 +226,28 @@ the [CHANGELOG](CHANGELOG.md):
 
 `<type>(<scope>): <subject>`
 
-| Type | Description | Change log? |
-|------| ----------- | :---------: |
-| `chore` | Maintenance type work | No |
-| `docs` | Documentation Updates | Yes |
-| `feat` | New Features | Yes |
-| `fix`  | Bug Fixes | Yes |
-| `refactor` | Code Refactoring | No |
+| Type       | Description           | Change log? |
+| ---------- | --------------------- | :---------: |
+| `chore`    | Maintenance type work |     No      |
+| `docs`     | Documentation Updates |     Yes     |
+| `feat`     | New Features          |     Yes     |
+| `fix`      | Bug Fixes             |     Yes     |
+| `refactor` | Code Refactoring      |     No      |
 
 #### Scope
 
-This refers to what part of the code is the focus of the work.  For example:
+This refers to what part of the code is the focus of the work. For example:
 
 **General:**
 
-* `build` - Work related to the build system (linting, makefiles, CI/CD, etc)
-* `release` - Work related to cutting a new release
+- `build` - Work related to the build system (linting, makefiles, CI/CD, etc)
+- `release` - Work related to cutting a new release
 
 **Package Specific:**
 
-* `newrelic` - Work related to the New Relic package
-* `http` - Work related to the `internal/http` package
-* `alerts` - Work related to the `pkg/alerts` package
-
-
+- `newrelic` - Work related to the New Relic package
+- `http` - Work related to the `internal/http` package
+- `alerts` - Work related to the `pkg/alerts` package
 
 ### Documentation
 
@@ -258,10 +261,10 @@ $ make docs
 
 New Relic hosts and moderates an online forum where you can interact with New Relic employees as well as other customers to get help and share best practices.
 
-* [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
-* [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.
-* [Contributors Guide](CONTRIBUTING.md) - Contributions are welcome (and if you submit a Enhancement Request, expect to be invited to contribute it yourself :grin:).
-* [Community discussion board](https://discuss.newrelic.com/c/build-on-new-relic/developer-toolkit) - Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub.
+- [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
+- [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.
+- [Contributors Guide](CONTRIBUTING.md) - Contributions are welcome (and if you submit a Enhancement Request, expect to be invited to contribute it yourself :grin:).
+- [Community discussion board](https://discuss.newrelic.com/c/build-on-new-relic/developer-toolkit) - Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub.
 
 Please do not report issues with the CLI to New Relic Global Technical Support. Instead, visit the [`Explorers Hub`](https://discuss.newrelic.com/c/build-on-new-relic) for troubleshooting and best-practices.
 
