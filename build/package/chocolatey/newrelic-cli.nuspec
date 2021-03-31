@@ -9,7 +9,7 @@
     <authors>New Relic Developer Toolkit Team</authors>
     <projectUrl>https://github.com/newrelic/newrelic-cli</projectUrl>
     <copyright>New Relic 2020-2021</copyright>
-    <licenseUrl>https://github.com/newrelic/newrelic-cli/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/newrelic/newrelic-cli/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <docsUrl>https://developer.newrelic.com</docsUrl>
     <bugTrackerUrl>https://github.com/newrelic/newrelic-cli/issues</bugTrackerUrl>
