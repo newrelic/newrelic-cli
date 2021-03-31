@@ -151,7 +151,6 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	s.InstallComplete()
 	require.True(t, s.Complete)
 	require.NotNil(t, s.Timestamp)
-
 }
 
 func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
@@ -172,4 +171,34 @@ func TestInstallStatus_cancelAvailable(t *testing.T) {
 
 	s.InstallCanceled()
 	require.Equal(t, RecipeStatusTypes.CANCELED, s.Statuses[0].Status)
+}
+
+func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
+	s := NewInstallStatus([]StatusSubscriber{NewMockStatusReporter()})
+	recipeInstalled := types.Recipe{Name: "installed"}
+	installedRecipeEvent := RecipeStatusEvent{Recipe: recipeInstalled, EntityGUID: "installedGUID"}
+
+	recipeSkipped := types.Recipe{Name: "skipped"}
+	skippedRecipeEvent := RecipeStatusEvent{Recipe: recipeSkipped, EntityGUID: "skippedGUID"}
+
+	recipeErrored := types.Recipe{Name: "errored"}
+	erroredRecipeEvent := RecipeStatusEvent{Recipe: recipeErrored, EntityGUID: "erroredGUID"}
+
+	recipeCanceled := types.Recipe{Name: "canceled"}
+
+	s.RecipesAvailable([]types.Recipe{
+		recipeInstalled,
+		recipeCanceled,
+	})
+
+	s.RecipeInstalled(installedRecipeEvent)
+	s.RecipeSkipped(skippedRecipeEvent)
+	s.RecipeFailed(erroredRecipeEvent)
+
+	s.InstallCanceled()
+
+	require.True(t, s.HasInstalledRecipes)
+	require.True(t, s.HasSkippedRecipes)
+	require.True(t, s.HasCanceledRecipes)
+	require.True(t, s.HasFailedRecipes)
 }

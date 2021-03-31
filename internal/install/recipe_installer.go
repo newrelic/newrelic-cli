@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -30,6 +29,7 @@ type RecipeInstaller struct {
 	status            *execution.InstallStatus
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
+	licenseKeyFetcher LicenseKeyFetcher
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -40,6 +40,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 	}
+	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
 	statusRollup := execution.NewInstallStatus(ers)
 
 	d := discovery.NewPSUtilDiscoverer(pf)
@@ -59,7 +60,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: pi,
-	}
+		licenseKeyFetcher: lkf}
 
 	i.InstallerContext = ic
 
@@ -200,23 +201,24 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var entityGUID string
 	var err error
 	var validationDurationMilliseconds int64
+	start := time.Now()
 	if r.ValidationNRQL != "" {
-		start := time.Now()
 		entityGUID, err = i.recipeValidator.Validate(ctx, *m, *r)
 		if err != nil {
+			validationDurationMilliseconds = time.Since(start).Milliseconds()
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.status.RecipeFailed(execution.RecipeStatusEvent{
-				Recipe: *r,
-				Msg:    msg,
+				Recipe:                         *r,
+				Msg:                            msg,
+				ValidationDurationMilliseconds: validationDurationMilliseconds,
 			})
 			return "", errors.New(msg)
 		}
-
-		validationDurationMilliseconds = time.Since(start).Milliseconds()
 	} else {
 		log.Debugf("skipping validation due to missing validation query")
 	}
 
+	validationDurationMilliseconds = time.Since(start).Milliseconds()
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
 		Recipe:                         *r,
 		EntityGUID:                     entityGUID,
@@ -235,7 +237,12 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		fmt.Println(r.PreInstallMessage())
 	}
 
-	vars, err := i.recipeExecutor.Prepare(ctx, *m, *r, i.AssumeYes)
+	licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	vars, err := i.recipeExecutor.Prepare(ctx, *m, *r, i.AssumeYes, licenseKey)
 	if err != nil {
 		return "", err
 	}
@@ -255,12 +262,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 }
 
 func (i *RecipeInstaller) failMessage(componentName string) error {
-	u, _ := url.Parse("https://docs.newrelic.com/search/#")
-	q := u.Query()
-	q.Set("q", componentName)
-	u.RawQuery = q.Encode()
-
-	searchURL := u.String()
+	searchURL := "https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/not-seeing-data/"
 
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }

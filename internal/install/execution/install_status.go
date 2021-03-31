@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/google/uuid"
@@ -13,18 +14,26 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
-	Complete          bool                    `json:"complete"`
-	DiscoveryManifest types.DiscoveryManifest `json:"discoveryManifest"`
-	EntityGUIDs       []string                `json:"entityGuids"`
-	Error             StatusError             `json:"error"`
-	LogFilePath       string                  `json:"logFilePath"`
-	Statuses          []*RecipeStatus         `json:"recipes"`
-	Timestamp         int64                   `json:"timestamp"`
-	CLIVersion        string                  `json:"cliVersion"`
-	DocumentID        string
-	targetedInstall   bool
-	statusSubscriber  []StatusSubscriber
-	successLink       types.SuccessLink
+	Complete            bool                    `json:"complete"`
+	DiscoveryManifest   types.DiscoveryManifest `json:"discoveryManifest"`
+	EntityGUIDs         []string                `json:"entityGuids"`
+	Error               StatusError             `json:"error"`
+	LogFilePath         string                  `json:"logFilePath"`
+	Statuses            []*RecipeStatus         `json:"recipes"`
+	Timestamp           int64                   `json:"timestamp"`
+	CLIVersion          string                  `json:"cliVersion"`
+	HasInstalledRecipes bool                    `json:"hasInstalledRecipes"`
+	HasCanceledRecipes  bool                    `json:"hasCanceledRecipes"`
+	HasSkippedRecipes   bool                    `json:"hasSkippedRecipes"`
+	HasFailedRecipes    bool                    `json:"hasFailedRecipes"`
+	RecipesSkipped      []*RecipeStatus         `json:"recipesSkipped"`
+	RecipesCanceled     []*RecipeStatus         `json:"recipesCanceled"`
+	RecipesFailed       []*RecipeStatus         `json:"recipesFailed"`
+	RecipesInstalled    []*RecipeStatus         `json:"recipesInstalled"`
+	DocumentID          string
+	targetedInstall     bool
+	statusSubscriber    []StatusSubscriber
+	successLinkConfig   types.SuccessLinkConfig
 }
 
 type RecipeStatus struct {
@@ -252,8 +261,8 @@ func (s *InstallStatus) withAvailableRecipe(r types.Recipe) {
 	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
 }
 
-func (s *InstallStatus) withSuccessLink(l types.SuccessLink) {
-	s.successLink = l
+func (s *InstallStatus) withSuccessLinkConfig(l types.SuccessLinkConfig) {
+	s.successLinkConfig = l
 }
 
 func (s *InstallStatus) withEntityGUID(entityGUID string) {
@@ -285,7 +294,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		s.withEntityGUID(e.EntityGUID)
 	}
 
-	s.withSuccessLink(e.Recipe.SuccessLink)
+	s.withSuccessLinkConfig(e.Recipe.SuccessLinkConfig)
 
 	statusError := StatusError{
 		Message: e.Msg,
@@ -343,15 +352,7 @@ func (s *InstallStatus) completed() {
 		"timestamp": s.Timestamp,
 	}).Debug("completed")
 
-	// Exiting early will cause unresolved recipes to be marked as failed.
-	for i, ss := range s.Statuses {
-		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
-			log.WithFields(log.Fields{
-				"recipe": s.Statuses[i].Name,
-			}).Debug("marking recipe failed")
-			s.Statuses[i].Status = RecipeStatusTypes.FAILED
-		}
-	}
+	s.updateFinalInstallationStatuses(false)
 }
 
 func (s *InstallStatus) canceled() {
@@ -361,15 +362,7 @@ func (s *InstallStatus) canceled() {
 		"timestamp": s.Timestamp,
 	}).Debug("canceled")
 
-	// Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
-	for i, ss := range s.Statuses {
-		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
-			log.WithFields(log.Fields{
-				"recipe": s.Statuses[i].Name,
-			}).Debug("marking recipe canceled")
-			s.Statuses[i].Status = RecipeStatusTypes.CANCELED
-		}
-	}
+	s.updateFinalInstallationStatuses(true)
 }
 
 func (s *InstallStatus) getStatus(r types.Recipe) *RecipeStatus {
@@ -380,4 +373,60 @@ func (s *InstallStatus) getStatus(r types.Recipe) *RecipeStatus {
 	}
 
 	return nil
+}
+
+// This function handles updating the final recipe statuses and top-level installation status.
+// Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
+// Exiting early (i.e. an error occurred) will cause unresolved recipes to be marked as failed.
+func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
+	for i, ss := range s.Statuses {
+		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
+			debugMsg := "failed"
+
+			if installCanceled {
+				debugMsg = "canceled"
+			}
+
+			log.WithFields(log.Fields{
+				"recipe": s.Statuses[i].Name,
+			}).Debug(fmt.Sprintf("marking recipe %s", debugMsg))
+
+			if installCanceled {
+				s.Statuses[i].Status = RecipeStatusTypes.CANCELED
+			} else {
+				s.Statuses[i].Status = RecipeStatusTypes.FAILED
+			}
+		}
+
+		// Installed
+		if ss.Status == RecipeStatusTypes.INSTALLED {
+			s.RecipesInstalled = append(s.RecipesInstalled, ss)
+			s.HasInstalledRecipes = true
+		}
+
+		// Skipped
+		if ss.Status == RecipeStatusTypes.SKIPPED {
+			s.RecipesSkipped = append(s.RecipesSkipped, ss)
+			s.HasSkippedRecipes = true
+		}
+
+		// Canceled
+		if ss.Status == RecipeStatusTypes.CANCELED {
+			s.RecipesCanceled = append(s.RecipesCanceled, ss)
+			s.HasCanceledRecipes = true
+		}
+
+		// Errored
+		if ss.Status == RecipeStatusTypes.FAILED {
+			s.RecipesFailed = append(s.RecipesFailed, ss)
+			s.HasFailedRecipes = true
+		}
+	}
+
+	log.WithFields(log.Fields{
+		"hasInstalledRecipes": s.HasInstalledRecipes,
+		"hasSkippedRecipes":   s.HasSkippedRecipes,
+		"hasCanceledRecipes":  s.HasCanceledRecipes,
+		"hasFailedRecipes":    s.HasFailedRecipes,
+	}).Debug("final installation statuses updated")
 }

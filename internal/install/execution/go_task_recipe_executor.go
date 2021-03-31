@@ -30,7 +30,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	return &GoTaskRecipeExecutor{}
 }
 
-func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, assumeYes bool) (types.RecipeVars, error) {
+func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
 	log.WithFields(log.Fields{
 		"name": r.Name,
 	}).Debug("preparing recipe")
@@ -41,7 +41,7 @@ func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryMa
 
 	systemInfoResult := varsFromSystemInfo(m)
 
-	profileResult, err := varsFromProfile()
+	profileResult, err := varsFromProfile(licenseKey)
 	if err != nil {
 		return types.RecipeVars{}, err
 	}
@@ -104,6 +104,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		Entrypoint: file.Name(),
 		Stderr:     os.Stderr,
 		Stdout:     os.Stdout,
+		Stdin:      os.Stdin,
 	}
 
 	if err = e.Setup(); err != nil {
@@ -136,15 +137,15 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	return nil
 }
 
-func varsFromProfile() (types.RecipeVars, error) {
+func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
 	defaultProfile := credentials.DefaultProfile()
-	if defaultProfile.LicenseKey == "" {
-		return types.RecipeVars{}, errors.New("license key not found in default profile")
+	if licenseKey == "" {
+		return types.RecipeVars{}, errors.New("license key not found")
 	}
 
 	vars := make(types.RecipeVars)
 
-	vars["NEW_RELIC_LICENSE_KEY"] = defaultProfile.LicenseKey
+	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
 	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(defaultProfile.AccountID)
 	vars["NEW_RELIC_API_KEY"] = defaultProfile.APIKey
 	vars["NEW_RELIC_REGION"] = defaultProfile.Region

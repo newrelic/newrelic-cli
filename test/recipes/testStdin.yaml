@@ -1,0 +1,19 @@
+name: test-stdin
+displayName: Test stdin
+
+install:
+  version: '3'
+  silent: true
+
+  tasks:
+    default:
+      cmds:
+        - task: execute
+
+    execute:
+      label: 'Testing stdin...'
+      cmds:
+        - |
+          printf "\nEnter a value: "
+          read -r value
+          echo -e "\nThe value entered was $value.\n"
