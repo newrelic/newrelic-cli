@@ -1,3 +1,10 @@
+<a name="v0.20.6"></a>
+## [v0.20.6] - 2021-03-31
+### Bug Fixes
+- **install:** fetch license key when installing
+- **install:** fetch license key when installing
+- **install:** fetch license key when installing
+
 <a name="v0.20.5"></a>
 ## [v0.20.5] - 2021-03-29
 ### Features
@@ -558,7 +565,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.6...HEAD
+[v0.20.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.5...v0.20.6
 [v0.20.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.4...v0.20.5
 [v0.20.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.3...v0.20.4
 [v0.20.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.2...v0.20.3
