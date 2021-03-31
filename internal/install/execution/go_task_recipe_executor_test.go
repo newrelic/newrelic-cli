@@ -21,8 +21,9 @@ import (
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
+	licenseKey := "testLicenseKey"
 	p := credentials.Profile{
-		LicenseKey: "testLicenseKey",
+		LicenseKey: "",
 	}
 	credentials.SetDefaultProfile(p)
 
@@ -81,7 +82,7 @@ func TestExecute_SystemVariableInterpolation(t *testing.T) {
 		File: string(fs),
 	}
 
-	v, err := e.Prepare(context.Background(), m, r, false)
+	v, err := e.Prepare(context.Background(), m, r, false, licenseKey)
 	require.NoError(t, err)
 
 	err = e.Execute(context.Background(), m, r, v)

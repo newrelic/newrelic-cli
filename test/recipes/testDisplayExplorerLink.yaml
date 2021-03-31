@@ -1,0 +1,23 @@
+name: test-display-explorer-link
+displayName: Test Display Explorer Link
+description: Scenario to test when a recipe designates a filtered explorer link
+
+processMatch: []
+
+validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTNAME}}' FACET entityGuid SINCE 10 minutes ago"
+
+successLink:
+  type: explorer
+  filter: '"`tags.language` = ''java''"'
+
+install:
+  version: '3'
+  silent: true
+  tasks:
+    default:
+      cmds:
+        - task: run
+    run:
+      cmds:
+        - |
+          echo "executing recipe steps"

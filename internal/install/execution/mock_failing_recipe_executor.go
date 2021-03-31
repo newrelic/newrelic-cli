@@ -17,7 +17,7 @@ func NewMockFailingRecipeExecutor() *MockFailingRecipeExecutor {
 	}
 }
 
-func (m *MockFailingRecipeExecutor) Prepare(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe, y bool) (types.RecipeVars, error) {
+func (m *MockFailingRecipeExecutor) Prepare(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe, y bool, z string) (types.RecipeVars, error) {
 	return types.RecipeVars{}, nil
 }
 
