@@ -319,6 +319,10 @@ const (
 			info
 		}
 		file
+		successLinkConfig {
+			type
+			filter
+		}
 	`
 	recipeSearchQuery = `
 	query RecipeSearch($criteria: OpenInstallationRecipeSearchCriteria){
