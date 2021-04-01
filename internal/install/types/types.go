@@ -168,6 +168,8 @@ type OpenInstallationRecipe struct {
 	// NRQL the newrelic-cli uses to validate this recipe
 	// is successfully sending data to New Relic
 	ValidationNRQL NRQL `json:"validationNrql,omitempty"`
+	// Metadata to support generating a URL after installation success
+	SuccessLinkConfig SuccessLinkConfig `json:"successLinkConfig,omitempty"`
 }
 
 // OpenInstallationRecipeInputVariable - Recipe input variable prompts displayed to the user prior to execution
