@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -153,12 +154,17 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 		"matches": acceptedLogMatches,
 	}).Debug("matches accepted")
 
-	// The struct to approximate the logging configuration file of the Infra Agent.
-	type loggingConfig struct {
-		Logs []types.LogMatch `yaml:"logs"`
+	discoveredLogFiles := []string{}
+	for _, logMatch := range acceptedLogMatches {
+		discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
 	}
 
-	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
+	discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
+	r.AddVar("DISCOVERED_LOG_FILES", discoveredLogFilesString)
+
+	log.WithFields(log.Fields{
+		"DISCOVERED_LOG_FILES": discoveredLogFilesString,
+	}).Debug("discovered log files")
 
 	_, err = i.executeAndValidateWithProgress(ctx, m, r)
 	return err
