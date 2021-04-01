@@ -1,5 +1,10 @@
-<a name="v0.20.8"></a>
-## [v0.20.8] - 2021-04-01
+<a name="v0.21.0"></a>
+## [v0.21.0] - 2021-04-01
+### Bug Fixes
+- **targeted-install:** include successLinkConfig when returning new Recipe
+
+<a name="v0.20.28"></a>
+## [v0.20.28] - 2021-04-01
 <a name="v0.20.7"></a>
 ## [v0.20.7] - 2021-03-31
 ### Bug Fixes
@@ -572,8 +577,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.8...HEAD
-[v0.20.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.7...v0.20.8
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.21.0...HEAD
+[v0.21.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.28...v0.21.0
+[v0.20.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.7...v0.20.28
 [v0.20.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.6...v0.20.7
 [v0.20.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.5...v0.20.6
 [v0.20.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.4...v0.20.5
