@@ -237,19 +237,20 @@ func createRecipes(results []types.OpenInstallationRecipe) []types.Recipe {
 
 func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 	return types.Recipe{
-		ID:             result.ID,
-		Description:    result.Description,
-		DisplayName:    result.DisplayName,
-		File:           result.File,
-		InstallTargets: result.InstallTargets,
-		Keywords:       result.Keywords,
-		LogMatch:       createLogMatches(result.LogMatch),
-		Name:           result.Name,
-		ProcessMatch:   result.ProcessMatch,
-		Repository:     result.Repository,
-		ValidationNRQL: string(result.ValidationNRQL),
-		PreInstall:     result.PreInstall,
-		PostInstall:    result.PostInstall,
+		ID:                result.ID,
+		Description:       result.Description,
+		DisplayName:       result.DisplayName,
+		File:              result.File,
+		InstallTargets:    result.InstallTargets,
+		Keywords:          result.Keywords,
+		LogMatch:          createLogMatches(result.LogMatch),
+		Name:              result.Name,
+		ProcessMatch:      result.ProcessMatch,
+		Repository:        result.Repository,
+		ValidationNRQL:    string(result.ValidationNRQL),
+		PreInstall:        result.PreInstall,
+		PostInstall:       result.PostInstall,
+		SuccessLinkConfig: result.SuccessLinkConfig,
 	}
 }
 
