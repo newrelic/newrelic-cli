@@ -175,6 +175,17 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 	}
 }
 
+func (s *InstallStatus) InstallError(err error) {
+	statusError := StatusError{
+		Message: "unknown error",
+	}
+	if err != nil {
+		statusError.Message = err.Error()
+	}
+	s.Error = statusError
+	s.InstallComplete()
+}
+
 func (s *InstallStatus) InstallComplete() {
 	s.completed()
 

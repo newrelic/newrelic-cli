@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -114,7 +115,7 @@ func (i *RecipeInstaller) Install() error {
 			return err
 		}
 
-		i.status.InstallComplete()
+		i.status.InstallError(err)
 
 		return err
 	}
@@ -129,6 +130,11 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 
 	i.status.DiscoveryComplete(*m)
 
+	err = i.assertDiscoveryValid(ctx, m)
+	if err != nil {
+		return err
+	}
+
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.
 		return i.targetedInstall(ctx, m)
@@ -136,6 +142,17 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 
 	// Run the guided installer.
 	return i.guidedInstall(ctx, m)
+}
+
+func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
+	if m.OS == "" {
+		return fmt.Errorf("failed to identify a valid operating system")
+	}
+	if !(strings.ToLower(m.OS) == "linux" || strings.ToLower(m.OS) == "windows") {
+		return fmt.Errorf("operating system %s is not supported", m.OS)
+	}
+	log.Debugf("Done asserting valid operating system for %s", m.OS)
+	return nil
 }
 
 func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.Recipe) error {

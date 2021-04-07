@@ -11,11 +11,17 @@ type MockDiscoverer struct {
 }
 
 func NewMockDiscoverer() *MockDiscoverer {
-	m := &types.DiscoveryManifest{}
+	m := &types.DiscoveryManifest{
+		OS: "linux",
+	}
 
 	return &MockDiscoverer{
 		DiscoveryManifest: m,
 	}
+}
+
+func (d *MockDiscoverer) Os(os string) {
+	d.DiscoveryManifest.OS = os
 }
 
 func (d *MockDiscoverer) Discover(context.Context) (*types.DiscoveryManifest, error) {
