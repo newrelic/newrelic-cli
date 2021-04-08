@@ -165,6 +165,12 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 			Name:           loggingRecipeName,
 			DisplayName:    loggingRecipeName,
 			ValidationNRQL: "testNrql",
+			LogMatch: []types.LogMatch{
+				{
+					Name: "docker log",
+					File: "/var/lib/docker/containers/*/*.log",
+				},
+			},
 		},
 	}
 
