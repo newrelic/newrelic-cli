@@ -117,6 +117,90 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 	require.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
 }
 
+func TestInstall_FailsOnInvalidOs(t *testing.T) {
+	ic := InstallerContext{}
+	discover := discovery.NewMockDiscoverer()
+	discover.Os("darwin")
+	statusReporter := execution.NewMockStatusReporter()
+	statusReporters = []execution.StatusSubscriber{statusReporter}
+	status = execution.NewInstallStatus(statusReporters)
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	i := RecipeInstaller{ic, discover, l, f, e, v, ff, status, p, pi, lkf}
+
+	err := i.Install()
+	require.Error(t, err)
+}
+
+func TestInstall_FailsOnNoOs(t *testing.T) {
+	ic := InstallerContext{}
+	discover := discovery.NewMockDiscoverer()
+	discover.Os("")
+	statusReporter := execution.NewMockStatusReporter()
+	statusReporters = []execution.StatusSubscriber{statusReporter}
+	status = execution.NewInstallStatus(statusReporters)
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	i := RecipeInstaller{ic, discover, l, f, e, v, ff, status, p, pi, lkf}
+
+	err := i.Install()
+	require.Error(t, err)
+}
+
+func TestInstall_DoesntFailForWindowsOs(t *testing.T) {
+	ic := InstallerContext{}
+	discover := discovery.NewMockDiscoverer()
+	discover.Os("windows")
+	statusReporter := execution.NewMockStatusReporter()
+	statusReporters = []execution.StatusSubscriber{statusReporter}
+	status = execution.NewInstallStatus(statusReporters)
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	i := RecipeInstaller{ic, discover, l, f, e, v, ff, status, p, pi, lkf}
+
+	err := i.Install()
+	require.NoError(t, err)
+}
+
+func TestInstall_DoesntFailForLinuxOs(t *testing.T) {
+	ic := InstallerContext{}
+	discover := discovery.NewMockDiscoverer()
+	discover.Os("linux")
+	statusReporter := execution.NewMockStatusReporter()
+	statusReporters = []execution.StatusSubscriber{statusReporter}
+	status = execution.NewInstallStatus(statusReporters)
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           infraAgentRecipeName,
+			DisplayName:    infraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	i := RecipeInstaller{ic, discover, l, f, e, v, ff, status, p, pi, lkf}
+
+	err := i.Install()
+	require.NoError(t, err)
+}
+
 func TestInstall_RecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}

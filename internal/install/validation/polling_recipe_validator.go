@@ -53,7 +53,7 @@ func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.Disco
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
 
-	progressMsg := "Checking for data in New Relic..."
+	progressMsg := "Checking for data in New Relic (this may take a few minutes)..."
 	m.progressIndicator.Start(progressMsg)
 	defer m.progressIndicator.Stop()
 
