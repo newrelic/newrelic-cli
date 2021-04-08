@@ -148,7 +148,7 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	require.Equal(t, result.Status, RecipeStatusTypes.SKIPPED)
 	require.False(t, s.hasFailed())
 
-	s.InstallComplete()
+	s.InstallComplete(nil)
 	require.True(t, s.Complete)
 	require.NotNil(t, s.Timestamp)
 }
@@ -159,7 +159,7 @@ func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
 
 	s.RecipesAvailable([]types.Recipe{r})
 
-	s.InstallComplete()
+	s.InstallComplete(nil)
 	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
 }
 

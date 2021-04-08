@@ -115,7 +115,7 @@ func (i *RecipeInstaller) Install() error {
 			return err
 		}
 
-		i.status.InstallError(err)
+		i.status.InstallComplete(err)
 
 		return err
 	}

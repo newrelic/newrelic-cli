@@ -175,19 +175,8 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 	}
 }
 
-func (s *InstallStatus) InstallError(err error) {
-	statusError := StatusError{
-		Message: "unknown error",
-	}
-	if err != nil {
-		statusError.Message = err.Error()
-	}
-	s.Error = statusError
-	s.InstallComplete()
-}
-
-func (s *InstallStatus) InstallComplete() {
-	s.completed()
+func (s *InstallStatus) InstallComplete(err error) {
+	s.completed(err)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.InstallComplete(s); err != nil {
@@ -355,9 +344,16 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	s.Timestamp = utils.GetTimestamp()
 }
 
-func (s *InstallStatus) completed() {
+func (s *InstallStatus) completed(err error) {
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
+
+	if err != nil {
+		statusError := StatusError{
+			Message: err.Error(),
+		}
+		s.Error = statusError
+	}
 
 	log.WithFields(log.Fields{
 		"timestamp": s.Timestamp,
