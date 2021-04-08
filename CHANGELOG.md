@@ -1,3 +1,8 @@
+<a name="v0.21.1"></a>
+## [v0.21.1] - 2021-04-08
+### Bug Fixes
+- **install:** discovered log files needs to be a string to work with within our recipe
+
 <a name="v0.21.0"></a>
 ## [v0.21.0] - 2021-04-01
 ### Bug Fixes
@@ -577,7 +582,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.21.1...HEAD
+[v0.21.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.21.0...v0.21.1
 [v0.21.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.28...v0.21.0
 [v0.20.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.7...v0.20.28
 [v0.20.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.6...v0.20.7
