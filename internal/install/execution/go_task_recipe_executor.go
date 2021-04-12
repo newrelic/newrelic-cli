@@ -9,10 +9,11 @@ import (
 	"strconv"
 	"strings"
 
+	survey "github.com/AlecAivazis/survey/v2"
+	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
-	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
@@ -212,7 +213,7 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 
 			envValue, err = varFromPrompt(envConfig)
 			if err != nil {
-				if err == promptui.ErrInterrupt {
+				if err == terminal.InterruptErr {
 					return types.RecipeVars{}, types.ErrInterrupt
 				}
 
@@ -233,26 +234,31 @@ func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
 		msg = envConfig.Prompt
 	}
 
-	templates := &promptui.PromptTemplates{
-		Prompt:  "{{ . | bold }} ",
-		Valid:   "{{ . | bold }} ",
-		Invalid: "{{ . | bold }} ",
-		Success: "  - {{ . }} ",
-	}
-
-	prompt := promptui.Prompt{
-		Label:     msg,
-		Templates: templates,
-	}
+	value := ""
+	var prompt survey.Prompt
 
 	if envConfig.Secret {
-		prompt.HideEntered = true
-		prompt.Mask = '*'
+		prompt = &survey.Password{
+			Message: msg,
+		}
+	} else {
+		defaultValue := ""
+
+		if envConfig.Default != "" {
+			defaultValue = envConfig.Default
+		}
+
+		prompt = &survey.Input{
+			Message: msg,
+			Default: defaultValue,
+		}
 	}
 
-	if envConfig.Default != "" {
-		prompt.Default = envConfig.Default
+	err := survey.AskOne(prompt, &value)
+	if err != nil {
+		return "", err
 	}
 
-	return prompt.Run()
+	return value, nil
+
 }

@@ -17,7 +17,6 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.1.0
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/llorllale/go-gitlint v0.0.0-20200802191503-5984945d4b80
-	github.com/manifoldco/promptui v0.8.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/newrelic/newrelic-client-go v0.58.3
@@ -33,7 +32,6 @@ require (
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
 	golang.org/x/tools v0.1.0
-	gopkg.in/AlecAivazis/survey.v1 v1.8.8
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.2
 )
