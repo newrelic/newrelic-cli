@@ -30,7 +30,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
-	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
+	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.2
