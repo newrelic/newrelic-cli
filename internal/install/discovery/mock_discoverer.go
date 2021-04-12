@@ -12,7 +12,8 @@ type MockDiscoverer struct {
 
 func NewMockDiscoverer() *MockDiscoverer {
 	m := &types.DiscoveryManifest{
-		OS: "linux",
+		OS:              "linux",
+		PlatformVersion: "",
 	}
 
 	return &MockDiscoverer{
@@ -22,6 +23,14 @@ func NewMockDiscoverer() *MockDiscoverer {
 
 func (d *MockDiscoverer) Os(os string) {
 	d.DiscoveryManifest.OS = os
+}
+
+func (d *MockDiscoverer) PlatformVersion(pf string) {
+	d.DiscoveryManifest.PlatformVersion = pf
+}
+
+func (d *MockDiscoverer) GetManifest() *types.DiscoveryManifest {
+	return d.DiscoveryManifest
 }
 
 func (d *MockDiscoverer) Discover(context.Context) (*types.DiscoveryManifest, error) {
