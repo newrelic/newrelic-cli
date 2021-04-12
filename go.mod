@@ -33,7 +33,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.4 // indirect
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6
 	golang.org/x/tools v0.1.0
-	gopkg.in/AlecAivazis/survey.v1 v1.8.8
+	gopkg.in/AlecAivazis/survey.v2 v2.2.9
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.2
 )
