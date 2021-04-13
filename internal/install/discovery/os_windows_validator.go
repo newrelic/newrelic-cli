@@ -1,6 +1,7 @@
 package discovery
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -20,22 +21,22 @@ func NewOsWindowsValidator() *OsWindowsValidator {
 	return &validator
 }
 
-func (v *OsWindowsValidator) Execute(m *types.DiscoveryManifest) string {
+func (v *OsWindowsValidator) Execute(m *types.DiscoveryManifest) error {
 	if m.OS != "windows" {
-		return ""
+		return nil
 	}
 
 	versions := strings.Split(m.PlatformVersion, ".")
 
 	switch len(versions) {
 	case 0:
-		return windowsNoVersionMessage
+		return fmt.Errorf(windowsNoVersionMessage)
 	case 1:
 		major, err := strconv.Atoi(versions[0])
 		if err == nil {
 			return ensureMinimumVersion(major, 0)
 		}
-		return windowsNoVersionMessage
+		return fmt.Errorf(windowsNoVersionMessage)
 	default:
 		major, aerr := strconv.Atoi(versions[0])
 		if aerr == nil {
@@ -46,17 +47,17 @@ func (v *OsWindowsValidator) Execute(m *types.DiscoveryManifest) string {
 		}
 	}
 
-	return windowsNoVersionMessage
+	return fmt.Errorf(windowsNoVersionMessage)
 }
 
-func ensureMinimumVersion(major int, minor int) string {
+func ensureMinimumVersion(major int, minor int) error {
 	if major < 6 {
-		return windowsVersionNoLongerSupported
+		return fmt.Errorf(windowsVersionNoLongerSupported)
 	}
 	if major == 6 {
 		if minor == 0 {
-			return windowsVersionNoLongerSupported
+			return fmt.Errorf(windowsVersionNoLongerSupported)
 		}
 	}
-	return ""
+	return nil
 }

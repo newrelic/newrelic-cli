@@ -147,9 +147,9 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 }
 
 func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
-	result := i.manifestValidator.Execute(m)
-	if result != "" {
-		return errors.New(result)
+	err := i.manifestValidator.Execute(m)
+	if err != nil {
+		return err
 	}
 	log.Debugf("Done asserting valid operating system for OS:%s and PlatformVersion:%s", m.OS, m.PlatformVersion)
 	return nil

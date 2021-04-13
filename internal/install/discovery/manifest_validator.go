@@ -11,7 +11,7 @@ type ManifestValidator struct {
 }
 
 type Validator interface {
-	Execute(m *types.DiscoveryManifest) string
+	Execute(m *types.DiscoveryManifest) error
 }
 
 var (
@@ -31,29 +31,29 @@ func NewManifestValidator() *ManifestValidator {
 	return &mv
 }
 
-func (mv *ManifestValidator) Execute(m *types.DiscoveryManifest) string {
-	accumulator := ""
+func (mv *ManifestValidator) Execute(m *types.DiscoveryManifest) error {
+	var accumulator error = nil
 	errors := mv.FindAllValidationErrors(m)
 	for _, single := range errors {
-		if accumulator == "" {
+		if accumulator == nil {
 			accumulator = single
 		} else {
-			accumulator = fmt.Sprintf("%s, %s", accumulator, single)
+			accumulator = fmt.Errorf("%s, %s", accumulator, single.Error())
 		}
 	}
-	if accumulator != "" {
-		return fmt.Sprintf(errorPrefixFormat, accumulator)
+	if accumulator != nil {
+		return fmt.Errorf(errorPrefixFormat, accumulator)
 	}
-	return ""
+	return nil
 }
 
-func (mv *ManifestValidator) FindAllValidationErrors(m *types.DiscoveryManifest) []string {
-	errors := []string{}
+func (mv *ManifestValidator) FindAllValidationErrors(m *types.DiscoveryManifest) []error {
+	errors := []error{}
 
 	for _, validator := range mv.validators {
-		result := validator.Execute(m)
-		if result != "" {
-			errors = append(errors, result)
+		err := validator.Execute(m)
+		if err != nil {
+			errors = append(errors, err)
 		}
 	}
 

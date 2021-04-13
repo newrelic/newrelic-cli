@@ -22,12 +22,12 @@ func NewOsValidator() *OsValidator {
 	return &validator
 }
 
-func (v *OsValidator) Execute(m *types.DiscoveryManifest) string {
+func (v *OsValidator) Execute(m *types.DiscoveryManifest) error {
 	if m.OS == "" {
-		return noOperatingSystemDetected
+		return fmt.Errorf(noOperatingSystemDetected)
 	}
 	if !(strings.ToLower(m.OS) == "linux" || strings.ToLower(m.OS) == "windows") {
-		return fmt.Sprintf(operatingSystemNotSupportedFormat, m.OS)
+		return fmt.Errorf(operatingSystemNotSupportedFormat, m.OS)
 	}
-	return ""
+	return nil
 }
