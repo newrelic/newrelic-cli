@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -89,6 +91,7 @@ func initializeProfile() {
 				// We should have an account ID by now, so fetch the license key for it.
 				licenseKey, err = fetchLicenseKey(nrClient, accountID)
 				if err != nil {
+					log.Error(err)
 					return
 				}
 			}
@@ -137,23 +140,30 @@ func hasProfileWithDefaultName(profiles map[string]credentials.Profile) bool {
 }
 
 func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
-	query := ` query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
+	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
 
 	variables := map[string]interface{}{
 		"accountId": accountID,
 	}
 
-	resp, err := client.NerdGraph.Query(query, variables)
-	if err != nil {
-		return "", err
+	for i := 0; i < 3; i++ {
+		resp, err := client.NerdGraph.Query(query, variables)
+		if err != nil {
+			return "", err
+		}
+
+		queryResp := resp.(nerdgraph.QueryResponse)
+		actor := queryResp.Actor.(map[string]interface{})
+		account := actor["account"].(map[string]interface{})
+
+		if licenseKey, ok := account["licenseKey"]; ok {
+			return licenseKey.(string), nil
+		}
+
+		time.Sleep(1 * time.Second)
 	}
 
-	queryResp := resp.(nerdgraph.QueryResponse)
-	actor := queryResp.Actor.(map[string]interface{})
-	account := actor["account"].(map[string]interface{})
-	licenseKey := account["licenseKey"].(string)
-
-	return licenseKey, nil
+	return "", types.ErrorFetchingLicenseKey
 }
 
 // fetchAccountID will try and retrieve an account ID for the given user.  If it

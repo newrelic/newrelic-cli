@@ -29,6 +29,7 @@ type RecipeInstaller struct {
 	status            *execution.InstallStatus
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
+	licenseKeyFetcher LicenseKeyFetcher
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -39,6 +40,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 	}
+	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
 	statusRollup := execution.NewInstallStatus(ers)
 
 	d := discovery.NewPSUtilDiscoverer(pf)
@@ -58,7 +60,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: pi,
-	}
+		licenseKeyFetcher: lkf}
 
 	i.InstallerContext = ic
 
@@ -235,7 +237,12 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		fmt.Println(r.PreInstallMessage())
 	}
 
-	vars, err := i.recipeExecutor.Prepare(ctx, *m, *r, i.AssumeYes)
+	licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	vars, err := i.recipeExecutor.Prepare(ctx, *m, *r, i.AssumeYes, licenseKey)
 	if err != nil {
 		return "", err
 	}

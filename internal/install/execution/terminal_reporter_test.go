@@ -34,7 +34,7 @@ func TestGenerateExplorerLink(t *testing.T) {
 	r.successLinkGenerator = g
 
 	status := &InstallStatus{}
-	status.successLink = types.SuccessLink{
+	status.successLinkConfig = types.SuccessLinkConfig{
 		Type:   "explorer",
 		Filter: "\"`tags.language` = 'java'\"",
 	}

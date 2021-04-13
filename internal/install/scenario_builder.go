@@ -476,7 +476,7 @@ func setupDisplayExplorerLink() recipes.RecipeFetcher {
 			Name:           "test-display-explorer-link",
 			DisplayName:    "Test Display Explorer Link",
 			ValidationNRQL: "test NRQL",
-			SuccessLink: types.SuccessLink{
+			SuccessLinkConfig: types.SuccessLinkConfig{
 				Type:   "explorer",
 				Filter: "\"`tags.language` = 'java'\"",
 			},
@@ -490,7 +490,7 @@ processMatch: []
 
 validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTNAME}}' FACET entityGuid SINCE 10 minutes ago"
 
-successLink:
+successLinkConfig:
   type: explorer
   filter: "` + "`tags.language`" + ` = 'java'"
 

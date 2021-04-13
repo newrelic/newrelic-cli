@@ -21,11 +21,14 @@ func NewConcreteSuccessLinkGenerator() *ConcreteSuccessLinkGenerator {
 }
 
 func (g *ConcreteSuccessLinkGenerator) GenerateExplorerLink(filter string) string {
-	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s", nrPlatformHostname(), utils.Base64Encode(filter))
+	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d",
+		nrPlatformHostname(),
+		utils.Base64Encode(filter),
+		credentials.DefaultProfile().AccountID)
 }
 
 func (g *ConcreteSuccessLinkGenerator) GenerateEntityLink(entityGUID string) string {
-	return fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", entityGUID)
+	return fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
 }
 
 // nrPlatformHostname returns the host for the platform based on the region set.
