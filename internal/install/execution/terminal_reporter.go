@@ -73,11 +73,11 @@ func (r TerminalStatusReporter) RecipeAvailable(status *InstallStatus, recipe ty
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
-	if status.isCanceled() {
+	if status.hasAnyRecipeStatus(RecipeStatusTypes.CANCELED) {
 		return nil
 	}
 
-	if status.hasFailed() {
+	if status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) {
 		fmt.Printf("  One or more installations failed.  Check the install log for more details: %s\n", status.LogFilePath)
 	}
 
