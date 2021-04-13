@@ -78,7 +78,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	}
 
 	if status.hasFailed() {
-		fmt.Printf("  One or more integrations failed to install.  Check the install log for more details: %s\n", status.LogFilePath)
+		fmt.Printf("  One or more installations failed.  Check the install log for more details: %s\n", status.LogFilePath)
 	}
 
 	recs := status.recommendations()
@@ -110,16 +110,15 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 }
 
 func (r *TerminalStatusReporter) getSuccessLink(status *InstallStatus) string {
-	var link string
-	switch t := status.successLinkConfig.Type; {
-	case strings.EqualFold(t, "explorer"):
-		link = r.successLinkGenerator.GenerateExplorerLink(status.successLinkConfig.Filter)
-	default:
-		link = r.successLinkGenerator.GenerateEntityLink(status.HostEntityGUID())
-
+	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
+		switch t := status.successLinkConfig.Type; {
+		case strings.EqualFold(t, "explorer"):
+			return r.successLinkGenerator.GenerateExplorerLink(status.successLinkConfig.Filter)
+		default:
+			return r.successLinkGenerator.GenerateEntityLink(status.HostEntityGUID())
+		}
 	}
-
-	return link
+	return ""
 }
 
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {

@@ -227,6 +227,16 @@ func (s *InstallStatus) isCanceled() bool {
 	return false
 }
 
+func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
+	for _, ss := range s.Statuses {
+		if ss.Status == status {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (s *InstallStatus) SetTargetedInstall() {
 	s.targetedInstall = true
 }
