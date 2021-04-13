@@ -13,7 +13,7 @@ func Test_ShouldFailWithoutVersion(t *testing.T) {
 	discover.Os("windows")
 
 	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, WindowsNoVersionMessage, result)
+	require.Equal(t, windowsNoVersionMessage, result)
 }
 
 func Test_ShouldFailVeryOldVersion(t *testing.T) {
@@ -22,7 +22,7 @@ func Test_ShouldFailVeryOldVersion(t *testing.T) {
 	discover.PlatformVersion("5.3.1")
 
 	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, WindowsVersionNoLongerSupported, result)
+	require.Equal(t, windowsVersionNoLongerSupported, result)
 }
 
 func Test_ShouldFailMinOldVersion(t *testing.T) {
@@ -31,7 +31,7 @@ func Test_ShouldFailMinOldVersion(t *testing.T) {
 	discover.PlatformVersion("6.0.0")
 
 	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, WindowsVersionNoLongerSupported, result)
+	require.Equal(t, windowsVersionNoLongerSupported, result)
 }
 
 func Test_ShouldFailMinVersion(t *testing.T) {
@@ -40,7 +40,7 @@ func Test_ShouldFailMinVersion(t *testing.T) {
 	discover.PlatformVersion("6.0")
 
 	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, WindowsVersionNoLongerSupported, result)
+	require.Equal(t, windowsVersionNoLongerSupported, result)
 }
 
 func Test_ShouldFailMinUnspecifiedVersion(t *testing.T) {
@@ -49,7 +49,7 @@ func Test_ShouldFailMinUnspecifiedVersion(t *testing.T) {
 	discover.PlatformVersion("6")
 
 	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, WindowsVersionNoLongerSupported, result)
+	require.Equal(t, windowsVersionNoLongerSupported, result)
 }
 
 func Test_ShouldPassMinVersionFull(t *testing.T) {

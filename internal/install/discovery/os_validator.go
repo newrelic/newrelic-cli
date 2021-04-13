@@ -10,10 +10,10 @@ import (
 type OsValidator struct{}
 
 var (
-	NoOperatingSystemDetected         = "failed to identify a valid operating system"
-	OperatingSystemNotSupportedPrefix = "operating system"
-	OperatingSystemNotSupportedSuffix = "is not supported"
-	OperatingSystemNotSupportedFormat = OperatingSystemNotSupportedPrefix + " %s " + OperatingSystemNotSupportedSuffix
+	noOperatingSystemDetected         = "failed to identify a valid operating system"
+	operatingSystemNotSupportedPrefix = "operating system"
+	operatingSystemNotSupportedSuffix = "is not supported"
+	operatingSystemNotSupportedFormat = operatingSystemNotSupportedPrefix + " %s " + operatingSystemNotSupportedSuffix
 )
 
 func NewOsValidator() *OsValidator {
@@ -24,10 +24,10 @@ func NewOsValidator() *OsValidator {
 
 func (v *OsValidator) Execute(m *types.DiscoveryManifest) string {
 	if m.OS == "" {
-		return NoOperatingSystemDetected
+		return noOperatingSystemDetected
 	}
 	if !(strings.ToLower(m.OS) == "linux" || strings.ToLower(m.OS) == "windows") {
-		return fmt.Sprintf(OperatingSystemNotSupportedFormat, m.OS)
+		return fmt.Sprintf(operatingSystemNotSupportedFormat, m.OS)
 	}
 	return ""
 }

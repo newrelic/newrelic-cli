@@ -13,10 +13,10 @@ func Test_ShouldFailOs(t *testing.T) {
 	discover.Os("darwin")
 
 	result := NewManifestValidator().Execute(discover.GetManifest())
-	require.Contains(t, result, ErrorPrefix)
-	require.Contains(t, result, OperatingSystemNotSupportedPrefix)
+	require.Contains(t, result, errorPrefix)
+	require.Contains(t, result, operatingSystemNotSupportedPrefix)
 	require.Contains(t, result, "darwin")
-	require.Contains(t, result, OperatingSystemNotSupportedSuffix)
+	require.Contains(t, result, operatingSystemNotSupportedSuffix)
 }
 
 func Test_ShouldFailWindowsVersion(t *testing.T) {
@@ -25,6 +25,6 @@ func Test_ShouldFailWindowsVersion(t *testing.T) {
 	discover.PlatformVersion("1.0")
 
 	result := NewManifestValidator().Execute(discover.GetManifest())
-	require.Contains(t, result, ErrorPrefix)
-	require.Contains(t, result, WindowsVersionNoLongerSupported)
+	require.Contains(t, result, errorPrefix)
+	require.Contains(t, result, windowsVersionNoLongerSupported)
 }

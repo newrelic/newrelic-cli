@@ -15,8 +15,8 @@ type Validator interface {
 }
 
 var (
-	ErrorPrefix       = "Installation requirements error:"
-	ErrorPrefixFormat = ErrorPrefix + " %s"
+	errorPrefix       = "Installation requirements error:"
+	errorPrefixFormat = errorPrefix + " %s"
 )
 
 // NewManifestValidator returns a new instance of ManifestValidator.
@@ -42,7 +42,7 @@ func (mv *ManifestValidator) Execute(m *types.DiscoveryManifest) string {
 		}
 	}
 	if accumulator != "" {
-		return fmt.Sprintf(ErrorPrefixFormat, accumulator)
+		return fmt.Sprintf(errorPrefixFormat, accumulator)
 	}
 	return ""
 }

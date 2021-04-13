@@ -24,7 +24,7 @@ func Test_FailsOnNoOs(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.Os("")
 	result := NewOsValidator().Execute(discover.GetManifest())
-	require.Equal(t, NoOperatingSystemDetected, result)
+	require.Equal(t, noOperatingSystemDetected, result)
 }
 
 func Test_DoesntFailForWindowsOs(t *testing.T) {
