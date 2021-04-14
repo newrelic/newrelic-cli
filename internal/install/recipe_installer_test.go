@@ -121,7 +121,7 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 func TestInstall_FailsOnInvalidOs(t *testing.T) {
 	ic := InstallerContext{}
 	discover := discovery.NewMockDiscoverer()
-	discover.Os("darwin")
+	discover.SetOs("darwin")
 	mv = discovery.NewManifestValidator()
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}

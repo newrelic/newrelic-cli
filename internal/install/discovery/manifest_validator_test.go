@@ -10,7 +10,7 @@ import (
 
 func Test_ShouldFailOs(t *testing.T) {
 	discover := NewMockDiscoverer()
-	discover.Os("darwin")
+	discover.SetOs("darwin")
 
 	result := NewManifestValidator().Execute(discover.GetManifest())
 	require.Contains(t, result.Error(), errorPrefix)
@@ -21,8 +21,8 @@ func Test_ShouldFailOs(t *testing.T) {
 
 func Test_ShouldFailWindowsVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
-	discover.Os("windows")
-	discover.PlatformVersion("1.0")
+	discover.SetOs("windows")
+	discover.SetPlatformVersion("1.0")
 
 	result := NewManifestValidator().Execute(discover.GetManifest())
 	require.Contains(t, result.Error(), errorPrefix)

@@ -21,11 +21,11 @@ func NewMockDiscoverer() *MockDiscoverer {
 	}
 }
 
-func (d *MockDiscoverer) Os(os string) {
+func (d *MockDiscoverer) SetOs(os string) {
 	d.DiscoveryManifest.OS = os
 }
 
-func (d *MockDiscoverer) PlatformVersion(pf string) {
+func (d *MockDiscoverer) SetPlatformVersion(pf string) {
 	d.DiscoveryManifest.PlatformVersion = pf
 }
 
