@@ -1,5 +1,10 @@
 package types
 
+const (
+	InfraAgentRecipeName = "infrastructure-agent-installer"
+	LoggingRecipeName    = "logs-integration"
+)
+
 type Recipe struct {
 	ID                string                                   `json:"id"`
 	Description       string                                   `json:"description"`

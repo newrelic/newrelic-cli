@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -48,7 +49,14 @@ func (f *ServiceRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.
 	results := resp.Docs.OpenInstallation.RecipeSearch.Results
 
 	if len(results) == 0 {
-		return nil, fmt.Errorf("no results found for friendly name %s", friendlyName)
+		switch friendlyName {
+		case types.InfraAgentRecipeName:
+			return nil, errors.New("infrastructure agent was unable to be installed for your operating system. For additional installation options please see: https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/linux-installation/tarball-assisted-install-infrastructure-agent-linux/")
+		case types.LoggingRecipeName:
+			return nil, errors.New("logs was unable to be installed for your operating system. For additional installation options please see: https://docs.newrelic.com/docs/logs/enable-log-management-new-relic/enable-log-monitoring-new-relic/enable-log-management-new-relic/")
+		default:
+			return nil, fmt.Errorf("%s was unable to be installed for your operating system", friendlyName)
+		}
 	}
 
 	if len(results) > 1 {

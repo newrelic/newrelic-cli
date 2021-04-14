@@ -88,14 +88,14 @@ func TestInstall_Basic(t *testing.T) {
 	ic := InstallerContext{}
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.Recipe{
-		{Name: infraAgentRecipeName},
-		{Name: loggingRecipeName},
+		{Name: types.InfraAgentRecipeName},
+		{Name: types.LoggingRecipeName},
 	}
 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, f.FetchRecipeNameCount[infraAgentRecipeName], 1)
-	require.Equal(t, f.FetchRecipeNameCount[loggingRecipeName], 1)
+	require.Equal(t, f.FetchRecipeNameCount[types.InfraAgentRecipeName], 1)
+	require.Equal(t, f.FetchRecipeNameCount[types.LoggingRecipeName], 1)
 }
 
 func TestInstall_DiscoveryComplete(t *testing.T) {
@@ -105,8 +105,8 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 	status = execution.NewInstallStatus(statusReporters)
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
-			DisplayName:    infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -128,8 +128,8 @@ func TestInstall_FailsOnInvalidOs(t *testing.T) {
 	status = execution.NewInstallStatus(statusReporters)
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
-			DisplayName:    infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -151,13 +151,13 @@ func TestInstall_RecipesAvailable(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
-			DisplayName:    infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
-			DisplayName:    loggingRecipeName,
+			Name:           types.LoggingRecipeName,
+			DisplayName:    types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -180,13 +180,13 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
-			DisplayName:    infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
-			DisplayName:    loggingRecipeName,
+			Name:           types.LoggingRecipeName,
+			DisplayName:    types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 			LogMatch: []types.LogMatch{
 				{
@@ -224,13 +224,13 @@ func TestInstall_RecipeFailed(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
-			DisplayName:    infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
-			DisplayName:    loggingRecipeName,
+			Name:           types.LoggingRecipeName,
+			DisplayName:    types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -261,7 +261,7 @@ func TestInstall_InstallComplete(t *testing.T) {
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -304,7 +304,7 @@ func TestInstall_InstallCompleteError(t *testing.T) {
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -341,7 +341,7 @@ func TestInstall_InstallCompleteError_guidedRecipeFail(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -378,11 +378,11 @@ func TestInstall_RecipeSkipped(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:        infraAgentRecipeName,
+			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
 		},
 		{
-			Name:        loggingRecipeName,
+			Name:        types.LoggingRecipeName,
 			DisplayName: "Logging Recipe",
 		},
 	}
@@ -415,11 +415,11 @@ func TestInstall_RecipeSkipped_SkipAll(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
+			Name:           types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -451,11 +451,11 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
+			Name:           types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -514,11 +514,11 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 	}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
+			Name:           types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -535,7 +535,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[infraAgentRecipeName])
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[types.InfraAgentRecipeName])
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeRecommendedCallCount)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipesAvailableCallCount)
@@ -557,11 +557,11 @@ func TestInstall_RecipeSkipped_AssumeYes(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:        infraAgentRecipeName,
+			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
 		},
 		{
-			Name:        loggingRecipeName,
+			Name:        types.LoggingRecipeName,
 			DisplayName: "Logging Recipe",
 		},
 	}
@@ -594,7 +594,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -611,7 +611,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 	log.SetLevel(log.TraceLevel)
 	ic := InstallerContext{
-		RecipeNames: []string{infraAgentRecipeName},
+		RecipeNames: []string{types.InfraAgentRecipeName},
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
@@ -619,7 +619,7 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 	f.FetchRecommendationsVal = []types.Recipe{}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -648,13 +648,13 @@ func TestInstall_GuidReport(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:           infraAgentRecipeName,
-			DisplayName:    infraAgentRecipeName,
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 		{
-			Name:           loggingRecipeName,
-			DisplayName:    loggingRecipeName,
+			Name:           types.LoggingRecipeName,
+			DisplayName:    types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
 		},
 	}
@@ -679,7 +679,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	require.Equal(t, 2, v.ValidateCallCount)
 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeFailedCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	require.Equal(t, v.ValidateVals[0], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[infraAgentRecipeName])
+	require.Equal(t, v.ValidateVals[0], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[types.InfraAgentRecipeName])
 	require.Equal(t, v.ValidateVals[1], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
 	require.Equal(t, status.CLIVersion, "testversion0.0.1")
 	require.Equal(t, 3, len(statusReporters[0].(*execution.MockStatusReporter).Durations))
