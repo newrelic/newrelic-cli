@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -23,6 +22,7 @@ type RecipeInstaller struct {
 	InstallerContext
 	discoverer        discovery.Discoverer
 	fileFilterer      discovery.FileFilterer
+	manifestValidator *discovery.ManifestValidator
 	recipeFetcher     recipes.RecipeFetcher
 	recipeExecutor    execution.RecipeExecutor
 	recipeValidator   validation.RecipeValidator
@@ -36,6 +36,7 @@ type RecipeInstaller struct {
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
 	rf := recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
 	pf := discovery.NewRegexProcessFilterer(rf)
+	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher()
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
@@ -54,6 +55,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	i := RecipeInstaller{
 		discoverer:        d,
 		fileFilterer:      gff,
+		manifestValidator: mv,
 		recipeFetcher:     rf,
 		recipeExecutor:    re,
 		recipeValidator:   v,
@@ -145,13 +147,11 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 }
 
 func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
-	if m.OS == "" {
-		return fmt.Errorf("failed to identify a valid operating system")
+	err := i.manifestValidator.Execute(m)
+	if err != nil {
+		return err
 	}
-	if !(strings.ToLower(m.OS) == "linux" || strings.ToLower(m.OS) == "windows") {
-		return fmt.Errorf("operating system %s is not supported", m.OS)
-	}
-	log.Debugf("Done asserting valid operating system for %s", m.OS)
+	log.Debugf("Done asserting valid operating system for OS:%s and PlatformVersion:%s", m.OS, m.PlatformVersion)
 	return nil
 }
 
