@@ -15,7 +15,41 @@ func TestTerminalStatusReporter_interface(t *testing.T) {
 	require.NotNil(t, r)
 }
 
-func TestGenerateEntityLink(t *testing.T) {
+func Test_ShouldGenerateEntityLink(t *testing.T) {
+	r := NewTerminalStatusReporter()
+	g := NewMockSuccessLinkGenerator()
+	r.successLinkGenerator = g
+
+	status := &InstallStatus{}
+	recipeStatus := &RecipeStatus{
+		Status: RecipeStatusTypes.INSTALLED,
+	}
+	status.Statuses = append(status.Statuses, recipeStatus)
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
+}
+
+func Test_ShouldNotGenerateEntityLink(t *testing.T) {
+	r := NewTerminalStatusReporter()
+	g := NewMockSuccessLinkGenerator()
+	r.successLinkGenerator = g
+
+	status := &InstallStatus{}
+	recipeStatus := &RecipeStatus{
+		Status: RecipeStatusTypes.FAILED,
+	}
+	status.Statuses = append(status.Statuses, recipeStatus)
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
+}
+
+func Test_ShouldNotGenerateEntityLinkWhenNoRecipes(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
 	r.successLinkGenerator = g
@@ -24,11 +58,53 @@ func TestGenerateEntityLink(t *testing.T) {
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
-	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
 	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
 }
 
-func TestGenerateExplorerLink(t *testing.T) {
+func Test_ShouldGenerateExplorerLink(t *testing.T) {
+	r := NewTerminalStatusReporter()
+	g := NewMockSuccessLinkGenerator()
+	r.successLinkGenerator = g
+
+	status := &InstallStatus{}
+	recipeStatus := &RecipeStatus{
+		Status: RecipeStatusTypes.INSTALLED,
+	}
+	status.Statuses = append(status.Statuses, recipeStatus)
+	status.successLinkConfig = types.SuccessLinkConfig{
+		Type:   "explorer",
+		Filter: "\"`tags.language` = 'java'\"",
+	}
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 1, g.GenerateExplorerLinkCallCount)
+}
+
+func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
+	r := NewTerminalStatusReporter()
+	g := NewMockSuccessLinkGenerator()
+	r.successLinkGenerator = g
+
+	status := &InstallStatus{}
+	recipeStatus := &RecipeStatus{
+		Status: RecipeStatusTypes.FAILED,
+	}
+	status.Statuses = append(status.Statuses, recipeStatus)
+	status.successLinkConfig = types.SuccessLinkConfig{
+		Type:   "explorer",
+		Filter: "\"`tags.language` = 'java'\"",
+	}
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
+}
+
+func Test_ShouldNotGenerateExplorerLinkWhenNoRecipes(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
 	r.successLinkGenerator = g
@@ -42,5 +118,5 @@ func TestGenerateExplorerLink(t *testing.T) {
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
 	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
-	require.Equal(t, 1, g.GenerateExplorerLinkCallCount)
+	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
 }
