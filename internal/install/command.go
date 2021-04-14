@@ -19,6 +19,7 @@ var (
 	skipDiscovery      bool
 	skipIntegrations   bool
 	skipLoggingInstall bool
+	skipApm            bool
 	testMode           bool
 	debug              bool
 	trace              bool
@@ -36,6 +37,7 @@ var Command = &cobra.Command{
 			SkipDiscovery:      skipDiscovery,
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
+			SkipApm:            skipApm,
 		}
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
@@ -79,6 +81,7 @@ func init() {
 	Command.Flags().BoolVarP(&skipDiscovery, "skipDiscovery", "d", false, "skips discovery of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
+	Command.Flags().BoolVarP(&skipApm, "skipApm", "a", false, "skips installation for APM")
 	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 	Command.Flags().BoolVar(&debug, "debug", false, "debug level logging")
 	Command.Flags().BoolVar(&trace, "trace", false, "trace level logging")
