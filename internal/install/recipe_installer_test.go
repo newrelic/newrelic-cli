@@ -86,16 +86,16 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 
 func TestInstall_Basic(t *testing.T) {
 	ic := InstallerContext{}
-	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.Recipe{
+	f2 := recipes.NewMockRecipeFetcher()
+	f2.FetchRecipeVals = []types.Recipe{
 		{Name: infraAgentRecipeName},
 		{Name: loggingRecipeName},
 	}
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi, lkf}
+	i := RecipeInstaller{ic, d, l, f2, e, v, ff, status, p, pi, lkf}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, f.FetchRecipeNameCount[infraAgentRecipeName], 1)
-	require.Equal(t, f.FetchRecipeNameCount[loggingRecipeName], 1)
+	require.Equal(t, f2.FetchRecipeNameCount[infraAgentRecipeName], 1)
+	require.Equal(t, f2.FetchRecipeNameCount[loggingRecipeName], 1)
 }
 
 func TestInstall_DiscoveryComplete(t *testing.T) {
@@ -234,13 +234,13 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
-	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f2 := recipes.NewMockRecipeFetcher()
+	f2.FetchRecommendationsVal = []types.Recipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f2.FetchRecipeVals = []types.Recipe{
 		{
 			Name:           infraAgentRecipeName,
 			DisplayName:    infraAgentRecipeName,
@@ -266,7 +266,7 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi, lkf}
+	i := RecipeInstaller{ic, d, l, f2, e, v, ff, status, p, pi, lkf}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
