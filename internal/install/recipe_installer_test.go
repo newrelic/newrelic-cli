@@ -417,11 +417,11 @@ func TestInstall_RecipeSkippedApm(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:        infraAgentRecipeName,
+			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
 		},
 		{
-			Name:        loggingRecipeName,
+			Name:        types.LoggingRecipeName,
 			DisplayName: "Logging Recipe",
 		},
 	}
@@ -455,11 +455,11 @@ func TestInstall_RecipeSkippedApmAnyKeyword(t *testing.T) {
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
-			Name:        infraAgentRecipeName,
+			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
 		},
 		{
-			Name:        loggingRecipeName,
+			Name:        types.LoggingRecipeName,
 			DisplayName: "Logging Recipe",
 		},
 	}

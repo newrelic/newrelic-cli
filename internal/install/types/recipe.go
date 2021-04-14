@@ -1,11 +1,11 @@
 package types
 
+import "strings"
+
 const (
 	InfraAgentRecipeName = "infrastructure-agent-installer"
 	LoggingRecipeName    = "logs-integration"
 )
-
-import "strings"
 
 type Recipe struct {
 	ID                string                                   `json:"id"`
