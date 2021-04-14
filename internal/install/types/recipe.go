@@ -5,6 +5,8 @@ const (
 	LoggingRecipeName    = "logs-integration"
 )
 
+import "strings"
+
 type Recipe struct {
 	ID                string                                   `json:"id"`
 	Description       string                                   `json:"description"`
@@ -65,12 +67,30 @@ func (r *Recipe) AddVar(key string, value interface{}) {
 	r.Vars[key] = value
 }
 
+func (r *Recipe) IsApm() bool {
+	return r.HasKeyword("apm")
+}
+
 func (r *Recipe) HasHostTargetType() bool {
 	return r.HasTargetType(OpenInstallationTargetTypeTypes.HOST)
 }
 
 func (r *Recipe) HasApplicationTargetType() bool {
 	return r.HasTargetType(OpenInstallationTargetTypeTypes.APPLICATION)
+}
+
+func (r *Recipe) HasKeyword(keyword string) bool {
+	if len(r.Keywords) == 0 {
+		return false
+	}
+
+	for _, single := range r.Keywords {
+		if strings.EqualFold(single, keyword) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (r *Recipe) HasTargetType(t OpenInstallationTargetType) bool {

@@ -56,6 +56,21 @@ func TestShouldInstallLogging_RecipePathsProvided(t *testing.T) {
 	require.True(t, ic.ShouldInstallIntegrations())
 }
 
+func TestShouldInstallApm_Default(t *testing.T) {
+	ic := InstallerContext{}
+	require.True(t, ic.ShouldInstallApm())
+
+	ic.SkipApm = true
+	require.False(t, ic.ShouldInstallApm())
+}
+
+func TestShouldInstallApm_RecipePathsProvided(t *testing.T) {
+	ic := InstallerContext{
+		RecipePaths: []string{"testPath"},
+	}
+	require.True(t, ic.ShouldInstallApm())
+}
+
 func TestRecipeNamesProvided(t *testing.T) {
 	ic := InstallerContext{}
 

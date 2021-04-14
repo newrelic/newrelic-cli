@@ -8,6 +8,7 @@ type InstallerContext struct {
 	SkipDiscovery      bool
 	SkipIntegrations   bool
 	SkipLoggingInstall bool
+	SkipApm            bool
 }
 
 func (i *InstallerContext) ShouldRunDiscovery() bool {
@@ -24,6 +25,10 @@ func (i *InstallerContext) ShouldInstallLogging() bool {
 
 func (i *InstallerContext) ShouldInstallIntegrations() bool {
 	return i.RecipesProvided() || !i.SkipIntegrations
+}
+
+func (i *InstallerContext) ShouldInstallApm() bool {
+	return i.RecipesProvided() || !i.SkipApm
 }
 
 func (i *InstallerContext) RecipePathsProvided() bool {

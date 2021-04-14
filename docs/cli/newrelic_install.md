@@ -17,6 +17,7 @@ newrelic install [flags]
   -d, --skipDiscovery        skips discovery of recommended New Relic integrations
   -r, --skipIntegrations     skips installation of recommended New Relic integrations
   -l, --skipLoggingInstall   skips installation of New Relic Logging
+  -a, --skipApm              skips installation for APM
   -t, --testMode             fakes operations for UX testing
       --trace                trace level logging
 ```
