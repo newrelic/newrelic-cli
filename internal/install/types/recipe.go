@@ -80,7 +80,9 @@ func (r *Recipe) HasKeyword(keyword string) bool {
 	}
 
 	for _, single := range r.Keywords {
-		return strings.EqualFold(single, keyword)
+		if strings.EqualFold(single, keyword) {
+			return true
+		}
 	}
 
 	return false

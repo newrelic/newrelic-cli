@@ -501,6 +501,44 @@ func TestInstall_RecipeSkippedApm(t *testing.T) {
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
 
+func TestInstall_RecipeSkippedApmAnyKeyword(t *testing.T) {
+	ic := InstallerContext{
+		SkipApm: true,
+	}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{{
+		Name:           testRecipeName,
+		DisplayName:    "test displayName",
+		ValidationNRQL: "testNrql",
+		Keywords:       []string{"xy", "apm", "z"},
+	}}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:        infraAgentRecipeName,
+			DisplayName: "Infra Recipe",
+		},
+		{
+			Name:        loggingRecipeName,
+			DisplayName: "Logging Recipe",
+		},
+	}
+
+	v = validation.NewMockRecipeValidator()
+	p = &ux.MockPrompter{
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
+	}
+
+	i := RecipeInstaller{ic, d, l, f, e, v, ff, status, p, pi, lkf}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstallingCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+}
+
 func TestInstall_RecipeSkipped_SkipAll(t *testing.T) {
 	ic := InstallerContext{
 		SkipLoggingInstall: true,
