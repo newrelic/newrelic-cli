@@ -207,19 +207,9 @@ func (s *InstallStatus) recommendations() []*RecipeStatus {
 	return statuses
 }
 
-func (s *InstallStatus) hasFailed() bool {
+func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
 	for _, ss := range s.Statuses {
-		if ss.Status == RecipeStatusTypes.FAILED {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (s *InstallStatus) isCanceled() bool {
-	for _, ss := range s.Statuses {
-		if ss.Status == RecipeStatusTypes.CANCELED {
+		if ss.Status == status {
 			return true
 		}
 	}
