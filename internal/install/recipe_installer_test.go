@@ -474,7 +474,7 @@ func TestInstall_RecipeSkippedApm(t *testing.T) {
 		Name:           testRecipeName,
 		DisplayName:    "test displayName",
 		ValidationNRQL: "testNrql",
-		Keywords:		[]string{"apm"}
+		Keywords:       []string{"apm"},
 	}}
 	f.FetchRecipeVals = []types.Recipe{
 		{
