@@ -26,6 +26,7 @@ var TestCommand = &cobra.Command{
 			SkipDiscovery:      skipDiscovery,
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
+			SkipApm:            skipApm,
 			AssumeYes:          assumeYes,
 		}
 
@@ -58,6 +59,7 @@ func init() {
 	TestCommand.Flags().BoolVarP(&skipDiscovery, "skipDiscovery", "d", false, "skips discovery of recommended New Relic integrations")
 	TestCommand.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	TestCommand.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
+	TestCommand.Flags().BoolVarP(&skipApm, "skipApm", "a", false, "skips installation for APM")
 	TestCommand.Flags().StringVarP(&testScenario, "testScenario", "s", string(Basic), fmt.Sprintf("test scenario to run, defaults to BASIC.  Valid values are %s", strings.Join(TestScenarioValues(), ",")))
 	TestCommand.Flags().BoolVar(&debug, "debug", false, "debug level logging")
 	TestCommand.Flags().BoolVar(&trace, "trace", false, "trace level logging")
