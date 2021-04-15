@@ -14,10 +14,10 @@ newrelic install [flags]
   -h, --help                 help for install
   -n, --recipe strings       the name of a recipe to install
   -c, --recipePath strings   the path to a recipe file to install
+  -a, --skipApm              skips installation for APM
   -d, --skipDiscovery        skips discovery of recommended New Relic integrations
   -r, --skipIntegrations     skips installation of recommended New Relic integrations
   -l, --skipLoggingInstall   skips installation of New Relic Logging
-  -a, --skipApm              skips installation for APM
   -t, --testMode             fakes operations for UX testing
       --trace                trace level logging
 ```
