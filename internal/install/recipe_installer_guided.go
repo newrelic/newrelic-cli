@@ -274,7 +274,7 @@ func (i *RecipeInstaller) removeRecipes(recipes []types.Recipe, remove ...types.
 func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Recipe) ([]types.Recipe, error) {
 	installCandidates := []types.Recipe{}
 	for _, r := range recommendedIntegrations {
-		if r.HasApplicationTargetType() {
+		if r.HasApplicationTargetType() && !r.IsApm() {
 			// do nothing
 		} else if i.SkipIntegrations {
 			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
