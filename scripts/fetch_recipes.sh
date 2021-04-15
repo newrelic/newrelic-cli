@@ -6,6 +6,7 @@ fi
 
 # Run the script in a temporary directory that we know is empty.
 SCRATCH="tmp"
+RECIPEFILES="internal/install/recipes/recipes"
 
 function error {
   echo "An error occurred fetching the recipes."
@@ -17,8 +18,8 @@ trap error ERR
 RELEASE_URL="https://github.com/newrelic/open-install-library/archive/refs/tags/${VERSION}.tar.gz"
 
 rm -rf $SCRATCH
-rm -rf recipes/
+rm -rf $RECIPEFILES
 mkdir $SCRATCH
 curl -sL --retry 3 "${RELEASE_URL}" | tar -xz -C $SCRATCH
-mv ${SCRATCH}/open-install-library-*/recipes/ .
+mv ${SCRATCH}/open-install-library-*/recipes/ $RECIPEFILES
 
