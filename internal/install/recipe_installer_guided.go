@@ -12,11 +12,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
-const (
-	infraAgentRecipeName = "infrastructure-agent-installer"
-	loggingRecipeName    = "logs-integration"
-)
-
 // guidedInstall walks the user through and installation, prompting for input
 // when needed.  An error is returned only when the infra or logging recipes
 // have an error.  If an OHI recipe fails, we warn the user.  This allows the
@@ -27,14 +22,14 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 	var recommendedIntegrations []types.Recipe
 
 	// Fetch the infra agent recipe and mark it as available.
-	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, infraAgentRecipeName)
+	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, types.InfraAgentRecipeName)
 	if err != nil {
 		return err
 	}
 	recipesForInstallation = append(recipesForInstallation, *infraAgentRecipe)
 
 	// Fetch the logging recipe and mark it as available.
-	loggingRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, loggingRecipeName)
+	loggingRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, types.LoggingRecipeName)
 	if err != nil {
 		return err
 	}
@@ -82,7 +77,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 	log.Debugf("Installing infrastructure agent")
 	entityGUID, err := i.executeAndValidateWithProgress(ctx, m, infraAgentRecipe)
 	if err != nil {
-		log.Error(i.failMessage(infraAgentRecipeName))
+		log.Error(i.failMessage(types.InfraAgentRecipeName))
 		return err
 	}
 	log.Debugf("Done installing infrastructure agent.")
@@ -102,7 +97,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 	if i.ShouldInstallLogging() {
 		log.Debugf("Installing logging")
 		if err = i.installLogging(ctx, m, loggingRecipe, recipesForInstallation); err != nil {
-			log.Error(i.failMessage(loggingRecipeName))
+			log.Error(i.failMessage(types.LoggingRecipeName))
 			return err
 		}
 		log.Debugf("Done installing logging.")
@@ -210,7 +205,7 @@ func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]ty
 func (i *RecipeInstaller) filterRecommendations(recipes []types.Recipe) []types.Recipe {
 	filteredRecommendations := []types.Recipe{}
 	for _, r := range recipes {
-		if r.Name == infraAgentRecipeName || r.Name == loggingRecipeName {
+		if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName {
 			log.WithFields(log.Fields{
 				"name": r.Name,
 			}).Debug("skipping redundant recipe")
@@ -320,7 +315,7 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 		if !i.recipeInRecipes(r, integrationsForInstall) {
 			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 
-			if r.Name == loggingRecipeName {
+			if r.Name == types.LoggingRecipeName {
 				i.SkipLoggingInstall = true
 			}
 		}
