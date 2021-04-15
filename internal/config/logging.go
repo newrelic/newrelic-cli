@@ -29,21 +29,6 @@ func initLogger(logLevel string) {
 		EnvironmentOverrideColors: true,
 	})
 
-	_, err := os.Stat(DefaultConfigDirectory)
-
-	if os.IsNotExist(err) {
-		errDir := os.MkdirAll(DefaultConfigDirectory, 0750)
-		if errDir != nil {
-			log.Warnf("Could not create log file folder: %s", err)
-		}
-	}
-
-	fileHook, err := NewLogrusFileHook(DefaultConfigDirectory+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
-	if err == nil && !fileHookConfigured {
-		l.Hooks.Add(fileHook)
-		fileHookConfigured = true
-	}
-
 	switch level := strings.ToUpper(logLevel); level {
 	case "TRACE":
 		l.SetLevel(log.TraceLevel)
@@ -55,6 +40,29 @@ func initLogger(logLevel string) {
 		l.SetLevel(log.ErrorLevel)
 	default:
 		l.SetLevel(log.InfoLevel)
+	}
+}
+
+func InitFileLogger() {
+	if fileHookConfigured {
+		log.Debug("file logger already configured")
+		return
+	}
+
+	_, err := os.Stat(DefaultConfigDirectory)
+
+	if os.IsNotExist(err) {
+		errDir := os.MkdirAll(DefaultConfigDirectory, 0750)
+		if errDir != nil {
+			log.Warnf("Could not create log file folder: %s", err)
+		}
+	}
+
+	fileHook, err := NewLogrusFileHook(DefaultConfigDirectory+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
+	if err == nil && !fileHookConfigured {
+		l := log.StandardLogger()
+		l.Hooks.Add(fileHook)
+		fileHookConfigured = true
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -39,6 +40,8 @@ var Command = &cobra.Command{
 			SkipLoggingInstall: skipLoggingInstall,
 			SkipApm:            skipApm,
 		}
+
+		config.InitFileLogger()
 
 		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
 			if trace {
