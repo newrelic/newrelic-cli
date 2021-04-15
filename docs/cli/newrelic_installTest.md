@@ -17,6 +17,7 @@ newrelic installTest [flags]
   -d, --skipDiscovery         skips discovery of recommended New Relic integrations
   -r, --skipIntegrations      skips installation of recommended New Relic integrations
   -l, --skipLoggingInstall    skips installation of New Relic Logging
+  -a, --skipApm              skips installation for APM
   -s, --testScenario string   test scenario to run, defaults to BASIC.  Valid values are BASIC,LOG_MATCHES,FAIL,STITCHED_PATH,CANCELED,DISPLAY_EXPLORER_LINK (default "BASIC")
       --trace                 trace level logging
 ```

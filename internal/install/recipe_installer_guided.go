@@ -278,6 +278,8 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 			// do nothing
 		} else if i.SkipIntegrations {
 			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+		} else if i.SkipApm && r.IsApm() {
+			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 		} else {
 			installCandidates = append(installCandidates, r)
 		}

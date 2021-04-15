@@ -140,13 +140,13 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	result = s.getStatus(r)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, RecipeStatusTypes.FAILED)
-	require.True(t, s.hasFailed())
+	require.True(t, s.hasAnyRecipeStatus(RecipeStatusTypes.FAILED))
 
 	s.RecipeSkipped(e)
 	result = s.getStatus(r)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, RecipeStatusTypes.SKIPPED)
-	require.False(t, s.hasFailed())
+	require.False(t, s.hasAnyRecipeStatus(RecipeStatusTypes.FAILED))
 
 	s.InstallComplete(nil)
 	require.True(t, s.Complete)
