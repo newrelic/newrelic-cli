@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"embed"
+	"fmt"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -15,11 +16,24 @@ import (
 //go:embed recipes/*
 var localRecipes embed.FS
 
+var ErrRecipeNotFound = errors.New("recipe not found")
+
 type LocalRecipeFetcher struct{}
 
 func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
 
-	return nil, nil
+	recipes, err := f.FetchRecipes(ctx, manifest)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, recipe := range recipes {
+		if recipe.Name == friendlyName {
+			return &recipe, nil
+		}
+	}
+
+	return nil, fmt.Errorf("%s: %w", friendlyName, ErrRecipeNotFound)
 }
 
 func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
@@ -48,9 +62,7 @@ func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.D
 		recipes = append(recipes, r)
 	}
 
-	log.Debugf("%d embedded recipes found", len(recipes))
-
-	return recipes, nil
+	return manifest.ConstrainRecipes(recipes), nil
 }
 
 func recurseDirectory(startDir string) []string {
