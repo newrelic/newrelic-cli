@@ -41,7 +41,7 @@ func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.Di
 	return nil, fmt.Errorf("%s: %w", friendlyName, ErrRecipeNotFound)
 }
 
-// FetchRecommendations fetches the recipes based on the mainfest constraints.
+// FetchRecommendations fetches the recipes based on the manifest constraints.
 func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 
 	recipes, err := f.FetchRecipes(ctx, manifest)
