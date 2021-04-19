@@ -8,21 +8,21 @@ const (
 )
 
 type Recipe struct {
-	ID                string                                   `json:"id"`
-	Description       string                                   `json:"description"`
-	DisplayName       string                                   `json:"displayName"`
-	File              string                                   `json:"file"`
-	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
-	Keywords          []string                                 `json:"keywords"`
-	LogMatch          []LogMatch                               `json:"logMatch"`
-	Name              string                                   `json:"name"`
-	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall"`
-	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall"`
-	ProcessMatch      []string                                 `json:"processMatch"`
-	Repository        string                                   `json:"repository"`
-	SuccessLinkConfig SuccessLinkConfig                        `json:"successLinkConfig"`
-	ValidationNRQL    string                                   `json:"validationNrql"`
-	Vars              map[string]interface{}
+	ID                string                                   `json:"id" yaml:"id"`
+	Description       string                                   `json:"description" yaml:"description"`
+	DisplayName       string                                   `json:"displayName" yaml:"displayName"`
+	File              string                                   `json:"file" yaml:"file"`
+	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets" yaml:"installTargets"`
+	Keywords          []string                                 `json:"keywords" yaml:"keywords"`
+	LogMatch          []LogMatch                               `json:"logMatch" yaml:"logMatch"`
+	Name              string                                   `json:"name" yaml:"name"`
+	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall" yaml:"preInstall"`
+	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall" yaml:"postInstall"`
+	ProcessMatch      []string                                 `json:"processMatch" yaml:"processMatch"`
+	Repository        string                                   `json:"repository" yaml:"repository"`
+	SuccessLinkConfig SuccessLinkConfig                        `json:"successLinkConfig" yaml:"successLinkConfig"`
+	ValidationNRQL    string                                   `json:"validationNrql" yaml:"validationNrql"`
+	Vars              map[string]interface{}                   `yaml:"vars"`
 }
 
 func (r *Recipe) PostInstallMessage() string {
