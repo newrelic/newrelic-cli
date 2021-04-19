@@ -31,5 +31,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Fetch latest recipes
+        shell: bash
+        run: ./scripts/fetch_recipes.sh
+
       - name: Compile
         run: make compile-only

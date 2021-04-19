@@ -59,6 +59,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Fetch latest recipes
+        shell: bash
+        run: ./scripts/fetch_recipes.sh
+
       - name: Unit Tests
         run: make test-unit
 
@@ -93,6 +97,10 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Fetch latest recipes
+        shell: bash
+        run: ./scripts/fetch_recipes.sh
 
       - name: Integration Tests
         if: github.event.pull_request.head.repo.full_name == github.repository
