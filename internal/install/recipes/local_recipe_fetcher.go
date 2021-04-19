@@ -16,13 +16,18 @@ import (
 //go:embed recipes/*
 var localRecipes embed.FS
 
+// ErrRecipeNotFound is used when a recipe is requested by name, but does not exist for the given constraint.
 var ErrRecipeNotFound = errors.New("recipe not found")
+
+// ErrInvalidRecipeFile is used when a recipe file fails to Unmarshal into a Recipe.
+var ErrInvalidRecipeFile = errors.New("invalid recipe file")
 
 type LocalRecipeFetcher struct{}
 
+// FetchRecipe fetches a recommended recipe by name.
 func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
 
-	recipes, err := f.FetchRecipes(ctx, manifest)
+	recipes, err := f.FetchRecommendations(ctx, manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -36,15 +41,25 @@ func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.Di
 	return nil, fmt.Errorf("%s: %w", friendlyName, ErrRecipeNotFound)
 }
 
+// FetchRecommendations fetches the recipes based on the mainfest constraints.
 func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 
-	return nil, nil
+	recipes, err := f.FetchRecipes(ctx, manifest)
+	if err != nil {
+		return nil, err
+	}
+
+	return manifest.ConstrainRecipes(recipes), nil
 }
 
+// FetchRecipes fetches all recipes.
 func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 	var recipes []types.Recipe
 
-	files := recurseDirectory("recipes/newrelic/infrastructure")
+	files, err := recurseDirectory("recipes/newrelic/infrastructure")
+	if err != nil {
+		return nil, err
+	}
 
 	for _, file := range files {
 		var r types.Recipe
@@ -56,26 +71,30 @@ func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.D
 
 		err = yaml.Unmarshal(content, &r)
 		if err != nil {
-			return nil, errors.Wrap(err, "error unmarshaling recipe file into Recipe")
+			return nil, fmt.Errorf("%s: %w", file, ErrInvalidRecipeFile)
 		}
 
 		recipes = append(recipes, r)
 	}
 
-	return manifest.ConstrainRecipes(recipes), nil
+	return recipes, nil
 }
 
-func recurseDirectory(startDir string) []string {
+func recurseDirectory(startDir string) ([]string, error) {
 	log.Debugf("recursing %s", startDir)
 	var fileNames []string
 	results, err := localRecipes.ReadDir(startDir)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	for _, r := range results {
 		if r.Type().IsDir() {
-			files := recurseDirectory(filepath.Join(startDir, r.Name()))
+			files, err := recurseDirectory(filepath.Join(startDir, r.Name()))
+			if err != nil {
+				return nil, err
+			}
+
 			fileNames = append(fileNames, files...)
 		}
 
@@ -84,5 +103,5 @@ func recurseDirectory(startDir string) []string {
 		}
 	}
 
-	return fileNames
+	return fileNames, nil
 }
