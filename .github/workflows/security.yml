@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - shell: bash
+        run: ./scripts/fetch_recipes.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
         env:

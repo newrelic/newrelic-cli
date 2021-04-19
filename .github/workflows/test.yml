@@ -32,6 +32,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Fetch latest recipes
+        shell: bash
+        run: ./scripts/fetch_recipes.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+
       - name: Lint
         run: make lint
 
@@ -62,6 +68,8 @@ jobs:
       - name: Fetch latest recipes
         shell: bash
         run: ./scripts/fetch_recipes.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
 
       - name: Unit Tests
         run: make test-unit
@@ -101,6 +109,8 @@ jobs:
       - name: Fetch latest recipes
         shell: bash
         run: ./scripts/fetch_recipes.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
 
       - name: Integration Tests
         if: github.event.pull_request.head.repo.full_name == github.repository
