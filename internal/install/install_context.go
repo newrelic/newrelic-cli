@@ -9,6 +9,7 @@ type InstallerContext struct {
 	SkipIntegrations   bool
 	SkipLoggingInstall bool
 	SkipApm            bool
+	SkipInfra          bool
 }
 
 func (i *InstallerContext) ShouldRunDiscovery() bool {
