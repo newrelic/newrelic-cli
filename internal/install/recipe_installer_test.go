@@ -710,6 +710,32 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 }
 
+func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+	ic := InstallerContext{
+		RecipeNames: []string{types.InfraAgentRecipeName},
+		SkipInfra:   true,
+	}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters)
+	f = recipes.NewMockRecipeFetcher()
+	f.FetchRecommendationsVal = []types.Recipe{}
+	f.FetchRecipeVals = []types.Recipe{
+		{
+			Name:           types.InfraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	v = validation.NewMockRecipeValidator()
+
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf}
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
+}
+
 func TestInstall_GuidReport(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	ic := InstallerContext{
