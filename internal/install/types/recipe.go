@@ -14,13 +14,13 @@ type Recipe struct {
 	File              string                                   `json:"file"`
 	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
 	Keywords          []string                                 `json:"keywords"`
-	LogMatch          []LogMatch                               `json:"logMatch"`
+	LogMatch          []OpenInstallationLogMatch               `json:"logMatch"`
 	Name              string                                   `json:"name"`
 	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall"`
 	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall"`
 	ProcessMatch      []string                                 `json:"processMatch"`
 	Repository        string                                   `json:"repository"`
-	SuccessLinkConfig SuccessLinkConfig                        `json:"successLinkConfig"`
+	SuccessLinkConfig OpenInstallationSuccessLinkConfig        `json:"successLinkConfig"`
 	ValidationNRQL    string                                   `json:"validationNrql"`
 	Vars              map[string]interface{}
 }

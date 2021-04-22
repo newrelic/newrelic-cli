@@ -16,9 +16,9 @@ type RecipeFile struct {
 	Description       string                                         `yaml:"description"`
 	InputVars         []VariableConfig                               `yaml:"inputVars"`
 	Install           map[string]interface{}                         `yaml:"install"`
-	InstallTargets    []RecipeInstallTarget                          `yaml:"installTargets"`
+	InstallTargets    []types.OpenInstallationRecipeInstallTarget    `yaml:"installTargets"`
 	Keywords          []string                                       `yaml:"keywords"`
-	LogMatch          []types.LogMatch                               `yaml:"logMatch"`
+	LogMatch          []types.OpenInstallationLogMatch               `yaml:"logMatch"`
 	Name              string                                         `yaml:"name"`
 	DisplayName       string                                         `yaml:"displayName"`
 	PreInstall        types.OpenInstallationPreInstallConfiguration  `yaml:"preInstall"`
@@ -26,7 +26,7 @@ type RecipeFile struct {
 	ProcessMatch      []string                                       `yaml:"processMatch"`
 	Repository        string                                         `yaml:"repository"`
 	ValidationNRQL    string                                         `yaml:"validationNrql"`
-	SuccessLinkConfig types.SuccessLinkConfig                        `yaml:"successLinkConfig"`
+	SuccessLinkConfig types.OpenInstallationSuccessLinkConfig        `yaml:"successLinkConfig"`
 }
 
 type SuccessLinkConfig struct {

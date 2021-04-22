@@ -262,8 +262,8 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 	}
 }
 
-func createLogMatches(results []types.OpenInstallationLogMatch) []types.LogMatch {
-	r := make([]types.LogMatch, len(results))
+func createLogMatches(results []types.OpenInstallationLogMatch) []types.OpenInstallationLogMatch {
+	r := make([]types.OpenInstallationLogMatch, len(results))
 	for _, result := range results {
 		r = append(r, createLogMatch(result))
 	}
@@ -271,8 +271,8 @@ func createLogMatches(results []types.OpenInstallationLogMatch) []types.LogMatch
 	return r
 }
 
-func createLogMatch(result types.OpenInstallationLogMatch) types.LogMatch {
-	return types.LogMatch{
+func createLogMatch(result types.OpenInstallationLogMatch) types.OpenInstallationLogMatch {
+	return types.OpenInstallationLogMatch{
 		Name:       result.Name,
 		File:       result.File,
 		Attributes: createLogMatchAttributes(result.Attributes),
@@ -281,9 +281,9 @@ func createLogMatch(result types.OpenInstallationLogMatch) types.LogMatch {
 	}
 }
 
-func createLogMatchAttributes(result types.OpenInstallationAttributes) types.LogMatchAttributes {
-	return types.LogMatchAttributes{
-		LogType: result.Logtype,
+func createLogMatchAttributes(result types.OpenInstallationAttributes) types.OpenInstallationAttributes {
+	return types.OpenInstallationAttributes{
+		Logtype: result.Logtype,
 	}
 }
 
