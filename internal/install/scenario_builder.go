@@ -476,7 +476,7 @@ func setupDisplayExplorerLink() recipes.RecipeFetcher {
 			Name:           "test-display-explorer-link",
 			DisplayName:    "Test Display Explorer Link",
 			ValidationNRQL: "test NRQL",
-			SuccessLinkConfig: types.SuccessLinkConfig{
+			SuccessLinkConfig: types.OpenInstallationSuccessLinkConfig{
 				Type:   "explorer",
 				Filter: "\"`tags.language` = 'java'\"",
 			},

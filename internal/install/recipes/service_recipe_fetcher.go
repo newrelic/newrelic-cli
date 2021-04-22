@@ -293,6 +293,16 @@ const (
 		name
 		displayName
 		description
+		dependencies
+		stability
+		quickstarts {
+			category
+			entityType {
+				domain
+				type
+			}
+			name
+		}
 		repository
 		installTargets {
 			type

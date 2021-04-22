@@ -13,6 +13,9 @@ import (
 
 // RecipeFile represents a recipe file as defined in the Open Installation Library.
 type RecipeFile struct {
+	Dependencies      []string                                       `yaml:"dependencies"`
+	Stability         types.OpenInstallationStability                `yaml:"stability"`
+	Quickstarts       []types.OpenInstallationQuickstartsFilter      `yaml:"quickstarts,omitempty"`
 	Description       string                                         `yaml:"description"`
 	InputVars         []VariableConfig                               `yaml:"inputVars"`
 	Install           map[string]interface{}                         `yaml:"install"`
@@ -26,7 +29,7 @@ type RecipeFile struct {
 	ProcessMatch      []string                                       `yaml:"processMatch"`
 	Repository        string                                         `yaml:"repository"`
 	ValidationNRQL    string                                         `yaml:"validationNrql"`
-	SuccessLinkConfig types.SuccessLinkConfig                        `yaml:"successLinkConfig"`
+	SuccessLinkConfig types.OpenInstallationSuccessLinkConfig        `yaml:"successLinkConfig"`
 }
 
 type SuccessLinkConfig struct {
@@ -143,6 +146,9 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 		SuccessLinkConfig: f.SuccessLinkConfig,
 		LogMatch:          f.LogMatch,
 		ValidationNRQL:    f.ValidationNRQL,
+		Dependencies:      f.Dependencies,
+		Stability:         f.Stability,
+		Quickstarts:       f.Quickstarts,
 	}
 
 	return &r, nil

@@ -12,6 +12,28 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
+func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe types.Recipe, manifest *types.DiscoveryManifest) ([]*types.Recipe, error) {
+	dependencies := []*types.Recipe{}
+
+	if len(recipe.Dependencies) == 0 {
+		return dependencies, nil
+	}
+
+	for _, recipeName := range recipe.Dependencies {
+		manifest.OS = "linux"
+		recipe, err := i.fetchRecipeAndReportAvailable(ctx, manifest, recipeName)
+		if err != nil {
+			return dependencies, err
+		}
+
+		if recipe != nil {
+			dependencies = append(dependencies, recipe)
+		}
+	}
+
+	return dependencies, nil
+}
+
 func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
 	var recipes []types.Recipe
 	var infraAgentRecipe *types.Recipe
@@ -33,6 +55,11 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				"display_name": recipe.DisplayName,
 				"path":         n,
 			}).Debug("found recipe at path")
+
+			_, err = i.resolveRecipeDependencies(ctx, *recipe, m)
+			if err != nil {
+				return err
+			}
 
 			if !i.SkipInfra && recipe.Name == types.InfraAgentRecipeName {
 				infraAgentRecipe = recipe
