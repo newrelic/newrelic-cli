@@ -56,16 +56,17 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				"path":         n,
 			}).Debug("found recipe at path")
 
-			_, err = i.resolveRecipeDependencies(ctx, *recipe, m)
+			dependencies, err := i.resolveRecipeDependencies(ctx, *recipe, m)
 			if err != nil {
 				return err
 			}
 
-			if !i.SkipInfra && recipe.Name == types.InfraAgentRecipeName {
-				infraAgentRecipe = recipe
-			} else {
-				recipes = append(recipes, *recipe)
+			for _, d := range dependencies {
+				if string(types.InfraAgentRecipeName) == d.Name && !i.SkipInfra {
+					recipes = append(recipes, *d)
+				}
 			}
+			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
 		// Fetch the provided recipes from the recipe service.
@@ -76,11 +77,19 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				// Skip anything that was returned by the service if it does not match the requested name.
 				if r.Name == n {
 					log.Debugln(fmt.Sprintf("Found recipe from name %s.", n))
-					if r.Name == types.InfraAgentRecipeName {
-						infraAgentRecipe = r
-					} else {
-						recipes = append(recipes, *r)
+
+					dependencies, err := i.resolveRecipeDependencies(ctx, *r, m)
+					if err != nil {
+						return err
 					}
+
+					for _, d := range dependencies {
+						if string(types.InfraAgentRecipeName) == d.Name && !i.SkipInfra {
+							recipes = append(recipes, *d)
+						}
+					}
+
+					recipes = append(recipes, *r)
 				} else {
 					log.Debugln(fmt.Sprintf("Skipping recipe, name %s does not match.", r.Name))
 				}
@@ -100,19 +109,7 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 
 	// Show the user what will be installed.
 	i.status.RecipesAvailable(recipes)
-
-	if !i.SkipInfra {
-		i.status.RecipesSelected(append([]types.Recipe{*infraAgentRecipe}, recipes...))
-
-		// Install the infra agent.
-		log.Debugf("Installing infrastructure agent")
-		_, err := i.executeAndValidateWithProgress(ctx, m, infraAgentRecipe)
-		if err != nil {
-			log.Error(i.failMessage(types.InfraAgentRecipeName))
-			return err
-		}
-		log.Debugf("Done installing infrastructure agent.")
-	}
+	i.status.RecipesSelected(recipes)
 
 	// Install the requested integrations.
 	log.Debugf("Installing integrations")
