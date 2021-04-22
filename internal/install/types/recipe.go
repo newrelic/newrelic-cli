@@ -11,16 +11,19 @@ type Recipe struct {
 	ID                string                                   `json:"id"`
 	Description       string                                   `json:"description"`
 	DisplayName       string                                   `json:"displayName"`
+	Dependencies      []string                                 `json:"dependencies"`
+	Stability         OpenInstallationStability                `json:"stability"`
+	Quickstarts       []OpenInstallationQuickstartsFilter      `json:"quickstarts,omitempty"`
 	File              string                                   `json:"file"`
 	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
 	Keywords          []string                                 `json:"keywords"`
-	LogMatch          []LogMatch                               `json:"logMatch"`
+	LogMatch          []LogMatch                               `json:"logMatch"` // TODO: use generated type?
 	Name              string                                   `json:"name"`
 	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall"`
 	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall"`
 	ProcessMatch      []string                                 `json:"processMatch"`
 	Repository        string                                   `json:"repository"`
-	SuccessLinkConfig SuccessLinkConfig                        `json:"successLinkConfig"`
+	SuccessLinkConfig OpenInstallationSuccessLinkConfig        `json:"successLinkConfig"`
 	ValidationNRQL    string                                   `json:"validationNrql"`
 	Vars              map[string]interface{}
 }

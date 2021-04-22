@@ -112,7 +112,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 func (r *TerminalStatusReporter) getSuccessLink(status *InstallStatus) string {
 	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
 		switch t := status.successLinkConfig.Type; {
-		case strings.EqualFold(t, "explorer"):
+		case strings.EqualFold(string(t), "explorer"):
 			return r.successLinkGenerator.GenerateExplorerLink(status.successLinkConfig.Filter)
 		default:
 			return r.successLinkGenerator.GenerateEntityLink(status.HostEntityGUID())

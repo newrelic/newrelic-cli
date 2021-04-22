@@ -63,7 +63,8 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		status:            statusRollup,
 		prompter:          p,
 		progressIndicator: pi,
-		licenseKeyFetcher: lkf}
+		licenseKeyFetcher: lkf,
+	}
 
 	i.InstallerContext = ic
 

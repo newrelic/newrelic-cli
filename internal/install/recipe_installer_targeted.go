@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -11,6 +12,32 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
+
+func (i *RecipeInstaller) resolveRecipeDependencies(recipe types.Recipe, manifest *types.DiscoveryManifest) []*types.Recipe {
+	log.Print("\n\n **************************** \n")
+	log.Printf("\n resolveRecipeDependencies:  %+v \n", recipe.Dependencies)
+	log.Print("\n **************************** \n\n")
+
+	if len(recipe.Dependencies) == 0 {
+		return []*types.Recipe{}
+	}
+
+	dependencies := []*types.Recipe{}
+	for _, d := range recipe.Dependencies {
+		manifest.OS = "linux"
+		recipe := i.fetchWarn(manifest, d)
+
+		log.Print("\n\n **************************** \n")
+		log.Printf("\n fetched recipe:  %+v \n", recipe)
+		log.Print("\n **************************** \n\n")
+
+		if recipe != nil {
+			dependencies = append(dependencies, recipe)
+		}
+	}
+
+	return dependencies
+}
 
 func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
 	var recipes []types.Recipe
@@ -33,6 +60,15 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				"display_name": recipe.DisplayName,
 				"path":         n,
 			}).Debug("found recipe at path")
+
+			log.Print("\n\n **************************** \n")
+			log.Printf("\n manifest:            %+v \n", *m)
+			log.Printf("\n recipeDependencies:  %+v \n", recipe)
+
+			// recipeDependencies := i.resolveRecipeDependencies(*recipe, m)
+
+			log.Print("\n **************************** \n\n")
+			time.Sleep(3 * time.Second)
 
 			if !i.SkipInfra && recipe.Name == types.InfraAgentRecipeName {
 				infraAgentRecipe = recipe
@@ -86,6 +122,11 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 		}
 		log.Debugf("Done installing infrastructure agent.")
 	}
+
+	// log.Print("\n\n **************************** \n")
+	// log.Printf("\n RECIPES:  %+v \n", recipes)
+	// log.Print("\n **************************** \n\n")
+	// time.Sleep(2 * time.Second)
 
 	// Install the requested integrations.
 	log.Debugf("Installing integrations")
