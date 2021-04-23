@@ -36,7 +36,7 @@ func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe 
 
 func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
 	var recipes []types.Recipe
-	var infraAgentRecipe *types.Recipe
+	// var infraAgentRecipe *types.Recipe
 
 	i.status.SetTargetedInstall()
 
@@ -97,15 +97,15 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 		}
 	}
 
-	if !i.SkipInfra && infraAgentRecipe == nil {
-		fmt.Printf("The installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
-		// Fetch the infra agent recipe and mark it as available.
-		recipe, err := i.fetchRecipeAndReportAvailable(ctx, m, types.InfraAgentRecipeName)
-		if err != nil {
-			return err
-		}
-		infraAgentRecipe = recipe
-	}
+	// if !i.SkipInfra && infraAgentRecipe == nil {
+	// 	fmt.Printf("The installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+	// 	// Fetch the infra agent recipe and mark it as available.
+	// 	recipe, err := i.fetchRecipeAndReportAvailable(ctx, m, types.InfraAgentRecipeName)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	infraAgentRecipe = recipe
+	// }
 
 	// Show the user what will be installed.
 	i.status.RecipesAvailable(recipes)

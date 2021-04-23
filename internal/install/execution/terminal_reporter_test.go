@@ -72,7 +72,7 @@ func Test_ShouldGenerateExplorerLink(t *testing.T) {
 		Status: RecipeStatusTypes.INSTALLED,
 	}
 	status.Statuses = append(status.Statuses, recipeStatus)
-	status.successLinkConfig = types.SuccessLinkConfig{
+	status.successLinkConfig = types.OpenInstallationSuccessLinkConfig{
 		Type:   "explorer",
 		Filter: "\"`tags.language` = 'java'\"",
 	}
@@ -93,7 +93,7 @@ func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
 		Status: RecipeStatusTypes.FAILED,
 	}
 	status.Statuses = append(status.Statuses, recipeStatus)
-	status.successLinkConfig = types.SuccessLinkConfig{
+	status.successLinkConfig = types.OpenInstallationSuccessLinkConfig{
 		Type:   "explorer",
 		Filter: "\"`tags.language` = 'java'\"",
 	}
@@ -110,7 +110,7 @@ func Test_ShouldNotGenerateExplorerLinkWhenNoRecipes(t *testing.T) {
 	r.successLinkGenerator = g
 
 	status := &InstallStatus{}
-	status.successLinkConfig = types.SuccessLinkConfig{
+	status.successLinkConfig = types.OpenInstallationSuccessLinkConfig{
 		Type:   "explorer",
 		Filter: "\"`tags.language` = 'java'\"",
 	}
