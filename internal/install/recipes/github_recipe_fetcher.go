@@ -13,10 +13,11 @@ import (
 	"regexp"
 
 	"github.com/google/go-github/v35/github"
-	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type GithubRecipeFetcher struct{}
@@ -69,9 +70,9 @@ func loadRecipesFromCache(ctx context.Context) ([]types.Recipe, error) {
 	recipePaths := []string{}
 	cacheDir := filepath.Join(config.DefaultConfigDirectory, "recipes")
 
-	re := regexp.MustCompile("\\.ya?ml")
+	re := regexp.MustCompile(`\.ya?ml`)
 
-	filepath.Walk(
+	err := filepath.Walk(
 		cacheDir,
 		func(path string, info os.FileInfo, err error) error {
 			if re.MatchString(path) {
@@ -81,6 +82,9 @@ func loadRecipesFromCache(ctx context.Context) ([]types.Recipe, error) {
 			return nil
 		},
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	recipes := []types.Recipe{}
 
@@ -154,7 +158,10 @@ func unzipRecipes(ctx context.Context, archivePath string, destDir string) error
 	}
 	defer r.Close()
 
-	os.MkdirAll(destDir, 0750)
+	err = os.MkdirAll(destDir, 0750)
+	if err != nil {
+		return err
+	}
 
 	extractAndWriteFileToPath := func(f *zip.File, path string) error {
 		rc, err := f.Open()
@@ -162,8 +169,8 @@ func unzipRecipes(ctx context.Context, archivePath string, destDir string) error
 			return err
 		}
 		defer func() {
-			if err := rc.Close(); err != nil {
-				log.Error(err)
+			if fileErr := rc.Close(); err != nil {
+				log.Error(fileErr)
 			}
 		}()
 
@@ -174,17 +181,23 @@ func unzipRecipes(ctx context.Context, archivePath string, destDir string) error
 		}).Debug("extracting zip file")
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
+			err = os.MkdirAll(path, f.Mode())
+			if err != nil {
+				return err
+			}
 		} else {
-			os.MkdirAll(filepath.Dir(path), 0750)
+			err = os.MkdirAll(filepath.Dir(path), 0750)
+			if err != nil {
+				return err
+			}
 
 			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
 			if err != nil {
 				return err
 			}
 			defer func() {
-				if err := f.Close(); err != nil {
-					panic(err)
+				if fileErr := f.Close(); err != nil {
+					log.Error(fileErr)
 				}
 			}()
 
@@ -197,7 +210,7 @@ func unzipRecipes(ctx context.Context, archivePath string, destDir string) error
 		return nil
 	}
 
-	re := regexp.MustCompile("newrelic-open-install-library-[a-f0-9]{7}/recipes/(.*\\.ya?ml)")
+	re := regexp.MustCompile(`newrelic-open-install-library-[a-f0-9]{7}/recipes/(.*\.ya?ml)`)
 	for _, f := range r.File {
 		matches := re.FindAllStringSubmatch(f.Name, -1)
 		if matches == nil {
@@ -232,7 +245,7 @@ func fetchRecipeArchive(ctx context.Context, u *url.URL, path string) error {
 	}
 	defer resp.Body.Close()
 
-	if _, err := os.Stat(filepath.Dir(path)); os.IsNotExist(err) {
+	if _, err = os.Stat(filepath.Dir(path)); os.IsNotExist(err) {
 		err = os.Mkdir(filepath.Dir(path), 0700)
 		if err != nil {
 			return err

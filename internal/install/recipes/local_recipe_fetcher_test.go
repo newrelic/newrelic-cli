@@ -6,8 +6,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
