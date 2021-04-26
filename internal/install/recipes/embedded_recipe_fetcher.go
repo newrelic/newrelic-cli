@@ -22,10 +22,10 @@ var ErrRecipeNotFound = errors.New("recipe not found")
 // ErrInvalidRecipeFile is used when a recipe file fails to Unmarshal into a Recipe.
 var ErrInvalidRecipeFile = errors.New("invalid recipe file")
 
-type LocalRecipeFetcher struct{}
+type EmbeddedRecipeFetcher struct{}
 
 // FetchRecipe fetches a recommended recipe by name.
-func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
+func (f *EmbeddedRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
 	recipes, err := f.FetchRecommendations(ctx, manifest)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.Di
 }
 
 // FetchRecommendations fetches the recipes based on the manifest constraints.
-func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *EmbeddedRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 	recipes, err := f.FetchRecipes(ctx, manifest)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest 
 }
 
 // FetchRecipes fetches all recipes.
-func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *EmbeddedRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
 	var recipes []types.Recipe
 
 	files, err := recurseDirectory("recipes/newrelic/infrastructure")

@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
-	f := LocalRecipeFetcher{}
+func TestEmbeddedRecipeFetcher_FetchRecommendations(t *testing.T) {
+	f := EmbeddedRecipeFetcher{}
 	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{OS: "linux"})
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
@@ -19,8 +19,8 @@ func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
 
 }
 
-func TestLocalRecipeFetcher_FetchRecipe(t *testing.T) {
-	f := LocalRecipeFetcher{}
+func TestEmbeddedRecipeFetcher_FetchRecipe(t *testing.T) {
+	f := EmbeddedRecipeFetcher{}
 	recipe, err := f.FetchRecipe(context.Background(), &types.DiscoveryManifest{}, "not-a-real-recipe")
 	require.ErrorIs(t, err, ErrRecipeNotFound)
 	require.Nil(t, recipe)
@@ -30,15 +30,15 @@ func TestLocalRecipeFetcher_FetchRecipe(t *testing.T) {
 	require.Equal(t, "infrastructure-agent-installer", recipe.Name)
 }
 
-func TestLocalRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
-	f := LocalRecipeFetcher{}
+func TestEmbeddedRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
+	f := EmbeddedRecipeFetcher{}
 	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{})
 	require.NoError(t, err)
 	require.NotEmpty(t, recipes)
 }
 
-func TestLocalRecipeFetcher_FetchRecipes_NonEmptyManifest(t *testing.T) {
-	f := LocalRecipeFetcher{}
+func TestEmbeddedRecipeFetcher_FetchRecipes_NonEmptyManifest(t *testing.T) {
+	f := EmbeddedRecipeFetcher{}
 	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{OS: "linux"})
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
