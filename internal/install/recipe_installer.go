@@ -34,8 +34,19 @@ type RecipeInstaller struct {
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
-	rf := recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
-	pf := discovery.NewRegexProcessFilterer(rf)
+
+	var recipeFetcher recipes.RecipeFetcher
+
+	if ic.LocalRecipes != "" {
+		recipeFetcher = &recipes.LocalRecipeFetcher{
+			Path: ic.LocalRecipes,
+		}
+
+	} else {
+		recipeFetcher = recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
+	}
+
+	pf := discovery.NewRegexProcessFilterer(recipeFetcher)
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher()
 	ers := []execution.StatusSubscriber{
@@ -56,7 +67,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		discoverer:        d,
 		fileFilterer:      gff,
 		manifestValidator: mv,
-		recipeFetcher:     rf,
+		recipeFetcher:     recipeFetcher,
 		recipeExecutor:    re,
 		recipeValidator:   v,
 		recipeFileFetcher: ff,

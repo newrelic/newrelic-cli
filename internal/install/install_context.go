@@ -2,9 +2,11 @@ package install
 
 // nolint: maligned
 type InstallerContext struct {
-	AssumeYes          bool
-	RecipeNames        []string
-	RecipePaths        []string
+	AssumeYes   bool
+	RecipeNames []string
+	RecipePaths []string
+	// LocalRecipes is the path to a local recipe directory from which to load recipes.
+	LocalRecipes       string
 	SkipDiscovery      bool
 	SkipIntegrations   bool
 	SkipLoggingInstall bool
