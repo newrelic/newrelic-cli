@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,7 +13,6 @@ import (
 
 	"github.com/google/go-github/v35/github"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -67,50 +65,9 @@ func (f *GithubRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.
 }
 
 func loadRecipesFromCache(ctx context.Context) ([]types.Recipe, error) {
-	recipePaths := []string{}
 	cacheDir := filepath.Join(config.DefaultConfigDirectory, "recipes")
 
-	log.WithFields(log.Fields{
-		"path": cacheDir,
-	}).Debug("loading recipes from cache")
-
-	re := regexp.MustCompile(`\.ya?ml`)
-
-	err := filepath.Walk(
-		cacheDir,
-		func(path string, info os.FileInfo, err error) error {
-			if re.MatchString(path) {
-				recipePaths = append(recipePaths, path)
-			}
-
-			return nil
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	recipes := []types.Recipe{}
-
-	for _, path := range recipePaths {
-		var r types.Recipe
-
-		content, err := ioutil.ReadFile(path)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		err = yaml.Unmarshal(content, &r)
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		recipes = append(recipes, r)
-	}
-
-	return recipes, nil
+	return loadRecipesFromDir(ctx, cacheDir)
 }
 
 func cacheRecipes(ctx context.Context) error {
