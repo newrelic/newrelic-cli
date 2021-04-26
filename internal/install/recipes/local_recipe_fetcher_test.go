@@ -6,9 +6,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
@@ -17,6 +16,7 @@ func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
+
 }
 
 func TestLocalRecipeFetcher_FetchRecipe(t *testing.T) {

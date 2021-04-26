@@ -4,22 +4,40 @@ package recipes
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestGithubRecipeFetcher_FetchRecommendations(t *testing.T) {
+	tmp, err := ioutil.TempDir("/tmp", "newrelic")
+	defer os.RemoveAll(tmp)
+	require.NoError(t, err)
+	config.DefaultConfigDirectory = tmp
+
+	_, err = credentials.LoadCredentials(tmp)
+	require.NoError(t, err)
+
 	f := GithubRecipeFetcher{}
-	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{OS: "linux"})
+	recipes, err := f.FetchRecommendations(context.Background(), &types.DiscoveryManifest{OS: "linux"})
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
 }
 
 func TestGithubRecipeFetcher_FetchRecipe(t *testing.T) {
+	tmp, err := ioutil.TempDir("/tmp", "newrelic")
+	defer os.RemoveAll(tmp)
+	require.NoError(t, err)
+
+	config.DefaultConfigDirectory = tmp
+
 	f := GithubRecipeFetcher{}
 	recipe, err := f.FetchRecipe(context.Background(), &types.DiscoveryManifest{}, "not-a-real-recipe")
 	require.ErrorIs(t, err, ErrRecipeNotFound)
@@ -31,14 +49,39 @@ func TestGithubRecipeFetcher_FetchRecipe(t *testing.T) {
 }
 
 func TestGithubRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
+	tmp, err := ioutil.TempDir("/tmp", "newrelic")
+	defer os.RemoveAll(tmp)
+	require.NoError(t, err)
+
+	config.DefaultConfigDirectory = tmp
+
 	f := GithubRecipeFetcher{}
 	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{})
 	require.NoError(t, err)
 	require.NotEmpty(t, recipes)
 }
 
+func TestGithubRecipeFetcher_FetchRecipes(t *testing.T) {
+	tmp, err := ioutil.TempDir("/tmp", "newrelic")
+	defer os.RemoveAll(tmp)
+	require.NoError(t, err)
+
+	config.DefaultConfigDirectory = tmp
+
+	f := GithubRecipeFetcher{}
+	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{OS: "linux"})
+	require.NoError(t, err)
+	require.NotEmpty(t, recipes)
+}
+
 func TestGithubRecipeFetcher_cacheLatestRelease(t *testing.T) {
-	err := cacheLatestRelease(context.Background())
+	tmp, err := ioutil.TempDir("/tmp", "newrelic")
+	defer os.RemoveAll(tmp)
+	require.NoError(t, err)
+
+	config.DefaultConfigDirectory = tmp
+
+	err = cacheLatestRelease(context.Background())
 	require.NoError(t, err)
 }
 

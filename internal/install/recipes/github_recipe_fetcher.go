@@ -70,6 +70,10 @@ func loadRecipesFromCache(ctx context.Context) ([]types.Recipe, error) {
 	recipePaths := []string{}
 	cacheDir := filepath.Join(config.DefaultConfigDirectory, "recipes")
 
+	log.WithFields(log.Fields{
+		"path": cacheDir,
+	}).Debug("loading recipes from cache")
+
 	re := regexp.MustCompile(`\.ya?ml`)
 
 	err := filepath.Walk(
@@ -110,12 +114,7 @@ func loadRecipesFromCache(ctx context.Context) ([]types.Recipe, error) {
 }
 
 func cacheRecipes(ctx context.Context) error {
-	// release, url, err := getLatestRelease(ctx)
-	// if err != nil {
-	// 	log.Error(err)
-	// }
-
-	return nil
+	return cacheLatestRelease(ctx)
 }
 
 func cacheLatestRelease(ctx context.Context) error {
@@ -178,7 +177,7 @@ func unzipRecipes(ctx context.Context, archivePath string, destDir string) error
 			"archive": archivePath,
 			"dest":    destDir,
 			"name":    f.Name,
-		}).Debug("extracting zip file")
+		}).Trace("extracting zip file")
 
 		if f.FileInfo().IsDir() {
 			err = os.MkdirAll(path, f.Mode())
