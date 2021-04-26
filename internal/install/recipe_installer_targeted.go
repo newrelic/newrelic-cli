@@ -34,6 +34,7 @@ func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe 
 	return dependencies, nil
 }
 
+// nolint: gocyclo
 func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
 	var recipes []types.Recipe
 
