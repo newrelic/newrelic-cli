@@ -15,7 +15,7 @@ import (
 type RecipeFile struct {
 	Dependencies      []string                                       `yaml:"dependencies"`
 	Stability         types.OpenInstallationStability                `yaml:"stability"`
-	Quickstarts       []types.OpenInstallationQuickstartsFilter      `yaml:"quickstarts,omitempty"`
+	Quickstarts       types.OpenInstallationQuickstartsFilter      `yaml:"quickstarts,omitempty"`
 	Description       string                                         `yaml:"description"`
 	InputVars         []VariableConfig                               `yaml:"inputVars"`
 	Install           map[string]interface{}                         `yaml:"install"`

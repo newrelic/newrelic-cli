@@ -259,6 +259,9 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 		PreInstall:        result.PreInstall,
 		PostInstall:       result.PostInstall,
 		SuccessLinkConfig: result.SuccessLinkConfig,
+		Dependencies:      result.Dependencies,
+		Stability:         result.Stability,
+		Quickstarts:       result.Quickstarts,
 	}
 }
 

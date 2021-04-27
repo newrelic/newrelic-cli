@@ -13,7 +13,7 @@ type Recipe struct {
 	DisplayName       string                                   `json:"displayName"`
 	Dependencies      []string                                 `json:"dependencies"`
 	Stability         OpenInstallationStability                `json:"stability"`
-	Quickstarts       []OpenInstallationQuickstartsFilter      `json:"quickstarts,omitempty"`
+	Quickstarts       OpenInstallationQuickstartsFilter        `json:"quickstarts,omitempty"`
 	File              string                                   `json:"file"`
 	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
 	Keywords          []string                                 `json:"keywords"`
