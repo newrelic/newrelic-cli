@@ -19,7 +19,7 @@ type RecipeFile struct {
 	Description       string                                         `yaml:"description"`
 	InputVars         []VariableConfig                               `yaml:"inputVars"`
 	Install           map[string]interface{}                         `yaml:"install"`
-	InstallTargets    []RecipeInstallTarget                          `yaml:"installTargets"`
+	InstallTargets    []types.OpenInstallationRecipeInstallTarget    `yaml:"installTargets"`
 	Keywords          []string                                       `yaml:"keywords"`
 	LogMatch          []types.LogMatch                               `yaml:"logMatch"`
 	Name              string                                         `yaml:"name"`
@@ -42,16 +42,6 @@ type VariableConfig struct {
 	Prompt  string `yaml:"prompt"`
 	Secret  bool   `secret:"prompt"`
 	Default string `yaml:"default"`
-}
-
-type RecipeInstallTarget struct {
-	Type            string `yaml:"type"`
-	OS              string `yaml:"os"`
-	Platform        string `yaml:"platform"`
-	PlatformFamily  string `yaml:"platformFamily"`
-	PlatformVersion string `yaml:"platformVersion"`
-	KernelVersion   string `yaml:"kernelVersion"`
-	KernelArch      string `yaml:"kernelArch"`
 }
 
 type RecipeFileFetcherImpl struct {
@@ -135,6 +125,7 @@ func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
 	}
 	r := types.Recipe{
 		File:              fileStr,
+		InstallTargets:    f.InstallTargets,
 		Name:              f.Name,
 		DisplayName:       f.DisplayName,
 		Description:       f.Description,
