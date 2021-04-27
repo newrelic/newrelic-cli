@@ -261,7 +261,9 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 		SuccessLinkConfig: result.SuccessLinkConfig,
 		Dependencies:      result.Dependencies,
 		Stability:         result.Stability,
-		Quickstarts:       result.Quickstarts,
+		// TODO: type for quickstarts needs to be changed in the service (currently
+		// returns an object instead of a list)
+		// Quickstarts:       result.Quickstarts,
 	}
 }
 
@@ -298,14 +300,6 @@ const (
 		description
 		dependencies
 		stability
-		quickstarts {
-			category
-			entityType {
-				domain
-				type
-			}
-			name
-		}
 		repository
 		installTargets {
 			type
