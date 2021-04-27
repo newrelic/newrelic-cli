@@ -36,8 +36,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 
 	// Warn the user that --skipInfra is only implemented for targetedInstall
 	if i.SkipInfra {
-		log.Warnf("--skipInfra is only applicable to targeted installation")
-		log.Warnf("To skip the Infrastructure Agent installation, use: newrelic install -n <recipe_name> --skipInfra")
+		return fmt.Errorf("--skipInfra is only applicable to targeted installation. Run newrelic install --help for usage")
 	}
 
 	// Mark the logging recipe as skipped if necessary.
