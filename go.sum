@@ -755,8 +755,6 @@ github.com/nakabonne/nestif v0.3.0/go.mod h1:dI314BppzXjJ4HsCnbo7XzrJHPszZsjnk5w
 github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88/go.mod h1:KSVJerMDfblTH7p5MZaTt+8zaT2iEk3AkVb9PQdZuE8=
 github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 h1:4kuARK6Y6FxaNu/BnU2OAaLF86eTVhP2hjTB6iMvItA=
 github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354/go.mod h1:KSVJerMDfblTH7p5MZaTt+8zaT2iEk3AkVb9PQdZuE8=
-github.com/newrelic/newrelic-client-go v0.58.4 h1:Hh5UxOPnkFD1vfSp8GKseZ9nvDWMJpysKfxthD69bLM=
-github.com/newrelic/newrelic-client-go v0.58.4/go.mod h1:+wOK+2m1ClVuAqnpMAW7v924ryKW1eYylvkPJR0b3PA=
 github.com/newrelic/newrelic-client-go v0.58.5 h1:Bp9vzKjc/9nQXvO1q/cdRW6YppGhXAHh8GZrlevIrVM=
 github.com/newrelic/newrelic-client-go v0.58.5/go.mod h1:+wOK+2m1ClVuAqnpMAW7v924ryKW1eYylvkPJR0b3PA=
 github.com/newrelic/tutone v0.6.1 h1:hO3gumrOvTeIQjHHEB8J9oGloC0GHxbIAXU1FazSe6Q=
