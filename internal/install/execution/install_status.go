@@ -33,7 +33,7 @@ type InstallStatus struct {
 	DocumentID          string
 	targetedInstall     bool
 	statusSubscriber    []StatusSubscriber
-	successLinkConfig   types.SuccessLinkConfig
+	successLinkConfig   types.OpenInstallationSuccessLinkConfig
 }
 
 type RecipeStatus struct {
@@ -251,7 +251,7 @@ func (s *InstallStatus) withAvailableRecipe(r types.Recipe) {
 	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
 }
 
-func (s *InstallStatus) withSuccessLinkConfig(l types.SuccessLinkConfig) {
+func (s *InstallStatus) withSuccessLinkConfig(l types.OpenInstallationSuccessLinkConfig) {
 	s.successLinkConfig = l
 }
 

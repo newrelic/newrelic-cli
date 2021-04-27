@@ -259,6 +259,11 @@ func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
 		PreInstall:        result.PreInstall,
 		PostInstall:       result.PostInstall,
 		SuccessLinkConfig: result.SuccessLinkConfig,
+		Dependencies:      result.Dependencies,
+		Stability:         result.Stability,
+		// TODO: type for quickstarts needs to be changed in the service (currently
+		// returns an object instead of a list)
+		// Quickstarts:       result.Quickstarts,
 	}
 }
 
@@ -293,6 +298,8 @@ const (
 		name
 		displayName
 		description
+		dependencies
+		stability
 		repository
 		installTargets {
 			type

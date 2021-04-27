@@ -21,6 +21,7 @@ var (
 	skipIntegrations   bool
 	skipLoggingInstall bool
 	skipApm            bool
+	skipInfra          bool
 	testMode           bool
 	debug              bool
 	trace              bool
@@ -39,6 +40,7 @@ var Command = &cobra.Command{
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
 			SkipApm:            skipApm,
+			SkipInfra:          skipInfra,
 		}
 
 		config.InitFileLogger()
@@ -85,6 +87,7 @@ func init() {
 	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 	Command.Flags().BoolVarP(&skipApm, "skipApm", "a", false, "skips installation for APM")
+	Command.Flags().BoolVarP(&skipInfra, "skipInfra", "i", false, "skips installation for infrastructure agent (only for targeted install)")
 	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 	Command.Flags().BoolVar(&debug, "debug", false, "debug level logging")
 	Command.Flags().BoolVar(&trace, "trace", false, "trace level logging")
