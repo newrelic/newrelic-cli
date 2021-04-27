@@ -20,7 +20,6 @@ func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe 
 	}
 
 	for _, recipeName := range recipe.Dependencies {
-		manifest.OS = "linux"
 		recipe, err := i.fetchRecipeAndReportAvailable(ctx, manifest, recipeName)
 		if err != nil {
 			return dependencies, err
