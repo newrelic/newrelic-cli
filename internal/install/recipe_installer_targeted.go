@@ -34,11 +34,8 @@ func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe 
 	return dependencies, nil
 }
 
-// nolint: gocyclo
-func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
+func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Recipe, error) {
 	var recipes []types.Recipe
-
-	i.status.SetTargetedInstall()
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -52,7 +49,7 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 			recipe, err := i.recipeFromPath(n)
 			if err != nil {
 				log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
-				return err
+				return nil, err
 			}
 
 			log.WithFields(log.Fields{
@@ -61,18 +58,6 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				"path":         n,
 			}).Debug("found recipe at path")
 
-			dependencies, err := i.resolveRecipeDependencies(ctx, *recipe, m)
-			if err != nil {
-				return err
-			}
-
-			for _, d := range dependencies {
-				if i.SkipInfra && types.InfraAgentRecipeName == d.Name {
-					continue
-				} else {
-					recipes = append(recipes, *d)
-				}
-			}
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
@@ -89,26 +74,41 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 				// Skip anything that was returned by the service if it does not match the requested name.
 				if r.Name == n {
 					log.Debugln(fmt.Sprintf("Found recipe from name %s.", n))
-
-					dependencies, err := i.resolveRecipeDependencies(ctx, *r, m)
-					if err != nil {
-						return err
-					}
-
-					for _, d := range dependencies {
-						if i.SkipInfra && types.InfraAgentRecipeName == d.Name {
-							continue
-						} else {
-							recipes = append(recipes, *d)
-						}
-					}
-
 					recipes = append(recipes, *r)
 				} else {
 					log.Debugln(fmt.Sprintf("Skipping recipe, name %s does not match.", r.Name))
 				}
 			}
 		}
+	}
+
+	return recipes, nil
+}
+
+func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
+	var recipes []types.Recipe
+
+	i.status.SetTargetedInstall()
+
+	providedRecipes, err := i.collectRecipes(m)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range providedRecipes {
+		dependencies, err := i.resolveRecipeDependencies(ctx, r, m)
+		if err != nil {
+			return err
+		}
+
+		for _, d := range dependencies {
+			if i.SkipInfra && types.InfraAgentRecipeName == d.Name {
+				continue
+			} else {
+				recipes = append(recipes, *d)
+			}
+		}
+		recipes = append(recipes, r)
 	}
 
 	// Show the user what will be installed.
