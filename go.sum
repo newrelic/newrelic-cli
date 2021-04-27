@@ -611,8 +611,8 @@ github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/juju/ratelimit v1.0.1/go.mod h1:qapgC/Gy+xNh9UxzV13HGGl/6UXNN+ct+vwSgWNm/qk=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
-github.com/julz/importas v0.0.0-20210228071311-d0bf5cb4e1db h1:ZmwBthGFMVAieuVpLzuedUH9l4pY/0iFG16DN9dS38o=
-github.com/julz/importas v0.0.0-20210228071311-d0bf5cb4e1db/go.mod h1:oSFU2R4XK/P7kNBrnL/FEQlDGN1/6WoxXEjSSXO0DV0=
+github.com/julz/imports v0.0.0-20210228071311-d0bf5cb4e1db h1:ZmwBthGFMVAieuVpLzuedUH9l4pY/0iFG16DN9dS38o=
+github.com/julz/imports v0.0.0-20210228071311-d0bf5cb4e1db/go.mod h1:oSFU2R4XK/P7kNBrnL/FEQlDGN1/6WoxXEjSSXO0DV0=
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51/go.mod h1:CzGEWj7cYgsdH8dAjBGEr58BoE7ScuLd+fwFZ44+/x8=
@@ -755,8 +755,6 @@ github.com/nakabonne/nestif v0.3.0/go.mod h1:dI314BppzXjJ4HsCnbo7XzrJHPszZsjnk5w
 github.com/nbutton23/zxcvbn-go v0.0.0-20201221231540-e56b841a3c88/go.mod h1:KSVJerMDfblTH7p5MZaTt+8zaT2iEk3AkVb9PQdZuE8=
 github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354 h1:4kuARK6Y6FxaNu/BnU2OAaLF86eTVhP2hjTB6iMvItA=
 github.com/nbutton23/zxcvbn-go v0.0.0-20210217022336-fa2cb2858354/go.mod h1:KSVJerMDfblTH7p5MZaTt+8zaT2iEk3AkVb9PQdZuE8=
-github.com/newrelic/newrelic-client-go v0.58.4 h1:Hh5UxOPnkFD1vfSp8GKseZ9nvDWMJpysKfxthD69bLM=
-github.com/newrelic/newrelic-client-go v0.58.4/go.mod h1:+wOK+2m1ClVuAqnpMAW7v924ryKW1eYylvkPJR0b3PA=
 github.com/newrelic/newrelic-client-go v0.58.5 h1:Bp9vzKjc/9nQXvO1q/cdRW6YppGhXAHh8GZrlevIrVM=
 github.com/newrelic/newrelic-client-go v0.58.5/go.mod h1:+wOK+2m1ClVuAqnpMAW7v924ryKW1eYylvkPJR0b3PA=
 github.com/newrelic/tutone v0.6.1 h1:hO3gumrOvTeIQjHHEB8J9oGloC0GHxbIAXU1FazSe6Q=
