@@ -13,7 +13,7 @@ import (
 )
 
 func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "test-cassandra-ohi",
@@ -45,7 +45,7 @@ func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
 }
 
 func TestFilter_NoMatchingProcess(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "java-agent",
@@ -81,7 +81,7 @@ func TestFilter_NoMatchingProcess(t *testing.T) {
 }
 
 func TestFilter_SingleMatchingProcess_SingleOHIRecipe(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "cassandra-open-source-integration",
@@ -113,7 +113,7 @@ func TestFilter_SingleMatchingProcess_SingleOHIRecipe(t *testing.T) {
 }
 
 func TestFilter_SingleMatchingProcess_SingleAPMRecipe(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "java-agent",
@@ -145,7 +145,7 @@ func TestFilter_SingleMatchingProcess_SingleAPMRecipe(t *testing.T) {
 }
 
 func TestFilter_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "java-agent",
@@ -183,7 +183,7 @@ func TestFilter_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
 }
 
 func TestFilter_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "test-java-agent",
@@ -220,7 +220,7 @@ func TestFilter_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
 }
 
 func TestFilter_MultipleMatchingProcesses_MultipleRecipes(t *testing.T) {
-	r := []types.Recipe{
+	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
 			Name:         "test-java-agent",

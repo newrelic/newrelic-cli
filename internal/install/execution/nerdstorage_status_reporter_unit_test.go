@@ -16,7 +16,7 @@ func TestRecipesAvailable_Basic(t *testing.T) {
 	r := NewNerdStorageStatusReporter(c)
 	status := NewInstallStatus(nil)
 
-	recipes := []types.Recipe{{}}
+	recipes := []types.OpenInstallationRecipe{{}}
 
 	err := r.RecipesAvailable(status, recipes)
 	require.NoError(t, err)
@@ -29,7 +29,7 @@ func TestRecipesAvailable_UserScopeError(t *testing.T) {
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
 
-	recipes := []types.Recipe{{}}
+	recipes := []types.OpenInstallationRecipe{{}}
 
 	err := r.RecipesAvailable(status, recipes)
 	require.Error(t, err)

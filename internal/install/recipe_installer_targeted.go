@@ -7,13 +7,12 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
-func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe types.Recipe, manifest *types.DiscoveryManifest) ([]*types.Recipe, error) {
-	dependencies := []*types.Recipe{}
+func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe types.OpenInstallationRecipe, manifest *types.DiscoveryManifest) ([]*types.OpenInstallationRecipe, error) {
+	dependencies := []*types.OpenInstallationRecipe{}
 
 	if len(recipe.Dependencies) == 0 {
 		return dependencies, nil
@@ -33,8 +32,8 @@ func (i *RecipeInstaller) resolveRecipeDependencies(ctx context.Context, recipe 
 	return dependencies, nil
 }
 
-func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Recipe, error) {
-	var recipes []types.Recipe
+func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
+	var recipes []types.OpenInstallationRecipe
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
@@ -85,7 +84,7 @@ func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Re
 }
 
 func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
-	var recipes []types.Recipe
+	var recipes []types.OpenInstallationRecipe
 
 	i.status.SetTargetedInstall()
 
@@ -125,14 +124,14 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 	return nil
 }
 
-func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.Recipe, error) {
+func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
 	recipeURL, parseErr := url.Parse(recipePath)
 	if parseErr == nil && recipeURL.Scheme != "" {
 		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
 		}
-		return finalizeRecipe(f)
+		return f, nil
 	}
 
 	f, err := i.recipeFileFetcher.LoadRecipeFile(recipePath)
@@ -140,18 +139,18 @@ func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.Recipe, erro
 		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
 	}
 
-	return finalizeRecipe(f)
+	return f, nil
 }
 
-func finalizeRecipe(f *recipes.RecipeFile) (*types.Recipe, error) {
-	r, err := f.ToRecipe()
-	if err != nil {
-		return nil, fmt.Errorf("could not finalize recipe %s: %s", f.Name, err)
-	}
-	return r, nil
-}
+// func finalizeRecipe(f *types.OpenInstallationRecipe) (*types.OpenInstallationRecipe, error) {
+// 	r, err := f.ToRecipe()
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not finalize recipe %s: %s", f.Name, err)
+// 	}
+// 	return r, nil
+// }
 
-func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.Recipe {
+func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.OpenInstallationRecipe {
 	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {
 		log.Warnf("Could not install %s. Error retrieving recipe: %s", recipeName, err)

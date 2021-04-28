@@ -18,7 +18,7 @@ func TestNewInstallStatus(t *testing.T) {
 
 func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := []types.Recipe{{
+	r := []types.OpenInstallationRecipe{{
 		Name: "testRecipe1",
 	}, {
 		Name: "testRecipe2",
@@ -35,7 +35,7 @@ func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
 
 func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
 	s.Timestamp = 0
@@ -49,7 +49,7 @@ func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 
 func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{
 		Recipe: r,
 		Msg:    "thing failed for a reason",
@@ -68,7 +68,7 @@ func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
 
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
 	s.Timestamp = 0
@@ -90,7 +90,7 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 
 func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
 	s.Timestamp = 0
@@ -104,7 +104,7 @@ func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
 	s.withEntityGUID("testGUID")
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
 	s.Timestamp = 0
@@ -117,10 +117,10 @@ func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 
 func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
-	s.RecipesAvailable([]types.Recipe{r})
+	s.RecipesAvailable([]types.OpenInstallationRecipe{r})
 
 	result := s.getStatus(r)
 	require.NotNil(t, result)
@@ -155,9 +155,9 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 
 func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 
-	s.RecipesAvailable([]types.Recipe{r})
+	s.RecipesAvailable([]types.OpenInstallationRecipe{r})
 
 	s.InstallComplete(nil)
 	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
@@ -165,9 +165,9 @@ func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
 
 func TestInstallStatus_cancelAvailable(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{})
-	r := types.Recipe{Name: "testRecipe"}
+	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 
-	s.RecipesAvailable([]types.Recipe{r})
+	s.RecipesAvailable([]types.OpenInstallationRecipe{r})
 
 	s.InstallCanceled()
 	require.Equal(t, RecipeStatusTypes.CANCELED, s.Statuses[0].Status)
@@ -175,18 +175,18 @@ func TestInstallStatus_cancelAvailable(t *testing.T) {
 
 func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{NewMockStatusReporter()})
-	recipeInstalled := types.Recipe{Name: "installed"}
+	recipeInstalled := types.OpenInstallationRecipe{Name: "installed"}
 	installedRecipeEvent := RecipeStatusEvent{Recipe: recipeInstalled, EntityGUID: "installedGUID"}
 
-	recipeSkipped := types.Recipe{Name: "skipped"}
+	recipeSkipped := types.OpenInstallationRecipe{Name: "skipped"}
 	skippedRecipeEvent := RecipeStatusEvent{Recipe: recipeSkipped, EntityGUID: "skippedGUID"}
 
-	recipeErrored := types.Recipe{Name: "errored"}
+	recipeErrored := types.OpenInstallationRecipe{Name: "errored"}
 	erroredRecipeEvent := RecipeStatusEvent{Recipe: recipeErrored, EntityGUID: "erroredGUID"}
 
-	recipeCanceled := types.Recipe{Name: "canceled"}
+	recipeCanceled := types.OpenInstallationRecipe{Name: "canceled"}
 
-	s.RecipesAvailable([]types.Recipe{
+	s.RecipesAvailable([]types.OpenInstallationRecipe{
 		recipeInstalled,
 		recipeCanceled,
 	})

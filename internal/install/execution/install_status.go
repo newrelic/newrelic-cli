@@ -92,7 +92,7 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 	}
 }
 
-func (s *InstallStatus) RecipeAvailable(recipe types.Recipe) {
+func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
 	s.withAvailableRecipe(recipe)
 
 	for _, r := range s.statusSubscriber {
@@ -102,7 +102,7 @@ func (s *InstallStatus) RecipeAvailable(recipe types.Recipe) {
 	}
 }
 
-func (s *InstallStatus) RecipesAvailable(recipes []types.Recipe) {
+func (s *InstallStatus) RecipesAvailable(recipes []types.OpenInstallationRecipe) {
 	s.withAvailableRecipes(recipes)
 
 	for _, r := range s.statusSubscriber {
@@ -112,7 +112,7 @@ func (s *InstallStatus) RecipesAvailable(recipes []types.Recipe) {
 	}
 }
 
-func (s *InstallStatus) RecipesSelected(recipes []types.Recipe) {
+func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) {
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipesSelected(s, recipes); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
@@ -240,13 +240,13 @@ func (s *InstallStatus) HostEntityGUID() string {
 	return guid
 }
 
-func (s *InstallStatus) withAvailableRecipes(recipes []types.Recipe) {
+func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRecipe) {
 	for _, r := range recipes {
 		s.withAvailableRecipe(r)
 	}
 }
 
-func (s *InstallStatus) withAvailableRecipe(r types.Recipe) {
+func (s *InstallStatus) withAvailableRecipe(r types.OpenInstallationRecipe) {
 	e := RecipeStatusEvent{Recipe: r}
 	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
 }
@@ -362,7 +362,7 @@ func (s *InstallStatus) canceled() {
 	s.updateFinalInstallationStatuses(true)
 }
 
-func (s *InstallStatus) getStatus(r types.Recipe) *RecipeStatus {
+func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus {
 	for _, recipe := range s.Statuses {
 		if recipe.Name == r.Name {
 			return recipe

@@ -36,8 +36,8 @@ func (d *DiscoveryManifest) AddMatchedProcess(p MatchedProcess) {
 	d.Processes = append(d.Processes, p)
 }
 
-func (d *DiscoveryManifest) ConstrainRecipes(allRecipes []Recipe) []Recipe {
-	var recipes []Recipe
+func (d *DiscoveryManifest) ConstrainRecipes(allRecipes []OpenInstallationRecipe) []OpenInstallationRecipe {
+	var recipes []OpenInstallationRecipe
 
 	for _, recipe := range allRecipes {
 		if len(recipe.InstallTargets) == 0 {

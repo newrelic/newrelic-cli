@@ -6,43 +6,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"gopkg.in/yaml.v2"
-
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"gopkg.in/yaml.v2"
 )
-
-// RecipeFile represents a recipe file as defined in the Open Installation Library.
-type RecipeFile struct {
-	Dependencies      []string                                       `yaml:"dependencies"`
-	Stability         types.OpenInstallationStability                `yaml:"stability"`
-	Quickstarts       types.OpenInstallationQuickstartsFilter        `yaml:"quickstarts,omitempty"`
-	Description       string                                         `yaml:"description"`
-	InputVars         []VariableConfig                               `yaml:"inputVars"`
-	Install           map[string]interface{}                         `yaml:"install"`
-	InstallTargets    []types.OpenInstallationRecipeInstallTarget    `yaml:"installTargets"`
-	Keywords          []string                                       `yaml:"keywords"`
-	LogMatch          []types.LogMatch                               `yaml:"logMatch"`
-	Name              string                                         `yaml:"name"`
-	DisplayName       string                                         `yaml:"displayName"`
-	PreInstall        types.OpenInstallationPreInstallConfiguration  `yaml:"preInstall"`
-	PostInstall       types.OpenInstallationPostInstallConfiguration `yaml:"postInstall"`
-	ProcessMatch      []string                                       `yaml:"processMatch"`
-	Repository        string                                         `yaml:"repository"`
-	ValidationNRQL    string                                         `yaml:"validationNrql"`
-	SuccessLinkConfig types.OpenInstallationSuccessLinkConfig        `yaml:"successLinkConfig"`
-}
-
-type SuccessLinkConfig struct {
-	Type   string `yaml:"type"`
-	Filter string `yaml:"filter"`
-}
-
-type VariableConfig struct {
-	Name    string `yaml:"name"`
-	Prompt  string `yaml:"prompt"`
-	Secret  bool   `secret:"prompt"`
-	Default string `yaml:"default"`
-}
 
 type RecipeFileFetcherImpl struct {
 	HTTPGetFunc  func(string) (*http.Response, error)
@@ -64,7 +30,7 @@ func defaultReadFileFunc(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
 }
 
-func (f *RecipeFileFetcherImpl) FetchRecipeFile(recipeURL *url.URL) (*RecipeFile, error) {
+func (f *RecipeFileFetcherImpl) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
 	response, err := f.HTTPGetFunc(recipeURL.String())
 	if err != nil {
 		return nil, err
@@ -80,74 +46,22 @@ func (f *RecipeFileFetcherImpl) FetchRecipeFile(recipeURL *url.URL) (*RecipeFile
 	if err != nil {
 		return nil, err
 	}
-	return StringToRecipeFile(string(body))
+
+	return NewRecipeFile(string(body))
 }
 
-func (f *RecipeFileFetcherImpl) LoadRecipeFile(filename string) (*RecipeFile, error) {
+func (f *RecipeFileFetcherImpl) LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error) {
 	out, err := f.readFileFunc(filename)
 	if err != nil {
 		return nil, err
 	}
-	return StringToRecipeFile(string(out))
+
+	return NewRecipeFile(string(out))
 }
 
-func StringToRecipeFile(content string) (*RecipeFile, error) {
-	f, err := NewRecipeFile(content)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
-}
-
-func NewRecipeFile(recipeFileString string) (*RecipeFile, error) {
-	var f RecipeFile
+func NewRecipeFile(recipeFileString string) (*types.OpenInstallationRecipe, error) {
+	var f types.OpenInstallationRecipe
 	err := yaml.Unmarshal([]byte(recipeFileString), &f)
-	if err != nil {
-		return nil, err
-	}
-
-	return &f, nil
-}
-
-func (f *RecipeFile) String() (string, error) {
-	out, err := yaml.Marshal(f)
-	if err != nil {
-		return "", err
-	}
-
-	return string(out), nil
-}
-
-func (f *RecipeFile) ToRecipe() (*types.Recipe, error) {
-	fileStr, err := f.String()
-	if err != nil {
-		return nil, err
-	}
-	r := types.Recipe{
-		File:              fileStr,
-		InstallTargets:    f.InstallTargets,
-		Name:              f.Name,
-		DisplayName:       f.DisplayName,
-		Description:       f.Description,
-		Repository:        f.Repository,
-		Keywords:          f.Keywords,
-		PreInstall:        f.PreInstall,
-		PostInstall:       f.PostInstall,
-		ProcessMatch:      f.ProcessMatch,
-		SuccessLinkConfig: f.SuccessLinkConfig,
-		LogMatch:          f.LogMatch,
-		ValidationNRQL:    f.ValidationNRQL,
-		Dependencies:      f.Dependencies,
-		Stability:         f.Stability,
-		Quickstarts:       f.Quickstarts,
-	}
-
-	return &r, nil
-}
-
-func RecipeToRecipeFile(r types.Recipe) (*RecipeFile, error) {
-	var f RecipeFile
-	err := yaml.Unmarshal([]byte(r.File), &f)
 	if err != nil {
 		return nil, err
 	}

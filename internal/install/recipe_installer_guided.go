@@ -17,9 +17,9 @@ import (
 // have an error.  If an OHI recipe fails, we warn the user.  This allows the
 // desired user experience.
 func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
-	var recipesForInstallation []types.Recipe
-	var selectedIntegrations []types.Recipe
-	var recommendedIntegrations []types.Recipe
+	var recipesForInstallation []types.OpenInstallationRecipe
+	var selectedIntegrations []types.OpenInstallationRecipe
+	var recommendedIntegrations []types.OpenInstallationRecipe
 
 	// Fetch the infra agent recipe and mark it as available.
 	infraAgentRecipe, err := i.fetchRecipeAndReportAvailable(ctx, m, types.InfraAgentRecipeName)
@@ -48,7 +48,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 
 	// If necessary, fetch additional integration recommendations from the recipe service.
 	if !i.SkipDiscovery {
-		var recommended []types.Recipe
+		var recommended []types.OpenInstallationRecipe
 		recommended, err = i.fetchRecommendations(m)
 		if err != nil {
 			log.Debugf("error fetching additional integrations: %s", err)
@@ -124,7 +124,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 	return nil
 }
 
-func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe, recipes []types.Recipe) error {
+func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("filtering log matches")
@@ -137,7 +137,7 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 		"possible_matches": len(logMatches),
 	}).Debug("filtered log matches")
 
-	var acceptedLogMatches []types.LogMatch
+	var acceptedLogMatches []types.OpenInstallationLogMatch
 	var ok bool
 	for _, match := range logMatches {
 		ok, err = i.userAcceptsLogFile(match)
@@ -156,11 +156,12 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 
 	// The struct to approximate the logging configuration file of the Infra Agent. (deprecated)
 	type loggingConfig struct {
-		Logs []types.LogMatch `yaml:"logs"`
+		Logs []types.OpenInstallationLogMatch `yaml:"logs"`
 	}
 	// Deprecated. Will be removed in a future release and replaced by NR_DISCOVERED_LOG_FILES.
 	// We need to keep this var for backwards compatibility until recipes have been updated with the new var.
 	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
+	// r.SetRecipeVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
 
 	// Build a comma-separated list of discovered log file paths
 	discoveredLogFiles := []string{}
@@ -180,7 +181,7 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 	return err
 }
 
-func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	log.Debug("fetching recommended recipes")
 
 	recommendations, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
@@ -207,8 +208,8 @@ func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]ty
 
 // Filter out infra and logging recipes from recommendations, since they are
 // handled explicitly elsewhere.  This avoids duplicate installation.
-func (i *RecipeInstaller) filterRecommendations(recipes []types.Recipe) []types.Recipe {
-	filteredRecommendations := []types.Recipe{}
+func (i *RecipeInstaller) filterRecommendations(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+	filteredRecommendations := []types.OpenInstallationRecipe{}
 	for _, r := range recipes {
 		if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName {
 			log.WithFields(log.Fields{
@@ -237,12 +238,12 @@ func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
 	return val, nil
 }
 
-func (i *RecipeInstaller) userAcceptsLogFile(match types.LogMatch) (bool, error) {
+func (i *RecipeInstaller) userAcceptsLogFile(match types.OpenInstallationLogMatch) (bool, error) {
 	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them?", match.File)
 	return i.userAccepts(msg)
 }
 
-func (i *RecipeInstaller) recipeInRecipes(recipe types.Recipe, recipes []types.Recipe) bool {
+func (i *RecipeInstaller) recipeInRecipes(recipe types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) bool {
 	for _, r := range recipes {
 		if recipe.Name == r.Name {
 			return true
@@ -252,8 +253,8 @@ func (i *RecipeInstaller) recipeInRecipes(recipe types.Recipe, recipes []types.R
 	return false
 }
 
-func (i *RecipeInstaller) removeRecipes(recipes []types.Recipe, remove ...types.Recipe) []types.Recipe {
-	filtered := []types.Recipe{}
+func (i *RecipeInstaller) removeRecipes(recipes []types.OpenInstallationRecipe, remove ...types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+	filtered := []types.OpenInstallationRecipe{}
 	for _, recipe := range recipes {
 		for _, r := range remove {
 			if recipe.Name != r.Name {
@@ -271,8 +272,8 @@ func (i *RecipeInstaller) removeRecipes(recipes []types.Recipe, remove ...types.
 //   - mark recipes as SKIPPED if designated by user prompt input
 //   - ensure the logging recipe is skipped if designated by user prompt input
 //   - filter out recipes with APPLICATION target types
-func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Recipe) ([]types.Recipe, error) {
-	installCandidates := []types.Recipe{}
+func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+	installCandidates := []types.OpenInstallationRecipe{}
 	for _, r := range recommendedIntegrations {
 		if r.HasApplicationTargetType() && !r.IsApm() {
 			// do nothing
@@ -306,7 +307,7 @@ func (i *RecipeInstaller) filterIntegrations(recommendedIntegrations []types.Rec
 		fmt.Println()
 	}
 
-	var integrationsForInstall []types.Recipe
+	var integrationsForInstall []types.OpenInstallationRecipe
 	for _, selectedIntegrationName := range selectedIntegrationNames {
 		for _, r := range recommendedIntegrations {
 			if r.DisplayName == selectedIntegrationName {

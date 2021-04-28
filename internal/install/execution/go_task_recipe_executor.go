@@ -18,7 +18,6 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -31,7 +30,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	return &GoTaskRecipeExecutor{}
 }
 
-func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
+func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
 	log.WithFields(log.Fields{
 		"name": r.Name,
 	}).Debug("preparing recipe")
@@ -47,24 +46,14 @@ func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryMa
 		return types.RecipeVars{}, err
 	}
 
-	recipeResult, err := varsFromRecipe(r)
-	if err != nil {
-		return types.RecipeVars{}, err
-	}
-
-	f, err := recipes.RecipeToRecipeFile(r)
-	if err != nil {
-		return types.RecipeVars{}, err
-	}
-
-	inputVarsResult, err := varsFromInput(f.InputVars, assumeYes)
+	inputVarsResult, err := varsFromInput(r.InputVars, assumeYes)
 	if err != nil {
 		return types.RecipeVars{}, err
 	}
 
 	results = append(results, systemInfoResult)
 	results = append(results, profileResult)
-	results = append(results, recipeResult)
+	results = append(results, types.RecipeVariables)
 	results = append(results, inputVarsResult)
 
 	for _, result := range results {
@@ -76,18 +65,10 @@ func (re *GoTaskRecipeExecutor) Prepare(ctx context.Context, m types.DiscoveryMa
 	return vars, nil
 }
 
-func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.Recipe, recipeVars types.RecipeVars) error {
+func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
 	log.Debugf("executing recipe %s", r.Name)
 
-	f, err := recipes.RecipeToRecipeFile(r)
-	if err != nil {
-		return fmt.Errorf("could not convert recipe to recipe file: %s", err)
-	}
-
-	out, err := yaml.Marshal(f.Install)
-	if err != nil {
-		return fmt.Errorf("could not marshal recipe file: %s", err)
-	}
+	out := []byte(r.Install)
 
 	// Create a temporary task file.
 	file, err := ioutil.TempFile("", r.Name)
@@ -177,22 +158,7 @@ func varsFromSystemInfo(m types.DiscoveryManifest) types.RecipeVars {
 	return vars
 }
 
-func varsFromRecipe(r types.Recipe) (types.RecipeVars, error) {
-	vars := make(types.RecipeVars)
-
-	for k, x := range r.Vars {
-		varData, err := yaml.Marshal(x)
-		if err != nil {
-			return types.RecipeVars{}, err
-		}
-
-		vars[k] = string(varData)
-	}
-
-	return vars, nil
-}
-
-func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.RecipeVars, error) {
+func varsFromInput(inputVars []types.OpenInstallationRecipeInputVariable, assumeYes bool) (types.RecipeVars, error) {
 	vars := make(types.RecipeVars)
 
 	vars["NEW_RELIC_ASSUME_YES"] = fmt.Sprintf("%t", assumeYes)
@@ -238,7 +204,7 @@ func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.Re
 	return vars, nil
 }
 
-func varFromPrompt(envConfig recipes.VariableConfig) (string, error) {
+func varFromPrompt(envConfig types.OpenInstallationRecipeInputVariable) (string, error) {
 	msg := fmt.Sprintf("value for %s required", envConfig.Name)
 
 	if envConfig.Prompt != "" {

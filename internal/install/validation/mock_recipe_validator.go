@@ -20,7 +20,7 @@ func NewMockRecipeValidator() *MockRecipeValidator {
 	return &MockRecipeValidator{}
 }
 
-func (m *MockRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe) (string, error) {
+func (m *MockRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (string, error) {
 	m.ValidateCallCount++
 
 	var err error

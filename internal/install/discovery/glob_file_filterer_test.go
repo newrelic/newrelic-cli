@@ -33,10 +33,10 @@ func TestGlobFileFilter(t *testing.T) {
 	require.NoError(t, err)
 	defer f3.Close()
 
-	recipes := []types.Recipe{
+	recipes := []types.OpenInstallationRecipe{
 		{
 			ID: "test",
-			LogMatch: []types.LogMatch{
+			LogMatch: []types.OpenInstallationLogMatch{
 				{
 					File: filepath.Join(tmpDir, "*.log"),
 				},
@@ -44,7 +44,7 @@ func TestGlobFileFilter(t *testing.T) {
 		},
 		{
 			ID: "nginx",
-			LogMatch: []types.LogMatch{
+			LogMatch: []types.OpenInstallationLogMatch{
 				{
 					File: "/var/log/nope/*.log",
 				},
@@ -81,10 +81,10 @@ func TestMatchLogFilesFromRecipe(t *testing.T) {
 	require.NoError(t, err)
 	defer f3.Close()
 
-	recipes := []types.Recipe{
+	recipes := []types.OpenInstallationRecipe{
 		{
 			ID: "test",
-			LogMatch: []types.LogMatch{
+			LogMatch: []types.OpenInstallationLogMatch{
 				{
 					File: filepath.Join(tmpDir, "*.log"),
 				},

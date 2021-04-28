@@ -27,7 +27,7 @@ func NewServiceRecipeFetcher(client NerdGraphClient) RecipeFetcher {
 }
 
 // FetchRecipe gets a recipe by name from the recipe service.
-func (f *ServiceRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
+func (f *ServiceRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.OpenInstallationRecipe, error) {
 	log.WithFields(log.Fields{
 		"name": friendlyName,
 	}).Debug("fetching recipe")
@@ -63,14 +63,12 @@ func (f *ServiceRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.
 		return nil, fmt.Errorf("more than 1 result found for friendly name %s", friendlyName)
 	}
 
-	r := createRecipe(results[0])
-
-	return &r, nil
+	return &results[0], nil
 }
 
 // FetchRecommendations fetches recipe recommendations from the recipe service
 // based on the information passed in the provided DiscoveryManifest.
-func (f *ServiceRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *ServiceRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	c, err := createRecommendationsInput(manifest)
 	if err != nil {
 		return nil, err
@@ -85,11 +83,11 @@ func (f *ServiceRecipeFetcher) FetchRecommendations(ctx context.Context, manifes
 		return nil, err
 	}
 
-	allRecipes := resp.Docs.OpenInstallation.Recommendations.ToRecipes()
+	allRecipes := resp.Docs.OpenInstallation.Recommendations.Results
 
-	r := []types.Recipe{}
+	r := []types.OpenInstallationRecipe{}
 
-	recipeIncluded := func(recipe types.Recipe, recipes []types.Recipe) bool {
+	recipeIncluded := func(recipe types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) bool {
 		for _, r := range recipes {
 			if recipe.Name == r.Name {
 				return true
@@ -111,7 +109,7 @@ func (f *ServiceRecipeFetcher) FetchRecommendations(ctx context.Context, manifes
 }
 
 // FetchRecipes fetches all available recipes from the recipe service.
-func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	var resp recipeSearchQueryResult
 
 	criteria := recipeSearchInput{
@@ -126,7 +124,7 @@ func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types
 		return nil, err
 	}
 
-	return resp.Docs.OpenInstallation.RecipeSearch.ToRecipes(), nil
+	return resp.Docs.OpenInstallation.RecipeSearch.Results, nil
 }
 
 type recommendationsQueryResult struct {
@@ -169,10 +167,6 @@ type processDetailInput struct {
 	Name string `json:"name"`
 }
 
-func (r *recommendationsResult) ToRecipes() []types.Recipe {
-	return createRecipes(r.Results)
-}
-
 type recipeSearchQueryResult struct {
 	Docs recipeSearchQueryDocs `json:"docs"`
 }
@@ -187,10 +181,6 @@ type recipeSearchQueryOpenInstallation struct {
 
 type recipeSearchResult struct {
 	Results []types.OpenInstallationRecipe `json:"results"`
-}
-
-func (r *recipeSearchResult) ToRecipes() []types.Recipe {
-	return createRecipes(r.Results)
 }
 
 func createRecipeSearchInput(d *types.DiscoveryManifest, friendlyName string) (*recipeSearchInput, error) {
@@ -229,67 +219,6 @@ func createInstallTarget(d *types.DiscoveryManifest) installTarget {
 	//i.PlatformFamily = strings.ToUpper(d.PlatformFamily)
 
 	return i
-}
-
-func createRecipes(results []types.OpenInstallationRecipe) []types.Recipe {
-	r := []types.Recipe{}
-
-	for _, result := range results {
-		recipe := createRecipe(result)
-
-		r = append(r, recipe)
-	}
-
-	return r
-}
-
-func createRecipe(result types.OpenInstallationRecipe) types.Recipe {
-	return types.Recipe{
-		ID:                result.ID,
-		Description:       result.Description,
-		DisplayName:       result.DisplayName,
-		File:              result.File,
-		InstallTargets:    result.InstallTargets,
-		Keywords:          result.Keywords,
-		LogMatch:          createLogMatches(result.LogMatch),
-		Name:              result.Name,
-		ProcessMatch:      result.ProcessMatch,
-		Repository:        result.Repository,
-		ValidationNRQL:    string(result.ValidationNRQL),
-		PreInstall:        result.PreInstall,
-		PostInstall:       result.PostInstall,
-		SuccessLinkConfig: result.SuccessLinkConfig,
-		Dependencies:      result.Dependencies,
-		Stability:         result.Stability,
-		// TODO: type for quickstarts needs to be changed in the service (currently
-		// returns an object instead of a list)
-		// Quickstarts:       result.Quickstarts,
-	}
-}
-
-func createLogMatches(results []types.OpenInstallationLogMatch) []types.LogMatch {
-	r := make([]types.LogMatch, len(results))
-	for _, result := range results {
-		r = append(r, createLogMatch(result))
-	}
-
-	return r
-}
-
-func createLogMatch(result types.OpenInstallationLogMatch) types.LogMatch {
-	return types.LogMatch{
-		Name:       result.Name,
-		File:       result.File,
-		Attributes: createLogMatchAttributes(result.Attributes),
-		Pattern:    result.Pattern,
-		Systemd:    result.Systemd,
-	}
-}
-
-func createLogMatchAttributes(result types.OpenInstallationAttributes) types.LogMatchAttributes {
-	return types.LogMatchAttributes{
-		LogType: result.Logtype,
-	}
 }
 
 const (
@@ -334,7 +263,6 @@ const (
 		postInstall {
 			info
 		}
-		file
 		successLinkConfig {
 			type
 			filter

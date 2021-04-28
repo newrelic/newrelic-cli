@@ -16,10 +16,10 @@ func NewMockRecipeExecutor() *MockRecipeExecutor {
 	}
 }
 
-func (m *MockRecipeExecutor) Prepare(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe, y bool, z string) (types.RecipeVars, error) {
+func (m *MockRecipeExecutor) Prepare(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe, y bool, z string) (types.RecipeVars, error) {
 	return types.RecipeVars{}, nil
 }
 
-func (m *MockRecipeExecutor) Execute(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe, v types.RecipeVars) error {
+func (m *MockRecipeExecutor) Execute(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return nil
 }

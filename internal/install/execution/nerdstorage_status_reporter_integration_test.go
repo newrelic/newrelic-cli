@@ -47,7 +47,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
 
-	rec := types.Recipe{Name: "testName"}
+	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
 		Recipe:     rec,
 		EntityGUID: entityGUID,
@@ -95,7 +95,7 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
 
-	rec := types.Recipe{Name: "testName"}
+	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
 		Recipe: rec,
 	}

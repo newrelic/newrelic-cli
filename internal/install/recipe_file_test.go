@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 var (
@@ -102,39 +103,11 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 }
 
 func TestNewRecipeFile(t *testing.T) {
-	var expected recipes.RecipeFile
+	var expected types.OpenInstallationRecipe
 	err := yaml.Unmarshal([]byte(testRecipeFileString), &expected)
 	require.NoError(t, err)
 
 	actual, err := recipes.NewRecipeFile(testRecipeFileString)
 	require.NoError(t, err)
 	require.True(t, reflect.DeepEqual(&expected, actual))
-}
-
-func TestString(t *testing.T) {
-	var f recipes.RecipeFile
-	err := yaml.Unmarshal([]byte(testRecipeFileString), &f)
-	require.NoError(t, err)
-
-	s, err := f.String()
-	require.NoError(t, err)
-	require.NotEmpty(t, s)
-}
-
-func TestToRecipe(t *testing.T) {
-	var f recipes.RecipeFile
-	err := yaml.Unmarshal([]byte(testRecipeFileString), &f)
-	require.NoError(t, err)
-
-	r, err := f.ToRecipe()
-	require.NoError(t, err)
-	require.NotEmpty(t, r)
-	require.NotEmpty(t, r.File)
-	require.Equal(t, f.Name, r.Name)
-	require.Equal(t, f.Description, r.Description)
-	require.Equal(t, f.Repository, r.Repository)
-	require.Equal(t, f.ValidationNRQL, r.ValidationNRQL)
-
-	require.NotEmpty(t, f.Keywords, r.Keywords)
-	require.NotEmpty(t, f.ProcessMatch, r.ProcessMatch)
 }

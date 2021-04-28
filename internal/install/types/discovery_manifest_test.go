@@ -8,7 +8,7 @@ import (
 
 func TestDiscoveryManifest_ConstrainRecipes(t *testing.T) {
 
-	recipes := []Recipe{
+	recipes := []OpenInstallationRecipe{
 		{
 			Name: "unknown",
 			InstallTargets: []OpenInstallationRecipeInstallTarget{

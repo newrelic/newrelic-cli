@@ -7,19 +7,19 @@ type StatusSubscriber interface {
 	InstallCanceled(status *InstallStatus) error
 	InstallComplete(status *InstallStatus) error
 	DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error
-	RecipeAvailable(status *InstallStatus, recipe types.Recipe) error
+	RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error
 	RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error
-	RecipesAvailable(status *InstallStatus, recipes []types.Recipe) error
-	RecipesSelected(status *InstallStatus, recipes []types.Recipe) error
+	RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error
+	RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error
 }
 
 // RecipeStatusEvent represents an event in a recipe's execution.
 type RecipeStatusEvent struct {
-	Recipe                         types.Recipe
+	Recipe                         types.OpenInstallationRecipe
 	Msg                            string
 	EntityGUID                     string
 	ValidationDurationMilliseconds int64

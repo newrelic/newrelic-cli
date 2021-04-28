@@ -167,7 +167,7 @@ func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.Dis
 	return nil
 }
 
-func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.Recipe) error {
+func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.OpenInstallationRecipe) error {
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
@@ -210,7 +210,7 @@ func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifes
 	return m, nil
 }
 
-func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	// Execute the recipe steps.
@@ -257,7 +257,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.Recipe) (string, error) {
+func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
 	msg := fmt.Sprintf("Installing %s", r.Name)
 	i.progressIndicator.Start(msg)
 	defer func() { i.progressIndicator.Stop() }()
@@ -296,7 +296,7 @@ func (i *RecipeInstaller) failMessage(componentName string) error {
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
 
-func (i *RecipeInstaller) fetchRecipeAndReportAvailable(ctx context.Context, m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+func (i *RecipeInstaller) fetchRecipeAndReportAvailable(ctx context.Context, m *types.DiscoveryManifest, recipeName string) (*types.OpenInstallationRecipe, error) {
 	log.WithFields(log.Fields{
 		"name": recipeName,
 	}).Debug("fetching recipe for install")
@@ -311,7 +311,7 @@ func (i *RecipeInstaller) fetchRecipeAndReportAvailable(ctx context.Context, m *
 	return r, nil
 }
 
-func (i *RecipeInstaller) fetch(ctx context.Context, m *types.DiscoveryManifest, recipeName string) (*types.Recipe, error) {
+func (i *RecipeInstaller) fetch(ctx context.Context, m *types.DiscoveryManifest, recipeName string) (*types.OpenInstallationRecipe, error) {
 	r, err := i.recipeFetcher.FetchRecipe(ctx, m, recipeName)
 	if err != nil {
 		log.Errorf("error retrieving recipe %s: %s", recipeName, err)

@@ -11,7 +11,7 @@ import (
 type MockFileFilterer struct {
 	FilterCallCount int
 	FilterErr       error
-	FilterVal       []types.LogMatch
+	FilterVal       []types.OpenInstallationLogMatch
 }
 
 // NewMockFileFilterer creates a new instance of MockFileFilterer.
@@ -19,7 +19,7 @@ func NewMockFileFilterer() *MockFileFilterer {
 	return &MockFileFilterer{}
 }
 
-func (m *MockFileFilterer) Filter(ctx context.Context, recipes []types.Recipe) ([]types.LogMatch, error) {
+func (m *MockFileFilterer) Filter(ctx context.Context, recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error) {
 	m.FilterCallCount++
 	return m.FilterVal, m.FilterErr
 }
