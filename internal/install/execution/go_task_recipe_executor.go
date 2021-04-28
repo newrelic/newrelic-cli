@@ -186,6 +186,8 @@ func varsFromRecipe(r types.Recipe) (types.RecipeVars, error) {
 func varsFromInput(inputVars []recipes.VariableConfig, assumeYes bool) (types.RecipeVars, error) {
 	vars := make(types.RecipeVars)
 
+	vars["NEW_RELIC_ASSUME_YES"] = fmt.Sprintf("%t", assumeYes)
+
 	for _, envConfig := range inputVars {
 		var err error
 		envValue := os.Getenv(envConfig.Name)
