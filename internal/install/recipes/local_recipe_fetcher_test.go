@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -34,8 +33,8 @@ func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
 	}
 	recipes, err := f.FetchRecommendations(context.Background(), &types.DiscoveryManifest{OS: "linux"})
 	require.NoError(t, err)
-	require.NotNil(t, recipes)
-	require.NotEmpty(t, recipes)
+	require.Nil(t, recipes)
+	require.Empty(t, recipes)
 }
 
 func TestLocalRecipeFetcher_FetchRecipe(t *testing.T) {
@@ -58,7 +57,7 @@ func TestLocalRecipeFetcher_FetchRecipe(t *testing.T) {
 	require.ErrorIs(t, err, ErrRecipeNotFound)
 	require.Nil(t, recipe)
 
-	recipe, err = f.FetchRecipe(context.Background(), &types.DiscoveryManifest{OS: "linux"}, "infrastructure-agent-installer")
+	recipe, err = f.FetchRecipe(context.Background(), &types.DiscoveryManifest{OS: "linux", Platform: "debian"}, "infrastructure-agent-installer")
 	require.NoError(t, err)
 	require.Equal(t, "infrastructure-agent-installer", recipe.Name)
 }
@@ -85,8 +84,6 @@ func TestLocalRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
 }
 
 func TestLocalRecipeFetcher_FetchRecipes(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-
 	tmp, err := ioutil.TempDir("/tmp", "newrelic")
 	defer os.RemoveAll(tmp)
 	require.NoError(t, err)
