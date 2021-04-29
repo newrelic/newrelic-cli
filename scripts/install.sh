@@ -22,6 +22,18 @@ else
 	exit 1
 fi
 
+
+if [ "$(uname -m)" == "x86_64" ]; then
+    MACHINE="x86_64"
+elif [ "$(uname)" == "aarch64" ]; then
+    MACHINE="aarch64"
+else
+	echo "This machine architecture is not supported."
+	exit 1
+fi
+
+
+
 for x in curl cut tar gzip sudo; do
     which $x > /dev/null || (echo "Unable to continue.  Please install $x before proceeding."; exit 1)
 done
@@ -47,7 +59,7 @@ function error {
 
 trap error ERR
 
-RELEASE_URL="https://github.com/newrelic/newrelic-cli/releases/download/v${VERSION}/newrelic-cli_${VERSION}_${OS}_x86_64.tar.gz"
+RELEASE_URL="https://github.com/newrelic/newrelic-cli/releases/download/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
 
 # Download & unpack the release tarball.
 curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
