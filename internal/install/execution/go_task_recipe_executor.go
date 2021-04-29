@@ -126,9 +126,18 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Debug("Task execution returned error")
+
 		// go-task does not provide an error type to denote context cancelation
 		// Therefore we need to match inside the error message
 		if strings.Contains(err.Error(), "context canceled") {
+			return types.ErrInterrupt
+		}
+
+		// Recipe trigger a canceled event with specific exit code 130 used
+		if strings.Contains(err.Error(), "exit status 130") {
 			return types.ErrInterrupt
 		}
 
