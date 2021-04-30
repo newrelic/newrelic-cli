@@ -20,6 +20,10 @@ builds:
     goarch:
       - amd64
       - arm64
+      - arm
+    goarm:
+      - 6
+      - 7
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.appName={{.Binary}}
         -X github.com/newrelic/newrelic-cli/internal/client.version={{.Version}}
@@ -47,7 +51,15 @@ archives:
 
 signs:
   - artifacts: all
-    args: ["-u", "0xDC9FC6B1FCE47986", "--output", "${signature}", "--detach-sign", "${artifact}"]
+    args:
+      [
+        "-u",
+        "0xDC9FC6B1FCE47986",
+        "--output",
+        "${signature}",
+        "--detach-sign",
+        "${artifact}",
+      ]
 
 dockers:
   - dockerfile: build/package/Dockerfile
