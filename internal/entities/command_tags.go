@@ -220,12 +220,7 @@ func init() {
 
 	cmdTags.AddCommand(cmdTagsGet)
 
-	pipe.GetInput([]string{"guid"})
-
-	if !pipe.Exists("guid") {
-		cmdTagsGet.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to retrieve tags for")
-		utils.LogIfError(cmdTagsGet.MarkFlagRequired("guid"))
-	}
+	cmdTagsGet.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to retrieve tags for")
 
 	cmdTags.AddCommand(cmdTagsDelete)
 	cmdTagsDelete.Flags().StringVarP(&entityGUID, "guid", "g", "", "the entity GUID to delete tags on")

@@ -23,6 +23,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
 
@@ -33,23 +34,24 @@ var (
 
 func init() {
 	// Bind imported sub-commands
+	Command.AddCommand(agent.Command)
+	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(config.Command)
 	Command.AddCommand(credentials.Command)
-	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(decode.Command)
+	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
-	Command.AddCommand(events.Command)
 	Command.AddCommand(entities.Command)
+	Command.AddCommand(events.Command)
+	Command.AddCommand(install.Command)
+	Command.AddCommand(install.TestCommand)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(nrql.Command)
 	Command.AddCommand(reporting.Command)
+	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)
-	Command.AddCommand(agent.Command)
-	Command.AddCommand(install.Command)
-	Command.AddCommand(install.TestCommand)
-	Command.AddCommand(apiaccess.Command)
 
 	CheckPrereleaseMode(Command)
 
