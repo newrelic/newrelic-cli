@@ -14,18 +14,6 @@ import (
 
 func TestEntitiesGetTags(t *testing.T) {
 	assert.Equal(t, "get", cmdTagsGet.Name())
-
-	requiredFlags := []string{"guid"}
-
-	for _, r := range requiredFlags {
-		x := cmdTagsGet.Flag(r)
-		if x == nil {
-			t.Errorf("missing required flag: %s\n", r)
-			continue
-		}
-
-		assert.Equal(t, []string{"true"}, x.Annotations[cobra.BashCompOneRequiredFlag])
-	}
 }
 
 func TestEntitiesDeleteTags(t *testing.T) {
