@@ -3,7 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/hokaccha/go-prettyjson"
@@ -38,7 +38,7 @@ json parsing capabilities.
 			log.Fatalln(err)
 		}
 
-		bytes, err := io.ReadAll(os.Stdin)
+		bytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			log.Fatalln(err)
 		}
