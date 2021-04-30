@@ -15,6 +15,7 @@ import (
 
 var (
 	assumeYes          bool
+	localRecipes       string
 	recipeNames        []string
 	recipePaths        []string
 	skipDiscovery      bool
@@ -34,6 +35,7 @@ var Command = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := InstallerContext{
 			AssumeYes:          assumeYes,
+			LocalRecipes:       localRecipes,
 			RecipeNames:        recipeNames,
 			RecipePaths:        recipePaths,
 			SkipDiscovery:      skipDiscovery,
@@ -92,4 +94,5 @@ func init() {
 	Command.Flags().BoolVar(&debug, "debug", false, "debug level logging")
 	Command.Flags().BoolVar(&trace, "trace", false, "trace level logging")
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
+	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
 }

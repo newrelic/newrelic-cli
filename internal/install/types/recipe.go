@@ -8,23 +8,23 @@ const (
 )
 
 type Recipe struct {
-	ID                string                                   `json:"id"`
-	Description       string                                   `json:"description"`
-	DisplayName       string                                   `json:"displayName"`
-	Dependencies      []string                                 `json:"dependencies"`
-	Stability         OpenInstallationStability                `json:"stability"`
-	Quickstarts       OpenInstallationQuickstartsFilter        `json:"quickstarts,omitempty"`
-	File              string                                   `json:"file"`
-	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets"`
-	Keywords          []string                                 `json:"keywords"`
-	LogMatch          []LogMatch                               `json:"logMatch"`
-	Name              string                                   `json:"name"`
-	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall"`
-	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall"`
-	ProcessMatch      []string                                 `json:"processMatch"`
-	Repository        string                                   `json:"repository"`
-	SuccessLinkConfig OpenInstallationSuccessLinkConfig        `json:"successLinkConfig"`
-	ValidationNRQL    string                                   `json:"validationNrql"`
+	ID                string                                   `json:"id" yaml:"id"`
+	Description       string                                   `json:"description" yaml:"description"`
+	DisplayName       string                                   `json:"displayName" yaml:"displayName"`
+	Dependencies      []string                                 `json:"dependencies" yaml:"dependencies"`
+	Stability         OpenInstallationStability                `json:"stability" yaml:"stability"`
+	Quickstarts       OpenInstallationQuickstartsFilter        `json:"quickstarts,omitempty" yaml:"quickstarts"`
+	File              string                                   `json:"file" yaml:"file"`
+	InstallTargets    []OpenInstallationRecipeInstallTarget    `json:"installTargets" yaml:"installTargets"`
+	Keywords          []string                                 `json:"keywords" yaml:"keywords"`
+	LogMatch          []LogMatch                               `json:"logMatch" yaml:"logMatch"`
+	Name              string                                   `json:"name" yaml:"name"`
+	PreInstall        OpenInstallationPreInstallConfiguration  `json:"preInstall" yaml:"preInstall"`
+	PostInstall       OpenInstallationPostInstallConfiguration `json:"postInstall" yaml:"postInstall"`
+	ProcessMatch      []string                                 `json:"processMatch" yaml:"processMatch"`
+	Repository        string                                   `json:"repository" yaml:"repository"`
+	SuccessLinkConfig OpenInstallationSuccessLinkConfig        `json:"successLinkConfig" yaml:"successLinkConfig"`
+	ValidationNRQL    string                                   `json:"validationNrql" yaml:"validationNrql"`
 	Vars              map[string]interface{}
 }
 
