@@ -85,7 +85,7 @@ func (d *DiscoveryManifest) ConstrainRecipes(allRecipes []Recipe) []Recipe {
 		}
 	}
 
-	log.Debugf("%d embedded recipes found for manifest", len(recipes))
+	log.Debugf("%d recipes found for manifest", len(recipes))
 
 	return recipes
 }

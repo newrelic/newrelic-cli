@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
@@ -64,12 +63,12 @@ func loadRecipesFromDir(ctx context.Context, path string) ([]types.Recipe, error
 		"path": path,
 	}).Debug("loading recipes")
 
-	re := regexp.MustCompile(`\.ya?ml`)
-
 	err := filepath.Walk(
 		path,
 		func(path string, info os.FileInfo, err error) error {
-			if re.MatchString(path) {
+			ext := filepath.Ext(path)
+
+			if ext == ".yml" || ext == ".yaml" {
 				recipePaths = append(recipePaths, path)
 			}
 
