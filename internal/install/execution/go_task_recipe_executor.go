@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -82,10 +83,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
+	stdoutCapture := NewLineCaptureBuffer(os.Stdout)
+	stderrCapture := NewLineCaptureBuffer(os.Stderr)
+
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stderr:     os.Stderr,
-		Stdout:     os.Stdout,
+		Stderr:     stderrCapture,
+		Stdout:     stdoutCapture,
 		Stdin:      os.Stdin,
 	}
 
@@ -120,6 +124,21 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		// Recipe trigger a canceled event with specific exit code 130 used
 		if strings.Contains(err.Error(), "exit status 130") {
 			return types.ErrInterrupt
+		}
+
+		// Catchall error formatting for child process errors
+		if strings.Contains(err.Error(), "exit status") {
+			lastStderr := stderrCapture.LastFullLine
+
+			statusStr := regexp.MustCompile(`exit status \d+`).FindString(err.Error())
+
+			var msg string
+			if lastStderr != "" {
+				msg = fmt.Sprintf("%s: %s", statusStr, lastStderr)
+			} else {
+				msg = statusStr
+			}
+			return types.NewNonZeroExitCode(msg)
 		}
 
 		return err
