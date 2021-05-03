@@ -87,15 +87,6 @@ func readStdin(pipe pipeReader, selectorList []string) ([]map[string]string, err
 	return filteredMap, nil
 }
 
-// Standard way to check for stdin in most environments (https://stackoverflow.com/questions/22563616/determine-if-stdin-has-data-with-go)
-func pipeInputExists() bool {
-	fi, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-	return (fi.Mode() & os.ModeCharDevice) == 0
-}
-
 // getPipeInputInnerFunc is the function returned with arguments by
 // getPipeInputFactory that becomes GetInput. Private to package, main
 // function to be tested.
@@ -137,7 +128,7 @@ var pipeInput map[string][]string
 // stores those desired json values from stdin. The existence of and values
 // of those stdin json keys can then be retrieved using the public Exists and
 // Get methods, respectively.
-var GetInput = getPipeInputFactory(stdinPipeReader{input: os.Stdin}, pipeInputExists)
+var GetInput = getPipeInputFactory(stdinPipeReader{input: os.Stdin}, utils.StdinExists)
 
 // Get is the only API provided to retrieve values from stdin json. Get
 // is designed to be used in the cobra command itself, when any required

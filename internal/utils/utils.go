@@ -122,3 +122,12 @@ func MakeRange(min, max int) []int {
 func Base64Encode(data string) string {
 	return b64.StdEncoding.EncodeToString([]byte(data))
 }
+
+// Standard way to check for stdin in most environments (https://stackoverflow.com/questions/22563616/determine-if-stdin-has-data-with-go)
+func StdinExists() bool {
+	fi, err := os.Stdin.Stat()
+	if err != nil {
+		return false
+	}
+	return (fi.Mode() & os.ModeCharDevice) == 0
+}
