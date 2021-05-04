@@ -7,9 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type LocalRecipeFetcher struct {
