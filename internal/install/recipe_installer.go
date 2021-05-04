@@ -230,10 +230,16 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		}
 
 		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
-		i.status.RecipeFailed(execution.RecipeStatusEvent{
+		se := execution.RecipeStatusEvent{
 			Recipe: *r,
 			Msg:    msg,
-		})
+		}
+
+		if e, ok := err.(types.GoTaskError); ok {
+			se.Tasks = e.Tasks()
+		}
+
+		i.status.RecipeFailed(se)
 		return "", errors.New(msg)
 	}
 

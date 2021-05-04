@@ -2,24 +2,65 @@ package types
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 )
 
 // ErrInterrupt represents a context cancellation.
 var ErrInterrupt = errors.New("operation canceled")
 
-// ErrNonZeroExitCode represents a non-zero exit code bieing returned from a child process.
-type ErrNonZeroExitCode struct {
-	err string
+type GoTaskError interface {
+	error
+	Tasks() []string
 }
 
-func NewNonZeroExitCode(err string) ErrNonZeroExitCode {
+// GoTaskError represents a task failure reported by go-task.
+type GoTaskGeneralError struct {
+	error
+	tasks []string
+}
+
+func (e GoTaskGeneralError) Error() string {
+	return e.error.Error()
+}
+
+func (e GoTaskGeneralError) Tasks() []string {
+	return e.tasks
+}
+
+func NewGoTaskGeneralError(err error) GoTaskError {
+	re := regexp.MustCompile(`task: Failed to run task \"default\": task: Failed to run task \"(.+)\": `)
+
+	parsed := re.FindAllSubmatch([]byte(err.Error()), 1)
+
+	var task string
+	if len(parsed) > 0 && len(parsed[0]) > 0 {
+		task = string(parsed[0][1])
+	}
+
+	stripped := re.ReplaceAllString(err.Error(), "")
+
+	return GoTaskGeneralError{
+		tasks: []string{task},
+		error: errors.New(stripped),
+	}
+}
+
+// ErrNonZeroExitCode represents a non-zero exit code error reported by go-task.
+type ErrNonZeroExitCode struct {
+	GoTaskError
+	additionalContext string
+}
+
+func NewNonZeroExitCode(originalError GoTaskGeneralError, additionalContext string) ErrNonZeroExitCode {
 	return ErrNonZeroExitCode{
-		err: err,
+		GoTaskError:       originalError,
+		additionalContext: additionalContext,
 	}
 }
 
 func (e ErrNonZeroExitCode) Error() string {
-	return e.err
+	return fmt.Sprintf("%s: %s", e.GoTaskError.Error(), e.additionalContext)
 }
 
 // nolint: golint

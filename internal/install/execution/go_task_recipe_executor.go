@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -115,6 +114,8 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 			"err": err,
 		}).Debug("Task execution returned error")
 
+		goTaskError := types.NewGoTaskGeneralError(err)
+
 		// go-task does not provide an error type to denote context cancelation
 		// Therefore we need to match inside the error message
 		if strings.Contains(err.Error(), "context canceled") {
@@ -130,18 +131,10 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		if strings.Contains(err.Error(), "exit status") {
 			lastStderr := stderrCapture.LastFullLine
 
-			statusStr := regexp.MustCompile(`exit status \d+`).FindString(err.Error())
-
-			var msg string
-			if lastStderr != "" {
-				msg = fmt.Sprintf("%s: %s", statusStr, lastStderr)
-			} else {
-				msg = statusStr
-			}
-			return types.NewNonZeroExitCode(msg)
+			return types.NewNonZeroExitCode(types.GoTaskGeneralError{}, lastStderr)
 		}
 
-		return err
+		return goTaskError
 	}
 
 	return nil
