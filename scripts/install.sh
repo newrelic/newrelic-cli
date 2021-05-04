@@ -26,8 +26,10 @@ if [ "$(uname -m)" == "x86_64" ]; then
     MACHINE="x86_64"
 elif [ "$(uname)" == "aarch64" ]; then
     MACHINE="aarch64"
+elif [ "$(uname)" == "armv7l" ]; then
+    MACHINE="armv7"
 else
-    echo "This machine architecture is not supported. The supported architectures are x86_64 and aarch64."
+    echo "This machine architecture is not supported. The supported architectures are x86_64, aarch64, armv7."
     exit 1
 fi
 
