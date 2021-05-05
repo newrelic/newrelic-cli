@@ -229,18 +229,22 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", err
 		}
 
-		msg := fmt.Sprintf("encountered an error while executing %s: %s", r.Name, err)
+		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+
 		se := execution.RecipeStatusEvent{
 			Recipe: *r,
 			Msg:    msg,
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {
+			e.SetError(msg)
 			se.Tasks = e.Tasks()
+		} else {
+			err = errors.New(msg)
 		}
 
 		i.status.RecipeFailed(se)
-		return "", errors.New(msg)
+		return "", err
 	}
 
 	var entityGUID string

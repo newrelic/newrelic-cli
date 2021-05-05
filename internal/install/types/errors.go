@@ -12,6 +12,7 @@ var ErrInterrupt = errors.New("operation canceled")
 type GoTaskError interface {
 	error
 	Tasks() []string
+	SetError(msg string)
 }
 
 // GoTaskError represents a task failure reported by go-task.
@@ -22,6 +23,10 @@ type GoTaskGeneralError struct {
 
 func (e GoTaskGeneralError) Error() string {
 	return e.error.Error()
+}
+
+func (e GoTaskGeneralError) SetError(msg string) {
+	e.error = errors.New(msg)
 }
 
 func (e GoTaskGeneralError) Tasks() []string {
@@ -52,7 +57,7 @@ type ErrNonZeroExitCode struct {
 	additionalContext string
 }
 
-func NewNonZeroExitCode(originalError GoTaskGeneralError, additionalContext string) ErrNonZeroExitCode {
+func NewNonZeroExitCode(originalError GoTaskError, additionalContext string) ErrNonZeroExitCode {
 	return ErrNonZeroExitCode{
 		GoTaskError:       originalError,
 		additionalContext: additionalContext,
@@ -60,7 +65,11 @@ func NewNonZeroExitCode(originalError GoTaskGeneralError, additionalContext stri
 }
 
 func (e ErrNonZeroExitCode) Error() string {
-	return fmt.Sprintf("%s: %s", e.GoTaskError.Error(), e.additionalContext)
+	if e.additionalContext != "" {
+		return fmt.Sprintf("%s: %s", e.GoTaskError.Error(), e.additionalContext)
+	}
+
+	return e.GoTaskError.Error()
 }
 
 // nolint: golint

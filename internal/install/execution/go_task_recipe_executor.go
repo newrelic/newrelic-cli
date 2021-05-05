@@ -131,7 +131,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		if strings.Contains(err.Error(), "exit status") {
 			lastStderr := stderrCapture.LastFullLine
 
-			return types.NewNonZeroExitCode(types.GoTaskGeneralError{}, lastStderr)
+			return types.NewNonZeroExitCode(goTaskError, lastStderr)
 		}
 
 		return goTaskError
