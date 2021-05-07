@@ -6,6 +6,8 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/newrelic/newrelic-cli/internal/utils/terraform"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -70,7 +72,10 @@ Output will be sent to STDOUT by default but can be redirected to a file with th
 			}
 		}
 
-		hcl := generateDashboardHCL(label, input)
+		hcl, err := terraform.GenerateDashboardHCL(label, input)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if outFile != "" {
 			if err := ioutil.WriteFile(outFile, []byte(hcl), 0644); err != nil {
