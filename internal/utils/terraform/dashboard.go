@@ -2,9 +2,11 @@ package terraform
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-client-go/pkg/dashboards"
 )
 
 var (
@@ -24,39 +26,6 @@ var (
 		"viz.table":     "widget_table",
 	}
 )
-
-type Dashboard struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Permissions string `json:"permissions"`
-
-	Pages []DashboardPage `json:"pages"`
-}
-
-type DashboardPage struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-
-	Widgets []DashboardWidget `json:"widgets"`
-}
-
-type DashboardWidget struct {
-	Title            string                          `json:"title"`
-	Visualization    DashboardWidgetVisualization    `json:"visualization"`
-	Layout           DashboardWidgetLayout           `json:"layout"`
-	RawConfiguration DashboardWidgetRawConfiguration `json:"rawConfiguration"`
-}
-
-type DashboardWidgetVisualization struct {
-	ID string `json:"id"`
-}
-
-type DashboardWidgetLayout struct {
-	Column int `json:"column"`
-	Row    int `json:"row"`
-	Height int `json:"height"`
-	Width  int `json:"width"`
-}
 
 type DashboardWidgetRawConfiguration struct {
 	DataFormatters    []string                   `json:"dataFormatters"`
@@ -86,24 +55,16 @@ type DashboardWidgetYAxisLeft struct {
 }
 
 func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (string, error) {
-	var d Dashboard
+	var d dashboards.DashboardInput
 	if err := json.Unmarshal(input, &d); err != nil {
 		log.Fatal(err)
-	}
-
-	for _, p := range d.Pages {
-		for _, w := range p.Widgets {
-			if widgetTypes[w.Visualization.ID] == "" {
-				return "", fmt.Errorf("unrecognized widget type \"%s\"", w.Visualization.ID)
-			}
-		}
 	}
 
 	h := NewHCLGen(shiftWidth)
 	h.WriteBlock("resource", []string{dashboardResourceName, resourceLabel}, func() {
 		h.WriteStringAttribute("name", d.Name)
 		h.WriteStringAttributeIfNotEmpty("description", d.Description)
-		h.WriteStringAttributeIfNotEmpty("permissions", strings.ToLower(d.Permissions))
+		h.WriteStringAttributeIfNotEmpty("permissions", strings.ToLower(string(d.Permissions)))
 
 		for _, p := range d.Pages {
 			h.WriteBlock("page", []string{}, func() {
@@ -111,16 +72,21 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 				h.WriteStringAttributeIfNotEmpty("description", p.Description)
 
 				for _, w := range p.Widgets {
+					requireValidVisualizationID(w.Visualization.ID)
+
 					h.WriteBlock(widgetTypes[w.Visualization.ID], []string{}, func() {
 						h.WriteStringAttribute("title", w.Title)
 						h.WriteIntAttribute("row", w.Layout.Row)
 						h.WriteIntAttribute("column", w.Layout.Column)
 						h.WriteIntAttribute("height", w.Layout.Height)
 						h.WriteIntAttribute("width", w.Layout.Width)
-						h.WriteStringSliceAttributeIfNotEmpty("linked_entity_guids", w.RawConfiguration.LinkedEntityGUIDs)
-						h.WriteMultilineStringAttributeIfNotEmpty("text", w.RawConfiguration.Text)
 
-						for _, q := range w.RawConfiguration.NRQLQueries {
+						config := unmarshalDashboardWidgetRawConfiguration(w.Title, widgetTypes[w.Visualization.ID], w.RawConfiguration)
+
+						h.WriteStringSliceAttributeIfNotEmpty("linked_entity_guids", config.LinkedEntityGUIDs)
+						h.WriteMultilineStringAttributeIfNotEmpty("text", config.Text)
+
+						for _, q := range config.NRQLQueries {
 							h.WriteBlock("nrql_query", []string{}, func() {
 								h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
 								h.WriteMultilineStringAttribute("query", q.Query)
@@ -133,4 +99,21 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 	})
 
 	return h.String(), nil
+}
+
+func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b []byte) *DashboardWidgetRawConfiguration {
+	var c DashboardWidgetRawConfiguration
+	err := json.Unmarshal(b, &c)
+	if err != nil {
+		log.Fatalf("failed unmarshaling rawConfiguration for widget \"%s\" of type \"%s\"", title, widgetType)
+		panic(err)
+	}
+
+	return &c
+}
+
+func requireValidVisualizationID(id string) {
+	if widgetTypes[id] == "" {
+		log.Fatalf("unrecognized widget type \"%s\"", id)
+	}
 }
