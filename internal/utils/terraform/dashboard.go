@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	widgetTypes = map[string]string{
+	dashboardResourceName = "newrelic_one_dashboard"
+	widgetTypes           = map[string]string{
 		"viz.area":      "widget_area",
 		"viz.bar":       "widget_bar",
 		"viz.billboard": "widget_billboard",
@@ -84,57 +85,51 @@ type DashboardWidgetYAxisLeft struct {
 	Zero bool `json:"zero"`
 }
 
-func GenerateDashboardHCL(resourceLabel string, input []byte) (string, error) {
+func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (string, error) {
 	var d Dashboard
 	if err := json.Unmarshal(input, &d); err != nil {
 		log.Fatal(err)
 	}
 
-	resourceName := "newrelic_one_dashboard"
+	for _, p := range d.Pages {
+		for _, w := range p.Widgets {
+			if widgetTypes[w.Visualization.ID] == "" {
+				return "", fmt.Errorf("unrecognized widget type \"%s\"", w.Visualization.ID)
+			}
+		}
+	}
 
-	h := NewHCLGen(2)
-	h.WriteBlock("resource", []string{resourceName, resourceLabel}, func() error {
+	h := NewHCLGen(shiftWidth)
+	h.WriteBlock("resource", []string{dashboardResourceName, resourceLabel}, func() {
 		h.WriteStringAttribute("name", d.Name)
 		h.WriteStringAttributeIfNotEmpty("description", d.Description)
 		h.WriteStringAttributeIfNotEmpty("permissions", strings.ToLower(d.Permissions))
 
 		for _, p := range d.Pages {
-			h.WriteBlock("page", []string{}, func() error {
+			h.WriteBlock("page", []string{}, func() {
 				h.WriteStringAttribute("name", p.Name)
 				h.WriteStringAttributeIfNotEmpty("description", p.Description)
 
 				for _, w := range p.Widgets {
-					if widgetTypes[w.Visualization.ID] == "" {
-						return fmt.Errorf("unrecognized widget type \"%s\"\n", w.Visualization.ID)
-					}
-
-					h.WriteBlock(widgetTypes[w.Visualization.ID], []string{}, func() error {
+					h.WriteBlock(widgetTypes[w.Visualization.ID], []string{}, func() {
 						h.WriteStringAttribute("title", w.Title)
 						h.WriteIntAttribute("row", w.Layout.Row)
 						h.WriteIntAttribute("column", w.Layout.Column)
 						h.WriteIntAttribute("height", w.Layout.Height)
 						h.WriteIntAttribute("width", w.Layout.Width)
 						h.WriteStringSliceAttributeIfNotEmpty("linked_entity_guids", w.RawConfiguration.LinkedEntityGUIDs)
-						h.WriteMultilineStringAttribute("text", w.RawConfiguration.Text)
+						h.WriteMultilineStringAttributeIfNotEmpty("text", w.RawConfiguration.Text)
 
 						for _, q := range w.RawConfiguration.NRQLQueries {
-							h.WriteBlock("nrql_query", []string{}, func() error {
+							h.WriteBlock("nrql_query", []string{}, func() {
 								h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
 								h.WriteMultilineStringAttribute("query", q.Query)
-
-								return nil
 							})
 						}
-
-						return nil
 					})
 				}
-
-				return nil
 			})
 		}
-
-		return nil
 	})
 
 	return h.String(), nil

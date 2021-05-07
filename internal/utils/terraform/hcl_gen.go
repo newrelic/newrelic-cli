@@ -22,6 +22,12 @@ func (h *HCLGen) WriteMultilineStringAttribute(label string, value string) {
 	h.WriteString(fmt.Sprintf("%s%s = <<EOT\n%s\nEOT\n", h.i, label, value))
 }
 
+func (h *HCLGen) WriteMultilineStringAttributeIfNotEmpty(label string, value string) {
+	if value != "" {
+		h.WriteMultilineStringAttribute(label, value)
+	}
+}
+
 func (h *HCLGen) WriteStringAttribute(label string, value string) {
 	h.WriteString(fmt.Sprintf("%s%s = \"%s\"\n", h.i, label, strings.ReplaceAll(value, "\"", "\\\"")))
 }
@@ -52,22 +58,18 @@ func (h *HCLGen) WriteIntAttributeIfNotZero(label string, value int) {
 	}
 }
 
-func (h *HCLGen) WriteBlock(name string, labels []string, f func() error) error {
-	h.WriteString(fmt.Sprintf("%s%s ", h.i, name))
+func (h *HCLGen) WriteBlock(name string, labels []string, f func()) {
+	h.WriteString(fmt.Sprintf("\n%s%s ", h.i, name))
 	for _, l := range labels {
 		h.WriteString(fmt.Sprintf("\"%s\" ", l))
 	}
 	h.WriteString("{\n")
 
 	h.indent()
-	if err := f(); err != nil {
-		return err
-	}
+	f()
 	h.unindent()
 
 	h.WriteString(fmt.Sprintf("%s}\n", h.i))
-
-	return nil
 }
 
 func (h *HCLGen) indent() {

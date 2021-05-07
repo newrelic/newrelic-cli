@@ -16,6 +16,7 @@ var (
 	label       string
 	file        string
 	outFile     string
+	shiftWidth  int
 	snakeCaseRE = regexp.MustCompile("^[a-z]+(_[a-z]+)*$")
 )
 
@@ -72,7 +73,7 @@ Output will be sent to STDOUT by default but can be redirected to a file with th
 			}
 		}
 
-		hcl, err := terraform.GenerateDashboardHCL(label, input)
+		hcl, err := terraform.GenerateDashboardHCL(label, shiftWidth, input)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -100,4 +101,5 @@ func init() {
 
 	cmdTerraformDashboard.Flags().StringVarP(&file, "file", "f", "", "a file that contains exported dashboard JSON")
 	cmdTerraformDashboard.Flags().StringVarP(&outFile, "out", "o", "", "the file to send the generated HCL to")
+	cmdTerraformDashboard.Flags().IntVarP(&shiftWidth, "shiftWidth", "w", 2, "the indentation shift with of the output")
 }
