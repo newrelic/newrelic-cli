@@ -20,4 +20,5 @@ Various utility methods
 * [newrelic](newrelic.md)	 - The New Relic CLI
 * [newrelic utils jq](newrelic_utils_jq.md)	 - Parse json strings
 * [newrelic utils semver](newrelic_utils_semver.md)	 - Work with semantic version strings
+* [newrelic utils terraform](newrelic_utils_terraform.md)	 - Tools for working with Terraform
 
