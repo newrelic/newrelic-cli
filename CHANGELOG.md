@@ -1,3 +1,11 @@
+<a name="v0.25.0"></a>
+## [v0.25.0] - 2021-05-07
+### Bug Fixes
+- get machine hardware name
+
+### Features
+- **utils:** add a command to generate dashboard HCL
+
 <a name="v0.24.1"></a>
 ## [v0.24.1] - 2021-05-04
 ### Bug Fixes
@@ -630,7 +638,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.25.0...HEAD
+[v0.25.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.1...v0.25.0
 [v0.24.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.0...v0.24.1
 [v0.24.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.23.2...v0.24.0
 [v0.23.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.23.1...v0.23.2
