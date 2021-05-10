@@ -30,6 +30,7 @@ type InstallStatus struct {
 	RecipesCanceled     []*RecipeStatus         `json:"recipesCanceled"`
 	RecipesFailed       []*RecipeStatus         `json:"recipesFailed"`
 	RecipesInstalled    []*RecipeStatus         `json:"recipesInstalled"`
+	RedirectURL         string                  `json:"redirectUrl"`
 	DocumentID          string
 	targetedInstall     bool
 	statusSubscriber    []StatusSubscriber
@@ -240,6 +241,10 @@ func (s *InstallStatus) HostEntityGUID() string {
 	return guid
 }
 
+func (s *InstallStatus) setRedirectURL() {
+	s.RedirectURL = generateSuccessURL(*s)
+}
+
 func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRecipe) {
 	for _, r := range recipes {
 		s.withAvailableRecipe(r)
@@ -350,6 +355,7 @@ func (s *InstallStatus) completed(err error) {
 	}).Debug("completed")
 
 	s.updateFinalInstallationStatuses(false)
+	s.setRedirectURL()
 }
 
 func (s *InstallStatus) canceled() {
