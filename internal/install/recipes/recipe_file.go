@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"gopkg.in/yaml.v2"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type RecipeFileFetcherImpl struct {
