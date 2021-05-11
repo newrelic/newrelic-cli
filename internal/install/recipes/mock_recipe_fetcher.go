@@ -14,22 +14,22 @@ type MockRecipeFetcher struct {
 	FetchRecipeCallCount          int
 	FetchRecipesCallCount         int
 	FetchRecommendationsCallCount int
-	FetchRecipeVals               []types.Recipe
-	FetchRecipeVal                *types.Recipe
-	FetchRecipesVal               []types.Recipe
-	FetchRecommendationsVal       []types.Recipe
+	FetchRecipeVals               []types.OpenInstallationRecipe
+	FetchRecipeVal                *types.OpenInstallationRecipe
+	FetchRecipesVal               []types.OpenInstallationRecipe
+	FetchRecommendationsVal       []types.OpenInstallationRecipe
 	FetchRecipeNameCount          map[string]int
 }
 
 func NewMockRecipeFetcher() *MockRecipeFetcher {
 	f := MockRecipeFetcher{}
-	f.FetchRecipesVal = []types.Recipe{}
-	f.FetchRecommendationsVal = []types.Recipe{}
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{}
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeNameCount = make(map[string]int)
 	return &f
 }
 
-func (f *MockRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
+func (f *MockRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.OpenInstallationRecipe, error) {
 	f.FetchRecipeCallCount++
 	f.FetchRecipeNameCount[friendlyName]++
 
@@ -41,12 +41,12 @@ func (f *MockRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.Dis
 	return f.FetchRecipeVal, f.FetchRecipeErr
 }
 
-func (f *MockRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *MockRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	f.FetchRecipesCallCount++
 	return f.FetchRecipesVal, f.FetchRecipesErr
 }
 
-func (f *MockRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *MockRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	f.FetchRecommendationsCallCount++
 	return f.FetchRecommendationsVal, f.FetchRecommendationsErr
 }

@@ -50,7 +50,7 @@ func (f *RegexProcessFilterer) filter(ctx context.Context, processes []types.Gen
 	return matches, nil
 }
 
-func match(r types.Recipe, matchedProcess *types.MatchedProcess) bool {
+func match(r types.OpenInstallationRecipe, matchedProcess *types.MatchedProcess) bool {
 	for _, pattern := range r.ProcessMatch {
 		matched, err := regexp.Match(pattern, []byte(matchedProcess.Command))
 		if err != nil {

@@ -8,5 +8,5 @@ import (
 
 // FileFilterer determines the existence of files on the underlying filesystem.
 type FileFilterer interface {
-	Filter(context.Context, []types.Recipe) ([]types.LogMatch, error)
+	Filter(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error)
 }

@@ -11,13 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-task/task/v3/taskfile"
-	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
+	"github.com/go-task/task/v3/taskfile"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
@@ -47,39 +46,39 @@ func TestExecute_SystemVariableInterpolation(t *testing.T) {
 	defer os.Remove(tmpFile.Name())
 
 	output := `
-	{
-		\"hostname\": \"{{.HOSTNAME}}\",
-		\"os\": \"{{.OS}}\",
-		\"platform\": \"{{.PLATFORM}}\",
-		\"platformFamily\": \"{{.PLATFORM_FAMILY}}\",
-		\"platformVersion\": \"{{.PLATFORM_VERSION}}\", 
-		\"kernelArch\": \"{{.KERNEL_ARCH}}\", 
-		\"kernelVersion\": \"{{.KERNEL_VERSION}}\"
-	}`
+  {
+    \"hostname\": \"{{.HOSTNAME}}\",
+    \"os\": \"{{.OS}}\",
+    \"platform\": \"{{.PLATFORM}}\",
+    \"platformFamily\": \"{{.PLATFORM_FAMILY}}\",
+    \"platformVersion\": \"{{.PLATFORM_VERSION}}\",
+    \"kernelArch\": \"{{.KERNEL_ARCH}}\",
+    \"kernelVersion\": \"{{.KERNEL_VERSION}}\"
+  }`
 
-	f := recipes.RecipeFile{
-		Install: map[string]interface{}{
-			"version": "3",
-			"tasks": taskfile.Tasks{
-				"default": &taskfile.Task{
-					Cmds: []*taskfile.Cmd{
-						{
-							Cmd: fmt.Sprintf("echo %s > %s", strings.ReplaceAll(output, "\n", ""), tmpFile.Name()),
-						},
+	// We convert the `install` section of the recipe to a YAML string,
+	// which is then used to create a Taskfile for go-task.
+	recipeInstallToYaml := map[string]interface{}{
+		"version": "3",
+		"tasks": taskfile.Tasks{
+			"default": &taskfile.Task{
+				Cmds: []*taskfile.Cmd{
+					{
+						Cmd: fmt.Sprintf("echo %s > %s", strings.ReplaceAll(output, "\n", ""), tmpFile.Name()),
 					},
-					Silent: true,
 				},
+				Silent: true,
 			},
 		},
 	}
 
-	fs, err := yaml.Marshal(f)
-	if err != nil {
-		t.Fatal("could not marshal recipe file")
-	}
+	installYamlBytes, err := yaml.Marshal(recipeInstallToYaml)
+	require.NoError(t, err)
 
-	r := types.Recipe{
-		File: string(fs),
+	installYaml := string(installYamlBytes)
+
+	r := types.OpenInstallationRecipe{
+		Install: installYaml,
 	}
 
 	v, err := e.Prepare(context.Background(), m, r, false, licenseKey)

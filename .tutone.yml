@@ -47,13 +47,29 @@ packages:
       - typegen
     types:
       - name: OpenInstallationRecipe
+        struct_tags: [json, yaml]
       - name: ID
         field_type_override: string
         skip_type_create: true
+      - name: OpenInstallationRecipeInputVariable
+        struct_tags: [json, yaml]
+      - name: OpenInstallationRecipeInstallTarget
+        struct_tags: [json, yaml]
+      - name: OpenInstallationSuccessLinkConfig
+        struct_tags: [json, yaml]
+      - name: OpenInstallationQuickstartsFilter
+        struct_tags: [json, yaml]
+      - name: OpenInstallationAttributes
+        struct_tags: [json, yaml]
+      - name: OpenInstallationLogMatch
+        struct_tags: [json, yaml]
+      - name: OpenInstallationPostInstallConfiguration
+        struct_tags: [json, yaml]
+      - name: OpenInstallationPreInstallConfiguration
+        struct_tags: [json, yaml]
+      - name: OpenInstallationQuickstartEntityType
+        struct_tags: [json, yaml]
 
 generators:
-  - name: command
-    templateName: 'command.go.tmpl'
-    templateDir: templates
   - name: typegen
     fileName: 'types.go'

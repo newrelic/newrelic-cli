@@ -44,11 +44,11 @@ func NewPollingRecipeValidator(c nrdbClient) *PollingRecipeValidator {
 }
 
 // Validate polls NRDB to assert data is being reported for the given recipe.
-func (m *PollingRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe) (string, error) {
+func (m *PollingRecipeValidator) Validate(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (string, error) {
 	return m.waitForData(ctx, dm, r)
 }
 
-func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe) (string, error) {
+func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (string, error) {
 	count := 0
 	ticker := time.NewTicker(m.interval)
 	defer ticker.Stop()
@@ -87,7 +87,7 @@ func (m *PollingRecipeValidator) waitForData(ctx context.Context, dm types.Disco
 	}
 }
 
-func (m *PollingRecipeValidator) tryValidate(ctx context.Context, dm types.DiscoveryManifest, r types.Recipe) (bool, string, error) {
+func (m *PollingRecipeValidator) tryValidate(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (bool, string, error) {
 	query, err := substituteHostname(dm, r)
 	if err != nil {
 		return false, "", err
@@ -126,8 +126,8 @@ func (m *PollingRecipeValidator) tryValidate(ctx context.Context, dm types.Disco
 	return false, "", nil
 }
 
-func substituteHostname(dm types.DiscoveryManifest, r types.Recipe) (string, error) {
-	tmpl, err := template.New("validationNRQL").Parse(r.ValidationNRQL)
+func substituteHostname(dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (string, error) {
+	tmpl, err := template.New("validationNRQL").Parse(string(r.ValidationNRQL))
 	if err != nil {
 		panic(err)
 	}

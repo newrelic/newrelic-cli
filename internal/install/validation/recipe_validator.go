@@ -8,5 +8,5 @@ import (
 
 // RecipeValidator validates installation of a recipe.
 type RecipeValidator interface {
-	Validate(context.Context, types.DiscoveryManifest, types.Recipe) (entityGUID string, err error)
+	Validate(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe) (entityGUID string, err error)
 }

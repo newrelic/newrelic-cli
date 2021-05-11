@@ -182,7 +182,7 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
 
-	gff.FilterVal = []types.LogMatch{
+	gff.FilterVal = []types.OpenInstallationLogMatch{
 		{
 			Name: "asdf",
 			File: "asdf",
@@ -321,7 +321,7 @@ func (b *ScenarioBuilder) DisplayExplorerLink() *RecipeInstaller {
 
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:        "infrastructure-agent-installer",
 			DisplayName: "Infrastructure Agent",
@@ -338,45 +338,24 @@ It is made up of a multi line string.
 				`,
 			},
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: infra-agent
-displayName: Infrastructure Agent
-install:
-  version: "3"
-  tasks:
-    default:
-`,
 		},
 		{
 			Name:           "logs-integration",
 			DisplayName:    "Logs integration",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: logs-integration
-displayName: Logs integration
-install:
-  version: "3"
-  tasks:
-    default:
-`,
+			LogMatch: []types.OpenInstallationLogMatch{
+				{
+					Name: "docker log",
+					File: "/var/lib/docker/containers/*/*.log",
+				},
+			},
 		},
 	}
-	f.FetchRecommendationsVal = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
 		{
 			Name:           "recommended-recipe",
 			DisplayName:    "Recommended recipe",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: recommended-recipe
-displayName: Recommended recipe
-install:
-  version: "3"
-  tasks:
-    default:
-`,
 		},
 	}
 
@@ -385,34 +364,16 @@ install:
 
 func setupRecipeFetcherStitchedPath() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "recommended-recipe",
 			DisplayName:    "Recommended recipe",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: recommended-recipe
-displayName: Recommended recipe
-install:
-  version: "3"
-  tasks:
-    default:
-`,
 		},
 		{
 			Name:           "another-recommended-recipe",
 			DisplayName:    "Another Recommended recipe",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: another-recommended-recipe
-displayName: Another Recommended recipe
-install:
-  version: "3"
-  tasks:
-    default:
-`,
 		},
 	}
 
@@ -421,48 +382,16 @@ install:
 
 func setupRecipeCanceledInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "infrastructure-agent-installer",
 			DisplayName:    "Infrastructure Agent",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: infra-agent
-displayName: Infrastructure Agent
-install:
-  version: "3"
-  tasks:
-    default:
-`,
 		},
 		{
 			Name:           "test-canceled-installation",
 			DisplayName:    "Test Canceled Installation",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: test-canceled-installation
-displayName: Test Canceled Installation
-description: Scenario to test when a user cancels installation via ctl+c
-
-processMatch: []
-
-validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTNAME}}' FACET entityGuid SINCE 10 minutes ago"
-
-install:
-  version: "3"
-  silent: true
-  tasks:
-    default:
-      cmds:
-        - task: run
-    run:
-      cmds:
-        - |
-          echo "sleeping 10 seconds"
-          sleep 10
-`,
 		},
 	}
 
@@ -471,7 +400,7 @@ install:
 
 func setupDisplayExplorerLink() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "test-display-explorer-link",
 			DisplayName:    "Test Display Explorer Link",
@@ -480,46 +409,11 @@ func setupDisplayExplorerLink() recipes.RecipeFetcher {
 				Type:   "explorer",
 				Filter: "\"`tags.language` = 'java'\"",
 			},
-			File: `
----
-name: test-display-explorer-link
-displayName: Test Display Explorer Link
-description: Scenario to test when a recipe designates a filtered explorer link
-
-processMatch: []
-
-validationNrql: "SELECT count(*) from SystemSample where hostname like '{{.HOSTNAME}}' FACET entityGuid SINCE 10 minutes ago"
-
-successLinkConfig:
-  type: explorer
-  filter: "` + "`tags.language`" + ` = 'java'"
-
-install:
-  version: "3"
-  silent: true
-  tasks:
-    default:
-      cmds:
-        - task: run
-    run:
-      cmds:
-        - |
-          echo "executing recipe steps"
-`,
 		},
 		{
 			Name:           "infrastructure-agent-installer",
 			DisplayName:    "Infrastructure Agent",
 			ValidationNRQL: "test NRQL",
-			File: `
----
-name: infra-agent
-displayName: Infrastructure Agent
-install:
-  version: "3"
-  tasks:
-    default:
-`,
 		},
 	}
 

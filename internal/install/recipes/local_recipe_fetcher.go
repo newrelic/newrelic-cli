@@ -17,7 +17,7 @@ type LocalRecipeFetcher struct {
 	Path string
 }
 
-func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.Recipe, error) {
+func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.OpenInstallationRecipe, error) {
 	recipes, err := f.FetchRecommendations(ctx, manifest)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.Di
 	return nil, fmt.Errorf("%s: %w", friendlyName, ErrRecipeNotFound)
 }
 
-func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
+func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	recipes, err := f.FetchRecipes(ctx, manifest)
 	if err != nil {
 		return nil, err
@@ -41,8 +41,8 @@ func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest 
 	return manifest.ConstrainRecipes(recipes), nil
 }
 
-func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.Recipe, error) {
-	var recipes []types.Recipe
+func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
+	var recipes []types.OpenInstallationRecipe
 	var err error
 
 	if f.Path == "" {
@@ -57,7 +57,7 @@ func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.D
 	return recipes, nil
 }
 
-func loadRecipesFromDir(ctx context.Context, path string) ([]types.Recipe, error) {
+func loadRecipesFromDir(ctx context.Context, path string) ([]types.OpenInstallationRecipe, error) {
 	recipePaths := []string{}
 
 	log.WithFields(log.Fields{
@@ -80,10 +80,10 @@ func loadRecipesFromDir(ctx context.Context, path string) ([]types.Recipe, error
 		return nil, err
 	}
 
-	recipes := []types.Recipe{}
+	recipes := []types.OpenInstallationRecipe{}
 
 	for _, path := range recipePaths {
-		var r RecipeFile
+		var r types.OpenInstallationRecipe
 
 		content, err := ioutil.ReadFile(path)
 		if err != nil {
@@ -97,15 +97,7 @@ func loadRecipesFromDir(ctx context.Context, path string) ([]types.Recipe, error
 			continue
 		}
 
-		rec, err := r.ToRecipe()
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-
-		if rec != nil {
-			recipes = append(recipes, *rec)
-		}
+		recipes = append(recipes, r)
 	}
 
 	return recipes, nil

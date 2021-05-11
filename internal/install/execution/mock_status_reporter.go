@@ -107,7 +107,7 @@ func (r *MockStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeSt
 	return r.RecipeSkippedErr
 }
 
-func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.Recipe) error {
+func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
 	r.RecipeAvailableCallCount++
 	if len(r.ReportAvailable) == 0 {
 		r.ReportAvailable = make(map[string]int)
@@ -116,12 +116,12 @@ func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types
 	return r.RecipeAvailableErr
 }
 
-func (r *MockStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.Recipe) error {
+func (r *MockStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	r.RecipesAvailableCallCount++
 	return r.RecipesAvailableErr
 }
 
-func (r *MockStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.Recipe) error {
+func (r *MockStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	r.RecipesSelectedCallCount++
 	return r.RecipesSelectedErr
 }

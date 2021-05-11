@@ -49,7 +49,7 @@ func TestFetchFilters(t *testing.T) {
 	require.NotEmpty(t, recipes)
 	// The duplicate name should still be included when we perform the FetchRecipes() call.
 	require.Equal(t, 3, len(recipes))
-	require.True(t, reflect.DeepEqual(createRecipes(r), recipes))
+	require.True(t, reflect.DeepEqual(r, recipes))
 }
 
 func TestFetchRecommendations(t *testing.T) {
@@ -57,29 +57,14 @@ func TestFetchRecommendations(t *testing.T) {
 		{
 			ID:   "MAo=",
 			Name: "testing1",
-			File: `
----
-name: Test recipe file
-description: test description
-`,
 		},
 		{
 			ID:   "non-zero",
 			Name: "testing1",
-			File: `
----
-name: Test recipe file2
-description: test description
-`,
 		},
 		{
 			ID:   "non-zero2",
 			Name: "testing2",
-			File: `
----
-name: Test recipe file3
-description: test description
-`,
 		},
 	}
 

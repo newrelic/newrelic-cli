@@ -21,7 +21,7 @@ func TestDiscovery(t *testing.T) {
 	}
 
 	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = []types.Recipe{
+	mockRecipeFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
 		{
 			ID:           "test",
 			Name:         "java",

@@ -153,134 +153,134 @@ var OpenInstallationTargetTypeTypes = struct {
 // OpenInstallationAttributes - Custom event data attributes
 type OpenInstallationAttributes struct {
 	// Built-in parsing rulesets
-	Logtype string `json:"logtype,omitempty"`
+	Logtype string `json:"logtype,omitempty" yaml:"logtype,omitempty"`
 }
 
 // OpenInstallationLogMatch - Matches partial list of the Log forwarding parameters
 type OpenInstallationLogMatch struct {
 	// List of custom attributes, as key-value pairs, that can be used to send additional data with the logs which you can then query.
-	Attributes OpenInstallationAttributes `json:"attributes,omitempty"`
+	Attributes OpenInstallationAttributes `json:"attributes,omitempty" yaml:"attributes,omitempty"`
 	// Path to the log file or files.
-	File string `json:"file,omitempty"`
+	File string `json:"file,omitempty" yaml:"file,omitempty"`
 	// Name of the log or logs.
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name"`
 	// Regular expression for filtering records.
-	Pattern string `json:"pattern,omitempty"`
+	Pattern string `json:"pattern,omitempty" yaml:"pattern,omitempty"`
 	// Service name (Linux Only).
-	Systemd string `json:"systemd,omitempty"`
+	Systemd string `json:"systemd,omitempty" yaml:"systemd,omitempty"`
 }
 
 // OpenInstallationPostInstallConfiguration - Optional post-install configuration items
 type OpenInstallationPostInstallConfiguration struct {
 	// Message/Docs notice displayed to user after running the recipe
-	Info string `json:"info,omitempty"`
+	Info string `json:"info,omitempty" yaml:"info,omitempty"`
 }
 
 // OpenInstallationPreInstallConfiguration - Optional pre-install configuration items
 type OpenInstallationPreInstallConfiguration struct {
 	// Message/Docs notice displayed to user prior to running recipe
-	Info string `json:"info,omitempty"`
+	Info string `json:"info,omitempty" yaml:"info,omitempty"`
 	// Message/Docs notice displayed to user prior to running recipe
-	Prompt string `json:"prompt,omitempty"`
+	Prompt string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
 }
 
 // OpenInstallationQuickstartEntityType - Entity type relation for Quickstart
 type OpenInstallationQuickstartEntityType struct {
 	// Domain of Entity
-	Domain string `json:"domain"`
+	Domain string `json:"domain" yaml:"domain"`
 	// Type of Entity
-	Type string `json:"type"`
+	Type string `json:"type" yaml:"type"`
 }
 
 // OpenInstallationQuickstartsFilter - Metadata used to filter for Quickstarts
 type OpenInstallationQuickstartsFilter struct {
 	// Categorization of Quickstart
-	Category OpenInstallationCategory `json:"category,omitempty"`
+	Category OpenInstallationCategory `json:"category,omitempty" yaml:"category,omitempty"`
 	// Entity relationship for Quickstart
-	EntityType OpenInstallationQuickstartEntityType `json:"entityType,omitempty"`
+	EntityType OpenInstallationQuickstartEntityType `json:"entityType,omitempty" yaml:"entityType,omitempty"`
 	// Name of the Quickstart
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name"`
 }
 
 // OpenInstallationRecipe - Installation instructions and definition of an instrumentation integration
 type OpenInstallationRecipe struct {
 	// Named list of dependencies for this recipe
-	Dependencies []string `json:"dependencies"`
+	Dependencies []string `json:"dependencies" yaml:"dependencies"`
 	// Description of the recipe
-	Description string `json:"description"`
+	Description string `json:"description" yaml:"description"`
 	// Friendly name of the integration
-	DisplayName string `json:"displayName,omitempty"`
+	DisplayName string `json:"displayName,omitempty" yaml:"displayName,omitempty"`
 	// The full contents of the recipe file (yaml)
-	File string `json:"file"`
+	File string `json:"file" yaml:"file"`
 	// The ID
-	ID string `json:"id,omitempty"`
+	ID string `json:"id,omitempty" yaml:"id,omitempty"`
 	// List of variables to prompt for input from the user
-	InputVars []OpenInstallationRecipeInputVariable `json:"inputVars"`
-	// Go-task's taskfile definition (see https://taskfile.dev/#/usage)
-	Install string `json:"install"`
+	InputVars []OpenInstallationRecipeInputVariable `json:"inputVars" yaml:"inputVars"`
+	// Go-task's taskfile definiton (see https://taskfile.dev/#/usage)
+	Install string `json:"install" yaml:"install"`
 	// Object representing the intended install target
-	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets"`
+	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets" yaml:"installTargets"`
 	// Tags
-	Keywords []string `json:"keywords"`
+	Keywords []string `json:"keywords" yaml:"keywords"`
 	// # Partial list of possible Log forwarding parameters
-	LogMatch []OpenInstallationLogMatch `json:"logMatch"`
+	LogMatch []OpenInstallationLogMatch `json:"logMatch" yaml:"logMatch"`
 	// Short unique handle for the name of the integration
-	Name string `json:"name,omitempty"`
+	Name string `json:"name,omitempty" yaml:"name,omitempty"`
 	// Object representing optional post-install configuration items
-	PostInstall OpenInstallationPostInstallConfiguration `json:"postInstall,omitempty"`
+	PostInstall OpenInstallationPostInstallConfiguration `json:"postInstall,omitempty" yaml:"postInstall,omitempty"`
 	// Object representing optional pre-install configuration items
-	PreInstall OpenInstallationPreInstallConfiguration `json:"preInstall,omitempty"`
+	PreInstall OpenInstallationPreInstallConfiguration `json:"preInstall,omitempty" yaml:"preInstall,omitempty"`
 	// List of process definitions used to match CLI process detection
-	ProcessMatch []string `json:"processMatch"`
+	ProcessMatch []string `json:"processMatch" yaml:"processMatch"`
 	// Metadata used to recommend and install Quickstarts
-	Quickstarts OpenInstallationQuickstartsFilter `json:"quickstarts,omitempty"`
+	Quickstarts OpenInstallationQuickstartsFilter `json:"quickstarts,omitempty" yaml:"quickstarts,omitempty"`
 	// Github repository url
-	Repository string `json:"repository"`
+	Repository string `json:"repository" yaml:"repository"`
 	// Indicates stability level of recipe
-	Stability OpenInstallationStability `json:"stability,omitempty"`
+	Stability OpenInstallationStability `json:"stability,omitempty" yaml:"stability,omitempty"`
 	// Metadata to support generating a URL after installation success
-	SuccessLinkConfig OpenInstallationSuccessLinkConfig `json:"successLinkConfig,omitempty"`
+	SuccessLinkConfig OpenInstallationSuccessLinkConfig `json:"successLinkConfig,omitempty" yaml:"successLinkConfig,omitempty"`
 	// NRQL the newrelic-cli uses to validate this recipe
 	// is successfully sending data to New Relic
-	ValidationNRQL NRQL `json:"validationNrql,omitempty"`
+	ValidationNRQL NRQL `json:"validationNrql,omitempty" yaml:"validationNrql,omitempty"`
 }
 
 // OpenInstallationRecipeInputVariable - Recipe input variable prompts displayed to the user prior to execution
 type OpenInstallationRecipeInputVariable struct {
 	// Default value of variable
-	Default string `json:"default,omitempty"`
+	Default string `json:"default,omitempty" yaml:"default,omitempty"`
 	// Name of the variable
-	Name string `json:"name"`
+	Name string `json:"name" yaml:"name"`
 	// Message to present to the user
-	Prompt string `json:"prompt,omitempty"`
+	Prompt string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
 	// Indicates a password field
-	Secret bool `json:"secret,omitempty"`
+	Secret bool `json:"secret,omitempty" yaml:"secret,omitempty"`
 }
 
 // OpenInstallationRecipeInstallTarget - Matrix of supported installation criteria for this recipe
 type OpenInstallationRecipeInstallTarget struct {
 	// OS kernel architecture
-	KernelArch string `json:"kernelArch,omitempty"`
+	KernelArch string `json:"kernelArch,omitempty" yaml:"kernelArch,omitempty"`
 	// OS kernel version
-	KernelVersion string `json:"kernelVersion,omitempty"`
+	KernelVersion string `json:"kernelVersion,omitempty" yaml:"kernelVersion,omitempty"`
 	// Operating system
-	Os OpenInstallationOperatingSystem `json:"os,omitempty"`
+	Os OpenInstallationOperatingSystem `json:"os,omitempty" yaml:"os,omitempty"`
 	// Operating System distribution
-	Platform OpenInstallationPlatform `json:"platform,omitempty"`
+	Platform OpenInstallationPlatform `json:"platform,omitempty" yaml:"platform,omitempty"`
 	// Operating System distribution family
-	PlatformFamily OpenInstallationPlatformFamily `json:"platformFamily,omitempty"`
+	PlatformFamily OpenInstallationPlatformFamily `json:"platformFamily,omitempty" yaml:"platformFamily,omitempty"`
 	// OS distribution version
-	PlatformVersion string `json:"platformVersion,omitempty"`
+	PlatformVersion string `json:"platformVersion,omitempty" yaml:"platformVersion,omitempty"`
 	// Target type
-	Type OpenInstallationTargetType `json:"type,omitempty"`
+	Type OpenInstallationTargetType `json:"type,omitempty" yaml:"type,omitempty"`
 }
 
 // OpenInstallationSuccessLinkConfig - Metadata to support generating a URL after installation success
 type OpenInstallationSuccessLinkConfig struct {
 	// An optional filter for appending to the URL
-	Filter string `json:"filter,omitempty"`
+	Filter string `json:"filter,omitempty" yaml:"filter,omitempty"`
 	// The type of the link to generate
-	Type OpenInstallationSuccessLinkType `json:"type"`
+	Type OpenInstallationSuccessLinkType `json:"type" yaml:"type"`
 }
 
 // NRQL - This scalar represents a NRQL query string.

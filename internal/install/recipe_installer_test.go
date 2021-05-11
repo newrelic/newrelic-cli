@@ -24,7 +24,7 @@ import (
 var (
 	testRecipeName        = "Test Recipe"
 	anotherTestRecipeName = "Another Test Recipe"
-	testRecipeFile        = &recipes.RecipeFile{
+	testRecipeFile        = &types.OpenInstallationRecipe{
 		Name: testRecipeName,
 	}
 
@@ -88,7 +88,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 func TestInstall_Basic(t *testing.T) {
 	ic := InstallerContext{}
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{Name: types.InfraAgentRecipeName},
 		{Name: types.LoggingRecipeName},
 	}
@@ -104,7 +104,7 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}
 	status = execution.NewInstallStatus(statusReporters)
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			DisplayName:    types.InfraAgentRecipeName,
@@ -127,7 +127,7 @@ func TestInstall_FailsOnInvalidOs(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}
 	status = execution.NewInstallStatus(statusReporters)
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			DisplayName:    types.InfraAgentRecipeName,
@@ -145,12 +145,12 @@ func TestInstall_RecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			DisplayName:    types.InfraAgentRecipeName,
@@ -174,12 +174,12 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f2 := recipes.NewMockRecipeFetcher()
-	f2.FetchRecommendationsVal = []types.Recipe{{
+	f2.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f2.FetchRecipeVals = []types.Recipe{
+	f2.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			DisplayName:    types.InfraAgentRecipeName,
@@ -189,7 +189,7 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 			Name:           types.LoggingRecipeName,
 			DisplayName:    types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
-			LogMatch: []types.LogMatch{
+			LogMatch: []types.OpenInstallationLogMatch{
 				{
 					Name: "docker log",
 					File: "/var/lib/docker/containers/*/*.log",
@@ -218,12 +218,12 @@ func TestInstall_RecipeFailed(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			DisplayName:    types.InfraAgentRecipeName,
@@ -259,8 +259,8 @@ func TestInstall_InstallComplete(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -302,8 +302,8 @@ func TestInstall_InstallCompleteError(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -336,11 +336,11 @@ func TestInstall_InstallCompleteError_guidedRecipeFail(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           "badRecipe",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -372,12 +372,12 @@ func TestInstall_RecipeSkipped(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    "test displayName",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
@@ -409,13 +409,13 @@ func TestInstall_RecipeSkippedApm(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    "test displayName",
 		ValidationNRQL: "testNrql",
 		Keywords:       []string{"apm"},
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
@@ -447,13 +447,13 @@ func TestInstall_RecipeSkippedApmAnyKeyword(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    "test displayName",
 		ValidationNRQL: "testNrql",
 		Keywords:       []string{"xy", "apm", "z"},
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
@@ -486,11 +486,11 @@ func TestInstall_RecipeSkipped_SkipAll(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           "test-recipe",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -521,12 +521,12 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -558,7 +558,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
 		{
 			Name:           testRecipeName,
 			DisplayName:    testRecipeName,
@@ -589,7 +589,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 			},
 		},
 	}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -627,12 +627,12 @@ func TestInstall_RecipeSkipped_AssumeYes(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    "test displayName",
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:        types.InfraAgentRecipeName,
 			DisplayName: "Infra Recipe",
@@ -664,8 +664,8 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -689,8 +689,8 @@ func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "testRecipe",
 			ValidationNRQL: "testNrql",
@@ -719,8 +719,8 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -745,8 +745,8 @@ func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			ValidationNRQL: "testNrql",
@@ -771,8 +771,8 @@ func TestInstall_TargetedInstall_SkipInfraDependency(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "testRecipe",
 			ValidationNRQL: "testNrql",
@@ -801,12 +801,12 @@ func TestInstall_GuidReport(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters)
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.Recipe{{
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
 		ValidationNRQL: "testNrql",
 	}}
-	f.FetchRecipeVals = []types.Recipe{
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
 			DisplayName:    types.InfraAgentRecipeName,
@@ -848,10 +848,10 @@ func TestInstall_GuidReport(t *testing.T) {
 	}
 }
 
-func fetchRecipeFileFunc(recipeURL *url.URL) (*recipes.RecipeFile, error) {
+func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
 	return testRecipeFile, nil
 }
 
-func loadRecipeFileFunc(filename string) (*recipes.RecipeFile, error) {
+func loadRecipeFileFunc(filename string) (*types.OpenInstallationRecipe, error) {
 	return testRecipeFile, nil
 }

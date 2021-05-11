@@ -38,7 +38,7 @@ func TestValidate(t *testing.T) {
 	v := NewPollingRecipeValidator(c)
 	v.progressIndicator = pi
 
-	r := types.Recipe{}
+	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
 
 	_, err := v.Validate(getTestContext(), m, r)
@@ -57,7 +57,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 5)
 
-	r := types.Recipe{}
+	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
 
 	_, err := v.Validate(getTestContext(), m, r)
@@ -75,7 +75,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 	v.maxAttempts = 3
 	v.interval = 10 * time.Millisecond
 
-	r := types.Recipe{}
+	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
 
 	_, err := v.Validate(getTestContext(), m, r)
@@ -96,7 +96,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 	v.maxAttempts = 1
 	v.interval = 10 * time.Millisecond
 
-	r := types.Recipe{}
+	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
 
 	_, err := v.Validate(getTestContext(), m, r)
@@ -115,7 +115,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 	v.progressIndicator = pi
 	v.interval = 1 * time.Second
 
-	r := types.Recipe{}
+	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
 
 	ctx, cancel := context.WithCancel(getTestContext())
@@ -136,7 +136,7 @@ func TestValidate_QueryError(t *testing.T) {
 	v := NewPollingRecipeValidator(c)
 	v.progressIndicator = pi
 
-	r := types.Recipe{}
+	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
 
 	_, err := v.Validate(getTestContext(), m, r)
