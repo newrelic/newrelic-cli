@@ -154,24 +154,14 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 		"matches": acceptedLogMatches,
 	}).Debug("matches accepted")
 
-	// The struct to approximate the logging configuration file of the Infra Agent. (deprecated)
-	type loggingConfig struct {
-		Logs []types.OpenInstallationLogMatch `yaml:"logs"`
-	}
-	// Deprecated. Will be removed in a future release and replaced by NR_DISCOVERED_LOG_FILES.
-	// We need to keep this var for backwards compatibility until recipes have been updated with the new var.
-	r.AddVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
-	// r.SetRecipeVar("DISCOVERED_LOG_FILES", loggingConfig{Logs: acceptedLogMatches})
-
 	// Build a comma-separated list of discovered log file paths
 	discoveredLogFiles := []string{}
 	for _, logMatch := range acceptedLogMatches {
 		discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
 	}
 
-	// NR_DISCOVERED_LOG_FILES will be replacing DISCOVERED_LOG_FILES in recipes.
 	discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
-	r.AddVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
+	r.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
 
 	log.WithFields(log.Fields{
 		"NR_DISCOVERED_LOG_FILES": discoveredLogFilesString,
