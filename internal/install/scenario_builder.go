@@ -93,7 +93,8 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewInstallStatus(ers)
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
@@ -131,7 +132,8 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewInstallStatus(ers)
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
@@ -169,7 +171,8 @@ func (b *ScenarioBuilder) LogMatches() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewInstallStatus(ers)
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
@@ -213,7 +216,8 @@ func (b *ScenarioBuilder) StitchedPath() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewInstallStatus(ers)
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
@@ -250,7 +254,8 @@ func (b *ScenarioBuilder) CanceledInstall() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewInstallStatus(ers)
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
@@ -289,7 +294,8 @@ func (b *ScenarioBuilder) DisplayExplorerLink() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	statusRollup := execution.NewInstallStatus(ers)
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
