@@ -3,78 +3,89 @@
 package discovery
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func Test_ShouldFailWithoutVersion(t *testing.T) {
+func Test_ShouldFailWindowsWithoutVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, windowsNoVersionMessage, result.Error())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
+	require.Equal(t, fmt.Sprintf(noVersionMessage, "windows"), result.Error())
 }
 
-func Test_ShouldFailVeryOldVersion(t *testing.T) {
+func Test_ShouldFailWindowsVeryOldVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("5.3.1")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, windowsVersionNoLongerSupported, result.Error())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
+	require.Equal(t, fmt.Sprintf(versionNoLongerSupported, "windows"), result.Error())
 }
 
-func Test_ShouldFailMinOldVersion(t *testing.T) {
+func Test_ShouldFailWindowsOldWithAnyPlatform(t *testing.T) {
+	discover := NewMockDiscoverer()
+	discover.SetOs("windows")
+	discover.SetPlatform("Anything possible")
+	discover.SetPlatformVersion("5.3.1")
+
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
+	require.Equal(t, fmt.Sprintf(versionNoLongerSupported, "windows/Anything possible"), result.Error())
+}
+
+func Test_ShouldFailWindowsMinOldVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("6.1.0")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, windowsVersionNoLongerSupported, result.Error())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
+	require.Equal(t, fmt.Sprintf(versionNoLongerSupported, "windows"), result.Error())
 }
 
-func Test_ShouldFailMinVersion(t *testing.T) {
+func Test_ShouldFailWindowsMinVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("6.1")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, windowsVersionNoLongerSupported, result.Error())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
+	require.Equal(t, fmt.Sprintf(versionNoLongerSupported, "windows"), result.Error())
 }
 
-func Test_ShouldFailMinUnspecifiedVersion(t *testing.T) {
+func Test_ShouldFailWindowsMinUnspecifiedVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("6")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
-	require.Equal(t, windowsVersionNoLongerSupported, result.Error())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
+	require.Equal(t, fmt.Sprintf(versionNoLongerSupported, "windows"), result.Error())
 }
 
-func Test_ShouldPassMinVersionFull(t *testing.T) {
+func Test_ShouldPassWindowsMinVersionFull(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("6.2")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
 	require.NoError(t, result)
 }
 
-func Test_ShouldPassMinVersion(t *testing.T) {
+func Test_ShouldPassWindowsMinVersion(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("6.2.0")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
 	require.NoError(t, result)
 }
 
-func Test_ShouldPass(t *testing.T) {
+func Test_ShouldPassWindows(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("10.0.14393")
 
-	result := NewOsWindowsValidator().Execute(discover.GetManifest())
+	result := NewOsVersionValidator("windows", "", 6, 2).Execute(discover.GetManifest())
 	require.NoError(t, result)
 }

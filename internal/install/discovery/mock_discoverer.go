@@ -13,6 +13,7 @@ type MockDiscoverer struct {
 func NewMockDiscoverer() *MockDiscoverer {
 	m := &types.DiscoveryManifest{
 		OS:              "linux",
+		Platform:        "",
 		PlatformVersion: "",
 	}
 
@@ -23,6 +24,10 @@ func NewMockDiscoverer() *MockDiscoverer {
 
 func (d *MockDiscoverer) SetOs(os string) {
 	d.DiscoveryManifest.OS = os
+}
+
+func (d *MockDiscoverer) SetPlatform(p string) {
+	d.DiscoveryManifest.Platform = p
 }
 
 func (d *MockDiscoverer) SetPlatformVersion(pf string) {
