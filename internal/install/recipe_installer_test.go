@@ -36,7 +36,7 @@ var (
 	v               = validation.NewMockRecipeValidator()
 	ff              = recipes.NewMockRecipeFileFetcher()
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status          = execution.NewInstallStatus(statusReporters)
+	status          = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	p               = ux.NewMockPrompter()
 	pi              = ux.NewMockProgressIndicator()
 	lkf             = NewMockLicenseKeyFetcher()
@@ -103,7 +103,7 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
@@ -126,7 +126,7 @@ func TestInstall_FailsOnInvalidOs(t *testing.T) {
 	mv = discovery.NewManifestValidator()
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
@@ -144,7 +144,7 @@ func TestInstall_FailsOnInvalidOs(t *testing.T) {
 func TestInstall_RecipesAvailable(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
 		DisplayName:    testRecipeName,
@@ -172,7 +172,7 @@ func TestInstall_RecipesAvailable(t *testing.T) {
 func TestInstall_RecipeInstalled(t *testing.T) {
 	ic := InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f2 := recipes.NewMockRecipeFetcher()
 	f2.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -216,7 +216,7 @@ func TestInstall_RecipeFailed(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -257,7 +257,7 @@ func TestInstall_InstallComplete(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -282,7 +282,7 @@ func TestInstall_InstallCanceled(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecipeErr = types.ErrInterrupt
 
@@ -300,7 +300,7 @@ func TestInstall_InstallCompleteError(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -334,7 +334,7 @@ func TestInstall_InstallCompleteError_guidedRecipeFail(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           "badRecipe",
@@ -370,7 +370,7 @@ func TestInstall_RecipeSkipped(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -407,7 +407,7 @@ func TestInstall_RecipeSkippedApm(t *testing.T) {
 		SkipApm: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -445,7 +445,7 @@ func TestInstall_RecipeSkippedApmAnyKeyword(t *testing.T) {
 		SkipApm: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -484,7 +484,7 @@ func TestInstall_RecipeSkipped_SkipAll(t *testing.T) {
 		SkipIntegrations:   true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           "test-recipe",
@@ -519,7 +519,7 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -556,7 +556,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
 		{
@@ -625,7 +625,7 @@ func TestInstall_RecipeSkipped_AssumeYes(t *testing.T) {
 	}
 
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,
@@ -662,7 +662,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 		RecipeNames: []string{types.InfraAgentRecipeName},
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -687,7 +687,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
 		RecipeNames: []string{"testRecipe"},
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -717,7 +717,7 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 		RecipeNames: []string{types.InfraAgentRecipeName},
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -743,7 +743,7 @@ func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
 		SkipInfra:   true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -769,7 +769,7 @@ func TestInstall_TargetedInstall_SkipInfraDependency(t *testing.T) {
 		SkipInfra:   true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -799,7 +799,7 @@ func TestInstall_GuidReport(t *testing.T) {
 		SkipLoggingInstall: true,
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters)
+	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{{
 		Name:           testRecipeName,

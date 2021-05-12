@@ -2,22 +2,17 @@ package execution
 
 import (
 	"fmt"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type TerminalStatusReporter struct {
-	successLinkGenerator SuccessLinkGenerator
-}
+type TerminalStatusReporter struct{}
 
 // NewTerminalStatusReporter is an implementation of the ExecutionStatusReporter interface that reports execution status to STDOUT.
 func NewTerminalStatusReporter() *TerminalStatusReporter {
-	r := TerminalStatusReporter{
-		successLinkGenerator: NewConcreteSuccessLinkGenerator(),
-	}
+	r := TerminalStatusReporter{}
 
 	return &r
 }
@@ -98,7 +93,10 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 	fmt.Println("  New Relic installation complete!")
 
-	linkToData := r.getSuccessLink(status)
+	linkToData := ""
+	if status.successLinkGenerator != nil {
+		linkToData = status.successLinkGenerator.GenerateRedirectURL(*status)
+	}
 
 	if linkToData != "" {
 		fmt.Printf("  Your data is available at %s", linkToData)
@@ -107,18 +105,6 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	fmt.Println()
 
 	return nil
-}
-
-func (r *TerminalStatusReporter) getSuccessLink(status *InstallStatus) string {
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
-		switch t := status.successLinkConfig.Type; {
-		case strings.EqualFold(string(t), "explorer"):
-			return r.successLinkGenerator.GenerateExplorerLink(status.successLinkConfig.Filter)
-		default:
-			return r.successLinkGenerator.GenerateEntityLink(status.HostEntityGUID())
-		}
-	}
-	return ""
 }
 
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {

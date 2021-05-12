@@ -18,9 +18,9 @@ func TestTerminalStatusReporter_interface(t *testing.T) {
 func Test_ShouldGenerateEntityLink(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
-	r.successLinkGenerator = g
-
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		successLinkGenerator: g,
+	}
 	recipeStatus := &RecipeStatus{
 		Status: RecipeStatusTypes.INSTALLED,
 	}
@@ -35,9 +35,10 @@ func Test_ShouldGenerateEntityLink(t *testing.T) {
 func Test_ShouldNotGenerateEntityLink(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
-	r.successLinkGenerator = g
 
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		successLinkGenerator: g,
+	}
 	recipeStatus := &RecipeStatus{
 		Status: RecipeStatusTypes.FAILED,
 	}
@@ -52,9 +53,10 @@ func Test_ShouldNotGenerateEntityLink(t *testing.T) {
 func Test_ShouldNotGenerateEntityLinkWhenNoRecipes(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
-	r.successLinkGenerator = g
 
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		successLinkGenerator: g,
+	}
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
@@ -65,9 +67,10 @@ func Test_ShouldNotGenerateEntityLinkWhenNoRecipes(t *testing.T) {
 func Test_ShouldGenerateExplorerLink(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
-	r.successLinkGenerator = g
 
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		successLinkGenerator: g,
+	}
 	recipeStatus := &RecipeStatus{
 		Status: RecipeStatusTypes.INSTALLED,
 	}
@@ -86,9 +89,10 @@ func Test_ShouldGenerateExplorerLink(t *testing.T) {
 func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
-	r.successLinkGenerator = g
 
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		successLinkGenerator: g,
+	}
 	recipeStatus := &RecipeStatus{
 		Status: RecipeStatusTypes.FAILED,
 	}
@@ -107,9 +111,10 @@ func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
 func Test_ShouldNotGenerateExplorerLinkWhenNoRecipes(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockSuccessLinkGenerator()
-	r.successLinkGenerator = g
 
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		successLinkGenerator: g,
+	}
 	status.successLinkConfig = types.OpenInstallationSuccessLinkConfig{
 		Type:   "explorer",
 		Filter: "\"`tags.language` = 'java'\"",
