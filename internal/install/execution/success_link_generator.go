@@ -12,6 +12,7 @@ import (
 type SuccessLinkGenerator interface {
 	GenerateExplorerLink(filter string) string
 	GenerateEntityLink(entityGUID string) string
+	GenerateRedirectURL(status InstallStatus) string
 }
 
 type ConcreteSuccessLinkGenerator struct{}
@@ -38,13 +39,17 @@ func (g *ConcreteSuccessLinkGenerator) GenerateEntityLink(entityGUID string) str
 	return generateEntityLink(entityGUID)
 }
 
-func generateSuccessURL(status InstallStatus) string {
+// GenerateRedirectURL creates a URL for the user to navigate to after running
+// through an installation. The URL is displayed in the CLI out as well and is
+// also provided in the nerdstorage document. This provides the user two options
+// to see their data - click from the CLI output or from the frontend.
+func (g *ConcreteSuccessLinkGenerator) GenerateRedirectURL(status InstallStatus) string {
 	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
 		switch t := status.successLinkConfig.Type; {
 		case strings.EqualFold(string(t), "explorer"):
-			return generateExplorerLink(status.successLinkConfig.Filter)
+			return g.GenerateExplorerLink(status.successLinkConfig.Filter)
 		default:
-			return generateEntityLink(status.HostEntityGUID())
+			return g.GenerateEntityLink(status.HostEntityGUID())
 		}
 	}
 
