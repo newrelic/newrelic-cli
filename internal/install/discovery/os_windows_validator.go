@@ -13,6 +13,8 @@ type OsWindowsValidator struct{}
 var (
 	windowsVersionNoLongerSupported = "This version of Windows is no longer supported"
 	windowsNoVersionMessage         = "Failed to identified a valid version of Windows"
+	windowsMinMajor                 = 6
+	windowsMinMinor                 = 2
 )
 
 func NewOsWindowsValidator() *OsWindowsValidator {
@@ -34,7 +36,7 @@ func (v *OsWindowsValidator) Execute(m *types.DiscoveryManifest) error {
 	case 1:
 		major, err := strconv.Atoi(versions[0])
 		if err == nil {
-			return ensureMinimumVersion(major, 0)
+			return ensureMinimumVersion(major, windowsMinMinor-1)
 		}
 		return fmt.Errorf(windowsNoVersionMessage)
 	default:
@@ -51,11 +53,11 @@ func (v *OsWindowsValidator) Execute(m *types.DiscoveryManifest) error {
 }
 
 func ensureMinimumVersion(major int, minor int) error {
-	if major < 6 {
+	if major < windowsMinMajor {
 		return fmt.Errorf(windowsVersionNoLongerSupported)
 	}
-	if major == 6 {
-		if minor == 0 {
+	if major == windowsMinMajor {
+		if minor < windowsMinMinor {
 			return fmt.Errorf(windowsVersionNoLongerSupported)
 		}
 	}
