@@ -230,6 +230,7 @@ const (
 		dependencies
 		stability
 		repository
+		install
 		installTargets {
 			type
 			os

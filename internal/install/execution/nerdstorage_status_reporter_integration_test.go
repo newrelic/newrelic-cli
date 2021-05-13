@@ -40,7 +40,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 	entityGUID := createEntity(t, a, c)
 
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
-	status := NewInstallStatus([]StatusSubscriber{r})
+	status := NewInstallStatus([]StatusSubscriber{r}, NewConcreteSuccessLinkGenerator())
 	status.withEntityGUID(entityGUID)
 
 	defer deleteUserStatusCollection(t, c.NerdStorage)
@@ -89,7 +89,7 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 	entityGUID := createEntity(t, a, c)
 
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
-	status := NewInstallStatus([]StatusSubscriber{r})
+	status := NewInstallStatus([]StatusSubscriber{r}, NewConcreteSuccessLinkGenerator())
 
 	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)

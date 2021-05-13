@@ -14,26 +14,28 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
-	Complete            bool                    `json:"complete"`
-	DiscoveryManifest   types.DiscoveryManifest `json:"discoveryManifest"`
-	EntityGUIDs         []string                `json:"entityGuids"`
-	Error               StatusError             `json:"error"`
-	LogFilePath         string                  `json:"logFilePath"`
-	Statuses            []*RecipeStatus         `json:"recipes"`
-	Timestamp           int64                   `json:"timestamp"`
-	CLIVersion          string                  `json:"cliVersion"`
-	HasInstalledRecipes bool                    `json:"hasInstalledRecipes"`
-	HasCanceledRecipes  bool                    `json:"hasCanceledRecipes"`
-	HasSkippedRecipes   bool                    `json:"hasSkippedRecipes"`
-	HasFailedRecipes    bool                    `json:"hasFailedRecipes"`
-	RecipesSkipped      []*RecipeStatus         `json:"recipesSkipped"`
-	RecipesCanceled     []*RecipeStatus         `json:"recipesCanceled"`
-	RecipesFailed       []*RecipeStatus         `json:"recipesFailed"`
-	RecipesInstalled    []*RecipeStatus         `json:"recipesInstalled"`
-	DocumentID          string
-	targetedInstall     bool
-	statusSubscriber    []StatusSubscriber
-	successLinkConfig   types.OpenInstallationSuccessLinkConfig
+	Complete             bool                    `json:"complete"`
+	DiscoveryManifest    types.DiscoveryManifest `json:"discoveryManifest"`
+	EntityGUIDs          []string                `json:"entityGuids"`
+	Error                StatusError             `json:"error"`
+	LogFilePath          string                  `json:"logFilePath"`
+	Statuses             []*RecipeStatus         `json:"recipes"`
+	Timestamp            int64                   `json:"timestamp"`
+	CLIVersion           string                  `json:"cliVersion"`
+	HasInstalledRecipes  bool                    `json:"hasInstalledRecipes"`
+	HasCanceledRecipes   bool                    `json:"hasCanceledRecipes"`
+	HasSkippedRecipes    bool                    `json:"hasSkippedRecipes"`
+	HasFailedRecipes     bool                    `json:"hasFailedRecipes"`
+	RecipesSkipped       []*RecipeStatus         `json:"recipesSkipped"`
+	RecipesCanceled      []*RecipeStatus         `json:"recipesCanceled"`
+	RecipesFailed        []*RecipeStatus         `json:"recipesFailed"`
+	RecipesInstalled     []*RecipeStatus         `json:"recipesInstalled"`
+	RedirectURL          string                  `json:"redirectUrl"`
+	DocumentID           string
+	targetedInstall      bool
+	statusSubscriber     []StatusSubscriber
+	successLinkConfig    types.OpenInstallationSuccessLinkConfig
+	successLinkGenerator SuccessLinkGenerator
 }
 
 type RecipeStatus struct {
@@ -71,12 +73,13 @@ type StatusError struct {
 	Details string `json:"details"`
 }
 
-func NewInstallStatus(reporters []StatusSubscriber) *InstallStatus {
+func NewInstallStatus(reporters []StatusSubscriber, successLinkGenerator SuccessLinkGenerator) *InstallStatus {
 	s := InstallStatus{
-		DocumentID:       uuid.New().String(),
-		Timestamp:        utils.GetTimestamp(),
-		LogFilePath:      config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
-		statusSubscriber: reporters,
+		DocumentID:           uuid.New().String(),
+		Timestamp:            utils.GetTimestamp(),
+		LogFilePath:          config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		statusSubscriber:     reporters,
+		successLinkGenerator: successLinkGenerator,
 	}
 
 	return &s
@@ -240,6 +243,10 @@ func (s *InstallStatus) HostEntityGUID() string {
 	return guid
 }
 
+func (s *InstallStatus) setRedirectURL() {
+	s.RedirectURL = s.successLinkGenerator.GenerateRedirectURL(*s)
+}
+
 func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRecipe) {
 	for _, r := range recipes {
 		s.withAvailableRecipe(r)
@@ -350,6 +357,7 @@ func (s *InstallStatus) completed(err error) {
 	}).Debug("completed")
 
 	s.updateFinalInstallationStatuses(false)
+	s.setRedirectURL()
 }
 
 func (s *InstallStatus) canceled() {

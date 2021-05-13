@@ -16,6 +16,9 @@ var (
 	RecipeVariables = map[string]string{}
 )
 
+// RecipeVars is used to pass dynamic data to recipes and go-task.
+type RecipeVars map[string]string
+
 // The API response returns OpenInstallationRecipe.Install as a string.
 // When specifying a recipe path, OpenInstallationRecipe.Install is a map[interface{}]interface{}.
 // For this reason we need a custom unmarshal method for YAML.
@@ -334,18 +337,8 @@ func (r *OpenInstallationRecipe) PreInstallMessage() string {
 	return ""
 }
 
-type RecipeVars map[string]string
-
-// AddVar is responsible for including a new variable on the recipe Vars
+// SetRecipeVar is responsible for including a new variable on the RecipeVariables
 // struct, which is used by go-task executor.
-func (r *OpenInstallationRecipe) AddVar(key string, value interface{}) {
-	// if len(r.Vars) == 0 {
-	// 	r.Vars = make(map[string]interface{})
-	// }
-
-	// r.Vars[key] = value
-}
-
 func (r *OpenInstallationRecipe) SetRecipeVar(key string, value string) {
 	RecipeVariables[key] = value
 }
