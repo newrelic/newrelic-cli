@@ -1,3 +1,12 @@
+<a name="v0.26.0"></a>
+## [v0.26.0] - 2021-05-13
+### Bug Fixes
+- **install:** replace AddVar() with SetRecipeVar() after types refactor
+
+### Features
+- **diagnose:** add validate subcommand
+- **newrelic:** bootstrap an insights insert key on first use
+
 <a name="v0.25.0"></a>
 ## [v0.25.0] - 2021-05-07
 ### Bug Fixes
@@ -638,7 +647,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.25.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.0...HEAD
+[v0.26.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.25.0...v0.26.0
 [v0.25.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.1...v0.25.0
 [v0.24.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.0...v0.24.1
 [v0.24.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.23.2...v0.24.0
