@@ -2,14 +2,17 @@ package diagnose
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"reflect"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
-	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/shirou/gopsutil/host"
 )
 
 const (
@@ -19,51 +22,65 @@ const (
 type ConfigValidator struct {
 	client *newrelic.NewRelic
 	*validation.PollingNRQLValidator
-	discovery.Discoverer
 }
 
 type ValidationTracerEvent struct {
 	EventType string `json:"eventType"`
 	Hostname  string `json:"hostname"`
+	Purpose   string `json:"purpose"`
+	GUID      string `json:"guid"`
 }
 
 func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
-	pf := discovery.NewNoOpProcessFilterer()
+	v := validation.NewPollingNRQLValidator(&client.Nrdb)
+	v.MaxAttempts = 20
 
 	return &ConfigValidator{
 		client:               client,
-		PollingNRQLValidator: validation.NewPollingNRQLValidator(&client.Nrdb),
-		Discoverer:           discovery.NewPSUtilDiscoverer(pf),
+		PollingNRQLValidator: v,
 	}
 }
 
 func (c *ConfigValidator) ValidateConfig(ctx context.Context) error {
 	defaultProfile := credentials.DefaultProfile()
-	manifest, err := c.Discover(ctx)
+
+	i, err := host.InfoWithContext(ctx)
 	if err != nil {
-		return err
+		log.Error(err)
+		return ErrDiscovery
 	}
 
 	evt := ValidationTracerEvent{
 		EventType: validationEventType,
-		Hostname:  manifest.Hostname,
+		Hostname:  i.Hostname,
+		Purpose:   "New Relic CLI configuration validation",
+		GUID:      uuid.NewString(),
 	}
 
 	log.Printf("Sending tracer event to New Relic.")
 
-	err = c.client.Events.CreateEvent(defaultProfile.AccountID, evt)
-	if err != nil {
-		return err
+	if err = c.client.Events.CreateEvent(defaultProfile.AccountID, evt); err != nil {
+		log.Error(reflect.TypeOf(err))
+		log.Error(err)
+		return ErrPostEvent
 	}
 
 	query := fmt.Sprintf(`
 	FROM %s
 	SELECT count(*)
 	WHERE hostname LIKE '%s%%'
+	AND guid = '%s'
 	SINCE 10 MINUTES AGO
-	`, validationEventType, manifest.Hostname)
+	`, evt.EventType, evt.Hostname, evt.GUID)
 
-	_, err = c.Validate(ctx, query)
+	if _, err = c.Validate(ctx, query); err != nil {
+		log.Error(err)
+		err = ErrValidation
+	}
 
 	return err
 }
+
+var ErrDiscovery = errors.New("discovery failed")
+var ErrPostEvent = errors.New("posting an event failed")
+var ErrValidation = errors.New("validation failed")

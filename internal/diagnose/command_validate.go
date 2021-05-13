@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
@@ -19,8 +20,18 @@ data to the New Relic platform and verifying that it has been received.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 			v := NewConfigValidator(nrClient)
-			err := v.ValidateConfig(cmd.Context())
+			err := v.ValidateConfig(utils.SignalCtx)
 			if err != nil {
+				if err == ErrDiscovery {
+					log.Fatal("Failed to detect your system's hostname.  Please contact New Relic support.")
+				}
+				if err == ErrPostEvent {
+					log.Fatal("There was a failure posting data to New Relic.  This could be ")
+				}
+				if err == ErrValidation {
+					log.Fatal("validation failed!")
+				}
+
 				log.Fatal(err)
 			}
 		})

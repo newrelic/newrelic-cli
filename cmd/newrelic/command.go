@@ -44,6 +44,7 @@ func initializeProfile() {
 	var accountID int
 	var region string
 	var licenseKey string
+	var insightsInsertKey string
 	var err error
 
 	credentials.WithCredentials(func(c *credentials.Credentials) {
@@ -56,6 +57,7 @@ func initializeProfile() {
 		envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 		region = os.Getenv("NEW_RELIC_REGION")
 		licenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
+		insightsInsertKey = os.Getenv("NEW_RELIC_INSIGHTS_INSERT_KEY")
 
 		// If we don't have a personal API key we can't initialize a profile.
 		if apiKey == "" {
@@ -96,12 +98,21 @@ func initializeProfile() {
 				}
 			}
 
+			if insightsInsertKey == "" {
+				// We should have an API key by now, so fetch the insights insert key for it.
+				insightsInsertKey, err = fetchInsightsInsertKey(nrClient, accountID)
+				if err != nil {
+					log.Error(err)
+				}
+			}
+
 			if !hasProfileWithDefaultName(c.Profiles) {
 				p := credentials.Profile{
-					Region:     region,
-					APIKey:     apiKey,
-					AccountID:  accountID,
-					LicenseKey: licenseKey,
+					Region:            region,
+					APIKey:            apiKey,
+					AccountID:         accountID,
+					LicenseKey:        licenseKey,
+					InsightsInsertKey: insightsInsertKey,
 				}
 
 				err = c.AddProfile(defaultProfileName, p)
@@ -164,6 +175,32 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 	}
 
 	return "", types.ErrorFetchingLicenseKey
+}
+
+type insightsKey struct {
+	ID  int    `json:"id"`
+	Key string `json:"key"`
+}
+
+func fetchInsightsInsertKey(client *newrelic.NewRelic, accountID int) (string, error) {
+	// Check for an existing key first
+	keys, err := client.APIAccess.ListInsightsInsertKeys(accountID)
+	if err != nil {
+		return "", types.ErrorFetchingInsightsInsertKey
+	}
+
+	// We already have a key, return it
+	if len(keys) > 0 {
+		return keys[0].Key, nil
+	}
+
+	// Create a new key if one doesn't exist
+	key, err := client.APIAccess.CreateInsightsInsertKey(accountID)
+	if err != nil {
+		return "", types.ErrorFetchingInsightsInsertKey
+	}
+
+	return key.Key, nil
 }
 
 // fetchAccountID will try and retrieve an account ID for the given user.  If it
