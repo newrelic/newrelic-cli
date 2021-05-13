@@ -60,6 +60,8 @@ func TestInitializeProfile(t *testing.T) {
 	assert.Equal(t, apiKey, c.Profiles[defaultProfileName].APIKey)
 	assert.NotEmpty(t, c.Profiles[defaultProfileName].Region)
 	assert.NotEmpty(t, c.Profiles[defaultProfileName].AccountID)
+	assert.NotEmpty(t, c.Profiles[defaultProfileName].LicenseKey)
+	assert.NotEmpty(t, c.Profiles[defaultProfileName].InsightsInsertKey)
 
 	// Ensure that we don't Fatal out if the default profile already exists, but
 	// was not specified in the default-profile.json.

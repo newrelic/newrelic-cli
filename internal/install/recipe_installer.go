@@ -233,7 +233,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var validationDurationMilliseconds int64
 	start := time.Now()
 	if r.ValidationNRQL != "" {
-		entityGUID, err = i.recipeValidator.Validate(ctx, *m, *r)
+		entityGUID, err = i.recipeValidator.ValidateRecipe(ctx, *m, *r)
 		if err != nil {
 			validationDurationMilliseconds = time.Since(start).Milliseconds()
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)

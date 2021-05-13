@@ -1,4 +1,4 @@
-package validation
+package utils
 
 import (
 	"context"
@@ -6,6 +6,6 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
-type nrdbClient interface {
+type NRDBClient interface {
 	QueryWithContext(context.Context, int, nrdb.NRQL) (*nrdb.NRDBResultContainer, error)
 }
