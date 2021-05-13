@@ -9,10 +9,11 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/shirou/gopsutil/host"
+
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/shirou/gopsutil/host"
 )
 
 const (

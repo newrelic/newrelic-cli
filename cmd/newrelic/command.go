@@ -177,11 +177,6 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 	return "", types.ErrorFetchingLicenseKey
 }
 
-type insightsKey struct {
-	ID  int    `json:"id"`
-	Key string `json:"key"`
-}
-
 func fetchInsightsInsertKey(client *newrelic.NewRelic, accountID int) (string, error) {
 	// Check for an existing key first
 	keys, err := client.APIAccess.ListInsightsInsertKeys(accountID)
