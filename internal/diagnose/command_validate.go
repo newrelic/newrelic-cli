@@ -26,10 +26,10 @@ data to the New Relic platform and verifying that it has been received.`,
 					log.Fatal("Failed to detect your system's hostname.  Please contact New Relic support.")
 				}
 				if err == ErrPostEvent {
-					log.Fatal("There was a failure posting data to New Relic.  This could be ")
+					log.Fatal("There was a failure posting data to New Relic.")
 				}
 				if err == ErrValidation {
-					log.Fatal("validation failed!")
+					log.Fatal("There was a failure locating the data that was posted to New Relic.")
 				}
 
 				log.Fatal(err)
