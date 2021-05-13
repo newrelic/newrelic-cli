@@ -21,4 +21,5 @@ Troubleshoot your New Relic installation
 * [newrelic diagnose lint](newrelic_diagnose_lint.md)	 - Validate your agent config file
 * [newrelic diagnose run](newrelic_diagnose_run.md)	 - Troubleshoot your New Relic-instrumented application
 * [newrelic diagnose update](newrelic_diagnose_update.md)	 - Update the New Relic Diagnostics binary if necessary
+* [newrelic diagnose validate](newrelic_diagnose_validate.md)	 - Validate your CLI configuration and connectivity
 
