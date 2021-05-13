@@ -9,7 +9,7 @@ require (
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.10.0
 	github.com/git-chglog/git-chglog v0.14.1
-	github.com/go-task/task/v3 v3.3.0
+	github.com/go-task/task/v3 v3.4.2
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.157.0
