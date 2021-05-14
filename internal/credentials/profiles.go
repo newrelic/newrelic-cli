@@ -73,10 +73,11 @@ func (c *Credentials) Default() *Profile {
 func applyOverrides(p *Profile) *Profile {
 	envAPIKey := os.Getenv("NEW_RELIC_API_KEY")
 	envInsightsInsertKey := os.Getenv("NEW_RELIC_INSIGHTS_INSERT_KEY")
+	envLicenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
 	envRegion := os.Getenv("NEW_RELIC_REGION")
 	envAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 
-	if envAPIKey == "" && envRegion == "" && envInsightsInsertKey == "" && envAccountID == "" {
+	if envAPIKey == "" && envRegion == "" && envInsightsInsertKey == "" && envAccountID == "" && envLicenseKey == "" {
 		return p
 	}
 
@@ -91,6 +92,10 @@ func applyOverrides(p *Profile) *Profile {
 
 	if envInsightsInsertKey != "" {
 		out.InsightsInsertKey = envInsightsInsertKey
+	}
+
+	if envLicenseKey != "" {
+		out.LicenseKey = envLicenseKey
 	}
 
 	if envRegion != "" {

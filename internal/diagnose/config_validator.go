@@ -2,9 +2,7 @@ package diagnose
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -14,6 +12,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
 )
 
 const (
@@ -45,10 +44,13 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 func (c *ConfigValidator) ValidateConfig(ctx context.Context) error {
 	defaultProfile := credentials.DefaultProfile()
 
+	if err := c.validateKeys(defaultProfile); err != nil {
+		return err
+	}
+
 	i, err := host.InfoWithContext(ctx)
 	if err != nil {
-		log.Error(err)
-		return ErrDiscovery
+		return NewErrDiscovery(err)
 	}
 
 	evt := ValidationTracerEvent{
@@ -61,9 +63,7 @@ func (c *ConfigValidator) ValidateConfig(ctx context.Context) error {
 	log.Printf("Sending tracer event to New Relic.")
 
 	if err = c.client.Events.CreateEvent(defaultProfile.AccountID, evt); err != nil {
-		log.Error(reflect.TypeOf(err))
-		log.Error(err)
-		return ErrPostEvent
+		return NewErrPostEvent(err)
 	}
 
 	query := fmt.Sprintf(`
@@ -75,13 +75,59 @@ func (c *ConfigValidator) ValidateConfig(ctx context.Context) error {
 	`, evt.EventType, evt.Hostname, evt.GUID)
 
 	if _, err = c.Validate(ctx, query); err != nil {
-		log.Error(err)
-		err = ErrValidation
+		err = NewErrValidation(err)
 	}
 
 	return err
 }
 
-var ErrDiscovery = errors.New("discovery failed")
-var ErrPostEvent = errors.New("posting an event failed")
-var ErrValidation = errors.New("validation failed")
+func (c *ConfigValidator) validateKeys(profile *credentials.Profile) error {
+	if err := c.validateLicenseKey(profile); err != nil {
+		return err
+	}
+
+	if err := c.validateInsightsInsertKey(profile); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *ConfigValidator) validateInsightsInsertKey(profile *credentials.Profile) error {
+	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeys(profile.AccountID)
+	if err != nil {
+		return NewErrConnection(err)
+	}
+
+	for _, k := range insightsInsertKeys {
+		if k.Key == profile.InsightsInsertKey {
+			return nil
+		}
+	}
+
+	return ErrInsightsInsertKey
+}
+
+func (c *ConfigValidator) validateLicenseKey(profile *credentials.Profile) error {
+	params := apiaccess.APIAccessKeySearchQuery{
+		Scope: apiaccess.APIAccessKeySearchScope{
+			AccountIDs: []int{profile.AccountID},
+		},
+		Types: []apiaccess.APIAccessKeyType{
+			apiaccess.APIAccessKeyTypeTypes.INGEST,
+		},
+	}
+
+	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeys(params)
+	if err != nil {
+		return NewErrConnection(err)
+	}
+
+	for _, k := range licenseKeys {
+		if k.Key == profile.LicenseKey {
+			return nil
+		}
+	}
+
+	return ErrLicenseKey
+}
