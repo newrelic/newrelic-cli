@@ -3,6 +3,7 @@ package execution
 import (
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
@@ -13,7 +14,7 @@ const (
 )
 
 // NerdstorageStatusReporter is an implementation of the ExecutionStatusReporter
-// interface that reports esecution status into NerdStorage.
+// interface that reports execution status into NerdStorage.
 type NerdstorageStatusReporter struct {
 	client NerdStorageClient
 }
@@ -87,7 +88,7 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 	}
 
 	for _, g := range status.EntityGUIDs {
-		_, err := r.client.WriteDocumentWithEntityScope(g, i)
+		_, err = r.client.WriteDocumentWithEntityScope(g, i)
 		if err != nil {
 			return err
 		}
@@ -95,6 +96,12 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 
 	if len(status.EntityGUIDs) == 0 {
 		log.Debug("no entity GUIDs available, skipping entity-scoped status updates")
+	}
+
+	defaultProfile := credentials.DefaultProfile()
+	_, err = r.client.WriteDocumentWithAccountScope(defaultProfile.AccountID, i)
+	if err != nil {
+		log.Debug("failed to write to account scoped nerd storage")
 	}
 
 	return nil

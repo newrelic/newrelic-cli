@@ -3,12 +3,15 @@ package execution
 import "github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 
 type MockNerdStorageClient struct {
-	WriteDocumentWithUserScopeVal         interface{}
-	WriteDocumentWithEntityScopeVal       interface{}
-	WriteDocumentWithUserScopeErr         error
-	WriteDocumentWithEntityScopeErr       error
-	writeDocumentWithUserScopeCallCount   int
-	writeDocumentWithEntityScopeCallCount int
+	WriteDocumentWithUserScopeVal          interface{}
+	WriteDocumentWithEntityScopeVal        interface{}
+	WriteDocumentWithAccountScopeVal       interface{}
+	WriteDocumentWithUserScopeErr          error
+	WriteDocumentWithEntityScopeErr        error
+	WriteDocumentWithAccountScopeErr       error
+	writeDocumentWithUserScopeCallCount    int
+	writeDocumentWithEntityScopeCallCount  int
+	writeDocumentWithAccountScopeCallCount int
 }
 
 func NewMockNerdStorageClient() *MockNerdStorageClient {
@@ -28,4 +31,9 @@ func (c *MockNerdStorageClient) WriteDocumentWithUserScope(nerdstorage.WriteDocu
 func (c *MockNerdStorageClient) WriteDocumentWithEntityScope(string, nerdstorage.WriteDocumentInput) (interface{}, error) {
 	c.writeDocumentWithEntityScopeCallCount++
 	return c.WriteDocumentWithEntityScopeVal, c.WriteDocumentWithEntityScopeErr
+}
+
+func (c *MockNerdStorageClient) WriteDocumentWithAccountScope(int, nerdstorage.WriteDocumentInput) (interface{}, error) {
+	c.writeDocumentWithAccountScopeCallCount++
+	return c.WriteDocumentWithAccountScopeVal, c.WriteDocumentWithAccountScopeErr
 }
