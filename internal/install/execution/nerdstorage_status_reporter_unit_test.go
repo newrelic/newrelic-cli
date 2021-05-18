@@ -49,6 +49,7 @@ func TestRecipeInstalled_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 1, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestRecipeInstalled_UserScopeOnly(t *testing.T) {
@@ -62,6 +63,7 @@ func TestRecipeInstalled_UserScopeOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestRecipeInstalled_MultipleEntityGUIDs(t *testing.T) {
@@ -77,6 +79,7 @@ func TestRecipeInstalled_MultipleEntityGUIDs(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 2, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestRecipeInstalled_UserScopeError(t *testing.T) {
@@ -119,6 +122,7 @@ func TestRecipeFailed_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 1, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestRecipeFailed_UserScopeOnly(t *testing.T) {
@@ -133,6 +137,7 @@ func TestRecipeFailed_UserScopeOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestRecipeFailed_UserScopeError(t *testing.T) {
@@ -173,6 +178,7 @@ func TestInstallComplete_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestInstallComplete_UserScopeError(t *testing.T) {
@@ -197,6 +203,7 @@ func TestInstallCanceled_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestInstallCanceled_UserScopeError(t *testing.T) {
@@ -221,6 +228,7 @@ func TestDiscoveryComplete_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, c.writeDocumentWithUserScopeCallCount)
 	require.Equal(t, 0, c.writeDocumentWithEntityScopeCallCount)
+	require.Equal(t, 1, c.writeDocumentWithAccountScopeCallCount)
 }
 
 func TestDiscoveryComplete_UserScopeError(t *testing.T) {
