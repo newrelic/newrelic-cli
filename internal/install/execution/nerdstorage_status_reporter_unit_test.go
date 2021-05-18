@@ -8,10 +8,12 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestRecipesAvailable_Basic(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	slg := NewConcreteSuccessLinkGenerator()
