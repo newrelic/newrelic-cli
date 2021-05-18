@@ -91,7 +91,9 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("  ---")
 	}
 
-	fmt.Println("  New Relic installation complete!")
+	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
+		fmt.Println("  New Relic installation complete!")
+	}
 
 	linkToData := ""
 	if status.successLinkGenerator != nil {
