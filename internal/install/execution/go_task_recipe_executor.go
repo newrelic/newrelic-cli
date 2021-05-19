@@ -82,10 +82,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 		return err
 	}
 
+	stdoutCapture := NewLineCaptureBuffer(os.Stdout)
+	stderrCapture := NewLineCaptureBuffer(os.Stderr)
+
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stderr:     os.Stderr,
-		Stdout:     os.Stdout,
+		Stderr:     stderrCapture,
+		Stdout:     stdoutCapture,
 		Stdin:      os.Stdin,
 	}
 
@@ -111,6 +114,8 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 			"err": err,
 		}).Debug("Task execution returned error")
 
+		goTaskError := types.NewGoTaskGeneralError(err)
+
 		// go-task does not provide an error type to denote context cancelation
 		// Therefore we need to match inside the error message
 		if strings.Contains(err.Error(), "context canceled") {
@@ -122,7 +127,14 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryMa
 			return types.ErrInterrupt
 		}
 
-		return err
+		// Catchall error formatting for child process errors
+		if strings.Contains(err.Error(), "exit status") {
+			lastStderr := stderrCapture.LastFullLine
+
+			return types.NewNonZeroExitCode(goTaskError, lastStderr)
+		}
+
+		return goTaskError
 	}
 
 	return nil
