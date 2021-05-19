@@ -1,3 +1,10 @@
+<a name="v0.27.0"></a>
+## [v0.27.0] - 2021-05-19
+### Features
+- **install:** update integration tests to delete account scoped nerd store document
+- **install:** update tests to check for account scoped nerdstore write
+- **install:** Add an account scoped write to nerdstore when we write recipes
+
 <a name="v0.26.2"></a>
 ## [v0.26.2] - 2021-05-18
 ### Bug Fixes
@@ -662,7 +669,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.0...HEAD
+[v0.27.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.2...v0.27.0
 [v0.26.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.1...v0.26.2
 [v0.26.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.0...v0.26.1
 [v0.26.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.25.0...v0.26.0
