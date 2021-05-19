@@ -1,3 +1,12 @@
+<a name="v0.26.2"></a>
+## [v0.26.2] - 2021-05-18
+### Bug Fixes
+- **install:** only display completion message when something has gone right
+
+### Features
+- **diagnose:** improve config validation errors
+- **install:** run config validation at the beginning of the install command
+
 <a name="v0.26.1"></a>
 ## [v0.26.1] - 2021-05-14
 ### Bug Fixes
@@ -520,8 +529,6 @@
 - **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
-<a name="v0.6.2-test"></a>
-## [v0.6.2-test] - 2020-04-09
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
@@ -655,7 +662,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.2...HEAD
+[v0.26.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.1...v0.26.2
 [v0.26.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.0...v0.26.1
 [v0.26.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.25.0...v0.26.0
 [v0.25.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.1...v0.25.0
@@ -733,8 +741,7 @@
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.7.0
-[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.6.2-test
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0

@@ -19,5 +19,5 @@ func (f *MockLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string, er
 }
 
 func defaultFetchLicenseKeyFunc(ctx context.Context) (string, error) {
-	return "", nil
+	return "mockLicenseKey", nil
 }

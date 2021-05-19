@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
@@ -31,6 +32,7 @@ type RecipeInstaller struct {
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
 	licenseKeyFetcher LicenseKeyFetcher
+	configValidator   diagnose.ConfigValidator
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -61,6 +63,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
+	cv := diagnose.NewConcreteConfigValidator(nrClient)
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
 
@@ -76,6 +79,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		prompter:          p,
 		progressIndicator: pi,
 		licenseKeyFetcher: lkf,
+		configValidator:   cv,
 	}
 
 	i.InstallerContext = ic
@@ -115,6 +119,11 @@ func (i *RecipeInstaller) Install() error {
 
 	errChan := make(chan error)
 	var err error
+
+	log.Printf("Validating connectivity to the New Relic platform...")
+	if err = i.configValidator.ValidateConfig(ctx); err != nil {
+		return err
+	}
 
 	go func(ctx context.Context) {
 		errChan <- i.discoverAndRun(ctx)
