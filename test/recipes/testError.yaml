@@ -1,0 +1,18 @@
+name: test-error
+displayName: Test error
+
+install:
+  version: '3'
+  silent: true
+
+  tasks:
+    default:
+      cmds:
+        - task: execute
+
+    execute:
+      label: 'Testing errors...'
+      cmds:
+        - |
+          echo -e "asdf" >&2
+          exit 123
