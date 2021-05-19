@@ -46,6 +46,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
+	defer deleteAccountStatusCollection(t, a, c.NerdStorage)
 
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
@@ -94,6 +95,7 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
+	defer deleteAccountStatusCollection(t, a, c.NerdStorage)
 
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
@@ -128,6 +130,16 @@ func getEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStor
 	}
 
 	return c.GetCollectionWithEntityScope(guid, getCollectionInput)
+}
+
+func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.NerdStorage) {
+	di := nerdstorage.DeleteCollectionInput{
+		Collection: collectionID,
+		PackageID:  packageID,
+	}
+	ok, err := c.DeleteCollectionWithAccountScope(accountID, di)
+	require.NoError(t, err)
+	require.True(t, ok)
 }
 
 func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
