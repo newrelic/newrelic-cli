@@ -33,7 +33,7 @@ jobs:
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
         id: add-newrelic-cli-path-smoke-tests
-        uses: actions/github-script@v3
+        uses: actions/github-script@v4
         continue-on-error: false
         with:
           script: |
