@@ -7,4 +7,5 @@ import (
 type NerdStorageClient interface {
 	WriteDocumentWithUserScope(nerdstorage.WriteDocumentInput) (interface{}, error)
 	WriteDocumentWithEntityScope(string, nerdstorage.WriteDocumentInput) (interface{}, error)
+	WriteDocumentWithAccountScope(int, nerdstorage.WriteDocumentInput) (interface{}, error)
 }
