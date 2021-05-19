@@ -91,8 +91,6 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewPlainProgress()
-	mv := discovery.NewEmptyManifestValidator()
-	lkf := NewMockLicenseKeyFetcher()
 
 	i := RecipeInstaller{
 		discoverer:        d,
