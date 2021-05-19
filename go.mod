@@ -35,5 +35,5 @@ require (
 	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
-	gotest.tools/gotestsum v1.6.3
+	gotest.tools/gotestsum v1.6.4
 )
