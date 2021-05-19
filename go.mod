@@ -32,7 +32,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
-	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72
+	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.3
