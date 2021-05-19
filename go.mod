@@ -3,12 +3,12 @@ module github.com/newrelic/newrelic-cli
 go 1.13
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.2.9
+	github.com/AlecAivazis/survey/v2 v2.2.12
 	github.com/Masterminds/semver v1.5.0
 	github.com/briandowns/spinner v1.12.0
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.10.0
-	github.com/git-chglog/git-chglog v0.14.1
+	github.com/git-chglog/git-chglog v0.14.2
 	github.com/go-task/task/v3 v3.3.0
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/google/uuid v1.2.0
@@ -32,7 +32,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.6.8
-	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72
+	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.4
