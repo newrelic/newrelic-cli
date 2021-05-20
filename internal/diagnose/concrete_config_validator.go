@@ -10,18 +10,25 @@ import (
 	"github.com/shirou/gopsutil/host"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
 )
 
 const (
-	validationEventType = "NrIntegrationError"
+	validationEventType          = "NrIntegrationError"
+	DefaultPostRetryDelaySec     = 5
+	DefaultPostMaxRetries        = 5
+	DefaultMaxValidationAttempts = 20
 )
 
 type ConcreteConfigValidator struct {
 	client *newrelic.NewRelic
 	*validation.PollingNRQLValidator
+	profile           *credentials.Profile
+	PostRetryDelaySec int
+	PostMaxRetries    int
 }
 
 type ValidationTracerEvent struct {
@@ -33,18 +40,19 @@ type ValidationTracerEvent struct {
 
 func NewConcreteConfigValidator(client *newrelic.NewRelic) *ConcreteConfigValidator {
 	v := validation.NewPollingNRQLValidator(&client.Nrdb)
-	v.MaxAttempts = 20
+	v.MaxAttempts = DefaultMaxValidationAttempts
 
 	return &ConcreteConfigValidator{
 		client:               client,
 		PollingNRQLValidator: v,
+		profile:              credentials.DefaultProfile(),
+		PostRetryDelaySec:    DefaultPostRetryDelaySec,
+		PostMaxRetries:       DefaultPostMaxRetries,
 	}
 }
 
 func (c *ConcreteConfigValidator) ValidateConfig(ctx context.Context) error {
-	defaultProfile := credentials.DefaultProfile()
-
-	if err := c.validateKeys(defaultProfile); err != nil {
+	if err := c.validateKeys(c.profile); err != nil {
 		return err
 	}
 
@@ -61,9 +69,18 @@ func (c *ConcreteConfigValidator) ValidateConfig(ctx context.Context) error {
 		GUID:      uuid.NewString(),
 	}
 
-	if err = c.client.Events.CreateEvent(defaultProfile.AccountID, evt); err != nil {
-		log.Error(err)
-		return ErrPostEvent
+	postEvent := func() error {
+		if err = c.client.Events.CreateEvent(c.profile.AccountID, evt); err != nil {
+			log.Error(err)
+			return ErrPostEvent
+		}
+
+		return nil
+	}
+
+	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, postEvent)
+	if err = r.ExecWithRetries(); err != nil {
+		return err
 	}
 
 	query := fmt.Sprintf(`
