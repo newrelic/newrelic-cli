@@ -69,9 +69,9 @@ var RecipeStatusTypes = struct {
 }
 
 type StatusError struct {
-	Message string   `json:"message"`
-	Details string   `json:"details"`
-	Tasks   []string `json:"tasks"`
+	Message  string   `json:"message"`
+	Details  string   `json:"details"`
+	TaskPath []string `json:"taskPath"`
 }
 
 func NewInstallStatus(reporters []StatusSubscriber, successLinkGenerator SuccessLinkGenerator) *InstallStatus {
@@ -295,8 +295,8 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	s.withSuccessLinkConfig(e.Recipe.SuccessLinkConfig)
 
 	statusError := StatusError{
-		Message: e.Msg,
-		Tasks:   e.Tasks,
+		Message:  e.Msg,
+		TaskPath: e.TaskPath,
 	}
 
 	s.Error = statusError
@@ -305,7 +305,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		"recipe_name":                    e.Recipe.Name,
 		"status":                         rs,
 		"error":                          statusError.Message,
-		"tasks":                          statusError.Tasks,
+		"tasks":                          statusError.TaskPath,
 		"guid":                           e.EntityGUID,
 		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
 	}).Debug("recipe event")
@@ -354,7 +354,7 @@ func (s *InstallStatus) completed(err error) {
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {
-			statusError.Tasks = e.Tasks()
+			statusError.TaskPath = e.TaskPath()
 		}
 
 		s.Error = statusError

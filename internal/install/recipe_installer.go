@@ -238,7 +238,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 		if e, ok := err.(types.GoTaskError); ok {
 			e.SetError(msg)
-			se.Tasks = e.Tasks()
+			se.TaskPath = e.TaskPath()
 		} else {
 			err = errors.New(msg)
 		}

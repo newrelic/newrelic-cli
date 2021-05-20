@@ -4,21 +4,25 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strings"
 )
 
-// ErrInterrupt represents a context cancellation.
-var ErrInterrupt = errors.New("operation canceled")
+var (
+	// ErrInterrupt represents a context cancellation.
+	ErrInterrupt       = errors.New("operation canceled")
+	maxTaskPathNesting = 5
+)
 
 type GoTaskError interface {
 	error
-	Tasks() []string
+	TaskPath() []string
 	SetError(msg string)
 }
 
 // GoTaskError represents a task failure reported by go-task.
 type GoTaskGeneralError struct {
 	error
-	tasks []string
+	taskPath []string
 }
 
 func (e GoTaskGeneralError) Error() string {
@@ -29,25 +33,32 @@ func (e GoTaskGeneralError) SetError(msg string) {
 	e.error = errors.New(msg)
 }
 
-func (e GoTaskGeneralError) Tasks() []string {
-	return e.tasks
+func (e GoTaskGeneralError) TaskPath() []string {
+	return e.taskPath
 }
 
 func NewGoTaskGeneralError(err error) GoTaskError {
-	re := regexp.MustCompile(`task: Failed to run task \"default\": task: Failed to run task \"(.+)\": `)
+	pattern := `task: Failed to run task \"(.+?)\": `
+	str := strings.Repeat("(?:%[1]s)?", maxTaskPathNesting)
+	re := regexp.MustCompile(fmt.Sprintf(str, pattern))
+	parsed := re.FindStringSubmatch(err.Error())
 
-	parsed := re.FindAllSubmatch([]byte(err.Error()), 1)
+	taskPath := []string{}
+	for i, p := range parsed {
+		if i == 0 {
+			continue
+		}
 
-	var task string
-	if len(parsed) > 0 && len(parsed[0]) > 0 {
-		task = string(parsed[0][1])
+		if p != "" {
+			taskPath = append(taskPath, p)
+		}
 	}
 
 	stripped := re.ReplaceAllString(err.Error(), "")
 
 	return GoTaskGeneralError{
-		tasks: []string{task},
-		error: errors.New(stripped),
+		taskPath: taskPath,
+		error:    errors.New(stripped),
 	}
 }
 
