@@ -21,7 +21,7 @@ type StatusSubscriber interface {
 type RecipeStatusEvent struct {
 	Recipe                         types.OpenInstallationRecipe
 	Msg                            string
-	Tasks                          []string
+	TaskPath                       []string
 	EntityGUID                     string
 	ValidationDurationMilliseconds int64
 }
