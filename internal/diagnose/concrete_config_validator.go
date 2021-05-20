@@ -100,14 +100,21 @@ func (c *ConcreteConfigValidator) ValidateConfig(ctx context.Context) error {
 }
 
 func (c *ConcreteConfigValidator) validateKeys(profile *credentials.Profile) error {
-	if err := c.validateLicenseKey(profile); err != nil {
-		return err
+	validateKeyFunc := func() error {
+		if err := c.validateLicenseKey(profile); err != nil {
+			return err
+		}
+
+		if err := c.validateInsightsInsertKey(profile); err != nil {
+			return err
+		}
+		return nil
 	}
 
-	if err := c.validateInsightsInsertKey(profile); err != nil {
+	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, validateKeyFunc)
+	if err := r.ExecWithRetries(); err != nil {
 		return err
 	}
-
 	return nil
 }
 
