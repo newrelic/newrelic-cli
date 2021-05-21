@@ -1,3 +1,9 @@
+<a name="v0.27.2"></a>
+## [v0.27.2] - 2021-05-20
+### Bug Fixes
+- **diagnose:** validate license and insight keys in a retry loop
+- **install:** fix task path field name and support nested tasks
+
 <a name="v0.27.1"></a>
 ## [v0.27.1] - 2021-05-20
 ### Bug Fixes
@@ -542,8 +548,6 @@
 - **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
-<a name="v0.6.2-test"></a>
-## [v0.6.2-test] - 2020-04-09
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
@@ -677,7 +681,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.2...HEAD
+[v0.27.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.1...v0.27.2
 [v0.27.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.0...v0.27.1
 [v0.27.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.2...v0.27.0
 [v0.26.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.1...v0.26.2
@@ -758,8 +763,7 @@
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.7.0
-[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.6.2-test
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
