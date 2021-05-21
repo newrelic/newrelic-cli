@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -284,11 +285,20 @@ func toBoolByFieldName(fieldName string, data map[string]interface{}) bool {
 }
 
 func toStringByFieldName(fieldName string, data map[string]interface{}) string {
-	if v, ok := data[fieldName]; ok {
-		return v.(string)
+	out := ""
+	if in, ok := data[fieldName]; ok {
+		switch v := in.(type) {
+		case int:
+			return strconv.Itoa(v)
+		case string:
+			return v
+		case bool:
+			return strconv.FormatBool(v)
+		}
+		return out
 	}
 
-	return ""
+	return out
 }
 
 func expandInstalllMapToString(recipeIn map[string]interface{}) (string, error) {
