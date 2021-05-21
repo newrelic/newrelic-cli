@@ -19,7 +19,7 @@ import (
 const (
 	validationEventType          = "NrIntegrationError"
 	DefaultPostRetryDelaySec     = 5
-	DefaultPostMaxRetries        = 5
+	DefaultPostMaxRetries        = 20
 	DefaultMaxValidationAttempts = 20
 )
 
@@ -121,8 +121,7 @@ func (c *ConcreteConfigValidator) validateKeys(profile *credentials.Profile) err
 func (c *ConcreteConfigValidator) validateInsightsInsertKey(profile *credentials.Profile) error {
 	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeys(profile.AccountID)
 	if err != nil {
-		log.Error(err)
-		return ErrConnection
+		return fmt.Errorf(ErrConnectionStringFormat, err)
 	}
 
 	for _, k := range insightsInsertKeys {
@@ -146,8 +145,7 @@ func (c *ConcreteConfigValidator) validateLicenseKey(profile *credentials.Profil
 
 	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeys(params)
 	if err != nil {
-		log.Error(err)
-		return ErrConnection
+		return fmt.Errorf(ErrConnectionStringFormat, err)
 	}
 
 	for _, k := range licenseKeys {
