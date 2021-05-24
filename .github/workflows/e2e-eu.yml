@@ -1,4 +1,4 @@
-name: End to end testing
+name: End to end testing (EU)
 
 on:
   push:
