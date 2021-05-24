@@ -36,4 +36,5 @@ require (
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.4
+	mvdan.cc/sh/v3 v3.2.4 // indirect
 )
