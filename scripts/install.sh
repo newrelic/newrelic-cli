@@ -24,8 +24,8 @@ fi
 
 if [ "$(uname -m)" == "x86_64" ]; then
     MACHINE="x86_64"
-elif [ "$(uname)" == "aarch64" ]; then
-    MACHINE="aarch64"
+elif [ "$(uname -m)" == "aarch64" ]; then
+    MACHINE="arm64"
 elif [ "$(uname -m)" == "armv7l" ]; then
     MACHINE="armv7"
 else
