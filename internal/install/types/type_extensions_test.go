@@ -14,5 +14,5 @@ func TestRecipeVars_ToSlice(t *testing.T) {
 		"anotherTestKey": "anotherTestValue",
 	}
 
-	require.Equal(t, []string{"testKey", "testValue", "anotherTestKey", "anotherTestValue"}, r.ToSlice())
+	require.Equal(t, []string{"testKey=testValue", "anotherTestKey=anotherTestValue"}, r.ToSlice())
 }

@@ -26,3 +26,23 @@ func TestExecution_Basic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "1234\n", string(b.Bytes()))
 }
+
+func TestExecution_RecipeVars(t *testing.T) {
+	e := NewShRecipeExecutor()
+	b := bytes.NewBufferString("")
+	e.Stdout = b
+
+	m := types.DiscoveryManifest{}
+	v := types.RecipeVars{
+		"TEST_VAR": "testValue",
+	}
+	r := types.OpenInstallationRecipe{
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			ExecDiscovery: "echo $TEST_VAR",
+		},
+	}
+
+	err := e.Execute(context.Background(), m, r, v)
+	require.NoError(t, err)
+	require.Equal(t, "testValue\n", string(b.Bytes()))
+}
