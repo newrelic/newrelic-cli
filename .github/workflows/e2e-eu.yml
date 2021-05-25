@@ -1,0 +1,156 @@
+name: End to end testing (EU)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-all:
+    name: Validate All
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+
+      - name: Add GOBIN to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/open-install-library
+          path: open-install-library
+
+      - name: Compile
+        run: make compile-all
+
+      # Inject newrelic cli path to any of the smoke tests
+      - name: Add newrelic cli path to smoke tests
+        id: add-newrelic-cli-path-smoke-tests
+        uses: actions/github-script@v4
+        continue-on-error: false
+        with:
+          script: |
+            const fs = require('fs');
+            const fsp = fs.promises;
+            const path = require('path');
+
+            // readdir recursive directory search
+            const { resolve } = path;
+            const { readdir } = fsp;
+
+            const newrelic_cli_linux_source_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
+            const newrelic_cli_linux_docker_path = `/mnt/deployer/bin/linux/newrelic`;
+            const newrelic_cli_windows_source_path = `${process.env.GITHUB_WORKSPACE}/bin/windows/newrelic`;
+            const newrelic_cli_windows_docker_path = `/mnt/deployer/bin/windows/newrelic`;
+            console.log(`Using cli linux source path ${newrelic_cli_linux_source_path}`);
+            if (!fs.existsSync(newrelic_cli_linux_source_path)) {
+              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_linux_source_path}`);
+            }
+            console.log(`Using cli windows source path ${newrelic_cli_windows_source_path}`);
+            if (!fs.existsSync(newrelic_cli_windows_source_path)) {
+              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_windows_source_path}`);
+            }
+
+            async function getFiles(dir) {
+              const dirents = await readdir(dir, { withFileTypes: true });
+              const files = await Promise.all(dirents.map((dirent) => {
+                const res = path.join(dir, dirent.name);
+                return dirent.isDirectory() ? getFiles(res) : res;
+              }));
+              return Array.prototype.concat(...files);
+            }
+            const testFiles = await getFiles(`${process.env.GITHUB_WORKSPACE}/open-install-library/test/definitions-eu/smoke`);
+            console.log(`Detected Test Files: ${JSON.stringify(testFiles, null, 2)}`);
+
+            testFiles.forEach(testFile => {
+              const jsonData = require(testFile);
+              var isUpdated = false
+              var isWindows = false
+
+              if (jsonData.resources) {
+                jsonData.resources.forEach(resource => {
+                  if (resource.is_windows) {
+                    isWindows = true;
+                  }
+                });
+              }
+
+              if (jsonData.instrumentations) {
+                if (jsonData.instrumentations.resources) {
+                  jsonData.instrumentations.resources.forEach(resource => {
+                    if (resource.params) {
+                      isUpdated = true;
+                      if (isWindows) {
+                        resource.params.newrelic_cli_path = `${newrelic_cli_windows_docker_path}`;
+                      }
+                      else {
+                        resource.params.newrelic_cli_path = `${newrelic_cli_linux_docker_path}`;
+                      }
+                    }
+                  });
+                }
+              }
+
+              if (isUpdated) {
+                // Write file back to workspace
+                let jsonContent = JSON.stringify(jsonData, null, 2);
+                console.log("Updated Deploy Config File: ", testFile);
+                console.log("Deploy Config content: ", jsonContent);
+                fs.writeFileSync(testFile, jsonContent);
+              }
+            });
+
+            return null;
+
+      - name: Write AWS Certificate to File
+        env:
+          AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+        run: |
+          mkdir -p configs
+          rm -f configs/gitdeployerCanada.pem
+          echo "$AWS_PEM" > configs/gitdeployerCanada.pem
+          sudo chmod 400 configs/gitdeployerCanada.pem
+
+      - name: Write Test Definition File JSON to file
+        env:
+          USER_JSON: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
+        run: |
+          echo "$USER_JSON" > configs/gitusdkrnrcli${{ github.run_id }}.json
+
+      - name: Pull Deployer image
+        run: |
+          docker pull ghcr.io/newrelic/deployer:latest
+          docker images ghcr.io/newrelic/deployer:latest
+
+      - name: Run deployer and cleanup
+        id: deployerRun
+        continue-on-error: true
+        run: |
+          set +e
+          docker run -i\
+            -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions-eu/smoke -s 20 -m deploy -l debug
+          echo ::set-output name=exit_status::$?
+
+      - name: Cleanup all resources
+        if: always()
+        id: cleanupResources
+        run: |
+          docker run -i\
+            -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions-eu/smoke -s 20 -m teardown -i
+
+      - name: Report any error
+        if: steps.deployerRun.outputs.exit_status != 0
+        run: exit 1
