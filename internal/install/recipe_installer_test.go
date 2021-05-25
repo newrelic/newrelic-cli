@@ -666,7 +666,12 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
+		{
+			Name:           types.InfraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+	}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           types.InfraAgentRecipeName,
@@ -691,7 +696,13 @@ func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
+		{
+			Name:           "testRecipe",
+			ValidationNRQL: "testNrql",
+			Dependencies:   []string{types.InfraAgentRecipeName},
+		},
+	}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "testRecipe",
@@ -710,31 +721,6 @@ func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
-}
-
-func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
-	log.SetLevel(log.TraceLevel)
-	ic := InstallerContext{
-		RecipeNames: []string{types.InfraAgentRecipeName},
-	}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
-	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
-	f.FetchRecipeVals = []types.OpenInstallationRecipe{
-		{
-			Name:           types.InfraAgentRecipeName,
-			ValidationNRQL: "testNrql",
-		},
-	}
-
-	v = validation.NewMockRecipeValidator()
-
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv}
-	err := i.Install()
-	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 }
 
@@ -773,7 +759,13 @@ func TestInstall_TargetedInstall_SkipInfraDependency(t *testing.T) {
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewConcreteSuccessLinkGenerator())
 	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{}
+	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
+		{
+			Name:           "testRecipe",
+			ValidationNRQL: "testNrql",
+			Dependencies:   []string{types.InfraAgentRecipeName},
+		},
+	}
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
 		{
 			Name:           "testRecipe",

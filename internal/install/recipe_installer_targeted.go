@@ -59,8 +59,19 @@ func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Op
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
+		recommendedRecipes, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
+		if err != nil {
+			log.Debugf("error retrieving recipe recommendations: %s", err)
+			return recipes, err
+		}
+
 		// Fetch the provided recipes from the recipe service.
 		for _, n := range i.RecipeNames {
+			if !isInRecommendedRecipes(n, recommendedRecipes) {
+				fmt.Printf("No processes detected for recipe: %s\n", n)
+				continue
+			}
+
 			// Early continue when skipInfra is set
 			if i.SkipInfra && n == types.InfraAgentRecipeName {
 				continue
@@ -91,6 +102,11 @@ func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.Discover
 	providedRecipes, err := i.collectRecipes(m)
 	if err != nil {
 		return err
+	}
+
+	if len(providedRecipes) == 0 {
+		fmt.Println("Nothing to install.")
+		return nil
 	}
 
 	for _, r := range providedRecipes {
@@ -142,14 +158,6 @@ func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstalla
 	return f, nil
 }
 
-// func finalizeRecipe(f *types.OpenInstallationRecipe) (*types.OpenInstallationRecipe, error) {
-// 	r, err := f.ToRecipe()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("could not finalize recipe %s: %s", f.Name, err)
-// 	}
-// 	return r, nil
-// }
-
 func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.OpenInstallationRecipe {
 	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
 	if err != nil {
@@ -162,4 +170,13 @@ func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName strin
 	}
 
 	return r
+}
+
+func isInRecommendedRecipes(recipeName string, recommendedRecipes []types.OpenInstallationRecipe) bool {
+	for _, r := range recommendedRecipes {
+		if recipeName == r.Name {
+			return true
+		}
+	}
+	return false
 }
