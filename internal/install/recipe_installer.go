@@ -33,6 +33,7 @@ type RecipeInstaller struct {
 	progressIndicator ux.ProgressIndicator
 	licenseKeyFetcher LicenseKeyFetcher
 	configValidator   diagnose.ConfigValidator
+	recipeVarProvider execution.RecipeVarProvider
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -66,6 +67,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	cv := diagnose.NewConcreteConfigValidator(nrClient)
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
+	rvp := execution.NewConcreteRecipeVarProvider()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -80,6 +82,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		progressIndicator: pi,
 		licenseKeyFetcher: lkf,
 		configValidator:   cv,
+		recipeVarProvider: rvp,
 	}
 
 	i.InstallerContext = ic
@@ -224,7 +227,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	// Execute the recipe steps.
-	if err := i.recipeExecutor.Execute(ctx, *m, *r, vars); err != nil {
+	if err := i.recipeExecutor.Execute(ctx, *r, vars); err != nil {
 		if err == types.ErrInterrupt {
 			return "", err
 		}
@@ -291,7 +294,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		return "", err
 	}
 
-	vars, err := i.recipeExecutor.Prepare(ctx, *m, *r, i.AssumeYes, licenseKey)
+	vars, err := i.recipeVarProvider.Prepare(*m, *r, i.AssumeYes, licenseKey)
 	if err != nil {
 		return "", err
 	}

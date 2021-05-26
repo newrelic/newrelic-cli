@@ -5,8 +5,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestExecution_Basic(t *testing.T) {
@@ -24,7 +25,7 @@ func TestExecution_Basic(t *testing.T) {
 
 	err := e.Execute(context.Background(), m, r, v)
 	require.NoError(t, err)
-	require.Equal(t, "1234\n", string(b.Bytes()))
+	require.Equal(t, "1234\n", b.String())
 }
 
 func TestExecution_RecipeVars(t *testing.T) {
@@ -44,5 +45,5 @@ func TestExecution_RecipeVars(t *testing.T) {
 
 	err := e.Execute(context.Background(), m, r, v)
 	require.NoError(t, err)
-	require.Equal(t, "testValue\n", string(b.Bytes()))
+	require.Equal(t, "testValue\n", b.String())
 }

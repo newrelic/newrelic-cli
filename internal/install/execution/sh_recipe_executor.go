@@ -6,10 +6,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type ShRecipeExecutor struct {
