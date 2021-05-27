@@ -21,17 +21,17 @@ import (
 // GoTaskRecipeExecutor is an implementation of the recipeExecutor interface that
 // uses the go-task module to execute the steps defined in each recipe.
 type GoTaskRecipeExecutor struct {
+	Stderr io.Writer
 	Stdin  io.Reader
 	Stdout io.Writer
-	Stderr io.Writer
 }
 
 // NewGoTaskRecipeExecutor returns a new instance of GoTaskRecipeExecutor.
 func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	return &GoTaskRecipeExecutor{
+		Stderr: os.Stderr,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
-		Stderr: os.Stderr,
 	}
 }
 
@@ -62,8 +62,8 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	e := task.Executor{
 		Entrypoint: file.Name(),
 		Stderr:     stderrCapture,
-		Stdout:     stdoutCapture,
 		Stdin:      re.Stdin,
+		Stdout:     stdoutCapture,
 	}
 
 	if err = e.Setup(); err != nil {

@@ -18,18 +18,18 @@ const (
 )
 
 type PosixShellRecipeExecutor struct {
+	Stderr    io.Writer
 	Stdin     io.Reader
 	Stdout    io.Writer
-	Stderr    io.Writer
 	ShellPath string
 	Dir       string
 }
 
 func NewPosixShellRecipeExecutor() *PosixShellRecipeExecutor {
 	return &PosixShellRecipeExecutor{
+		Stderr:    os.Stderr,
 		Stdin:     os.Stdin,
 		Stdout:    os.Stdout,
-		Stderr:    os.Stderr,
 		ShellPath: BashPath,
 	}
 }
@@ -47,11 +47,12 @@ func (e *PosixShellRecipeExecutor) execute(ctx context.Context, script string, v
 
 	stdoutCapture := NewLineCaptureBuffer(e.Stdout)
 	stderrCapture := NewLineCaptureBuffer(e.Stderr)
-	c.Stdout = stdoutCapture
+
+	c.Dir = e.Dir
+	c.Env = v.ToSlice()
 	c.Stderr = stderrCapture
 	c.Stdin = e.Stdin
-	c.Env = v.ToSlice()
-	c.Dir = e.Dir
+	c.Stdout = stdoutCapture
 
 	if err := c.Run(); err != nil {
 		var exitError *exec.ExitError

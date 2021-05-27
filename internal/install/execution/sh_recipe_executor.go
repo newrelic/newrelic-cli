@@ -15,17 +15,17 @@ import (
 )
 
 type ShRecipeExecutor struct {
+	Dir    string
+	Stderr io.Writer
 	Stdin  io.Reader
 	Stdout io.Writer
-	Stderr io.Writer
-	Dir    string
 }
 
 func NewShRecipeExecutor() *ShRecipeExecutor {
 	return &ShRecipeExecutor{
+		Stderr: os.Stderr,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
-		Stderr: os.Stderr,
 	}
 }
 
