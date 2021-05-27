@@ -181,8 +181,8 @@ type OpenInstallationPreInstallConfiguration struct {
 	// Message/Docs notice displayed to user prior to running recipe
 	Info string `json:"info,omitempty" yaml:"info,omitempty"`
 	// Message/Docs notice displayed to user prior to running recipe
-	Prompt        string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
-	ExecDiscovery string `json:"execDiscovery,omitempty" yaml:"execDiscovery,omitempty"`
+	Prompt             string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
+	RequireAtDiscovery string `json:"requireAtDiscovery,omitempty" yaml:"requireAtDiscovery,omitempty"`
 }
 
 // OpenInstallationQuickstartEntityType - Entity type relation for Quickstart

@@ -10,14 +10,15 @@ import (
 	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type PSUtilDiscoverer struct {
-	processFilterer ProcessFilterer
+	processFilterer recipes.ProcessFilterer
 }
 
-func NewPSUtilDiscoverer(f ProcessFilterer) *PSUtilDiscoverer {
+func NewPSUtilDiscoverer(f recipes.ProcessFilterer) *PSUtilDiscoverer {
 	d := PSUtilDiscoverer{
 		processFilterer: f,
 	}
@@ -62,14 +63,7 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 		processes = append(processes, PSUtilProcess(*pp))
 	}
 
-	matchedProcesses, err := p.processFilterer.filter(ctx, processes, m)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, p := range matchedProcesses {
-		m.AddMatchedProcess(p)
-	}
+	m.DiscoveredProcesses = processes
 
 	return &m, nil
 }

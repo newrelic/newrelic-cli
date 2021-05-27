@@ -2,6 +2,7 @@ package execution
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -32,6 +33,10 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
 	}
+}
+
+func (re *GoTaskRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
+	return errors.New("not implemented")
 }
 
 func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {

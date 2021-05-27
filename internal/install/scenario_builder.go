@@ -84,7 +84,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := discovery.NewRegexProcessFilterer(rf)
+	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
 	d := discovery.NewPSUtilDiscoverer(pf)
 	gff := discovery.NewGlobFileFilterer()
@@ -129,7 +129,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := discovery.NewRegexProcessFilterer(rf)
+	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
 	d := discovery.NewPSUtilDiscoverer(pf)
 	gff := discovery.NewGlobFileFilterer()

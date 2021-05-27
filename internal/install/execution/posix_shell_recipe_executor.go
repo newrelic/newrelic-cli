@@ -34,8 +34,16 @@ func NewPosixShellRecipeExecutor() *PosixShellRecipeExecutor {
 	}
 }
 
-func (e *PosixShellRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.OpenInstallationRecipe, v types.RecipeVars) error {
-	c := exec.Command(e.ShellPath, "-c", r.PreInstall.ExecDiscovery)
+func (e *PosixShellRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	return e.execute(ctx, r.Install, v)
+}
+
+func (e *PosixShellRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
+}
+
+func (e *PosixShellRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {
+	c := exec.Command(e.ShellPath, "-c", script)
 
 	stdoutCapture := NewLineCaptureBuffer(e.Stdout)
 	stderrCapture := NewLineCaptureBuffer(e.Stderr)

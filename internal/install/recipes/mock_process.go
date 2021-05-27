@@ -1,4 +1,4 @@
-package discovery
+package recipes
 
 type mockProcess struct {
 	cmdline string

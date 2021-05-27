@@ -197,7 +197,7 @@ func createRecommendationsInput(d *types.DiscoveryManifest) (*recommendationsInp
 		InstallTarget: createInstallTarget(d),
 	}
 
-	for _, process := range d.Processes {
+	for _, process := range d.MatchedProcesses {
 		p := processDetailInput{
 			Name: process.MatchingPattern,
 		}

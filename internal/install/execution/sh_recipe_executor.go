@@ -2,6 +2,7 @@ package execution
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -28,8 +29,16 @@ func NewShRecipeExecutor() *ShRecipeExecutor {
 	}
 }
 
-func (e *ShRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifest, r types.OpenInstallationRecipe, v types.RecipeVars) error {
-	p, err := syntax.NewParser().Parse(strings.NewReader(r.PreInstall.ExecDiscovery), "")
+func (e *ShRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	return e.execute(ctx, r.Install, v)
+}
+
+func (e *ShRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
+}
+
+func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {
+	p, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
 		return err
 	}
@@ -41,17 +50,28 @@ func (e *ShRecipeExecutor) Execute(ctx context.Context, m types.DiscoveryManifes
 		environ = v.ToSlice()
 	}
 
+	stdoutCapture := NewLineCaptureBuffer(e.Stdout)
+	stderrCapture := NewLineCaptureBuffer(e.Stderr)
+
 	i, err := interp.New(
 		interp.Params("-e"),
 		interp.Dir(e.Dir),
 		interp.Env(expand.ListEnviron(environ...)),
-		interp.StdIO(e.Stdin, e.Stdout, e.Stderr),
+		interp.StdIO(e.Stdin, stdoutCapture, stderrCapture),
 	)
 	if err != nil {
 		return err
 	}
 
-	return i.Run(ctx, p)
+	if err := i.Run(ctx, p); err != nil {
+		if _, ok := interp.IsExitStatus(err); ok {
+			return fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine)
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func (e *ShRecipeExecutor) Prepare(ctx context.Context, manifest types.DiscoveryManifest, recipe types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {

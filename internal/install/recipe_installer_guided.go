@@ -16,7 +16,7 @@ import (
 // when needed.  An error is returned only when the infra or logging recipes
 // have an error.  If an OHI recipe fails, we warn the user.  This allows the
 // desired user experience.
-func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
+func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryManifest, recommendations []types.OpenInstallationRecipe) error {
 	var recipesForInstallation []types.OpenInstallationRecipe
 	var selectedIntegrations []types.OpenInstallationRecipe
 	var recommendedIntegrations []types.OpenInstallationRecipe
@@ -46,21 +46,7 @@ func (i *RecipeInstaller) guidedInstall(ctx context.Context, m *types.DiscoveryM
 		recommendedIntegrations = append(recommendedIntegrations, *loggingRecipe)
 	}
 
-	// If necessary, fetch additional integration recommendations from the recipe service.
-	if !i.SkipDiscovery {
-		var recommended []types.OpenInstallationRecipe
-		recommended, err = i.fetchRecommendations(m)
-		if err != nil {
-			log.Debugf("error fetching additional integrations: %s", err)
-			return err
-		}
-
-		if len(recommendedIntegrations) == 0 {
-			log.Debug("no additional integrations found")
-		}
-
-		recommendedIntegrations = append(recommendedIntegrations, recommended...)
-	}
+	recommendedIntegrations = append(recommendedIntegrations, recommendations...)
 
 	// Filter integrations, based on recipe metadata, command flags and prompts.
 	selectedIntegrations, err = i.filterIntegrations(recommendedIntegrations)
@@ -169,50 +155,6 @@ func (i *RecipeInstaller) installLogging(ctx context.Context, m *types.Discovery
 
 	_, err = i.executeAndValidateWithProgress(ctx, m, r)
 	return err
-}
-
-func (i *RecipeInstaller) fetchRecommendations(m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
-	log.Debug("fetching recommended recipes")
-
-	recommendations, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving recipe recommendations: %s", err)
-	}
-
-	recommendations = i.filterRecommendations(recommendations)
-
-	if log.IsLevelEnabled(log.DebugLevel) {
-		names := []string{}
-		for _, r := range recommendations {
-			names = append(names, r.Name)
-		}
-
-		log.WithFields(log.Fields{
-			"names":        names,
-			"recipe_count": len(recommendations),
-		}).Debug("recommended integrations")
-	}
-
-	return recommendations, nil
-}
-
-// Filter out infra and logging recipes from recommendations, since they are
-// handled explicitly elsewhere.  This avoids duplicate installation.
-func (i *RecipeInstaller) filterRecommendations(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	filteredRecommendations := []types.OpenInstallationRecipe{}
-	for _, r := range recipes {
-		if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName {
-			log.WithFields(log.Fields{
-				"name": r.Name,
-			}).Debug("skipping redundant recipe")
-
-			continue
-		}
-
-		filteredRecommendations = append(filteredRecommendations, r)
-	}
-
-	return filteredRecommendations
 }
 
 func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {

@@ -1,5 +1,3 @@
-// +build unit
-
 package types
 
 import (
@@ -14,5 +12,5 @@ func TestRecipeVars_ToSlice(t *testing.T) {
 		"anotherTestKey": "anotherTestValue",
 	}
 
-	require.Equal(t, []string{"testKey=testValue", "anotherTestKey=anotherTestValue"}, r.ToSlice())
+	require.ElementsMatch(t, []string{"testKey=testValue", "anotherTestKey=anotherTestValue"}, r.ToSlice())
 }

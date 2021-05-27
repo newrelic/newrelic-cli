@@ -10,40 +10,54 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestExecution_Basic(t *testing.T) {
+func TestExecuteDiscovery_Basic(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 
-	m := types.DiscoveryManifest{}
 	v := types.RecipeVars{}
 	r := types.OpenInstallationRecipe{
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			ExecDiscovery: "echo 1234",
+			RequireAtDiscovery: "echo 1234",
 		},
 	}
 
-	err := e.Execute(context.Background(), m, r, v)
+	err := e.ExecuteDiscovery(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "1234\n", b.String())
 }
 
-func TestExecution_RecipeVars(t *testing.T) {
+func TestExecuteDiscovery_Error(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 
-	m := types.DiscoveryManifest{}
+	v := types.RecipeVars{}
+	r := types.OpenInstallationRecipe{
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: "bogus command",
+		},
+	}
+
+	err := e.ExecuteDiscovery(context.Background(), r, v)
+	require.Error(t, err)
+}
+
+func TestExecuteDiscovery_RecipeVars(t *testing.T) {
+	e := NewShRecipeExecutor()
+	b := bytes.NewBufferString("")
+	e.Stdout = b
+
 	v := types.RecipeVars{
 		"TEST_VAR": "testValue",
 	}
 	r := types.OpenInstallationRecipe{
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			ExecDiscovery: "echo $TEST_VAR",
+			RequireAtDiscovery: "echo $TEST_VAR",
 		},
 	}
 
-	err := e.Execute(context.Background(), m, r, v)
+	err := e.ExecuteDiscovery(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "testValue\n", b.String())
 }

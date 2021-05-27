@@ -83,7 +83,7 @@ func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Op
 	return recipes, nil
 }
 
-func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest) error {
+func (i *RecipeInstaller) targetedInstall(ctx context.Context, m *types.DiscoveryManifest, recommendations []types.OpenInstallationRecipe) error {
 	var recipes []types.OpenInstallationRecipe
 
 	i.status.SetTargetedInstall()

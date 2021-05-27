@@ -19,3 +19,7 @@ func NewMockRecipeExecutor() *MockRecipeExecutor {
 func (m *MockRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return nil
 }
+
+func (m *MockRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	return nil
+}

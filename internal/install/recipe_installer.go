@@ -34,6 +34,7 @@ type RecipeInstaller struct {
 	licenseKeyFetcher LicenseKeyFetcher
 	configValidator   diagnose.ConfigValidator
 	recipeVarProvider execution.RecipeVarProvider
+	recipeRecommender recipes.RecipeRecommender
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -49,7 +50,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		recipeFetcher = recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
 	}
 
-	pf := discovery.NewRegexProcessFilterer(recipeFetcher)
+	pf := recipes.NewRegexProcessFilterer()
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher()
 	ers := []execution.StatusSubscriber{
@@ -68,6 +69,8 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewConcreteRecipeVarProvider()
+	sre := execution.NewShRecipeExecutor()
+	rr := recipes.NewConcreteRecipeRecommender(recipeFetcher, pf, sre)
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -83,6 +86,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		licenseKeyFetcher: lkf,
 		configValidator:   cv,
 		recipeVarProvider: rvp,
+		recipeRecommender: rr,
 	}
 
 	i.InstallerContext = ic
@@ -162,13 +166,18 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 		return err
 	}
 
+	recommendations, err := i.recipeRecommender.Recommend(ctx, m)
+	if err != nil {
+		return err
+	}
+
 	if i.RecipesProvided() {
 		// Run the targeted (AKA stitched path) installer.
-		return i.targetedInstall(ctx, m)
+		return i.targetedInstall(ctx, m, recommendations)
 	}
 
 	// Run the guided installer.
-	return i.guidedInstall(ctx, m)
+	return i.guidedInstall(ctx, m, recommendations)
 }
 
 func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {

@@ -1,6 +1,6 @@
 // +build unit
 
-package discovery
+package recipes
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -32,10 +31,8 @@ func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -70,11 +67,8 @@ func TestFilter_NoMatchingProcess(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
-
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.Equal(t, 0, len(filtered))
@@ -100,10 +94,8 @@ func TestFilter_SingleMatchingProcess_SingleOHIRecipe(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -132,10 +124,8 @@ func TestFilter_SingleMatchingProcess_SingleAPMRecipe(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -169,10 +159,8 @@ func TestFilter_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -206,10 +194,8 @@ func TestFilter_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -253,10 +239,8 @@ func TestFilter_MultipleMatchingProcesses_MultipleRecipes(t *testing.T) {
 		},
 	}
 
-	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = r
-	f := NewRegexProcessFilterer(mockRecipeFetcher)
-	filtered, err := f.filter(context.Background(), processes, types.DiscoveryManifest{})
+	f := NewRegexProcessFilterer()
+	filtered, err := f.Filter(context.Background(), processes, r)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
