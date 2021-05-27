@@ -14,8 +14,9 @@ import (
 type TestScenario string
 
 const (
-	Basic TestScenario = "BASIC"
-	Fail  TestScenario = "FAIL"
+	Basic         TestScenario = "BASIC"
+	Fail          TestScenario = "FAIL"
+	ExecDiscovery TestScenario = "EXEC_DISCOVERY"
 )
 
 var (
@@ -62,6 +63,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.Basic()
 	case Fail:
 		return b.Fail()
+	case ExecDiscovery:
+		return b.ExecDiscovery()
 	}
 
 	return nil
@@ -157,6 +160,57 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	return &i
 }
 
+func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
+
+	// mock implementations
+	rf := setupRecipeFetcherExecDiscovery()
+	ers := []execution.StatusSubscriber{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
+	slg := execution.NewConcreteSuccessLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
+	cv := diagnose.NewMockConfigValidator()
+	mv := discovery.NewEmptyManifestValidator()
+
+	lkf := NewMockLicenseKeyFetcher()
+	pf := recipes.NewRegexProcessFilterer()
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer(pf)
+	gff := discovery.NewGlobFileFilterer()
+	re := execution.NewMockFailingRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	pi := ux.NewPlainProgress()
+	sre := execution.NewShRecipeExecutor()
+	rvp := execution.NewConcreteRecipeVarProvider()
+
+	rr := recipes.NewConcreteRecipeRecommender(rf, pf, sre)
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		progressIndicator: pi,
+		configValidator:   cv,
+		manifestValidator: mv,
+		licenseKeyFetcher: lkf,
+		recipeVarProvider: rvp,
+		recipeRecommender: rr,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
 	f.FetchRecipeVals = []types.OpenInstallationRecipe{
@@ -204,6 +258,69 @@ tasks:
 			Name:           "recommended-recipe",
 			DisplayName:    "Recommended recipe",
 			ValidationNRQL: "test NRQL",
+		},
+	}
+
+	return f
+}
+
+func setupRecipeFetcherExecDiscovery() recipes.RecipeFetcher {
+	f := recipes.NewMockRecipeFetcher()
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+		{
+			Name:        "matching-recipe",
+			DisplayName: "matching-recipe",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				RequireAtDiscovery: "true",
+			},
+		},
+		{
+			Name:        "non-matching-recipe",
+			DisplayName: "non-matching-recipe",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				RequireAtDiscovery: "bogus command",
+			},
+		},
+	}
+
+	f.FetchRecipeVals = []types.OpenInstallationRecipe{
+		{
+			Name:        "infrastructure-agent-installer",
+			DisplayName: "Infrastructure Agent",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				Info: `
+This is the Infrastructure Agent Installer preinstall message.
+It is made up of a multi line string.
+				`,
+			},
+			PostInstall: types.OpenInstallationPostInstallConfiguration{
+				Info: `
+This is the Infrastructure Agent Installer postinstall message.
+It is made up of a multi line string.
+				`,
+			},
+			ValidationNRQL: "test NRQL",
+			Install: `
+version: '3'
+tasks:
+  default:
+`,
+		},
+		{
+			Name:           "logs-integration",
+			DisplayName:    "Logs integration",
+			ValidationNRQL: "test NRQL",
+			LogMatch: []types.OpenInstallationLogMatch{
+				{
+					Name: "docker log",
+					File: "/var/lib/docker/containers/*/*.log",
+				},
+			},
+			Install: `
+version: '3'
+tasks:
+  default:
+`,
 		},
 	}
 
