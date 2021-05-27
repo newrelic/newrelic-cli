@@ -187,7 +187,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 	sre := execution.NewShRecipeExecutor()
 	rvp := execution.NewConcreteRecipeVarProvider()
 
-	rr := recipes.NewConcreteRecipeRecommender(rf, pf, sre)
+	rr := recipes.NewRecipeRecommender(rf, pf, sre)
 
 	i := RecipeInstaller{
 		discoverer:        d,

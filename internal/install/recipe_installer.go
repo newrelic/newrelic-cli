@@ -34,7 +34,7 @@ type RecipeInstaller struct {
 	licenseKeyFetcher LicenseKeyFetcher
 	configValidator   diagnose.ConfigValidator
 	recipeVarProvider execution.RecipeVarProvider
-	recipeRecommender recipes.RecipeRecommender
+	recipeRecommender RecipeRecommender
 }
 
 func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -70,7 +70,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewConcreteRecipeVarProvider()
 	sre := execution.NewShRecipeExecutor()
-	rr := recipes.NewConcreteRecipeRecommender(recipeFetcher, pf, sre)
+	rr := recipes.NewRecipeRecommender(recipeFetcher, pf, sre)
 
 	i := RecipeInstaller{
 		discoverer:        d,
