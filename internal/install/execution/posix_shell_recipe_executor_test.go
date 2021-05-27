@@ -3,6 +3,7 @@ package execution
 import (
 	"bytes"
 	"context"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -50,6 +51,33 @@ func TestPosixShellExecution_Error(t *testing.T) {
 	require.Equal(t, "exit status 127: asdf: command not found", err.Error())
 }
 
+func TestPosixShellExecution_AllVars(t *testing.T) {
+	e := NewPosixShellRecipeExecutor()
+	stderrBuf := bytes.NewBufferString("")
+	stdoutBuf := bytes.NewBufferString("")
+	e.Stdout = stdoutBuf
+	e.Stderr = stderrBuf
+
+	os.Setenv("ENV_VAR", "envVarValue")
+	v := types.RecipeVars{
+		"RECIPE_VAR": "recipeVarValue",
+	}
+	r := types.OpenInstallationRecipe{
+		Name: "test-recipe",
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `
+			echo $ENV_VAR
+			echo $RECIPE_VAR
+			`,
+		},
+	}
+
+	err := e.ExecuteDiscovery(context.Background(), r, v)
+	require.NoError(t, err)
+	require.Contains(t, stdoutBuf.String(), "recipeVarValue")
+	require.Contains(t, stdoutBuf.String(), "envVarValue")
+}
+
 func TestPosixShellExecution_RecipeVars(t *testing.T) {
 	e := NewPosixShellRecipeExecutor()
 	stderrBuf := bytes.NewBufferString("")
@@ -58,16 +86,38 @@ func TestPosixShellExecution_RecipeVars(t *testing.T) {
 	e.Stderr = stderrBuf
 
 	v := types.RecipeVars{
-		"TEST_VAR": "testValue",
+		"RECIPE_VAR": "recipeVarValue",
 	}
 	r := types.OpenInstallationRecipe{
 		Name: "test-recipe",
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: "echo $TEST_VAR",
+			RequireAtDiscovery: "echo $RECIPE_VAR",
 		},
 	}
 
 	err := e.ExecuteDiscovery(context.Background(), r, v)
 	require.NoError(t, err)
-	require.Equal(t, "testValue\n", stdoutBuf.String())
+	require.Equal(t, "recipeVarValue\n", stdoutBuf.String())
+}
+
+func TestPosixShellExecution_EnvVars(t *testing.T) {
+	e := NewPosixShellRecipeExecutor()
+	stderrBuf := bytes.NewBufferString("")
+	stdoutBuf := bytes.NewBufferString("")
+	e.Stdout = stdoutBuf
+	e.Stderr = stderrBuf
+
+	os.Setenv("ENV_VAR", "envVarValue")
+
+	v := types.RecipeVars{}
+	r := types.OpenInstallationRecipe{
+		Name: "test-recipe",
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: "echo $ENV_VAR",
+		},
+	}
+
+	err := e.ExecuteDiscovery(context.Background(), r, v)
+	require.NoError(t, err)
+	require.Equal(t, "envVarValue\n", stdoutBuf.String())
 }

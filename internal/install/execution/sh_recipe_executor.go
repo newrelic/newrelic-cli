@@ -43,13 +43,7 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 		return err
 	}
 
-	var environ []string
-	if len(v) == 0 {
-		environ = os.Environ()
-	} else {
-		environ = v.ToSlice()
-	}
-
+	environ := append(os.Environ(), v.ToSlice()...)
 	stdoutCapture := NewLineCaptureBuffer(e.Stdout)
 	stderrCapture := NewLineCaptureBuffer(e.Stderr)
 
@@ -72,8 +66,4 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	}
 
 	return nil
-}
-
-func (e *ShRecipeExecutor) Prepare(ctx context.Context, manifest types.DiscoveryManifest, recipe types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
-	return nil, nil
 }

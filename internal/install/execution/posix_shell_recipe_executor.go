@@ -49,7 +49,7 @@ func (e *PosixShellRecipeExecutor) execute(ctx context.Context, script string, v
 	stderrCapture := NewLineCaptureBuffer(e.Stderr)
 
 	c.Dir = e.Dir
-	c.Env = v.ToSlice()
+	c.Env = append(os.Environ(), v.ToSlice()...)
 	c.Stderr = stderrCapture
 	c.Stdin = e.Stdin
 	c.Stdout = stdoutCapture
@@ -58,10 +58,10 @@ func (e *PosixShellRecipeExecutor) execute(ctx context.Context, script string, v
 		var exitError *exec.ExitError
 		if ok := errors.As(err, &exitError); ok {
 			fmt.Println(stderrCapture.LastFullLine)
-			re := regexp.MustCompile(".+?: (.+?: )(.*)")
+			re := regexp.MustCompile(".+?: (.*)")
 			m := re.FindStringSubmatch(stderrCapture.LastFullLine)
 
-			return fmt.Errorf("%w: %s%s", err, m[1], m[2])
+			return fmt.Errorf("%w: %s", err, m[1])
 		}
 
 		return err
