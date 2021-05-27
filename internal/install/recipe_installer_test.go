@@ -55,7 +55,6 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 	ic := InstallerContext{
 		RecipePaths:        []string{"testRecipePath"},
 		RecipeNames:        []string{"testRecipeName"},
-		SkipDiscovery:      true,
 		SkipIntegrations:   true,
 		SkipLoggingInstall: true,
 		SkipApm:            true,

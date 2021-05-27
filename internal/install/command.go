@@ -18,7 +18,6 @@ var (
 	localRecipes       string
 	recipeNames        []string
 	recipePaths        []string
-	skipDiscovery      bool
 	skipIntegrations   bool
 	skipLoggingInstall bool
 	skipApm            bool
@@ -38,7 +37,6 @@ var Command = &cobra.Command{
 			LocalRecipes:       localRecipes,
 			RecipeNames:        recipeNames,
 			RecipePaths:        recipePaths,
-			SkipDiscovery:      skipDiscovery,
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
 			SkipApm:            skipApm,
@@ -85,7 +83,6 @@ func assertProfileIsValid(profile *credentials.Profile) error {
 func init() {
 	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
 	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
-	Command.Flags().BoolVarP(&skipDiscovery, "skipDiscovery", "d", false, "skips discovery of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
 	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
 	Command.Flags().BoolVarP(&skipApm, "skipApm", "a", false, "skips installation for APM")

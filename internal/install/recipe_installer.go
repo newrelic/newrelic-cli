@@ -112,7 +112,6 @@ func (i *RecipeInstaller) Install() error {
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
 	log.WithFields(log.Fields{
-		"ShouldRunDiscovery":        i.ShouldRunDiscovery(),
 		"ShouldInstallInfraAgent":   i.ShouldInstallInfraAgent(),
 		"ShouldInstallLogging":      i.ShouldInstallLogging(),
 		"ShouldInstallIntegrations": i.ShouldInstallIntegrations(),

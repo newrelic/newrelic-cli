@@ -7,15 +7,10 @@ type InstallerContext struct {
 	RecipePaths []string
 	// LocalRecipes is the path to a local recipe directory from which to load recipes.
 	LocalRecipes       string
-	SkipDiscovery      bool
 	SkipIntegrations   bool
 	SkipLoggingInstall bool
 	SkipApm            bool
 	SkipInfra          bool
-}
-
-func (i *InstallerContext) ShouldRunDiscovery() bool {
-	return !i.SkipDiscovery
 }
 
 func (i *InstallerContext) ShouldInstallInfraAgent() bool {
