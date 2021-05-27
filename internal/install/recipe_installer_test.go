@@ -43,7 +43,7 @@ var (
 	pi              = ux.NewMockProgressIndicator()
 	lkf             = NewMockLicenseKeyFetcher()
 	cv              = diagnose.NewMockConfigValidator()
-	rvp             = execution.NewConcreteRecipeVarProvider()
+	rvp             = execution.NewRecipeVarProvider()
 	rr              = recipes.NewMockRecipeRecommender()
 )
 

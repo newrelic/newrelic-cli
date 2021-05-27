@@ -7,9 +7,13 @@ import (
 )
 
 type ConfigValidator interface {
-	ValidateConfig(ctx context.Context) error
+	Validate(ctx context.Context) error
 }
 
 type RecipeRecommender interface {
 	Recommend(ctx context.Context, m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error)
+}
+
+type RecipeVarPreparer interface {
+	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
 }

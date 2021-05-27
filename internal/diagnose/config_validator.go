@@ -38,7 +38,7 @@ type ValidationTracerEvent struct {
 	GUID      string `json:"guid"`
 }
 
-func NewConcreteConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
+func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 	v := validation.NewPollingNRQLValidator(&client.Nrdb)
 	v.MaxAttempts = DefaultMaxValidationAttempts
 
@@ -51,7 +51,7 @@ func NewConcreteConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 	}
 }
 
-func (c *ConfigValidator) ValidateConfig(ctx context.Context) error {
+func (c *ConfigValidator) Validate(ctx context.Context) error {
 	if err := c.validateKeys(c.profile); err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (c *ConfigValidator) ValidateConfig(ctx context.Context) error {
 	SINCE 10 MINUTES AGO
 	`, evt.EventType, evt.Hostname, evt.GUID)
 
-	if _, err = c.Validate(ctx, query); err != nil {
+	if _, err = c.PollingNRQLValidator.Validate(ctx, query); err != nil {
 		log.Error(err)
 		err = ErrValidation
 	}

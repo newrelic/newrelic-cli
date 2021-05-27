@@ -19,7 +19,7 @@ import (
 )
 
 func TestRecipeVarProvider_Basic(t *testing.T) {
-	e := NewConcreteRecipeVarProvider()
+	e := NewRecipeVarProvider()
 
 	licenseKey := "testLicenseKey"
 	p := credentials.Profile{

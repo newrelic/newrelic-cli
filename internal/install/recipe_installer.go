@@ -33,7 +33,7 @@ type RecipeInstaller struct {
 	progressIndicator ux.ProgressIndicator
 	licenseKeyFetcher LicenseKeyFetcher
 	configValidator   ConfigValidator
-	recipeVarProvider execution.RecipeVarProvider
+	recipeVarPreparer RecipeVarPreparer
 	recipeRecommender RecipeRecommender
 }
 
@@ -65,10 +65,10 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
-	cv := diagnose.NewConcreteConfigValidator(nrClient)
+	cv := diagnose.NewConfigValidator(nrClient)
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
-	rvp := execution.NewConcreteRecipeVarProvider()
+	rvp := execution.NewRecipeVarProvider()
 	sre := execution.NewShRecipeExecutor()
 	rr := recipes.NewRecipeRecommender(recipeFetcher, pf, sre)
 
@@ -85,7 +85,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		progressIndicator: pi,
 		licenseKeyFetcher: lkf,
 		configValidator:   cv,
-		recipeVarProvider: rvp,
+		recipeVarPreparer: rvp,
 		recipeRecommender: rr,
 	}
 
@@ -127,7 +127,7 @@ func (i *RecipeInstaller) Install() error {
 	var err error
 
 	log.Printf("Validating connectivity to the New Relic platform...")
-	if err = i.configValidator.ValidateConfig(ctx); err != nil {
+	if err = i.configValidator.Validate(ctx); err != nil {
 		return err
 	}
 
@@ -302,7 +302,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		return "", err
 	}
 
-	vars, err := i.recipeVarProvider.Prepare(*m, *r, i.AssumeYes, licenseKey)
+	vars, err := i.recipeVarPreparer.Prepare(*m, *r, i.AssumeYes, licenseKey)
 	if err != nil {
 		return "", err
 	}

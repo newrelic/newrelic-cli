@@ -14,17 +14,13 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type RecipeVarProvider interface {
-	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
+type RecipeVarProvider struct{}
+
+func NewRecipeVarProvider() *RecipeVarProvider {
+	return &RecipeVarProvider{}
 }
 
-type ConcreteRecipeVarProvider struct{}
-
-func NewConcreteRecipeVarProvider() *ConcreteRecipeVarProvider {
-	return &ConcreteRecipeVarProvider{}
-}
-
-func (re *ConcreteRecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
+func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
 	log.WithFields(log.Fields{
 		"name": r.Name,
 	}).Debug("preparing recipe")

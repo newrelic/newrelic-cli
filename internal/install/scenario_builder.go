@@ -185,7 +185,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
 	sre := execution.NewShRecipeExecutor()
-	rvp := execution.NewConcreteRecipeVarProvider()
+	rvp := execution.NewRecipeVarProvider()
 
 	rr := recipes.NewRecipeRecommender(rf, pf, sre)
 
@@ -202,7 +202,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 		configValidator:   cv,
 		manifestValidator: mv,
 		licenseKeyFetcher: lkf,
-		recipeVarProvider: rvp,
+		recipeVarPreparer: rvp,
 		recipeRecommender: rr,
 	}
 
