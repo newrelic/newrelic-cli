@@ -59,7 +59,7 @@ func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Op
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
-		recommendedRecipes, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
+		matchedRecipes, err := i.recipeFetcher.FetchRecommendations(utils.SignalCtx, m)
 		if err != nil {
 			log.Debugf("error retrieving recipe recommendations: %s", err)
 			return recipes, err
@@ -67,27 +67,19 @@ func (i *RecipeInstaller) collectRecipes(m *types.DiscoveryManifest) ([]types.Op
 
 		// Fetch the provided recipes from the recipe service.
 		for _, n := range i.RecipeNames {
-			if !isInRecommendedRecipes(n, recommendedRecipes) {
-				fmt.Printf("No processes detected for recipe: %s\n", n)
-				continue
-			}
-
 			// Early continue when skipInfra is set
 			if i.SkipInfra && n == types.InfraAgentRecipeName {
 				continue
 			}
 
-			log.Debugln(fmt.Sprintf("Attempting to match recipeName %s.", n))
-			r := i.fetchWarn(m, n)
-			if r != nil {
-				// Skip anything that was returned by the service if it does not match the requested name.
-				if r.Name == n {
-					log.Debugln(fmt.Sprintf("Found recipe from name %s.", n))
-					recipes = append(recipes, *r)
-				} else {
-					log.Debugln(fmt.Sprintf("Skipping recipe, name %s does not match.", r.Name))
-				}
+			r := getRecipe(n, matchedRecipes)
+			if r == nil {
+				msg := fmt.Sprintf("please rerun `newrelic install` without `-n %s`", n)
+				err := fmt.Errorf("could not install because a dependent process was not detected, %s", msg)
+				return recipes, err
 			}
+
+			recipes = append(recipes, *r)
 		}
 	}
 
@@ -158,25 +150,11 @@ func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstalla
 	return f, nil
 }
 
-func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.OpenInstallationRecipe {
-	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
-	if err != nil {
-		log.Warnf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
-		return nil
-	}
-
-	if r == nil {
-		log.Warnf("Recipe %s not found. Skipping installation.", recipeName)
-	}
-
-	return r
-}
-
-func isInRecommendedRecipes(recipeName string, recommendedRecipes []types.OpenInstallationRecipe) bool {
-	for _, r := range recommendedRecipes {
+func getRecipe(recipeName string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
+	for _, r := range recipes {
 		if recipeName == r.Name {
-			return true
+			return &r
 		}
 	}
-	return false
+	return nil
 }
