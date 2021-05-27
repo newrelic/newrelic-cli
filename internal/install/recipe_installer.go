@@ -32,7 +32,7 @@ type RecipeInstaller struct {
 	prompter          ux.Prompter
 	progressIndicator ux.ProgressIndicator
 	licenseKeyFetcher LicenseKeyFetcher
-	configValidator   diagnose.ConfigValidator
+	configValidator   ConfigValidator
 	recipeVarProvider execution.RecipeVarProvider
 	recipeRecommender RecipeRecommender
 }
