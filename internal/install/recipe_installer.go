@@ -21,15 +21,15 @@ import (
 
 type RecipeInstaller struct {
 	InstallerContext
-	discoverer        discovery.Discoverer
-	fileFilterer      discovery.FileFilterer
+	discoverer        Discoverer
+	fileFilterer      FileFilterer
 	manifestValidator *discovery.ManifestValidator
 	recipeFetcher     recipes.RecipeFetcher
 	recipeExecutor    execution.RecipeExecutor
-	recipeValidator   validation.RecipeValidator
-	recipeFileFetcher recipes.RecipeFileFetcher
+	recipeValidator   RecipeValidator
+	recipeFileFetcher RecipeFileFetcher
 	status            *execution.InstallStatus
-	prompter          ux.Prompter
+	prompter          Prompter
 	progressIndicator ux.ProgressIndicator
 	licenseKeyFetcher LicenseKeyFetcher
 	configValidator   ConfigValidator

@@ -11,13 +11,13 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type RecipeFileFetcherImpl struct {
+type RecipeFileFetcher struct {
 	HTTPGetFunc  func(string) (*http.Response, error)
 	readFileFunc func(string) ([]byte, error)
 }
 
-func NewRecipeFileFetcher() RecipeFileFetcher {
-	f := RecipeFileFetcherImpl{}
+func NewRecipeFileFetcher() *RecipeFileFetcher {
+	f := RecipeFileFetcher{}
 	f.HTTPGetFunc = defaultHTTPGetFunc
 	f.readFileFunc = defaultReadFileFunc
 	return &f
@@ -31,7 +31,7 @@ func defaultReadFileFunc(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
 }
 
-func (f *RecipeFileFetcherImpl) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
+func (f *RecipeFileFetcher) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
 	response, err := f.HTTPGetFunc(recipeURL.String())
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (f *RecipeFileFetcherImpl) FetchRecipeFile(recipeURL *url.URL) (*types.Open
 	return NewRecipeFile(string(body))
 }
 
-func (f *RecipeFileFetcherImpl) LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error) {
+func (f *RecipeFileFetcher) LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error) {
 	out, err := f.readFileFunc(filename)
 	if err != nil {
 		return nil, err
