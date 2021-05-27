@@ -14,28 +14,28 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
-	Complete             bool                    `json:"complete"`
-	DiscoveryManifest    types.DiscoveryManifest `json:"discoveryManifest"`
-	EntityGUIDs          []string                `json:"entityGuids"`
-	Error                StatusError             `json:"error"`
-	LogFilePath          string                  `json:"logFilePath"`
-	Statuses             []*RecipeStatus         `json:"recipes"`
-	Timestamp            int64                   `json:"timestamp"`
-	CLIVersion           string                  `json:"cliVersion"`
-	HasInstalledRecipes  bool                    `json:"hasInstalledRecipes"`
-	HasCanceledRecipes   bool                    `json:"hasCanceledRecipes"`
-	HasSkippedRecipes    bool                    `json:"hasSkippedRecipes"`
-	HasFailedRecipes     bool                    `json:"hasFailedRecipes"`
-	RecipesSkipped       []*RecipeStatus         `json:"recipesSkipped"`
-	RecipesCanceled      []*RecipeStatus         `json:"recipesCanceled"`
-	RecipesFailed        []*RecipeStatus         `json:"recipesFailed"`
-	RecipesInstalled     []*RecipeStatus         `json:"recipesInstalled"`
-	RedirectURL          string                  `json:"redirectUrl"`
-	DocumentID           string
-	targetedInstall      bool
-	statusSubscriber     []StatusSubscriber
-	successLinkConfig    types.OpenInstallationSuccessLinkConfig
-	successLinkGenerator SuccessLinkGenerator
+	Complete              bool                    `json:"complete"`
+	DiscoveryManifest     types.DiscoveryManifest `json:"discoveryManifest"`
+	EntityGUIDs           []string                `json:"entityGuids"`
+	Error                 StatusError             `json:"error"`
+	LogFilePath           string                  `json:"logFilePath"`
+	Statuses              []*RecipeStatus         `json:"recipes"`
+	Timestamp             int64                   `json:"timestamp"`
+	CLIVersion            string                  `json:"cliVersion"`
+	HasInstalledRecipes   bool                    `json:"hasInstalledRecipes"`
+	HasCanceledRecipes    bool                    `json:"hasCanceledRecipes"`
+	HasSkippedRecipes     bool                    `json:"hasSkippedRecipes"`
+	HasFailedRecipes      bool                    `json:"hasFailedRecipes"`
+	RecipesSkipped        []*RecipeStatus         `json:"recipesSkipped"`
+	RecipesCanceled       []*RecipeStatus         `json:"recipesCanceled"`
+	RecipesFailed         []*RecipeStatus         `json:"recipesFailed"`
+	RecipesInstalled      []*RecipeStatus         `json:"recipesInstalled"`
+	RedirectURL           string                  `json:"redirectUrl"`
+	DocumentID            string
+	targetedInstall       bool
+	statusSubscriber      []StatusSubscriber
+	successLinkConfig     types.OpenInstallationSuccessLinkConfig
+	PlatformLinkGenerator LinkGenerator
 }
 
 type RecipeStatus struct {
@@ -74,13 +74,13 @@ type StatusError struct {
 	TaskPath []string `json:"taskPath"`
 }
 
-func NewInstallStatus(reporters []StatusSubscriber, successLinkGenerator SuccessLinkGenerator) *InstallStatus {
+func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
-		DocumentID:           uuid.New().String(),
-		Timestamp:            utils.GetTimestamp(),
-		LogFilePath:          config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
-		statusSubscriber:     reporters,
-		successLinkGenerator: successLinkGenerator,
+		DocumentID:            uuid.New().String(),
+		Timestamp:             utils.GetTimestamp(),
+		LogFilePath:           config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		statusSubscriber:      reporters,
+		PlatformLinkGenerator: PlatformLinkGenerator,
 	}
 
 	return &s
@@ -245,7 +245,7 @@ func (s *InstallStatus) HostEntityGUID() string {
 }
 
 func (s *InstallStatus) setRedirectURL() {
-	s.RedirectURL = s.successLinkGenerator.GenerateRedirectURL(*s)
+	s.RedirectURL = s.PlatformLinkGenerator.GenerateRedirectURL(*s)
 }
 
 func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRecipe) {

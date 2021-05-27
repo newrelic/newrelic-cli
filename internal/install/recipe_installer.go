@@ -58,7 +58,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 		execution.NewTerminalStatusReporter(),
 	}
 	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
-	slg := execution.NewConcreteSuccessLinkGenerator()
+	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 
 	d := discovery.NewPSUtilDiscoverer(pf)

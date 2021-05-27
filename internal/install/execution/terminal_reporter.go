@@ -96,8 +96,8 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	}
 
 	linkToData := ""
-	if status.successLinkGenerator != nil {
-		linkToData = status.successLinkGenerator.GenerateRedirectURL(*status)
+	if status.PlatformLinkGenerator != nil {
+		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
 	}
 
 	if linkToData != "" {

@@ -78,7 +78,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	slg := execution.NewConcreteSuccessLinkGenerator()
+	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -123,7 +123,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	slg := execution.NewConcreteSuccessLinkGenerator()
+	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -168,7 +168,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	slg := execution.NewConcreteSuccessLinkGenerator()
+	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)

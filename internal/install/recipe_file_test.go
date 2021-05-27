@@ -67,7 +67,7 @@ func TestLoadRecipeFile(t *testing.T) {
 }
 
 func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
-	ff := recipes.RecipeFileFetcherImpl{}
+	ff := recipes.RecipeFileFetcher{}
 
 	makeHTTPGetFunc := func(statusCode int) func(string) (*http.Response, error) {
 		return func(recipeURL string) (*http.Response, error) {
