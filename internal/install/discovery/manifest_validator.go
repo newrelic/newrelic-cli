@@ -7,10 +7,10 @@ import (
 )
 
 type ManifestValidator struct {
-	validators []Validator
+	validators []validator
 }
 
-type Validator interface {
+type validator interface {
 	Execute(m *types.DiscoveryManifest) error
 }
 
@@ -22,7 +22,7 @@ var (
 // NewManifestValidator returns a new instance of ManifestValidator.
 func NewManifestValidator() *ManifestValidator {
 	mv := ManifestValidator{
-		validators: []Validator{},
+		validators: []validator{},
 	}
 
 	mv.validators = append(mv.validators, NewOsValidator())
