@@ -130,6 +130,7 @@ func TestInstall_FailsOnInvalidOs(t *testing.T) {
 
 	err := i.Install()
 	require.Error(t, err)
+	require.IsType(t, &types.UnsupportedOperatingSytemError{}, err)
 }
 
 func TestInstall_RecipeAvailable(t *testing.T) {

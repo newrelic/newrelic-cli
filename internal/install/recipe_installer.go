@@ -266,6 +266,14 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.DisplayName))
+
+			if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+				return err
+			}
+
+			if len(recipes) == 1 {
+				return err
+			}
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
@@ -302,8 +310,11 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", err
 		}
 
-		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+			return "", err
+		}
 
+		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
 		se := execution.RecipeStatusEvent{
 			Recipe: *r,
 			Msg:    msg,

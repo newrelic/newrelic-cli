@@ -1,8 +1,10 @@
 package execution
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -27,10 +29,12 @@ type InstallStatus struct {
 	HasCanceledRecipes    bool                    `json:"hasCanceledRecipes"`
 	HasSkippedRecipes     bool                    `json:"hasSkippedRecipes"`
 	HasFailedRecipes      bool                    `json:"hasFailedRecipes"`
+	HasUnsupportedRecipes bool                    `json:"hasUnsupportedRecipes"`
 	Skipped               []*RecipeStatus         `json:"recipesSkipped"`
 	Canceled              []*RecipeStatus         `json:"recipesCanceled"`
 	Failed                []*RecipeStatus         `json:"recipesFailed"`
 	Installed             []*RecipeStatus         `json:"recipesInstalled"`
+	RecipesUnsupported    []*RecipeStatus         `json:"recipesUnsupported"`
 	RedirectURL           string                  `json:"redirectUrl"`
 	HTTPSProxy            string                  `json:"httpsProxy"`
 	DocumentID            string
@@ -60,6 +64,7 @@ var RecipeStatusTypes = struct {
 	INSTALLED   RecipeStatusType
 	SKIPPED     RecipeStatusType
 	RECOMMENDED RecipeStatusType
+	UNSUPPORTED RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
 	CANCELED:    "CANCELED",
@@ -68,6 +73,7 @@ var RecipeStatusTypes = struct {
 	INSTALLED:   "INSTALLED",
 	SKIPPED:     "SKIPPED",
 	RECOMMENDED: "RECOMMENDED",
+	UNSUPPORTED: "UNSUPPORTED",
 }
 
 type StatusError struct {
@@ -343,6 +349,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 }
 
 func (s *InstallStatus) completed(err error) {
+	isUnsupported := false
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
 
@@ -355,6 +362,10 @@ func (s *InstallStatus) completed(err error) {
 			statusError.TaskPath = e.TaskPath()
 		}
 
+		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+			isUnsupported = true
+		}
+
 		s.Error = statusError
 	}
 
@@ -362,7 +373,7 @@ func (s *InstallStatus) completed(err error) {
 		"timestamp": s.Timestamp,
 	}).Debug("completed")
 
-	s.updateFinalInstallationStatuses(false)
+	s.updateFinalInstallationStatuses(false, isUnsupported)
 	s.setRedirectURL()
 }
 
@@ -373,7 +384,7 @@ func (s *InstallStatus) canceled() {
 		"timestamp": s.Timestamp,
 	}).Debug("canceled")
 
-	s.updateFinalInstallationStatuses(true)
+	s.updateFinalInstallationStatuses(true, false)
 }
 
 func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus {
@@ -389,7 +400,7 @@ func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus 
 // This function handles updating the final recipe statuses and top-level installation status.
 // Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
 // Exiting early (i.e. an error occurred) will cause unresolved recipes to be marked as failed.
-func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
+func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, isUnsupported bool) {
 	for i, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
 			debugMsg := "failed"
@@ -398,11 +409,17 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
 				debugMsg = "canceled"
 			}
 
+			if isUnsupported {
+				debugMsg = "unsupported"
+			}
+
 			log.WithFields(log.Fields{
 				"recipe": s.Statuses[i].Name,
 			}).Debug(fmt.Sprintf("marking recipe %s", debugMsg))
 
-			if installCanceled {
+			if isUnsupported {
+				s.Statuses[i].Status = RecipeStatusTypes.UNSUPPORTED
+			} else if installCanceled {
 				s.Statuses[i].Status = RecipeStatusTypes.CANCELED
 			} else {
 				s.Statuses[i].Status = RecipeStatusTypes.FAILED
@@ -432,7 +449,18 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
 			s.Failed = append(s.Failed, ss)
 			s.HasFailedRecipes = true
 		}
+
+		// Unsupported
+		if ss.Status == RecipeStatusTypes.UNSUPPORTED {
+			s.RecipesUnsupported = append(s.RecipesUnsupported, ss)
+			s.HasUnsupportedRecipes = true
+		}
 	}
+
+	log.Print("\n\n **************************** \n")
+	log.Printf("\n updateFinalInstallationStatuses:  %+v \n", toJSON(s))
+	log.Print("\n **************************** \n\n")
+	time.Sleep(3 * time.Second)
 
 	log.WithFields(log.Fields{
 		"hasInstalledRecipes": s.HasInstalledRecipes,
@@ -440,4 +468,10 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
 		"hasCanceledRecipes":  s.HasCanceledRecipes,
 		"hasFailedRecipes":    s.HasFailedRecipes,
 	}).Debug("final installation statuses updated")
+}
+
+func toJSON(data interface{}) string {
+	c, _ := json.MarshalIndent(data, "", "  ")
+
+	return string(c)
 }

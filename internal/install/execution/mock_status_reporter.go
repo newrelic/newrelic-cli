@@ -133,3 +133,7 @@ func (r *MockStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.D
 	r.DiscoveryCompleteCallCount++
 	return r.DiscoveryCompleteErr
 }
+
+func (r *MockStatusReporter) Unsupported(status *InstallStatus) error {
+	return nil // TODO make this testable like the others
+}
