@@ -9,19 +9,14 @@ import (
 type MockProcessFilterer struct {
 	FilterVal       []types.MatchedProcess
 	FilterCallCount int
-	FilterErr       error
 }
 
 func NewMockProcessFilterer() *MockProcessFilterer {
 	return &MockProcessFilterer{}
 }
 
-func (f *MockProcessFilterer) Filter(context.Context, []types.GenericProcess, []types.OpenInstallationRecipe) ([]types.MatchedProcess, error) {
+func (f *MockProcessFilterer) Filter(context.Context, []types.GenericProcess, []types.OpenInstallationRecipe) []types.MatchedProcess {
 	f.FilterCallCount++
 
-	if f.FilterErr != nil {
-		return nil, f.FilterErr
-	}
-
-	return f.FilterVal, nil
+	return f.FilterVal
 }

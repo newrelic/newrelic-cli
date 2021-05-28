@@ -53,10 +53,7 @@ func (r *RecipeRecommender) fetchAllRecipes(ctx context.Context, m *types.Discov
 }
 
 func (r *RecipeRecommender) findProcessMatches(ctx context.Context, recCtx *recommendationContext) error {
-	matches, err := r.processFilterer.Filter(ctx, recCtx.discoveryManifest.DiscoveredProcesses, r.allRecipes)
-	if err != nil {
-		return err
-	}
+	matches := r.processFilterer.Filter(ctx, recCtx.discoveryManifest.DiscoveredProcesses, r.allRecipes)
 
 	for _, match := range matches {
 		recCtx.addMatch(&match.MatchingRecipe)

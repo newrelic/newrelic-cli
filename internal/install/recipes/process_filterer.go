@@ -7,5 +7,5 @@ import (
 )
 
 type ProcessFilterer interface {
-	Filter(context.Context, []types.GenericProcess, []types.OpenInstallationRecipe) ([]types.MatchedProcess, error)
+	Filter(context.Context, []types.GenericProcess, []types.OpenInstallationRecipe) []types.MatchedProcess
 }

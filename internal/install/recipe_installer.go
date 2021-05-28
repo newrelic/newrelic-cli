@@ -180,7 +180,7 @@ func (i *RecipeInstaller) discoverAndRun(ctx context.Context) error {
 }
 
 func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
-	err := i.manifestValidator.Execute(m)
+	err := i.manifestValidator.Validate(m)
 	if err != nil {
 		return err
 	}

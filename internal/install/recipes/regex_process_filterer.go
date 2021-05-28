@@ -18,7 +18,7 @@ func NewRegexProcessFilterer() *RegexProcessFilterer {
 	return &f
 }
 
-func (f *RegexProcessFilterer) Filter(ctx context.Context, processes []types.GenericProcess, recipes []types.OpenInstallationRecipe) ([]types.MatchedProcess, error) {
+func (f *RegexProcessFilterer) Filter(ctx context.Context, processes []types.GenericProcess, recipes []types.OpenInstallationRecipe) []types.MatchedProcess {
 	matchedProcesses := getMatchedProcesses(processes)
 	log.Debugf("Filtering recipes with %d processes...", len(matchedProcesses))
 
@@ -37,7 +37,7 @@ func (f *RegexProcessFilterer) Filter(ctx context.Context, processes []types.Gen
 	}
 
 	log.Debugf("Filtering recipes with processes done, found %d matches.", len(matches))
-	return matches, nil
+	return matches
 }
 
 func match(r types.OpenInstallationRecipe, matchedProcess *types.MatchedProcess) bool {
