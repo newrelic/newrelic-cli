@@ -10,7 +10,7 @@ func (p mockProcess) Name() (string, error) {
 	return p.name, nil
 }
 
-func (p mockProcess) Cmdline() (string, error) {
+func (p mockProcess) Cmd() (string, error) {
 	return p.cmdline, nil
 }
 

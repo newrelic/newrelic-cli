@@ -22,13 +22,12 @@ type DiscoveryManifest struct {
 // GenericProcess is an abstracted representation of a process.
 type GenericProcess interface {
 	Name() (string, error)
-	Cmdline() (string, error)
+	Cmd() (string, error)
 	PID() int32
 }
 
 type MatchedProcess struct {
-	Command         string `json:"command"`
-	Process         GenericProcess
+	GenericProcess
 	MatchingPattern string
 	MatchingRecipe  OpenInstallationRecipe
 }

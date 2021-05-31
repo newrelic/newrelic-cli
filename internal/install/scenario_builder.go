@@ -85,15 +85,15 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	v := validation.NewPollingRecipeValidator(c)
 	cv := diagnose.NewMockConfigValidator()
 	mv := discovery.NewEmptyManifestValidator()
-
 	lkf := NewMockLicenseKeyFetcher()
-	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewPlainProgress()
+	rfi := recipes.NewRecipeFilterer()
+	rvp := execution.NewRecipeVarProvider()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -108,6 +108,8 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		configValidator:   cv,
 		manifestValidator: mv,
 		licenseKeyFetcher: lkf,
+		recipeFilterer:    rfi,
+		recipeVarPreparer: rvp,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -132,9 +134,8 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewMockFailingRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
@@ -177,17 +178,15 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewMockFailingRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
-	sre := execution.NewShRecipeExecutor()
 	rvp := execution.NewRecipeVarProvider()
 
-	rr := recipes.NewRecipeRecommender(rf, pf, sre)
+	rr := recipes.NewRecipeFilterer()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -203,7 +202,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 		manifestValidator: mv,
 		licenseKeyFetcher: lkf,
 		recipeVarPreparer: rvp,
-		recipeRecommender: rr,
+		recipeFilterer:    rr,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -213,7 +212,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.OpenInstallationRecipe{
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		{
 			Name:        "infrastructure-agent-installer",
 			DisplayName: "Infrastructure Agent",

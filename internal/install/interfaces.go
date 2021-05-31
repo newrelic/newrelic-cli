@@ -31,8 +31,8 @@ type RecipeFileFetcher interface {
 	LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error)
 }
 
-type RecipeRecommender interface {
-	Recommend(ctx context.Context, m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error)
+type RecipeFilterer interface {
+	FilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error)
 }
 
 // RecipeValidator validates installation of a recipe.

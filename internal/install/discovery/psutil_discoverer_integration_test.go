@@ -29,8 +29,7 @@ func TestDiscovery(t *testing.T) {
 		},
 	}
 
-	pf := recipes.NewRegexProcessFilterer()
-	pd := NewPSUtilDiscoverer(pf)
+	pd := NewPSUtilDiscoverer()
 
 	manifest, err := pd.Discover(context.Background())
 

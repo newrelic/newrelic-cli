@@ -10,3 +10,7 @@ func (r RecipeVars) ToSlice() []string {
 
 	return s
 }
+
+func (r OpenInstallationRecipe) String() string {
+	return r.Name
+}
