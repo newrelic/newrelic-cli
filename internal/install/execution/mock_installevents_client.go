@@ -20,7 +20,7 @@ func (c *MockInstalleventsClient) CreateInstallEvent(installevents.InstallStatus
 	return c.CreateInstallEventVal, c.CreateInstallEventErr
 }
 
-func (c *MockInstalleventsClient) CreateInstallMetadata(installevents.InstallMetadata) (*installevents.InstallMetadata, error) {
+func (c *MockInstalleventsClient) CreateInstallMetadata(installevents.InputInstallMetadata) (*installevents.InstallMetadata, error) {
 	c.CreateInstallEventCallCount++
 	return c.CreateInstallMetadataVal, c.CreateInstallMetadataErr
 }
