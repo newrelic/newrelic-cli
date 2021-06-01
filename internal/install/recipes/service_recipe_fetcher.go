@@ -210,8 +210,8 @@ func createRecommendationsInput(d *types.DiscoveryManifest) (*recommendationsInp
 func createInstallTarget(d *types.DiscoveryManifest) installTarget {
 	i := installTarget{
 		PlatformVersion: strings.ToUpper(d.PlatformVersion),
-		//KernelArch:      strings.ToUpper(d.KernelArch),
-		//KernelVersion:   strings.ToUpper(d.KernelVersion),
+		KernelArch:      strings.ToUpper(d.KernelArch),
+		KernelVersion:   strings.ToUpper(d.KernelVersion),
 	}
 
 	i.OS = strings.ToUpper(d.OS)
