@@ -1,8 +1,6 @@
 package execution
 
 import (
-	"fmt"
-
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/installevents"
 )
@@ -45,70 +43,32 @@ func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event Re
 }
 
 func (r InstallEventsReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r InstallEventsReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.CANCELED) {
-		return nil
-	}
-
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) {
-		fmt.Printf("  One or more installations failed.  Check the install log for more details: %s\n", status.LogFilePath)
-	}
-
-	recs := status.recommendations()
-
-	if len(recs) > 0 {
-		fmt.Println("  ---")
-		fmt.Println("  Instrumentation recommendations")
-		fmt.Println("  We discovered some additional instrumentation opportunities:")
-
-		for _, recommendation := range recs {
-			fmt.Printf("  - %s\n", recommendation.DisplayName)
-		}
-
-		fmt.Println("Please refer to the \"Data gaps\" section in the link to your data.")
-		fmt.Println("  ---")
-	}
-
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
-		fmt.Println("  New Relic installation complete!")
-	}
-
-	linkToData := ""
-	if status.successLinkGenerator != nil {
-		linkToData = status.successLinkGenerator.GenerateRedirectURL(*status)
-	}
-
-	if linkToData != "" {
-		fmt.Printf("  Your data is available at %s", linkToData)
-	}
-
-	fmt.Println()
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r InstallEventsReporter) writeStatus(status *InstallStatus) error {
-
-	return nil
+	_, err := r.client.CreateInstallMetadata(buildInstallMetadata(status))
+	return err
 }
 
 func buildInstallStatus(event RecipeStatusEvent, status installevents.RecipeStatusType) installevents.InstallStatus {
@@ -120,6 +80,12 @@ func buildInstallStatus(event RecipeStatusEvent, status installevents.RecipeStat
 		Status:      status,
 		// ValidationDurationMilliseconds: event.ValidationDurationMilliseconds,
 	}
+
+	return i
+}
+
+func buildInstallMetadata(status *InstallStatus) installevents.InputInstallMetadata {
+	i := installevents.InputInstallMetadata{}
 
 	return i
 }
