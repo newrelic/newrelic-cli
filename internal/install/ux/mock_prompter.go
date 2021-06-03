@@ -11,7 +11,10 @@ type MockPrompter struct {
 }
 
 func NewMockPrompter() *MockPrompter {
-	return &MockPrompter{}
+	return &MockPrompter{
+		PromptYesNoVal:       true,
+		PromptMultiSelectAll: true,
+	}
 }
 
 func (p *MockPrompter) PromptYesNo(msg string) (bool, error) {

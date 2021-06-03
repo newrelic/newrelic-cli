@@ -31,7 +31,7 @@ func (f *RegexProcessMatchFinder) FindMatches(ctx context.Context, processes []t
 		matches = append(matches, m...)
 	}
 
-	log.Debugf("Finished matching recipe to running processes, found %d matches.", len(matches))
+	log.Debugf("Finished matching recipe %s to running processes, found %d matches.", recipe.Name, len(matches))
 	return matches, nil
 }
 

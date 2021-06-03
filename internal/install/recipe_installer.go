@@ -21,7 +21,7 @@ import (
 )
 
 type RecipeInstaller struct {
-	InstallerContext
+	types.InstallerContext
 	discoverer        Discoverer
 	fileFilterer      FileFilterer
 	manifestValidator *discovery.ManifestValidator
@@ -46,7 +46,7 @@ var (
 	}
 )
 
-func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
+func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
 
 	var recipeFetcher recipes.RecipeFetcher
 
@@ -77,7 +77,7 @@ func NewRecipeInstaller(ic InstallerContext, nrClient *newrelic.NewRelic) *Recip
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewRecipeVarProvider()
-	rf := recipes.NewRecipeFilterer()
+	rf := recipes.NewRecipeFilterer(ic, statusRollup)
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -157,7 +157,6 @@ func (i *RecipeInstaller) Install() error {
 		return err
 	}
 }
-
 func (i *RecipeInstaller) install(ctx context.Context) error {
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
@@ -176,39 +175,36 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("recipesForPlatform: %v\n", recipesForPlatform)
+	log.Tracef("recipes found for platform: %v\n", recipesForPlatform)
 
-	targetedRecipes, err := i.collectTargetedRecipes(m)
+	targetedRecipes, err := i.collectTargetedRecipes(m, recipesForPlatform)
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("targetedRecipes: %v\n", targetedRecipes)
+	log.Tracef("recipes supplied by user: %v\n", targetedRecipes)
 
 	candidateRecipes := append(recipesForPlatform, targetedRecipes...)
-	//fmt.Printf("candidateRecipes: %v\n", candidateRecipes)
-
 	filteredRecipes, err := i.recipeFilterer.FilterMultiple(ctx, candidateRecipes, m)
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("filteredRecipes: %v\n", filteredRecipes)
+	log.Tracef("recipes after filtering: %v\n", filteredRecipes)
 
-	i.status.RecipesAvailable(filteredRecipes)
+	orderedAndDeduped := orderAndDedupeRecipes(filteredRecipes)
 
-	selectedRecipes, err := i.promptUserSelect(filteredRecipes)
+	selected, unselected, err := i.promptUserSelect(orderedAndDeduped)
 	if err != nil {
 		return err
 	}
-	//fmt.Printf("selectedRecipes: %v\n", selectedRecipes)
+	log.Tracef("recipes selected by user: %v\n", selected)
 
-	i.status.RecipesSelected(selectedRecipes)
+	for _, r := range unselected {
+		i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+	}
+	i.status.RecipesSelected(selected)
 
-	if err = i.installRecipes(ctx, m, selectedRecipes); err != nil {
-		if err == types.ErrInterrupt {
-			return err
-		}
-
-		return nil
+	if err = i.installRecipes(ctx, m, selected); err != nil {
+		return err
 	}
 
 	log.Debugf("Done installing integrations.")
@@ -250,12 +246,12 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.DisplayName))
-
-			if len(recipes) == 1 {
-				return err
-			}
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
+	}
+
+	if !i.status.WasSuccessful() {
+		return fmt.Errorf("no recipes were installed")
 	}
 
 	return nil
@@ -368,14 +364,14 @@ func (i *RecipeInstaller) failMessage(componentName string) error {
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
 
-func (i *RecipeInstaller) collectTargetedRecipes(m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
+func (i *RecipeInstaller) collectTargetedRecipes(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
 	var recipes []types.OpenInstallationRecipe
 
 	if i.RecipePathsProvided() {
 		// Load the recipes from the provided file names.
 		for _, n := range i.RecipePaths {
 			// Early continue when skipInfra is set
-			if i.SkipInfra && n == types.InfraAgentRecipeName {
+			if i.SkipInfraInstall && n == types.InfraAgentRecipeName {
 				continue
 			}
 
@@ -395,22 +391,16 @@ func (i *RecipeInstaller) collectTargetedRecipes(m *types.DiscoveryManifest) ([]
 			recipes = append(recipes, *recipe)
 		}
 	} else if i.RecipeNamesProvided() {
-		// Fetch the provided recipes from the recipe service.
 		for _, n := range i.RecipeNames {
-			// Early continue when skipInfra is set
-			if i.SkipInfra && n == types.InfraAgentRecipeName {
-				continue
-			}
-
 			log.Debugln(fmt.Sprintf("Attempting to match recipeName %s.", n))
-			r := i.fetchWarn(m, n)
+			r := findRecipeInRecipes(n, recipesForPlatform)
 			if r != nil {
-				// Skip anything that was returned by the service if it does not match the requested name.
+				// Ignore anything that does not match the requested name.
 				if r.Name == n {
 					log.Debugln(fmt.Sprintf("Found recipe from name %s.", n))
 					recipes = append(recipes, *r)
 				} else {
-					log.Debugln(fmt.Sprintf("Skipping recipe, name %s does not match.", r.Name))
+					log.Debugln(fmt.Sprintf("Ignoring recipe, name %s does not match.", r.Name))
 				}
 			}
 		}
@@ -437,23 +427,9 @@ func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstalla
 	return f, nil
 }
 
-func (i *RecipeInstaller) fetchWarn(m *types.DiscoveryManifest, recipeName string) *types.OpenInstallationRecipe {
-	r, err := i.recipeFetcher.FetchRecipe(utils.SignalCtx, m, recipeName)
-	if err != nil {
-		log.Warnf("Could not install %s. Error retrieving recipe: %s", recipeName, err)
-		return nil
-	}
-
-	if r == nil {
-		log.Warnf("Recipe %s not found. Skipping installation.", recipeName)
-	}
-
-	return r
-}
-
-func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
 	if len(recipes) == 0 {
-		return []types.OpenInstallationRecipe{}, nil
+		return []types.OpenInstallationRecipe{}, []types.OpenInstallationRecipe{}, nil
 	}
 
 	names := []string{}
@@ -463,19 +439,67 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 
 	selected, promptErr := i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
 	if promptErr != nil {
-		return nil, promptErr
+		return nil, nil, promptErr
 	}
 
 	fmt.Println()
 
-	var selectedRecipes []types.OpenInstallationRecipe
-	for _, name := range selected {
-		for _, r := range recipes {
-			if r.DisplayName == name {
-				selectedRecipes = append(selectedRecipes, r)
-			}
+	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
+	for _, r := range recipes {
+		if utils.StringInSlice(r.DisplayName, selected) {
+			selectedRecipes = append(selectedRecipes, r)
+		} else {
+			unselectedRecipes = append(unselectedRecipes, r)
 		}
 	}
 
-	return selectedRecipes, nil
+	return selectedRecipes, unselectedRecipes, nil
+}
+
+func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
+	for _, r := range recipes {
+		if r.Name == name {
+			return &r
+		}
+	}
+
+	return nil
+}
+
+func orderAndDedupeRecipes(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+	deduped := dedupeRecipes(recipes)
+	ordered := orderRecipes(deduped)
+
+	return ordered
+}
+
+func dedupeRecipes(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+	var results []types.OpenInstallationRecipe
+	m := map[string]types.OpenInstallationRecipe{}
+
+	for _, r := range recipes {
+		m[r.Name] = r
+	}
+
+	for _, v := range m {
+		results = append(results, v)
+	}
+
+	return results
+}
+
+// This is a naive implementation that only works because the infra agent recipe is the only known dependency.
+// It should be replaced with a fully fledged dependency graph in the future.
+func orderRecipes(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+	var results []types.OpenInstallationRecipe
+
+	for _, r := range recipes {
+		if r.Name == types.InfraAgentRecipeName {
+			results = append([]types.OpenInstallationRecipe{r}, results...)
+		} else {
+			results = append(results, r)
+		}
+	}
+
+	return results
 }

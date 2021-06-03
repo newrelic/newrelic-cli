@@ -46,10 +46,10 @@ func TestScenarioValues() []string {
 }
 
 type ScenarioBuilder struct {
-	installerContext InstallerContext
+	installerContext types.InstallerContext
 }
 
-func NewScenarioBuilder(ic InstallerContext) *ScenarioBuilder {
+func NewScenarioBuilder(ic types.InstallerContext) *ScenarioBuilder {
 	b := ScenarioBuilder{
 		installerContext: ic,
 	}
@@ -92,7 +92,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewPlainProgress()
-	rfi := recipes.NewRecipeFilterer()
+	rfi := recipes.NewRecipeFilterer(b.installerContext, statusRollup)
 	rvp := execution.NewRecipeVarProvider()
 
 	i := RecipeInstaller{
@@ -186,7 +186,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewRecipeVarProvider()
 
-	rr := recipes.NewRecipeFilterer()
+	rr := recipes.NewRecipeFilterer(b.installerContext, statusRollup)
 
 	i := RecipeInstaller{
 		discoverer:        d,

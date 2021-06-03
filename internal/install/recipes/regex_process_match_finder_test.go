@@ -247,7 +247,7 @@ func TestFindMatchesMultiple_MultipleMatchingProcesses_MultipleRecipes(t *testin
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 4, len(filtered))
 	require.Equal(t, filtered[0].MatchingPattern, "java")
-	require.Equal(t, filtered[1].MatchingPattern, "cassandra")
-	require.Equal(t, filtered[2].MatchingPattern, "java")
-	require.Equal(t, filtered[3].MatchingPattern, "java.*jboss")
+	require.Equal(t, filtered[1].MatchingPattern, "java")
+	require.Equal(t, filtered[2].MatchingPattern, "java.*jboss")
+	require.Equal(t, filtered[3].MatchingPattern, "cassandra")
 }

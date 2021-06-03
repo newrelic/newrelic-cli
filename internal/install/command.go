@@ -32,7 +32,7 @@ var Command = &cobra.Command{
 	Use:   "install",
 	Short: "Install New Relic.",
 	Run: func(cmd *cobra.Command, args []string) {
-		ic := InstallerContext{
+		ic := types.InstallerContext{
 			AssumeYes:          assumeYes,
 			LocalRecipes:       localRecipes,
 			RecipeNames:        recipeNames,
@@ -40,7 +40,7 @@ var Command = &cobra.Command{
 			SkipIntegrations:   skipIntegrations,
 			SkipLoggingInstall: skipLoggingInstall,
 			SkipApm:            skipApm,
-			SkipInfra:          skipInfra,
+			SkipInfraInstall:   skipInfra,
 		}
 
 		config.InitFileLogger()

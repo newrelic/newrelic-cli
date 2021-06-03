@@ -11,7 +11,7 @@ type ConfigValidator interface {
 	Validate(ctx context.Context) error
 }
 
-// Discoverer is reesponsible for discovering informataion about the host system.
+// Discoverer is responsible for discovering informataion about the host system.
 type Discoverer interface {
 	Discover(context.Context) (*types.DiscoveryManifest, error)
 }

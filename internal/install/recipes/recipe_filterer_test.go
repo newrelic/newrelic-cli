@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -19,7 +20,7 @@ func TestRecommend_CustomScript_Success(t *testing.T) {
 
 	m := &types.DiscoveryManifest{}
 
-	r := NewRecipeFilterer()
+	r := NewRecipeFilterer(types.InstallerContext{}, &execution.InstallStatus{})
 
 	filtered, err := r.Filter(context.Background(), &recipe, m)
 	require.NoError(t, err)
@@ -36,7 +37,7 @@ func TestRecommend_CustomScript_Failure(t *testing.T) {
 
 	m := &types.DiscoveryManifest{}
 
-	r := NewRecipeFilterer()
+	r := NewRecipeFilterer(types.InstallerContext{}, &execution.InstallStatus{})
 
 	filtered, err := r.Filter(context.Background(), &recipe, m)
 	require.NoError(t, err)
