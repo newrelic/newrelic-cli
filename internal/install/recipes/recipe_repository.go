@@ -39,11 +39,13 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 		if err != nil {
 			return nil, err
 		}
+		log.Debugf("Loaded %d recipes", len(recipes))
 
 		rf.recipes = recipes
 	}
 
 	log.Debugf("Find all available out of %d recipes for host %+v", len(rf.recipes), hostMap)
+	log.Debugf("All recipes: %+v", rf.recipes)
 
 	for _, recipe := range rf.recipes {
 		matchTargetCount := []int{}
@@ -51,16 +53,20 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 		for _, rit := range recipe.InstallTargets {
 			matchCount := 0
 			for k, v := range getRecipeTargetMap(rit) {
+				if v == "" {
+					continue
+				}
 				isValueMatching := matchRecipeCriteria(hostMap, k, v)
 				if isValueMatching {
+					log.Debugf("matching recipe %s field name %s and value %s", recipe.Name, k, v)
 					matchCount++
 				} else {
 					log.Debugf("recipe %s defines %s but input did not provide a match", recipe.Name, k)
-					matchCount = 0
+					matchCount = -1
 					break
 				}
 			}
-			if matchCount > 0 {
+			if matchCount >= 0 {
 				matchTargetCount = append(matchTargetCount, matchCount)
 			}
 		}
@@ -70,6 +76,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 			if len(matchTargetCount) > 0 {
 				maxMatchTargetCount = mathMax(matchTargetCount)
 			}
+			log.Debugf("Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), maxMatchTargetCount)
 
 			match := recipeMatch{
 				recipe:     recipe,
@@ -122,10 +129,6 @@ func mathMax(numbers []int) int {
 }
 
 func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) bool {
-	if rvalue == "" {
-		return true
-	}
-
 	if val, ok := hostMap[rkey]; ok {
 		return strings.EqualFold(val, rvalue)
 	}

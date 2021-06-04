@@ -5,65 +5,97 @@ package recipes
 import (
 	"testing"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 var (
-	discoveryManifest types.DiscoveryManifest        = types.DiscoveryManifest{}
-	recipeCache       []types.OpenInstallationRecipe = []types.OpenInstallationRecipe{}
+	discoveryManifest types.DiscoveryManifest
+	recipeCache       []types.OpenInstallationRecipe
+	repository        *RecipeRepository
 )
 
-func Test_ShouldFindAll_Empty(t *testing.T) {
-	repo := NewRecipeRepository(recipeLoader)
+func Setup() {
+	discoveryManifest = types.DiscoveryManifest{}
+	recipeCache = []types.OpenInstallationRecipe{}
+	repository = NewRecipeRepository(recipeLoader)
+}
 
-	recipes, _ := repo.FindAll(discoveryManifest)
+func Test_ShouldFindAll_Empty(t *testing.T) {
+	Setup()
+	recipes, _ := repository.FindAll(discoveryManifest)
 
 	require.Empty(t, recipes)
 }
 
 func Test_ShouldFindSingleRecipe(t *testing.T) {
+	Setup()
 	givenCachedRecipe("id1", "my-recipe")
 
-	repo := NewRecipeRepository(recipeLoader)
-	results, _ := repo.FindAll(discoveryManifest)
+	results, _ := repository.FindAll(discoveryManifest)
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_matchRecipeCriteria_Basic(t *testing.T) {
-	m := types.DiscoveryManifest{
-		Platform: "linux",
-	}
+func Test_ShouldFindSingleOsRecipe(t *testing.T) {
+	Setup()
+	givenCachedRecipeOs("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX)
+	discoveryManifest.OS = "linux"
 
-	hostMap := getHostMap(m)
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 1)
+	require.Equal(t, results[0].ID, "id1")
+}
+
+func Test_ShouldNotFindSingleOsRecipe(t *testing.T) {
+	// log.SetLevel(log.TraceLevel)
+	Setup()
+	givenCachedRecipeOs("id1", "my-recipe3", types.OpenInstallationOperatingSystemTypes.LINUX)
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 0)
+}
+
+func Test_matchRecipeCriteria_Basic(t *testing.T) {
+	Setup()
+	discoveryManifest.Platform = "linux"
+
+	hostMap := getHostMap(discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "Platform", "linux")
 	require.True(t, actual)
 }
 
 func Test_matchRecipeCriteria_EmptyString(t *testing.T) {
-	m := types.DiscoveryManifest{}
-
-	hostMap := getHostMap(m)
+	Setup()
+	hostMap := getHostMap(discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "Platform", "")
 	require.True(t, actual)
 }
 
 func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
-	m := types.DiscoveryManifest{}
+	Setup()
 
-	hostMap := getHostMap(m)
+	hostMap := getHostMap(discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "KeyMissing", "xyz")
 	require.False(t, actual)
 }
 
 func recipeLoader() ([]types.OpenInstallationRecipe, error) {
-	log.Debugf("Test loading %d recipes", len(recipeCache))
 	return recipeCache, nil
+}
+
+func givenCachedRecipeOs(id string, name string, os types.OpenInstallationOperatingSystem) *types.OpenInstallationRecipe {
+	r := createRecipe(id, name)
+	t := types.OpenInstallationRecipeInstallTarget{
+		Os: os,
+	}
+	r.InstallTargets = append(r.InstallTargets, t)
+	recipeCache = append(recipeCache, *r)
+	return r
 }
 
 func givenCachedRecipe(id string, name string) *types.OpenInstallationRecipe {
