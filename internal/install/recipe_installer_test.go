@@ -13,6 +13,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -87,6 +88,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 }
 
 func TestInstall_DiscoveryComplete(t *testing.T) {
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	ic := types.InstallerContext{}
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}
