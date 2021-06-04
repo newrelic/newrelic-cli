@@ -17,31 +17,7 @@ type LocalRecipeFetcher struct {
 	Path string
 }
 
-func (f *LocalRecipeFetcher) FetchRecipe(ctx context.Context, manifest *types.DiscoveryManifest, friendlyName string) (*types.OpenInstallationRecipe, error) {
-	recipes, err := f.FetchRecommendations(ctx, manifest)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, recipe := range recipes {
-		if recipe.Name == friendlyName {
-			return &recipe, nil
-		}
-	}
-
-	return nil, fmt.Errorf("%s: %w", friendlyName, ErrRecipeNotFound)
-}
-
-func (f *LocalRecipeFetcher) FetchRecommendations(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
-	recipes, err := f.FetchRecipes(ctx, manifest)
-	if err != nil {
-		return nil, err
-	}
-
-	return manifest.ConstrainRecipes(recipes), nil
-}
-
-func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
+func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.OpenInstallationRecipe, error) {
 	var recipes []types.OpenInstallationRecipe
 	var err error
 

@@ -32,9 +32,9 @@ func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, erro
 func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	results := []types.OpenInstallationRecipe{}
 	matchRecipes := make(map[string][]recipeMatch)
-	log.Debugf("Find all recipes available for host")
-
 	hostMap := getHostMap(m)
+
+	log.Debugf("Find all recipes available for host %+v", hostMap)
 
 	if rf.recipes == nil {
 		recipes, err := rf.RecipeLoaderFunc()
@@ -55,6 +55,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 				if isValueMatching {
 					matchCount++
 				} else {
+					log.Debugf("recipe %s defines %s but input did not provide a match", recipe.Name, k)
 					matchCount = 0
 					break
 				}
@@ -91,7 +92,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 		}
 	}
 
-	return results
+	return results, nil
 }
 
 func findMaxMatch(matches []recipeMatch) recipeMatch {
@@ -122,7 +123,7 @@ func mathMax(numbers []int) int {
 
 func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) bool {
 	if rvalue == "" {
-		return false
+		return true
 	}
 
 	if val, ok := hostMap[rkey]; ok {

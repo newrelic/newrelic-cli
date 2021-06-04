@@ -12,55 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
-
-func TestLocalRecipeFetcher_FetchRecommendations(t *testing.T) {
-	tmp, err := ioutil.TempDir("/tmp", "newrelic")
-	defer os.RemoveAll(tmp)
-	require.NoError(t, err)
-
-	config.DefaultConfigDirectory = tmp
-
-	path := filepath.Join(tmp, "recipes")
-	err = os.MkdirAll(path, 0750)
-	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(path, "infra.yml"), []byte(sampleRecipe), 0600)
-	require.NoError(t, err)
-
-	f := LocalRecipeFetcher{
-		Path: filepath.Join(tmp, "recipes"),
-	}
-	recipes, err := f.FetchRecommendations(context.Background(), &types.DiscoveryManifest{OS: "linux"})
-	require.NoError(t, err)
-	require.Nil(t, recipes)
-	require.Empty(t, recipes)
-}
-
-func TestLocalRecipeFetcher_FetchRecipe(t *testing.T) {
-	tmp, err := ioutil.TempDir("/tmp", "newrelic")
-	defer os.RemoveAll(tmp)
-	require.NoError(t, err)
-
-	config.DefaultConfigDirectory = tmp
-
-	path := filepath.Join(tmp, "recipes")
-	err = os.MkdirAll(path, 0750)
-	require.NoError(t, err)
-	err = ioutil.WriteFile(filepath.Join(path, "infra.yml"), []byte(sampleRecipe), 0600)
-	require.NoError(t, err)
-
-	f := LocalRecipeFetcher{
-		Path: path,
-	}
-	recipe, err := f.FetchRecipe(context.Background(), &types.DiscoveryManifest{}, "not-a-real-recipe")
-	require.ErrorIs(t, err, ErrRecipeNotFound)
-	require.Nil(t, recipe)
-
-	recipe, err = f.FetchRecipe(context.Background(), &types.DiscoveryManifest{OS: "linux", Platform: "debian"}, "infrastructure-agent-installer")
-	require.NoError(t, err)
-	require.Equal(t, "infrastructure-agent-installer", recipe.Name)
-}
 
 func TestLocalRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
 	tmp, err := ioutil.TempDir("/tmp", "newrelic")
@@ -78,7 +30,7 @@ func TestLocalRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
 	f := LocalRecipeFetcher{
 		Path: path,
 	}
-	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{})
+	recipes, err := f.FetchRecipes(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, recipes)
 }
@@ -101,7 +53,7 @@ func TestLocalRecipeFetcher_FetchRecipes(t *testing.T) {
 	f := LocalRecipeFetcher{
 		Path: path,
 	}
-	recipes, err := f.FetchRecipes(context.Background(), &types.DiscoveryManifest{OS: "linux"})
+	recipes, err := f.FetchRecipes(context.Background())
 	require.NoError(t, err)
 	require.NotEmpty(t, recipes)
 

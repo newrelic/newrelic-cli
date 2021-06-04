@@ -2,7 +2,6 @@ package recipes
 
 import (
 	"context"
-	"strings"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -68,20 +67,6 @@ type recipeSearchQueryOpenInstallation struct {
 
 type recipeSearchResult struct {
 	Results []types.OpenInstallationRecipe `json:"results"`
-}
-
-func createInstallTarget(d *types.DiscoveryManifest) installTarget {
-	i := installTarget{
-		PlatformVersion: strings.ToUpper(d.PlatformVersion),
-		KernelArch:      strings.ToUpper(d.KernelArch),
-		KernelVersion:   strings.ToUpper(d.KernelVersion),
-	}
-
-	i.OS = strings.ToUpper(d.OS)
-	i.Platform = strings.ToUpper(d.Platform)
-	//i.PlatformFamily = strings.ToUpper(d.PlatformFamily)
-
-	return i
 }
 
 const (

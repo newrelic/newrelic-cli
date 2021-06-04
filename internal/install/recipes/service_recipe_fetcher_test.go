@@ -43,7 +43,7 @@ func TestFetchFilters(t *testing.T) {
 
 	s := NewServiceRecipeFetcher(c)
 
-	recipes, err := s.FetchRecipes(context.Background(), &types.DiscoveryManifest{})
+	recipes, err := s.FetchRecipes(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)

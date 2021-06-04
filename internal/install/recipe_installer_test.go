@@ -512,6 +512,8 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 }
 
 func TestInstall_RecipeRecommended(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	ic := types.InstallerContext{
 		SkipLoggingInstall: true,
 	}

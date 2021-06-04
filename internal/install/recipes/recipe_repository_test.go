@@ -19,7 +19,7 @@ func Test_ShouldFindAll_Empty(t *testing.T) {
 
 	repo := NewRecipeRepository(recipeLoader)
 
-	recipes := repo.FindAll(discoveryManifest)
+	recipes, _ := repo.FindAll(discoveryManifest)
 
 	require.Empty(t, recipes)
 }
@@ -30,7 +30,7 @@ func Test_matchRecipeCriteria_Basic(t *testing.T) {
 	}
 
 	hostMap := getHostMap(m)
-	actual := matchRecipeCriteriaWhenDefined(hostMap, "Platform", "linux")
+	actual := matchRecipeCriteria(hostMap, "Platform", "linux")
 	require.True(t, actual)
 }
 
@@ -38,18 +38,18 @@ func Test_matchRecipeCriteria_EmptyString(t *testing.T) {
 	m := types.DiscoveryManifest{}
 
 	hostMap := getHostMap(m)
-	actual := matchRecipeCriteriaWhenDefined(hostMap, "Platform", "")
-	require.False(t, actual)
+	actual := matchRecipeCriteria(hostMap, "Platform", "")
+	require.True(t, actual)
 }
 
 func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
 	m := types.DiscoveryManifest{}
 
 	hostMap := getHostMap(m)
-	actual := matchRecipeCriteriaWhenDefined(hostMap, "KeyMissing", "")
+	actual := matchRecipeCriteria(hostMap, "KeyMissing", "xyz")
 	require.False(t, actual)
 }
 
-func recipeLoader() []types.OpenInstallationRecipe {
-	return recipeCache
+func recipeLoader() ([]types.OpenInstallationRecipe, error) {
+	return recipeCache, nil
 }
