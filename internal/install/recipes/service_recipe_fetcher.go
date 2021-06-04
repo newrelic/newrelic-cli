@@ -23,12 +23,10 @@ func NewServiceRecipeFetcher(client NerdGraphClient) RecipeFetcher {
 }
 
 // FetchRecipes fetches all available recipes from the recipe service.
-func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context, manifest *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
+func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.OpenInstallationRecipe, error) {
 	var resp recipeSearchQueryResult
 
-	criteria := recipeSearchInput{
-		InstallTarget: createInstallTarget(manifest),
-	}
+	criteria := recipeSearchInput{}
 
 	vars := map[string]interface{}{
 		"criteria": criteria,

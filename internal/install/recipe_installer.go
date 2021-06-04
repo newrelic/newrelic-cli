@@ -171,6 +171,13 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
+	repo := recipes.NewRecipeRepository(func() []types.OpenInstallationRecipe {
+		recipes, err := i.recipeFetcher.FetchRecipes(ctx)
+		return recipes, err
+	})
+
+	recipes := repo.FindAll(m)
+
 	recipesForPlatform, err := i.recipeFetcher.FetchRecipes(ctx, m)
 	if err != nil {
 		return err

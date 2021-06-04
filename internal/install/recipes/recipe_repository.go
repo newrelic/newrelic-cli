@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"math"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -9,7 +10,7 @@ import (
 )
 
 type RecipeRepository struct {
-	RecipeLoaderFunc func() []types.OpenInstallationRecipe
+	RecipeLoaderFunc func() ([]types.OpenInstallationRecipe, error)
 	recipes          []types.OpenInstallationRecipe
 }
 
@@ -19,7 +20,7 @@ type recipeMatch struct {
 }
 
 // NewRecipeRepository returns a new instance of types.RecipeRepository.
-func NewRecipeRepository(loaderFunc func() []types.OpenInstallationRecipe) *RecipeRepository {
+func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error)) *RecipeRepository {
 	rr := RecipeRepository{
 		RecipeLoaderFunc: loaderFunc,
 		recipes:          nil,
@@ -28,7 +29,7 @@ func NewRecipeRepository(loaderFunc func() []types.OpenInstallationRecipe) *Reci
 	return &rr
 }
 
-func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe {
+func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
 	results := []types.OpenInstallationRecipe{}
 	matchRecipes := make(map[string][]recipeMatch)
 	log.Debugf("Find all recipes available for host")
@@ -36,7 +37,12 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) []types.OpenInsta
 	hostMap := getHostMap(m)
 
 	if rf.recipes == nil {
-		rf.recipes = rf.RecipeLoaderFunc()
+		recipes, err := rf.RecipeLoaderFunc()
+		if err != nil {
+			return nil, err
+		}
+
+		rf.recipes = recipes
 	}
 
 	for _, recipe := range rf.recipes {
@@ -74,9 +80,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) []types.OpenInsta
 			} else {
 				matchRecipes[recipe.Name] = append(matchRecipes[recipe.Name], match)
 			}
-
 		}
-
 	}
 
 	for _, matches := range matchRecipes {
@@ -117,6 +121,14 @@ func mathMax(numbers []int) int {
 }
 
 func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) bool {
+	if rvalue == "" {
+		return false
+	}
+
+	if val, ok := hostMap[rkey]; ok {
+		return strings.EqualFold(val, rvalue)
+	}
+
 	return false
 }
 
