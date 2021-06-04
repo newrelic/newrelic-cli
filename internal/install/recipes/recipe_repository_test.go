@@ -60,6 +60,34 @@ func Test_ShouldNotFindSingleOsRecipe(t *testing.T) {
 	require.Len(t, results, 0)
 }
 
+func Test_ShouldFindMostMatchingSingleRecipe(t *testing.T) {
+	Setup()
+	givenCachedRecipeOs("id1", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX)
+	givenCachedRecipeOsPlatform("id2", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
+	givenCachedRecipeOsPlatform("id3", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.UBUNTU)
+	discoveryManifest.OS = "linux"
+	discoveryManifest.Platform = "debian"
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 1)
+	require.Equal(t, results[0].ID, "id2")
+}
+
+func Test_ShouldFindMostMatchingSingleRecipeWithoutPlatform(t *testing.T) {
+	Setup()
+	givenCachedRecipeOs("id1", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX)
+	givenCachedRecipeOsPlatform("id2", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
+	givenCachedRecipeOsPlatform("id3", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.UBUNTU)
+	discoveryManifest.OS = "linux"
+	discoveryManifest.Platform = "centos"
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 1)
+	require.Equal(t, results[0].ID, "id1")
+}
+
 func Test_matchRecipeCriteria_Basic(t *testing.T) {
 	Setup()
 	discoveryManifest.Platform = "linux"
@@ -92,6 +120,17 @@ func givenCachedRecipeOs(id string, name string, os types.OpenInstallationOperat
 	r := createRecipe(id, name)
 	t := types.OpenInstallationRecipeInstallTarget{
 		Os: os,
+	}
+	r.InstallTargets = append(r.InstallTargets, t)
+	recipeCache = append(recipeCache, *r)
+	return r
+}
+
+func givenCachedRecipeOsPlatform(id string, name string, os types.OpenInstallationOperatingSystem, platform types.OpenInstallationPlatform) *types.OpenInstallationRecipe {
+	r := createRecipe(id, name)
+	t := types.OpenInstallationRecipeInstallTarget{
+		Os:       os,
+		Platform: platform,
 	}
 	r.InstallTargets = append(r.InstallTargets, t)
 	recipeCache = append(recipeCache, *r)
