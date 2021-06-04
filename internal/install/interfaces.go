@@ -43,3 +43,7 @@ type RecipeValidator interface {
 type RecipeVarPreparer interface {
 	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
 }
+
+type RecipeRepository interface {
+	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
+}
