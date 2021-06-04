@@ -34,8 +34,6 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 	matchRecipes := make(map[string][]recipeMatch)
 	hostMap := getHostMap(m)
 
-	log.Debugf("Find all recipes available for host %+v", hostMap)
-
 	if rf.recipes == nil {
 		recipes, err := rf.RecipeLoaderFunc()
 		if err != nil {
@@ -44,6 +42,8 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 
 		rf.recipes = recipes
 	}
+
+	log.Debugf("Find all available out of %d recipes for host %+v", len(rf.recipes), hostMap)
 
 	for _, recipe := range rf.recipes {
 		matchTargetCount := []int{}
