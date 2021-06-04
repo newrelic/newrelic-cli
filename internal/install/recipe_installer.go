@@ -166,13 +166,18 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	i.status.DiscoveryComplete(*m)
 
-	err = i.assertDiscoveryValid(ctx, m)
-	if err != nil {
+	if err = i.assertDiscoveryValid(ctx, m); err != nil {
 		return err
 	}
 
-	recipesForPlatform, err := i.recipeFetcher.FetchRecipes(ctx, m)
+	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
+		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
+		return recipes, err2
+	})
+
+	recipesForPlatform, err := repo.FindAll(*m)
 	if err != nil {
+		log.Debugf("should throw here %s", err)
 		return err
 	}
 	log.Tracef("recipes found for platform: %v\n", recipesForPlatform)

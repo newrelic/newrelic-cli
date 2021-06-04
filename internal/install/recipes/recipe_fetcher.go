@@ -8,5 +8,5 @@ import (
 
 // RecipeFetcher is responsible for retrieving recipe information.
 type RecipeFetcher interface {
-	FetchRecipes(context.Context, *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error)
+	FetchRecipes(context.Context) ([]types.OpenInstallationRecipe, error)
 }

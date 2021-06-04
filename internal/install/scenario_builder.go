@@ -252,13 +252,6 @@ tasks:
 `,
 		},
 	}
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
-		{
-			Name:           "recommended-recipe",
-			DisplayName:    "Recommended recipe",
-			ValidationNRQL: "test NRQL",
-		},
-	}
 
 	return f
 }
@@ -279,47 +272,6 @@ func setupRecipeFetcherExecDiscovery() recipes.RecipeFetcher {
 			PreInstall: types.OpenInstallationPreInstallConfiguration{
 				RequireAtDiscovery: "bogus command",
 			},
-		},
-	}
-
-	f.FetchRecipeVals = []types.OpenInstallationRecipe{
-		{
-			Name:        "infrastructure-agent-installer",
-			DisplayName: "Infrastructure Agent",
-			PreInstall: types.OpenInstallationPreInstallConfiguration{
-				Info: `
-This is the Infrastructure Agent Installer preinstall message.
-It is made up of a multi line string.
-				`,
-			},
-			PostInstall: types.OpenInstallationPostInstallConfiguration{
-				Info: `
-This is the Infrastructure Agent Installer postinstall message.
-It is made up of a multi line string.
-				`,
-			},
-			ValidationNRQL: "test NRQL",
-			Install: `
-version: '3'
-tasks:
-  default:
-`,
-		},
-		{
-			Name:           "logs-integration",
-			DisplayName:    "Logs integration",
-			ValidationNRQL: "test NRQL",
-			LogMatch: []types.OpenInstallationLogMatch{
-				{
-					Name: "docker log",
-					File: "/var/lib/docker/containers/*/*.log",
-				},
-			},
-			Install: `
-version: '3'
-tasks:
-  default:
-`,
 		},
 	}
 
