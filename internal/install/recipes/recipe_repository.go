@@ -9,6 +9,15 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+var (
+	kernelArch      string = "KernelArch"
+	kernelVersion   string = "KernelVersion"
+	oS              string = "OS"
+	platform        string = "Platform"
+	platformFamily  string = "PlatformFamily"
+	platformVersion string = "PlatformVersion"
+)
+
 type RecipeRepository struct {
 	RecipeLoaderFunc func() ([]types.OpenInstallationRecipe, error)
 	recipes          []types.OpenInstallationRecipe
@@ -138,24 +147,24 @@ func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) 
 
 func getHostMap(m types.DiscoveryManifest) map[string]string {
 	hostMap := map[string]string{
-		"KernelArch":      m.KernelArch,
-		"KernelVersion":   m.KernelVersion,
-		"OS":              m.OS,
-		"Platform":        m.Platform,
-		"PlatformFamily":  m.PlatformFamily,
-		"PlatformVersion": m.PlatformVersion,
+		kernelArch:      m.KernelArch,
+		kernelVersion:   m.KernelVersion,
+		oS:              m.OS,
+		platform:        m.Platform,
+		platformFamily:  m.PlatformFamily,
+		platformVersion: m.PlatformVersion,
 	}
 	return hostMap
 }
 
 func getRecipeTargetMap(rit types.OpenInstallationRecipeInstallTarget) map[string]string {
 	targetMap := map[string]string{
-		"KernelArch":      rit.KernelArch,
-		"KernelVersion":   rit.KernelVersion,
-		"OS":              string(rit.Os),
-		"Platform":        string(rit.Platform),
-		"PlatformFamily":  string(rit.PlatformFamily),
-		"PlatformVersion": rit.PlatformVersion,
+		kernelArch:      rit.KernelArch,
+		kernelVersion:   rit.KernelVersion,
+		oS:              string(rit.Os),
+		platform:        string(rit.Platform),
+		platformFamily:  string(rit.PlatformFamily),
+		platformVersion: rit.PlatformVersion,
 	}
 	return targetMap
 }
