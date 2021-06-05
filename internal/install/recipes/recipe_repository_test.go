@@ -117,8 +117,8 @@ func Test_ShouldFindMultipleNames(t *testing.T) {
 	results, _ := repository.FindAll(discoveryManifest)
 
 	require.Len(t, results, 2)
-	require.True(t, containsId(results, "id2"))
-	require.True(t, containsId(results, "id4"))
+	require.True(t, containsID(results, "id2"))
+	require.True(t, containsID(results, "id4"))
 }
 
 func Test_matchRecipeCriteria_Basic(t *testing.T) {
@@ -207,7 +207,7 @@ func createRecipe(id string, name string) *types.OpenInstallationRecipe {
 	return r
 }
 
-func containsId(recipes []types.OpenInstallationRecipe, id string) bool {
+func containsID(recipes []types.OpenInstallationRecipe, id string) bool {
 	for _, recipe := range recipes {
 		if recipe.ID == id {
 			return true
