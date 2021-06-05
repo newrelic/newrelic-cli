@@ -217,7 +217,7 @@ type OpenInstallationRecipe struct {
 	ID string `json:"id,omitempty" yaml:"id,omitempty"`
 	// List of variables to prompt for input from the user
 	InputVars []OpenInstallationRecipeInputVariable `json:"inputVars" yaml:"inputVars"`
-	// Go-task's taskfile definiton (see https://taskfile.dev/#/usage)
+	// Go-task's taskfile definition (see https://taskfile.dev/#/usage)
 	Install string `json:"install" yaml:"install"`
 	// Object representing the intended install target
 	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets" yaml:"installTargets"`
