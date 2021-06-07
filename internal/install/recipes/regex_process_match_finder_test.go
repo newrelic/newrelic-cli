@@ -11,7 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
+func TestShouldFindMatchesMultipleWithCmdLineInsteadOfName(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -31,16 +31,17 @@ func TestShouldFilterWithCmdLineInsteadOfName(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
 
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 1, len(filtered))
 	require.Equal(t, filtered[0].MatchingPattern, "cassandra")
 }
 
-func TestFilter_NoMatchingProcess(t *testing.T) {
+func TestFindMatchesMultiple_NoMatchingProcess(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -66,13 +67,14 @@ func TestFilter_NoMatchingProcess(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.Equal(t, 0, len(filtered))
 }
 
-func TestFilter_SingleMatchingProcess_SingleOHIRecipe(t *testing.T) {
+func TestFindMatchesMultiple_SingleMatchingProcess_SingleOHIRecipe(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -92,16 +94,17 @@ func TestFilter_SingleMatchingProcess_SingleOHIRecipe(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
 
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 1, len(filtered))
 	require.Equal(t, filtered[0].MatchingPattern, "cassandra")
 }
 
-func TestFilter_SingleMatchingProcess_SingleAPMRecipe(t *testing.T) {
+func TestFindMatchesMultiple_SingleMatchingProcess_SingleAPMRecipe(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -121,16 +124,17 @@ func TestFilter_SingleMatchingProcess_SingleAPMRecipe(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
 
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 1, len(filtered))
 	require.Equal(t, filtered[0].MatchingPattern, "java")
 }
 
-func TestFilter_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
+func TestFindMatchesMultiple_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -155,9 +159,10 @@ func TestFilter_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
 
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 2, len(filtered))
@@ -165,7 +170,7 @@ func TestFilter_SingleMatchingProcess_MultipleRecipes(t *testing.T) {
 	require.Equal(t, filtered[1].MatchingPattern, "cassandra")
 }
 
-func TestFilter_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
+func TestFindMatchesMultiple_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -189,9 +194,10 @@ func TestFilter_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
 
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 2, len(filtered))
@@ -199,7 +205,7 @@ func TestFilter_MultipleMatchingProcesses_SingleRecipe(t *testing.T) {
 	require.Equal(t, filtered[1].MatchingPattern, "java")
 }
 
-func TestFilter_MultipleMatchingProcesses_MultipleRecipes(t *testing.T) {
+func TestFindMatchesMultiple_MultipleMatchingProcesses_MultipleRecipes(t *testing.T) {
 	r := []types.OpenInstallationRecipe{
 		{
 			ID:           "1",
@@ -233,14 +239,15 @@ func TestFilter_MultipleMatchingProcesses_MultipleRecipes(t *testing.T) {
 		},
 	}
 
-	f := NewRegexProcessFilterer()
-	filtered := f.Filter(context.Background(), processes, r)
+	f := NewRegexProcessMatchFinder()
+	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
 
+	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 4, len(filtered))
 	require.Equal(t, filtered[0].MatchingPattern, "java")
-	require.Equal(t, filtered[1].MatchingPattern, "cassandra")
-	require.Equal(t, filtered[2].MatchingPattern, "java")
-	require.Equal(t, filtered[3].MatchingPattern, "java.*jboss")
+	require.Equal(t, filtered[1].MatchingPattern, "java")
+	require.Equal(t, filtered[2].MatchingPattern, "java.*jboss")
+	require.Equal(t, filtered[3].MatchingPattern, "cassandra")
 }

@@ -20,7 +20,7 @@ var TestCommand = &cobra.Command{
 	Short:  "Run a UX test of the install command.",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		ic := InstallerContext{
+		ic := types.InstallerContext{
 			RecipePaths:        recipePaths,
 			RecipeNames:        recipeNames,
 			SkipIntegrations:   skipIntegrations,

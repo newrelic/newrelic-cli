@@ -57,6 +57,7 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 
 func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
 	defaultProfile := credentials.DefaultProfile()
+
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found")
 	}

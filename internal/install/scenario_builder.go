@@ -46,10 +46,10 @@ func TestScenarioValues() []string {
 }
 
 type ScenarioBuilder struct {
-	installerContext InstallerContext
+	installerContext types.InstallerContext
 }
 
-func NewScenarioBuilder(ic InstallerContext) *ScenarioBuilder {
+func NewScenarioBuilder(ic types.InstallerContext) *ScenarioBuilder {
 	b := ScenarioBuilder{
 		installerContext: ic,
 	}
@@ -85,15 +85,15 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	v := validation.NewPollingRecipeValidator(c)
 	cv := diagnose.NewMockConfigValidator()
 	mv := discovery.NewEmptyManifestValidator()
-
 	lkf := NewMockLicenseKeyFetcher()
-	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewPlainProgress()
+	rfi := recipes.NewRecipeFilterer(b.installerContext, statusRollup)
+	rvp := execution.NewRecipeVarProvider()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -108,6 +108,8 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		configValidator:   cv,
 		manifestValidator: mv,
 		licenseKeyFetcher: lkf,
+		recipeFilterer:    rfi,
+		recipeVarPreparer: rvp,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -132,9 +134,8 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewMockFailingRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
@@ -177,17 +178,15 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := recipes.NewRegexProcessFilterer()
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewMockFailingRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
-	sre := execution.NewShRecipeExecutor()
 	rvp := execution.NewRecipeVarProvider()
 
-	rr := recipes.NewRecipeRecommender(rf, pf, sre)
+	rr := recipes.NewRecipeFilterer(b.installerContext, statusRollup)
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -203,7 +202,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 		manifestValidator: mv,
 		licenseKeyFetcher: lkf,
 		recipeVarPreparer: rvp,
-		recipeRecommender: rr,
+		recipeFilterer:    rr,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -213,7 +212,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.OpenInstallationRecipe{
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		{
 			Name:        "infrastructure-agent-installer",
 			DisplayName: "Infrastructure Agent",
@@ -251,13 +250,6 @@ version: '3'
 tasks:
   default:
 `,
-		},
-	}
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
-		{
-			Name:           "recommended-recipe",
-			DisplayName:    "Recommended recipe",
-			ValidationNRQL: "test NRQL",
 		},
 	}
 
@@ -280,47 +272,6 @@ func setupRecipeFetcherExecDiscovery() recipes.RecipeFetcher {
 			PreInstall: types.OpenInstallationPreInstallConfiguration{
 				RequireAtDiscovery: "bogus command",
 			},
-		},
-	}
-
-	f.FetchRecipeVals = []types.OpenInstallationRecipe{
-		{
-			Name:        "infrastructure-agent-installer",
-			DisplayName: "Infrastructure Agent",
-			PreInstall: types.OpenInstallationPreInstallConfiguration{
-				Info: `
-This is the Infrastructure Agent Installer preinstall message.
-It is made up of a multi line string.
-				`,
-			},
-			PostInstall: types.OpenInstallationPostInstallConfiguration{
-				Info: `
-This is the Infrastructure Agent Installer postinstall message.
-It is made up of a multi line string.
-				`,
-			},
-			ValidationNRQL: "test NRQL",
-			Install: `
-version: '3'
-tasks:
-  default:
-`,
-		},
-		{
-			Name:           "logs-integration",
-			DisplayName:    "Logs integration",
-			ValidationNRQL: "test NRQL",
-			LogMatch: []types.OpenInstallationLogMatch{
-				{
-					Name: "docker log",
-					File: "/var/lib/docker/containers/*/*.log",
-				},
-			},
-			Install: `
-version: '3'
-tasks:
-  default:
-`,
 		},
 	}
 

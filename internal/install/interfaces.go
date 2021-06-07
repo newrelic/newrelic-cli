@@ -11,7 +11,7 @@ type ConfigValidator interface {
 	Validate(ctx context.Context) error
 }
 
-// Discoverer is reesponsible for discovering informataion about the host system.
+// Discoverer is responsible for discovering informataion about the host system.
 type Discoverer interface {
 	Discover(context.Context) (*types.DiscoveryManifest, error)
 }
@@ -31,8 +31,8 @@ type RecipeFileFetcher interface {
 	LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error)
 }
 
-type RecipeRecommender interface {
-	Recommend(ctx context.Context, m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error)
+type RecipeFilterer interface {
+	FilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error)
 }
 
 // RecipeValidator validates installation of a recipe.
@@ -42,4 +42,8 @@ type RecipeValidator interface {
 
 type RecipeVarPreparer interface {
 	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
+}
+
+type RecipeRepository interface {
+	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
 }

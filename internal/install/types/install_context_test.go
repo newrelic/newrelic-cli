@@ -1,4 +1,4 @@
-package install
+package types
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ func TestShouldInstallInfraAgent_Default(t *testing.T) {
 	ic := InstallerContext{}
 	require.True(t, ic.ShouldInstallInfraAgent())
 
-	ic.SkipInfra = true
+	ic.SkipInfraInstall = true
 	require.False(t, ic.ShouldInstallInfraAgent())
 }
 
