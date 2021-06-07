@@ -195,24 +195,33 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 	log.Tracef("recipes after filtering: %v\n", filteredRecipes)
 
-	orderedAndDeduped := orderAndDedupeRecipes(filteredRecipes)
+	orderedRecipes := orderRecipes(filteredRecipes)
+	i.status.RecipesAvailable(orderedRecipes)
 
-	selected, unselected, err := i.promptUserSelect(orderedAndDeduped)
-	if err != nil {
-		return err
+	if i.RecipePathsProvided() {
+		i.status.RecipesSelected(orderedRecipes)
+
+		if err = i.installRecipes(ctx, m, orderedRecipes); err != nil {
+			return err
+		}
+	} else {
+		selected, unselected, err := i.promptUserSelect(orderedRecipes)
+		if err != nil {
+			return err
+		}
+		log.Tracef("recipes selected by user: %v\n", selected)
+
+		for _, r := range unselected {
+			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+		}
+		i.status.RecipesSelected(selected)
+
+		if err = i.installRecipes(ctx, m, selected); err != nil {
+			return err
+		}
 	}
-	log.Tracef("recipes selected by user: %v\n", selected)
 
-	for _, r := range unselected {
-		i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-	}
-	i.status.RecipesSelected(selected)
-
-	if err = i.installRecipes(ctx, m, selected); err != nil {
-		return err
-	}
-
-	log.Debugf("Done installing integrations.")
+	log.Debugf("Done installing.")
 	return nil
 }
 
@@ -473,28 +482,6 @@ func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *t
 	}
 
 	return nil
-}
-
-func orderAndDedupeRecipes(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	deduped := dedupeRecipes(recipes)
-	ordered := orderRecipes(deduped)
-
-	return ordered
-}
-
-func dedupeRecipes(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	var results []types.OpenInstallationRecipe
-	m := map[string]types.OpenInstallationRecipe{}
-
-	for _, r := range recipes {
-		m[r.Name] = r
-	}
-
-	for _, v := range m {
-		results = append(results, v)
-	}
-
-	return results
 }
 
 // This is a naive implementation that only works because the infra agent recipe is the only known dependency.
