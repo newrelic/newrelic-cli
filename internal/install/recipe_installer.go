@@ -437,6 +437,10 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 		return []types.OpenInstallationRecipe{}, []types.OpenInstallationRecipe{}, nil
 	}
 
+	if i.AssumeYes {
+		return recipes, []types.OpenInstallationRecipe{}, nil
+	}
+
 	names := []string{}
 	for _, r := range recipes {
 		names = append(names, r.DisplayName)
