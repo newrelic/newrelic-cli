@@ -213,7 +213,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	i.status.RecipesSelected(filteredRecipes)
 
 	dependencies := resolveDependencies(filteredRecipes, recipesForPlatform)
-	recipesToInstall := append(dependencies, filteredRecipes...)
+	recipesToInstall := addIfMissing(filteredRecipes, dependencies)
 
 	if err = i.installRecipes(ctx, m, recipesToInstall); err != nil {
 		return err
@@ -496,19 +496,18 @@ func resolveDependencies(recipes []types.OpenInstallationRecipe, recipesForPlatf
 		}
 	}
 
-	return dedupeRecipes(results)
+	return results
 }
 
-func dedupeRecipes(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+// This is a naive implementation that only resolves dependencies one level deep.
+func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
 	var results []types.OpenInstallationRecipe
-	m := map[string]types.OpenInstallationRecipe{}
+	results = append(results, recipes...)
 
-	for _, r := range recipes {
-		m[r.Name] = r
-	}
-
-	for _, v := range m {
-		results = append(results, v)
+	for _, dependency := range dependencies {
+		if found := findRecipeInRecipes(dependency.Name, results); found == nil {
+			results = append(results, dependency)
+		}
 	}
 
 	return results
