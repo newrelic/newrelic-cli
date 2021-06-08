@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -182,13 +183,16 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 	log.Tracef("recipes found for platform: %v\n", recipesForPlatform)
 
-	targetedRecipes, err := i.fetchProvidedRecipePaths(m, recipesForPlatform)
-	if err != nil {
-		return err
+	var targetedRecipes = recipesForPlatform
+	if i.RecipesProvided() {
+		targetedRecipes, err = i.fetchProvidedRecipe(m, recipesForPlatform)
+		if err != nil {
+			return err
+		}
+		log.Tracef("recipes supplied by user: %v\n", targetedRecipes)
 	}
-	log.Tracef("recipes supplied by user: %v\n", targetedRecipes)
 
-	filteredRecipes := i.recipeFilterer.RunFilterMultiple(ctx, append(recipesForPlatform, targetedRecipes...), m)
+	filteredRecipes := i.recipeFilterer.RunFilterMultiple(ctx, targetedRecipes, m)
 	log.Tracef("recipes after filtering: %v\n", filteredRecipes)
 
 	if !i.RecipesProvided() {
@@ -372,7 +376,7 @@ func (i *RecipeInstaller) failMessage(componentName string) error {
 	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
 
-func (i *RecipeInstaller) fetchProvidedRecipePaths(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
 	var recipes []types.OpenInstallationRecipe
 
 	// Load the recipes from the provided file names.
@@ -391,6 +395,22 @@ func (i *RecipeInstaller) fetchProvidedRecipePaths(m *types.DiscoveryManifest, r
 		}).Debug("found recipe at path")
 
 		recipes = append(recipes, *recipe)
+	}
+
+	// Load the recipes from the provided file names.
+	for _, n := range i.RecipeNames {
+		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
+		for _, r := range recipesForPlatform {
+			if strings.EqualFold(r.Name, n) {
+				log.WithFields(log.Fields{
+					"name":         r.Name,
+					"display_name": r.DisplayName,
+				}).Debug("found recipe with name")
+				recipes = append(recipes, r)
+				break
+			}
+		}
+		log.Errorf("Could not find recipe with name %s.", n)
 	}
 
 	return recipes, nil

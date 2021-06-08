@@ -104,6 +104,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 		if len(matches) > 0 {
 			match := findMaxMatch(matches)
 			singleRecipe := match.recipe
+			log.Debugf("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
 			results = append(results, singleRecipe)
 		}
 	}
