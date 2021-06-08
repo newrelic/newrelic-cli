@@ -11,7 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestExecuteDiscovery_Basic(t *testing.T) {
+func TestExecutePreInstall_Basic(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
@@ -23,12 +23,12 @@ func TestExecuteDiscovery_Basic(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "1234\n", b.String())
 }
 
-func TestExecuteDiscovery_Error(t *testing.T) {
+func TestExecutePreInstall_Error(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
@@ -40,12 +40,12 @@ func TestExecuteDiscovery_Error(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.Error(t, err)
 	require.Equal(t, "exit status 127: \"bogus\": executable file not found in $PATH", err.Error())
 }
 
-func TestExecuteDiscovery_RecipeVars(t *testing.T) {
+func TestExecutePreInstall_RecipeVars(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
@@ -59,12 +59,12 @@ func TestExecuteDiscovery_RecipeVars(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "testValue\n", b.String())
 }
 
-func TestExecuteDiscovery_EnvVars(t *testing.T) {
+func TestExecutePreInstall_EnvVars(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
@@ -77,12 +77,12 @@ func TestExecuteDiscovery_EnvVars(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "envVarValue\n", b.String())
 }
 
-func TestExecuteDiscovery_AllVars(t *testing.T) {
+func TestExecutePreInstall_AllVars(t *testing.T) {
 	e := NewShRecipeExecutor()
 	b := bytes.NewBufferString("")
 	e.Stdout = b
@@ -100,7 +100,7 @@ func TestExecuteDiscovery_AllVars(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Contains(t, b.String(), "envVarValue")
 	require.Contains(t, b.String(), "recipeVarValue")

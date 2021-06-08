@@ -37,10 +37,6 @@ func (r TerminalStatusReporter) RecipeRecommended(status *InstallStatus, event R
 	return nil
 }
 
-func (r TerminalStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return nil
-}
-
 func (r TerminalStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	if len(recipes) > 0 {
 		fmt.Println("The following will be installed:")

@@ -58,6 +58,15 @@ func (i *InstallerContext) SkipNames() []string {
 	return skipNames
 }
 
+func (i *InstallerContext) SkipTypes() []string {
+	skipTypes := []string{}
+	if i.SkipIntegrations {
+		skipTypes = append(skipTypes, string(OpenInstallationTargetTypeTypes.HOST))
+	}
+
+	return skipTypes
+}
+
 func (i *InstallerContext) SkipKeywords() []string {
 	skipKeywords := []string{}
 	if i.SkipApm {

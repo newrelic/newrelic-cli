@@ -92,7 +92,7 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewPlainProgress()
-	rfi := recipes.NewRecipeFilterer(b.installerContext, statusRollup)
+	rfi := recipes.NewRecipeFilterRunner(b.installerContext, statusRollup)
 	rvp := execution.NewRecipeVarProvider()
 
 	i := RecipeInstaller{
@@ -186,7 +186,7 @@ func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewRecipeVarProvider()
 
-	rr := recipes.NewRecipeFilterer(b.installerContext, statusRollup)
+	rr := recipes.NewRecipeFilterRunner(b.installerContext, statusRollup)
 
 	i := RecipeInstaller{
 		discoverer:        d,

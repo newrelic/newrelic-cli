@@ -20,6 +20,6 @@ func (m *MockRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallati
 	return nil
 }
 
-func (m *MockRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return nil
 }

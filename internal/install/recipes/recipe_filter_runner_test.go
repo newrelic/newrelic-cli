@@ -20,10 +20,9 @@ func TestRecommend_CustomScript_Success(t *testing.T) {
 
 	m := &types.DiscoveryManifest{}
 
-	r := NewRecipeFilterer(types.InstallerContext{}, &execution.InstallStatus{})
+	r := NewRecipeFilterRunner(types.InstallerContext{}, &execution.InstallStatus{})
 
-	filtered, err := r.Filter(context.Background(), &recipe, m)
-	require.NoError(t, err)
+	filtered := r.RunFilter(context.Background(), &recipe, m)
 	require.False(t, filtered)
 }
 
@@ -37,9 +36,8 @@ func TestRecommend_CustomScript_Failure(t *testing.T) {
 
 	m := &types.DiscoveryManifest{}
 
-	r := NewRecipeFilterer(types.InstallerContext{}, &execution.InstallStatus{})
+	r := NewRecipeFilterRunner(types.InstallerContext{}, &execution.InstallStatus{})
 
-	filtered, err := r.Filter(context.Background(), &recipe, m)
-	require.NoError(t, err)
+	filtered := r.RunFilter(context.Background(), &recipe, m)
 	require.True(t, filtered)
 }

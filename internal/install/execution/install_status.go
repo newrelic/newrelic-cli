@@ -106,16 +106,6 @@ func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
 	}
 }
 
-func (s *InstallStatus) RecipesAvailable(recipes []types.OpenInstallationRecipe) {
-	s.withAvailableRecipes(recipes)
-
-	for _, r := range s.statusSubscriber {
-		if err := r.RecipesAvailable(s, recipes); err != nil {
-			log.Errorf("Could not report recipe execution status: %s", err)
-		}
-	}
-}
-
 func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) {
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipesSelected(s, recipes); err != nil {

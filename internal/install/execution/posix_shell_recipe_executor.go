@@ -38,7 +38,7 @@ func (e *PosixShellRecipeExecutor) Execute(ctx context.Context, r types.OpenInst
 	return e.execute(ctx, r.Install, v)
 }
 
-func (e *PosixShellRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+func (e *PosixShellRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
 }
 

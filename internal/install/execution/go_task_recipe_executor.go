@@ -35,7 +35,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 	}
 }
 
-func (re *GoTaskRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
+func (re *GoTaskRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
 	return errors.New("not implemented")
 }
 

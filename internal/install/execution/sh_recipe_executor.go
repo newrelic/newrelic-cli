@@ -33,7 +33,7 @@ func (e *ShRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallation
 	return e.execute(ctx, r.Install, v)
 }
 
-func (e *ShRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+func (e *ShRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
 }
 

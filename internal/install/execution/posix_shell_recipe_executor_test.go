@@ -26,7 +26,7 @@ func TestPosixShellExecution_Basic(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "1234\n", stdoutBuf.String())
 }
@@ -46,7 +46,7 @@ func TestPosixShellExecution_Error(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.Error(t, err)
 	require.Equal(t, "exit status 127: asdf: command not found", err.Error())
 }
@@ -72,7 +72,7 @@ func TestPosixShellExecution_AllVars(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Contains(t, stdoutBuf.String(), "recipeVarValue")
 	require.Contains(t, stdoutBuf.String(), "envVarValue")
@@ -95,7 +95,7 @@ func TestPosixShellExecution_RecipeVars(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "recipeVarValue\n", stdoutBuf.String())
 }
@@ -117,7 +117,7 @@ func TestPosixShellExecution_EnvVars(t *testing.T) {
 		},
 	}
 
-	err := e.ExecuteDiscovery(context.Background(), r, v)
+	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "envVarValue\n", stdoutBuf.String())
 }

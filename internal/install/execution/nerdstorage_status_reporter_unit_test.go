@@ -12,20 +12,18 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestRecipesAvailable_Basic(t *testing.T) {
+func TestRecipeAvailable_Basic(t *testing.T) {
 	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
-	recipes := []types.OpenInstallationRecipe{{}}
-
-	err := r.RecipesAvailable(status, recipes)
+	err := r.RecipeAvailable(status, types.OpenInstallationRecipe{})
 	require.NoError(t, err)
 }
 
-func TestRecipesAvailable_UserScopeError(t *testing.T) {
+func TestRecipeAvailable_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
 	slg := NewPlatformLinkGenerator()
@@ -33,9 +31,7 @@ func TestRecipesAvailable_UserScopeError(t *testing.T) {
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
 
-	recipes := []types.OpenInstallationRecipe{{}}
-
-	err := r.RecipesAvailable(status, recipes)
+	err := r.RecipeAvailable(status, types.OpenInstallationRecipe{})
 	require.Error(t, err)
 }
 

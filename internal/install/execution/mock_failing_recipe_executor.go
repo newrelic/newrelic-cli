@@ -21,6 +21,6 @@ func (m *MockFailingRecipeExecutor) Execute(ctx context.Context, r types.OpenIns
 	return fmt.Errorf("something went wrong")
 }
 
-func (m *MockFailingRecipeExecutor) ExecuteDiscovery(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+func (m *MockFailingRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return fmt.Errorf("something went wrong")
 }
