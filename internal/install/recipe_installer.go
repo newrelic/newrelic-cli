@@ -502,11 +502,11 @@ func resolveDependencies(recipes []types.OpenInstallationRecipe, recipesForPlatf
 // This is a naive implementation that only resolves dependencies one level deep.
 func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
 	var results []types.OpenInstallationRecipe
-	results = append(results, recipes...)
+	results = append(results, dependencies...)
 
-	for _, dependency := range dependencies {
-		if found := findRecipeInRecipes(dependency.Name, results); found == nil {
-			results = append([]types.OpenInstallationRecipe{dependency}, results...)
+	for _, r := range recipes {
+		if found := findRecipeInRecipes(r.Name, results); found == nil {
+			results = append(results, r)
 		}
 	}
 
