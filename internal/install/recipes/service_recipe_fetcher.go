@@ -89,6 +89,7 @@ const (
 		validationNrql
 		preInstall {
 			info
+			requireAtDiscovery
 		}
 		postInstall {
 			info
