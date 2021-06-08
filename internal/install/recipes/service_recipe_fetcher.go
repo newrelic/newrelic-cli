@@ -25,32 +25,13 @@ func NewServiceRecipeFetcher(client NerdGraphClient) RecipeFetcher {
 func (f *ServiceRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.OpenInstallationRecipe, error) {
 	var resp recipeSearchQueryResult
 
-	criteria := recipeSearchInput{}
-
-	vars := map[string]interface{}{
-		"criteria": criteria,
-	}
+	vars := map[string]interface{}{}
 
 	if err := f.client.QueryWithResponseAndContext(ctx, recipeSearchQuery, vars, &resp); err != nil {
 		return nil, err
 	}
 
 	return resp.Docs.OpenInstallation.RecipeSearch.Results, nil
-}
-
-type recipeSearchInput struct {
-	Name          string        `json:"name,omitempty"`
-	InstallTarget installTarget `json:"installTarget"`
-}
-
-type installTarget struct {
-	Type            string `json:"type,omitempty"`
-	OS              string `json:"os"`
-	Platform        string `json:"platform,omitempty"`
-	PlatformFamily  string `json:"platformFamily,omitempty"`
-	PlatformVersion string `json:"platformVersion"`
-	KernelArch      string `json:"kernelArch,omitempty"`
-	KernelVersion   string `json:"kernelVersion,omitempty"`
 }
 
 type recipeSearchQueryResult struct {
