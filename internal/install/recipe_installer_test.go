@@ -784,6 +784,7 @@ func TestInstall_GuidReport(t *testing.T) {
 			Name:           types.LoggingRecipeName,
 			DisplayName:    types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
+			Dependencies:   []string{types.InfraAgentRecipeName},
 		},
 		{
 			Name:           testRecipeName,
