@@ -22,7 +22,6 @@ func (f *RegexProcessMatchFinder) FindMatches(ctx context.Context, processes []t
 
 	matches := []types.MatchedProcess{}
 	for _, p := range processes {
-		log.Tracef("Matching recipe %s against running processes, RecipeProcessMatch: %s", recipe.Name, recipe.ProcessMatch)
 		m, err := f.findMatches(recipe, p)
 		if err != nil {
 			return nil, err
@@ -31,7 +30,9 @@ func (f *RegexProcessMatchFinder) FindMatches(ctx context.Context, processes []t
 		matches = append(matches, m...)
 	}
 
-	log.Debugf("Finished matching recipe %s to running processes, found %d matches.", recipe.Name, len(matches))
+	if len(matches) > 0 {
+		log.Debugf("Finished matching recipe %s to running processes, found %d matches.", recipe.Name, len(matches))
+	}
 	return matches, nil
 }
 
@@ -48,7 +49,9 @@ func (f *RegexProcessMatchFinder) FindMatchesMultiple(ctx context.Context, proce
 		matches = append(matches, m...)
 	}
 
-	log.Debugf("Filtering recipes with processes done, found %d matches.", len(matches))
+	if len(matches) > 0 {
+		log.Debugf("Filtering recipes with processes done, found %d matches.", len(matches))
+	}
 	return matches, nil
 }
 

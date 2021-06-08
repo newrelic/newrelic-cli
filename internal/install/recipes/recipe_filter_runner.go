@@ -102,7 +102,7 @@ func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenIn
 	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
 
 	if filtered {
-		log.Debugf("recipe %s failed process match", r.Name)
+		log.Debugf("recipe %s not matching any process", r.Name)
 	}
 
 	return filtered
