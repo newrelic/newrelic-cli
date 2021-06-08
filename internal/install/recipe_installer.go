@@ -399,6 +399,7 @@ func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipe
 
 	// Load the recipes from the provided file names.
 	for _, n := range i.RecipeNames {
+		found := false
 		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
 		for _, r := range recipesForPlatform {
 			if strings.EqualFold(r.Name, n) {
@@ -407,10 +408,13 @@ func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipe
 					"display_name": r.DisplayName,
 				}).Debug("found recipe with name")
 				recipes = append(recipes, r)
+				found = true
 				break
 			}
 		}
-		log.Errorf("Could not find recipe with name %s.", n)
+		if !found {
+			log.Errorf("Could not find recipe with name %s.", n)
+		}
 	}
 
 	return recipes, nil
