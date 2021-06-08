@@ -506,7 +506,7 @@ func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.O
 
 	for _, dependency := range dependencies {
 		if found := findRecipeInRecipes(dependency.Name, results); found == nil {
-			results = append(results, dependency)
+			results = append([]types.OpenInstallationRecipe{dependency}, results...)
 		}
 	}
 
