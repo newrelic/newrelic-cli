@@ -168,7 +168,9 @@ func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
 		account := actor["account"].(map[string]interface{})
 
 		if licenseKey, ok := account["licenseKey"]; ok {
-			return licenseKey.(string), nil
+			if licenseKey != nil {
+				return licenseKey.(string), nil
+			}
 		}
 
 		time.Sleep(1 * time.Second)

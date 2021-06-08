@@ -15,6 +15,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
@@ -87,10 +88,28 @@ func TestFetchLicenseKey_missingKey(t *testing.T) {
 	}
 
 	response, err := fetchLicenseKey(nr, 0)
-	require.Error(t, err)
+	require.Error(t, err, types.ErrorFetchingLicenseKey)
 	require.Empty(t, response)
 }
 
+func TestFetchLicenseKey_nilKey(t *testing.T) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(withNilLicenseKey))
+	})
+
+	ts := httptest.NewServer(handler)
+	tc := mock.NewTestConfig(t, ts)
+
+	nr := &newrelic.NewRelic{
+		NerdGraph: nerdgraph.New(tc),
+	}
+
+	response, err := fetchLicenseKey(nr, 0)
+	require.Error(t, err, types.ErrorFetchingLicenseKey)
+	require.Empty(t, response)
+}
 func TestFetchLicenseKey_withKey(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -127,6 +146,18 @@ var withLicenseKey string = `
     "actor": {
       "account": {
         "licenseKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    }
+  }
+}
+`
+
+var withNilLicenseKey string = `
+{
+  "data": {
+    "actor": {
+      "account": {
+        "licenseKey": null
       }
     }
   }
