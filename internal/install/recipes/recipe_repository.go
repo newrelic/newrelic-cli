@@ -1,7 +1,6 @@
 package recipes
 
 import (
-	"fmt"
 	"math"
 	"strings"
 
@@ -148,14 +147,7 @@ func mathMax(numbers []int) int {
 
 func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) bool {
 	if val, ok := hostMap[rkey]; ok {
-		alternateVal := fmt.Sprintf("\"%s\"", val)
-		match := strings.EqualFold(val, rvalue) || strings.EqualFold(alternateVal, rvalue)
-		if match {
-			log.Debugf("_____DEBUG MATCH______ rkey:%s rvalue%s val:%s alternateVal:%s", rkey, rvalue, val, alternateVal)
-		} else {
-			log.Debugf("_____DEBUG NOT MATCH______ rkey:%s rvalue%s val:%s alternateVal:%s", rkey, rvalue, val, alternateVal)
-		}
-		return match
+		return strings.EqualFold(val, rvalue)
 	}
 
 	return false
