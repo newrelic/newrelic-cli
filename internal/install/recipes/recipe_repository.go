@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"math"
+	"sort"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -100,12 +101,23 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 		}
 	}
 
-	for _, matches := range matchRecipes {
-		if len(matches) > 0 {
-			match := findMaxMatch(matches)
-			singleRecipe := match.recipe
-			log.Debugf("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
-			results = append(results, singleRecipe)
+	if len(matchRecipes) > 0 {
+		keys := []string{}
+		unorderedResults := map[string]types.OpenInstallationRecipe{}
+		for _, matches := range matchRecipes {
+			if len(matches) > 0 {
+				match := findMaxMatch(matches)
+				singleRecipe := match.recipe
+				log.Debugf("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
+				key := singleRecipe.GetOrderKey()
+				keys = append(keys, key)
+				unorderedResults[key] = singleRecipe
+			}
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			recipe := unorderedResults[k]
+			results = append(results, recipe)
 		}
 	}
 
