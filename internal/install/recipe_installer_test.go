@@ -158,7 +158,7 @@ func TestInstall_RecipeAvailable(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
 }
 
 func TestInstall_RecipeInstalled(t *testing.T) {
@@ -503,8 +503,8 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstallingCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstallingCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
 
@@ -560,7 +560,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 
 	mp := &ux.MockPrompter{
 		PromptYesNoVal:       true,
-		PromptMultiSelectVal: []string{types.InfraAgentRecipeName, testRecipeName},
+		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf}
@@ -571,7 +571,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[testRecipeName])
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportInstalled[types.InfraAgentRecipeName])
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeRecommendedCallCount)
-	require.Equal(t, 4, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
+	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ReportRecommended["java-java-java"])
 }
 
@@ -714,6 +714,7 @@ func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
 	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	ic := types.InstallerContext{
 		SkipInfraInstall: true,
+		RecipeNames:      []string{types.InfraAgentRecipeName, testRecipeName},
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())

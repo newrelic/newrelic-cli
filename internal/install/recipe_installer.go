@@ -447,9 +447,15 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 		return recipes, []types.OpenInstallationRecipe{}, nil
 	}
 
+	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
+
 	names := []string{}
 	for _, r := range recipes {
-		names = append(names, r.DisplayName)
+		if r.Name != types.InfraAgentRecipeName {
+			names = append(names, r.DisplayName)
+		} else {
+			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+		}
 	}
 
 	selected, promptErr := i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
@@ -459,9 +465,8 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 
 	fmt.Println()
 
-	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
 	for _, r := range recipes {
-		if utils.StringInSlice(r.DisplayName, selected) {
+		if utils.StringInSlice(r.DisplayName, selected) || r.Name == types.InfraAgentRecipeName {
 			selectedRecipes = append(selectedRecipes, r)
 		} else {
 			unselectedRecipes = append(unselectedRecipes, r)
