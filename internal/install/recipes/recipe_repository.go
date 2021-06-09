@@ -1,6 +1,7 @@
 package recipes
 
 import (
+	"fmt"
 	"math"
 	"strings"
 
@@ -67,10 +68,10 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 				}
 				isValueMatching := matchRecipeCriteria(hostMap, k, v)
 				if isValueMatching {
-					log.Debugf("matching recipe %s field name %s and value %s", recipe.Name, k, v)
+					log.Debugf("matching recipe %s field name %s and value %s using hostMap %+v", recipe.Name, k, v, hostMap)
 					matchCount++
 				} else {
-					log.Debugf("recipe %s defines %s but input did not provide a match", recipe.Name, k)
+					log.Debugf("recipe %s defines %s=%s but input did not provide a match using hostMap %+v", recipe.Name, k, v, hostMap)
 					matchCount = -1
 					break
 				}
@@ -117,9 +118,16 @@ func findMaxMatch(matches []recipeMatch) recipeMatch {
 
 	for _, match := range matches {
 		if result == nil {
-			result = &match
+			result = &recipeMatch{
+				recipe:     match.recipe,
+				matchCount: match.matchCount,
+			}
 		} else {
 			if match.matchCount > result.matchCount {
+				result = &recipeMatch{
+					recipe:     match.recipe,
+					matchCount: match.matchCount,
+				}
 				result = &match
 			}
 		}
@@ -140,7 +148,14 @@ func mathMax(numbers []int) int {
 
 func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) bool {
 	if val, ok := hostMap[rkey]; ok {
-		return strings.EqualFold(val, rvalue)
+		alternateVal := fmt.Sprintf("\"%s\"", val)
+		match := strings.EqualFold(val, rvalue) || strings.EqualFold(alternateVal, rvalue)
+		if match {
+			log.Debugf("_____DEBUG MATCH______ rkey:%s rvalue%s val:%s alternateVal:%s", rkey, rvalue, val, alternateVal)
+		} else {
+			log.Debugf("_____DEBUG NOT MATCH______ rkey:%s rvalue%s val:%s alternateVal:%s", rkey, rvalue, val, alternateVal)
+		}
+		return match
 	}
 
 	return false

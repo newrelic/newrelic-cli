@@ -5,6 +5,8 @@ package recipes
 import (
 	"testing"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -143,6 +145,42 @@ func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
 	hostMap := getHostMap(discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "KeyMissing", "xyz")
 	require.False(t, actual)
+}
+
+func Test_shouldFindMaxMatch_First(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+	matches := []recipeMatch{}
+	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
+	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
+
+	matches = append(matches, recipeMatch{
+		matchCount: 3,
+		recipe:     *recipe1,
+	})
+	matches = append(matches, recipeMatch{
+		matchCount: 2,
+		recipe:     *recipe2,
+	})
+	result := findMaxMatch(matches)
+	require.Equal(t, result.recipe.ID, "id1")
+}
+
+func Test_shouldFindMaxMatch_Last(t *testing.T) {
+	log.SetLevel(log.TraceLevel)
+	matches := []recipeMatch{}
+	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
+	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
+
+	matches = append(matches, recipeMatch{
+		matchCount: 2,
+		recipe:     *recipe1,
+	})
+	matches = append(matches, recipeMatch{
+		matchCount: 3,
+		recipe:     *recipe2,
+	})
+	result := findMaxMatch(matches)
+	require.Equal(t, result.recipe.ID, "id2")
 }
 
 func recipeLoader() ([]types.OpenInstallationRecipe, error) {
