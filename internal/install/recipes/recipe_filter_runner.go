@@ -113,8 +113,10 @@ type ScriptEvaluationRecipeFilterer struct {
 }
 
 func NewScriptEvaluationRecipeFilterer() *ScriptEvaluationRecipeFilterer {
+	recipeExecutor := execution.NewShRecipeExecutor()
+
 	return &ScriptEvaluationRecipeFilterer{
-		recipeExecutor: execution.NewShRecipeExecutor(),
+		recipeExecutor: recipeExecutor,
 	}
 }
 

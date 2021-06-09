@@ -23,9 +23,7 @@ type ShRecipeExecutor struct {
 
 func NewShRecipeExecutor() *ShRecipeExecutor {
 	return &ShRecipeExecutor{
-		Stderr: os.Stderr,
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
+		Stdin: os.Stdin,
 	}
 }
 

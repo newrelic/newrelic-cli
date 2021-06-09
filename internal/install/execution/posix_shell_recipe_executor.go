@@ -27,9 +27,7 @@ type PosixShellRecipeExecutor struct {
 
 func NewPosixShellRecipeExecutor() *PosixShellRecipeExecutor {
 	return &PosixShellRecipeExecutor{
-		Stderr:    os.Stderr,
 		Stdin:     os.Stdin,
-		Stdout:    os.Stdout,
 		ShellPath: BashPath,
 	}
 }
