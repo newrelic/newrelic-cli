@@ -5,8 +5,6 @@ package recipes
 import (
 	"testing"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -148,7 +146,6 @@ func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
 }
 
 func Test_shouldFindMaxMatch_First(t *testing.T) {
-	log.SetLevel(log.TraceLevel)
 	matches := []recipeMatch{}
 	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
 	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -166,7 +163,6 @@ func Test_shouldFindMaxMatch_First(t *testing.T) {
 }
 
 func Test_shouldFindMaxMatch_Last(t *testing.T) {
-	log.SetLevel(log.TraceLevel)
 	matches := []recipeMatch{}
 	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
 	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
