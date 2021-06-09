@@ -145,6 +145,40 @@ func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
 	require.False(t, actual)
 }
 
+func Test_shouldFindMaxMatch_First(t *testing.T) {
+	matches := []recipeMatch{}
+	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
+	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
+
+	matches = append(matches, recipeMatch{
+		matchCount: 3,
+		recipe:     *recipe1,
+	})
+	matches = append(matches, recipeMatch{
+		matchCount: 2,
+		recipe:     *recipe2,
+	})
+	result := findMaxMatch(matches)
+	require.Equal(t, result.recipe.ID, "id1")
+}
+
+func Test_shouldFindMaxMatch_Last(t *testing.T) {
+	matches := []recipeMatch{}
+	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
+	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
+
+	matches = append(matches, recipeMatch{
+		matchCount: 2,
+		recipe:     *recipe1,
+	})
+	matches = append(matches, recipeMatch{
+		matchCount: 3,
+		recipe:     *recipe2,
+	})
+	result := findMaxMatch(matches)
+	require.Equal(t, result.recipe.ID, "id2")
+}
+
 func recipeLoader() ([]types.OpenInstallationRecipe, error) {
 	return recipeCache, nil
 }
