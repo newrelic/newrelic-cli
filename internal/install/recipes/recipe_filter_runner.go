@@ -69,10 +69,7 @@ func (rf *RecipeFilterRunner) RunFilterMultiple(ctx context.Context, r []types.O
 	results := []types.OpenInstallationRecipe{}
 
 	for _, recipe := range r {
-		filtered := false
-		if recipe.Name != types.InfraAgentRecipeName {
-			filtered = rf.RunFilter(ctx, &recipe, m)
-		}
+		filtered := rf.RunFilter(ctx, &recipe, m)
 
 		if !filtered {
 			results = append(results, recipe)
