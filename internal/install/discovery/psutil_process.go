@@ -16,7 +16,7 @@ func (p PSUtilProcess) Name() (string, error) {
 	return n, nil
 }
 
-func (p PSUtilProcess) Cmdline() (string, error) {
+func (p PSUtilProcess) Cmd() (string, error) {
 	pp := process.Process(p)
 	n, err := pp.Cmdline()
 	if err != nil {

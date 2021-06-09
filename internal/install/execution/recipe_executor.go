@@ -6,9 +6,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-// RecipeExecutor is responsible for execution of the task steps defined in a
-// recipe.
+// RecipeExecutor is responsible for execution of the task steps defined in a recipe.
 type RecipeExecutor interface {
-	Prepare(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, bool, string) (types.RecipeVars, error)
-	Execute(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, types.RecipeVars) error
+	Execute(context.Context, types.OpenInstallationRecipe, types.RecipeVars) error
+	ExecutePreInstall(context.Context, types.OpenInstallationRecipe, types.RecipeVars) error
 }

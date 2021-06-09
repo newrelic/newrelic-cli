@@ -13,16 +13,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type PSUtilDiscoverer struct {
-	processFilterer ProcessFilterer
-}
+type PSUtilDiscoverer struct{}
 
-func NewPSUtilDiscoverer(f ProcessFilterer) *PSUtilDiscoverer {
-	d := PSUtilDiscoverer{
-		processFilterer: f,
-	}
-
-	return &d
+func NewPSUtilDiscoverer() *PSUtilDiscoverer {
+	return &PSUtilDiscoverer{}
 }
 
 func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManifest, error) {
@@ -62,14 +56,7 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 		processes = append(processes, PSUtilProcess(*pp))
 	}
 
-	matchedProcesses, err := p.processFilterer.filter(ctx, processes, m)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, p := range matchedProcesses {
-		m.AddMatchedProcess(p)
-	}
+	m.DiscoveredProcesses = processes
 
 	return &m, nil
 }

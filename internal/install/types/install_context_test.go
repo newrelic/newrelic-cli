@@ -1,4 +1,4 @@
-package install
+package types
 
 import (
 	"testing"
@@ -6,19 +6,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShouldRunDiscovery_Default(t *testing.T) {
-	ic := InstallerContext{}
-	require.True(t, ic.ShouldRunDiscovery())
-
-	ic.SkipDiscovery = true
-	require.False(t, ic.ShouldRunDiscovery())
-}
-
 func TestShouldInstallInfraAgent_Default(t *testing.T) {
 	ic := InstallerContext{}
 	require.True(t, ic.ShouldInstallInfraAgent())
 
-	ic.SkipInfra = true
+	ic.SkipInfraInstall = true
 	require.False(t, ic.ShouldInstallInfraAgent())
 }
 

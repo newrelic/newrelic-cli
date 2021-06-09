@@ -181,7 +181,8 @@ type OpenInstallationPreInstallConfiguration struct {
 	// Message/Docs notice displayed to user prior to running recipe
 	Info string `json:"info,omitempty" yaml:"info,omitempty"`
 	// Message/Docs notice displayed to user prior to running recipe
-	Prompt string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
+	Prompt             string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
+	RequireAtDiscovery string `json:"requireAtDiscovery,omitempty" yaml:"requireAtDiscovery,omitempty"`
 }
 
 // OpenInstallationQuickstartEntityType - Entity type relation for Quickstart
@@ -216,7 +217,7 @@ type OpenInstallationRecipe struct {
 	ID string `json:"id,omitempty" yaml:"id,omitempty"`
 	// List of variables to prompt for input from the user
 	InputVars []OpenInstallationRecipeInputVariable `json:"inputVars" yaml:"inputVars"`
-	// Go-task's taskfile definiton (see https://taskfile.dev/#/usage)
+	// Go-task's taskfile definition (see https://taskfile.dev/#/usage)
 	Install string `json:"install" yaml:"install"`
 	// Object representing the intended install target
 	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets" yaml:"installTargets"`

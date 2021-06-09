@@ -37,10 +37,6 @@ func (r TerminalStatusReporter) RecipeRecommended(status *InstallStatus, event R
 	return nil
 }
 
-func (r TerminalStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return nil
-}
-
 func (r TerminalStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	if len(recipes) > 0 {
 		fmt.Println("The following will be installed:")
@@ -96,8 +92,8 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	}
 
 	linkToData := ""
-	if status.successLinkGenerator != nil {
-		linkToData = status.successLinkGenerator.GenerateRedirectURL(*status)
+	if status.PlatformLinkGenerator != nil {
+		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
 	}
 
 	if linkToData != "" {

@@ -14,28 +14,28 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
-	Complete             bool                    `json:"complete"`
-	DiscoveryManifest    types.DiscoveryManifest `json:"discoveryManifest"`
-	EntityGUIDs          []string                `json:"entityGuids"`
-	Error                StatusError             `json:"error"`
-	LogFilePath          string                  `json:"logFilePath"`
-	Statuses             []*RecipeStatus         `json:"recipes"`
-	Timestamp            int64                   `json:"timestamp"`
-	CLIVersion           string                  `json:"cliVersion"`
-	HasInstalledRecipes  bool                    `json:"hasInstalledRecipes"`
-	HasCanceledRecipes   bool                    `json:"hasCanceledRecipes"`
-	HasSkippedRecipes    bool                    `json:"hasSkippedRecipes"`
-	HasFailedRecipes     bool                    `json:"hasFailedRecipes"`
-	RecipesSkipped       []*RecipeStatus         `json:"recipesSkipped"`
-	RecipesCanceled      []*RecipeStatus         `json:"recipesCanceled"`
-	RecipesFailed        []*RecipeStatus         `json:"recipesFailed"`
-	RecipesInstalled     []*RecipeStatus         `json:"recipesInstalled"`
-	RedirectURL          string                  `json:"redirectUrl"`
-	DocumentID           string
-	targetedInstall      bool
-	statusSubscriber     []StatusSubscriber
-	successLinkConfig    types.OpenInstallationSuccessLinkConfig
-	successLinkGenerator SuccessLinkGenerator
+	Complete              bool                    `json:"complete"`
+	DiscoveryManifest     types.DiscoveryManifest `json:"discoveryManifest"`
+	EntityGUIDs           []string                `json:"entityGuids"`
+	Error                 StatusError             `json:"error"`
+	LogFilePath           string                  `json:"logFilePath"`
+	Statuses              []*RecipeStatus         `json:"recipes"`
+	Timestamp             int64                   `json:"timestamp"`
+	CLIVersion            string                  `json:"cliVersion"`
+	HasInstalledRecipes   bool                    `json:"hasInstalledRecipes"`
+	HasCanceledRecipes    bool                    `json:"hasCanceledRecipes"`
+	HasSkippedRecipes     bool                    `json:"hasSkippedRecipes"`
+	HasFailedRecipes      bool                    `json:"hasFailedRecipes"`
+	Skipped               []*RecipeStatus         `json:"recipesSkipped"`
+	Canceled              []*RecipeStatus         `json:"recipesCanceled"`
+	Failed                []*RecipeStatus         `json:"recipesFailed"`
+	Installed             []*RecipeStatus         `json:"recipesInstalled"`
+	RedirectURL           string                  `json:"redirectUrl"`
+	DocumentID            string
+	targetedInstall       bool
+	statusSubscriber      []StatusSubscriber
+	successLinkConfig     types.OpenInstallationSuccessLinkConfig
+	PlatformLinkGenerator LinkGenerator
 }
 
 type RecipeStatus struct {
@@ -74,13 +74,13 @@ type StatusError struct {
 	TaskPath []string `json:"taskPath"`
 }
 
-func NewInstallStatus(reporters []StatusSubscriber, successLinkGenerator SuccessLinkGenerator) *InstallStatus {
+func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
-		DocumentID:           uuid.New().String(),
-		Timestamp:            utils.GetTimestamp(),
-		LogFilePath:          config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
-		statusSubscriber:     reporters,
-		successLinkGenerator: successLinkGenerator,
+		DocumentID:            uuid.New().String(),
+		Timestamp:             utils.GetTimestamp(),
+		LogFilePath:           config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		statusSubscriber:      reporters,
+		PlatformLinkGenerator: PlatformLinkGenerator,
 	}
 
 	return &s
@@ -101,16 +101,6 @@ func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeAvailable(s, recipe); err != nil {
-			log.Errorf("Could not report recipe execution status: %s", err)
-		}
-	}
-}
-
-func (s *InstallStatus) RecipesAvailable(recipes []types.OpenInstallationRecipe) {
-	s.withAvailableRecipes(recipes)
-
-	for _, r := range s.statusSubscriber {
-		if err := r.RecipesAvailable(s, recipes); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
 		}
 	}
@@ -199,6 +189,10 @@ func (s *InstallStatus) InstallCanceled() {
 	}
 }
 
+func (s *InstallStatus) WasSuccessful() bool {
+	return s.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+}
+
 func (s *InstallStatus) recommendations() []*RecipeStatus {
 	var statuses []*RecipeStatus
 
@@ -245,7 +239,7 @@ func (s *InstallStatus) HostEntityGUID() string {
 }
 
 func (s *InstallStatus) setRedirectURL() {
-	s.RedirectURL = s.successLinkGenerator.GenerateRedirectURL(*s)
+	s.RedirectURL = s.PlatformLinkGenerator.GenerateRedirectURL(*s)
 }
 
 func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRecipe) {
@@ -301,15 +295,6 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 
 	s.Error = statusError
 
-	log.WithFields(log.Fields{
-		"recipe_name":                    e.Recipe.Name,
-		"status":                         rs,
-		"error":                          statusError.Message,
-		"tasks":                          statusError.TaskPath,
-		"guid":                           e.EntityGUID,
-		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
-	}).Debug("recipe event")
-
 	found := s.getStatus(e.Recipe)
 
 	if found != nil {
@@ -342,6 +327,16 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	}
 
 	s.Timestamp = utils.GetTimestamp()
+
+	log.WithFields(log.Fields{
+		"recipe_name":                    e.Recipe.Name,
+		"status":                         rs,
+		"error":                          statusError.Message,
+		"tasks":                          statusError.TaskPath,
+		"guid":                           e.EntityGUID,
+		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
+		"statusCount":                    len(s.Statuses),
+	}).Debug("recipe event")
 }
 
 func (s *InstallStatus) completed(err error) {
@@ -413,25 +408,25 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
 
 		// Installed
 		if ss.Status == RecipeStatusTypes.INSTALLED {
-			s.RecipesInstalled = append(s.RecipesInstalled, ss)
+			s.Installed = append(s.Installed, ss)
 			s.HasInstalledRecipes = true
 		}
 
 		// Skipped
 		if ss.Status == RecipeStatusTypes.SKIPPED {
-			s.RecipesSkipped = append(s.RecipesSkipped, ss)
+			s.Skipped = append(s.Skipped, ss)
 			s.HasSkippedRecipes = true
 		}
 
 		// Canceled
 		if ss.Status == RecipeStatusTypes.CANCELED {
-			s.RecipesCanceled = append(s.RecipesCanceled, ss)
+			s.Canceled = append(s.Canceled, ss)
 			s.HasCanceledRecipes = true
 		}
 
 		// Errored
 		if ss.Status == RecipeStatusTypes.FAILED {
-			s.RecipesFailed = append(s.RecipesFailed, ss)
+			s.Failed = append(s.Failed, ss)
 			s.HasFailedRecipes = true
 		}
 	}

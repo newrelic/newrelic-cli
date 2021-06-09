@@ -8,6 +8,6 @@ func NewMockConfigValidator() *MockConfigValidator {
 	return &MockConfigValidator{}
 }
 
-func (v *MockConfigValidator) ValidateConfig(ctx context.Context) error {
+func (v *MockConfigValidator) Validate(ctx context.Context) error {
 	return nil
 }

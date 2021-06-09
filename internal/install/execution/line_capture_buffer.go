@@ -31,6 +31,10 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 		}
 	}
 
+	if c.writer == nil {
+		return 0, nil
+	}
+
 	return c.writer.Write(p)
 }
 

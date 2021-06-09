@@ -13,7 +13,7 @@ func Test_ShouldFailManifestOs(t *testing.T) {
 	discover := NewMockDiscoverer()
 	discover.SetOs("darwin")
 
-	result := NewManifestValidator().Execute(discover.GetManifest())
+	result := NewManifestValidator().Validate(discover.GetManifest())
 	require.Contains(t, result.Error(), errorPrefix)
 	require.Contains(t, result.Error(), operatingSystemNotSupportedPrefix)
 	require.Contains(t, result.Error(), "darwin")
@@ -25,7 +25,7 @@ func Test_ShouldFailManifestWindowsVersion(t *testing.T) {
 	discover.SetOs("windows")
 	discover.SetPlatformVersion("1")
 
-	result := NewManifestValidator().Execute(discover.GetManifest())
+	result := NewManifestValidator().Validate(discover.GetManifest())
 	require.Contains(t, result.Error(), errorPrefix)
 	require.Contains(t, result.Error(), fmt.Sprintf(versionNoLongerSupported, "windows"))
 }
@@ -36,7 +36,7 @@ func Test_ShouldFailManifestUbuntuVersion(t *testing.T) {
 	discover.SetPlatform("ubuntu")
 	discover.SetPlatformVersion("12.04")
 
-	result := NewManifestValidator().Execute(discover.GetManifest())
+	result := NewManifestValidator().Validate(discover.GetManifest())
 	require.Contains(t, result.Error(), errorPrefix)
 	require.Contains(t, result.Error(), fmt.Sprintf(versionNoLongerSupported, "linux/ubuntu"))
 }

@@ -29,14 +29,13 @@ func TestDiscovery(t *testing.T) {
 		},
 	}
 
-	pf := NewRegexProcessFilterer(mockRecipeFetcher)
-	pd := NewPSUtilDiscoverer(pf)
+	pd := NewPSUtilDiscoverer()
 
 	manifest, err := pd.Discover(context.Background())
 
 	require.NoError(t, err)
 	require.NotNil(t, manifest)
-	require.GreaterOrEqual(t, len(manifest.Processes), 1)
+	require.GreaterOrEqual(t, len(manifest.DiscoveredProcesses), 1)
 
 	err = cmd.Process.Signal(os.Interrupt)
 	if err != nil {

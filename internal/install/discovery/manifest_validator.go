@@ -7,11 +7,11 @@ import (
 )
 
 type ManifestValidator struct {
-	validators []Validator
+	validators []validator
 }
 
-type Validator interface {
-	Execute(m *types.DiscoveryManifest) error
+type validator interface {
+	Validate(m *types.DiscoveryManifest) error
 }
 
 var (
@@ -22,7 +22,7 @@ var (
 // NewManifestValidator returns a new instance of ManifestValidator.
 func NewManifestValidator() *ManifestValidator {
 	mv := ManifestValidator{
-		validators: []Validator{},
+		validators: []validator{},
 	}
 
 	mv.validators = append(mv.validators, NewOsValidator())
@@ -32,7 +32,7 @@ func NewManifestValidator() *ManifestValidator {
 	return &mv
 }
 
-func (mv *ManifestValidator) Execute(m *types.DiscoveryManifest) error {
+func (mv *ManifestValidator) Validate(m *types.DiscoveryManifest) error {
 	var accumulator error = nil
 	errors := mv.FindAllValidationErrors(m)
 	for _, single := range errors {
@@ -52,7 +52,7 @@ func (mv *ManifestValidator) FindAllValidationErrors(m *types.DiscoveryManifest)
 	errors := []error{}
 
 	for _, validator := range mv.validators {
-		err := validator.Execute(m)
+		err := validator.Validate(m)
 		if err != nil {
 			errors = append(errors, err)
 		}

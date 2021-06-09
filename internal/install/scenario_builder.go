@@ -14,8 +14,9 @@ import (
 type TestScenario string
 
 const (
-	Basic TestScenario = "BASIC"
-	Fail  TestScenario = "FAIL"
+	Basic         TestScenario = "BASIC"
+	Fail          TestScenario = "FAIL"
+	ExecDiscovery TestScenario = "EXEC_DISCOVERY"
 )
 
 var (
@@ -45,10 +46,10 @@ func TestScenarioValues() []string {
 }
 
 type ScenarioBuilder struct {
-	installerContext InstallerContext
+	installerContext types.InstallerContext
 }
 
-func NewScenarioBuilder(ic InstallerContext) *ScenarioBuilder {
+func NewScenarioBuilder(ic types.InstallerContext) *ScenarioBuilder {
 	b := ScenarioBuilder{
 		installerContext: ic,
 	}
@@ -62,6 +63,8 @@ func (b *ScenarioBuilder) BuildScenario(s TestScenario) *RecipeInstaller {
 		return b.Basic()
 	case Fail:
 		return b.Fail()
+	case ExecDiscovery:
+		return b.ExecDiscovery()
 	}
 
 	return nil
@@ -75,22 +78,22 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	slg := execution.NewConcreteSuccessLinkGenerator()
+	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 	v := validation.NewPollingRecipeValidator(c)
 	cv := diagnose.NewMockConfigValidator()
 	mv := discovery.NewEmptyManifestValidator()
-
 	lkf := NewMockLicenseKeyFetcher()
-	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
 	s := ux.NewPlainProgress()
+	rfi := recipes.NewRecipeFilterRunner(b.installerContext, statusRollup)
+	rvp := execution.NewRecipeVarProvider()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -105,6 +108,8 @@ func (b *ScenarioBuilder) Basic() *RecipeInstaller {
 		configValidator:   cv,
 		manifestValidator: mv,
 		licenseKeyFetcher: lkf,
+		recipeFilterer:    rfi,
+		recipeVarPreparer: rvp,
 	}
 
 	i.InstallerContext = b.installerContext
@@ -120,7 +125,7 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 		execution.NewMockStatusReporter(),
 		execution.NewTerminalStatusReporter(),
 	}
-	slg := execution.NewConcreteSuccessLinkGenerator()
+	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 	c := validation.NewMockNRDBClient()
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -129,9 +134,8 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	mv := discovery.NewEmptyManifestValidator()
 
 	lkf := NewMockLicenseKeyFetcher()
-	pf := discovery.NewRegexProcessFilterer(rf)
 	ff := recipes.NewRecipeFileFetcher()
-	d := discovery.NewPSUtilDiscoverer(pf)
+	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewMockFailingRecipeExecutor()
 	p := ux.NewPromptUIPrompter()
@@ -157,9 +161,58 @@ func (b *ScenarioBuilder) Fail() *RecipeInstaller {
 	return &i
 }
 
+func (b *ScenarioBuilder) ExecDiscovery() *RecipeInstaller {
+
+	// mock implementations
+	rf := setupRecipeFetcherExecDiscovery()
+	ers := []execution.StatusSubscriber{
+		execution.NewMockStatusReporter(),
+		execution.NewTerminalStatusReporter(),
+	}
+	slg := execution.NewPlatformLinkGenerator()
+	statusRollup := execution.NewInstallStatus(ers, slg)
+	c := validation.NewMockNRDBClient()
+	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
+	v := validation.NewPollingRecipeValidator(c)
+	cv := diagnose.NewMockConfigValidator()
+	mv := discovery.NewEmptyManifestValidator()
+
+	lkf := NewMockLicenseKeyFetcher()
+	ff := recipes.NewRecipeFileFetcher()
+	d := discovery.NewPSUtilDiscoverer()
+	gff := discovery.NewGlobFileFilterer()
+	re := execution.NewMockFailingRecipeExecutor()
+	p := ux.NewPromptUIPrompter()
+	pi := ux.NewPlainProgress()
+	rvp := execution.NewRecipeVarProvider()
+
+	rr := recipes.NewRecipeFilterRunner(b.installerContext, statusRollup)
+
+	i := RecipeInstaller{
+		discoverer:        d,
+		fileFilterer:      gff,
+		recipeFetcher:     rf,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		progressIndicator: pi,
+		configValidator:   cv,
+		manifestValidator: mv,
+		licenseKeyFetcher: lkf,
+		recipeVarPreparer: rvp,
+		recipeFilterer:    rr,
+	}
+
+	i.InstallerContext = b.installerContext
+
+	return &i
+}
+
 func setupRecipeFetcherGuidedInstall() recipes.RecipeFetcher {
 	f := recipes.NewMockRecipeFetcher()
-	f.FetchRecipeVals = []types.OpenInstallationRecipe{
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		{
 			Name:        "infrastructure-agent-installer",
 			DisplayName: "Infrastructure Agent",
@@ -199,11 +252,26 @@ tasks:
 `,
 		},
 	}
-	f.FetchRecommendationsVal = []types.OpenInstallationRecipe{
+
+	return f
+}
+
+func setupRecipeFetcherExecDiscovery() recipes.RecipeFetcher {
+	f := recipes.NewMockRecipeFetcher()
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		{
-			Name:           "recommended-recipe",
-			DisplayName:    "Recommended recipe",
-			ValidationNRQL: "test NRQL",
+			Name:        "matching-recipe",
+			DisplayName: "matching-recipe",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				RequireAtDiscovery: "true",
+			},
+		},
+		{
+			Name:        "non-matching-recipe",
+			DisplayName: "non-matching-recipe",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				RequireAtDiscovery: "bogus command",
+			},
 		},
 	}
 

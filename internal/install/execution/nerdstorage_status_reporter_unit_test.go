@@ -12,37 +12,33 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestRecipesAvailable_Basic(t *testing.T) {
+func TestRecipeAvailable_Basic(t *testing.T) {
 	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
-	recipes := []types.OpenInstallationRecipe{{}}
-
-	err := r.RecipesAvailable(status, recipes)
+	err := r.RecipeAvailable(status, types.OpenInstallationRecipe{})
 	require.NoError(t, err)
 }
 
-func TestRecipesAvailable_UserScopeError(t *testing.T) {
+func TestRecipeAvailable_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
 
-	recipes := []types.OpenInstallationRecipe{{}}
-
-	err := r.RecipesAvailable(status, recipes)
+	err := r.RecipeAvailable(status, types.OpenInstallationRecipe{})
 	require.Error(t, err)
 }
 
 func TestRecipeInstalled_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -57,7 +53,7 @@ func TestRecipeInstalled_Basic(t *testing.T) {
 func TestRecipeInstalled_UserScopeOnly(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	e := RecipeStatusEvent{}
 
@@ -71,7 +67,7 @@ func TestRecipeInstalled_UserScopeOnly(t *testing.T) {
 func TestRecipeInstalled_MultipleEntityGUIDs(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	status.withEntityGUID("testGuid2")
@@ -87,7 +83,7 @@ func TestRecipeInstalled_MultipleEntityGUIDs(t *testing.T) {
 func TestRecipeInstalled_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -101,7 +97,7 @@ func TestRecipeInstalled_UserScopeError(t *testing.T) {
 func TestRecipeInstalled_EntityScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -115,7 +111,7 @@ func TestRecipeInstalled_EntityScopeError(t *testing.T) {
 func TestRecipeFailed_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -130,7 +126,7 @@ func TestRecipeFailed_Basic(t *testing.T) {
 func TestRecipeFailed_UserScopeOnly(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	e := RecipeStatusEvent{}
@@ -145,7 +141,7 @@ func TestRecipeFailed_UserScopeOnly(t *testing.T) {
 func TestRecipeFailed_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -159,7 +155,7 @@ func TestRecipeFailed_UserScopeError(t *testing.T) {
 func TestRecipeFailed_EntityScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -173,7 +169,7 @@ func TestRecipeFailed_EntityScopeError(t *testing.T) {
 func TestInstallComplete_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	err := r.InstallComplete(status)
@@ -186,7 +182,7 @@ func TestInstallComplete_Basic(t *testing.T) {
 func TestInstallComplete_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
@@ -198,7 +194,7 @@ func TestInstallComplete_UserScopeError(t *testing.T) {
 func TestInstallCanceled_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	err := r.InstallCanceled(status)
@@ -211,7 +207,7 @@ func TestInstallCanceled_Basic(t *testing.T) {
 func TestInstallCanceled_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
@@ -223,7 +219,7 @@ func TestInstallCanceled_UserScopeError(t *testing.T) {
 func TestDiscoveryComplete_Basic(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	err := r.DiscoveryComplete(status, types.DiscoveryManifest{})
@@ -236,7 +232,7 @@ func TestDiscoveryComplete_Basic(t *testing.T) {
 func TestDiscoveryComplete_UserScopeError(t *testing.T) {
 	c := NewMockNerdStorageClient()
 	r := NewNerdStorageStatusReporter(c)
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")

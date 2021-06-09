@@ -28,12 +28,6 @@ func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusRe
 	return &r
 }
 
-// RecipesAvailable reports that recipes are available for installation on
-// the underlying host.
-func (r NerdstorageStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return r.writeStatus(status)
-}
-
 func (r NerdstorageStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	return nil
 }

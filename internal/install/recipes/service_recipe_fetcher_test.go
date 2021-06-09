@@ -43,7 +43,7 @@ func TestFetchFilters(t *testing.T) {
 
 	s := NewServiceRecipeFetcher(c)
 
-	recipes, err := s.FetchRecipes(context.Background(), &types.DiscoveryManifest{})
+	recipes, err := s.FetchRecipes(context.Background())
 	require.NoError(t, err)
 	require.NotNil(t, recipes)
 	require.NotEmpty(t, recipes)
@@ -52,54 +52,11 @@ func TestFetchFilters(t *testing.T) {
 	require.True(t, reflect.DeepEqual(r, recipes))
 }
 
-func TestFetchRecommendations(t *testing.T) {
-	r := []types.OpenInstallationRecipe{
-		{
-			ID:   "MAo=",
-			Name: "testing1",
-		},
-		{
-			ID:   "non-zero",
-			Name: "testing1",
-		},
-		{
-			ID:   "non-zero2",
-			Name: "testing2",
-		},
-	}
-
-	c := newMockNerdGraphClient()
-	c.respBody = wrapRecommendations(r)
-
-	m := types.DiscoveryManifest{}
-
-	s := NewServiceRecipeFetcher(c)
-
-	recipes, err := s.FetchRecommendations(context.Background(), &m)
-	require.NoError(t, err)
-	require.NotNil(t, recipes)
-	require.NotEmpty(t, recipes)
-	// The duplicate name should be removed from the set when we fetch the reecommendations.
-	require.Equal(t, 2, len(recipes))
-}
-
 func wrapRecipes(r []types.OpenInstallationRecipe) recipeSearchQueryResult {
 	return recipeSearchQueryResult{
 		Docs: recipeSearchQueryDocs{
 			OpenInstallation: recipeSearchQueryOpenInstallation{
 				RecipeSearch: recipeSearchResult{
-					Results: r,
-				},
-			},
-		},
-	}
-}
-
-func wrapRecommendations(r []types.OpenInstallationRecipe) recommendationsQueryResult {
-	return recommendationsQueryResult{
-		Docs: recommendationsQueryDocs{
-			OpenInstallation: recommendationsQueryOpenInstallation{
-				Recommendations: recommendationsResult{
 					Results: r,
 				},
 			},

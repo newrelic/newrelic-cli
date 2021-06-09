@@ -8,7 +8,6 @@ import (
 // interface that provides method spies for testing scenarios.
 type MockStatusReporter struct {
 	RecipeAvailableErr         error
-	RecipesAvailableErr        error
 	RecipesSelectedErr         error
 	RecipeFailedErr            error
 	RecipeInstalledErr         error
@@ -19,7 +18,6 @@ type MockStatusReporter struct {
 	InstallCanceledErr         error
 	DiscoveryCompleteErr       error
 	RecipeAvailableCallCount   int
-	RecipesAvailableCallCount  int
 	RecipesSelectedCallCount   int
 	RecipeFailedCallCount      int
 	RecipeInstalledCallCount   int
@@ -114,11 +112,6 @@ func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types
 	}
 	r.ReportAvailable[recipe.Name]++
 	return r.RecipeAvailableErr
-}
-
-func (r *MockStatusReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	r.RecipesAvailableCallCount++
-	return r.RecipesAvailableErr
 }
 
 func (r *MockStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {

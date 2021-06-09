@@ -17,10 +17,10 @@ func NewMockFailingRecipeExecutor() *MockFailingRecipeExecutor {
 	}
 }
 
-func (m *MockFailingRecipeExecutor) Prepare(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe, y bool, z string) (types.RecipeVars, error) {
-	return types.RecipeVars{}, nil
+func (m *MockFailingRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	return fmt.Errorf("something went wrong")
 }
 
-func (m *MockFailingRecipeExecutor) Execute(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+func (m *MockFailingRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
 	return fmt.Errorf("something went wrong")
 }

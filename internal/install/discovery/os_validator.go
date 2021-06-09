@@ -22,7 +22,7 @@ func NewOsValidator() *OsValidator {
 	return &validator
 }
 
-func (v *OsValidator) Execute(m *types.DiscoveryManifest) error {
+func (v *OsValidator) Validate(m *types.DiscoveryManifest) error {
 	if m.OS == "" {
 		return fmt.Errorf(noOperatingSystemDetected)
 	}
