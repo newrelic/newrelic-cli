@@ -127,7 +127,6 @@ func findMaxMatch(matches []recipeMatch) recipeMatch {
 					recipe:     match.recipe,
 					matchCount: match.matchCount,
 				}
-				result = &match
 			}
 		}
 	}
