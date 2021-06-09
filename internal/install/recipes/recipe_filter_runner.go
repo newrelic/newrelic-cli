@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
@@ -67,13 +68,25 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 
 func (rf *RecipeFilterRunner) RunFilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
 	results := []types.OpenInstallationRecipe{}
+
+	log.Print("\n\n **************************** \n")
+
 	for _, recipe := range r {
-		filtered := rf.RunFilter(ctx, &recipe, m)
+		filtered := false
+		if recipe.Name != types.InfraAgentRecipeName {
+			filtered = rf.RunFilter(ctx, &recipe, m)
+		}
+
+		log.Printf("\n RunFilterMultiple - filtered:  %+v - %+v \n", recipe.Name, filtered)
 
 		if !filtered {
 			results = append(results, recipe)
 		}
 	}
+
+	log.Printf("\n RunFilterMultiple:  %+v \n", results)
+	log.Print("\n **************************** \n\n")
+	time.Sleep(3 * time.Second)
 
 	return results
 }
