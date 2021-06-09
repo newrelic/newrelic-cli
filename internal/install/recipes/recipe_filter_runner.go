@@ -96,7 +96,7 @@ func NewProcessMatchRecipeFilterer() *ProcessMatchRecipeFilterer {
 func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	matches, err := f.processMatchFinder.FindMatches(ctx, m.DiscoveredProcesses, *r)
 	if err != nil {
-		log.Debug(err)
+		log.Debugf("error finding process matches: %s", err)
 		return true
 	}
 
@@ -165,20 +165,30 @@ func (f *SkipFilterer) SkipKeywords(keywords ...string) {
 }
 
 func (f *SkipFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
-	for _, n := range f.onlyNames {
-		if !strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(r.Name)) {
+	if len(f.onlyNames) > 0 {
+		filtered := true
+		for _, n := range f.onlyNames {
+			if strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(r.Name)) {
+				filtered = false
+			}
+		}
+
+		if filtered {
+			log.Debugf("recipe %s does not match provided names %s", r.Name, f.onlyNames)
 			return true
 		}
 	}
 
 	for _, n := range f.skipNames {
 		if strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(r.Name)) {
+			log.Debugf("recipe %s found in skip list %s", r.Name, f.skipNames)
 			return true
 		}
 	}
 
 	for _, k := range f.skipKeywords {
 		if r.HasKeyword(k) {
+			log.Debugf("recipe %s has keyword %s found in skip list %s", r.Name, k, f.skipKeywords)
 			return true
 		}
 	}
@@ -189,8 +199,8 @@ func (f *SkipFilterer) Filter(ctx context.Context, r *types.OpenInstallationReci
 	}
 
 	for _, t := range f.skipTypes {
-
 		if r.HasTargetType(types.OpenInstallationTargetType(t)) {
+			log.Debugf("recipe %s has type %s found in skip list %s", r.Name, t, f.skipTypes)
 			return true
 		}
 	}
