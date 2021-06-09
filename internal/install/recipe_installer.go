@@ -236,7 +236,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
-	var firstError error = nil
+	var lastError error = nil
 
 	for _, r := range recipes {
 		var err error
@@ -255,9 +255,12 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			if err == types.ErrInterrupt {
 				return err
 			}
-			if firstError == nil {
-				firstError = err
+
+			if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName || i.RecipesProvided() {
+				return err
 			}
+
+			lastError = err
 
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
@@ -266,10 +269,12 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
 
+	if lastError != nil {
+		// Return last recipe error that was caught if any
+		return lastError
+	}
+
 	if !i.status.WasSuccessful() {
-		if firstError != nil {
-			return firstError
-		}
 		return fmt.Errorf("no recipes were installed")
 	}
 
