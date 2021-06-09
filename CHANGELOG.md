@@ -1,3 +1,24 @@
+<a name="v0.28.0"></a>
+## [v0.28.0] - 2021-06-09
+### Bug Fixes
+- **cmd:** avoid nil pointer for license key fetching
+- **install:** suppress preInstall script stderr/stdout streams
+
+### Features
+- **install:** ensure no dup in dependencies
+- **install:** add requireAtDiscovery to preInstall yaml unmarshal
+- **install:** ensure dependencies are added ahead
+- **install:** add dependency ahead
+- **install:** ensure dependency dont add dup
+- **install:** fix fetching of recipes from searchRecipes service
+- **install:** fix faulty debug message
+- **install:** decrease debug output verbosity
+- **install:** wire targeted install with -n option
+- **install:** remove dedup logic duplicated in repository, mark recipes available, skip prompting for targeted install
+- **install:** non-interactive mode support with guided install path
+- **install:** add sh and shell recipe executors
+- **install:** add shRecipeExecutor
+
 <a name="v0.27.5"></a>
 ## [v0.27.5] - 2021-06-01
 <a name="v0.27.4"></a>
@@ -696,7 +717,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...HEAD
+[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.0
 [v0.27.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.4...v0.27.5
 [v0.27.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.3...v0.27.4
 [v0.27.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.2...v0.27.3
