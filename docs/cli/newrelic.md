@@ -17,6 +17,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 ### SEE ALSO
 
 * [newrelic agent](newrelic_agent.md)	 - Utilities for New Relic Agents
+* [newrelic apiAccess](newrelic_apiAccess.md)	 - Manage New Relic API access keys
 * [newrelic apm](newrelic_apm.md)	 - Interact with New Relic APM
 * [newrelic completion](newrelic_completion.md)	 - Generates shell completion functions
 * [newrelic config](newrelic_config.md)	 - Manage the configuration of the New Relic CLI
@@ -27,6 +28,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 * [newrelic entity](newrelic_entity.md)	 - Interact with New Relic entities
 * [newrelic events](newrelic_events.md)	 - Send custom events to New Relic
 * [newrelic install](newrelic_install.md)	 - Install New Relic.
+* [newrelic installTest](newrelic_installTest.md)	 - Run a UX test of the install command.
 * [newrelic nerdgraph](newrelic_nerdgraph.md)	 - Execute GraphQL requests to the NerdGraph API
 * [newrelic nerdstorage](newrelic_nerdstorage.md)	 - Read, write, and delete NerdStorage documents and collections.
 * [newrelic nrql](newrelic_nrql.md)	 - Commands for interacting with the New Relic Database
