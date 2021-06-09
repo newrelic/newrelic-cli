@@ -472,18 +472,12 @@ func TestInstall_RecipeSkipped_SkipIntegrations(t *testing.T) {
 }
 
 func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
-	ic := types.InstallerContext{
-		SkipLoggingInstall: true,
-	}
+	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		{
-			Name:           types.InfraAgentRecipeName,
-			ValidationNRQL: "testNrql",
-		},
 		{
 			Name:           types.LoggingRecipeName,
 			ValidationNRQL: "testNrql",
@@ -503,7 +497,7 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf}
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstallingCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 }
@@ -560,7 +554,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 
 	mp := &ux.MockPrompter{
 		PromptYesNoVal:       true,
-		PromptMultiSelectVal: []string{types.InfraAgentRecipeName, testRecipeName},
+		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf}
@@ -714,6 +708,7 @@ func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
 	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
 	ic := types.InstallerContext{
 		SkipInfraInstall: true,
+		RecipeNames:      []string{types.InfraAgentRecipeName, testRecipeName},
 	}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
@@ -794,10 +789,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	}
 
 	rv := validation.NewMockRecipeValidator()
-	rv.ValidateVals = []string{
-		"INFRAGUID",
-		"TESTRECIPEGUID",
-	}
+	rv.ValidateVal = "GUID"
 
 	// Test for NEW_RELIC_CLI_VERSION
 	os.Setenv("NEW_RELIC_CLI_VERSION", "testversion0.0.1")
@@ -808,8 +800,8 @@ func TestInstall_GuidReport(t *testing.T) {
 	require.Equal(t, 2, rv.ValidateCallCount)
 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeFailedCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	require.Equal(t, rv.ValidateVals[0], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[types.InfraAgentRecipeName])
-	require.Equal(t, rv.ValidateVals[1], statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
+	require.Equal(t, rv.ValidateVal, statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[types.InfraAgentRecipeName])
+	require.Equal(t, rv.ValidateVal, statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
 	require.Equal(t, status.CLIVersion, "testversion0.0.1")
 	require.Equal(t, 3, len(statusReporters[0].(*execution.MockStatusReporter).Durations))
 	for _, duration := range statusReporters[0].(*execution.MockStatusReporter).Durations {

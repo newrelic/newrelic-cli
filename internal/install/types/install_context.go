@@ -47,8 +47,11 @@ func (i *InstallerContext) RecipesProvided() bool {
 
 func (i *InstallerContext) SkipNames() []string {
 	skipNames := []string{}
-	if i.SkipInfraInstall {
-		skipNames = append(skipNames, InfraAgentRecipeName)
+	if i.RecipesProvided() {
+		// Skip infra only in Targeted
+		if i.SkipInfraInstall {
+			skipNames = append(skipNames, InfraAgentRecipeName)
+		}
 	}
 
 	if i.SkipLoggingInstall {
