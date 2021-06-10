@@ -7,6 +7,7 @@ import (
 )
 
 // PacksFetcher is responsible for retrieving packs information.
+// nolint: golint
 type PacksFetcher interface {
 	FetchPacks(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationObservabilityPack, error)
 }

@@ -130,7 +130,7 @@ func expandQuickStarts(recipe map[string]interface{}) OpenInstallationQuickstart
 		EntityType: expandEntityType(reData),
 	}
 
-	if v, ok := reData["catagory"]; ok {
+	if v, ok := reData["category"]; ok {
 		dataOut.Category = OpenInstallationCategory(v.(string))
 	}
 

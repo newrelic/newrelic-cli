@@ -19,6 +19,7 @@ import (
 
 // Maybe both fetchPacks and installPacks should be one interface
 // vs separate interfaces?
+// nolint: golint
 type PacksInstaller interface {
 	Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error
 }
@@ -40,7 +41,7 @@ func defaultHTTPGetFunc(dashboardURL string) (*http.Response, error) {
 }
 
 func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error {
-	msg := fmt.Sprintf("Installing observability packs")
+	msg := "Installing observability packs"
 	p.progressIndicator.Start(msg)
 	defer func() { p.progressIndicator.Stop() }()
 
@@ -63,7 +64,7 @@ func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.Open
 
 func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Context, d types.OpenInstallationObservabilityPackDashboard) (*dashboards.DashboardCreateResult, error) {
 	defaultProfile := credentials.DefaultProfile()
-	accountId := defaultProfile.AccountID
+	accountID := defaultProfile.AccountID
 
 	body, err := getJSONfromURL(d.URL)
 	if err != nil {
@@ -77,7 +78,7 @@ func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Co
 
 	fmt.Printf("  ==> Creating dashboard: %s\n", dashboard.Name)
 
-	// Check for existance of dashboard before creating a new one
+	// Check for existence of dashboard before creating a new one
 	dashboards, err := p.client.Dashboards.ListDashboards(&dashboards.ListDashboardsParams{
 		Title: dashboard.Name,
 	})
@@ -91,7 +92,7 @@ func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Co
 	}
 
 	// Dashboard doesn't exist yet, proceed with dashboard create
-	created, err := p.client.Dashboards.DashboardCreate(accountId, dashboard)
+	created, err := p.client.Dashboards.DashboardCreate(accountID, dashboard)
 	if err != nil {
 		return nil, err
 	}
@@ -119,10 +120,10 @@ func getJSONfromURL(url string) ([]byte, error) {
 	return body, nil
 }
 
-func transformDashboardJSON(body []byte, accountId int) (dashboards.DashboardInput, error) {
+func transformDashboardJSON(body []byte, accountID int) (dashboards.DashboardInput, error) {
 	dashboard := dashboards.DashboardInput{}
 	re := regexp.MustCompile("\"accountId\": 0")
-	dash := re.ReplaceAllString(string(body), fmt.Sprintf("\"accountId\": %d", accountId))
+	dash := re.ReplaceAllString(string(body), fmt.Sprintf("\"accountId\": %d", accountID))
 
 	if err := json.Unmarshal([]byte(dash), &dashboard); err != nil {
 		return dashboard, err

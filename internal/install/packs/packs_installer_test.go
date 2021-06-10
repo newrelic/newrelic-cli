@@ -268,14 +268,15 @@ func TestFetchPacks_MultipleRecipesWithTwoPacks(t *testing.T) {
 
 func TestTransformDashboardJson(t *testing.T) {
 	rawDashboard := []byte(`{"name":"Apache","description":"","pages":[{"name":"Apache","description":"","widgets":[{"visualization":{"id":"viz.billboard"},"layout":{"column":1,"row":1,"height":3,"width":4},"title":"Servers Reporting","rawConfiguration":{"nrqlQueries":[{"accountId": 0,"query":"SELECT uniqueCount(entityName) as 'Servers' FROM ApacheSample"}]}}]}]}`)
-	accountId := 12345
+	accountID := 12345
 
-	d, err := transformDashboardJSON(rawDashboard, accountId)
-	transformedJson, err := json.Marshal(d)
+	d, err1 := transformDashboardJSON(rawDashboard, accountID)
+	transformedJSON, err2 := json.Marshal(d)
 
-	require.NoError(t, err)
+	require.NoError(t, err1)
+	require.NoError(t, err2)
 	require.NotNil(t, d)
-	require.Contains(t, string(transformedJson), "\"accountId\":12345")
+	require.Contains(t, string(transformedJSON), "\"accountId\":12345")
 	require.Contains(t, "\"permissions\": "+entities.DashboardPermissionsTypes.PUBLIC_READ_WRITE, d.Permissions)
 	require.Equal(t, entities.DashboardPermissionsTypes.PUBLIC_READ_WRITE, d.Permissions)
 }
