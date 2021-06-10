@@ -9,7 +9,7 @@ require (
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.14.2
-	github.com/go-task/task/v3 v3.3.0
+	github.com/go-task/task/v3 v3.4.3
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.157.0
@@ -36,5 +36,5 @@ require (
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.4
-	mvdan.cc/sh/v3 v3.2.4
+	mvdan.cc/sh/v3 v3.3.0
 )
