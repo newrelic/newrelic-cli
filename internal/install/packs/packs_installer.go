@@ -45,13 +45,13 @@ func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.Open
 	defer func() { p.progressIndicator.Stop() }()
 
 	for _, pack := range packs {
-		fmt.Printf("  Installing pack: %s\n", pack.Name)
+		fmt.Printf("\n  Installing pack: %s\n", pack.Name)
 
 		// Only installing dashboards currently
 		if pack.Dashboards != nil {
 			for _, dashboard := range pack.Dashboards {
 				if _, err := p.createObservabilityPackDashboard(ctx, dashboard); err != nil {
-					return fmt.Errorf("Failed to create observability pack dashboard [%s]: %s", dashboard.Name, err)
+					return fmt.Errorf("Failed to create observability pack dashboard [%s]: %s", dashboard.Name, err) // nolint: golint
 				}
 			}
 		}
@@ -62,8 +62,6 @@ func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.Open
 }
 
 func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Context, d types.OpenInstallationObservabilityPackDashboard) (*dashboards.DashboardCreateResult, error) {
-	// TODO: check for existance of dashboard before creating a new one
-
 	defaultProfile := credentials.DefaultProfile()
 	accountId := defaultProfile.AccountID
 
@@ -79,6 +77,20 @@ func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Co
 
 	fmt.Printf("  ==> Creating dashboard: %s\n", dashboard.Name)
 
+	// Check for existance of dashboard before creating a new one
+	dashboards, err := p.client.Dashboards.ListDashboards(&dashboards.ListDashboardsParams{
+		Title: dashboard.Name,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error checking if dashboard already exists: %s", err)
+	}
+
+	if len(dashboards) > 0 {
+		fmt.Printf("  ==> Dashboard [%s] already exists, skipping\n", dashboard.Name)
+		return nil, nil
+	}
+
+	// Dashboard doesn't exist yet, proceed with dashboard create
 	created, err := p.client.Dashboards.DashboardCreate(accountId, dashboard)
 	if err != nil {
 		return nil, err
@@ -122,18 +134,18 @@ func transformDashboardJSON(body []byte, accountId int) (dashboards.DashboardInp
 	return dashboard, nil
 }
 
-const (
-	createDashboardMutation = `
-	mutation ($accountId: Int!, $dashboard: DashboardInput!) {
-		dashboardCreate(accountId: $accountId, dashboard: $dashboard) {
-			errors {
-				description
-				type
-			}
-			entityResult {
-				guid
-			}
-		}
-	}
-	`
-)
+// const (
+// 	createDashboardMutation = `
+// 	mutation ($accountId: Int!, $dashboard: DashboardInput!) {
+// 		dashboardCreate(accountId: $accountId, dashboard: $dashboard) {
+// 			errors {
+// 				description
+// 				type
+// 			}
+// 			entityResult {
+// 				guid
+// 			}
+// 		}
+// 	}
+// 	`
+// )
