@@ -6,19 +6,19 @@ import (
 )
 
 type mockNerdGraphClient struct {
-	respBody interface{}
+	RespBody interface{}
 }
 
-func newMockNerdGraphClient() *mockNerdGraphClient {
+func NewMockNerdGraphClient() *mockNerdGraphClient {
 	return &mockNerdGraphClient{
-		respBody: struct{}{},
+		RespBody: struct{}{},
 	}
 }
 
 func (c *mockNerdGraphClient) QueryWithResponseAndContext(ctx context.Context, query string, variables map[string]interface{}, respBody interface{}) error {
 	respBodyPtrValue := reflect.ValueOf(respBody)
 	respBodyValue := reflect.Indirect(respBodyPtrValue)
-	respBodyValue.Set(reflect.ValueOf(c.respBody))
+	respBodyValue.Set(reflect.ValueOf(c.RespBody))
 
 	return nil
 }
