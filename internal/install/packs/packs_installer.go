@@ -133,19 +133,3 @@ func transformDashboardJSON(body []byte, accountId int) (dashboards.DashboardInp
 
 	return dashboard, nil
 }
-
-// const (
-// 	createDashboardMutation = `
-// 	mutation ($accountId: Int!, $dashboard: DashboardInput!) {
-// 		dashboardCreate(accountId: $accountId, dashboard: $dashboard) {
-// 			errors {
-// 				description
-// 				type
-// 			}
-// 			entityResult {
-// 				guid
-// 			}
-// 		}
-// 	}
-// 	`
-// )
