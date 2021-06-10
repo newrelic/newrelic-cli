@@ -9,6 +9,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
@@ -48,6 +49,7 @@ var (
 )
 
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
+	checkNetwork(nrClient)
 
 	var recipeFetcher recipes.RecipeFetcher
 
@@ -55,7 +57,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = &recipes.LocalRecipeFetcher{
 			Path: ic.LocalRecipes,
 		}
-
 	} else {
 		recipeFetcher = recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
 	}
@@ -521,4 +522,19 @@ func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.O
 	}
 
 	return results
+}
+
+func checkNetwork(nrClient *newrelic.NewRelic) {
+	err := nrClient.TestEndpoints()
+	if err != nil {
+
+		proxyConfig := httpproxy.FromEnvironment()
+
+		log.Debugf("proxyConfig: %+v", proxyConfig)
+		if proxyConfig.HTTPProxy != "" || proxyConfig.HTTPSProxy != "" || proxyConfig.NoProxy != "" {
+			log.Warn("You may need to adjust your proxy environment variables.  https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
+		}
+
+		log.Error(err)
+	}
 }
