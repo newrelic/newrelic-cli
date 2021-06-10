@@ -45,6 +45,7 @@ func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.Open
 	defer func() { p.progressIndicator.Stop() }()
 
 	for _, pack := range packs {
+		fmt.Printf("  Installing pack: %s\n", pack.Name)
 
 		// Only installing dashboards currently
 		if pack.Dashboards != nil {
@@ -76,7 +77,8 @@ func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Co
 		return nil, err
 	}
 
-	fmt.Printf("  Creating dashboard: %s\n", dashboard.Name)
+	fmt.Printf("  ==> Creating dashboard: %s\n", dashboard.Name)
+
 	created, err := p.client.Dashboards.DashboardCreate(accountId, dashboard)
 	if err != nil {
 		return nil, err
