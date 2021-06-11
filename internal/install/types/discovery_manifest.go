@@ -15,7 +15,7 @@ type DiscoveryManifest struct {
 	Platform            string           `json:"platform"`
 	PlatformFamily      string           `json:"platformFamily"`
 	PlatformVersion     string           `json:"platformVersion"`
-	IsSupported         bool             `json:"isSupported"`
+	IsUnsupported       bool             `json:"isUnsupported"`
 	MatchedProcesses    []MatchedProcess `json:"processes"`
 	DiscoveredProcesses []GenericProcess
 }

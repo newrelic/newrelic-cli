@@ -134,6 +134,6 @@ func (r *MockStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.D
 	return r.DiscoveryCompleteErr
 }
 
-func (r *MockStatusReporter) Unsupported(status *InstallStatus) error {
+func (r *MockStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil // TODO make this testable like the others
 }

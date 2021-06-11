@@ -159,6 +159,7 @@ func (i *RecipeInstaller) Install() error {
 		return err
 	}
 }
+
 func (i *RecipeInstaller) install(ctx context.Context) error {
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
@@ -268,7 +269,12 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			log.Warn(i.failMessage(r.DisplayName))
 
 			if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
-				return err
+				// Requested business logic:
+				// When guided, if infra or log installation fails, stop processing and report immediately.
+				// When targeted install, stop processing and report first error.
+				if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName {
+					return err
+				}
 			}
 
 			if len(recipes) == 1 {
@@ -310,7 +316,12 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", err
 		}
 
-		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+		if e, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
+				Recipe: *r,
+				Msg:    e.Error(),
+			})
+
 			return "", err
 		}
 

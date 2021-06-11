@@ -66,7 +66,7 @@ func (r NerdstorageStatusReporter) InstallCanceled(status *InstallStatus) error 
 	return r.writeStatus(status)
 }
 
-func (r NerdstorageStatusReporter) Unsupported(status *InstallStatus) error {
+func (r NerdstorageStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	return r.writeStatus(status)
 }
 

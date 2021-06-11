@@ -113,6 +113,6 @@ func (r TerminalStatusReporter) DiscoveryComplete(status *InstallStatus, dm type
 	return nil
 }
 
-func (r TerminalStatusReporter) Unsupported(status *InstallStatus) error {
+func (r TerminalStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }

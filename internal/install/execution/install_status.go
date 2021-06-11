@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -34,7 +33,6 @@ type InstallStatus struct {
 	Canceled              []*RecipeStatus         `json:"recipesCanceled"`
 	Failed                []*RecipeStatus         `json:"recipesFailed"`
 	Installed             []*RecipeStatus         `json:"recipesInstalled"`
-	RecipesUnsupported    []*RecipeStatus         `json:"recipesUnsupported"`
 	RedirectURL           string                  `json:"redirectUrl"`
 	HTTPSProxy            string                  `json:"httpsProxy"`
 	DocumentID            string
@@ -178,6 +176,16 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 	}
 }
 
+func (s *InstallStatus) RecipeUnsupported(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.UNSUPPORTED)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.RecipeUnsupported(s, event); err != nil {
+			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+		}
+	}
+}
+
 func (s *InstallStatus) InstallComplete(err error) {
 	s.completed(err)
 
@@ -316,6 +324,10 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		if e.ValidationDurationMilliseconds > 0 {
 			found.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
 		}
+
+		if e.Msg != "" {
+			found.Error = statusError
+		}
 	} else {
 		recipeStatus := &RecipeStatus{
 			Name:        e.Recipe.Name,
@@ -349,7 +361,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 }
 
 func (s *InstallStatus) completed(err error) {
-	isUnsupported := false
+	// isUnsupported := false
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
 
@@ -363,7 +375,7 @@ func (s *InstallStatus) completed(err error) {
 		}
 
 		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
-			isUnsupported = true
+			// isUnsupported = true
 		}
 
 		s.Error = statusError
@@ -373,7 +385,8 @@ func (s *InstallStatus) completed(err error) {
 		"timestamp": s.Timestamp,
 	}).Debug("completed")
 
-	s.updateFinalInstallationStatuses(false, isUnsupported)
+	// s.updateFinalInstallationStatuses(false, isUnsupported)
+	s.updateFinalInstallationStatuses(false, false)
 	s.setRedirectURL()
 }
 
@@ -418,7 +431,7 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 			}).Debug(fmt.Sprintf("marking recipe %s", debugMsg))
 
 			if isUnsupported {
-				s.Statuses[i].Status = RecipeStatusTypes.UNSUPPORTED
+				// s.Statuses[i].Status = RecipeStatusTypes.UNSUPPORTED
 			} else if installCanceled {
 				s.Statuses[i].Status = RecipeStatusTypes.CANCELED
 			} else {
@@ -452,7 +465,6 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 
 		// Unsupported
 		if ss.Status == RecipeStatusTypes.UNSUPPORTED {
-			s.RecipesUnsupported = append(s.RecipesUnsupported, ss)
 			s.HasUnsupportedRecipes = true
 		}
 	}
@@ -460,7 +472,6 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 	log.Print("\n\n **************************** \n")
 	log.Printf("\n updateFinalInstallationStatuses:  %+v \n", toJSON(s))
 	log.Print("\n **************************** \n\n")
-	time.Sleep(3 * time.Second)
 
 	log.WithFields(log.Fields{
 		"hasInstalledRecipes": s.HasInstalledRecipes,
