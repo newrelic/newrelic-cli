@@ -236,7 +236,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("installing recipes")
-	var lastError error = nil
+	var lastError error
 
 	for _, r := range recipes {
 		var err error
