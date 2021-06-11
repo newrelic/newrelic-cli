@@ -265,7 +265,7 @@ func TestInstall_RecipeFailed(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateErr = errors.New("validationErr")
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 1, rv.ValidateCallCount)
@@ -298,7 +298,7 @@ func TestInstall_NonInfraRecipeFailed(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateErrs = []error{nil, errors.New("validationErr")}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 2, rv.ValidateCallCount)
