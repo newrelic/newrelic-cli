@@ -392,3 +392,13 @@ func (r *OpenInstallationRecipe) HasTargetType(t OpenInstallationTargetType) boo
 
 	return false
 }
+
+func (r *OpenInstallationRecipe) GetOrderKey() string {
+	if r.Name == InfraAgentRecipeName {
+		return fmt.Sprintf("%d-%s", 10, InfraAgentRecipeName)
+	}
+	if r.Name == LoggingRecipeName {
+		return fmt.Sprintf("%d-%s", 20, LoggingRecipeName)
+	}
+	return fmt.Sprintf("%d-%s", 50, r.Name)
+}

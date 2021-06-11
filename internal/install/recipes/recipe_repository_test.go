@@ -121,6 +121,21 @@ func Test_ShouldFindMultipleNames(t *testing.T) {
 	require.True(t, containsID(results, "id4"))
 }
 
+func Test_ShouldOrderInfraLogFirst(t *testing.T) {
+	Setup()
+	givenCachedRecipeOs("any1", "a-recipe", types.OpenInstallationOperatingSystemTypes.LINUX)
+	givenCachedRecipeOs("log1", types.LoggingRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
+	givenCachedRecipeOs("infra1", types.InfraAgentRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
+	discoveryManifest.OS = "linux"
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 3)
+	require.Equal(t, results[0].Name, types.InfraAgentRecipeName)
+	require.Equal(t, results[1].Name, types.LoggingRecipeName)
+	require.Equal(t, results[2].Name, "a-recipe")
+}
+
 func Test_matchRecipeCriteria_Basic(t *testing.T) {
 	Setup()
 	discoveryManifest.Platform = "linux"
