@@ -43,7 +43,7 @@ func defaultHTTPGetFunc(dashboardURL string) (*http.Response, error) {
 func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error {
 	msg := "Installing observability packs"
 	p.progressIndicator.Start(msg)
-	defer func() { p.progressIndicator.Stop() }()
+	defer p.progressIndicator.Stop()
 
 	for _, pack := range packs {
 		fmt.Printf("\n  Installing pack: %s\n", pack.Name)
@@ -52,6 +52,7 @@ func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.Open
 		if pack.Dashboards != nil {
 			for _, dashboard := range pack.Dashboards {
 				if _, err := p.createObservabilityPackDashboard(ctx, dashboard); err != nil {
+					p.progressIndicator.Fail(msg)
 					return fmt.Errorf("Failed to create observability pack dashboard [%s]: %s", dashboard.Name, err) // nolint: golint
 				}
 			}
