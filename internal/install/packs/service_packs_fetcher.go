@@ -8,7 +8,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// ServicePacksFetcher is an implementation of the packsFetcher interface that
+// nolint: golint
+type PacksFetcher interface {
+	FetchPacks(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationObservabilityPack, error)
+}
+
+// ServicePacksFetcher is an implementation of the PacksFetcher interface that
 // relies on the Nerdgraph-stitched o11y packs service to source its results.
 type ServicePacksFetcher struct {
 	client recipes.NerdGraphClient
