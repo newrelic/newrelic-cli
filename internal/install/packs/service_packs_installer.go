@@ -17,20 +17,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Maybe both fetchPacks and installPacks should be one interface
-// vs separate interfaces?
 // nolint: golint
 type PacksInstaller interface {
 	Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error
 }
 
-type ConcretePacksInstaller struct {
+type ServicePacksInstaller struct {
 	client            *newrelic.NewRelic
 	progressIndicator ux.ProgressIndicator
 }
 
-func NewConcretePacksInstaller(client *newrelic.NewRelic) *ConcretePacksInstaller {
-	return &ConcretePacksInstaller{
+func NewServicePacksInstaller(client *newrelic.NewRelic) *ServicePacksInstaller {
+	return &ServicePacksInstaller{
 		client:            client,
 		progressIndicator: ux.NewPlainProgress(),
 	}
@@ -40,7 +38,7 @@ func defaultHTTPGetFunc(dashboardURL string) (*http.Response, error) {
 	return http.Get(dashboardURL)
 }
 
-func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error {
+func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error {
 	msg := "Installing observability packs"
 	p.progressIndicator.Start(msg)
 	defer p.progressIndicator.Stop()
@@ -63,7 +61,7 @@ func (p *ConcretePacksInstaller) Install(ctx context.Context, packs []types.Open
 	return nil
 }
 
-func (p *ConcretePacksInstaller) createObservabilityPackDashboard(ctx context.Context, d types.OpenInstallationObservabilityPackDashboard) (*dashboards.DashboardCreateResult, error) {
+func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Context, d types.OpenInstallationObservabilityPackDashboard) (*dashboards.DashboardCreateResult, error) {
 	defaultProfile := credentials.DefaultProfile()
 	accountID := defaultProfile.AccountID
 
