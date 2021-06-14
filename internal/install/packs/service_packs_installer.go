@@ -51,7 +51,7 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 			for _, dashboard := range pack.Dashboards {
 				if _, err := p.createObservabilityPackDashboard(ctx, dashboard); err != nil {
 					p.progressIndicator.Fail(msg)
-					return fmt.Errorf("Failed to create observability pack dashboard [%s]: %s", dashboard.Name, err) // nolint: golint
+					return fmt.Errorf("failed to create observability pack dashboard [%s]: %s", dashboard.Name, err)
 				}
 			}
 		}
