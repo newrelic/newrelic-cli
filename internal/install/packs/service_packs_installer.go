@@ -79,7 +79,9 @@ func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Con
 		entities.EntitySearchQueryBuilder{
 			Name: dashboard.Name,
 			Type: entities.EntitySearchQueryBuilderTypeTypes.DASHBOARD,
-		}, nil)
+		},
+		nil,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("error checking if dashboard already exists: %s", err)
 	}
