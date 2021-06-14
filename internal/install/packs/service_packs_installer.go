@@ -17,11 +17,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// nolint: golint
-type PacksInstaller interface {
-	Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error
-}
-
 type ServicePacksInstaller struct {
 	client            *newrelic.NewRelic
 	progressIndicator ux.ProgressIndicator
@@ -77,15 +72,12 @@ func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Con
 
 	fmt.Printf("  ==> Creating dashboard: %s\n", dashboard.Name)
 
-	// Check for existence of dashboard before creating a new one
-	dashboards, err := p.client.Dashboards.ListDashboards(&dashboards.ListDashboardsParams{
-		Title: dashboard.Name,
-	})
+	entitySearchResult, err := p.client.Entities.GetEntitySearchWithContext(ctx, entities.EntitySearchOptions{}, fmt.Sprintf("type = 'DASHBOARD' and name = '%s'", dashboard.Name), entities.EntitySearchQueryBuilder{}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error checking if dashboard already exists: %s", err)
 	}
 
-	if len(dashboards) > 0 {
+	if len(entitySearchResult.Results.Entities) > 0 {
 		fmt.Printf("  ==> Dashboard [%s] already exists, skipping\n", dashboard.Name)
 		return nil, nil
 	}
