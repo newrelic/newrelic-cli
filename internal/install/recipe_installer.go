@@ -39,8 +39,8 @@ type RecipeInstaller struct {
 	configValidator   ConfigValidator
 	recipeVarPreparer RecipeVarPreparer
 	recipeFilterer    RecipeFilterRunner
-	packsFetcher      packs.PacksFetcher
-	packsInstaller    packs.PacksInstaller
+	packsFetcher      PacksFetcher
+	packsInstaller    PacksInstaller
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
