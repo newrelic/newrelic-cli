@@ -544,7 +544,7 @@ func checkNetwork(nrClient *newrelic.NewRelic) {
 
 		log.Debugf("proxyConfig: %+v", proxyConfig)
 		if proxyConfig.HTTPProxy != "" || proxyConfig.HTTPSProxy != "" || proxyConfig.NoProxy != "" {
-			log.Warn("You may need to adjust your proxy environment variables.  https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
+			log.Warn("Proxy settings have been configured but we are still unable to connect to the New Relic platform.  You may need to adjust your proxy environment variables.  https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
 		}
 
 		log.Error(err)
