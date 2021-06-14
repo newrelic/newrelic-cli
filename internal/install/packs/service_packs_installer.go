@@ -72,7 +72,14 @@ func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Con
 
 	fmt.Printf("  ==> Creating dashboard: %s\n", dashboard.Name)
 
-	entitySearchResult, err := p.client.Entities.GetEntitySearchWithContext(ctx, entities.EntitySearchOptions{}, fmt.Sprintf("type = 'DASHBOARD' and name = '%s'", dashboard.Name), entities.EntitySearchQueryBuilder{}, nil)
+	entitySearchResult, err := p.client.Entities.GetEntitySearchWithContext(
+		ctx,
+		entities.EntitySearchOptions{},
+		"",
+		entities.EntitySearchQueryBuilder{
+			Name: dashboard.Name,
+			Type: entities.EntitySearchQueryBuilderTypeTypes.DASHBOARD,
+		}, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error checking if dashboard already exists: %s", err)
 	}
