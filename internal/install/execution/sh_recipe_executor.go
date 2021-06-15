@@ -11,8 +11,9 @@ import (
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type ShRecipeExecutor struct {
