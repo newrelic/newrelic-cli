@@ -133,6 +133,46 @@ func TestInstall_FailsOnInvalidOs(t *testing.T) {
 	require.IsType(t, &types.UnsupportedOperatingSytemError{}, err)
 }
 
+func TestInstall_UnsupportedKernelArch(t *testing.T) {
+	ic := types.InstallerContext{}
+	discover := discovery.NewMockDiscoverer()
+	discover.SetOs("linux")
+	discover.SetKernelArch("aarch64") // unsupported for logs
+	mv = discovery.NewManifestValidator()
+	mockExec := execution.NewMockRecipeExecutor()
+	mockExec.ExecuteErr = &types.UnsupportedOperatingSytemError{
+		Err: errors.New("logging is unsupported on aarch64"),
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	statusReporters = []execution.StatusSubscriber{statusReporter}
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+		{
+			Name:           types.InfraAgentRecipeName,
+			DisplayName:    types.InfraAgentRecipeName,
+			ValidationNRQL: "testNrql",
+		},
+		{
+			Name:           types.LoggingRecipeName,
+			DisplayName:    types.LoggingRecipeName,
+			ValidationNRQL: "testNrql",
+			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
+				{
+					KernelArch: "aarch64",
+					Os:         "linux",
+				},
+			},
+		},
+	}
+
+	i := RecipeInstaller{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, lkf, cv, rvp, rf}
+
+	err := i.Install()
+	require.Error(t, err)
+	require.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
+}
+
 func TestInstall_RecipeAvailable(t *testing.T) {
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}

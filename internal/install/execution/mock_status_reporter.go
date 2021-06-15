@@ -14,6 +14,7 @@ type MockStatusReporter struct {
 	RecipeInstallingErr        error
 	RecipeRecommendedErr       error
 	RecipeSkippedErr           error
+	RecipeUnsupportedErr       error
 	InstallCompleteErr         error
 	InstallCanceledErr         error
 	DiscoveryCompleteErr       error
@@ -27,6 +28,7 @@ type MockStatusReporter struct {
 	InstallCompleteCallCount   int
 	InstallCanceledCallCount   int
 	DiscoveryCompleteCallCount int
+	RecipeUnsupportedCallCount int
 
 	ReportSkipped     map[string]int
 	ReportInstalled   map[string]int
@@ -135,5 +137,6 @@ func (r *MockStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.D
 }
 
 func (r *MockStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
-	return nil // TODO make this testable like the others
+	r.RecipeUnsupportedCallCount++
+	return r.RecipeUnsupportedErr
 }

@@ -46,7 +46,6 @@ func (mv *ManifestValidator) Validate(m *types.DiscoveryManifest) error {
 	if accumulator != nil {
 		// Flag as unsupported OS
 		m.IsUnsupported = true
-
 		return &types.UnsupportedOperatingSytemError{
 			Err: fmt.Errorf(errorPrefixFormat, accumulator),
 		}

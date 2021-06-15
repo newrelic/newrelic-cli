@@ -167,11 +167,12 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	i.status.DiscoveryComplete(*m)
-
 	if err = i.assertDiscoveryValid(ctx, m); err != nil {
+		i.status.DiscoveryComplete(*m)
 		return err
 	}
+
+	i.status.DiscoveryComplete(*m)
 
 	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)

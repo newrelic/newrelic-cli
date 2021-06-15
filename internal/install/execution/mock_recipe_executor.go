@@ -7,17 +7,15 @@ import (
 )
 
 type MockRecipeExecutor struct {
-	result bool
+	ExecuteErr error
 }
 
 func NewMockRecipeExecutor() *MockRecipeExecutor {
-	return &MockRecipeExecutor{
-		result: false,
-	}
+	return &MockRecipeExecutor{}
 }
 
 func (m *MockRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
-	return nil
+	return m.ExecuteErr
 }
 
 func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
