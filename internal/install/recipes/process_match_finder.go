@@ -7,6 +7,6 @@ import (
 )
 
 type ProcessMatchFinder interface {
-	FindMatchesMultiple(context.Context, []types.GenericProcess, []types.OpenInstallationRecipe) ([]types.MatchedProcess, error)
-	FindMatches(context.Context, []types.GenericProcess, types.OpenInstallationRecipe) ([]types.MatchedProcess, error)
+	FindMatchesMultiple(context.Context, []types.GenericProcess, []types.OpenInstallationRecipe) []types.MatchedProcess
+	FindMatches(context.Context, []types.GenericProcess, types.OpenInstallationRecipe) []types.MatchedProcess
 }
