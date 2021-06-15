@@ -1,3 +1,8 @@
+<a name="v0.28.7"></a>
+## [v0.28.7] - 2021-06-15
+### Bug Fixes
+- **install:** --localRecipes was not unmarshalling preinstall requireAtDiscovery script
+
 <a name="v0.28.6"></a>
 ## [v0.28.6] - 2021-06-15
 ### Bug Fixes
@@ -312,7 +317,7 @@
 <a name="v0.18.19"></a>
 ## [v0.18.19] - 2021-01-27
 ### Bug Fixes
-- **install:** ensure prompt response are handled correctly
+- **install:** ensure prompt respones are handled correctly
 
 <a name="v0.18.18"></a>
 ## [v0.18.18] - 2021-01-25
@@ -748,7 +753,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.7...HEAD
+[v0.28.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.6...v0.28.7
 [v0.28.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.5...v0.28.6
 [v0.28.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.4...v0.28.5
 [v0.28.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.3...v0.28.4
