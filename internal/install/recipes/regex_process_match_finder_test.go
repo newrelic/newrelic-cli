@@ -32,9 +32,8 @@ func TestShouldFindMatchesMultipleWithCmdLineInsteadOfName(t *testing.T) {
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 
-	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 1, len(filtered))
@@ -68,8 +67,7 @@ func TestFindMatchesMultiple_NoMatchingProcess(t *testing.T) {
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
-	require.NoError(t, err)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 	require.NotNil(t, filtered)
 	require.Equal(t, 0, len(filtered))
 }
@@ -95,9 +93,8 @@ func TestFindMatchesMultiple_SingleMatchingProcess_SingleOHIRecipe(t *testing.T)
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 
-	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 1, len(filtered))
@@ -125,9 +122,8 @@ func TestFindMatchesMultiple_SingleMatchingProcess_SingleAPMRecipe(t *testing.T)
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 
-	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 1, len(filtered))
@@ -160,9 +156,8 @@ func TestFindMatchesMultiple_SingleMatchingProcess_MultipleRecipes(t *testing.T)
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 
-	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 2, len(filtered))
@@ -195,9 +190,8 @@ func TestFindMatchesMultiple_MultipleMatchingProcesses_SingleRecipe(t *testing.T
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 
-	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 2, len(filtered))
@@ -240,9 +234,8 @@ func TestFindMatchesMultiple_MultipleMatchingProcesses_MultipleRecipes(t *testin
 	}
 
 	f := NewRegexProcessMatchFinder()
-	filtered, err := f.FindMatchesMultiple(context.Background(), processes, r)
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
 
-	require.NoError(t, err)
 	require.NotNil(t, filtered)
 	require.NotEmpty(t, filtered)
 	require.Equal(t, 4, len(filtered))
