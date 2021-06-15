@@ -59,7 +59,7 @@ func (f *RegexProcessMatchFinder) findMatches(r types.OpenInstallationRecipe, pr
 
 		matched, err := regexp.Match(pattern, []byte(cmd))
 		if err != nil {
-			log.Debugf("could not execute pattern %s against process invocation %s", pattern, cmd)
+			log.Debugf("could not execute pattern %s against process invocation %s, %s", pattern, cmd, err)
 			continue
 		}
 

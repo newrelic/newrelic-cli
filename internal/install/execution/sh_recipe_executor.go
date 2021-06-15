@@ -12,6 +12,7 @@ import (
 	"mvdan.cc/sh/v3/syntax"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	log "github.com/sirupsen/logrus"
 )
 
 type ShRecipeExecutor struct {
@@ -32,6 +33,7 @@ func (e *ShRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallation
 }
 
 func (e *ShRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	log.Debugf("ExecutePreInstall script for recipe %s", r.Name)
 	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
 }
 

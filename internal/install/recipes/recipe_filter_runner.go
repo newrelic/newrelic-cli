@@ -119,7 +119,7 @@ func NewScriptEvaluationRecipeFilterer() *ScriptEvaluationRecipeFilterer {
 
 func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
-		log.Debugf("recipe %s failed script evaluation", r.Name)
+		log.Debugf("recipe %s failed script evaluation %s", r.Name, err)
 		return true
 	}
 

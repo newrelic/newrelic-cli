@@ -165,8 +165,9 @@ func expandPreInstall(recipe map[string]interface{}) OpenInstallationPreInstallC
 	}
 
 	return OpenInstallationPreInstallConfiguration{
-		Info:   toStringByFieldName("info", infoOut),
-		Prompt: toStringByFieldName("prompt", infoOut),
+		Info:               toStringByFieldName("info", infoOut),
+		Prompt:             toStringByFieldName("prompt", infoOut),
+		RequireAtDiscovery: toStringByFieldName("requireAtDiscovery", infoOut),
 	}
 }
 
