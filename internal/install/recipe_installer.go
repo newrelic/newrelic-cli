@@ -463,6 +463,7 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
 
 	names := []string{}
+	selected := []string{}
 	for _, r := range recipes {
 		if r.Name != types.InfraAgentRecipeName {
 			names = append(names, r.DisplayName)
@@ -471,12 +472,14 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 		}
 	}
 
-	selected, promptErr := i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
-	if promptErr != nil {
-		return nil, nil, promptErr
+	if len(names) > 0 {
+		var promptErr error
+		selected, promptErr = i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
+		if promptErr != nil {
+			return nil, nil, promptErr
+		}
+		fmt.Println()
 	}
-
-	fmt.Println()
 
 	for _, r := range recipes {
 		if utils.StringInSlice(r.DisplayName, selected) || r.Name == types.InfraAgentRecipeName {
