@@ -9,6 +9,7 @@ import (
 	"regexp"
 
 	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -20,12 +21,14 @@ import (
 type ServicePacksInstaller struct {
 	client            *newrelic.NewRelic
 	progressIndicator ux.ProgressIndicator
+	installStatus     *execution.InstallStatus
 }
 
-func NewServicePacksInstaller(client *newrelic.NewRelic) *ServicePacksInstaller {
+func NewServicePacksInstaller(client *newrelic.NewRelic, s *execution.InstallStatus) *ServicePacksInstaller {
 	return &ServicePacksInstaller{
 		client:            client,
 		progressIndicator: ux.NewPlainProgress(),
+		installStatus:     s,
 	}
 }
 
@@ -39,17 +42,25 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 	defer p.progressIndicator.Stop()
 
 	for _, pack := range packs {
+		p.installStatus.ObservabilityPacksInstallPending(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack})
 		fmt.Printf("\n  Installing pack: %s\n", pack.Name)
 
 		// Only installing dashboards currently
+		// failure to create any dashboards results in the whole pack installation being marked as failure
 		if pack.Dashboards != nil {
 			for _, dashboard := range pack.Dashboards {
 				if _, err := p.createObservabilityPackDashboard(ctx, dashboard); err != nil {
+					errMsg := fmt.Sprintf("failed to create observability pack dashboard [%s]: %s", dashboard.Name, err)
+
+					p.installStatus.ObservabilityPacksInstallFailed(execution.ObservabilityPackStatusEvent{Msg: errMsg})
 					p.progressIndicator.Fail(msg)
-					return fmt.Errorf("failed to create observability pack dashboard [%s]: %s", dashboard.Name, err)
+
+					return fmt.Errorf(errMsg)
 				}
 			}
 		}
+
+		p.installStatus.ObservabilityPacksInstallSuccess(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack})
 	}
 
 	p.progressIndicator.Success(msg)

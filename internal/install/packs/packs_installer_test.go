@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -25,7 +26,7 @@ func TestFetchPacks_NoResults(t *testing.T) {
 
 	c := recipes.NewMockNerdGraphClient()
 	c.RespBody = wrapObservabilityPacks(p)
-	spf := NewServicePacksFetcher(c)
+	spf := NewServicePacksFetcher(c, &execution.InstallStatus{})
 
 	packs, err := spf.FetchPacks(context.Background(), r)
 
@@ -74,7 +75,7 @@ func TestFetchPacks_OneResult(t *testing.T) {
 
 	c := recipes.NewMockNerdGraphClient()
 	c.RespBody = wrapObservabilityPacks(p)
-	spf := NewServicePacksFetcher(c)
+	spf := NewServicePacksFetcher(c, &execution.InstallStatus{})
 
 	packs, err := spf.FetchPacks(context.Background(), r)
 	require.NoError(t, err)
@@ -127,7 +128,7 @@ func TestFetchPacks_SingleRecipeWithTwoPacks(t *testing.T) {
 
 	c := recipes.NewMockNerdGraphClient()
 	c.RespBody = wrapObservabilityPacks(p)
-	spf := NewServicePacksFetcher(c)
+	spf := NewServicePacksFetcher(c, &execution.InstallStatus{})
 
 	packs, err := spf.FetchPacks(context.Background(), r)
 	require.NoError(t, err)
@@ -186,7 +187,7 @@ func TestFetchPacks_MultipleRecipesWithSinglePacks(t *testing.T) {
 
 	c := recipes.NewMockNerdGraphClient()
 	c.RespBody = wrapObservabilityPacks(p)
-	spf := NewServicePacksFetcher(c)
+	spf := NewServicePacksFetcher(c, &execution.InstallStatus{})
 
 	packs, err := spf.FetchPacks(context.Background(), r)
 	require.NoError(t, err)
@@ -255,7 +256,7 @@ func TestFetchPacks_MultipleRecipesWithTwoPacks(t *testing.T) {
 
 	c := recipes.NewMockNerdGraphClient()
 	c.RespBody = wrapObservabilityPacks(p)
-	spf := NewServicePacksFetcher(c)
+	spf := NewServicePacksFetcher(c, &execution.InstallStatus{})
 
 	packs, err := spf.FetchPacks(context.Background(), r)
 	require.NoError(t, err)

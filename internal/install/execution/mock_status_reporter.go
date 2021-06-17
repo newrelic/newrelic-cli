@@ -140,3 +140,27 @@ func (r *MockStatusReporter) RecipeUnsupported(status *InstallStatus, event Reci
 	r.RecipeUnsupportedCallCount++
 	return r.RecipeUnsupportedErr
 }
+
+func (r *MockStatusReporter) ObservabilityPacksFetchPending(status *InstallStatus) error {
+	return nil
+}
+
+func (r *MockStatusReporter) ObservabilityPacksFetchSuccess(status *InstallStatus) error {
+	return nil
+}
+
+func (r *MockStatusReporter) ObservabilityPacksFetchFailed(status *InstallStatus) error {
+	return nil
+}
+
+func (r *MockStatusReporter) ObservabilityPacksInstallPending(status *InstallStatus) error {
+	return nil
+}
+
+func (r *MockStatusReporter) ObservabilityPacksInstallSuccess(status *InstallStatus) error {
+	return nil
+}
+
+func (r *MockStatusReporter) ObservabilityPacksInstallFailed(status *InstallStatus) error {
+	return nil
+}

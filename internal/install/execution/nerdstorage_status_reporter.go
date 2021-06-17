@@ -70,6 +70,30 @@ func (r NerdstorageStatusReporter) RecipeUnsupported(status *InstallStatus, even
 	return r.writeStatus(status)
 }
 
+func (r NerdstorageStatusReporter) ObservabilityPacksFetchPending(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPacksFetchSuccess(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPacksFetchFailed(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPacksInstallPending(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPacksInstallSuccess(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPacksInstallFailed(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
 func (r NerdstorageStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	if err := r.writeStatus(status); err != nil {
 		return err

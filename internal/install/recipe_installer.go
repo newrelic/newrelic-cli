@@ -83,8 +83,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewRecipeVarProvider()
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
-	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph)
-	cpi := packs.NewServicePacksInstaller(nrClient)
+	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
+	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
 
 	i := RecipeInstaller{
 		discoverer:        d,

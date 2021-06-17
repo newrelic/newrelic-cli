@@ -15,30 +15,31 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
-	Complete              bool                    `json:"complete"`
-	DiscoveryManifest     types.DiscoveryManifest `json:"discoveryManifest"`
-	EntityGUIDs           []string                `json:"entityGuids"`
-	Error                 StatusError             `json:"error"`
-	LogFilePath           string                  `json:"logFilePath"`
-	Statuses              []*RecipeStatus         `json:"recipes"`
-	Timestamp             int64                   `json:"timestamp"`
-	CLIVersion            string                  `json:"cliVersion"`
-	HasInstalledRecipes   bool                    `json:"hasInstalledRecipes"`
-	HasCanceledRecipes    bool                    `json:"hasCanceledRecipes"`
-	HasSkippedRecipes     bool                    `json:"hasSkippedRecipes"`
-	HasFailedRecipes      bool                    `json:"hasFailedRecipes"`
-	HasUnsupportedRecipes bool                    `json:"hasUnsupportedRecipes"`
-	Skipped               []*RecipeStatus         `json:"recipesSkipped"`
-	Canceled              []*RecipeStatus         `json:"recipesCanceled"`
-	Failed                []*RecipeStatus         `json:"recipesFailed"`
-	Installed             []*RecipeStatus         `json:"recipesInstalled"`
-	RedirectURL           string                  `json:"redirectUrl"`
-	HTTPSProxy            string                  `json:"httpsProxy"`
-	DocumentID            string
-	targetedInstall       bool
-	statusSubscriber      []StatusSubscriber
-	successLinkConfig     types.OpenInstallationSuccessLinkConfig
-	PlatformLinkGenerator LinkGenerator
+	Complete                   bool                        `json:"complete"`
+	DiscoveryManifest          types.DiscoveryManifest     `json:"discoveryManifest"`
+	EntityGUIDs                []string                    `json:"entityGuids"`
+	Error                      StatusError                 `json:"error"`
+	LogFilePath                string                      `json:"logFilePath"`
+	Statuses                   []*RecipeStatus             `json:"recipes"`
+	ObservabilityPacksStatuses []*ObservabilityPacksStatus `json:"packs"`
+	Timestamp                  int64                       `json:"timestamp"`
+	CLIVersion                 string                      `json:"cliVersion"`
+	HasInstalledRecipes        bool                        `json:"hasInstalledRecipes"`
+	HasCanceledRecipes         bool                        `json:"hasCanceledRecipes"`
+	HasSkippedRecipes          bool                        `json:"hasSkippedRecipes"`
+	HasFailedRecipes           bool                        `json:"hasFailedRecipes"`
+	HasUnsupportedRecipes      bool                        `json:"hasUnsupportedRecipes"`
+	Skipped                    []*RecipeStatus             `json:"recipesSkipped"`
+	Canceled                   []*RecipeStatus             `json:"recipesCanceled"`
+	Failed                     []*RecipeStatus             `json:"recipesFailed"`
+	Installed                  []*RecipeStatus             `json:"recipesInstalled"`
+	RedirectURL                string                      `json:"redirectUrl"`
+	HTTPSProxy                 string                      `json:"httpsProxy"`
+	DocumentID                 string
+	targetedInstall            bool
+	statusSubscriber           []StatusSubscriber
+	successLinkConfig          types.OpenInstallationSuccessLinkConfig
+	PlatformLinkGenerator      LinkGenerator
 }
 
 type RecipeStatus struct {
@@ -71,6 +72,30 @@ var RecipeStatusTypes = struct {
 	SKIPPED:     "SKIPPED",
 	RECOMMENDED: "RECOMMENDED",
 	UNSUPPORTED: "UNSUPPORTED",
+}
+
+type ObservabilityPacksStatus struct {
+	Error  StatusError                 `json:"error"`
+	Name   string                      `json:"name"`
+	Status ObservabilityPackStatusType `json:"status"`
+}
+
+type ObservabilityPackStatusType string
+
+var ObservabilityPackStatusTypes = struct {
+	FETCH_PENDING   ObservabilityPackStatusType
+	FETCH_SUCCESS   ObservabilityPackStatusType
+	FETCH_FAILED    ObservabilityPackStatusType
+	INSTALL_PENDING ObservabilityPackStatusType
+	INSTALL_SUCCESS ObservabilityPackStatusType
+	INSTALL_FAILED  ObservabilityPackStatusType
+}{
+	FETCH_PENDING:   "FETCH_PENDING",
+	FETCH_SUCCESS:   "FETCH_SUCCESS",
+	FETCH_FAILED:    "FETCH_FAILED",
+	INSTALL_PENDING: "INSTALL_PENDING",
+	INSTALL_SUCCESS: "INSTALL_SUCCESS",
+	INSTALL_FAILED:  "INSTALL_FAILED",
 }
 
 type StatusError struct {
@@ -116,6 +141,66 @@ func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipesSelected(s, recipes); err != nil {
 			log.Errorf("Could not report recipe execution status: %s", err)
+		}
+	}
+}
+
+func (s *InstallStatus) ObservabilityPacksFetchPending(event ObservabilityPackStatusEvent) {
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FETCH_PENDING)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.ObservabilityPacksFetchPending(s); err != nil {
+			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+		}
+	}
+}
+
+func (s *InstallStatus) ObservabilityPacksFetchSuccess(event ObservabilityPackStatusEvent) {
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FETCH_SUCCESS)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.ObservabilityPacksFetchSuccess(s); err != nil {
+			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+		}
+	}
+}
+
+func (s *InstallStatus) ObservabilityPacksFetchFailed(event ObservabilityPackStatusEvent) {
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FETCH_FAILED)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.ObservabilityPacksFetchFailed(s); err != nil {
+			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+		}
+	}
+}
+
+func (s *InstallStatus) ObservabilityPacksInstallPending(event ObservabilityPackStatusEvent) {
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.INSTALL_PENDING)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.ObservabilityPacksInstallPending(s); err != nil {
+			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+		}
+	}
+}
+
+func (s *InstallStatus) ObservabilityPacksInstallSuccess(event ObservabilityPackStatusEvent) {
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.INSTALL_SUCCESS)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.ObservabilityPacksInstallSuccess(s); err != nil {
+			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+		}
+	}
+}
+
+func (s *InstallStatus) ObservabilityPacksInstallFailed(event ObservabilityPackStatusEvent) {
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.INSTALL_FAILED)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.ObservabilityPacksInstallFailed(s); err != nil {
+			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -295,6 +380,33 @@ func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
 	if version != "" {
 		s.CLIVersion = version
 	}
+}
+
+func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEvent, opst ObservabilityPackStatusType) {
+	statusError := StatusError{
+		Message: e.Msg,
+	}
+
+	var name string
+	if e.Name != "" {
+		name = e.Name
+	} else {
+		name = e.ObservabilityPack.Name
+	}
+
+	observabilityPackStatus := &ObservabilityPacksStatus{
+		Name:   name,
+		Error:  statusError,
+		Status: opst,
+	}
+	s.ObservabilityPacksStatuses = append(s.ObservabilityPacksStatuses, observabilityPackStatus)
+
+	log.WithFields(log.Fields{
+		"observabilityPack_name": e.ObservabilityPack.Name,
+		"status":                 opst,
+		"error":                  statusError.Message,
+		"statusCount":            len(s.Statuses),
+	}).Debug("observabilityPack event")
 }
 
 func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType) {
