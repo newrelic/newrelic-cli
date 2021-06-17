@@ -413,7 +413,7 @@ func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus 
 // Exiting early (i.e. an error occurred) will cause unresolved recipes to be marked as failed.
 func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, isUnsupported bool) {
 	for i, ss := range s.Statuses {
-		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
+		if ss.Status == RecipeStatusTypes.INSTALLING {
 			debugMsg := "failed"
 
 			if installCanceled {

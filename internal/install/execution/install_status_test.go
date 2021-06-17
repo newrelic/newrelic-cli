@@ -162,7 +162,7 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	require.NotNil(t, s.Timestamp)
 }
 
-func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
+func TestInstallStatus_shouldNotFailAvailableOnComplete(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
@@ -170,10 +170,10 @@ func TestInstallStatus_failAvailableOnComplete(t *testing.T) {
 	s.RecipeAvailable(r)
 
 	s.InstallComplete(nil)
-	require.Equal(t, RecipeStatusTypes.FAILED, s.Statuses[0].Status)
+	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
 }
 
-func TestInstallStatus_cancelAvailable(t *testing.T) {
+func TestInstallStatus_shouldNotFailAvailableOnCancel(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
@@ -181,7 +181,7 @@ func TestInstallStatus_cancelAvailable(t *testing.T) {
 	s.RecipeAvailable(r)
 
 	s.InstallCanceled()
-	require.Equal(t, RecipeStatusTypes.CANCELED, s.Statuses[0].Status)
+	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
 }
 
 func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
@@ -196,10 +196,11 @@ func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	recipeErrored := types.OpenInstallationRecipe{Name: "errored"}
 	erroredRecipeEvent := RecipeStatusEvent{Recipe: recipeErrored, EntityGUID: "erroredGUID"}
 
-	recipeCanceled := types.OpenInstallationRecipe{Name: "canceled"}
+	recipeCanceled := types.OpenInstallationRecipe{Name: "installing"}
+	canceledRecipeEvent := RecipeStatusEvent{Recipe: recipeCanceled, EntityGUID: "erroredGUID"}
 
 	s.RecipeAvailable(recipeInstalled)
-	s.RecipeAvailable(recipeCanceled)
+	s.RecipeInstalling(canceledRecipeEvent)
 	s.RecipeInstalled(installedRecipeEvent)
 	s.RecipeSkipped(skippedRecipeEvent)
 	s.RecipeFailed(erroredRecipeEvent)
