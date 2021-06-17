@@ -1,3 +1,12 @@
+<a name="v0.28.11"></a>
+## [v0.28.11] - 2021-06-17
+### Bug Fixes
+- **install:** keep cancel on available
+- **install:** dont mark failed recipes that are not installing
+
+### Features
+- **install:** add UNSUPPORTED status
+
 <a name="v0.28.10"></a>
 ## [v0.28.10] - 2021-06-17
 ### Bug Fixes
@@ -768,7 +777,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.10...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...HEAD
+[v0.28.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.10...v0.28.11
 [v0.28.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.9...v0.28.10
 [v0.28.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.8...v0.28.9
 [v0.28.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.7...v0.28.8
