@@ -431,7 +431,9 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 			if installCanceled {
 				s.Statuses[i].Status = RecipeStatusTypes.CANCELED
 			} else {
-				s.Statuses[i].Status = RecipeStatusTypes.FAILED
+				if ss.Status == RecipeStatusTypes.INSTALLING {
+					s.Statuses[i].Status = RecipeStatusTypes.FAILED
+				}
 			}
 		}
 
