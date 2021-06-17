@@ -67,7 +67,7 @@ var Command = &cobra.Command{
 					return
 				}
 
-				log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.nr/06vjAeZLKjP", err)
+				log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.newrelic.com/-/06vjAeZLKjP", err)
 			}
 		})
 	},
