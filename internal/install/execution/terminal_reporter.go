@@ -112,3 +112,7 @@ func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
 func (r TerminalStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	return nil
 }
+
+func (r TerminalStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
+	return nil
+}

@@ -15,6 +15,7 @@ func NewMockDiscoverer() *MockDiscoverer {
 		OS:              "linux",
 		Platform:        "",
 		PlatformVersion: "",
+		KernelArch:      "",
 	}
 
 	return &MockDiscoverer{
@@ -32,6 +33,10 @@ func (d *MockDiscoverer) SetPlatform(p string) {
 
 func (d *MockDiscoverer) SetPlatformVersion(pf string) {
 	d.DiscoveryManifest.PlatformVersion = pf
+}
+
+func (d *MockDiscoverer) SetKernelArch(arch string) {
+	d.DiscoveryManifest.KernelArch = arch
 }
 
 func (d *MockDiscoverer) GetManifest() *types.DiscoveryManifest {

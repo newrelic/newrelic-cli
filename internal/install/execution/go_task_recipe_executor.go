@@ -97,8 +97,16 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		}
 
 		// Recipe trigger a canceled event with specific exit code 130 used
-		if strings.Contains(err.Error(), "exit status 130") {
+		if isExitStatusCode(130, err) {
 			return types.ErrInterrupt
+		}
+
+		// We return exit code 131 when a user attempts to
+		// install a recipe on an unsupported operating system.
+		if isExitStatusCode(131, err) {
+			return &types.UnsupportedOperatingSytemError{
+				Err: errors.New(stderrCapture.LastFullLine),
+			}
 		}
 
 		// Catchall error formatting for child process errors
@@ -112,4 +120,9 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	return nil
+}
+
+func isExitStatusCode(exitCode int, err error) bool {
+	exitCodeString := fmt.Sprintf("exit status %d", exitCode)
+	return strings.Contains(err.Error(), exitCodeString)
 }

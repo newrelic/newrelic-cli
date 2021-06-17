@@ -13,6 +13,7 @@ type StatusSubscriber interface {
 	RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error
+	RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error
 	RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error
 }
 

@@ -159,6 +159,7 @@ func (i *RecipeInstaller) Install() error {
 		return err
 	}
 }
+
 func (i *RecipeInstaller) install(ctx context.Context) error {
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
@@ -166,11 +167,12 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	i.status.DiscoveryComplete(*m)
-
 	if err = i.assertDiscoveryValid(ctx, m); err != nil {
+		i.status.DiscoveryComplete(*m)
 		return err
 	}
+
+	i.status.DiscoveryComplete(*m)
 
 	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
@@ -302,8 +304,16 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", err
 		}
 
-		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+		if e, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
+				Recipe: *r,
+				Msg:    e.Error(),
+			})
 
+			return "", err
+		}
+
+		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
 		se := execution.RecipeStatusEvent{
 			Recipe: *r,
 			Msg:    msg,

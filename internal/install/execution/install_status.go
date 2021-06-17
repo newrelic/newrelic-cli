@@ -27,6 +27,7 @@ type InstallStatus struct {
 	HasCanceledRecipes    bool                    `json:"hasCanceledRecipes"`
 	HasSkippedRecipes     bool                    `json:"hasSkippedRecipes"`
 	HasFailedRecipes      bool                    `json:"hasFailedRecipes"`
+	HasUnsupportedRecipes bool                    `json:"hasUnsupportedRecipes"`
 	Skipped               []*RecipeStatus         `json:"recipesSkipped"`
 	Canceled              []*RecipeStatus         `json:"recipesCanceled"`
 	Failed                []*RecipeStatus         `json:"recipesFailed"`
@@ -60,6 +61,7 @@ var RecipeStatusTypes = struct {
 	INSTALLED   RecipeStatusType
 	SKIPPED     RecipeStatusType
 	RECOMMENDED RecipeStatusType
+	UNSUPPORTED RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
 	CANCELED:    "CANCELED",
@@ -68,6 +70,7 @@ var RecipeStatusTypes = struct {
 	INSTALLED:   "INSTALLED",
 	SKIPPED:     "SKIPPED",
 	RECOMMENDED: "RECOMMENDED",
+	UNSUPPORTED: "UNSUPPORTED",
 }
 
 type StatusError struct {
@@ -167,6 +170,16 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeSkipped(s, event); err != nil {
+			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+		}
+	}
+}
+
+func (s *InstallStatus) RecipeUnsupported(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.UNSUPPORTED)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.RecipeUnsupported(s, event); err != nil {
 			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
@@ -310,6 +323,10 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		if e.ValidationDurationMilliseconds > 0 {
 			found.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
 		}
+
+		if e.Msg != "" {
+			found.Error = statusError
+		}
 	} else {
 		recipeStatus := &RecipeStatus{
 			Name:        e.Recipe.Name,
@@ -343,6 +360,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 }
 
 func (s *InstallStatus) completed(err error) {
+	isUnsupported := false
 	s.Complete = true
 	s.Timestamp = utils.GetTimestamp()
 
@@ -355,6 +373,10 @@ func (s *InstallStatus) completed(err error) {
 			statusError.TaskPath = e.TaskPath()
 		}
 
+		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+			isUnsupported = true
+		}
+
 		s.Error = statusError
 	}
 
@@ -362,7 +384,7 @@ func (s *InstallStatus) completed(err error) {
 		"timestamp": s.Timestamp,
 	}).Debug("completed")
 
-	s.updateFinalInstallationStatuses(false)
+	s.updateFinalInstallationStatuses(false, isUnsupported)
 	s.setRedirectURL()
 }
 
@@ -373,7 +395,7 @@ func (s *InstallStatus) canceled() {
 		"timestamp": s.Timestamp,
 	}).Debug("canceled")
 
-	s.updateFinalInstallationStatuses(true)
+	s.updateFinalInstallationStatuses(true, false)
 }
 
 func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus {
@@ -389,13 +411,17 @@ func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus 
 // This function handles updating the final recipe statuses and top-level installation status.
 // Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
 // Exiting early (i.e. an error occurred) will cause unresolved recipes to be marked as failed.
-func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
+func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, isUnsupported bool) {
 	for i, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
 			debugMsg := "failed"
 
 			if installCanceled {
 				debugMsg = "canceled"
+			}
+
+			if isUnsupported {
+				debugMsg = "unsupported"
 			}
 
 			log.WithFields(log.Fields{
@@ -431,6 +457,11 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool) {
 		if ss.Status == RecipeStatusTypes.FAILED {
 			s.Failed = append(s.Failed, ss)
 			s.HasFailedRecipes = true
+		}
+
+		// Unsupported
+		if ss.Status == RecipeStatusTypes.UNSUPPORTED {
+			s.HasUnsupportedRecipes = true
 		}
 	}
 
