@@ -268,10 +268,6 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
 			log.Warn(err)
 			log.Warn(i.failMessage(r.DisplayName))
-
-			if len(recipes) == 1 {
-				return err
-			}
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
