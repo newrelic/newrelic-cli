@@ -3,6 +3,7 @@
 package execution
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -209,4 +210,12 @@ func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	require.True(t, s.HasSkippedRecipes)
 	require.True(t, s.HasCanceledRecipes)
 	require.True(t, s.HasFailedRecipes)
+}
+
+func TestStatus_HTTPSProxy(t *testing.T) {
+	os.Setenv("HTTPS_PROXY", "localhost:8888")
+	slg := NewPlatformLinkGenerator()
+	s := NewInstallStatus([]StatusSubscriber{}, slg)
+
+	require.Equal(t, "localhost:8888", s.HTTPSProxy)
 }

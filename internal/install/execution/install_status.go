@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -31,6 +32,7 @@ type InstallStatus struct {
 	Failed                []*RecipeStatus         `json:"recipesFailed"`
 	Installed             []*RecipeStatus         `json:"recipesInstalled"`
 	RedirectURL           string                  `json:"redirectUrl"`
+	HTTPSProxy            string                  `json:"httpsProxy"`
 	DocumentID            string
 	targetedInstall       bool
 	statusSubscriber      []StatusSubscriber
@@ -81,6 +83,7 @@ func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGe
 		LogFilePath:           config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
 		statusSubscriber:      reporters,
 		PlatformLinkGenerator: PlatformLinkGenerator,
+		HTTPSProxy:            httpproxy.FromEnvironment().HTTPSProxy,
 	}
 
 	return &s
