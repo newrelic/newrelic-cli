@@ -173,7 +173,7 @@ func TestInstallStatus_shouldNotFailAvailableOnComplete(t *testing.T) {
 	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
 }
 
-func TestInstallStatus_shouldNotFailAvailableOnCancel(t *testing.T) {
+func TestInstallStatus_shouldFailAvailableOnCancel(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
@@ -181,7 +181,7 @@ func TestInstallStatus_shouldNotFailAvailableOnCancel(t *testing.T) {
 	s.RecipeAvailable(r)
 
 	s.InstallCanceled()
-	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
+	require.Equal(t, RecipeStatusTypes.CANCELED, s.Statuses[0].Status)
 }
 
 func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
