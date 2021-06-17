@@ -269,15 +269,6 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			log.Warn(err)
 			log.Warn(i.failMessage(r.DisplayName))
 
-			if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
-				// Requested business logic:
-				// When guided, if infra or log installation fails, stop processing and report immediately.
-				// When targeted install, stop processing and report first error.
-				if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName {
-					return err
-				}
-			}
-
 			if len(recipes) == 1 {
 				return err
 			}
