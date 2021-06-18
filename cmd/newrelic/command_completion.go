@@ -64,11 +64,6 @@ var cmdCompletion = &cobra.Command{
 			if err != nil {
 				log.Error(err)
 			}
-		case "powershell":
-			err := Command.GenPowerShellCompletion(os.Stdout)
-			if err != nil {
-				log.Error(err)
-			}
 		case "zsh":
 			err := Command.GenZshCompletion(os.Stdout)
 			if err != nil {
@@ -79,8 +74,13 @@ var cmdCompletion = &cobra.Command{
 			if err != nil {
 				log.Error(err)
 			}
+		case "powershell":
+			err := Command.GenPowerShellCompletion(os.Stdout)
+			if err != nil {
+				log.Error(err)
+			}
 		default:
-			log.Error("--shell must be one of [bash, powershell, zsh, fish]")
+			log.Error("--shell must be one of [bash, zsh, fish, powershell]")
 		}
 	},
 }
