@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"regexp"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -15,7 +17,6 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/dashboards"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
-	log "github.com/sirupsen/logrus"
 )
 
 type ServicePacksInstaller struct {

@@ -83,19 +83,19 @@ type ObservabilityPackStatus struct {
 type ObservabilityPackStatusType string
 
 var ObservabilityPackStatusTypes = struct {
-	FETCH_PENDING   ObservabilityPackStatusType
-	FETCH_SUCCESS   ObservabilityPackStatusType
-	FETCH_FAILED    ObservabilityPackStatusType
-	INSTALL_PENDING ObservabilityPackStatusType
-	INSTALL_SUCCESS ObservabilityPackStatusType
-	INSTALL_FAILED  ObservabilityPackStatusType
+	FetchPending   ObservabilityPackStatusType
+	FetchSuccess   ObservabilityPackStatusType
+	FetchFailed    ObservabilityPackStatusType
+	InstallPending ObservabilityPackStatusType
+	InstallSuccess ObservabilityPackStatusType
+	InstallFailed  ObservabilityPackStatusType
 }{
-	FETCH_PENDING:   "FETCH_PENDING",
-	FETCH_SUCCESS:   "FETCH_SUCCESS",
-	FETCH_FAILED:    "FETCH_FAILED",
-	INSTALL_PENDING: "INSTALL_PENDING",
-	INSTALL_SUCCESS: "INSTALL_SUCCESS",
-	INSTALL_FAILED:  "INSTALL_FAILED",
+	FetchPending:   "FetchPending",
+	FetchSuccess:   "FetchSuccess",
+	FetchFailed:    "FetchFailed",
+	InstallPending: "InstallPending",
+	InstallSuccess: "InstallSuccess",
+	InstallFailed:  "InstallFailed",
 }
 
 type StatusError struct {
@@ -146,7 +146,7 @@ func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) 
 }
 
 func (s *InstallStatus) ObservabilityPackFetchPending(event ObservabilityPackStatusEvent) {
-	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FETCH_PENDING)
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FetchPending)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackFetchPending(s); err != nil {
@@ -156,7 +156,7 @@ func (s *InstallStatus) ObservabilityPackFetchPending(event ObservabilityPackSta
 }
 
 func (s *InstallStatus) ObservabilityPackFetchSuccess(event ObservabilityPackStatusEvent) {
-	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FETCH_SUCCESS)
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FetchSuccess)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackFetchSuccess(s); err != nil {
@@ -166,7 +166,7 @@ func (s *InstallStatus) ObservabilityPackFetchSuccess(event ObservabilityPackSta
 }
 
 func (s *InstallStatus) ObservabilityPackFetchFailed(event ObservabilityPackStatusEvent) {
-	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FETCH_FAILED)
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.FetchFailed)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackFetchFailed(s); err != nil {
@@ -176,7 +176,7 @@ func (s *InstallStatus) ObservabilityPackFetchFailed(event ObservabilityPackStat
 }
 
 func (s *InstallStatus) ObservabilityPackInstallPending(event ObservabilityPackStatusEvent) {
-	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.INSTALL_PENDING)
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.InstallPending)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackInstallPending(s); err != nil {
@@ -186,7 +186,7 @@ func (s *InstallStatus) ObservabilityPackInstallPending(event ObservabilityPackS
 }
 
 func (s *InstallStatus) ObservabilityPackInstallSuccess(event ObservabilityPackStatusEvent) {
-	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.INSTALL_SUCCESS)
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.InstallSuccess)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackInstallSuccess(s); err != nil {
@@ -196,7 +196,7 @@ func (s *InstallStatus) ObservabilityPackInstallSuccess(event ObservabilityPackS
 }
 
 func (s *InstallStatus) ObservabilityPackInstallFailed(event ObservabilityPackStatusEvent) {
-	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.INSTALL_FAILED)
+	s.withObservabilityPackEvent(event, ObservabilityPackStatusTypes.InstallFailed)
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackInstallFailed(s); err != nil {

@@ -194,33 +194,33 @@ func TestInstallStatus_observabilityPackStatusUpdateMethods(t *testing.T) {
 	s.ObservabilityPackFetchPending(eventFetchPending)
 	result := s.getObservabilityPackStatus(eventFetchPending.Name)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FETCH_PENDING)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FetchPending)
 
 	s.ObservabilityPackFetchSuccess(eventSuccess)
 	result = s.getObservabilityPackStatus(eventSuccess.ObservabilityPack.Name)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FETCH_SUCCESS)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FetchSuccess)
 
 	s.ObservabilityPackFetchFailed(eventFailure)
 	result = s.getObservabilityPackStatus(eventFailure.ObservabilityPack.Name)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FETCH_FAILED)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FetchFailed)
 	require.Equal(t, result.Error.Message, "failure")
 
 	s.ObservabilityPackInstallPending(eventInstallPending)
 	result = s.getObservabilityPackStatus(eventInstallPending.ObservabilityPack.Name)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, ObservabilityPackStatusTypes.INSTALL_PENDING)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.InstallPending)
 
 	s.ObservabilityPackInstallSuccess(eventSuccess)
 	result = s.getObservabilityPackStatus(eventSuccess.ObservabilityPack.Name)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, ObservabilityPackStatusTypes.INSTALL_SUCCESS)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.InstallSuccess)
 
 	s.ObservabilityPackInstallFailed(eventFailure)
 	result = s.getObservabilityPackStatus(eventFailure.ObservabilityPack.Name)
 	require.NotNil(t, result)
-	require.Equal(t, result.Status, ObservabilityPackStatusTypes.INSTALL_FAILED)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.InstallFailed)
 	require.Equal(t, result.Error.Message, "failure")
 }
 
