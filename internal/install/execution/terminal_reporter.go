@@ -117,26 +117,26 @@ func (r TerminalStatusReporter) RecipeUnsupported(status *InstallStatus, event R
 	return nil
 }
 
-func (r TerminalStatusReporter) ObservabilityPacksFetchPending(status *InstallStatus) error {
+func (r TerminalStatusReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ObservabilityPacksFetchSuccess(status *InstallStatus) error {
+func (r TerminalStatusReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ObservabilityPacksFetchFailed(status *InstallStatus) error {
+func (r TerminalStatusReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ObservabilityPacksInstallPending(status *InstallStatus) error {
+func (r TerminalStatusReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ObservabilityPacksInstallSuccess(status *InstallStatus) error {
+func (r TerminalStatusReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
 	return nil
 }
 
-func (r TerminalStatusReporter) ObservabilityPacksInstallFailed(status *InstallStatus) error {
+func (r TerminalStatusReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
 	return nil
 }

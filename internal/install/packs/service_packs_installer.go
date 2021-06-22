@@ -42,7 +42,7 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 	defer p.progressIndicator.Stop()
 
 	for _, pack := range packs {
-		p.installStatus.ObservabilityPacksInstallPending(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack})
+		p.installStatus.ObservabilityPackInstallPending(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack})
 		fmt.Printf("\n  Installing pack: %s\n", pack.Name)
 
 		// Only installing dashboards currently
@@ -52,7 +52,7 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 				if _, err := p.createObservabilityPackDashboard(ctx, dashboard); err != nil {
 					errMsg := fmt.Sprintf("failed to create observability pack dashboard [%s]: %s", dashboard.Name, err)
 
-					p.installStatus.ObservabilityPacksInstallFailed(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack, Msg: errMsg})
+					p.installStatus.ObservabilityPackInstallFailed(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack, Msg: errMsg})
 					p.progressIndicator.Fail(msg)
 
 					return fmt.Errorf(errMsg)
@@ -60,7 +60,7 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 			}
 		}
 
-		p.installStatus.ObservabilityPacksInstallSuccess(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack})
+		p.installStatus.ObservabilityPackInstallSuccess(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack})
 	}
 
 	p.progressIndicator.Success(msg)

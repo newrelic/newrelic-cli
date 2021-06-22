@@ -39,7 +39,7 @@ func (f *ServicePacksFetcher) FetchPacks(ctx context.Context, recipes []types.Op
 
 			for _, p := range r.ObservabilityPacks {
 				log.Tracef("Current recipe.ObservabilityPacks filter: %+v", p)
-				f.installStatus.ObservabilityPacksFetchPending(execution.ObservabilityPackStatusEvent{Name: p.Name})
+				f.installStatus.ObservabilityPackFetchPending(execution.ObservabilityPackStatusEvent{Name: p.Name})
 
 				criteria := createObservabilityPackCriteriaInput(&p)
 				vars := map[string]interface{}{
@@ -48,9 +48,9 @@ func (f *ServicePacksFetcher) FetchPacks(ctx context.Context, recipes []types.Op
 
 				var resp searchQueryResult
 				if err := f.client.QueryWithResponseAndContext(ctx, observabilityPackSearchQuery, vars, &resp); err != nil {
-					f.installStatus.ObservabilityPacksFetchFailed(execution.ObservabilityPackStatusEvent{
+					f.installStatus.ObservabilityPackFetchFailed(execution.ObservabilityPackStatusEvent{
 						Name: p.Name,
-						Msg: fmt.Sprintf("failed to query observabilityPackSearch: %+v", vars),
+						Msg:  fmt.Sprintf("failed to query observabilityPackSearch: %+v", vars),
 					})
 					return nil, err
 				}
@@ -58,7 +58,7 @@ func (f *ServicePacksFetcher) FetchPacks(ctx context.Context, recipes []types.Op
 				results := resp.Docs.OpenInstallation.ObservabilityPackSearch.Results.ObservabilityPacks
 
 				for _, v := range results {
-					f.installStatus.ObservabilityPacksFetchSuccess(execution.ObservabilityPackStatusEvent{ObservabilityPack: v})
+					f.installStatus.ObservabilityPackFetchSuccess(execution.ObservabilityPackStatusEvent{ObservabilityPack: v})
 					packs = append(packs, v)
 				}
 			}
