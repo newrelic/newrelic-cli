@@ -52,7 +52,7 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 				if _, err := p.createObservabilityPackDashboard(ctx, dashboard); err != nil {
 					errMsg := fmt.Sprintf("failed to create observability pack dashboard [%s]: %s", dashboard.Name, err)
 
-					p.installStatus.ObservabilityPacksInstallFailed(execution.ObservabilityPackStatusEvent{Msg: errMsg})
+					p.installStatus.ObservabilityPacksInstallFailed(execution.ObservabilityPackStatusEvent{ObservabilityPack: pack, Msg: errMsg})
 					p.progressIndicator.Fail(msg)
 
 					return fmt.Errorf(errMsg)

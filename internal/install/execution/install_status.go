@@ -394,12 +394,22 @@ func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEven
 		name = e.ObservabilityPack.Name
 	}
 
-	observabilityPackStatus := &ObservabilityPacksStatus{
-		Name:   name,
-		Error:  statusError,
-		Status: opst,
+	found := s.getObservabilityPackStatus(name)
+
+	if found != nil {
+		found.Status = opst
+
+		if e.Msg != "" {
+			found.Error = statusError
+		}
+	} else {
+		observabilityPackStatus := &ObservabilityPacksStatus{
+			Name:   name,
+			Error:  statusError,
+			Status: opst,
+		}
+		s.ObservabilityPacksStatuses = append(s.ObservabilityPacksStatuses, observabilityPackStatus)
 	}
-	s.ObservabilityPacksStatuses = append(s.ObservabilityPacksStatuses, observabilityPackStatus)
 
 	log.WithFields(log.Fields{
 		"observabilityPack_name": e.ObservabilityPack.Name,
@@ -514,6 +524,16 @@ func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus 
 	for _, recipe := range s.Statuses {
 		if recipe.Name == r.Name {
 			return recipe
+		}
+	}
+
+	return nil
+}
+
+func (s *InstallStatus) getObservabilityPackStatus(name string) *ObservabilityPacksStatus {
+	for _, pack := range s.ObservabilityPacksStatuses {
+		if pack.Name == name {
+			return pack
 		}
 	}
 

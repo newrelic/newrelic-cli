@@ -49,6 +49,7 @@ func (f *ServicePacksFetcher) FetchPacks(ctx context.Context, recipes []types.Op
 				var resp searchQueryResult
 				if err := f.client.QueryWithResponseAndContext(ctx, observabilityPackSearchQuery, vars, &resp); err != nil {
 					f.installStatus.ObservabilityPacksFetchFailed(execution.ObservabilityPackStatusEvent{
+						Name: p.Name,
 						Msg: fmt.Sprintf("failed to query observabilityPackSearch: %+v", vars),
 					})
 					return nil, err
