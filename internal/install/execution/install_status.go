@@ -90,12 +90,12 @@ var ObservabilityPackStatusTypes = struct {
 	InstallSuccess ObservabilityPackStatusType
 	InstallFailed  ObservabilityPackStatusType
 }{
-	FetchPending:   "FetchPending",
-	FetchSuccess:   "FetchSuccess",
-	FetchFailed:    "FetchFailed",
-	InstallPending: "InstallPending",
-	InstallSuccess: "InstallSuccess",
-	InstallFailed:  "InstallFailed",
+	FetchPending:   "FETCH_PENDING",
+	FetchSuccess:   "FETCH_SUCCESS",
+	FetchFailed:    "FETCH_FAILED",
+	InstallPending: "INSTALL_PENDING",
+	InstallSuccess: "INSTALL_SUCCESS",
+	InstallFailed:  "INSTALL_FAILED",
 }
 
 type StatusError struct {
