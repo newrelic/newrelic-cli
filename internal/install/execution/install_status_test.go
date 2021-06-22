@@ -162,6 +162,68 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	require.NotNil(t, s.Timestamp)
 }
 
+func TestInstallStatus_observabilityPackStatusUpdateMethods(t *testing.T) {
+	slg := NewPlatformLinkGenerator()
+	s := NewInstallStatus([]StatusSubscriber{}, slg)
+
+	eventFetchPending := ObservabilityPackStatusEvent{
+		Name: "test-pack",
+	}
+
+	eventInstallPending := ObservabilityPackStatusEvent{
+		ObservabilityPack: types.OpenInstallationObservabilityPack{
+			Name: "test-pack",
+		},
+	}
+
+	// Success event is the same for Fetch and Install
+	eventSuccess := ObservabilityPackStatusEvent{
+		ObservabilityPack: types.OpenInstallationObservabilityPack{
+			Name: "test-pack",
+		},
+	}
+
+	// Failure event is the same for Fetch and Install
+	eventFailure := ObservabilityPackStatusEvent{
+		ObservabilityPack: types.OpenInstallationObservabilityPack{
+			Name: "test-pack",
+		},
+		Msg: "failure",
+	}
+
+	s.ObservabilityPackFetchPending(eventFetchPending)
+	result := s.getObservabilityPackStatus(eventFetchPending.Name)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FETCH_PENDING)
+
+	s.ObservabilityPackFetchSuccess(eventSuccess)
+	result = s.getObservabilityPackStatus(eventSuccess.ObservabilityPack.Name)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FETCH_SUCCESS)
+
+	s.ObservabilityPackFetchFailed(eventFailure)
+	result = s.getObservabilityPackStatus(eventFailure.ObservabilityPack.Name)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FETCH_FAILED)
+	require.Equal(t, result.Error.Message, "failure")
+
+	s.ObservabilityPackInstallPending(eventInstallPending)
+	result = s.getObservabilityPackStatus(eventInstallPending.ObservabilityPack.Name)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.INSTALL_PENDING)
+
+	s.ObservabilityPackInstallSuccess(eventSuccess)
+	result = s.getObservabilityPackStatus(eventSuccess.ObservabilityPack.Name)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.INSTALL_SUCCESS)
+
+	s.ObservabilityPackInstallFailed(eventFailure)
+	result = s.getObservabilityPackStatus(eventFailure.ObservabilityPack.Name)
+	require.NotNil(t, result)
+	require.Equal(t, result.Status, ObservabilityPackStatusTypes.INSTALL_FAILED)
+	require.Equal(t, result.Error.Message, "failure")
+}
+
 func TestInstallStatus_shouldNotFailAvailableOnComplete(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
