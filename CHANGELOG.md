@@ -1,3 +1,8 @@
+<a name="v0.28.12"></a>
+## [v0.28.12] - 2021-06-23
+### Bug Fixes
+- **install:** temp disable of the newrelic validation on start until default profile is fixed
+
 <a name="v0.28.11"></a>
 ## [v0.28.11] - 2021-06-17
 ### Bug Fixes
@@ -777,7 +782,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...HEAD
+[v0.28.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...v0.28.12
 [v0.28.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.10...v0.28.11
 [v0.28.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.9...v0.28.10
 [v0.28.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.8...v0.28.9
