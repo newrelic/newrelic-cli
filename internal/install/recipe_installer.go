@@ -135,10 +135,10 @@ func (i *RecipeInstaller) Install() error {
 	errChan := make(chan error)
 	var err error
 
-	log.Printf("Validating connectivity to the New Relic platform...")
-	if err = i.configValidator.Validate(ctx); err != nil {
-		return err
-	}
+	// log.Printf("Validating connectivity to the New Relic platform...")
+	// if err = i.configValidator.Validate(ctx); err != nil {
+	// 	return err
+	// }
 
 	go func(ctx context.Context) {
 		errChan <- i.install(ctx)
