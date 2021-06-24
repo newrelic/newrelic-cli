@@ -1,3 +1,5 @@
+<a name="v0.28.13"></a>
+## [v0.28.13] - 2021-06-24
 <a name="v0.28.12"></a>
 ## [v0.28.12] - 2021-06-23
 ### Bug Fixes
@@ -782,7 +784,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.13...HEAD
+[v0.28.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...v0.28.13
 [v0.28.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...v0.28.12
 [v0.28.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.10...v0.28.11
 [v0.28.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.9...v0.28.10
