@@ -192,33 +192,33 @@ func TestInstallStatus_observabilityPackStatusUpdateMethods(t *testing.T) {
 	}
 
 	s.ObservabilityPackFetchPending(eventFetchPending)
-	result := s.getObservabilityPackStatus(eventFetchPending.Name)
+	result := s.getObservabilityPackStatusByPackStatusType(ObservabilityPackStatusTypes.FetchPending)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FetchPending)
 
 	s.ObservabilityPackFetchSuccess(eventSuccess)
-	result = s.getObservabilityPackStatus(eventSuccess.ObservabilityPack.Name)
+	result = s.getObservabilityPackStatusByPackStatusType(ObservabilityPackStatusTypes.FetchSuccess)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FetchSuccess)
 
 	s.ObservabilityPackFetchFailed(eventFailure)
-	result = s.getObservabilityPackStatus(eventFailure.ObservabilityPack.Name)
+	result = s.getObservabilityPackStatusByPackStatusType(ObservabilityPackStatusTypes.FetchFailed)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, ObservabilityPackStatusTypes.FetchFailed)
 	require.Equal(t, result.Error.Message, "failure")
 
 	s.ObservabilityPackInstallPending(eventInstallPending)
-	result = s.getObservabilityPackStatus(eventInstallPending.ObservabilityPack.Name)
+	result = s.getObservabilityPackStatusByPackStatusType(ObservabilityPackStatusTypes.InstallPending)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, ObservabilityPackStatusTypes.InstallPending)
 
 	s.ObservabilityPackInstallSuccess(eventSuccess)
-	result = s.getObservabilityPackStatus(eventSuccess.ObservabilityPack.Name)
+	result = s.getObservabilityPackStatusByPackStatusType(ObservabilityPackStatusTypes.InstallSuccess)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, ObservabilityPackStatusTypes.InstallSuccess)
 
 	s.ObservabilityPackInstallFailed(eventFailure)
-	result = s.getObservabilityPackStatus(eventFailure.ObservabilityPack.Name)
+	result = s.getObservabilityPackStatusByPackStatusType(ObservabilityPackStatusTypes.InstallFailed)
 	require.NotNil(t, result)
 	require.Equal(t, result.Status, ObservabilityPackStatusTypes.InstallFailed)
 	require.Equal(t, result.Error.Message, "failure")

@@ -394,22 +394,36 @@ func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEven
 		name = e.ObservabilityPack.Name
 	}
 
-	found := s.getObservabilityPackStatus(name)
+	// Not using this logic for now: these events are sent too
+	// quick for the UI to keep up when we modify an existing status.
+	// Instead, we'll now send a list of events
+	//
+	// We can switch back to using this once the install-events-service
+	// is in place
+	//
+	// found := s.getObservabilityPackStatusByPackName(name)
+	//
+	// if found != nil {
+	// 	found.Status = opst
+	//
+	// 	if e.Msg != "" {
+	// 		found.Error = statusError
+	// 	}
+	// } else {
+	// observabilityPackStatus := &ObservabilityPackStatus{
+	// 	Name:   name,
+	// 	Error:  statusError,
+	// 	Status: opst,
+	// }
+	// s.ObservabilityPackStatuses = append(s.ObservabilityPackStatuses, observabilityPackStatus)
+	// }
 
-	if found != nil {
-		found.Status = opst
-
-		if e.Msg != "" {
-			found.Error = statusError
-		}
-	} else {
-		observabilityPackStatus := &ObservabilityPackStatus{
-			Name:   name,
-			Error:  statusError,
-			Status: opst,
-		}
-		s.ObservabilityPackStatuses = append(s.ObservabilityPackStatuses, observabilityPackStatus)
+	observabilityPackStatus := &ObservabilityPackStatus{
+		Name:   name,
+		Error:  statusError,
+		Status: opst,
 	}
+	s.ObservabilityPackStatuses = append(s.ObservabilityPackStatuses, observabilityPackStatus)
 
 	log.WithFields(log.Fields{
 		"observabilityPack_name": e.ObservabilityPack.Name,
@@ -530,9 +544,25 @@ func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus 
 	return nil
 }
 
-func (s *InstallStatus) getObservabilityPackStatus(name string) *ObservabilityPackStatus {
+// This is unused for now: these events are sent too
+// quick for the UI to keep up when we modify an existing status.
+// Instead, we'll now send a list of events
+//
+// We can switch back to using this once the install-events-service
+// is in place
+// func (s *InstallStatus) getObservabilityPackStatusByPackName(name string) *ObservabilityPackStatus {
+// 	for _, pack := range s.ObservabilityPackStatuses {
+// 		if pack.Name == name {
+// 			return pack
+// 		}
+// 	}
+
+// 	return nil
+// }
+
+func (s *InstallStatus) getObservabilityPackStatusByPackStatusType(st ObservabilityPackStatusType) *ObservabilityPackStatus {
 	for _, pack := range s.ObservabilityPackStatuses {
-		if pack.Name == name {
+		if pack.Status == st {
 			return pack
 		}
 	}
