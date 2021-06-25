@@ -638,32 +638,12 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 	}
 
 	packs := s.collectStatuses()
-	// packs := s.collectStatuses()
 
 	for i, ops := range s.ObservabilityPackStatuses {
-		// Collect status lists for each pack
-
-		// Iterate over this collection and check the last status
-		// If not INSTALL_SUCCESS, mark as INSTALL_FAILED
-
-		// Iterate over packs and update the Installed/Cancelled/Failed lists
-
-		// Compare ops.Status w/ the last known status in the pps list, and if they're the same && not FETCH_FAILED/INSTALL_SUCCESS/INSTALL_FAILED, update to INSTALL_FAILED
-		// var partial PartialObservabilityPackStatus
-		// for _, p := range packs {
-		// 	if p.Name == ops.Name {
-		// 		partial = p
-		// 	}
-		// }
-
+		// Compare ops.Status w/ the last known status
+		// If they're the same && not FETCH_FAILED/INSTALL_SUCCESS/INSTALL_FAILED (these are final statuses), update to CANCELED/INSTALL_FAILED
 		if v, ok := packs[ops.Name]; ok {
 			lastStatus := v[len(v)-1]
-			//pack[s.Name] = append(v, s.Status)
-
-			// if pps != nil {
-
-			// }
-			// lastStatus := partial.Statuses[len(partial.Statuses)-1]
 
 			if lastStatus == ops.Status && (lastStatus != ObservabilityPackStatusTypes.FetchFailed &&
 				lastStatus != ObservabilityPackStatusTypes.InstallSuccess &&
@@ -682,37 +662,12 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 				if installCanceled {
 					s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.Canceled
 				} else {
-					// ops.Status = ObservabilityPackStatusTypes.InstallFailed
 					s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.InstallFailed
-
 				}
 			}
-
 		}
 
-		// if ops.Status == ObservabilityPackStatusTypes.FetchPending || ops.Status == ObservabilityPackStatusTypes.FetchSuccess || ops.Status == ObservabilityPackStatusTypes.InstallPending { //RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
-		// 	debugMsg := "failed"
-
-		// 	if installCanceled {
-		// 		debugMsg = "canceled"
-		// 	}
-
-		// 	log.WithFields(log.Fields{
-		// 		"observabilityPack": s.ObservabilityPackStatuses[i].Name,
-		// 	}).Debug(fmt.Sprintf("marking observabilityPack %s", debugMsg))
-
-		// 	if installCanceled {
-		// 		s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.Canceled
-		// 	}
-		// 	// else {
-		// 	// 	if ops.Status == ObservabilityPackStatusTypes.FetchPending {
-		// 	// 		s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.FetchFailed
-		// 	// 	} else if ops.Status == ObservabilityPackStatusTypes.FetchSuccess || ops.Status == ObservabilityPackStatusTypes.InstallPending {
-		// 	// 		s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.InstallFailed
-		// 	// 	}
-		// 	// }
-		// }
-
+		// Report out the final statuses
 		// Installed
 		if ops.Status == ObservabilityPackStatusTypes.InstallSuccess {
 			s.InstalledPacks = append(s.InstalledPacks, ops)
@@ -743,6 +698,10 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 	}).Debug("final installation statuses updated")
 }
 
+/**
+ * Collect every pack's status in a map for ease of deciding the final state
+ * of a given pack
+ */
 func (s *InstallStatus) collectStatuses() map[string][]ObservabilityPackStatusType {
 	res := map[string][]ObservabilityPackStatusType{}
 
@@ -758,49 +717,3 @@ func (s *InstallStatus) collectStatuses() map[string][]ObservabilityPackStatusTy
 	log.Tracef("[InstallStatus.collectStatuses]: %+v", res)
 	return res
 }
-
-// func (s *InstallStatus) collectStatuses() []PartialObservabilityPackStatus {
-// 	ppStatuses := []PartialObservabilityPackStatus{}
-// 	log.Tracef("ObservabilityPackStatuses: %+v", s.ObservabilityPackStatuses)
-// 	for _, s := range s.ObservabilityPackStatuses {
-
-// 		log.Tracef("len(ppStatuses): %d", len(ppStatuses))
-// 		if len(ppStatuses) > 0 {
-// 			log.Tracef("ppStatuses: %+v", ppStatuses)
-// 			for i, ss := range ppStatuses {
-// 				log.WithFields(log.Fields{
-// 					"ss.Name": ss.Name,
-// 					"s.Name":  s.Name,
-// 				}).Debug("NAMES")
-
-// 				if ss.Name == s.Name {
-// 					ppStatuses[i].Statuses = append(ss.Statuses, s.Status)
-// 				} else {
-// 					log.Tracef("appending %s", s.Name)
-// 					ppStatuses = append(ppStatuses, PartialObservabilityPackStatus{
-// 						Name: s.Name,
-// 						Statuses: []ObservabilityPackStatusType{
-// 							s.Status,
-// 						},
-// 					})
-// 				}
-// 			}
-// 		} else {
-// 			log.Tracef("appending 1st time")
-// 			ppStatuses = append(ppStatuses, PartialObservabilityPackStatus{
-// 				Name: s.Name,
-// 				Statuses: []ObservabilityPackStatusType{
-// 					s.Status,
-// 				},
-// 			})
-// 		}
-// 	}
-// 	log.Tracef("[InstallStatus.collectStatuses]: %+v", ppStatuses)
-// 	return ppStatuses
-// }
-
-// type PartialObservabilityPackStatus struct {
-// 	Name     string
-// 	Statuses []ObservabilityPackStatusType
-// 	// ObservabilityPackStatus *ObservabilityPackStatus
-// }
