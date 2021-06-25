@@ -29,10 +29,16 @@ type InstallStatus struct {
 	HasSkippedRecipes         bool                       `json:"hasSkippedRecipes"`
 	HasFailedRecipes          bool                       `json:"hasFailedRecipes"`
 	HasUnsupportedRecipes     bool                       `json:"hasUnsupportedRecipes"`
+	HasInstalledPacks         bool                       `json:"hasInstalledPacks"`
+	HasCanceledPacks          bool                       `json:"hasCanceledPacks"`
+	HasFailedPacks            bool                       `json:"hasFailedPacks"`
 	Skipped                   []*RecipeStatus            `json:"recipesSkipped"`
 	Canceled                  []*RecipeStatus            `json:"recipesCanceled"`
 	Failed                    []*RecipeStatus            `json:"recipesFailed"`
 	Installed                 []*RecipeStatus            `json:"recipesInstalled"`
+	CanceledPacks             []*ObservabilityPackStatus `json:"packsCanceled"`
+	FailedPacks               []*ObservabilityPackStatus `json:"packsFailed"`
+	InstalledPacks            []*ObservabilityPackStatus `json:"packslInstalled"`
 	RedirectURL               string                     `json:"redirectUrl"`
 	HTTPSProxy                string                     `json:"httpsProxy"`
 	DocumentID                string
@@ -89,6 +95,7 @@ var ObservabilityPackStatusTypes = struct {
 	InstallPending ObservabilityPackStatusType
 	InstallSuccess ObservabilityPackStatusType
 	InstallFailed  ObservabilityPackStatusType
+	Canceled       ObservabilityPackStatusType
 }{
 	FetchPending:   "FETCH_PENDING",
 	FetchSuccess:   "FETCH_SUCCESS",
@@ -96,6 +103,7 @@ var ObservabilityPackStatusTypes = struct {
 	InstallPending: "INSTALL_PENDING",
 	InstallSuccess: "INSTALL_SUCCESS",
 	InstallFailed:  "INSTALL_FAILED",
+	Canceled:       "CANCELED",
 }
 
 type StatusError struct {
@@ -629,10 +637,170 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 		}
 	}
 
+	packs := s.collectStatuses()
+	// packs := s.collectStatuses()
+
+	for i, ops := range s.ObservabilityPackStatuses {
+		// Collect status lists for each pack
+
+		// Iterate over this collection and check the last status
+		// If not INSTALL_SUCCESS, mark as INSTALL_FAILED
+
+		// Iterate over packs and update the Installed/Cancelled/Failed lists
+
+		// Compare ops.Status w/ the last known status in the pps list, and if they're the same && not FETCH_FAILED/INSTALL_SUCCESS/INSTALL_FAILED, update to INSTALL_FAILED
+		// var partial PartialObservabilityPackStatus
+		// for _, p := range packs {
+		// 	if p.Name == ops.Name {
+		// 		partial = p
+		// 	}
+		// }
+
+		if v, ok := packs[ops.Name]; ok {
+			lastStatus := v[len(v)-1]
+			//pack[s.Name] = append(v, s.Status)
+
+			// if pps != nil {
+
+			// }
+			// lastStatus := partial.Statuses[len(partial.Statuses)-1]
+
+			if lastStatus == ops.Status && (lastStatus != ObservabilityPackStatusTypes.FetchFailed &&
+				lastStatus != ObservabilityPackStatusTypes.InstallSuccess &&
+				lastStatus != ObservabilityPackStatusTypes.InstallFailed) {
+				debugMsg := "failed"
+
+				if installCanceled {
+					debugMsg = "canceled"
+				}
+
+				log.WithFields(log.Fields{
+					"lastStatus":        lastStatus,
+					"observabilityPack": s.ObservabilityPackStatuses[i].Name,
+				}).Debug(fmt.Sprintf("marking observabilityPack %s", debugMsg))
+
+				if installCanceled {
+					s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.Canceled
+				} else {
+					// ops.Status = ObservabilityPackStatusTypes.InstallFailed
+					s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.InstallFailed
+
+				}
+			}
+
+		}
+
+		// if ops.Status == ObservabilityPackStatusTypes.FetchPending || ops.Status == ObservabilityPackStatusTypes.FetchSuccess || ops.Status == ObservabilityPackStatusTypes.InstallPending { //RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
+		// 	debugMsg := "failed"
+
+		// 	if installCanceled {
+		// 		debugMsg = "canceled"
+		// 	}
+
+		// 	log.WithFields(log.Fields{
+		// 		"observabilityPack": s.ObservabilityPackStatuses[i].Name,
+		// 	}).Debug(fmt.Sprintf("marking observabilityPack %s", debugMsg))
+
+		// 	if installCanceled {
+		// 		s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.Canceled
+		// 	}
+		// 	// else {
+		// 	// 	if ops.Status == ObservabilityPackStatusTypes.FetchPending {
+		// 	// 		s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.FetchFailed
+		// 	// 	} else if ops.Status == ObservabilityPackStatusTypes.FetchSuccess || ops.Status == ObservabilityPackStatusTypes.InstallPending {
+		// 	// 		s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.InstallFailed
+		// 	// 	}
+		// 	// }
+		// }
+
+		// Installed
+		if ops.Status == ObservabilityPackStatusTypes.InstallSuccess {
+			s.InstalledPacks = append(s.InstalledPacks, ops)
+			s.HasInstalledPacks = true
+		}
+
+		// Canceled
+		if ops.Status == ObservabilityPackStatusTypes.Canceled {
+			s.CanceledPacks = append(s.CanceledPacks, ops)
+			s.HasCanceledPacks = true
+		}
+
+		// Errored
+		if ops.Status == ObservabilityPackStatusTypes.InstallFailed {
+			s.FailedPacks = append(s.FailedPacks, ops)
+			s.HasFailedPacks = true
+		}
+	}
+
 	log.WithFields(log.Fields{
 		"hasInstalledRecipes": s.HasInstalledRecipes,
 		"hasSkippedRecipes":   s.HasSkippedRecipes,
 		"hasCanceledRecipes":  s.HasCanceledRecipes,
 		"hasFailedRecipes":    s.HasFailedRecipes,
+		"hasInstalledPacks":   s.HasInstalledPacks,
+		"hasCanceledPacks":    s.HasCanceledPacks,
+		"hasFailedPacks":      s.HasFailedPacks,
 	}).Debug("final installation statuses updated")
 }
+
+func (s *InstallStatus) collectStatuses() map[string][]ObservabilityPackStatusType {
+	res := map[string][]ObservabilityPackStatusType{}
+
+	for _, s := range s.ObservabilityPackStatuses {
+		if v, ok := res[s.Name]; ok {
+			res[s.Name] = append(v, s.Status)
+		} else {
+			res[s.Name] = []ObservabilityPackStatusType{
+				s.Status,
+			}
+		}
+	}
+	log.Tracef("[InstallStatus.collectStatuses]: %+v", res)
+	return res
+}
+
+// func (s *InstallStatus) collectStatuses() []PartialObservabilityPackStatus {
+// 	ppStatuses := []PartialObservabilityPackStatus{}
+// 	log.Tracef("ObservabilityPackStatuses: %+v", s.ObservabilityPackStatuses)
+// 	for _, s := range s.ObservabilityPackStatuses {
+
+// 		log.Tracef("len(ppStatuses): %d", len(ppStatuses))
+// 		if len(ppStatuses) > 0 {
+// 			log.Tracef("ppStatuses: %+v", ppStatuses)
+// 			for i, ss := range ppStatuses {
+// 				log.WithFields(log.Fields{
+// 					"ss.Name": ss.Name,
+// 					"s.Name":  s.Name,
+// 				}).Debug("NAMES")
+
+// 				if ss.Name == s.Name {
+// 					ppStatuses[i].Statuses = append(ss.Statuses, s.Status)
+// 				} else {
+// 					log.Tracef("appending %s", s.Name)
+// 					ppStatuses = append(ppStatuses, PartialObservabilityPackStatus{
+// 						Name: s.Name,
+// 						Statuses: []ObservabilityPackStatusType{
+// 							s.Status,
+// 						},
+// 					})
+// 				}
+// 			}
+// 		} else {
+// 			log.Tracef("appending 1st time")
+// 			ppStatuses = append(ppStatuses, PartialObservabilityPackStatus{
+// 				Name: s.Name,
+// 				Statuses: []ObservabilityPackStatusType{
+// 					s.Status,
+// 				},
+// 			})
+// 		}
+// 	}
+// 	log.Tracef("[InstallStatus.collectStatuses]: %+v", ppStatuses)
+// 	return ppStatuses
+// }
+
+// type PartialObservabilityPackStatus struct {
+// 	Name     string
+// 	Statuses []ObservabilityPackStatusType
+// 	// ObservabilityPackStatus *ObservabilityPackStatus
+// }
