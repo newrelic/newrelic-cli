@@ -582,6 +582,22 @@ func (s *InstallStatus) getObservabilityPackStatusByPackStatusType(st Observabil
 // Canceling (e.g. ctl+c) will cause unresolved recipes to be marked as canceled.
 // Exiting early (i.e. an error occurred) will cause unresolved recipes to be marked as failed.
 func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, isUnsupported bool) {
+	s.updateRecipeStatuses(installCanceled, isUnsupported)
+	packs := s.collectStatuses()
+	s.updateObservabililtyPackStatuses(packs, installCanceled)
+
+	log.WithFields(log.Fields{
+		"hasInstalledRecipes": s.HasInstalledRecipes,
+		"hasSkippedRecipes":   s.HasSkippedRecipes,
+		"hasCanceledRecipes":  s.HasCanceledRecipes,
+		"hasFailedRecipes":    s.HasFailedRecipes,
+		"hasInstalledPacks":   s.HasInstalledPacks,
+		"hasCanceledPacks":    s.HasCanceledPacks,
+		"hasFailedPacks":      s.HasFailedPacks,
+	}).Debug("final installation statuses updated")
+}
+
+func (s *InstallStatus) updateRecipeStatuses(installCanceled bool, isUnsupported bool) {
 	for i, ss := range s.Statuses {
 		if ss.Status == RecipeStatusTypes.AVAILABLE || ss.Status == RecipeStatusTypes.INSTALLING {
 			debugMsg := "failed"
@@ -636,9 +652,9 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 			s.HasUnsupportedRecipes = true
 		}
 	}
+}
 
-	packs := s.collectStatuses()
-
+func (s *InstallStatus) updateObservabililtyPackStatuses(packs map[string][]ObservabilityPackStatusType, installCanceled bool) {
 	for i, ops := range s.ObservabilityPackStatuses {
 		// Compare ops.Status w/ the last known status
 		// If they're the same && not FETCH_FAILED/INSTALL_SUCCESS/INSTALL_FAILED (these are final statuses), update to CANCELED/INSTALL_FAILED
@@ -686,16 +702,6 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 			s.HasFailedPacks = true
 		}
 	}
-
-	log.WithFields(log.Fields{
-		"hasInstalledRecipes": s.HasInstalledRecipes,
-		"hasSkippedRecipes":   s.HasSkippedRecipes,
-		"hasCanceledRecipes":  s.HasCanceledRecipes,
-		"hasFailedRecipes":    s.HasFailedRecipes,
-		"hasInstalledPacks":   s.HasInstalledPacks,
-		"hasCanceledPacks":    s.HasCanceledPacks,
-		"hasFailedPacks":      s.HasFailedPacks,
-	}).Debug("final installation statuses updated")
 }
 
 /**
