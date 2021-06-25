@@ -43,9 +43,9 @@ IS_CURL_INSTALLED=$(which curl | wc -l)
 if [ $IS_CURL_INSTALLED -eq 0 ]; then
     echo "curl is required to install, please confirm Y/N to install (default Y): "
     read -r CONFIRM_CURL
-    CONFIRM_CURL=${CONFIRM_CURL:-Y}
-    if [ "$CONFIRM_CURL" == "Y" ] || ["$CONFIRM_CURL" == "Y"]; then
+    if [ "$CONFIRM_CURL" == "Y" ] || [ "$CONFIRM_CURL" == "y" ] || [ "$CONFIRM_CURL" == "" ]; then
         if [ "$DISTRO" == "Ubuntu" ] || [ "$DISTRO" == "Debian" ]; then
+            sudo apt-get update
             sudo apt-get install curl -y
         elif [ "$DISTRO" == "Amazon" ] || [ "$DISTRO" == "CentOS" ] || [ "$DISTRO" == "Red Hat" ]; then
             sudo yum install curl -y
