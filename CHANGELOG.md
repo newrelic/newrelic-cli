@@ -1,3 +1,8 @@
+<a name="v0.29.1"></a>
+## [v0.29.1] - 2021-06-28
+### Bug Fixes
+- **packs:** include packs in the graphql query fragment
+
 <a name="v0.29.0"></a>
 ## [v0.29.0] - 2021-06-28
 ### Bug Fixes
@@ -805,7 +810,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.1...HEAD
+[v0.29.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.0...v0.29.1
 [v0.29.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.14...v0.29.0
 [v0.28.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.13...v0.28.14
 [v0.28.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...v0.28.13
