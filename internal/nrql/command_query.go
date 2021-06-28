@@ -30,7 +30,7 @@ issue the query against.
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 
-			result, err := nrClient.Nrdb.Query(accountID, nrdb.NRQL(query))
+			result, err := nrClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
 			if err != nil {
 				log.Fatal(err)
 			}

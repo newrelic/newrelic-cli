@@ -63,7 +63,8 @@ The search command performs a search for New Relic entities.
 				params.Reporting = reporting
 			}
 
-			results, err := nrClient.Entities.GetEntitySearch(
+			results, err := nrClient.Entities.GetEntitySearchWithContext(
+				utils.SignalCtx,
 				entities.EntitySearchOptions{},
 				"",
 				params,

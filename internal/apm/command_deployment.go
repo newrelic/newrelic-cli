@@ -44,7 +44,7 @@ The list command returns deployments for a New Relic APM application.
 		}
 
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			deployments, err := nrClient.APM.ListDeployments(apmAppID)
+			deployments, err := nrClient.APM.ListDeploymentsWithContext(utils.SignalCtx, apmAppID)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(deployments))
@@ -68,7 +68,7 @@ application.
 		}
 
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			d, err := nrClient.APM.CreateDeployment(apmAppID, deployment)
+			d, err := nrClient.APM.CreateDeploymentWithContext(utils.SignalCtx, apmAppID, deployment)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(d))
