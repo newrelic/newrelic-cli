@@ -52,7 +52,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 }
 
 func (c *ConfigValidator) Validate(ctx context.Context) error {
-	if err := c.validateKeys(c.profile); err != nil {
+	if err := c.validateKeys(ctx, c.profile); err != nil {
 		return err
 	}
 
@@ -70,7 +70,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	}
 
 	postEvent := func() error {
-		if err = c.client.Events.CreateEvent(c.profile.AccountID, evt); err != nil {
+		if err = c.client.Events.CreateEventWithContext(ctx, c.profile.AccountID, evt); err != nil {
 			log.Error(err)
 			return ErrPostEvent
 		}
@@ -79,7 +79,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, postEvent)
-	if err = r.ExecWithRetries(); err != nil {
+	if err = r.ExecWithRetries(ctx); err != nil {
 		return err
 	}
 
@@ -99,27 +99,27 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	return err
 }
 
-func (c *ConfigValidator) validateKeys(profile *credentials.Profile) error {
+func (c *ConfigValidator) validateKeys(ctx context.Context, profile *credentials.Profile) error {
 	validateKeyFunc := func() error {
-		if err := c.validateLicenseKey(profile); err != nil {
+		if err := c.validateLicenseKey(ctx, profile); err != nil {
 			return err
 		}
 
-		if err := c.validateInsightsInsertKey(profile); err != nil {
+		if err := c.validateInsightsInsertKey(ctx, profile); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, validateKeyFunc)
-	if err := r.ExecWithRetries(); err != nil {
+	if err := r.ExecWithRetries(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *ConfigValidator) validateInsightsInsertKey(profile *credentials.Profile) error {
-	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeys(profile.AccountID)
+func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context, profile *credentials.Profile) error {
+	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeysWithContext(ctx, profile.AccountID)
 	if err != nil {
 		return fmt.Errorf(ErrConnectionStringFormat, err)
 	}
@@ -133,7 +133,7 @@ func (c *ConfigValidator) validateInsightsInsertKey(profile *credentials.Profile
 	return ErrInsightsInsertKey
 }
 
-func (c *ConfigValidator) validateLicenseKey(profile *credentials.Profile) error {
+func (c *ConfigValidator) validateLicenseKey(ctx context.Context, profile *credentials.Profile) error {
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
 			AccountIDs: []int{profile.AccountID},
@@ -143,7 +143,7 @@ func (c *ConfigValidator) validateLicenseKey(profile *credentials.Profile) error
 		},
 	}
 
-	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeys(params)
+	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
 	if err != nil {
 		return fmt.Errorf(ErrConnectionStringFormat, err)
 	}

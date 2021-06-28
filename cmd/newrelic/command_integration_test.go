@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -38,7 +39,7 @@ func TestInitializeProfile(t *testing.T) {
 	// Init without the necessary environment variables
 	os.Setenv("NEW_RELIC_API_KEY", "")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
-	initializeProfile()
+	initializeProfile(context.Background())
 
 	// Load credentials from disk
 	c, err := credentials.LoadCredentials(f)
@@ -50,7 +51,7 @@ func TestInitializeProfile(t *testing.T) {
 	// Init with environment
 	os.Setenv("NEW_RELIC_API_KEY", apiKey)
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", envAccountID)
-	initializeProfile()
+	initializeProfile(context.Background())
 
 	// Initialize the new configuration directory
 	c, err = credentials.LoadCredentials(f)
@@ -70,7 +71,7 @@ func TestInitializeProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	initializeProfile()
+	initializeProfile(context.Background())
 }
 
 func TestFetchLicenseKey_missingKey(t *testing.T) {
@@ -87,7 +88,7 @@ func TestFetchLicenseKey_missingKey(t *testing.T) {
 		NerdGraph: nerdgraph.New(tc),
 	}
 
-	response, err := fetchLicenseKey(nr, 0)
+	response, err := fetchLicenseKey(context.Background(), nr, 0)
 	require.Error(t, err, types.ErrorFetchingLicenseKey)
 	require.Empty(t, response)
 }
@@ -106,7 +107,7 @@ func TestFetchLicenseKey_nilKey(t *testing.T) {
 		NerdGraph: nerdgraph.New(tc),
 	}
 
-	response, err := fetchLicenseKey(nr, 0)
+	response, err := fetchLicenseKey(context.Background(), nr, 0)
 	require.Error(t, err, types.ErrorFetchingLicenseKey)
 	require.Empty(t, response)
 }
@@ -124,7 +125,7 @@ func TestFetchLicenseKey_withKey(t *testing.T) {
 		NerdGraph: nerdgraph.New(tc),
 	}
 
-	response, err := fetchLicenseKey(nr, 0)
+	response, err := fetchLicenseKey(context.Background(), nr, 0)
 	require.NoError(t, err)
 	require.Equal(t, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", response)
 }
