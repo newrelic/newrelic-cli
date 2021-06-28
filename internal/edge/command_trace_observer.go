@@ -44,7 +44,7 @@ The list command retrieves the trace observers for the given account ID.
 	Example: `newrelic edge trace-observer list --accountId 12345678`,
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			traceObservers, err := nrClient.Edge.ListTraceObservers(accountID)
+			traceObservers, err := nrClient.Edge.ListTraceObserversWithContext(utils.SignalCtx, accountID)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(traceObservers))
