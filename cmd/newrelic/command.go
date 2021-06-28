@@ -151,39 +151,45 @@ func hasProfileWithDefaultName(profiles map[string]credentials.Profile) bool {
 }
 
 func fetchLicenseKey(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
+	var licenseKey string
+	retryFunc := func() error {
+		l, err := execLicenseKeyRequest(ctx, client, accountID)
+		if err != nil {
+			return err
+		}
+
+		licenseKey = l
+		return nil
+	}
+
+	r := utils.NewRetry(3, 1, retryFunc)
+	if err := r.ExecWithRetries(ctx); err != nil {
+		return "", err
+	}
+
+	return licenseKey, nil
+}
+
+func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
 	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
 
 	variables := map[string]interface{}{
 		"accountId": accountID,
 	}
 
-	var licenseKey string
-	execLicenseKeyRequest := func() error {
-		resp, err := client.NerdGraph.Query(query, variables)
-		if err != nil {
-			return err
-		}
-
-		queryResp := resp.(nerdgraph.QueryResponse)
-		actor := queryResp.Actor.(map[string]interface{})
-		account := actor["account"].(map[string]interface{})
-
-		if l, ok := account["licenseKey"]; ok {
-			if l != nil {
-				licenseKey = l.(string)
-			}
-		}
-
-		return nil
-	}
-
-	r := utils.NewRetry(3, 1, execLicenseKeyRequest)
-	if err := r.ExecWithRetries(ctx); err != nil {
+	resp, err := client.NerdGraph.QueryWithContext(ctx, query, variables)
+	if err != nil {
 		return "", err
 	}
 
-	if licenseKey != "" {
-		return licenseKey, nil
+	queryResp := resp.(nerdgraph.QueryResponse)
+	actor := queryResp.Actor.(map[string]interface{})
+	account := actor["account"].(map[string]interface{})
+
+	if l, ok := account["licenseKey"]; ok {
+		if l != nil {
+			return l.(string), nil
+		}
 	}
 
 	return "", types.ErrorFetchingLicenseKey
