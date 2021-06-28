@@ -1,3 +1,18 @@
+<a name="v0.29.0"></a>
+## [v0.29.0] - 2021-06-28
+### Bug Fixes
+- **install:** append each pack status event
+- **install:** update status when there's an existing packStatus
+- **install:** use queryBuilder instead of query string
+- **install:** use entitySearch to check for existing dashboards
+- **install:** fail progress indicator when dashboard creation fails
+- **install:** check for existing dashboards before creating
+
+### Features
+- **install:** track final status for packs
+- **install:** add status reporting for pack installation
+- **install:** create observability pack dashboards when installing recipe
+
 <a name="v0.28.14"></a>
 ## [v0.28.14] - 2021-06-25
 ### Bug Fixes
@@ -71,10 +86,10 @@
 - **install:** remove debug
 - **install:** fix recipe matching, ensure recipe with most match count is selected
 
-<a name="v0.28.0"></a>
-## [v0.28.0] - 2021-06-09
 <a name="v0.28.1"></a>
 ## [v0.28.1] - 2021-06-09
+<a name="v0.28.0"></a>
+## [v0.28.0] - 2021-06-09
 ### Bug Fixes
 - **cmd:** avoid nil pointer for license key fetching
 - **install:** suppress preInstall script stderr/stdout streams
@@ -657,8 +672,6 @@
 - **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
-<a name="v0.6.2-test"></a>
-## [v0.6.2-test] - 2020-04-09
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
@@ -792,7 +805,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.14...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.0...HEAD
+[v0.29.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.14...v0.29.0
 [v0.28.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.13...v0.28.14
 [v0.28.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...v0.28.13
 [v0.28.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...v0.28.12
@@ -805,9 +819,9 @@
 [v0.28.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.4...v0.28.5
 [v0.28.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.3...v0.28.4
 [v0.28.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.2...v0.28.3
-[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.2
-[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.0
-[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.1
+[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.2
+[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.1
+[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.0
 [v0.27.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.4...v0.27.5
 [v0.27.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.3...v0.27.4
 [v0.27.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.2...v0.27.3
@@ -892,8 +906,7 @@
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.7.0
-[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.6.2-test
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
