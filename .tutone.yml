@@ -29,7 +29,7 @@ packages:
         shortDescription: Manage New Relic API access keys # optional override (uses NG as default)
         subcommands:
           - name: apiAccessGetKey
-            path: ['actor', 'apiAccess', 'key']
+            path: ["actor", "apiAccess", "key"]
             clientPackageName: apiaccess
             clientMethod: nrClient.APIAccess.GetAPIAccessKey
           - name: apiAccessCreateKeys
@@ -46,6 +46,8 @@ packages:
     generators:
       - typegen
     types:
+      - name: OpenInstallationDocsStitchedFields
+        struct_tags: [json, yaml]
       - name: OpenInstallationRecipe
         struct_tags: [json, yaml]
       - name: ID
@@ -72,4 +74,4 @@ packages:
 
 generators:
   - name: typegen
-    fileName: 'types.go'
+    fileName: "types.go"

@@ -30,6 +30,19 @@ type MockStatusReporter struct {
 	DiscoveryCompleteCallCount int
 	RecipeUnsupportedCallCount int
 
+	ObservabilityPackFetchPendingErr         error
+	ObservabilityPackFetchSuccessErr         error
+	ObservabilityPackFetchFailedErr          error
+	ObservabilityPackInstallPendingErr       error
+	ObservabilityPackInstallSuccessErr       error
+	ObservabilityPackInstallFailedErr        error
+	ObservabilityPackFetchPendingCallCount   int
+	ObservabilityPackFetchSuccessCallCount   int
+	ObservabilityPackFetchFailedCallCount    int
+	ObservabilityPackInstallPendingCallCount int
+	ObservabilityPackInstallSuccessCallCount int
+	ObservabilityPackInstallFailedCallCount  int
+
 	ReportSkipped     map[string]int
 	ReportInstalled   map[string]int
 	ReportInstalling  map[string]int
@@ -139,4 +152,34 @@ func (r *MockStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.D
 func (r *MockStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeUnsupportedCallCount++
 	return r.RecipeUnsupportedErr
+}
+
+func (r *MockStatusReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
+	r.ObservabilityPackFetchPendingCallCount++
+	return r.ObservabilityPackFetchPendingErr
+}
+
+func (r *MockStatusReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
+	r.ObservabilityPackFetchSuccessCallCount++
+	return r.ObservabilityPackFetchSuccessErr
+}
+
+func (r *MockStatusReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
+	r.ObservabilityPackFetchFailedCallCount++
+	return r.ObservabilityPackFetchFailedErr
+}
+
+func (r *MockStatusReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
+	r.ObservabilityPackInstallPendingCallCount++
+	return r.ObservabilityPackInstallPendingErr
+}
+
+func (r *MockStatusReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
+	r.ObservabilityPackInstallSuccessCallCount++
+	return r.ObservabilityPackInstallSuccessErr
+}
+
+func (r *MockStatusReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
+	r.ObservabilityPackInstallFailedCallCount++
+	return r.ObservabilityPackInstallFailedErr
 }
