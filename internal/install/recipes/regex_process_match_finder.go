@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -54,6 +55,11 @@ func (f *RegexProcessMatchFinder) findMatches(r types.OpenInstallationRecipe, pr
 		cmd, err := process.Cmd()
 		if err != nil {
 			// Process no longer exist, skip
+			continue
+		}
+
+		containsNewrelic := strings.Contains(cmd, "newrelic")
+		if containsNewrelic {
 			continue
 		}
 
