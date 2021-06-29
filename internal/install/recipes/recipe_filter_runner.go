@@ -80,13 +80,22 @@ func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenIn
 	return results
 }
 
+func getRecipeFirstName(r types.OpenInstallationRecipe) string {
+	if len(r.DisplayName) > 0 {
+		parts := strings.Split(r.DisplayName, " ")
+		return parts[0]
+	}
+	return r.DisplayName
+}
+
 func (rf *RecipeFilterRunner) EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	for _, recipe := range r {
 		filtered := rf.RunFilter(ctx, &recipe, m)
 
 		if filtered {
 			rf.installStatus.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: recipe})
-			return fmt.Errorf("could not install %s, is the targeted service installed and running on this host?", recipe.DisplayName)
+			recipeFirstName := getRecipeFirstName(recipe)
+			return fmt.Errorf("we couldn’t install the %s. Make sure %s is installed and running on this host and rerun the newrelic-cli command", recipe.DisplayName, recipeFirstName)
 		}
 	}
 
