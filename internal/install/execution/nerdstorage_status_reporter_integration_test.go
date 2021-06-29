@@ -13,6 +13,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/config"
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
@@ -162,16 +163,16 @@ func deleteEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdS
 }
 
 func createEntity(t *testing.T, accountID int, c *newrelic.NewRelic) string {
-	i := workloads.CreateInput{
+	i := workloads.WorkloadCreateInput{
 		Name: "testEntity",
 	}
-	e, err := c.Workloads.CreateWorkload(accountID, i)
+	e, err := c.Workloads.WorkloadCreate(accountID, i)
 	require.NoError(t, err)
 
-	return e.GUID
+	return string(e.GUID)
 }
 
 func deleteEntity(t *testing.T, guid string, c *newrelic.NewRelic) {
-	_, err := c.Workloads.DeleteWorkload(guid)
+	_, err := c.Workloads.WorkloadDelete(entities.EntityGUID(guid))
 	require.NoError(t, err)
 }

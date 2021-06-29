@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
@@ -37,10 +37,10 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	initializeProfile()
+	initializeProfile(utils.SignalCtx)
 }
 
-func initializeProfile() {
+func initializeProfile(ctx context.Context) {
 	var accountID int
 	var region string
 	var licenseKey string
@@ -91,7 +91,7 @@ func initializeProfile() {
 
 			if licenseKey == "" {
 				// We should have an account ID by now, so fetch the license key for it.
-				licenseKey, err = fetchLicenseKey(nrClient, accountID)
+				licenseKey, err = fetchLicenseKey(ctx, nrClient, accountID)
 				if err != nil {
 					log.Error(err)
 					return
@@ -150,30 +150,46 @@ func hasProfileWithDefaultName(profiles map[string]credentials.Profile) bool {
 	return false
 }
 
-func fetchLicenseKey(client *newrelic.NewRelic, accountID int) (string, error) {
+func fetchLicenseKey(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
+	var licenseKey string
+	retryFunc := func() error {
+		l, err := execLicenseKeyRequest(ctx, client, accountID)
+		if err != nil {
+			return err
+		}
+
+		licenseKey = l
+		return nil
+	}
+
+	r := utils.NewRetry(3, 1, retryFunc)
+	if err := r.ExecWithRetries(ctx); err != nil {
+		return "", err
+	}
+
+	return licenseKey, nil
+}
+
+func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
 	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
 
 	variables := map[string]interface{}{
 		"accountId": accountID,
 	}
 
-	for i := 0; i < 3; i++ {
-		resp, err := client.NerdGraph.Query(query, variables)
-		if err != nil {
-			return "", err
+	resp, err := client.NerdGraph.QueryWithContext(ctx, query, variables)
+	if err != nil {
+		return "", err
+	}
+
+	queryResp := resp.(nerdgraph.QueryResponse)
+	actor := queryResp.Actor.(map[string]interface{})
+	account := actor["account"].(map[string]interface{})
+
+	if l, ok := account["licenseKey"]; ok {
+		if l != nil {
+			return l.(string), nil
 		}
-
-		queryResp := resp.(nerdgraph.QueryResponse)
-		actor := queryResp.Actor.(map[string]interface{})
-		account := actor["account"].(map[string]interface{})
-
-		if licenseKey, ok := account["licenseKey"]; ok {
-			if licenseKey != nil {
-				return licenseKey.(string), nil
-			}
-		}
-
-		time.Sleep(1 * time.Second)
 	}
 
 	return "", types.ErrorFetchingLicenseKey

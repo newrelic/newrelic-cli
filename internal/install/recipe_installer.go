@@ -143,7 +143,7 @@ func (i *RecipeInstaller) Install() error {
 	var err error
 
 	// log.Printf("Validating connectivity to the New Relic platform...")
-	// if err = i.configValidator.Validate(ctx); err != nil {
+	// if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
 	// 	return err
 	// }
 
@@ -156,7 +156,7 @@ func (i *RecipeInstaller) Install() error {
 		i.status.InstallCanceled()
 		return nil
 	case err = <-errChan:
-		if err == types.ErrInterrupt {
+		if errors.Is(err, types.ErrInterrupt) {
 			i.status.InstallCanceled()
 			return err
 		}
