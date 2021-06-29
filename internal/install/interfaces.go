@@ -32,7 +32,8 @@ type RecipeFileFetcher interface {
 }
 
 type RecipeFilterRunner interface {
-	RunFilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe
+	RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe
+	EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error
 }
 
 // RecipeValidator validates installation of a recipe.

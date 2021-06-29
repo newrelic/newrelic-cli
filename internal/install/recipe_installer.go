@@ -194,19 +194,26 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	log.Tracef("recipes found for platform: %v\n", recipesForPlatform)
 
 	var targetedRecipes = recipesForPlatform
+	var filteredRecipes []types.OpenInstallationRecipe
 	if i.RecipesProvided() {
 		targetedRecipes, err = i.fetchProvidedRecipe(m, recipesForPlatform)
 		if err != nil {
 			return err
 		}
-		log.Tracef("recipes supplied by user: %v\n", targetedRecipes)
-	}
+		log.Tracef("recipes supplied: %v\n", targetedRecipes)
 
-	filteredRecipes := i.recipeFilterer.RunFilterMultiple(ctx, targetedRecipes, m)
-	log.Tracef("recipes after filtering: %v\n", filteredRecipes)
+		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, targetedRecipes, m); err != nil {
+			return err
+		}
 
-	if !i.RecipesProvided() {
+		filteredRecipes = targetedRecipes
+
+	} else {
 		var selected, unselected []types.OpenInstallationRecipe
+
+		filteredRecipes = i.recipeFilterer.RunFilterAll(ctx, targetedRecipes, m)
+		log.Tracef("recipes after filtering: %v\n", filteredRecipes)
+
 		selected, unselected, err = i.promptUserSelect(filteredRecipes)
 		if err != nil {
 			return err

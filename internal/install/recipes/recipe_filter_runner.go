@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -65,7 +66,7 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 	return false
 }
 
-func (rf *RecipeFilterRunner) RunFilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
+func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
 	results := []types.OpenInstallationRecipe{}
 
 	for _, recipe := range r {
@@ -77,6 +78,19 @@ func (rf *RecipeFilterRunner) RunFilterMultiple(ctx context.Context, r []types.O
 	}
 
 	return results
+}
+
+func (rf *RecipeFilterRunner) EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
+	for _, recipe := range r {
+		filtered := rf.RunFilter(ctx, &recipe, m)
+
+		if filtered {
+			rf.installStatus.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: recipe})
+			return fmt.Errorf("could not install %s, is the targeted service installed and running on this host?", recipe.DisplayName)
+		}
+	}
+
+	return nil
 }
 
 type RecipeFilterer interface {
