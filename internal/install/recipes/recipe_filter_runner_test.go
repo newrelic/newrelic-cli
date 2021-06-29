@@ -41,3 +41,32 @@ func TestRecommend_CustomScript_Failure(t *testing.T) {
 	filtered := r.RunFilter(context.Background(), &recipe, m)
 	require.True(t, filtered)
 }
+
+func TestShouldGetRecipeFirstNameValid(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name:        "test-recipe",
+		DisplayName: "MongoDB installation something",
+	}
+
+	name := getRecipeFirstName(recipe)
+	require.True(t, name == "MongoDB")
+}
+
+func TestShouldGetRecipeFirstNameValidWhole(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name:        "test-recipe",
+		DisplayName: "MongoDB-single-word",
+	}
+
+	name := getRecipeFirstName(recipe)
+	require.True(t, name == "MongoDB-single-word")
+}
+
+func TestShouldGetRecipeFirstNameInvalid(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name: "test-recipe",
+	}
+
+	name := getRecipeFirstName(recipe)
+	require.True(t, name == "")
+}
