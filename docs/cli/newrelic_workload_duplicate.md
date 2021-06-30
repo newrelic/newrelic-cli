@@ -19,7 +19,7 @@ newrelic workload duplicate [flags]
 ### Examples
 
 ```
-newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'
+newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountId 12345678 --name 'New Workload'
 ```
 
 ### Options
