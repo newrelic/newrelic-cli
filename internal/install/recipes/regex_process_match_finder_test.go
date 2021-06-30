@@ -244,3 +244,111 @@ func TestFindMatchesMultiple_MultipleMatchingProcesses_MultipleRecipes(t *testin
 	require.Equal(t, filtered[2].MatchingPattern, "java.*jboss")
 	require.Equal(t, filtered[3].MatchingPattern, "cassandra")
 }
+
+func TestShouldFilterOutNewRelicInstall(t *testing.T) {
+	r := []types.OpenInstallationRecipe{
+		{
+			ID:           "1",
+			Name:         "java-agent",
+			ProcessMatch: []string{"java"},
+		},
+	}
+
+	processes := []types.GenericProcess{
+		mockProcess{
+			name:    "java",
+			cmdline: "/usr/local/bin/newrelic install -c java",
+		},
+		mockProcess{
+			name:    "somethingElse",
+			cmdline: "somethingElse",
+		},
+	}
+
+	f := NewRegexProcessMatchFinder()
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
+
+	require.NotNil(t, filtered)
+	require.Empty(t, filtered)
+}
+
+func TestShouldFilterOutNewRelicInstallCaseInsensitive(t *testing.T) {
+	r := []types.OpenInstallationRecipe{
+		{
+			ID:           "1",
+			Name:         "java-agent",
+			ProcessMatch: []string{"java"},
+		},
+	}
+
+	processes := []types.GenericProcess{
+		mockProcess{
+			name:    "java",
+			cmdline: "/usr/local/bin/NewRelic Install -c java",
+		},
+		mockProcess{
+			name:    "somethingElse",
+			cmdline: "somethingElse",
+		},
+	}
+
+	f := NewRegexProcessMatchFinder()
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
+
+	require.NotNil(t, filtered)
+	require.Empty(t, filtered)
+}
+
+func TestShouldFilterOutNewRelicInstallWindows(t *testing.T) {
+	r := []types.OpenInstallationRecipe{
+		{
+			ID:           "1",
+			Name:         "java-agent",
+			ProcessMatch: []string{"java"},
+		},
+	}
+
+	processes := []types.GenericProcess{
+		mockProcess{
+			name:    "java",
+			cmdline: "'mypath/newrelic.exe' install -c java",
+		},
+		mockProcess{
+			name:    "somethingElse",
+			cmdline: "somethingElse",
+		},
+	}
+
+	f := NewRegexProcessMatchFinder()
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
+
+	require.NotNil(t, filtered)
+	require.Empty(t, filtered)
+}
+
+func TestShouldFilterOutNewRelicInstallWindowsNoQuote(t *testing.T) {
+	r := []types.OpenInstallationRecipe{
+		{
+			ID:           "1",
+			Name:         "java-agent",
+			ProcessMatch: []string{"java"},
+		},
+	}
+
+	processes := []types.GenericProcess{
+		mockProcess{
+			name:    "java",
+			cmdline: "mypath/newrelic.exe install -c java",
+		},
+		mockProcess{
+			name:    "somethingElse",
+			cmdline: "somethingElse",
+		},
+	}
+
+	f := NewRegexProcessMatchFinder()
+	filtered := f.FindMatchesMultiple(context.Background(), processes, r)
+
+	require.NotNil(t, filtered)
+	require.Empty(t, filtered)
+}

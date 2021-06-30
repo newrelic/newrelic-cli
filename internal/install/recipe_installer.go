@@ -193,21 +193,25 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 	log.Tracef("recipes found for platform: %v\n", recipesForPlatform)
 
-	var targetedRecipes = recipesForPlatform
+	var recipesForInstall []types.OpenInstallationRecipe
 	if i.RecipesProvided() {
-		targetedRecipes, err = i.fetchProvidedRecipe(m, recipesForPlatform)
+		recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
 		if err != nil {
 			return err
 		}
-		log.Tracef("recipes supplied by user: %v\n", targetedRecipes)
-	}
+		log.Tracef("recipes supplied: %v\n", recipesForInstall)
 
-	filteredRecipes := i.recipeFilterer.RunFilterMultiple(ctx, targetedRecipes, m)
-	log.Tracef("recipes after filtering: %v\n", filteredRecipes)
+		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
+			return err
+		}
 
-	if !i.RecipesProvided() {
+	} else {
 		var selected, unselected []types.OpenInstallationRecipe
-		selected, unselected, err = i.promptUserSelect(filteredRecipes)
+
+		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
+		log.Tracef("recipes after filtering: %v\n", recipesForInstall)
+
+		selected, unselected, err = i.promptUserSelect(recipesForInstall)
 		if err != nil {
 			return err
 		}
@@ -217,19 +221,19 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 		}
 
-		filteredRecipes = selected
+		recipesForInstall = selected
 	}
 
-	i.status.RecipesSelected(filteredRecipes)
+	i.status.RecipesSelected(recipesForInstall)
 
-	dependencies := resolveDependencies(filteredRecipes, recipesForPlatform)
-	recipesToInstall := addIfMissing(filteredRecipes, dependencies)
+	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
+	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
 
-	if err = i.installRecipes(ctx, m, recipesToInstall); err != nil {
+	if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
 		return err
 	}
 
-	if err = i.fetchAndInstallPacks(ctx, recipesToInstall); err != nil {
+	if err = i.fetchAndInstallPacks(ctx, recipesForInstall); err != nil {
 		return err
 	}
 
@@ -237,8 +241,8 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	return nil
 }
 
-func (i *RecipeInstaller) fetchAndInstallPacks(ctx context.Context, recipesToInstall []types.OpenInstallationRecipe) error {
-	packs, err := i.packsFetcher.FetchPacks(ctx, recipesToInstall)
+func (i *RecipeInstaller) fetchAndInstallPacks(ctx context.Context, recipesForInstall []types.OpenInstallationRecipe) error {
+	packs, err := i.packsFetcher.FetchPacks(ctx, recipesForInstall)
 	if err != nil {
 		// nolint: golint
 		return fmt.Errorf("Failed to fetch observability packs: %s", err)
