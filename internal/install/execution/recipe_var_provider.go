@@ -3,6 +3,7 @@ package execution
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -177,8 +178,11 @@ func varFromEnv() types.RecipeVars {
 
 	downloadURL := "https://download.newrelic.com/"
 	envDownloadURL := os.Getenv("NEW_RELIC_DOWNLOAD_URL")
-	if envDownloadURL != "" && strings.HasPrefix(envDownloadURL, "https://") {
-		downloadURL = envDownloadURL
+	if envDownloadURL != "" {
+		URL, err := url.Parse(envDownloadURL)
+		if err == nil && URL.Scheme == "https" && strings.HasSuffix(URL.Host, "newrelic.com") {
+			downloadURL = envDownloadURL
+		}
 	}
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
 
