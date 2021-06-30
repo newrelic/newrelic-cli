@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
@@ -41,10 +42,13 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 		return types.RecipeVars{}, err
 	}
 
+	envVarsResult := varFromEnv()
+
 	results = append(results, systemInfoResult)
 	results = append(results, profileResult)
 	results = append(results, types.RecipeVariables)
 	results = append(results, inputVarsResult)
+	results = append(results, envVarsResult)
 
 	for _, result := range results {
 		for k, v := range result {
@@ -166,4 +170,17 @@ func varFromPrompt(envConfig types.OpenInstallationRecipeInputVariable) (string,
 
 	return value, nil
 
+}
+
+func varFromEnv() types.RecipeVars {
+	vars := make(types.RecipeVars)
+
+	downloadURL := "https://download.newrelic.com/"
+	envDownloadURL := os.Getenv("NEW_RELIC_DOWNLOAD_URL")
+	if envDownloadURL != "" && strings.HasPrefix(envDownloadURL, "https://") {
+		downloadURL = envDownloadURL
+	}
+	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
+
+	return vars
 }
