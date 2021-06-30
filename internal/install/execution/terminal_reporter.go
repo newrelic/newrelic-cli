@@ -116,3 +116,27 @@ func (r TerminalStatusReporter) DiscoveryComplete(status *InstallStatus, dm type
 func (r TerminalStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
+
+func (r TerminalStatusReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
+	return nil
+}

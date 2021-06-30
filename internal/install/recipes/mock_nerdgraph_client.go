@@ -5,20 +5,20 @@ import (
 	"reflect"
 )
 
-type mockNerdGraphClient struct {
-	respBody interface{}
+type MockNerdGraphClient struct {
+	RespBody interface{}
 }
 
-func newMockNerdGraphClient() *mockNerdGraphClient {
-	return &mockNerdGraphClient{
-		respBody: struct{}{},
+func NewMockNerdGraphClient() *MockNerdGraphClient {
+	return &MockNerdGraphClient{
+		RespBody: struct{}{},
 	}
 }
 
-func (c *mockNerdGraphClient) QueryWithResponseAndContext(ctx context.Context, query string, variables map[string]interface{}, respBody interface{}) error {
+func (c *MockNerdGraphClient) QueryWithResponseAndContext(ctx context.Context, query string, variables map[string]interface{}, respBody interface{}) error {
 	respBodyPtrValue := reflect.ValueOf(respBody)
 	respBodyValue := reflect.Indirect(respBodyPtrValue)
-	respBodyValue.Set(reflect.ValueOf(c.respBody))
+	respBodyValue.Set(reflect.ValueOf(c.RespBody))
 
 	return nil
 }

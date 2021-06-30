@@ -1,6 +1,9 @@
 package utils
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Retry struct {
 	MaxRetries    int
@@ -16,7 +19,7 @@ func NewRetry(maxRetries int, retryDelaySec int, retryFunc func() error) *Retry 
 	}
 }
 
-func (r *Retry) ExecWithRetries() error {
+func (r *Retry) ExecWithRetries(ctx context.Context) error {
 	tries := 0
 	success := false
 	for !success {
@@ -32,7 +35,11 @@ func (r *Retry) ExecWithRetries() error {
 				w <- struct{}{}
 			}()
 
-			<-w
+			select {
+			case <-ctx.Done():
+				return context.Canceled
+			case <-w:
+			}
 		} else {
 			success = true
 		}

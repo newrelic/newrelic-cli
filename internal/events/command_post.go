@@ -42,7 +42,7 @@ represents the custom event's type.
 				log.Fatal(err)
 			}
 
-			if err := nrClient.Events.CreateEvent(accountID, event); err != nil {
+			if err := nrClient.Events.CreateEventWithContext(utils.SignalCtx, accountID, event); err != nil {
 				log.Fatal(err)
 			}
 

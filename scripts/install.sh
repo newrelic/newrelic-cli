@@ -33,9 +33,31 @@ else
     exit 1
 fi
 
-for x in curl cut tar gzip sudo; do
+for x in cut tar gzip sudo; do
     which $x > /dev/null || (echo "Unable to continue.  Please install $x before proceeding."; exit 1)
 done
+
+DISTRO=$(cat /etc/issue /etc/system-release /etc/redhat-release /etc/os-release 2>/dev/null | grep -m 1 -Eo "(Ubuntu|Amazon|CentOS|Debian|Red Hat|SUSE)" || true)
+
+IS_CURL_INSTALLED=$(which curl | wc -l)
+if [ $IS_CURL_INSTALLED -eq 0 ]; then
+    echo "curl is required to install, please confirm Y/N to install (default Y): "
+    read -r CONFIRM_CURL
+    if [ "$CONFIRM_CURL" == "Y" ] || [ "$CONFIRM_CURL" == "y" ] || [ "$CONFIRM_CURL" == "" ]; then
+        if [ "$DISTRO" == "Ubuntu" ] || [ "$DISTRO" == "Debian" ]; then
+            sudo apt-get update
+            sudo apt-get install curl -y
+        elif [ "$DISTRO" == "Amazon" ] || [ "$DISTRO" == "CentOS" ] || [ "$DISTRO" == "Red Hat" ]; then
+            sudo yum install curl -y
+        elif [ "$DISTRO" == "SUSE" ]; then
+            sudo zypper -n install curl
+        else
+            echo "Unable to continue. Please install curl manually before proceeding."; exit 131
+        fi
+    else
+        echo "Unable to continue without curl. Please install curl before proceeding."; exit 131
+    fi
+fi
 
 # GitHub's URL for the latest release, will redirect.
 LATEST_URL="https://github.com/newrelic/newrelic-cli/releases/latest"

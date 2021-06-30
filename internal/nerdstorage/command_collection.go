@@ -51,11 +51,11 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				resp, err = nrClient.NerdStorage.GetCollectionWithAccountScope(accountID, input)
+				resp, err = nrClient.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 			case "entity":
-				resp, err = nrClient.NerdStorage.GetCollectionWithEntityScope(entityGUID, input)
+				resp, err = nrClient.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
 			case "user":
-				resp, err = nrClient.NerdStorage.GetCollectionWithUserScope(input)
+				resp, err = nrClient.NerdStorage.GetCollectionWithUserScopeWithContext(utils.SignalCtx, input)
 			default:
 				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 			}
@@ -99,11 +99,11 @@ GUID.  A valid Nerdpack package ID is required.
 
 			switch strings.ToLower(scope) {
 			case "account":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithAccountScope(accountID, input)
+				_, err = nrClient.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 			case "entity":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithEntityScope(entityGUID, input)
+				_, err = nrClient.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
 			case "user":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithUserScope(input)
+				_, err = nrClient.NerdStorage.DeleteCollectionWithUserScopeWithContext(utils.SignalCtx, input)
 			default:
 				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 			}

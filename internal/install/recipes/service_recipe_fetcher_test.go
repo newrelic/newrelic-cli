@@ -38,8 +38,8 @@ func TestFetchFilters(t *testing.T) {
 		},
 	}
 
-	c := newMockNerdGraphClient()
-	c.respBody = wrapRecipes(r)
+	c := NewMockNerdGraphClient()
+	c.RespBody = wrapRecipes(r)
 
 	s := NewServiceRecipeFetcher(c)
 

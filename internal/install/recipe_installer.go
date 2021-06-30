@@ -14,6 +14,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	"github.com/newrelic/newrelic-cli/internal/install/packs"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
@@ -38,6 +39,8 @@ type RecipeInstaller struct {
 	configValidator   ConfigValidator
 	recipeVarPreparer RecipeVarPreparer
 	recipeFilterer    RecipeFilterRunner
+	packsFetcher      PacksFetcher
+	packsInstaller    PacksInstaller
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -80,6 +83,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	pi := ux.NewPlainProgress()
 	rvp := execution.NewRecipeVarProvider()
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
+	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
+	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -96,6 +101,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		configValidator:   cv,
 		recipeVarPreparer: rvp,
 		recipeFilterer:    rf,
+		packsFetcher:      spf,
+		packsInstaller:    cpi,
 	}
 
 	i.InstallerContext = ic
@@ -135,10 +142,10 @@ func (i *RecipeInstaller) Install() error {
 	errChan := make(chan error)
 	var err error
 
-	log.Printf("Validating connectivity to the New Relic platform...")
-	if err = i.configValidator.Validate(ctx); err != nil {
-		return err
-	}
+	// log.Printf("Validating connectivity to the New Relic platform...")
+	// if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
+	// 	return err
+	// }
 
 	go func(ctx context.Context) {
 		errChan <- i.install(ctx)
@@ -149,7 +156,7 @@ func (i *RecipeInstaller) Install() error {
 		i.status.InstallCanceled()
 		return nil
 	case err = <-errChan:
-		if err == types.ErrInterrupt {
+		if errors.Is(err, types.ErrInterrupt) {
 			i.status.InstallCanceled()
 			return err
 		}
@@ -222,7 +229,29 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
+	if err = i.fetchAndInstallPacks(ctx, recipesToInstall); err != nil {
+		return err
+	}
+
 	log.Debugf("Done installing.")
+	return nil
+}
+
+func (i *RecipeInstaller) fetchAndInstallPacks(ctx context.Context, recipesToInstall []types.OpenInstallationRecipe) error {
+	packs, err := i.packsFetcher.FetchPacks(ctx, recipesToInstall)
+	if err != nil {
+		// nolint: golint
+		return fmt.Errorf("Failed to fetch observability packs: %s", err)
+	}
+	log.Debugf("Fetched Packs: %d", len(packs))
+
+	if len(packs) > 0 {
+		if err := i.packsInstaller.Install(ctx, packs); err != nil {
+			// nolint: golint
+			return fmt.Errorf("Failed to install observability pack: %s", err)
+		}
+	}
+
 	return nil
 }
 

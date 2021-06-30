@@ -31,7 +31,7 @@ var cmdKey = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		client.WithClient(func(nrClient *newrelic.NewRelic) {
 
-			resp, err := nrClient.APIAccess.GetAPIAccessKey(apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
+			resp, err := nrClient.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(resp))
@@ -53,7 +53,7 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 			err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
 			utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.CreateAPIAccessKeys(keys)
+			resp, err := nrClient.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(resp))
@@ -75,7 +75,7 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 			err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
 			utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.UpdateAPIAccessKeys(keys)
+			resp, err := nrClient.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(resp))
@@ -97,7 +97,7 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 			err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
 			utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.DeleteAPIAccessKey(keys)
+			resp, err := nrClient.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
 			utils.LogIfFatal(err)
 
 			utils.LogIfFatal(output.Print(resp))
