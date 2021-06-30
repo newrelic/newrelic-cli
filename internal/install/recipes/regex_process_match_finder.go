@@ -3,7 +3,6 @@ package recipes
 import (
 	"context"
 	"regexp"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -51,6 +50,7 @@ func (f *RegexProcessMatchFinder) FindMatchesMultiple(ctx context.Context, proce
 
 func (f *RegexProcessMatchFinder) findMatches(r types.OpenInstallationRecipe, process types.GenericProcess) []types.MatchedProcess {
 	matches := []types.MatchedProcess{}
+	var newrelicInstallRegex = regexp.MustCompile(`(?i).newrelic(|\.exe['"]?) install.`)
 	for _, pattern := range r.ProcessMatch {
 		cmd, err := process.Cmd()
 		if err != nil {
@@ -58,8 +58,7 @@ func (f *RegexProcessMatchFinder) findMatches(r types.OpenInstallationRecipe, pr
 			continue
 		}
 
-		containsNewrelic := strings.Contains(cmd, "newrelic")
-		if containsNewrelic {
+		if len(newrelicInstallRegex.FindString(cmd)) > 0 {
 			continue
 		}
 
