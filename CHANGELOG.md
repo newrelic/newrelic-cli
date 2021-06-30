@@ -1,3 +1,20 @@
+<a name="v0.29.2"></a>
+## [v0.29.2] - 2021-06-30
+### Bug Fixes
+- **install:** add regex to process detection to skip newrelic install process
+- **install:** merge for simplified logic
+- **install:** simplified logic
+- **install:** skipping infra agent during a targeted install should yield an error
+- **install:** update error message when failing detection
+- **install:** targeted install uses process detection
+- **install:** skipping infra agent during a targeted install should yield an error
+- **install:** update error message when failing detection
+- **install:** targeted install uses process detection
+- **packs:** use structured error message
+
+### Features
+- **entities:** use context-aware methods for entity tag commands
+
 <a name="v0.29.1"></a>
 ## [v0.29.1] - 2021-06-28
 ### Bug Fixes
@@ -91,10 +108,10 @@
 - **install:** remove debug
 - **install:** fix recipe matching, ensure recipe with most match count is selected
 
-<a name="v0.28.1"></a>
-## [v0.28.1] - 2021-06-09
 <a name="v0.28.0"></a>
 ## [v0.28.0] - 2021-06-09
+<a name="v0.28.1"></a>
+## [v0.28.1] - 2021-06-09
 ### Bug Fixes
 - **cmd:** avoid nil pointer for license key fetching
 - **install:** suppress preInstall script stderr/stdout streams
@@ -677,6 +694,8 @@
 - **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
+<a name="v0.6.2-test"></a>
+## [v0.6.2-test] - 2020-04-09
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
@@ -810,7 +829,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.2...HEAD
+[v0.29.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.1...v0.29.2
 [v0.29.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.0...v0.29.1
 [v0.29.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.14...v0.29.0
 [v0.28.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.13...v0.28.14
@@ -825,9 +845,9 @@
 [v0.28.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.4...v0.28.5
 [v0.28.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.3...v0.28.4
 [v0.28.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.2...v0.28.3
-[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.2
-[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.1
-[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.0
+[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.2
+[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.0
+[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.1
 [v0.27.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.4...v0.27.5
 [v0.27.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.3...v0.27.4
 [v0.27.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.2...v0.27.3
@@ -912,7 +932,8 @@
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.7.0
+[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.6.2-test
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
