@@ -8,19 +8,19 @@ import (
 	"strings"
 	"sync"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
 
 type ConfigProvider struct {
-	cfg            []byte
-	fileName       string
-	scope          string
-	dirty          bool
-	mu             sync.Mutex
-	values         []FieldDefinition
-	explicitValues bool
+	cfg             []byte
+	fileName        string
+	scope           string
+	dirty           bool
+	mu              sync.Mutex
+	values          []FieldDefinition
+	explicitValues  bool
+	settingDefaults bool
 }
 
 type FieldDefinition struct {
@@ -126,34 +126,70 @@ func WithScope(scope string) ConfigProviderOption {
 }
 
 func (p *ConfigProvider) GetInt(key string) (int64, error) {
-	d := p.getFieldDefinition(key)
+	return p.GetIntWithScope("", key)
+}
 
-	if d != nil {
-		if e, ok := os.LookupEnv(d.EnvVar); ok {
-			i, err := strconv.Atoi(e)
-			if err != nil {
-				return 0, err
-			}
+func (p *ConfigProvider) GetString(key string) (string, error) {
+	return p.GetStringWithScope("", key)
+}
 
-			return int64(i), nil
-		}
-	}
-
-	res, err := p.getFromConfig(key)
+func (p *ConfigProvider) GetIntWithScope(scope string, key string) (int64, error) {
+	v, err := p.GetWithScope(scope, key)
 	if err != nil {
 		return 0, err
 	}
 
-	return res.Int(), nil
+	switch v := v.(type) {
+	case float64:
+		return int64(v), nil
+	case string:
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, fmt.Errorf("value %v for key %s is not an int", v, key)
+		}
+		return int64(i), nil
+	}
+
+	return 0, fmt.Errorf("value %v for key %s is not an int", v, key)
 }
 
-func (p *ConfigProvider) GetString(key string) (string, error) {
+func (p *ConfigProvider) GetStringWithScope(scope string, key string) (string, error) {
+	v, err := p.GetWithScope(scope, key)
+	if err != nil {
+		return "", err
+	}
+
+	if s, ok := v.(string); ok {
+		return s, nil
+	}
+
+	return "", fmt.Errorf("value %v for key %s is not a string", v, key)
+}
+
+func (p *ConfigProvider) Get(key string) (interface{}, error) {
+	return p.GetWithScope("", key)
+}
+
+func (p *ConfigProvider) GetWithScope(scope string, key string) (interface{}, error) {
 	d := p.getFieldDefinition(key)
 
 	if d != nil {
 		if e, ok := os.LookupEnv(d.EnvVar); ok {
 			return e, nil
 		}
+
+		if !d.CaseSensitive {
+			// use the case convention from the field definition
+			key = d.Key
+		}
+	}
+
+	if scope != "" {
+		key = fmt.Sprintf("%s.%s", scope, key)
+	}
+
+	if p.scope != "" {
+		key = fmt.Sprintf("%s.%s", p.scope, key)
 	}
 
 	res, err := p.getFromConfig(key)
@@ -161,10 +197,14 @@ func (p *ConfigProvider) GetString(key string) (string, error) {
 		return "", err
 	}
 
-	return res.String(), nil
+	return res.Value(), nil
 }
 
 func (p *ConfigProvider) Set(key string, value interface{}) error {
+	return p.SetWithScope("", key, value)
+}
+
+func (p *ConfigProvider) SetWithScope(scope string, key string, value interface{}) error {
 	v := p.getFieldDefinition(key)
 
 	if v != nil {
@@ -182,10 +222,18 @@ func (p *ConfigProvider) Set(key string, value interface{}) error {
 		return fmt.Errorf("key '%s' is not valid, valid keys are: %v", key, p.getConfigValueKeys())
 	}
 
+	if scope != "" {
+		key = fmt.Sprintf("%s.%s", scope, key)
+	}
+
+	if p.scope != "" {
+		key = fmt.Sprintf("%s.%s", p.scope, key)
+	}
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Set(p.getConfig(), fmt.Sprintf("%s.%s", p.getEscapedScope(), key), value)
+	cfg, err := sjson.Set(p.getConfig(), escapeWildcards(key), value)
 	if err != nil {
 		return err
 	}
@@ -203,7 +251,7 @@ func (p *ConfigProvider) getFromConfig(key string) (*gjson.Result, error) {
 		key = v.Key
 	}
 
-	res := gjson.Get(p.getConfig(), fmt.Sprintf("%s.%s", p.scope, key))
+	res := gjson.Get(p.getConfig(), key)
 
 	if !res.Exists() {
 		return nil, fmt.Errorf("key %s is not defined", key)
@@ -222,14 +270,16 @@ func (p *ConfigProvider) writeConfig(json string) {
 }
 
 func (p *ConfigProvider) getConfig() string {
-	if p.cfg == nil || p.dirty {
-
+	if !p.settingDefaults && (p.cfg == nil || p.dirty) {
 		if p.fileName != "" {
 			p.setConfigFromFile()
 		}
 
 		if p.cfg == nil || len(p.cfg) == 0 {
+			// Flip settingDefaults true to avoid infinite recursion over getConfig()
+			p.settingDefaults = true
 			p.setDefaultConfig()
+			p.settingDefaults = false
 		}
 
 		p.dirty = false
@@ -249,23 +299,17 @@ func (p *ConfigProvider) setConfigFromFile() {
 
 func (p *ConfigProvider) setDefaultConfig() {
 	for _, v := range p.values {
-		p.setValue(v.Key, v.Default)
-	}
-}
-
-func (p *ConfigProvider) setValue(key string, value interface{}) {
-	cfg, err := sjson.Set(p.getConfig(), fmt.Sprintf("%s.%s", p.getEscapedScope(), key), value)
-	if err != nil {
-		log.Fatal(err)
+		if v.Default != nil {
+			p.Set(v.Key, v.Default)
+		}
 	}
 
-	p.cfg = []byte(cfg)
 }
 
 // Escape wildcard characters, as required by sjson
-func (p *ConfigProvider) getEscapedScope() string {
+func escapeWildcards(key string) string {
 	re := regexp.MustCompile(`([*?])`)
-	return re.ReplaceAllString(p.scope, "\\$1")
+	return re.ReplaceAllString(key, "\\$1")
 }
 
 func (p *ConfigProvider) getFieldDefinition(key string) *FieldDefinition {

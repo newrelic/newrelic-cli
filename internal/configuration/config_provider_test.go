@@ -463,6 +463,9 @@ func TestConfigProvider_Set_ValidationFunc_IntGreaterThan_WrongType(t *testing.T
 
 	err = p.Set("loglevel", "debug")
 	require.Error(t, err)
+
+	err = p.Set("loglevel", 1)
+	require.NoError(t, err)
 }
 
 func TestConfigProvider_Set_ValidationFunc_StringInStrings_CaseSensitive(t *testing.T) {
