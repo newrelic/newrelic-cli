@@ -1,16 +1,15 @@
 package install
 
 import (
-	"errors"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
 var (
@@ -45,38 +44,45 @@ var Command = &cobra.Command{
 
 		config.InitFileLogger()
 
-		client.WithClientAndProfile(func(nrClient *newrelic.NewRelic, profile *credentials.Profile) {
-			if trace {
-				log.SetLevel(log.TraceLevel)
-				nrClient.SetLogLevel("trace")
-			} else if debug {
-				log.SetLevel(log.DebugLevel)
-				nrClient.SetLogLevel("debug")
+		if trace {
+			log.SetLevel(log.TraceLevel)
+			client.Client.SetLogLevel("trace")
+		} else if debug {
+			log.SetLevel(log.DebugLevel)
+			client.Client.SetLogLevel("debug")
+		}
+
+		err := assertProfileIsValid()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		i := NewRecipeInstaller(ic, client.Client)
+
+		// Run the install.
+		if err := i.Install(); err != nil {
+			if err == types.ErrInterrupt {
+				return
 			}
 
-			err := assertProfileIsValid(profile)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			i := NewRecipeInstaller(ic, nrClient)
-
-			// Run the install.
-			if err := i.Install(); err != nil {
-				if err == types.ErrInterrupt {
-					return
-				}
-
-				log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.newrelic.com/-/06vjAeZLKjP", err)
-			}
-		})
+			log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.newrelic.com/-/06vjAeZLKjP", err)
+		}
 	},
 }
 
-func assertProfileIsValid(profile *credentials.Profile) error {
-	if profile == nil {
-		return errors.New("default profile has not been set")
+func assertProfileIsValid() error {
+	if configuration.GetActiveProfileInt(configuration.AccountID) == 0 {
+		return fmt.Errorf("accountID is required")
 	}
+
+	if configuration.GetActiveProfileString(configuration.APIKey) == "" {
+		return fmt.Errorf("API key is required")
+	}
+
+	if configuration.GetActiveProfileString(configuration.Region) == "" {
+		return fmt.Errorf("region is required")
+	}
+
 	return nil
 }
 

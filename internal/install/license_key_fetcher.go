@@ -2,11 +2,10 @@ package install
 
 import (
 	"context"
-	"strconv"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 )
 
@@ -32,12 +31,12 @@ func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string,
 
 	vars := map[string]interface{}{}
 
-	defaultProfile := credentials.DefaultProfile()
+	accountID := configuration.GetActiveProfileString(configuration.AccountID)
 
 	query := `
 	query{
 		actor {
-			account(id: ` + strconv.Itoa(defaultProfile.AccountID) + `) {
+			account(id: ` + accountID + `) {
 				licenseKey
 			}
 		}

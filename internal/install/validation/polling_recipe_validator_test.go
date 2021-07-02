@@ -4,12 +4,12 @@ package validation
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -33,7 +33,7 @@ var (
 )
 
 func TestValidate(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 1)
@@ -51,7 +51,7 @@ func TestValidate(t *testing.T) {
 }
 
 func TestValidate_PassAfterNAttempts(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
 	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
@@ -71,7 +71,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterNAttempts(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
 	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
@@ -89,7 +89,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 }
 
 func TestValidate_FailAfterMaxAttempts(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -109,7 +109,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 }
 
 func TestValidate_FailIfContextDone(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
@@ -131,7 +131,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 }
 
 func TestValidate_QueryError(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
 
 	c.ThrowError("test error")

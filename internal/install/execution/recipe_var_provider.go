@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strconv"
 	"strings"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -61,7 +60,9 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 }
 
 func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
-	defaultProfile := credentials.DefaultProfile()
+	accountID := configuration.GetActiveProfileString(configuration.AccountID)
+	apiKey := configuration.GetActiveProfileString(configuration.APIKey)
+	region := configuration.GetActiveProfileString(configuration.Region)
 
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found")
@@ -70,9 +71,9 @@ func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
 	vars := make(types.RecipeVars)
 
 	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
-	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(defaultProfile.AccountID)
-	vars["NEW_RELIC_API_KEY"] = defaultProfile.APIKey
-	vars["NEW_RELIC_REGION"] = defaultProfile.Region
+	vars["NEW_RELIC_ACCOUNT_ID"] = accountID
+	vars["NEW_RELIC_API_KEY"] = apiKey
+	vars["NEW_RELIC_REGION"] = region
 
 	return vars, nil
 }

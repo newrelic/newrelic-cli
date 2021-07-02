@@ -63,7 +63,8 @@ func TestConfigProvider_GetString(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFilePersistence(f.Name()),
@@ -81,7 +82,8 @@ func TestConfigProvider_GetString_CaseSensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
@@ -107,7 +109,8 @@ func TestConfigProvider_GetString_CaseInsensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
@@ -129,7 +132,8 @@ func TestConfigProvider_GetString_NotDefined(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFilePersistence(f.Name()),
@@ -139,7 +143,7 @@ func TestConfigProvider_GetString_NotDefined(t *testing.T) {
 
 	_, err = p.GetString("undefined")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "is not defined")
+	require.Contains(t, err.Error(), "no value found")
 }
 
 func TestConfigProvider_GetString_DefaultValue(t *testing.T) {
@@ -191,7 +195,8 @@ func TestConfigProvider_GetInt(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFilePersistence(f.Name()),
@@ -209,7 +214,8 @@ func TestConfigProvider_GetInt_NotDefined(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFilePersistence(f.Name()),
@@ -219,7 +225,7 @@ func TestConfigProvider_GetInt_NotDefined(t *testing.T) {
 
 	_, err = p.GetInt("undefined")
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "is not defined")
+	require.Contains(t, err.Error(), "no value found")
 }
 
 func TestConfigProvider_GetInt_DefaultValue(t *testing.T) {
@@ -292,7 +298,8 @@ func TestConfigProvider_Set(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithFilePersistence(f.Name()),
@@ -313,7 +320,8 @@ func TestConfigProvider_Set_CaseSensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithExplicitValues(),
@@ -338,7 +346,8 @@ func TestConfigProvider_Set_CaseInsensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	f.WriteString(testCfg)
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
 
 	p, err := NewConfigProvider(
 		WithExplicitValues(),

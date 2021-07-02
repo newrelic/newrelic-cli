@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
@@ -40,47 +39,45 @@ The search command performs a query for an APM application name and/or account I
 			log.Fatal("one of --accountId, --guid, --name are required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var entityResults []entities.EntityOutlineInterface
-			var err error
+		var entityResults []entities.EntityOutlineInterface
+		var err error
 
-			// Look for just the GUID if passed in
-			if appGUID != "" {
-				if appName != "" || apmAccountID != "" {
-					log.Warnf("Searching for --guid only, ignoring --accountId and --name")
-				}
-
-				var singleResult *entities.EntityInterface
-				singleResult, err = nrClient.Entities.GetEntity(entities.EntityGUID(appGUID))
-				utils.LogIfFatal(err)
-				utils.LogIfFatal(output.Print(*singleResult))
-			} else {
-				params := entities.EntitySearchQueryBuilder{
-					Domain: entities.EntitySearchQueryBuilderDomain("APM"),
-					Type:   entities.EntitySearchQueryBuilderType("APPLICATION"),
-				}
-
-				if appName != "" {
-					params.Name = appName
-				}
-
-				if apmAccountID != "" {
-					params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: apmAccountID}}
-				}
-
-				results, err := nrClient.Entities.GetEntitySearch(
-					entities.EntitySearchOptions{},
-					"",
-					params,
-					[]entities.EntitySearchSortCriteria{},
-				)
-
-				entityResults = results.Results.Entities
-				utils.LogIfFatal(err)
+		// Look for just the GUID if passed in
+		if appGUID != "" {
+			if appName != "" || apmAccountID != "" {
+				log.Warnf("Searching for --guid only, ignoring --accountId and --name")
 			}
 
-			utils.LogIfFatal(output.Print(entityResults))
-		})
+			var singleResult *entities.EntityInterface
+			singleResult, err = client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
+			utils.LogIfFatal(err)
+			utils.LogIfFatal(output.Print(*singleResult))
+		} else {
+			params := entities.EntitySearchQueryBuilder{
+				Domain: entities.EntitySearchQueryBuilderDomain("APM"),
+				Type:   entities.EntitySearchQueryBuilderType("APPLICATION"),
+			}
+
+			if appName != "" {
+				params.Name = appName
+			}
+
+			if apmAccountID != "" {
+				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: apmAccountID}}
+			}
+
+			results, err := client.Client.Entities.GetEntitySearch(
+				entities.EntitySearchOptions{},
+				"",
+				params,
+				[]entities.EntitySearchSortCriteria{},
+			)
+
+			entityResults = results.Results.Entities
+			utils.LogIfFatal(err)
+		}
+
+		utils.LogIfFatal(output.Print(entityResults))
 	},
 }
 
@@ -94,20 +91,18 @@ The get command performs a query for an APM application by GUID.
 `,
 	Example: "newrelic apm application get --guid <entityGUID>",
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var results *entities.EntityInterface
-			var err error
+		var results *entities.EntityInterface
+		var err error
 
-			if appGUID != "" {
-				results, err = nrClient.Entities.GetEntity(entities.EntityGUID(appGUID))
-				utils.LogIfFatal(err)
-			} else {
-				utils.LogIfError(cmd.Help())
-				log.Fatal(" --guid <entityGUID> is required")
-			}
+		if appGUID != "" {
+			results, err = client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
+			utils.LogIfFatal(err)
+		} else {
+			utils.LogIfError(cmd.Help())
+			log.Fatal(" --guid <entityGUID> is required")
+		}
 
-			utils.LogIfFatal(output.Print(results))
-		})
+		utils.LogIfFatal(output.Print(results))
 	},
 }
 

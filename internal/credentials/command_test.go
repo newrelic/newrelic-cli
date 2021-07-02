@@ -18,13 +18,13 @@ func TestCredentialsCommand(t *testing.T) {
 	testcobra.CheckCobraCommandAliases(t, Command, []string{"profiles"}) // DEPRECATED: from nr1 cli
 }
 
-func TestCredentialsAdd(t *testing.T) {
-	assert.Equal(t, "add", cmdAdd.Name())
+// func TestCredentialsAdd(t *testing.T) {
+// 	assert.Equal(t, "add", cmdAdd.Name())
 
-	testcobra.CheckCobraMetadata(t, cmdAdd)
-	testcobra.CheckCobraRequiredFlags(t, cmdAdd, []string{"name", "region"})
-	testcobra.CheckCobraCommandAliases(t, cmdAdd, []string{})
-}
+// 	testcobra.CheckCobraMetadata(t, cmdAdd)
+// 	testcobra.CheckCobraRequiredFlags(t, cmdAdd, []string{"name", "region"})
+// 	testcobra.CheckCobraCommandAliases(t, cmdAdd, []string{})
+// }
 
 func TestCredentialsDefault(t *testing.T) {
 	assert.Equal(t, "default", cmdDefault.Name())

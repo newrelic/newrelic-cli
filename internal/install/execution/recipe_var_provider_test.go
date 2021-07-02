@@ -14,7 +14,6 @@ import (
 	"github.com/go-task/task/v3/taskfile"
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -22,10 +21,6 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	e := NewRecipeVarProvider()
 
 	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",

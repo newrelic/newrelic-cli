@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
@@ -54,7 +54,7 @@ func generateExplorerLink(filter string) string {
 	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d",
 		nrPlatformHostname(),
 		utils.Base64Encode(filter),
-		credentials.DefaultProfile().AccountID,
+		configuration.GetActiveProfileInt(configuration.AccountID),
 	)
 }
 
@@ -64,16 +64,12 @@ func generateEntityLink(entityGUID string) string {
 
 // nrPlatformHostname returns the host for the platform based on the region set.
 func nrPlatformHostname() string {
-	defaultProfile := credentials.DefaultProfile()
-	if defaultProfile == nil {
-		return nrPlatformHostnames.US
-	}
-
-	if strings.EqualFold(defaultProfile.Region, region.Staging.String()) {
+	r := configuration.GetActiveProfileString(configuration.Region)
+	if strings.EqualFold(r, region.Staging.String()) {
 		return nrPlatformHostnames.Staging
 	}
 
-	if strings.EqualFold(defaultProfile.Region, region.EU.String()) {
+	if strings.EqualFold(r, region.EU.String()) {
 		return nrPlatformHostnames.EU
 	}
 

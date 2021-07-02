@@ -2,11 +2,10 @@ package validation
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -116,14 +115,11 @@ func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (b
 }
 
 func (m *PollingNRQLValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	profile := credentials.DefaultProfile()
-	if profile == nil || profile.AccountID == 0 {
-		return nil, errors.New("no account ID found in default profile")
-	}
+	accountID := configuration.GetActiveProfileInt(configuration.AccountID)
 
 	nrql := nrdb.NRQL(query)
 
-	result, err := m.client.QueryWithContext(ctx, profile.AccountID, nrql)
+	result, err := m.client.QueryWithContext(ctx, int(accountID), nrql)
 	if err != nil {
 		return nil, err
 	}
