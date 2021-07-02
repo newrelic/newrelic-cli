@@ -4,7 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apm"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
@@ -43,12 +42,10 @@ The list command returns deployments for a New Relic APM application.
 			log.Fatal("--applicationId is required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			deployments, err := nrClient.APM.ListDeploymentsWithContext(utils.SignalCtx, apmAppID)
-			utils.LogIfFatal(err)
+		deployments, err := client.Client.APM.ListDeploymentsWithContext(utils.SignalCtx, apmAppID)
+		utils.LogIfFatal(err)
 
-			utils.LogIfFatal(output.Print(deployments))
-		})
+		utils.LogIfFatal(output.Print(deployments))
 	},
 }
 
@@ -67,12 +64,10 @@ application.
 			log.Fatal("--applicationId and --revision are required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			d, err := nrClient.APM.CreateDeploymentWithContext(utils.SignalCtx, apmAppID, deployment)
-			utils.LogIfFatal(err)
+		d, err := client.Client.APM.CreateDeploymentWithContext(utils.SignalCtx, apmAppID, deployment)
+		utils.LogIfFatal(err)
 
-			utils.LogIfFatal(output.Print(d))
-		})
+		utils.LogIfFatal(output.Print(d))
 	},
 }
 
@@ -90,12 +85,10 @@ The delete command performs a delete operation for an APM deployment.
 			log.Fatal("--applicationId is required")
 		}
 
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			d, err := nrClient.APM.DeleteDeployment(apmAppID, deployment.ID)
-			utils.LogIfFatal(err)
+		d, err := client.Client.APM.DeleteDeployment(apmAppID, deployment.ID)
+		utils.LogIfFatal(err)
 
-			utils.LogIfFatal(output.Print(d))
-		})
+		utils.LogIfFatal(output.Print(d))
 	},
 }
 

@@ -9,7 +9,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -40,32 +39,30 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage collection get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var resp []interface{}
-			var err error
+		var resp []interface{}
+		var err error
 
-			input := nerdstorage.GetCollectionInput{
-				PackageID:  packageID,
-				Collection: collection,
-			}
+		input := nerdstorage.GetCollectionInput{
+			PackageID:  packageID,
+			Collection: collection,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				resp, err = nrClient.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				resp, err = nrClient.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				resp, err = nrClient.NerdStorage.GetCollectionWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			resp, err = client.Client.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			resp, err = client.Client.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			resp, err = client.Client.NerdStorage.GetCollectionWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(resp))
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(resp))
+		log.Info("success")
 	},
 }
 
@@ -89,30 +86,28 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage collection delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var err error
+		var err error
 
-			input := nerdstorage.DeleteCollectionInput{
-				PackageID:  packageID,
-				Collection: collection,
-			}
+		input := nerdstorage.DeleteCollectionInput{
+			PackageID:  packageID,
+			Collection: collection,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			_, err = client.Client.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			_, err = client.Client.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			_, err = client.Client.NerdStorage.DeleteCollectionWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 

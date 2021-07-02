@@ -10,7 +10,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -41,33 +40,31 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage document get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var document interface{}
-			var err error
+		var document interface{}
+		var err error
 
-			input := nerdstorage.GetDocumentInput{
-				PackageID:  packageID,
-				Collection: collection,
-				DocumentID: documentID,
-			}
+		input := nerdstorage.GetDocumentInput{
+			PackageID:  packageID,
+			Collection: collection,
+			DocumentID: documentID,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				document, err = nrClient.NerdStorage.GetDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				document, err = nrClient.NerdStorage.GetDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				document, err = nrClient.NerdStorage.GetDocumentWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			document, err = client.Client.NerdStorage.GetDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			document, err = client.Client.NerdStorage.GetDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			document, err = client.Client.NerdStorage.GetDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(document))
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(document))
+		log.Info("success")
 	},
 }
 
@@ -91,36 +88,34 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage document write --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var unmarshaled map[string]interface{}
-			err := json.Unmarshal([]byte(document), &unmarshaled)
-			if err != nil {
-				log.Fatalf("error parsing provided document: %s", err)
-			}
+		var unmarshaled map[string]interface{}
+		err := json.Unmarshal([]byte(document), &unmarshaled)
+		if err != nil {
+			log.Fatalf("error parsing provided document: %s", err)
+		}
 
-			input := nerdstorage.WriteDocumentInput{
-				PackageID:  packageID,
-				Collection: collection,
-				DocumentID: documentID,
-				Document:   unmarshaled,
-			}
+		input := nerdstorage.WriteDocumentInput{
+			PackageID:  packageID,
+			Collection: collection,
+			DocumentID: documentID,
+			Document:   unmarshaled,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				_, err = nrClient.NerdStorage.WriteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				_, err = nrClient.NerdStorage.WriteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				_, err = nrClient.NerdStorage.WriteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			_, err = client.Client.NerdStorage.WriteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			_, err = client.Client.NerdStorage.WriteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			_, err = client.Client.NerdStorage.WriteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -144,31 +139,29 @@ GUID.  A valid Nerdpack package ID is required.
   newrelic nerdstorage document delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var err error
+		var err error
 
-			input := nerdstorage.DeleteDocumentInput{
-				PackageID:  packageID,
-				Collection: collection,
-				DocumentID: documentID,
-			}
+		input := nerdstorage.DeleteDocumentInput{
+			PackageID:  packageID,
+			Collection: collection,
+			DocumentID: documentID,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				_, err = nrClient.NerdStorage.DeleteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				_, err = nrClient.NerdStorage.DeleteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				_, err = nrClient.NerdStorage.DeleteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			_, err = client.Client.NerdStorage.DeleteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			_, err = client.Client.NerdStorage.DeleteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			_, err = client.Client.NerdStorage.DeleteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 

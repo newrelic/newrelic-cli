@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,29 +13,32 @@ import (
 	"github.com/tidwall/sjson"
 )
 
+type ConfigKey string
+
 type ConfigProvider struct {
 	cfg             []byte
+	fields          []FieldDefinition
 	fileName        string
 	scope           string
-	dirty           bool
 	mu              sync.Mutex
-	values          []FieldDefinition
+	dirty           bool
 	explicitValues  bool
 	settingDefaults bool
 }
 
 type FieldDefinition struct {
 	EnvVar         string
-	Key            string
+	Key            ConfigKey
 	Default        interface{}
 	CaseSensitive  bool
+	Sensitive      bool
 	ValidationFunc ConfigValueValidationFunc
 }
 
-type ConfigValueValidationFunc func(key string, value interface{}) error
+type ConfigValueValidationFunc func(key ConfigKey, value interface{}) error
 
-func IntGreaterThan(greaterThan int) func(key string, value interface{}) error {
-	return func(key string, value interface{}) error {
+func IntGreaterThan(greaterThan int) func(key ConfigKey, value interface{}) error {
+	return func(key ConfigKey, value interface{}) error {
 		var s int
 		var ok bool
 		if s, ok = value.(int); !ok {
@@ -49,8 +53,8 @@ func IntGreaterThan(greaterThan int) func(key string, value interface{}) error {
 	}
 }
 
-func StringInStrings(caseSensitive bool, allowedValues ...string) func(key string, value interface{}) error {
-	return func(key string, value interface{}) error {
+func StringInStrings(caseSensitive bool, allowedValues ...string) func(key ConfigKey, value interface{}) error {
+	return func(key ConfigKey, value interface{}) error {
 		var s string
 		var ok bool
 		if s, ok = value.(string); !ok {
@@ -100,12 +104,12 @@ func WithFieldDefinitions(definitions ...FieldDefinition) ConfigProviderOption {
 		for _, d := range definitions {
 			if !d.CaseSensitive {
 				for _, k := range p.getConfigValueKeys() {
-					if strings.EqualFold(k, d.Key) {
+					if strings.EqualFold(string(k), string(d.Key)) {
 						return fmt.Errorf("unable to add case-insensitive field definition for %s, another field already defined with matching case-folded key", d.Key)
 					}
 				}
 			}
-			p.values = append(p.values, d)
+			p.fields = append(p.fields, d)
 		}
 		return nil
 	}
@@ -125,15 +129,15 @@ func WithScope(scope string) ConfigProviderOption {
 	}
 }
 
-func (p *ConfigProvider) GetInt(key string) (int64, error) {
+func (p *ConfigProvider) GetInt(key ConfigKey) (int64, error) {
 	return p.GetIntWithScope("", key)
 }
 
-func (p *ConfigProvider) GetString(key string) (string, error) {
+func (p *ConfigProvider) GetString(key ConfigKey) (string, error) {
 	return p.GetStringWithScope("", key)
 }
 
-func (p *ConfigProvider) GetIntWithScope(scope string, key string) (int64, error) {
+func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, error) {
 	v, err := p.GetWithScope(scope, key)
 	if err != nil {
 		return 0, err
@@ -153,7 +157,7 @@ func (p *ConfigProvider) GetIntWithScope(scope string, key string) (int64, error
 	return 0, fmt.Errorf("value %v for key %s is not an int", v, key)
 }
 
-func (p *ConfigProvider) GetStringWithScope(scope string, key string) (string, error) {
+func (p *ConfigProvider) GetStringWithScope(scope string, key ConfigKey) (string, error) {
 	v, err := p.GetWithScope(scope, key)
 	if err != nil {
 		return "", err
@@ -166,11 +170,11 @@ func (p *ConfigProvider) GetStringWithScope(scope string, key string) (string, e
 	return "", fmt.Errorf("value %v for key %s is not a string", v, key)
 }
 
-func (p *ConfigProvider) Get(key string) (interface{}, error) {
+func (p *ConfigProvider) Get(key ConfigKey) (interface{}, error) {
 	return p.GetWithScope("", key)
 }
 
-func (p *ConfigProvider) GetWithScope(scope string, key string) (interface{}, error) {
+func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{}, error) {
 	d := p.getFieldDefinition(key)
 
 	if d != nil {
@@ -184,15 +188,16 @@ func (p *ConfigProvider) GetWithScope(scope string, key string) (interface{}, er
 		}
 	}
 
+	path := string(key)
 	if scope != "" {
-		key = fmt.Sprintf("%s.%s", scope, key)
+		path = fmt.Sprintf("%s.%s", scope, key)
 	}
 
 	if p.scope != "" {
-		key = fmt.Sprintf("%s.%s", p.scope, key)
+		path = fmt.Sprintf("%s.%s", p.scope, key)
 	}
 
-	res, err := p.getFromConfig(key)
+	res, err := p.getFromConfig(path)
 	if err != nil {
 		return "", err
 	}
@@ -200,11 +205,11 @@ func (p *ConfigProvider) GetWithScope(scope string, key string) (interface{}, er
 	return res.Value(), nil
 }
 
-func (p *ConfigProvider) Set(key string, value interface{}) error {
+func (p *ConfigProvider) Set(key ConfigKey, value interface{}) error {
 	return p.SetWithScope("", key, value)
 }
 
-func (p *ConfigProvider) SetWithScope(scope string, key string, value interface{}) error {
+func (p *ConfigProvider) SetWithScope(scope string, key ConfigKey, value interface{}) error {
 	v := p.getFieldDefinition(key)
 
 	if v != nil {
@@ -222,51 +227,89 @@ func (p *ConfigProvider) SetWithScope(scope string, key string, value interface{
 		return fmt.Errorf("key '%s' is not valid, valid keys are: %v", key, p.getConfigValueKeys())
 	}
 
+	path := string(key)
 	if scope != "" {
-		key = fmt.Sprintf("%s.%s", scope, key)
+		path = fmt.Sprintf("%s.%s", scope, key)
 	}
 
 	if p.scope != "" {
-		key = fmt.Sprintf("%s.%s", p.scope, key)
+		path = fmt.Sprintf("%s.%s", p.scope, key)
 	}
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Set(p.getConfig(), escapeWildcards(key), value)
+	cfg, err := sjson.Set(p.getConfig(), escapeWildcards(path), value)
 	if err != nil {
 		return err
 	}
 
-	p.writeConfig(cfg)
+	if err := p.writeConfig(cfg); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (p *ConfigProvider) getFromConfig(key string) (*gjson.Result, error) {
-	v := p.getFieldDefinition(key)
-
-	if v != nil && !v.CaseSensitive {
-		// use the case convention from the field definition
-		key = v.Key
+func (p *ConfigProvider) RemoveScope(scope string) error {
+	path := scope
+	if p.scope != "" {
+		path = fmt.Sprintf("%s.%s", p.scope, scope)
 	}
 
-	res := gjson.Get(p.getConfig(), key)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	cfg, err := sjson.Delete(p.getConfig(), path)
+	if err != nil {
+		return err
+	}
+
+	if err := p.writeConfig(cfg); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *ConfigProvider) VisitAllFieldsWithScope(scope string, fn func(d FieldDefinition)) {
+	for _, f := range p.fields {
+		fn(f)
+	}
+}
+
+func (p *ConfigProvider) GetScopes() []string {
+	s := []string{}
+	result := gjson.Get(p.getConfig(), "@this")
+	result.ForEach(func(key, value gjson.Result) bool {
+		s = append(s, key.String())
+		return true
+	})
+
+	return s
+}
+
+func (p *ConfigProvider) getFromConfig(path string) (*gjson.Result, error) {
+	res := gjson.Get(p.getConfig(), path)
 
 	if !res.Exists() {
-		return nil, fmt.Errorf("key %s is not defined", key)
+		return nil, fmt.Errorf("no value found at path %s", path)
 	}
 
 	return &res, nil
 }
 
-func (p *ConfigProvider) writeConfig(json string) {
+func (p *ConfigProvider) writeConfig(json string) error {
 	p.dirty = true
 	p.cfg = []byte(json)
 
 	if p.fileName != "" {
-		os.WriteFile(p.fileName, p.cfg, 0644)
+		if err := os.WriteFile(p.fileName, p.cfg, 0644); err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
 func (p *ConfigProvider) getConfig() string {
@@ -298,9 +341,12 @@ func (p *ConfigProvider) setConfigFromFile() {
 }
 
 func (p *ConfigProvider) setDefaultConfig() {
-	for _, v := range p.values {
+	for _, v := range p.fields {
 		if v.Default != nil {
-			p.Set(v.Key, v.Default)
+			err := p.Set(v.Key, v.Default)
+			if err != nil {
+				log.Fatalf("could not write default config settings")
+			}
 		}
 	}
 
@@ -312,9 +358,9 @@ func escapeWildcards(key string) string {
 	return re.ReplaceAllString(key, "\\$1")
 }
 
-func (p *ConfigProvider) getFieldDefinition(key string) *FieldDefinition {
-	for _, v := range p.values {
-		if !v.CaseSensitive && strings.EqualFold(key, v.Key) {
+func (p *ConfigProvider) getFieldDefinition(key ConfigKey) *FieldDefinition {
+	for _, v := range p.fields {
+		if !v.CaseSensitive && strings.EqualFold(string(key), string(v.Key)) {
 			return &v
 		}
 
@@ -326,9 +372,9 @@ func (p *ConfigProvider) getFieldDefinition(key string) *FieldDefinition {
 	return nil
 }
 
-func (p *ConfigProvider) getConfigValueKeys() []string {
-	var keys []string
-	for _, v := range p.values {
+func (p *ConfigProvider) getConfigValueKeys() []ConfigKey {
+	var keys []ConfigKey
+	for _, v := range p.fields {
 		keys = append(keys, v.Key)
 	}
 

@@ -8,7 +8,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
 )
 
@@ -29,13 +28,10 @@ var cmdKey = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		resp, err := client.Client.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 var apiAccessCreateKeysInput string
@@ -46,18 +42,15 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessCreateKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		var keys apiaccess.APIAccessCreateInput
 
-			var keys apiaccess.APIAccessCreateInput
+		err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
+		utils.LogIfFatal(err)
 
-			err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
-			utils.LogIfFatal(err)
+		resp, err := client.Client.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 var apiAccessUpdateKeysInput string
@@ -68,18 +61,15 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessUpdateKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		var keys apiaccess.APIAccessUpdateInput
 
-			var keys apiaccess.APIAccessUpdateInput
+		err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
+		utils.LogIfFatal(err)
 
-			err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
-			utils.LogIfFatal(err)
+		resp, err := client.Client.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 var apiAccessDeleteKeysInput string
@@ -90,18 +80,15 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessDeleteKeys --keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		var keys apiaccess.APIAccessDeleteInput
 
-			var keys apiaccess.APIAccessDeleteInput
+		err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
+		utils.LogIfFatal(err)
 
-			err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
-			utils.LogIfFatal(err)
+		resp, err := client.Client.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 

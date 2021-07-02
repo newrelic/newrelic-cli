@@ -45,7 +45,6 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 	return &ConfigValidator{
 		client:               client,
 		PollingNRQLValidator: v,
-		profile:              credentials.DefaultProfile(),
 		PostRetryDelaySec:    DefaultPostRetryDelaySec,
 		PostMaxRetries:       DefaultPostMaxRetries,
 	}
