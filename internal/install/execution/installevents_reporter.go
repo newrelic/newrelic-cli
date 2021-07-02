@@ -18,27 +18,37 @@ func NewInstallEventsReporter(client InstalleventsClient) *InstallEventsReporter
 }
 
 func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	_, err := r.client.CreateInstallEvent(buildInstallStatus(event, installevents.RecipeStatusTypeTypes.FAILED))
+	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.FAILED)
+
+	_, err := r.client.CreateInstallEvent(s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
-	_, err := r.client.CreateInstallEvent(buildInstallStatus(event, installevents.RecipeStatusTypeTypes.INSTALLING))
+	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.INSTALLING)
+
+	_, err := r.client.CreateInstallEvent(s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	_, err := r.client.CreateInstallEvent(buildInstallStatus(event, installevents.RecipeStatusTypeTypes.INSTALLED))
+	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.INSTALLED)
+
+	_, err := r.client.CreateInstallEvent(s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
-	_, err := r.client.CreateInstallEvent(buildInstallStatus(event, installevents.RecipeStatusTypeTypes.SKIPPED))
+	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.SKIPPED)
+
+	_, err := r.client.CreateInstallEvent(s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
-	_, err := r.client.CreateInstallEvent(buildInstallStatus(event, installevents.RecipeStatusTypeTypes.SKIPPED))
+	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.RECOMMENDED)
+
+	_, err := r.client.CreateInstallEvent(s)
 	return err
 }
 
@@ -67,25 +77,40 @@ func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types
 }
 
 func (r InstallEventsReporter) writeStatus(status *InstallStatus) error {
-	_, err := r.client.CreateInstallMetadata(buildInstallMetadata(status))
+	_, err := r.client.CreateInstallEvent(buildInstallStatus(status, nil, nil))
 	return err
 }
 
-func buildInstallStatus(event RecipeStatusEvent, status installevents.RecipeStatusType) installevents.InstallStatus {
+func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.RecipeStatusType) installevents.InstallStatus {
 	i := installevents.InstallStatus{
-		// Error:                          "",
-		DisplayName: event.Recipe.DisplayName,
-		EntityGUID:  event.EntityGUID,
-		Name:        event.Recipe.Name,
-		Status:      status,
-		// ValidationDurationMilliseconds: event.ValidationDurationMilliseconds,
+		CliVersion: status.CLIVersion,
+		Complete:   status.Complete,
+		Error: installevents.InputStatusError{
+			Details: status.Error.Details,
+			Message: status.Error.Message,
+		},
+		HostName:        status.DiscoveryManifest.Hostname,
+		KernelArch:      status.DiscoveryManifest.KernelArch,
+		KernelVersion:   status.DiscoveryManifest.KernelVersion,
+		LogFilePath:     status.LogFilePath,
+		Os:              status.DiscoveryManifest.OS,
+		Platform:        status.DiscoveryManifest.Platform,
+		PlatformFamily:  status.DiscoveryManifest.PlatformFamily,
+		PlatformVersion: status.DiscoveryManifest.PlatformVersion,
+		RedirectURL:     status.RedirectURL,
+		TargetedInstall: status.targetedInstall,
 	}
 
-	return i
-}
+	if event != nil {
+		i.Name = event.Recipe.Name
+		i.DisplayName = event.Recipe.DisplayName
+		i.EntityGUID = event.EntityGUID
+		i.ValidationDurationMilliseconds = float64(event.ValidationDurationMilliseconds)
+	}
 
-func buildInstallMetadata(status *InstallStatus) installevents.InputInstallMetadata {
-	i := installevents.InputInstallMetadata{}
+	if statusType != nil {
+		i.Status = *statusType
+	}
 
 	return i
 }
