@@ -14,7 +14,7 @@ func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -31,7 +31,7 @@ func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -47,7 +47,7 @@ func TestInstallEventsReporter_RecipeInstalled(t *testing.T) {
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -63,7 +63,7 @@ func TestInstallEventsReporter_RecipeSkipped(t *testing.T) {
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -79,7 +79,7 @@ func TestInstallEventsReporter_RecipeRecommended(t *testing.T) {
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 	e := RecipeStatusEvent{}
@@ -95,7 +95,7 @@ func TestInstallEventsReporter_writeStatus(t *testing.T) {
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
-	slg := NewConcreteSuccessLinkGenerator()
+	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
 
