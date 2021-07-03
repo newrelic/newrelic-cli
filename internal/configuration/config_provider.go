@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -304,6 +305,15 @@ func (p *ConfigProvider) writeConfig(json string) error {
 	p.cfg = []byte(json)
 
 	if p.fileName != "" {
+		dir := filepath.Dir(p.fileName)
+		_, err := os.Stat(dir)
+		if err != nil {
+			err = os.Mkdir(dir, 0755)
+			if err != nil {
+				return err
+			}
+		}
+
 		if err := os.WriteFile(p.fileName, p.cfg, 0644); err != nil {
 			return err
 		}
@@ -345,7 +355,7 @@ func (p *ConfigProvider) setDefaultConfig() {
 		if v.Default != nil {
 			err := p.Set(v.Key, v.Default)
 			if err != nil {
-				log.Fatalf("could not write default config settings")
+				log.Fatalf("could not write default config settings: %s", err)
 			}
 		}
 	}

@@ -1,23 +1,40 @@
 package credentials
 
 import (
+	"context"
+	"fmt"
+	"strconv"
+
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/jedib0t/go-pretty/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/output"
+	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/accounts"
+	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
 const (
+	defaultProfileName   = "default"
 	defaultProfileString = " (default)"
 	hiddenKeyString      = "<hidden>"
 )
 
 var (
-	// Display keys when printing output
-	showKeys    bool
-	profileName string
+	showKeys          bool
+	profileName       string
+	flagRegion        string
+	apiKey            string
+	insightsInsertKey string
+	accountID         int
+	licenseKey        string
+	acceptDefaults    bool
 )
 
 // Command is the base command for managing profiles
@@ -29,42 +46,233 @@ var Command = &cobra.Command{
 	},
 }
 
-// var cmdAdd = &cobra.Command{
-// 	Use:   "add",
-// 	Short: "Add a new profile",
-// 	Long: `Add a new profile
+var cmdAdd = &cobra.Command{
+	Use:   "add",
+	Short: "Add a new profile",
+	Long: `Add a new profile
 
-// The add command creates a new profile for use with the New Relic CLI.
-// API key and region are required. An Insights insert key is optional, but required
-// for posting custom events with the ` + "`newrelic events`" + `command.
-// `,
-// 	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
-// 	Run: func(cmd *cobra.Command, args []string) {
-// 		p := Profile{
-// 			Region:            flagRegion,
-// 			APIKey:            apiKey,
-// 			InsightsInsertKey: insightsInsertKey,
-// 			AccountID:         accountID,
-// 			LicenseKey:        licenseKey,
-// 		}
+The add command creates a new profile for use with the New Relic CLI.
+API key and region are required. An Insights insert key is optional, but required
+for posting custom events with the ` + "`newrelic events`" + `command.
+`,
+	Aliases: []string{
+		"configure",
+	},
+	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
+	Run: func(cmd *cobra.Command, args []string) {
+		addStringValueToProfile(profileName, apiKey, configuration.APIKey, "User API Key", nil, nil)
+		addStringValueToProfile(profileName, flagRegion, configuration.Region, "Region", nil, []string{"US", "EU"})
+		addIntValueToProfile(profileName, accountID, configuration.AccountID, "Account ID", fetchAccountIDs)
+		addStringValueToProfile(profileName, insightsInsertKey, configuration.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey, nil)
+		addStringValueToProfile(profileName, licenseKey, configuration.LicenseKey, "License Key", fetchLicenseKey, nil)
 
-// 		err := creds.AddProfile(profileName, p)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
+		profile, err := configuration.GetDefaultProfile()
+		if err != nil {
+			log.Fatal(err)
+		}
 
-// 		log.Infof("profile %s added", text.FgCyan.Sprint(profileName))
+		if profile == "" {
+			configuration.SetDefaultProfile(profileName)
+		}
 
-// 		if len(creds.Profiles) == 1 {
-// 			err := configuration.SetDefaultProfile(profileName)
-// 			if err != nil {
-// 				log.Fatal(err)
-// 			}
+		log.Info("success")
+	},
+}
 
-// 			log.Infof("setting %s as default profile", text.FgCyan.Sprint(profileName))
-// 		}
-// 	},
-// }
+func addStringValueToProfile(profileName string, val string, key configuration.ConfigKey, label string, defaultFunc func() (string, error), selectValues []string) error {
+	if val == "" {
+		defaultValue := configuration.GetProfileString(profileName, key)
+
+		if defaultValue == "" && defaultFunc != nil {
+			d, err := defaultFunc()
+			if err != nil {
+				log.Debug(err)
+			} else {
+				defaultValue = d
+			}
+		}
+
+		prompt := &survey.Input{
+			Message: fmt.Sprintf("%s:", label),
+			Default: defaultValue,
+		}
+
+		if selectValues != nil {
+			prompt.Suggest = func(string) []string { return selectValues }
+		}
+
+		var input string
+		if !acceptDefaults {
+			if err := survey.AskOne(prompt, &input); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		if input != "" {
+			val = input
+		} else {
+			val = defaultValue
+		}
+	}
+
+	if err := configuration.SetProfileString(profileName, key, val); err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
+func addIntValueToProfile(profileName string, val int, key configuration.ConfigKey, label string, defaultFunc func() ([]int, error)) error {
+	if val == 0 {
+		prompt := &survey.Input{
+			Message: fmt.Sprintf("%s:", label),
+		}
+
+		defaultValue := configuration.GetProfileInt(profileName, key)
+
+		if defaultValue == 0 && defaultFunc != nil {
+			d, err := defaultFunc()
+			if err != nil {
+				log.Debug(err)
+			} else {
+				if len(d) == 1 {
+					defaultValue = d[0]
+				} else if len(d) > 0 {
+					prompt.Suggest = func(string) []string { return utils.IntSliceToStringSlice(d) }
+				}
+			}
+		}
+
+		if defaultValue != 0 {
+			prompt.Default = strconv.Itoa(defaultValue)
+		}
+
+		var input string
+		if !acceptDefaults {
+			if err := survey.AskOne(prompt, &input); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		if input != "" {
+			i, err := strconv.Atoi(input)
+			if err != nil {
+				return err
+			}
+
+			val = i
+		} else {
+			val = defaultValue
+		}
+	}
+
+	if err := configuration.SetProfileInt(profileName, key, val); err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
+}
+
+func fetchLicenseKey() (string, error) {
+	accountID = configuration.GetProfileInt(profileName, configuration.AccountID)
+	client, err := client.NewClient(profileName)
+	if err != nil {
+		return "", err
+	}
+
+	var licenseKey string
+	retryFunc := func() error {
+		l, err := execLicenseKeyRequest(utils.SignalCtx, client, accountID)
+		if err != nil {
+			return err
+		}
+
+		licenseKey = l
+		return nil
+	}
+
+	r := utils.NewRetry(3, 1, retryFunc)
+	if err := r.ExecWithRetries(utils.SignalCtx); err != nil {
+		return "", err
+	}
+
+	return licenseKey, nil
+}
+
+func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
+	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
+
+	variables := map[string]interface{}{
+		"accountId": accountID,
+	}
+
+	resp, err := client.NerdGraph.QueryWithContext(ctx, query, variables)
+	if err != nil {
+		return "", err
+	}
+
+	queryResp := resp.(nerdgraph.QueryResponse)
+	actor := queryResp.Actor.(map[string]interface{})
+	account := actor["account"].(map[string]interface{})
+
+	if l, ok := account["licenseKey"]; ok {
+		if l != nil {
+			return l.(string), nil
+		}
+	}
+
+	return "", types.ErrorFetchingLicenseKey
+}
+
+func fetchInsightsInsertKey() (string, error) {
+	accountID = configuration.GetProfileInt(profileName, configuration.AccountID)
+	client, err := client.NewClient(profileName)
+	if err != nil {
+		return "", err
+	}
+
+	// Check for an existing key first
+	keys, err := client.APIAccess.ListInsightsInsertKeys(accountID)
+	if err != nil {
+		return "", types.ErrorFetchingInsightsInsertKey
+	}
+
+	// We already have a key, return it
+	if len(keys) > 0 {
+		return keys[0].Key, nil
+	}
+
+	// Create a new key if one doesn't exist
+	key, err := client.APIAccess.CreateInsightsInsertKey(accountID)
+	if err != nil {
+		return "", types.ErrorFetchingInsightsInsertKey
+	}
+
+	return key.Key, nil
+}
+
+// fetchAccountID will try and retrieve the available account IDs for the given user.
+func fetchAccountIDs() (ids []int, err error) {
+	client, err := client.NewClient(profileName)
+	if err != nil {
+		return nil, err
+	}
+
+	params := accounts.ListAccountsParams{
+		Scope: &accounts.RegionScopeTypes.IN_REGION,
+	}
+
+	accounts, err := client.Accounts.ListAccounts(params)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, a := range accounts {
+		ids = append(ids, a.ID)
+	}
+
+	return ids, nil
+}
 
 var cmdDefault = &cobra.Command{
 	Use:   "default",
@@ -149,34 +357,20 @@ The delete command removes the profile specified by name.
 func init() {
 	var err error
 
-	// // Add
-	// Command.AddCommand(cmdAdd)
-	// cmdAdd.Flags().StringVarP(&profileName, "name", "n", "", "unique profile name to add")
-	// cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
-	// cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
-	// cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
-	// cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
-	// cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
-	// err = cmdAdd.MarkFlagRequired("name")
-	// if err != nil {
-	// 	log.Error(err)
-	// }
-
-	// err = cmdAdd.MarkFlagRequired("region")
-	// if err != nil {
-	// 	log.Error(err)
-	// }
-
-	// err = cmdAdd.MarkFlagRequired("apiKey")
-	// if err != nil {
-	// 	log.Error(err)
-	// }
+	// Add
+	Command.AddCommand(cmdAdd)
+	cmdAdd.Flags().StringVarP(&profileName, "name", "n", "default", "unique profile name to add")
+	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "US", "the US or EU region")
+	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
+	cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
+	cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
+	cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
+	cmdAdd.Flags().BoolVarP(&acceptDefaults, "acceptDefaults", "a", false, "suppress prompts and accept default values")
 
 	// Default
 	Command.AddCommand(cmdDefault)
-	cmdDefault.Flags().StringVarP(&profileName, "name", "n", "", "the profile name to set as default")
-	err = cmdDefault.MarkFlagRequired("name")
-	if err != nil {
+	cmdDefault.Flags().StringVarP(&profileName, "name", "n", "default", "the profile name to set as default")
+	if err = cmdDefault.MarkFlagRequired("name"); err != nil {
 		log.Error(err)
 	}
 
@@ -186,9 +380,8 @@ func init() {
 
 	// Remove
 	Command.AddCommand(cmdDelete)
-	cmdDelete.Flags().StringVarP(&profileName, "name", "n", "", "the profile name to delete")
-	err = cmdDelete.MarkFlagRequired("name")
-	if err != nil {
+	cmdDelete.Flags().StringVarP(&profileName, "name", "n", "default", "the profile name to delete")
+	if err = cmdDelete.MarkFlagRequired("name"); err != nil {
 		log.Error(err)
 	}
 }
