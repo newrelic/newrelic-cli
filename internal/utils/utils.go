@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -140,4 +141,12 @@ func StringInSlice(str string, slice []string) bool {
 	}
 
 	return false
+}
+
+func IntSliceToStringSlice(in []int) (out []string) {
+	for _, i := range in {
+		out = append(out, strconv.Itoa(i))
+	}
+
+	return out
 }

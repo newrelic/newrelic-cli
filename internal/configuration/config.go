@@ -3,6 +3,7 @@ package configuration
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
@@ -90,9 +91,10 @@ func initializeConfigProvider() {
 		WithScope("*"),
 		WithFieldDefinitions(
 			FieldDefinition{
-				Key:     LogLevel,
-				EnvVar:  "NEW_RELIC_CLI_LOG_LEVEL",
-				Default: "debug",
+				Key:            LogLevel,
+				EnvVar:         "NEW_RELIC_CLI_LOG_LEVEL",
+				Default:        "info",
+				ValidationFunc: StringInStrings(false, "Info", "Debug", "Trace", "Warn", "Error"),
 			},
 			FieldDefinition{
 				Key:     PluginDir,
@@ -124,25 +126,29 @@ func GetActiveProfileName() string {
 }
 
 func GetActiveProfileString(key ConfigKey) string {
-	return GetProfileString(activeProfileName, key)
+	return GetProfileString(GetActiveProfileName(), key)
 }
 
 func GetProfileString(profileName string, key ConfigKey) string {
-	v, err := credentialsProvider.GetStringWithScope(activeProfileName, key)
+	v, err := credentialsProvider.GetStringWithScope(GetActiveProfileName(), key)
 	if err != nil {
-		log.Fatalf("could not load value %s from active profile %s: %s", key, profileName, err)
+		return ""
 	}
 
 	return v
 }
 
-func GetActiveProfileInt(key ConfigKey) int64 {
-	v, err := credentialsProvider.GetIntWithScope(activeProfileName, key)
+func GetActiveProfileInt(key ConfigKey) int {
+	return GetProfileInt(GetActiveProfileName(), key)
+}
+
+func GetProfileInt(profileName string, key ConfigKey) int {
+	v, err := credentialsProvider.GetIntWithScope(GetActiveProfileName(), key)
 	if err != nil {
-		log.Fatalf("could not load value %s from active profile %s: %s", key, activeProfileName, err)
+		return 0
 	}
 
-	return v
+	return int(v)
 }
 
 func GetConfigString(key ConfigKey) string {
@@ -154,9 +160,26 @@ func GetConfigString(key ConfigKey) string {
 	return v
 }
 
+func GetDefaultProfile() (string, error) {
+	defaultProfileFilePath := filepath.Join(basePath, defaultProfileFileName)
+	data, err := ioutil.ReadFile(defaultProfileFilePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", nil
+		}
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 func SetDefaultProfile(profileName string) error {
 	defaultProfileFilePath := filepath.Join(basePath, defaultProfileFileName)
 	return ioutil.WriteFile(defaultProfileFilePath, []byte("\""+profileName+"\""), 0644)
+}
+
+func GetProfileFieldDefinition(key ConfigKey) *FieldDefinition {
+	return credentialsProvider.getFieldDefinition(key)
 }
 
 func VisitAllProfileFields(profileName string, fn func(d FieldDefinition)) {
@@ -169,6 +192,26 @@ func GetProfileNames() []string {
 
 func RemoveProfile(profileName string) error {
 	return credentialsProvider.RemoveScope(profileName)
+}
+
+func SetConfigString(profileName string) error {
+	return credentialsProvider.RemoveScope(profileName)
+}
+
+func SetActiveProfileString(key ConfigKey, value string) error {
+	return SetProfileString(GetActiveProfileName(), key, value)
+}
+
+func SetProfileString(profileName string, key ConfigKey, value string) error {
+	return credentialsProvider.SetWithScope(profileName, key, value)
+}
+
+func SetActiveProfileInt(key ConfigKey, value int) error {
+	return SetProfileInt(GetActiveProfileName(), key, value)
+}
+
+func SetProfileInt(profileName string, key ConfigKey, value int) error {
+	return credentialsProvider.SetWithScope(profileName, key, value)
 }
 
 func configBasePath() string {
