@@ -49,7 +49,7 @@ The search command performs a query for an APM application name and/or account I
 			}
 
 			var singleResult *entities.EntityInterface
-			singleResult, err = client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
+			singleResult, err = client.NRClient.Entities.GetEntity(entities.EntityGUID(appGUID))
 			utils.LogIfFatal(err)
 			utils.LogIfFatal(output.Print(*singleResult))
 		} else {
@@ -66,7 +66,7 @@ The search command performs a query for an APM application name and/or account I
 				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: apmAccountID}}
 			}
 
-			results, err := client.Client.Entities.GetEntitySearch(
+			results, err := client.NRClient.Entities.GetEntitySearch(
 				entities.EntitySearchOptions{},
 				"",
 				params,
@@ -95,7 +95,7 @@ The get command performs a query for an APM application by GUID.
 		var err error
 
 		if appGUID != "" {
-			results, err = client.Client.Entities.GetEntity(entities.EntityGUID(appGUID))
+			results, err = client.NRClient.Entities.GetEntity(entities.EntityGUID(appGUID))
 			utils.LogIfFatal(err)
 		} else {
 			utils.LogIfError(cmd.Help())

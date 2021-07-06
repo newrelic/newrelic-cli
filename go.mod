@@ -15,7 +15,6 @@ require (
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.157.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
-	github.com/imdario/mergo v0.3.12
 	github.com/itchyny/gojq v0.12.4
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jedib0t/go-pretty/v6 v6.2.2
@@ -30,7 +29,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.0
 	github.com/tidwall/sjson v1.1.7

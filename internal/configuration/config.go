@@ -9,7 +9,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
@@ -34,7 +33,7 @@ const (
 var (
 	configProvider      *ConfigProvider
 	credentialsProvider *ConfigProvider
-	basePath            string = configBasePath()
+	BasePath            string = configBasePath()
 )
 
 func init() {
@@ -44,7 +43,7 @@ func init() {
 
 func initializeCredentialsProvider() {
 	p, err := NewConfigProvider(
-		WithFilePersistence(filepath.Join(basePath, credentialsFileName)),
+		WithFilePersistence(filepath.Join(BasePath, credentialsFileName)),
 		WithFieldDefinitions(
 			FieldDefinition{
 				Key:       APIKey,
@@ -59,16 +58,16 @@ func initializeCredentialsProvider() {
 			FieldDefinition{
 				Key:    Region,
 				EnvVar: "NEW_RELIC_REGION",
-				ValidationFunc: StringInStrings(false,
+				SetValidationFunc: StringInStrings(false,
 					region.Staging.String(),
 					region.US.String(),
 					region.EU.String(),
 				),
 			},
 			FieldDefinition{
-				Key:            AccountID,
-				EnvVar:         "NEW_RELIC_ACCOUNT_ID",
-				ValidationFunc: IntGreaterThan(0),
+				Key:               AccountID,
+				EnvVar:            "NEW_RELIC_ACCOUNT_ID",
+				SetValidationFunc: IntGreaterThan(0),
 			},
 			FieldDefinition{
 				Key:       LicenseKey,
@@ -87,14 +86,14 @@ func initializeCredentialsProvider() {
 
 func initializeConfigProvider() {
 	p, err := NewConfigProvider(
-		WithFilePersistence(filepath.Join(basePath, configFileName)),
+		WithFilePersistence(filepath.Join(BasePath, configFileName)),
 		WithScope("*"),
 		WithFieldDefinitions(
 			FieldDefinition{
-				Key:            LogLevel,
-				EnvVar:         "NEW_RELIC_CLI_LOG_LEVEL",
-				Default:        "info",
-				ValidationFunc: StringInStrings(false, "Info", "Debug", "Trace", "Warn", "Error"),
+				Key:               LogLevel,
+				EnvVar:            "NEW_RELIC_CLI_LOG_LEVEL",
+				Default:           "info",
+				SetValidationFunc: StringInStrings(false, "Info", "Debug", "Trace", "Warn", "Error"),
 			},
 			FieldDefinition{
 				Key:     PluginDir,
@@ -102,14 +101,16 @@ func initializeConfigProvider() {
 				Default: filepath.Join(configBasePath(), pluginDir),
 			},
 			FieldDefinition{
-				Key:     PreReleaseFeatures,
-				EnvVar:  "NEW_RELIC_CLI_PRERELEASEFEATURES",
-				Default: config.TernaryValues.Unknown,
+				Key:               PreReleaseFeatures,
+				EnvVar:            "NEW_RELIC_CLI_PRERELEASEFEATURES",
+				SetValidationFunc: IsTernary(),
+				Default:           TernaryValues.Unknown,
 			},
 			FieldDefinition{
-				Key:     SendUsageData,
-				EnvVar:  "NEW_RELIC_CLI_SENDUSAGEDATA",
-				Default: config.TernaryValues.Unknown,
+				Key:               SendUsageData,
+				EnvVar:            "NEW_RELIC_CLI_SENDUSAGEDATA",
+				SetValidationFunc: IsTernary(),
+				Default:           TernaryValues.Unknown,
 			},
 		),
 	)
@@ -160,8 +161,17 @@ func GetConfigString(key ConfigKey) string {
 	return v
 }
 
+func GetConfigTernary(key ConfigKey) Ternary {
+	v, err := configProvider.GetTernary(key)
+	if err != nil {
+		log.Fatalf("could not load value %s from config: %s", key, err)
+	}
+
+	return v
+}
+
 func GetDefaultProfile() (string, error) {
-	defaultProfileFilePath := filepath.Join(basePath, defaultProfileFileName)
+	defaultProfileFilePath := filepath.Join(BasePath, defaultProfileFileName)
 	data, err := ioutil.ReadFile(defaultProfileFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -174,7 +184,7 @@ func GetDefaultProfile() (string, error) {
 }
 
 func SetDefaultProfile(profileName string) error {
-	defaultProfileFilePath := filepath.Join(basePath, defaultProfileFileName)
+	defaultProfileFilePath := filepath.Join(BasePath, defaultProfileFileName)
 	return ioutil.WriteFile(defaultProfileFilePath, []byte("\""+profileName+"\""), 0644)
 }
 
@@ -182,8 +192,24 @@ func GetProfileFieldDefinition(key ConfigKey) *FieldDefinition {
 	return credentialsProvider.getFieldDefinition(key)
 }
 
+func GetConfigFieldDefinition(key ConfigKey) *FieldDefinition {
+	return configProvider.getFieldDefinition(key)
+}
+
 func VisitAllProfileFields(profileName string, fn func(d FieldDefinition)) {
 	credentialsProvider.VisitAllFieldsWithScope(profileName, fn)
+}
+
+func VisitAllConfigFields(fn func(d FieldDefinition)) {
+	configProvider.VisitAllFields(fn)
+}
+
+func GetValidConfigKeys() (configKeys []ConfigKey) {
+	configProvider.VisitAllFields(func(fd FieldDefinition) {
+		configKeys = append(configKeys, fd.Key)
+	})
+
+	return configKeys
 }
 
 func GetProfileNames() []string {
@@ -194,8 +220,12 @@ func RemoveProfile(profileName string) error {
 	return credentialsProvider.RemoveScope(profileName)
 }
 
-func SetConfigString(profileName string) error {
-	return credentialsProvider.RemoveScope(profileName)
+func SetConfigString(key ConfigKey, value string) error {
+	return SetConfigValue(key, value)
+}
+
+func SetConfigValue(key ConfigKey, value interface{}) error {
+	return configProvider.Set(key, value)
 }
 
 func SetActiveProfileString(key ConfigKey, value string) error {

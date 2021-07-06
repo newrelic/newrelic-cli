@@ -8,7 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -116,7 +116,7 @@ func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGe
 	s := InstallStatus{
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
-		LogFilePath:           config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		LogFilePath:           configuration.BasePath + "/" + configuration.DefaultLogFile,
 		statusSubscriber:      reporters,
 		PlatformLinkGenerator: PlatformLinkGenerator,
 		HTTPSProxy:            httpproxy.FromEnvironment().HTTPSProxy,

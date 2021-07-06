@@ -66,7 +66,7 @@ var cmdJUnit = &cobra.Command{
 			return
 		}
 
-		if err := client.Client.Events.CreateEventWithContext(utils.SignalCtx, accountID, events); err != nil {
+		if err := client.NRClient.Events.CreateEventWithContext(utils.SignalCtx, accountID, events); err != nil {
 			log.Fatal(err)
 		}
 

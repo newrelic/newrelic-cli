@@ -315,6 +315,57 @@ func TestConfigProvider_Set(t *testing.T) {
 	require.Equal(t, "trace", actual)
 }
 
+func TestConfigProvider_SetTernary(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
+
+	p, err := NewConfigProvider(
+		WithFilePersistence(f.Name()),
+		WithScope("*"),
+	)
+	require.NoError(t, err)
+
+	err = p.Set("testTernary", TernaryValues.Allow)
+	require.NoError(t, err)
+
+	actual, err := p.GetTernary("testTernary")
+	require.NoError(t, err)
+	require.Equal(t, TernaryValues.Allow, actual)
+}
+
+func TestConfigProvider_SetTernary_Invalid(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
+
+	p, err := NewConfigProvider(
+		WithFieldDefinitions(FieldDefinition{
+			Key:               "testTernary",
+			SetValidationFunc: IsTernary(),
+		}),
+		WithFilePersistence(f.Name()),
+		WithScope("*"),
+	)
+	require.NoError(t, err)
+
+	err = p.Set("testTernary", Ternary("invalid"))
+	require.Error(t, err)
+
+	err = p.Set("anotherTestTernary", "invalid")
+	require.NoError(t, err)
+
+	actual, err := p.GetTernary("anotherTestTernary")
+	require.NoError(t, err)
+	require.False(t, actual.Bool())
+}
+
 func TestConfigProvider_Set_CaseSensitive(t *testing.T) {
 	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
 	require.NoError(t, err)
@@ -440,8 +491,8 @@ func TestConfigProvider_Set_ValidationFunc_IntGreaterThan(t *testing.T) {
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
-			Key:            "loglevel",
-			ValidationFunc: IntGreaterThan(0),
+			Key:               "loglevel",
+			SetValidationFunc: IntGreaterThan(0),
 		}),
 		WithFilePersistence(f.Name()),
 		WithScope("*"),
@@ -462,8 +513,8 @@ func TestConfigProvider_Set_ValidationFunc_IntGreaterThan_WrongType(t *testing.T
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
-			Key:            "loglevel",
-			ValidationFunc: IntGreaterThan(0),
+			Key:               "loglevel",
+			SetValidationFunc: IntGreaterThan(0),
 		}),
 		WithFilePersistence(f.Name()),
 		WithScope("*"),
@@ -484,8 +535,8 @@ func TestConfigProvider_Set_ValidationFunc_StringInStrings_CaseSensitive(t *test
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
-			Key:            "loglevel",
-			ValidationFunc: StringInStrings(true, "valid", "alsoValid"),
+			Key:               "loglevel",
+			SetValidationFunc: StringInStrings(true, "valid", "alsoValid"),
 		}),
 		WithFilePersistence(f.Name()),
 		WithScope("*"),
@@ -506,8 +557,8 @@ func TestConfigProvider_Set_ValidationFunc_StringInStrings_CaseInsensitive(t *te
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
-			Key:            "loglevel",
-			ValidationFunc: StringInStrings(false, "valid", "alsoValid"),
+			Key:               "loglevel",
+			SetValidationFunc: StringInStrings(false, "valid", "alsoValid"),
 		}),
 		WithFilePersistence(f.Name()),
 		WithScope("*"),
@@ -528,8 +579,8 @@ func TestConfigProvider_Set_ValidationFunc_StringInStrings_WrongType(t *testing.
 
 	p, err := NewConfigProvider(
 		WithFieldDefinitions(FieldDefinition{
-			Key:            "testInt",
-			ValidationFunc: StringInStrings(false, "valid", "alsoValid"),
+			Key:               "testInt",
+			SetValidationFunc: StringInStrings(false, "valid", "alsoValid"),
 		}),
 		WithFilePersistence(f.Name()),
 		WithScope("*"),

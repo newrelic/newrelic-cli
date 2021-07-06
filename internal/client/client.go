@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	Client      *newrelic.NewRelic
+	NRClient      *newrelic.NewRelic
 	serviceName = "newrelic-cli"
 	version     = "dev"
 )

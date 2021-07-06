@@ -25,7 +25,7 @@ func (o *Output) text(data interface{}) error {
 	switch v := reflect.ValueOf(data); v.Kind() {
 	case reflect.String:
 		fmt.Println(data)
-	case reflect.Slice, reflect.Struct:
+	case reflect.Slice, reflect.Struct, reflect.Map:
 		return o.renderAsTable(data)
 	default:
 		return fmt.Errorf("unable to format data type: %T", data)
@@ -48,6 +48,8 @@ func (o *Output) renderAsTable(data interface{}) error {
 
 	// Let's see what they sent us
 	switch v := reflect.ValueOf(data); v.Kind() {
+	case reflect.Map:
+		o.createTableFromMap(tw, v)
 	case reflect.Slice:
 
 		// Create the header from the field names
@@ -55,9 +57,9 @@ func (o *Output) renderAsTable(data interface{}) error {
 
 		switch typ.Kind() {
 		case reflect.Map:
-			o.createTableFromMap(tw, v, typ)
+			o.createTableFromMapSlice(tw, v)
 		case reflect.Struct:
-			o.createTableFromStruct(tw, v, typ)
+			o.createTableFromStructSlice(tw, v, typ)
 		}
 
 	// Single Struct becomes table view of Field | Value
@@ -83,7 +85,7 @@ func (o *Output) renderAsTable(data interface{}) error {
 	return nil
 }
 
-func (o *Output) createTableFromStruct(tw table.Writer, v reflect.Value, elem reflect.Type) {
+func (o *Output) createTableFromStructSlice(tw table.Writer, v reflect.Value, elem reflect.Type) {
 	cols := elem.NumField()
 	header := make([]interface{}, cols)
 	colConfig := make([]table.ColumnConfig, cols)
@@ -108,14 +110,42 @@ func (o *Output) createTableFromStruct(tw table.Writer, v reflect.Value, elem re
 	}
 }
 
-func (o *Output) createTableFromMap(tw table.Writer, v reflect.Value, elem reflect.Type) {
+func (o *Output) createTableFromMap(tw table.Writer, v reflect.Value) {
+	keys := v.MapKeys()
+	sortedKeys := sortedValueStrings(keys)
+
+	// Add the header
+	cols := len(keys)
+	header := make([]interface{}, cols)
+	colConfig := make([]table.ColumnConfig, cols)
+
+	for j, k := range sortedKeys {
+		header[j] = k
+		colConfig[j].Name = k
+		colConfig[j].WidthMin = len(k)
+		colConfig[j].WidthMax = o.terminalWidth * 3 / 4
+		colConfig[j].WidthMaxEnforcer = text.WrapSoft
+	}
+	tw.SetColumnConfigs(colConfig)
+	tw.AppendHeader(table.Row(header))
+
+	row := make([]interface{}, len(keys))
+	for j, k := range sortedKeys {
+		if key := findStringValue(k, keys); key != nil {
+			val := v.MapIndex(*key)
+			row[j] = val.Interface()
+		}
+	}
+	tw.AppendRow(table.Row(row))
+}
+
+func (o *Output) createTableFromMapSlice(tw table.Writer, v reflect.Value) {
 	var keys []reflect.Value
 	var sortedKeys []string
 	for i := 0; i < v.Len(); i++ {
 		if i == 0 {
 			keys = v.Index(i).MapKeys()
 			sortedKeys = sortedValueStrings(keys)
-			fmt.Println(sortedKeys)
 
 			// Add the header
 			cols := len(keys)

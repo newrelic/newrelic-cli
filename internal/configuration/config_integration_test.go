@@ -1,6 +1,6 @@
 // +build integration
 
-package config
+package configuration
 
 import (
 	"io/ioutil"

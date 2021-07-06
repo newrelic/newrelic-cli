@@ -51,7 +51,7 @@ keys are the variables to be referenced in the GraphQL query.
 
 		query := args[0]
 
-		result, err := client.Client.NerdGraph.QueryWithContext(utils.SignalCtx, query, variablesParsed)
+		result, err := client.NRClient.NerdGraph.QueryWithContext(utils.SignalCtx, query, variablesParsed)
 		if err != nil {
 			log.Fatal(err)
 		}

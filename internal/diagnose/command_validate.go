@@ -17,7 +17,7 @@ Checks the configuration in the default or specified configuation profile by sen
 data to the New Relic platform and verifying that it has been received.`,
 	Example: "\tnewrelic diagnose validate",
 	Run: func(cmd *cobra.Command, args []string) {
-		v := NewConfigValidator(client.Client)
+		v := NewConfigValidator(client.NRClient)
 
 		log.Printf("Sending tracer event to New Relic.")
 		err := v.Validate(utils.SignalCtx)

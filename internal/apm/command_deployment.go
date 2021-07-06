@@ -42,7 +42,7 @@ The list command returns deployments for a New Relic APM application.
 			log.Fatal("--applicationId is required")
 		}
 
-		deployments, err := client.Client.APM.ListDeploymentsWithContext(utils.SignalCtx, apmAppID)
+		deployments, err := client.NRClient.APM.ListDeploymentsWithContext(utils.SignalCtx, apmAppID)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(deployments))
@@ -64,7 +64,7 @@ application.
 			log.Fatal("--applicationId and --revision are required")
 		}
 
-		d, err := client.Client.APM.CreateDeploymentWithContext(utils.SignalCtx, apmAppID, deployment)
+		d, err := client.NRClient.APM.CreateDeploymentWithContext(utils.SignalCtx, apmAppID, deployment)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(d))
@@ -85,7 +85,7 @@ The delete command performs a delete operation for an APM deployment.
 			log.Fatal("--applicationId is required")
 		}
 
-		d, err := client.Client.APM.DeleteDeployment(apmAppID, deployment.ID)
+		d, err := client.NRClient.APM.DeleteDeployment(apmAppID, deployment.ID)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(d))

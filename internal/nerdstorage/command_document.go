@@ -51,11 +51,11 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			document, err = client.Client.NerdStorage.GetDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+			document, err = client.NRClient.NerdStorage.GetDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
-			document, err = client.Client.NerdStorage.GetDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+			document, err = client.NRClient.NerdStorage.GetDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
 		case "user":
-			document, err = client.Client.NerdStorage.GetDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+			document, err = client.NRClient.NerdStorage.GetDocumentWithUserScopeWithContext(utils.SignalCtx, input)
 		default:
 			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 		}
@@ -103,11 +103,11 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			_, err = client.Client.NerdStorage.WriteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+			_, err = client.NRClient.NerdStorage.WriteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
-			_, err = client.Client.NerdStorage.WriteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+			_, err = client.NRClient.NerdStorage.WriteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
 		case "user":
-			_, err = client.Client.NerdStorage.WriteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+			_, err = client.NRClient.NerdStorage.WriteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
 		default:
 			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 		}
@@ -149,11 +149,11 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			_, err = client.Client.NerdStorage.DeleteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+			_, err = client.NRClient.NerdStorage.DeleteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
-			_, err = client.Client.NerdStorage.DeleteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+			_, err = client.NRClient.NerdStorage.DeleteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
 		case "user":
-			_, err = client.Client.NerdStorage.DeleteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+			_, err = client.NRClient.NerdStorage.DeleteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
 		default:
 			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
 		}

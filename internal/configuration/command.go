@@ -1,9 +1,13 @@
-package config
+package configuration
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -27,10 +31,26 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			utils.LogIfError(cfg.Set(key, value))
-		})
+		if !isValidConfigKey() {
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidConfigKeys())
+		}
+
+		if err := SetConfigString(ConfigKey(key), value); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
+}
+
+func isValidConfigKey() (valid bool) {
+	VisitAllConfigFields(func(fd FieldDefinition) {
+		if strings.EqualFold(string(fd.Key), key) {
+			valid = true
+		}
+	})
+
+	return valid
 }
 
 var cmdGet = &cobra.Command{
@@ -42,9 +62,11 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			cfg.Get(key)
-		})
+		if !isValidConfigKey() {
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidConfigKeys())
+		}
+
+		output.Text(GetConfigString(ConfigKey(key)))
 	},
 }
 
@@ -57,31 +79,47 @@ The list command lists all persistent configuration values for the New Relic CLI
 `,
 	Example: "newrelic config list",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			cfg.List()
+		m := map[string]interface{}{}
+
+		VisitAllConfigFields(func(fd FieldDefinition) {
+			m[string(fd.Key)] = GetConfigString(fd.Key)
 		})
+
+		output.Text(m)
 	},
 	Aliases: []string{
 		"ls",
 	},
 }
 
-var cmdDelete = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete a configuration value",
-	Long: `Delete a configuration value
+var cmdReset = &cobra.Command{
+	Use:   "reset",
+	Short: "Reset a configuration value to its default",
+	Long: `Reset a configuration value
 
-The delete command deletes a persistent configuration value for the New Relic CLI.
-This will have the effect of resetting the value to its default.
+The reset command resets a configuration value to its default.
 `,
-	Example: "newrelic config delete --key <key>",
+	Example: "newrelic config reset --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		WithConfig(func(cfg *Config) {
-			utils.LogIfError(cfg.Delete(key))
-		})
+		if !isValidConfigKey() {
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidConfigKeys())
+		}
+
+		fd := GetConfigFieldDefinition(ConfigKey(key))
+
+		if fd.Default == nil {
+			log.Fatalf("key %s cannot be reset to a default value since no default exists", fd.Key)
+		}
+
+		if err := SetConfigValue(ConfigKey(key), fd.Default); err != nil {
+			log.Fatal(err)
+		}
+
+		log.Info("success")
 	},
 	Aliases: []string{
 		"rm",
+		"delete",
 	},
 }
 
@@ -98,7 +136,7 @@ func init() {
 	cmdGet.Flags().StringVarP(&key, "key", "k", "", "the key to get")
 	utils.LogIfError(cmdGet.MarkFlagRequired("key"))
 
-	Command.AddCommand(cmdDelete)
-	cmdDelete.Flags().StringVarP(&key, "key", "k", "", "the key to delete")
-	utils.LogIfError(cmdDelete.MarkFlagRequired("key"))
+	Command.AddCommand(cmdReset)
+	cmdReset.Flags().StringVarP(&key, "key", "k", "", "the key to delete")
+	utils.LogIfError(cmdReset.MarkFlagRequired("key"))
 }
