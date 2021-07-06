@@ -72,6 +72,34 @@ func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
 	return r.writeStatus(status)
 }
 
+func (r InstallEventsReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
+	return r.writeStatus(status)
+}
+
+func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r InstallEventsReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r InstallEventsReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r InstallEventsReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r InstallEventsReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r InstallEventsReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
 func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	return r.writeStatus(status)
 }
