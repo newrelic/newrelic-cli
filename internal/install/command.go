@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -42,14 +41,14 @@ var Command = &cobra.Command{
 			SkipInfraInstall:   skipInfra,
 		}
 
-		config.InitFileLogger()
+		configuration.InitFileLogger()
 
 		if trace {
 			log.SetLevel(log.TraceLevel)
-			client.Client.SetLogLevel("trace")
+			client.NRClient.SetLogLevel("trace")
 		} else if debug {
 			log.SetLevel(log.DebugLevel)
-			client.Client.SetLogLevel("debug")
+			client.NRClient.SetLogLevel("debug")
 		}
 
 		err := assertProfileIsValid()
@@ -57,7 +56,7 @@ var Command = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		i := NewRecipeInstaller(ic, client.Client)
+		i := NewRecipeInstaller(ic, client.NRClient)
 
 		// Run the install.
 		if err := i.Install(); err != nil {

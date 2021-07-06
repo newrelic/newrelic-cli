@@ -28,12 +28,12 @@ type ConfigProvider struct {
 }
 
 type FieldDefinition struct {
-	EnvVar         string
-	Key            ConfigKey
-	Default        interface{}
-	CaseSensitive  bool
-	Sensitive      bool
-	ValidationFunc ConfigValueValidationFunc
+	EnvVar            string
+	Key               ConfigKey
+	Default           interface{}
+	CaseSensitive     bool
+	Sensitive         bool
+	SetValidationFunc ConfigValueValidationFunc
 }
 
 type ConfigValueValidationFunc func(key ConfigKey, value interface{}) error
@@ -51,6 +51,20 @@ func IntGreaterThan(greaterThan int) func(key ConfigKey, value interface{}) erro
 		}
 
 		return fmt.Errorf("value %d is not greater than %d", s, greaterThan)
+	}
+}
+
+func IsTernary() func(key ConfigKey, value interface{}) error {
+	return func(key ConfigKey, value interface{}) error {
+		switch v := value.(type) {
+		case string:
+			return Ternary(v).Valid()
+		case Ternary:
+			return v.Valid()
+		default:
+			return fmt.Errorf("value %s for key %s is not valid", value, key)
+		}
+
 	}
 }
 
@@ -138,6 +152,16 @@ func (p *ConfigProvider) GetString(key ConfigKey) (string, error) {
 	return p.GetStringWithScope("", key)
 }
 
+func (p *ConfigProvider) GetTernary(key ConfigKey) (Ternary, error) {
+	v, err := p.GetStringWithScope("", key)
+	if err != nil {
+		return Ternary(""), err
+	}
+
+	t := Ternary(v)
+	return t, nil
+}
+
 func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, error) {
 	v, err := p.GetWithScope(scope, key)
 	if err != nil {
@@ -189,16 +213,7 @@ func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{},
 		}
 	}
 
-	path := string(key)
-	if scope != "" {
-		path = fmt.Sprintf("%s.%s", scope, key)
-	}
-
-	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, key)
-	}
-
-	res, err := p.getFromConfig(path)
+	res, err := p.getFromConfig(p.getPath(scope, key))
 	if err != nil {
 		return "", err
 	}
@@ -214,8 +229,8 @@ func (p *ConfigProvider) SetWithScope(scope string, key ConfigKey, value interfa
 	v := p.getFieldDefinition(key)
 
 	if v != nil {
-		if v.ValidationFunc != nil {
-			if err := v.ValidationFunc(key, value); err != nil {
+		if v.SetValidationFunc != nil {
+			if err := v.SetValidationFunc(key, value); err != nil {
 				return err
 			}
 		}
@@ -228,19 +243,10 @@ func (p *ConfigProvider) SetWithScope(scope string, key ConfigKey, value interfa
 		return fmt.Errorf("key '%s' is not valid, valid keys are: %v", key, p.getConfigValueKeys())
 	}
 
-	path := string(key)
-	if scope != "" {
-		path = fmt.Sprintf("%s.%s", scope, key)
-	}
-
-	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, key)
-	}
-
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Set(p.getConfig(), escapeWildcards(path), value)
+	cfg, err := sjson.Set(p.getConfig(), escapeWildcards(p.getPath(scope, key)), value)
 	if err != nil {
 		return err
 	}
@@ -258,10 +264,35 @@ func (p *ConfigProvider) RemoveScope(scope string) error {
 		path = fmt.Sprintf("%s.%s", p.scope, scope)
 	}
 
+	return p.deletePath(path)
+}
+
+func (p *ConfigProvider) DeleteKey(key ConfigKey) error {
+	return p.DeleteKeyWithScope("", key)
+}
+
+func (p *ConfigProvider) DeleteKeyWithScope(scope string, key ConfigKey) error {
+	return p.deletePath(p.getPath(scope, key))
+}
+
+func (p *ConfigProvider) getPath(scope string, key ConfigKey) string {
+	path := scope
+	if scope != "" {
+		path = fmt.Sprintf("%s.%s", scope, key)
+	}
+
+	if p.scope != "" {
+		path = fmt.Sprintf("%s.%s", p.scope, key)
+	}
+
+	return path
+}
+
+func (p *ConfigProvider) deletePath(path string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Delete(p.getConfig(), path)
+	cfg, err := sjson.Delete(p.getConfig(), escapeWildcards(path))
 	if err != nil {
 		return err
 	}
@@ -271,6 +302,10 @@ func (p *ConfigProvider) RemoveScope(scope string) error {
 	}
 
 	return nil
+}
+
+func (p *ConfigProvider) VisitAllFields(fn func(d FieldDefinition)) {
+	p.VisitAllFieldsWithScope("", fn)
 }
 
 func (p *ConfigProvider) VisitAllFieldsWithScope(scope string, fn func(d FieldDefinition)) {

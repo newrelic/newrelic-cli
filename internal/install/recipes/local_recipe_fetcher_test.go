@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 )
 
 func TestLocalRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {

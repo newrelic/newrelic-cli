@@ -28,7 +28,7 @@ var cmdKey = &cobra.Command{
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
 	Run: func(cmd *cobra.Command, args []string) {
-		resp, err := client.Client.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
+		resp, err := client.NRClient.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(resp))
@@ -47,7 +47,7 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 		err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
 		utils.LogIfFatal(err)
 
-		resp, err := client.Client.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
+		resp, err := client.NRClient.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(resp))
@@ -66,7 +66,7 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 		err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
 		utils.LogIfFatal(err)
 
-		resp, err := client.Client.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
+		resp, err := client.NRClient.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(resp))
@@ -85,7 +85,7 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 		err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
 		utils.LogIfFatal(err)
 
-		resp, err := client.Client.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
+		resp, err := client.NRClient.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(resp))

@@ -42,7 +42,7 @@ The list command retrieves the trace observers for the given account ID.
 `,
 	Example: `newrelic edge trace-observer list --accountId 12345678`,
 	Run: func(cmd *cobra.Command, args []string) {
-		traceObservers, err := client.Client.Edge.ListTraceObserversWithContext(utils.SignalCtx, accountID)
+		traceObservers, err := client.NRClient.Edge.ListTraceObserversWithContext(utils.SignalCtx, accountID)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(traceObservers))
@@ -73,7 +73,7 @@ Valid provider regions are AWS_US_EAST_1 and AWS_US_EAST_2.
 			log.Fatalf("%s is not a valid provider region, valid values are %s", providerRegion, validProviderRegions)
 		}
 
-		traceObserver, err := client.Client.Edge.CreateTraceObserver(accountID, name, edge.EdgeProviderRegion(providerRegion))
+		traceObserver, err := client.NRClient.Edge.CreateTraceObserver(accountID, name, edge.EdgeProviderRegion(providerRegion))
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(traceObserver))
@@ -90,7 +90,7 @@ The delete command accepts a trace observer's ID.
 `,
 	Example: `newrelic edge trace-observer delete --accountId 12345678 --id 1234`,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := client.Client.Edge.DeleteTraceObserver(accountID, id)
+		_, err := client.NRClient.Edge.DeleteTraceObserver(accountID, id)
 		utils.LogIfFatal(err)
 
 		log.Info("success")

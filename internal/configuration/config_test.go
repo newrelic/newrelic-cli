@@ -36,7 +36,7 @@ func TestGetActiveProfileValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	basePath = dir
+	BasePath = dir
 
 	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testCredentials), 0644)
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	basePath = dir
+	BasePath = dir
 
 	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testCredentials), 0644)
 	require.NoError(t, err)
@@ -86,7 +86,7 @@ func TestGetConfigValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	basePath = dir
+	BasePath = dir
 
 	err = ioutil.WriteFile(filepath.Join(dir, configFileName), []byte(testConfig), 0644)
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestGetConfigValues_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	basePath = dir
+	BasePath = dir
 
 	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testConfig), 0644)
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	basePath = dir
+	BasePath = dir
 
 	os.Unsetenv("NEW_RELIC_CLI_LOG_LEVEL")
 	os.Unsetenv("NEW_RELIC_CLI_PLUGIN_DIR")
@@ -152,7 +152,7 @@ func TestRemoveProfile(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	basePath = dir
+	BasePath = dir
 
 	filename := filepath.Join(dir, credentialsFileName)
 	err = ioutil.WriteFile(filename, []byte(testCredentials), 0644)
