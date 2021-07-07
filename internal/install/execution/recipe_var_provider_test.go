@@ -90,10 +90,7 @@ func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {
 	e := NewRecipeVarProvider()
 
 	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
+	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -370,10 +367,7 @@ func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotHttps(t *testing.T) {
 	e := NewRecipeVarProvider()
 
 	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
+	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -438,12 +432,8 @@ func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotHttps(t *testing.T) {
 
 func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotNewRelic(t *testing.T) {
 	e := NewRecipeVarProvider()
-
 	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
+	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
