@@ -1,4 +1,4 @@
-package credentials
+package profile
 
 import (
 	"context"
@@ -72,14 +72,16 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 		}
 
 		if profile == "" {
-			configuration.SetDefaultProfile(profileName)
+			if err := configuration.SetDefaultProfile(profileName); err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		log.Info("success")
 	},
 }
 
-func addStringValueToProfile(profileName string, val string, key configuration.ConfigKey, label string, defaultFunc func() (string, error), selectValues []string) error {
+func addStringValueToProfile(profileName string, val string, key configuration.ConfigKey, label string, defaultFunc func() (string, error), selectValues []string) {
 	if val == "" {
 		defaultValue := configuration.GetProfileString(profileName, key)
 
@@ -118,11 +120,9 @@ func addStringValueToProfile(profileName string, val string, key configuration.C
 	if err := configuration.SetProfileString(profileName, key, val); err != nil {
 		log.Fatal(err)
 	}
-
-	return nil
 }
 
-func addIntValueToProfile(profileName string, val int, key configuration.ConfigKey, label string, defaultFunc func() ([]int, error)) error {
+func addIntValueToProfile(profileName string, val int, key configuration.ConfigKey, label string, defaultFunc func() ([]int, error)) {
 	if val == 0 {
 		prompt := &survey.Input{
 			Message: fmt.Sprintf("%s:", label),
@@ -157,7 +157,7 @@ func addIntValueToProfile(profileName string, val int, key configuration.ConfigK
 		if input != "" {
 			i, err := strconv.Atoi(input)
 			if err != nil {
-				return err
+				log.Fatal(err)
 			}
 
 			val = i
@@ -169,8 +169,6 @@ func addIntValueToProfile(profileName string, val int, key configuration.ConfigK
 	if err := configuration.SetProfileInt(profileName, key, val); err != nil {
 		log.Fatal(err)
 	}
-
-	return nil
 }
 
 func fetchLicenseKey() (string, error) {
@@ -180,14 +178,13 @@ func fetchLicenseKey() (string, error) {
 		return "", err
 	}
 
-	var licenseKey string
+	var key string
 	retryFunc := func() error {
-		l, err := execLicenseKeyRequest(utils.SignalCtx, client, accountID)
+		key, err = execLicenseKeyRequest(utils.SignalCtx, client, accountID)
 		if err != nil {
 			return err
 		}
 
-		licenseKey = l
 		return nil
 	}
 
@@ -196,7 +193,7 @@ func fetchLicenseKey() (string, error) {
 		return "", err
 	}
 
-	return licenseKey, nil
+	return key, nil
 }
 
 func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
@@ -380,7 +377,7 @@ func init() {
 
 	// Remove
 	Command.AddCommand(cmdDelete)
-	cmdDelete.Flags().StringVarP(&profileName, "name", "n", "default", "the profile name to delete")
+	cmdDelete.Flags().StringVarP(&profileName, "name", "n", defaultProfileName, "the profile name to delete")
 	if err = cmdDelete.MarkFlagRequired("name"); err != nil {
 		log.Error(err)
 	}

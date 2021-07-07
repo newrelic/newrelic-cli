@@ -119,7 +119,7 @@ func (m *PollingNRQLValidator) executeQuery(ctx context.Context, query string) (
 
 	nrql := nrdb.NRQL(query)
 
-	result, err := m.client.QueryWithContext(ctx, int(accountID), nrql)
+	result, err := m.client.QueryWithContext(ctx, accountID, nrql)
 	if err != nil {
 		return nil, err
 	}

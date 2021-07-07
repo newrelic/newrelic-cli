@@ -121,7 +121,7 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 	}
 
 	accountID := configuration.GetActiveProfileInt(configuration.AccountID)
-	_, err = r.client.WriteDocumentWithAccountScope(int(accountID), i)
+	_, err = r.client.WriteDocumentWithAccountScope(accountID, i)
 	if err != nil {
 		log.Debug("failed to write to account scoped nerd storage")
 	}

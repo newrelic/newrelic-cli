@@ -1,12 +1,16 @@
 package apm
 
 import (
+	"os"
+	"strconv"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -34,7 +38,13 @@ The search command performs a query for an APM application name and/or account I
 	Example: "newrelic apm application search --name <appName>",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if appGUID == "" && appName == "" && apmAccountID == "" {
+		if apmAccountID != 0 {
+			os.Setenv("NEW_RELIC_ACCOUNT_ID", strconv.Itoa(apmAccountID))
+		}
+
+		accountID := configuration.GetActiveProfileInt(configuration.AccountID)
+
+		if appGUID == "" && appName == "" && accountID == 0 {
 			utils.LogIfError(cmd.Help())
 			log.Fatal("one of --accountId, --guid, --name are required")
 		}
@@ -44,7 +54,7 @@ The search command performs a query for an APM application name and/or account I
 
 		// Look for just the GUID if passed in
 		if appGUID != "" {
-			if appName != "" || apmAccountID != "" {
+			if appName != "" || accountID != 0 {
 				log.Warnf("Searching for --guid only, ignoring --accountId and --name")
 			}
 
@@ -62,8 +72,8 @@ The search command performs a query for an APM application name and/or account I
 				params.Name = appName
 			}
 
-			if apmAccountID != "" {
-				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: apmAccountID}}
+			if accountID != 0 {
+				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: "accountId", Value: strconv.Itoa(apmAccountID)}}
 			}
 
 			results, err := client.NRClient.Entities.GetEntitySearch(

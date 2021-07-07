@@ -76,7 +76,7 @@ func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Con
 		return nil, err
 	}
 
-	dashboard, err := transformDashboardJSON(body, int(accountID))
+	dashboard, err := transformDashboardJSON(body, accountID)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Con
 	}
 
 	// Dashboard doesn't exist yet, proceed with dashboard create
-	created, err := p.client.Dashboards.DashboardCreateWithContext(ctx, int(accountID), dashboard)
+	created, err := p.client.Dashboards.DashboardCreateWithContext(ctx, accountID, dashboard)
 	if err != nil {
 		return nil, err
 	}
