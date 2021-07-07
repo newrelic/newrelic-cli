@@ -26,6 +26,7 @@ This command requires the --accountId <int> flag, which specifies the account to
 issue the query against.
 `,
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
 		if err != nil {
@@ -44,6 +45,7 @@ var cmdHistory = &cobra.Command{
 The history command will fetch a list of the most recent NRQL queries you executed.
 `,
 	Example: `newrelic nrql query history`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := client.NRClient.Nrdb.QueryHistory()
 		if err != nil {

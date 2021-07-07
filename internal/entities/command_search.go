@@ -20,6 +20,7 @@ var cmdEntitySearch = &cobra.Command{
 The search command performs a search for New Relic entities.
 `,
 	Example: "newrelic entity search --name <applicationName>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := entities.EntitySearchQueryBuilder{}
 

@@ -27,8 +27,9 @@ var (
 
 // Command represents the install command.
 var Command = &cobra.Command{
-	Use:   "install",
-	Short: "Install New Relic.",
+	Use:    "install",
+	Short:  "Install New Relic.",
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := types.InstallerContext{
 			AssumeYes:          assumeYes,

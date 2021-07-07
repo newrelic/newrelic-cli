@@ -38,6 +38,7 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage collection get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var resp []interface{}
 		var err error
@@ -85,6 +86,7 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage collection delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 

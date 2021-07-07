@@ -36,6 +36,7 @@ var cmdDeploymentList = &cobra.Command{
 The list command returns deployments for a New Relic APM application.
 `,
 	Example: "newrelic apm deployment list --applicationId <appID>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
 			utils.LogIfError(cmd.Help())
@@ -58,6 +59,7 @@ The create command creates a new deployment marker for a New Relic APM
 application.
 `,
 	Example: "newrelic apm deployment create --applicationId <appID> --revision <deploymentRevision>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
 			utils.LogIfError(cmd.Help())
@@ -79,6 +81,7 @@ var cmdDeploymentDelete = &cobra.Command{
 The delete command performs a delete operation for an APM deployment.
 `,
 	Example: "newrelic apm deployment delete --applicationId <appID> --deploymentID <deploymentID>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		if apmAppID == 0 {
 			utils.LogIfError(cmd.Help())

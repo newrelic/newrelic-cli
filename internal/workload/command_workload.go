@@ -30,6 +30,7 @@ var cmdGet = &cobra.Command{
 The get command retrieves a specific workload by its workload GUID.
 `,
 	Example: `newrelic workload get --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		workload, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, []entities.EntityGUID{entities.EntityGUID(guid)})
 		utils.LogIfFatal(err)
@@ -46,6 +47,7 @@ var cmdList = &cobra.Command{
 The list command retrieves the workloads for the given account ID.
 `,
 	Example: `newrelic workload list --accountId 12345678`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		builder := entities.EntitySearchQueryBuilder{
 			Type: entities.EntitySearchQueryBuilderTypeTypes.WORKLOAD,
@@ -76,6 +78,7 @@ IDs can optionally be provided to include entities from different sub-accounts t
 you also have access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		createInput := workloads.WorkloadCreateInput{
 			Name: name,
@@ -120,6 +123,7 @@ together with an OR.  Multiple account scope IDs can optionally be provided to i
 entities from different sub-accounts that you also have access to.
 `,
 	Example: `newrelic workload update --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --name 'Updated workflow'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		updateInput := workloads.WorkloadUpdateInput{
 			Name: name,
@@ -162,6 +166,7 @@ If the name isn't specified, the name + ' copy' of the source workload is used t
 compose the new name.
 `,
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountId 12345678 --name 'New Workload'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		duplicateInput := workloads.WorkloadDuplicateInput{
 			Name: name,
@@ -183,6 +188,7 @@ var cmdDelete = &cobra.Command{
 The delete command accepts a workload's entity GUID.
 `,
 	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := client.NRClient.Workloads.WorkloadDeleteWithContext(utils.SignalCtx, entities.EntityGUID(guid))
 		utils.LogIfFatal(err)

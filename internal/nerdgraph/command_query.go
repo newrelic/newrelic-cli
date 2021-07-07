@@ -41,6 +41,7 @@ keys are the variables to be referenced in the GraphQL query.
 
 		return nil
 	},
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var variablesParsed map[string]interface{}
 

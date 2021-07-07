@@ -27,6 +27,7 @@ var cmdKey = &cobra.Command{
 	Short:   "Fetch a single key by ID and type.\n\n---\n**NR Internal** | [#help-unified-api](https://newrelic.slack.com/archives/CBHJRSPSA) | visibility(customer)\n\n",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		resp, err := client.NRClient.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
 		utils.LogIfFatal(err)
@@ -41,6 +42,7 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 	Short:   "Create keys. You can create keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessCreateKeys --keys",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var keys apiaccess.APIAccessCreateInput
 
@@ -60,6 +62,7 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 	Short:   "Update keys. You can update keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessUpdateKeys --keys",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var keys apiaccess.APIAccessUpdateInput
 
@@ -79,6 +82,7 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 	Short:   "A mutation to delete keys.",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessDeleteKeys --keys",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var keys apiaccess.APIAccessDeleteInput
 

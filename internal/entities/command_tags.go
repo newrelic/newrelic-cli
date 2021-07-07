@@ -38,6 +38,7 @@ var cmdTagsGet = &cobra.Command{
 The get command returns JSON output of the tags for the requested entity.
 `,
 	Example: "newrelic entity tags get --guid <entityGUID>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Temporary until bulk actions can be build into newrelic-client-go
 		if value, ok := pipe.Get("guid"); ok {
@@ -61,6 +62,7 @@ The delete command deletes all tags on the given entity
 that match the specified keys.
 `,
 	Example: "newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3,tag4",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := client.NRClient.Entities.TaggingDeleteTagFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), entityTags)
 		utils.LogIfFatal(err)
@@ -77,6 +79,7 @@ var cmdTagsDeleteValues = &cobra.Command{
 The delete-values command deletes the specified tag:value pairs on a given entity.
 `,
 	Example: "newrelic entity tags delete-values --guid <guid> --tag tag1:value1",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		tagValues, err := assembleTagValuesInput(entityValues)
 		utils.LogIfFatal(err)
@@ -96,6 +99,7 @@ var cmdTagsCreate = &cobra.Command{
 The create command adds tag:value pairs to the given entity.
 `,
 	Example: "newrelic entity tags create --guid <entityGUID> --tag tag1:value1",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		tags, err := assembleTagsInput(entityTags)
 		utils.LogIfFatal(err)
@@ -116,6 +120,7 @@ The replace command replaces any existing tag:value pairs with those
 provided for the given entity.
 `,
 	Example: "newrelic entity tags replace --guid <entityGUID> --tag tag1:value1",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		tags, err := assembleTagsInput(entityTags)
 		utils.LogIfFatal(err)
@@ -154,23 +159,6 @@ func assembleTagsInput(tags []string) ([]entities.TaggingTagInput, error) {
 	return t, nil
 }
 
-func assembleTagValues(values []string) ([]entities.EntitySearchQueryBuilderTag, error) {
-	var tagValues []entities.EntitySearchQueryBuilderTag
-
-	for _, x := range values {
-		key, value, err := assembleTagValue(x)
-
-		if err != nil {
-			return []entities.EntitySearchQueryBuilderTag{}, err
-		}
-
-		tagValues = append(tagValues, entities.EntitySearchQueryBuilderTag{Key: key, Value: value})
-	}
-
-	return tagValues, nil
-}
-
-// assembleTagValuesInput is the same as assembleTagValues
 func assembleTagValuesInput(values []string) ([]entities.TaggingTagValueInput, error) {
 	var tagValues []entities.TaggingTagValueInput
 
