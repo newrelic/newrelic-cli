@@ -4,9 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/spf13/cobra"
+
 	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/spf13/cobra"
 
 	log "github.com/sirupsen/logrus"
 )
