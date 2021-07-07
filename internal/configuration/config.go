@@ -37,6 +37,11 @@ var (
 )
 
 func init() {
+	Init(configBasePath())
+}
+
+func Init(basePath string) {
+	BasePath = basePath
 	initializeConfigProvider()
 	initializeCredentialsProvider()
 }
@@ -98,7 +103,7 @@ func initializeConfigProvider() {
 			FieldDefinition{
 				Key:     PluginDir,
 				EnvVar:  "NEW_RELIC_CLI_PLUGIN_DIR",
-				Default: filepath.Join(configBasePath(), pluginDir),
+				Default: filepath.Join(BasePath, pluginDir),
 			},
 			FieldDefinition{
 				Key:               PreReleaseFeatures,
