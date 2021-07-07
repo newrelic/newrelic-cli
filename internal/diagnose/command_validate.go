@@ -16,6 +16,7 @@ var cmdValidate = &cobra.Command{
 Checks the configuration in the default or specified configuation profile by sending
 data to the New Relic platform and verifying that it has been received.`,
 	Example: "\tnewrelic diagnose validate",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		v := NewConfigValidator(client.NRClient)
 

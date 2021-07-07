@@ -39,6 +39,7 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage document get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var document interface{}
 		var err error
@@ -87,6 +88,7 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage document write --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var unmarshaled map[string]interface{}
 		err := json.Unmarshal([]byte(document), &unmarshaled)
@@ -138,6 +140,7 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage document delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
 

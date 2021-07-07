@@ -6,6 +6,9 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/spf13/cobra"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -42,4 +45,10 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	}
 
 	return nrClient, nil
+}
+
+func RequireClient(cmd *cobra.Command, args []string) {
+	if NRClient == nil {
+		log.Fatalf("could not initialize New Relic client, make sure your profile is configured with `newrelic profile configure`")
+	}
 }
