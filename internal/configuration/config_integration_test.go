@@ -15,10 +15,7 @@ func TestConfigSetLogLevel(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	// Initialize the new configuration directory
-	c, err := LoadConfig(f)
-	assert.NoError(t, err)
-	assert.Equal(t, c.configDir, f)
+	BasePath = f
 
 	// Set the valid log levels
 	for _, l := range []string{
@@ -28,26 +25,15 @@ func TestConfigSetLogLevel(t *testing.T) {
 		"DEBUG",
 		"TRACE",
 	} {
-		err = c.Set("logLevel", l)
+		err = SetConfigString("logLevel", l)
 		assert.NoError(t, err)
-		assert.Equal(t, l, c.LogLevel)
 
-		// Double check that the config is written to disk
-		var c2 *Config
-		c2, err = LoadConfig(f)
-		assert.NoError(t, err)
-		assert.Equal(t, l, c2.LogLevel)
+		actual := GetConfigString(LogLevel)
+		assert.Equal(t, l, actual)
 	}
 
-	err = c.Set("logLevel", "INVALID_VALUE")
+	err = SetConfigString("logLevel", "INVALID_VALUE")
 	assert.Error(t, err)
-
-	err = c.Set("loglevel", "Info")
-	assert.Error(t, err)
-
-	err = c.Set("Loglevel", "Debug")
-	assert.Error(t, err)
-
 }
 
 func TestConfigSetSendUsageData(t *testing.T) {
@@ -55,10 +41,7 @@ func TestConfigSetSendUsageData(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	// Initialize the new configuration directory
-	c, err := LoadConfig(f)
-	assert.NoError(t, err)
-	assert.Equal(t, c.configDir, f)
+	BasePath = f
 
 	// Set the valid sendUsageData values
 	for _, l := range []Ternary{
@@ -66,12 +49,12 @@ func TestConfigSetSendUsageData(t *testing.T) {
 		TernaryValues.Disallow,
 		TernaryValues.Unknown,
 	} {
-		err = c.Set("sendUsageData", l)
+		err = SetConfigValue("sendUsageData", l)
 		assert.NoError(t, err)
-		assert.Equal(t, l, c.SendUsageData)
+		assert.Equal(t, GetConfigTernary(SendUsageData), l)
 	}
 
-	err = c.Set("sendUsageData", "INVALID_VALUE")
+	err = SetConfigValue("sendUsageData", "INVALID_VALUE")
 	assert.Error(t, err)
 }
 
@@ -80,10 +63,7 @@ func TestConfigSetPreReleaseFeatures(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	// Initialize the new configuration directory
-	c, err := LoadConfig(f)
-	assert.NoError(t, err)
-	assert.Equal(t, c.configDir, f)
+	BasePath = f
 
 	// Set the valid pre-release feature values
 	for _, l := range []Ternary{
@@ -91,12 +71,12 @@ func TestConfigSetPreReleaseFeatures(t *testing.T) {
 		TernaryValues.Disallow,
 		TernaryValues.Unknown,
 	} {
-		err = c.Set("preReleaseFeatures", l)
+		err = SetConfigValue("preReleaseFeatures", l)
 		assert.NoError(t, err)
-		assert.Equal(t, l, c.PreReleaseFeatures)
+		assert.Equal(t, GetConfigTernary(PreReleaseFeatures), l)
 	}
 
-	err = c.Set("preReleaseFeatures", "INVALID_VALUE")
+	err = SetConfigValue("preReleaseFeatures", "INVALID_VALUE")
 	assert.Error(t, err)
 }
 
@@ -105,12 +85,9 @@ func TestConfigSetPluginDir(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	// Initialize the new configuration directory
-	c, err := LoadConfig(f)
-	assert.NoError(t, err)
-	assert.Equal(t, c.configDir, f)
+	BasePath = f
 
-	err = c.Set("pluginDir", "test")
+	err = SetConfigString(PluginDir, "test")
 	assert.NoError(t, err)
-	assert.Equal(t, "test", c.PluginDir)
+	assert.Equal(t, "test", GetConfigString(PluginDir))
 }

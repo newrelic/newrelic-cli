@@ -12,7 +12,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/configuration"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/decode"
 	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/edge"
@@ -22,6 +21,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
+	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
@@ -38,7 +38,6 @@ func init() {
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(configuration.Command)
-	Command.AddCommand(credentials.Command)
 	Command.AddCommand(decode.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
@@ -49,6 +48,7 @@ func init() {
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(nrql.Command)
+	Command.AddCommand(profile.Command)
 	Command.AddCommand(reporting.Command)
 	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)

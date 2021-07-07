@@ -53,7 +53,7 @@ func TestGetActiveProfileValues(t *testing.T) {
 	require.Equal(t, "testInsightsInsertKey", GetActiveProfileString("insightsInsertKey"))
 	require.Equal(t, "testRegion", GetActiveProfileString("region"))
 	require.Equal(t, "testLicenseKey", GetActiveProfileString("licenseKey"))
-	require.Equal(t, int64(12345), GetActiveProfileInt("accountID"))
+	require.Equal(t, 12345, GetActiveProfileInt("accountID"))
 }
 
 func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
@@ -78,7 +78,7 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 	require.Equal(t, "insightsInsertKeyOverride", GetActiveProfileString("insightsInsertKey"))
 	require.Equal(t, "regionOverride", GetActiveProfileString("region"))
 	require.Equal(t, "licenseKeyOverride", GetActiveProfileString("licenseKey"))
-	require.Equal(t, int64(67890), GetActiveProfileInt("accountID"))
+	require.Equal(t, 67890, GetActiveProfileInt("accountID"))
 }
 
 func TestGetConfigValues(t *testing.T) {
@@ -141,7 +141,7 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 
 	initializeConfigProvider()
 
-	require.Equal(t, "debug", GetConfigString("loglevel"))
+	require.Equal(t, "info", GetConfigString("loglevel"))
 	require.Equal(t, filepath.Join(configBasePath(), pluginDir), GetConfigString("plugindir"))
 	require.Equal(t, "NOT_ASKED", GetConfigString("prereleasefeatures"))
 	require.Equal(t, "NOT_ASKED", GetConfigString("sendusagedata"))

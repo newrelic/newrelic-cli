@@ -5,9 +5,10 @@ import (
 
 	"github.com/spf13/cobra"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
