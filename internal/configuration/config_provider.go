@@ -243,10 +243,12 @@ func (p *ConfigProvider) SetWithScope(scope string, key ConfigKey, value interfa
 		return fmt.Errorf("key '%s' is not valid, valid keys are: %v", key, p.getConfigValueKeys())
 	}
 
+	cfg := p.getConfig()
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Set(p.getConfig(), escapeWildcards(p.getPath(scope, key)), value)
+	cfg, err := sjson.Set(cfg, escapeWildcards(p.getPath(scope, key)), value)
 	if err != nil {
 		return err
 	}

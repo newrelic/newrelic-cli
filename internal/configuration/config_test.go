@@ -36,7 +36,7 @@ func TestGetActiveProfileValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	BasePath = dir
+	Init(dir)
 
 	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testCredentials), 0644)
 	require.NoError(t, err)
@@ -61,7 +61,7 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	BasePath = dir
+	Init(dir)
 
 	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testCredentials), 0644)
 	require.NoError(t, err)
@@ -86,7 +86,7 @@ func TestGetConfigValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	BasePath = dir
+	Init(dir)
 
 	err = ioutil.WriteFile(filepath.Join(dir, configFileName), []byte(testConfig), 0644)
 	require.NoError(t, err)
@@ -109,7 +109,7 @@ func TestGetConfigValues_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	BasePath = dir
+	Init(dir)
 
 	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testConfig), 0644)
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	BasePath = dir
+	Init(dir)
 
 	os.Unsetenv("NEW_RELIC_CLI_LOG_LEVEL")
 	os.Unsetenv("NEW_RELIC_CLI_PLUGIN_DIR")
@@ -142,7 +142,7 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 	initializeConfigProvider()
 
 	require.Equal(t, "info", GetConfigString("loglevel"))
-	require.Equal(t, filepath.Join(configBasePath(), pluginDir), GetConfigString("plugindir"))
+	require.Equal(t, filepath.Join(dir, pluginDir), GetConfigString("plugindir"))
 	require.Equal(t, "NOT_ASKED", GetConfigString("prereleasefeatures"))
 	require.Equal(t, "NOT_ASKED", GetConfigString("sendusagedata"))
 }
@@ -152,7 +152,7 @@ func TestRemoveProfile(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	BasePath = dir
+	Init(dir)
 
 	filename := filepath.Join(dir, credentialsFileName)
 	err = ioutil.WriteFile(filename, []byte(testCredentials), 0644)
