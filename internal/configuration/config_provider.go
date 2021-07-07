@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -351,7 +352,7 @@ func (p *ConfigProvider) writeConfig(json string) error {
 			}
 		}
 
-		if err := os.WriteFile(p.fileName, p.cfg, 0644); err != nil {
+		if err := ioutil.WriteFile(p.fileName, p.cfg, 0644); err != nil {
 			return err
 		}
 	}
@@ -379,7 +380,7 @@ func (p *ConfigProvider) getConfig() string {
 }
 
 func (p *ConfigProvider) setConfigFromFile() {
-	data, err := os.ReadFile(p.fileName)
+	data, err := ioutil.ReadFile(p.fileName)
 	if err != nil {
 		return
 	}
