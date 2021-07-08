@@ -27,8 +27,11 @@ jobs:
           repository: newrelic/open-install-library
           path: open-install-library
 
-      - name: Compile
-        run: make compile-all
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v1
+
+      - name: Compile all distros
+        run: make snapshot
 
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
@@ -45,17 +48,25 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
-            const newrelic_cli_linux_source_path = `${process.env.GITHUB_WORKSPACE}/bin/linux/newrelic`;
-            const newrelic_cli_linux_docker_path = `/mnt/deployer/bin/linux/newrelic`;
-            const newrelic_cli_windows_source_path = `${process.env.GITHUB_WORKSPACE}/bin/windows/newrelic`;
-            const newrelic_cli_windows_docker_path = `/mnt/deployer/bin/windows/newrelic`;
-            console.log(`Using cli linux source path ${newrelic_cli_linux_source_path}`);
-            if (!fs.existsSync(newrelic_cli_linux_source_path)) {
-              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_linux_source_path}`);
+            const newrelic_cli_linux_amd64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_amd64/newrelic`;
+            const newrelic_cli_linux_amd64_docker_path = `/mnt/deployer/dist/newrelic_linux_amd64/newrelic`;
+            console.log(`Using cli linux source path ${newrelic_cli_linux_amd64_source_path}`);
+            if (!fs.existsSync(newrelic_cli_linux_amd64_source_path)) {
+              throw new Error(`The newrelic cli amd64 source does NOT exist ${newrelic_cli_linux_amd64_source_path}`);
             }
+
+            const newrelic_cli_linux_arm64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_arm64/newrelic`;
+            const newrelic_cli_linux_arm64_docker_path = `/mnt/deployer/dist/newrelic_linux_arm64/newrelic`;
+            console.log(`Using cli linux source path ${newrelic_cli_linux_arm64_source_path}`);
+            if (!fs.existsSync(newrelic_cli_linux_arm64_source_path)) {
+              throw new Error(`The newrelic cli arm64 source does NOT exist ${newrelic_cli_linux_arm64_source_path}`);
+            }
+
+            const newrelic_cli_windows_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_windows_amd64/newrelic.exe`;
+            const newrelic_cli_windows_docker_path = `/mnt/deployer/dist/newrelic_windows_amd64/newrelic.exe`;
             console.log(`Using cli windows source path ${newrelic_cli_windows_source_path}`);
             if (!fs.existsSync(newrelic_cli_windows_source_path)) {
-              throw new Error(`The newrelic cli source does NOT exist ${newrelic_cli_windows_source_path}`);
+              throw new Error(`The newrelic cli windows source does NOT exist ${newrelic_cli_windows_source_path}`);
             }
 
             async function getFiles(dir) {
@@ -73,11 +84,15 @@ jobs:
               const jsonData = require(testFile);
               var isUpdated = false
               var isWindows = false
+              var isArm64 = false
 
               if (jsonData.resources) {
                 jsonData.resources.forEach(resource => {
                   if (resource.is_windows) {
                     isWindows = true;
+                  }
+                  if (resource.ami_name.toLowerCase().includes("arm64")) {
+                    isArm64 = true;
                   }
                 });
               }
@@ -87,11 +102,12 @@ jobs:
                   jsonData.instrumentations.resources.forEach(resource => {
                     if (resource.params) {
                       isUpdated = true;
+                      resource.params.newrelic_cli_path = `${newrelic_cli_linux_amd64_docker_path}`;
                       if (isWindows) {
                         resource.params.newrelic_cli_path = `${newrelic_cli_windows_docker_path}`;
                       }
-                      else {
-                        resource.params.newrelic_cli_path = `${newrelic_cli_linux_docker_path}`;
+                      else if (isArm64) {
+                        resource.params.newrelic_cli_path = `${newrelic_cli_linux_arm64_docker_path}`;
                       }
                     }
                   });
