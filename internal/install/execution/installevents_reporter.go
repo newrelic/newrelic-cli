@@ -1,12 +1,18 @@
 package execution
 
 import (
+	"time"
+
+	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/installevents"
+	"github.com/newrelic/newrelic-client-go/pkg/nrtime"
 )
 
 type InstallEventsReporter struct {
-	client InstalleventsClient
+	client    InstalleventsClient
+	accountID int
 }
 
 func NewInstallEventsReporter(client InstalleventsClient) *InstallEventsReporter {
@@ -14,41 +20,43 @@ func NewInstallEventsReporter(client InstalleventsClient) *InstallEventsReporter
 		client: client,
 	}
 
+	r.accountID = credentials.DefaultProfile().AccountID
+
 	return &r
 }
 
 func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.FAILED)
 
-	_, err := r.client.CreateInstallEvent(s)
+	_, err := r.client.CreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
 	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.INSTALLING)
 
-	_, err := r.client.CreateInstallEvent(s)
+	_, err := r.client.CreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
 	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.INSTALLED)
 
-	_, err := r.client.CreateInstallEvent(s)
+	_, err := r.client.CreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
 	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.SKIPPED)
 
-	_, err := r.client.CreateInstallEvent(s)
+	_, err := r.client.CreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
 	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.RECOMMENDED)
 
-	_, err := r.client.CreateInstallEvent(s)
+	_, err := r.client.CreateRecipeEvent(r.accountID, s)
 	return err
 }
 
@@ -105,15 +113,15 @@ func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types
 }
 
 func (r InstallEventsReporter) writeStatus(status *InstallStatus) error {
-	_, err := r.client.CreateInstallEvent(buildInstallStatus(status, nil, nil))
+	_, err := r.client.CreateRecipeEvent(r.accountID, buildInstallStatus(status, nil, nil))
 	return err
 }
 
-func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.RecipeStatusType) installevents.InstallStatus {
-	i := installevents.InstallStatus{
+func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.RecipeStatusType) installevents.RecipeStatus {
+	i := installevents.RecipeStatus{
 		CliVersion: status.CLIVersion,
 		Complete:   status.Complete,
-		Error: installevents.InputStatusError{
+		Error: installevents.StatusErrorInput{
 			Details: status.Error.Details,
 			Message: status.Error.Message,
 		},
@@ -132,8 +140,8 @@ func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusT
 	if event != nil {
 		i.Name = event.Recipe.Name
 		i.DisplayName = event.Recipe.DisplayName
-		i.EntityGUID = event.EntityGUID
-		i.ValidationDurationMilliseconds = float64(event.ValidationDurationMilliseconds)
+		i.EntityGUID = entities.EntityGUID(event.EntityGUID)
+		i.ValidationDurationMilliseconds = nrtime.EpochMilliseconds(time.Unix(event.ValidationDurationMilliseconds, 0).UTC())
 	}
 
 	if statusType != nil {
