@@ -5,8 +5,7 @@ import (
 )
 
 var (
-	apmAccountID int
-	apmAppID     int
+	apmAppID int
 )
 
 // Command represents the apm command
@@ -17,6 +16,5 @@ var Command = &cobra.Command{
 
 func init() {
 	// Flags for all things APM
-	Command.PersistentFlags().IntVarP(&apmAccountID, "accountId", "a", 0, "A New Relic account ID")
 	Command.PersistentFlags().IntVarP(&apmAppID, "applicationId", "", 0, "A New Relic APM application ID")
 }

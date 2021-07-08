@@ -100,8 +100,8 @@ func TestGetConfigValues(t *testing.T) {
 
 	require.Equal(t, "debug", GetConfigString("loglevel"))
 	require.Equal(t, ".newrelic/plugins", GetConfigString("plugindir"))
-	require.Equal(t, "NOT_ASKED", GetConfigString("prereleasefeatures"))
-	require.Equal(t, "NOT_ASKED", GetConfigString("sendusagedata"))
+	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("prereleasefeatures"))
+	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("sendusagedata"))
 }
 
 func TestGetConfigValues_EnvVarOverride(t *testing.T) {
@@ -123,8 +123,8 @@ func TestGetConfigValues_EnvVarOverride(t *testing.T) {
 
 	require.Equal(t, "trace", GetConfigString("loglevel"))
 	require.Equal(t, "/tmp", GetConfigString("plugindir"))
-	require.Equal(t, "ALLOW", GetConfigString("prereleasefeatures"))
-	require.Equal(t, "ALLOW", GetConfigString("sendusagedata"))
+	require.Equal(t, TernaryValues.Allow, GetConfigTernary("prereleasefeatures"))
+	require.Equal(t, TernaryValues.Allow, GetConfigTernary("sendusagedata"))
 }
 
 func TestGetConfigValues_DefaultValues(t *testing.T) {
@@ -143,8 +143,8 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 
 	require.Equal(t, "info", GetConfigString("loglevel"))
 	require.Equal(t, filepath.Join(dir, pluginDir), GetConfigString("plugindir"))
-	require.Equal(t, "NOT_ASKED", GetConfigString("prereleasefeatures"))
-	require.Equal(t, "NOT_ASKED", GetConfigString("sendusagedata"))
+	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("prereleasefeatures"))
+	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("sendusagedata"))
 }
 
 func TestRemoveProfile(t *testing.T) {

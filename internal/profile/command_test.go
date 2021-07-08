@@ -29,7 +29,6 @@ func TestProfilesDefault(t *testing.T) {
 	assert.Equal(t, "default", cmdDefault.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdDefault)
-	testcobra.CheckCobraRequiredFlags(t, cmdDefault, []string{"name"})
 	testcobra.CheckCobraCommandAliases(t, cmdDefault, []string{})
 }
 
@@ -45,6 +44,5 @@ func TestProfilesDelete(t *testing.T) {
 	assert.Equal(t, "delete", cmdDelete.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdDelete)
-	testcobra.CheckCobraRequiredFlags(t, cmdDelete, []string{"name"})
 	testcobra.CheckCobraCommandAliases(t, cmdDelete, []string{"remove", "rm"}) // DEPRECATED: from nr1 cli
 }

@@ -44,7 +44,6 @@ func init() {
 	Command.AddCommand(entities.Command)
 	Command.AddCommand(events.Command)
 	Command.AddCommand(install.Command)
-	Command.AddCommand(install.TestCommand)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(nrql.Command)

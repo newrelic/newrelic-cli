@@ -23,17 +23,19 @@ const (
 	PreReleaseFeatures ConfigKey = "prereleasefeatures"
 	SendUsageData      ConfigKey = "sendusagedata"
 
+	DefaultProfileName = "default"
+
+	defaultProfileFileName = "default-profile.json"
 	configFileName         = "config.json"
 	credentialsFileName    = "credentials.json"
-	defaultProfileFileName = "default-profile.json"
 	pluginDir              = "plugins"
-	activeProfileName      = "default"
 )
 
 var (
 	configProvider      *ConfigProvider
 	credentialsProvider *ConfigProvider
 	BasePath            string = configBasePath()
+	SelectedProfileName string
 )
 
 func init() {
@@ -128,17 +130,44 @@ func initializeConfigProvider() {
 }
 
 func GetActiveProfileName() string {
-	return activeProfileName
+	if SelectedProfileName != "" {
+		return SelectedProfileName
+	}
+
+	profileName, err := GetDefaultProfileName()
+	if err != nil || profileName == "" {
+		return DefaultProfileName
+	}
+
+	return profileName
 }
 
 func GetActiveProfileString(key ConfigKey) string {
 	return GetProfileString(GetActiveProfileName(), key)
 }
 
+func RequireActiveProfileString(key ConfigKey) string {
+	v := GetProfileString(GetActiveProfileName(), key)
+	if v == "" {
+		log.Fatalf("%s is required", key)
+	}
+
+	return v
+}
+
 func GetProfileString(profileName string, key ConfigKey) string {
 	v, err := credentialsProvider.GetStringWithScope(GetActiveProfileName(), key)
 	if err != nil {
 		return ""
+	}
+
+	return v
+}
+
+func RequireActiveProfileInt(key ConfigKey) int {
+	v := GetProfileInt(GetActiveProfileName(), key)
+	if v == 0 {
+		log.Fatalf("%s is required", key)
 	}
 
 	return v
@@ -175,13 +204,14 @@ func GetConfigTernary(key ConfigKey) Ternary {
 	return v
 }
 
-func GetDefaultProfile() (string, error) {
+func GetDefaultProfileName() (string, error) {
 	defaultProfileFilePath := filepath.Join(BasePath, defaultProfileFileName)
 	data, err := ioutil.ReadFile(defaultProfileFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil
 		}
+
 		return "", err
 	}
 
@@ -191,6 +221,11 @@ func GetDefaultProfile() (string, error) {
 func SetDefaultProfile(profileName string) error {
 	defaultProfileFilePath := filepath.Join(BasePath, defaultProfileFileName)
 	return ioutil.WriteFile(defaultProfileFilePath, []byte("\""+profileName+"\""), 0644)
+}
+
+func RemoveDefaultProfile() error {
+	defaultProfileFilePath := filepath.Join(BasePath, defaultProfileFileName)
+	return os.Remove(defaultProfileFilePath)
 }
 
 func GetProfileFieldDefinition(key ConfigKey) *FieldDefinition {
@@ -222,7 +257,30 @@ func GetProfileNames() []string {
 }
 
 func RemoveProfile(profileName string) error {
-	return credentialsProvider.RemoveScope(profileName)
+	if err := credentialsProvider.RemoveScope(profileName); err != nil {
+		return err
+	}
+
+	// Set a new default profile, or delete if there are no others
+	d, err := GetDefaultProfileName()
+	if err != nil {
+		return err
+	}
+
+	if d == profileName {
+		names := GetProfileNames()
+		if len(names) > 0 {
+			if err = SetDefaultProfile(names[0]); err != nil {
+				return fmt.Errorf("could not set new default profile")
+			}
+		} else {
+			if err := RemoveDefaultProfile(); err != nil {
+				return fmt.Errorf("could not delete default profile")
+			}
+		}
+	}
+
+	return nil
 }
 
 func SetConfigString(key ConfigKey, value string) error {

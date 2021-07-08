@@ -14,5 +14,4 @@ func TestQuery(t *testing.T) {
 	assert.Equal(t, "query", cmdQuery.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdQuery)
-	testcobra.CheckCobraRequiredFlags(t, cmdQuery, []string{"accountId", "query"})
 }

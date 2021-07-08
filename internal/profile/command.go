@@ -21,14 +21,13 @@ import (
 )
 
 const (
-	defaultProfileName   = "default"
+	DefaultProfileName   = "default"
 	defaultProfileString = " (default)"
 	hiddenKeyString      = "<hidden>"
 )
 
 var (
 	showKeys          bool
-	profileName       string
 	flagRegion        string
 	apiKey            string
 	insightsInsertKey string
@@ -58,21 +57,22 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 	Aliases: []string{
 		"configure",
 	},
-	Example: "newrelic profile add --name <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
+	Example: "newrelic profile add --profileName <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
+	PreRun:  requireProfileName,
 	Run: func(cmd *cobra.Command, args []string) {
-		addStringValueToProfile(profileName, apiKey, configuration.APIKey, "User API Key", nil, nil)
-		addStringValueToProfile(profileName, flagRegion, configuration.Region, "Region", nil, []string{"US", "EU"})
-		addIntValueToProfile(profileName, accountID, configuration.AccountID, "Account ID", fetchAccountIDs)
-		addStringValueToProfile(profileName, insightsInsertKey, configuration.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey, nil)
-		addStringValueToProfile(profileName, licenseKey, configuration.LicenseKey, "License Key", fetchLicenseKey, nil)
+		addStringValueToProfile(configuration.SelectedProfileName, apiKey, configuration.APIKey, "User API Key", nil, nil)
+		addStringValueToProfile(configuration.SelectedProfileName, flagRegion, configuration.Region, "Region", nil, []string{"US", "EU"})
+		addIntValueToProfile(configuration.SelectedProfileName, accountID, configuration.AccountID, "Account ID", fetchAccountIDs)
+		addStringValueToProfile(configuration.SelectedProfileName, insightsInsertKey, configuration.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey, nil)
+		addStringValueToProfile(configuration.SelectedProfileName, licenseKey, configuration.LicenseKey, "License Key", fetchLicenseKey, nil)
 
-		profile, err := configuration.GetDefaultProfile()
+		profile, err := configuration.GetDefaultProfileName()
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if profile == "" {
-			if err := configuration.SetDefaultProfile(profileName); err != nil {
+			if err := configuration.SetDefaultProfile(configuration.SelectedProfileName); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -172,8 +172,8 @@ func addIntValueToProfile(profileName string, val int, key configuration.ConfigK
 }
 
 func fetchLicenseKey() (string, error) {
-	accountID = configuration.GetProfileInt(profileName, configuration.AccountID)
-	client, err := client.NewClient(profileName)
+	accountID = configuration.GetProfileInt(configuration.SelectedProfileName, configuration.AccountID)
+	client, err := client.NewClient(configuration.SelectedProfileName)
 	if err != nil {
 		return "", err
 	}
@@ -222,8 +222,8 @@ func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accou
 }
 
 func fetchInsightsInsertKey() (string, error) {
-	accountID = configuration.GetProfileInt(profileName, configuration.AccountID)
-	client, err := client.NewClient(profileName)
+	accountID = configuration.GetProfileInt(configuration.SelectedProfileName, configuration.AccountID)
+	client, err := client.NewClient(configuration.SelectedProfileName)
 	if err != nil {
 		return "", err
 	}
@@ -250,7 +250,7 @@ func fetchInsightsInsertKey() (string, error) {
 
 // fetchAccountID will try and retrieve the available account IDs for the given user.
 func fetchAccountIDs() (ids []int, err error) {
-	client, err := client.NewClient(profileName)
+	client, err := client.NewClient(configuration.SelectedProfileName)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +280,7 @@ The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic profile default --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.SetDefaultProfile(profileName)
+		err := configuration.SetDefaultProfile(configuration.SelectedProfileName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -338,7 +338,7 @@ The delete command removes the profile specified by name.
 `,
 	Example: "newrelic profile delete --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := configuration.RemoveProfile(profileName)
+		err := configuration.RemoveProfile(configuration.SelectedProfileName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -351,25 +351,25 @@ The delete command removes the profile specified by name.
 	},
 }
 
-func init() {
-	var err error
+func requireProfileName(cmd *cobra.Command, args []string) {
+	fmt.Println(configuration.SelectedProfileName)
+	if configuration.SelectedProfileName == "" {
+		log.Fatal("the --profileName argument is required")
+	}
+}
 
+func init() {
 	// Add
 	Command.AddCommand(cmdAdd)
-	cmdAdd.Flags().StringVarP(&profileName, "name", "n", "default", "unique profile name to add")
 	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "US", "the US or EU region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
 	cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
 	cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
 	cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
-	cmdAdd.Flags().BoolVarP(&acceptDefaults, "acceptDefaults", "a", false, "suppress prompts and accept default values")
+	cmdAdd.Flags().BoolVarP(&acceptDefaults, "acceptDefaults", "d", false, "suppress prompts and accept default values")
 
 	// Default
 	Command.AddCommand(cmdDefault)
-	cmdDefault.Flags().StringVarP(&profileName, "name", "n", "default", "the profile name to set as default")
-	if err = cmdDefault.MarkFlagRequired("name"); err != nil {
-		log.Error(err)
-	}
 
 	// List
 	Command.AddCommand(cmdList)
@@ -377,8 +377,4 @@ func init() {
 
 	// Remove
 	Command.AddCommand(cmdDelete)
-	cmdDelete.Flags().StringVarP(&profileName, "name", "n", defaultProfileName, "the profile name to delete")
-	if err = cmdDelete.MarkFlagRequired("name"); err != nil {
-		log.Error(err)
-	}
 }
