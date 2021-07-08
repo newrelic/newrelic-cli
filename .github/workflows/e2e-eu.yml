@@ -34,6 +34,7 @@ jobs:
 
       - name: Compile all distros
         run: make snapshot
+        continue-on-error: true
 
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
