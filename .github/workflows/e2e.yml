@@ -94,7 +94,7 @@ jobs:
                   if (resource.is_windows) {
                     isWindows = true;
                   }
-                  if (resource.ami_name.toLowerCase().includes("arm64")) {
+                  if (!!resource.ami_name && resource.ami_name.toLowerCase().includes("arm64")) {
                     isArm64 = true;
                   }
                 });
