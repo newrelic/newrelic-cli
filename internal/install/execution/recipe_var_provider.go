@@ -17,7 +17,10 @@ import (
 )
 
 var (
-	downloadURLAccessListRegex []string = []string{`(.)?download\.newrelic\.com$`, `nr-downloads-ohai-(staging|testing)\.s3-website-us-east-1\.amazonaws\.com$`}
+	downloadURLAccessListRegex []string = []string{
+		`(.)?download\.newrelic\.com$`,
+		`nr-downloads-ohai-(staging|testing)\.s3-website-us-east-1\.amazonaws\.com$`,
+	}
 )
 
 type RecipeVarProvider struct{}
@@ -184,16 +187,18 @@ func varFromEnv() types.RecipeVars {
 	envDownloadURL := os.Getenv("NEW_RELIC_DOWNLOAD_URL")
 	if envDownloadURL != "" {
 		URL, err := url.Parse(envDownloadURL)
-		if err == nil && URL.Scheme == "https" {
-			for _, regexString := range downloadURLAccessListRegex {
-				var regex = regexp.MustCompile(regexString)
-
-				matched := regex.MatchString(URL.Host)
-				if matched {
-					downloadURL = envDownloadURL
-					break
+		if err == nil {
+			if URL.Scheme == "https" {
+				for _, regexString := range downloadURLAccessListRegex {
+					var regex = regexp.MustCompile(regexString)
+					if regex.MatchString(URL.Host) {
+						downloadURL = envDownloadURL
+						break
+					}
 				}
 			}
+		} else {
+			log.Warnf("Could not parse download URL: %s, detail: %s", envDownloadURL, err.Error())
 		}
 	}
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
