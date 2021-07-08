@@ -3,7 +3,6 @@ package configuration
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -18,14 +17,13 @@ import (
 type ConfigKey string
 
 type ConfigProvider struct {
-	cfg             []byte
-	fields          []FieldDefinition
-	fileName        string
-	scope           string
-	mu              sync.Mutex
-	dirty           bool
-	explicitValues  bool
-	settingDefaults bool
+	cfg            []byte
+	fields         []FieldDefinition
+	fileName       string
+	scope          string
+	mu             sync.Mutex
+	dirty          bool
+	explicitValues bool
 }
 
 type FieldDefinition struct {
@@ -154,13 +152,23 @@ func (p *ConfigProvider) GetString(key ConfigKey) (string, error) {
 }
 
 func (p *ConfigProvider) GetTernary(key ConfigKey) (Ternary, error) {
-	v, err := p.GetStringWithScope("", key)
+	return p.GetTernaryWithScope("", key)
+}
+
+func (p *ConfigProvider) GetTernaryWithScope(scope string, key ConfigKey) (Ternary, error) {
+	v, err := p.GetWithScope(scope, key)
 	if err != nil {
 		return Ternary(""), err
 	}
 
-	t := Ternary(v)
-	return t, nil
+	switch v := v.(type) {
+	case string:
+		return Ternary(v), nil
+	case Ternary:
+		return v, nil
+	}
+
+	return Ternary(""), fmt.Errorf("value %v for key %s is not a ternary", v, key)
 }
 
 func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, error) {
@@ -170,7 +178,15 @@ func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, er
 	}
 
 	switch v := v.(type) {
+	case int64:
+		return v, nil
+	case int32:
+		return int64(v), nil
 	case float64:
+		return int64(v), nil
+	case float32:
+		return int64(v), nil
+	case int:
 		return int64(v), nil
 	case string:
 		i, err := strconv.Atoi(v)
@@ -216,6 +232,10 @@ func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{},
 
 	res, err := p.getFromConfig(p.getPath(scope, key))
 	if err != nil {
+		if d != nil && d.Default != nil {
+			return d.Default, nil
+		}
+
 		return "", err
 	}
 
@@ -361,16 +381,9 @@ func (p *ConfigProvider) writeConfig(json string) error {
 }
 
 func (p *ConfigProvider) getConfig() string {
-	if !p.settingDefaults && (p.cfg == nil || p.dirty) {
+	if p.cfg == nil || p.dirty {
 		if p.fileName != "" {
 			p.setConfigFromFile()
-		}
-
-		if p.cfg == nil || len(p.cfg) == 0 {
-			// Flip settingDefaults true to avoid infinite recursion over getConfig()
-			p.settingDefaults = true
-			p.setDefaultConfig()
-			p.settingDefaults = false
 		}
 
 		p.dirty = false
@@ -386,18 +399,6 @@ func (p *ConfigProvider) setConfigFromFile() {
 	}
 
 	p.cfg = data
-}
-
-func (p *ConfigProvider) setDefaultConfig() {
-	for _, v := range p.fields {
-		if v.Default != nil {
-			err := p.Set(v.Key, v.Default)
-			if err != nil {
-				log.Fatalf("could not write default config settings: %s", err)
-			}
-		}
-	}
-
 }
 
 // Escape wildcard characters, as required by sjson

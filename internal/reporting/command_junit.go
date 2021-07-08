@@ -17,7 +17,6 @@ import (
 const junitEventType = "TestRun"
 
 var (
-	accountID    int
 	path         string
 	dryRun       bool
 	outputEvents bool
@@ -32,6 +31,8 @@ var cmdJUnit = &cobra.Command{
 	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
+		accountID := configuration.RequireActiveProfileInt(configuration.AccountID)
+
 		if configuration.GetActiveProfileString(configuration.InsightsInsertKey) == "" {
 			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
 		}
@@ -103,10 +104,8 @@ func createTestRunEvent(testRunID uuid.UUID, suite junit.Suite, test junit.Test)
 
 func init() {
 	Command.AddCommand(cmdJUnit)
-	cmdJUnit.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID to send test run results to")
 	cmdJUnit.Flags().StringVarP(&path, "path", "p", "", "the path to a JUnit-formatted test results file")
 	cmdJUnit.Flags().BoolVarP(&outputEvents, "output", "o", false, "output generated custom events to stdout")
 	cmdJUnit.Flags().BoolVar(&dryRun, "dryRun", false, "suppress posting custom events to NRDB")
-	utils.LogIfError(cmdJUnit.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdJUnit.MarkFlagRequired("path"))
 }

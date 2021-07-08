@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/configuration"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
@@ -50,6 +51,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
+			accountID := configuration.RequireActiveProfileInt(configuration.AccountID)
 			resp, err = client.NRClient.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			resp, err = client.NRClient.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
@@ -97,6 +99,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
+			accountID := configuration.RequireActiveProfileInt(configuration.AccountID)
 			_, err = client.NRClient.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			_, err = client.NRClient.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
@@ -117,7 +120,6 @@ func init() {
 	Command.AddCommand(cmdCollection)
 
 	cmdCollection.AddCommand(cmdCollectionGet)
-	cmdCollectionGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdCollectionGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdCollectionGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdCollectionGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
@@ -133,7 +135,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdCollection.AddCommand(cmdCollectionDelete)
-	cmdCollectionDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdCollectionDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdCollectionDelete.Flags().StringVarP(&packageID, "packageId", "", "p", "the external package ID")
 	cmdCollectionDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")
