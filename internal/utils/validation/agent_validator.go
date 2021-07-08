@@ -26,5 +26,5 @@ func (v *AgentValidator) Validate() (string, error) {
 		return "", err
 	}
 
-	return ""
+	return "", nil
 }
