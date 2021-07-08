@@ -23,10 +23,10 @@ release-publish: clean tools docker-login snapcraft-login release-notes
 	$(REL_CMD) --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE)
 
 # Local Snapshot
-snapshot: clean tools release-notes
+snapshot: clean tools
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]: Creating release via $(REL_CMD)"
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]:   THIS WILL NOT BE PUBLISHED!"
-	@$(REL_CMD) --skip-publish --snapshot --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE)
+	@$(REL_CMD) --skip-publish --snapshot
 
 release-homebrew:
 ifeq ($(HOMEBREW_GITHUB_API_TOKEN), "")
