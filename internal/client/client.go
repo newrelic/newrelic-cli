@@ -28,7 +28,7 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	}
 
 	region := configuration.GetProfileString(profileName, configuration.Region)
-	logLevel := configuration.GetConfigString(configuration.LogLevel)
+	logLevel := configuration.GetLogLevelWithFlagOverride()
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	cfgOpts := []newrelic.ConfigOption{

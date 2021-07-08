@@ -35,7 +35,11 @@ var (
 	configProvider      *ConfigProvider
 	credentialsProvider *ConfigProvider
 	BasePath            string = configBasePath()
-	SelectedProfileName string
+
+	FlagProfileName string
+	FlagDebug       bool
+	FlagTrace       bool
+	FlagAccountID   int
 )
 
 func init() {
@@ -131,8 +135,8 @@ func initializeConfigProvider() {
 }
 
 func GetActiveProfileName() string {
-	if SelectedProfileName != "" {
-		return SelectedProfileName
+	if FlagProfileName != "" {
+		return FlagProfileName
 	}
 
 	profileName, err := GetDefaultProfileName()
@@ -177,6 +181,41 @@ func GetProfileString(profileName string, key ConfigKey) string {
 	return v
 }
 
+func GetLogLevelWithFlagOverride() string {
+	var override string
+	if FlagDebug {
+		override = "debug"
+	}
+
+	if FlagTrace {
+		override = "trace"
+	}
+
+	return GetConfigStringWithOverride(LogLevel, override)
+}
+
+func RequireActiveProfileAccountIDWithFlagOverride() int {
+	v := GetActiveProfileAccountIDWithFlagOverride()
+	if v == 0 {
+		log.Fatalf("%s is required", AccountID)
+	}
+
+	return v
+}
+
+func GetActiveProfileAccountIDWithFlagOverride() int {
+	return GetActiveProfileIntWithOverride(AccountID, FlagAccountID)
+}
+
+func RequireActiveProfileIntWithOverride(key ConfigKey, override int) int {
+	v := GetProfileIntWithOverride(GetActiveProfileName(), key, override)
+	if v == 0 {
+		log.Fatalf("%s is required", key)
+	}
+
+	return v
+}
+
 func RequireActiveProfileInt(key ConfigKey) int {
 	v := GetProfileInt(GetActiveProfileName(), key)
 	if v == 0 {
@@ -190,6 +229,10 @@ func GetActiveProfileInt(key ConfigKey) int {
 	return GetProfileInt(GetActiveProfileName(), key)
 }
 
+func GetActiveProfileIntWithOverride(key ConfigKey, override int) int {
+	return GetProfileIntWithOverride(GetActiveProfileName(), key, override)
+}
+
 func GetProfileInt(profileName string, key ConfigKey) int {
 	v, err := credentialsProvider.GetIntWithScope(GetActiveProfileName(), key)
 	if err != nil {
@@ -199,8 +242,22 @@ func GetProfileInt(profileName string, key ConfigKey) int {
 	return int(v)
 }
 
+func GetProfileIntWithOverride(profileName string, key ConfigKey, override int) int {
+	o := int64(override)
+	v, err := credentialsProvider.GetIntWithScopeAndOverride(GetActiveProfileName(), key, &o)
+	if err != nil {
+		log.Fatalf("could not load value %s from config: %s", key, err)
+	}
+
+	return int(v)
+}
+
 func GetConfigString(key ConfigKey) string {
-	v, err := configProvider.GetString(key)
+	return GetConfigStringWithOverride(key, "")
+}
+
+func GetConfigStringWithOverride(key ConfigKey, override string) string {
+	v, err := configProvider.GetStringWithOverride(key, &override)
 	if err != nil {
 		log.Fatalf("could not load value %s from config: %s", key, err)
 	}

@@ -59,7 +59,7 @@ var Command = &cobra.Command{
 }
 
 func assertProfileIsValid() error {
-	if configuration.GetActiveProfileInt(configuration.AccountID) == 0 {
+	if configuration.GetActiveProfileAccountIDWithFlagOverride() == 0 {
 		return fmt.Errorf("accountID is required")
 	}
 
