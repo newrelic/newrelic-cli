@@ -70,6 +70,7 @@ func initializeCredentialsProvider() {
 					region.US.String(),
 					region.EU.String(),
 				),
+				Default: region.US.String(),
 			},
 			FieldDefinition{
 				Key:               AccountID,
@@ -155,8 +156,20 @@ func RequireActiveProfileString(key ConfigKey) string {
 	return v
 }
 
+func GetActiveProfileValue(profileName string, key ConfigKey) interface{} {
+	return GetProfileValue("", key)
+}
+func GetProfileValue(profileName string, key ConfigKey) interface{} {
+	v, err := credentialsProvider.GetWithScope(profileName, key)
+	if err != nil {
+		log.Fatalf("could not load value %s from config: %s", key, err)
+	}
+
+	return v
+}
+
 func GetProfileString(profileName string, key ConfigKey) string {
-	v, err := credentialsProvider.GetStringWithScope(GetActiveProfileName(), key)
+	v, err := credentialsProvider.GetStringWithScope(profileName, key)
 	if err != nil {
 		return ""
 	}
@@ -180,7 +193,7 @@ func GetActiveProfileInt(key ConfigKey) int {
 func GetProfileInt(profileName string, key ConfigKey) int {
 	v, err := credentialsProvider.GetIntWithScope(GetActiveProfileName(), key)
 	if err != nil {
-		return 0
+		log.Fatalf("could not load value %s from config: %s", key, err)
 	}
 
 	return int(v)

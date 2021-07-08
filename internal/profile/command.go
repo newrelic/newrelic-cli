@@ -352,7 +352,6 @@ The delete command removes the profile specified by name.
 }
 
 func requireProfileName(cmd *cobra.Command, args []string) {
-	fmt.Println(configuration.SelectedProfileName)
 	if configuration.SelectedProfileName == "" {
 		log.Fatal("the --profileName argument is required")
 	}

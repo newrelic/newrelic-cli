@@ -205,8 +205,19 @@ func (p *ConfigProvider) GetStringWithScope(scope string, key ConfigKey) (string
 		return "", err
 	}
 
-	if s, ok := v.(string); ok {
-		return s, nil
+	switch v := v.(type) {
+	case int64:
+		return strconv.Itoa(int(v)), nil
+	case int32:
+		return strconv.Itoa(int(v)), nil
+	case float64:
+		return strconv.Itoa(int(v)), nil
+	case float32:
+		return strconv.Itoa(int(v)), nil
+	case int:
+		return strconv.Itoa(v), nil
+	case string:
+		return v, nil
 	}
 
 	return "", fmt.Errorf("value %v for key %s is not a string", v, key)
@@ -236,7 +247,7 @@ func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{},
 			return d.Default, nil
 		}
 
-		return "", err
+		return nil, err
 	}
 
 	return res.Value(), nil
