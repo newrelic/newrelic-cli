@@ -31,7 +31,7 @@ var cmdJUnit = &cobra.Command{
 	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := configuration.RequireActiveProfileInt(configuration.AccountID)
+		accountID := configuration.RequireActiveProfileAccountIDWithFlagOverride()
 
 		if configuration.GetActiveProfileString(configuration.InsightsInsertKey) == "" {
 			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")

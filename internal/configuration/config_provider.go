@@ -148,7 +148,11 @@ func (p *ConfigProvider) GetInt(key ConfigKey) (int64, error) {
 }
 
 func (p *ConfigProvider) GetString(key ConfigKey) (string, error) {
-	return p.GetStringWithScope("", key)
+	return p.GetStringWithScopeAndOverride("", key, nil)
+}
+
+func (p *ConfigProvider) GetStringWithOverride(key ConfigKey, override *string) (string, error) {
+	return p.GetStringWithScopeAndOverride("", key, override)
 }
 
 func (p *ConfigProvider) GetTernary(key ConfigKey) (Ternary, error) {
@@ -172,7 +176,19 @@ func (p *ConfigProvider) GetTernaryWithScope(scope string, key ConfigKey) (Terna
 }
 
 func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, error) {
-	v, err := p.GetWithScope(scope, key)
+	return p.GetIntWithScopeAndOverride(scope, key, nil)
+}
+
+func (p *ConfigProvider) GetIntWithScopeAndOverride(scope string, key ConfigKey, override *int64) (int64, error) {
+	var v interface{}
+	var err error
+
+	if override == nil {
+		v, err = p.GetWithScopeAndOverride(scope, key, nil)
+	} else {
+		v, err = p.GetWithScopeAndOverride(scope, key, *override)
+	}
+
 	if err != nil {
 		return 0, err
 	}
@@ -200,7 +216,19 @@ func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, er
 }
 
 func (p *ConfigProvider) GetStringWithScope(scope string, key ConfigKey) (string, error) {
-	v, err := p.GetWithScope(scope, key)
+	return p.GetStringWithScopeAndOverride(scope, key, nil)
+}
+
+func (p *ConfigProvider) GetStringWithScopeAndOverride(scope string, key ConfigKey, override *string) (string, error) {
+	var v interface{}
+	var err error
+
+	if override == nil || *override == "" {
+		v, err = p.GetWithScope(scope, key)
+	} else {
+		v, err = p.GetWithScopeAndOverride(scope, key, *override)
+	}
+
 	if err != nil {
 		return "", err
 	}
@@ -228,6 +256,10 @@ func (p *ConfigProvider) Get(key ConfigKey) (interface{}, error) {
 }
 
 func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{}, error) {
+	return p.GetWithScopeAndOverride(scope, key, nil)
+}
+
+func (p *ConfigProvider) GetWithScopeAndOverride(scope string, key ConfigKey, overridePtr interface{}) (interface{}, error) {
 	d := p.getFieldDefinition(key)
 
 	if d != nil {
@@ -239,6 +271,10 @@ func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{},
 			// use the case convention from the field definition
 			key = d.Key
 		}
+	}
+
+	if overridePtr != nil {
+		return overridePtr, nil
 	}
 
 	res, err := p.getFromConfig(p.getPath(scope, key))

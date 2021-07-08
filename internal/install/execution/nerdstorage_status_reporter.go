@@ -120,7 +120,7 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 		log.Debug("no entity GUIDs available, skipping entity-scoped status updates")
 	}
 
-	accountID := configuration.GetActiveProfileInt(configuration.AccountID)
+	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
 	_, err = r.client.WriteDocumentWithAccountScope(accountID, i)
 	if err != nil {
 		log.Debug("failed to write to account scoped nerd storage")

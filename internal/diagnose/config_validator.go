@@ -50,7 +50,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 }
 
 func (c *ConfigValidator) Validate(ctx context.Context) error {
-	accountID := configuration.GetActiveProfileInt(configuration.AccountID)
+	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
 
 	if err := c.validateKeys(ctx); err != nil {
 		return err
@@ -119,7 +119,7 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
-	accountID := configuration.GetActiveProfileInt(configuration.AccountID)
+	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
 	insightsInsertKey := configuration.GetActiveProfileString(configuration.InsightsInsertKey)
 	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeysWithContext(ctx, accountID)
 	if err != nil {
@@ -136,7 +136,7 @@ func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
-	accountID := configuration.GetActiveProfileInt(configuration.AccountID)
+	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
 	licenseKey := configuration.GetActiveProfileString(configuration.LicenseKey)
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{

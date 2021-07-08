@@ -54,7 +54,7 @@ func generateExplorerLink(filter string) string {
 	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d",
 		nrPlatformHostname(),
 		utils.Base64Encode(filter),
-		configuration.GetActiveProfileInt(configuration.AccountID),
+		configuration.GetActiveProfileAccountIDWithFlagOverride(),
 	)
 }
 

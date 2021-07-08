@@ -28,7 +28,7 @@ issue the query against.
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := configuration.RequireActiveProfileInt(configuration.AccountID)
+		accountID := configuration.RequireActiveProfileAccountIDWithFlagOverride()
 		result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
 		if err != nil {
 			log.Fatal(err)

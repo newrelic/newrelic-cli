@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -17,9 +16,6 @@ import (
 var (
 	outputFormat string
 	outputPlain  bool
-	debug        bool
-	trace        bool
-	accountID    int
 )
 
 // Command represents the base command when called without any subcommands
@@ -33,19 +29,7 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	if debug {
-		os.Setenv("NEW_RELIC_CLI_LOG_LEVEL", "debug")
-	}
-
-	if trace {
-		os.Setenv("NEW_RELIC_CLI_LOG_LEVEL", "trace")
-	}
-
-	if accountID != 0 {
-		os.Setenv("NEW_RELIC_ACCOUNT_ID", strconv.Itoa(accountID))
-	}
-
-	logLevel := configuration.GetConfigString(configuration.LogLevel)
+	logLevel := configuration.GetLogLevelWithFlagOverride()
 	configuration.InitLogger(logLevel)
 
 	if client.NRClient == nil {
@@ -82,11 +66,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
-	Command.PersistentFlags().StringVar(&configuration.SelectedProfileName, "profileName", configuration.DefaultProfileName, "the authentication profile to use")
+	Command.PersistentFlags().StringVar(&configuration.FlagProfileName, "profileName", configuration.DefaultProfileName, "the authentication profile to use")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
-	Command.PersistentFlags().BoolVar(&debug, "debug", false, "debug level logging")
-	Command.PersistentFlags().BoolVar(&trace, "trace", false, "trace level logging")
-	Command.PersistentFlags().IntVarP(&accountID, "accountId", "a", 0, "trace level logging")
+	Command.PersistentFlags().BoolVar(&configuration.FlagDebug, "debug", false, "debug level logging")
+	Command.PersistentFlags().BoolVar(&configuration.FlagTrace, "trace", false, "trace level logging")
+	Command.PersistentFlags().IntVarP(&configuration.FlagAccountID, "accountId", "a", 0, "trace level logging")
 }
 
 func initConfig() {
