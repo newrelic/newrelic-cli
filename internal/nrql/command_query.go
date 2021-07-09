@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -28,7 +28,7 @@ issue the query against.
 	Example: `newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transaction TIMESERIES'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := configuration.RequireActiveProfileAccountIDWithFlagOverride()
+		accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
 		result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
 		if err != nil {
 			log.Fatal(err)

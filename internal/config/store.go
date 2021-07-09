@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"fmt"
@@ -14,31 +14,30 @@ import (
 	"github.com/tidwall/sjson"
 )
 
-type ConfigKey string
+type FieldKey string
 
-type ConfigProvider struct {
+type Store struct {
 	cfg            []byte
 	fields         []FieldDefinition
 	fileName       string
 	scope          string
 	mu             sync.Mutex
-	dirty          bool
 	explicitValues bool
 }
 
 type FieldDefinition struct {
 	EnvVar            string
-	Key               ConfigKey
+	Key               FieldKey
 	Default           interface{}
 	CaseSensitive     bool
 	Sensitive         bool
-	SetValidationFunc ConfigValueValidationFunc
+	SetValidationFunc FieldValueValidationFunc
 }
 
-type ConfigValueValidationFunc func(key ConfigKey, value interface{}) error
+type FieldValueValidationFunc func(key FieldKey, value interface{}) error
 
-func IntGreaterThan(greaterThan int) func(key ConfigKey, value interface{}) error {
-	return func(key ConfigKey, value interface{}) error {
+func IntGreaterThan(greaterThan int) func(key FieldKey, value interface{}) error {
+	return func(key FieldKey, value interface{}) error {
 		var s int
 		var ok bool
 		if s, ok = value.(int); !ok {
@@ -53,8 +52,8 @@ func IntGreaterThan(greaterThan int) func(key ConfigKey, value interface{}) erro
 	}
 }
 
-func IsTernary() func(key ConfigKey, value interface{}) error {
-	return func(key ConfigKey, value interface{}) error {
+func IsTernary() func(key FieldKey, value interface{}) error {
+	return func(key FieldKey, value interface{}) error {
 		switch v := value.(type) {
 		case string:
 			return Ternary(v).Valid()
@@ -67,8 +66,8 @@ func IsTernary() func(key ConfigKey, value interface{}) error {
 	}
 }
 
-func StringInStrings(caseSensitive bool, allowedValues ...string) func(key ConfigKey, value interface{}) error {
-	return func(key ConfigKey, value interface{}) error {
+func StringInStrings(caseSensitive bool, allowedValues ...string) func(key FieldKey, value interface{}) error {
+	return func(key FieldKey, value interface{}) error {
 		var s string
 		var ok bool
 		if s, ok = value.(string); !ok {
@@ -89,10 +88,10 @@ func StringInStrings(caseSensitive bool, allowedValues ...string) func(key Confi
 	}
 }
 
-type ConfigProviderOption func(*ConfigProvider) error
+type StoreOption func(*Store) error
 
-func NewConfigProvider(opts ...ConfigProviderOption) (*ConfigProvider, error) {
-	p := &ConfigProvider{}
+func NewStore(opts ...StoreOption) (*Store, error) {
+	p := &Store{}
 
 	for _, fn := range opts {
 		if fn == nil {
@@ -106,15 +105,15 @@ func NewConfigProvider(opts ...ConfigProviderOption) (*ConfigProvider, error) {
 	return p, nil
 }
 
-func WithExplicitValues() ConfigProviderOption {
-	return func(p *ConfigProvider) error {
+func EnforceStrictFields() StoreOption {
+	return func(p *Store) error {
 		p.explicitValues = true
 		return nil
 	}
 }
 
-func WithFieldDefinitions(definitions ...FieldDefinition) ConfigProviderOption {
-	return func(p *ConfigProvider) error {
+func ConfigureFields(definitions ...FieldDefinition) StoreOption {
+	return func(p *Store) error {
 		for _, d := range definitions {
 			if !d.CaseSensitive {
 				for _, k := range p.getConfigValueKeys() {
@@ -129,37 +128,37 @@ func WithFieldDefinitions(definitions ...FieldDefinition) ConfigProviderOption {
 	}
 }
 
-func WithFilePersistence(fileName string) ConfigProviderOption {
-	return func(p *ConfigProvider) error {
+func PersistToFile(fileName string) StoreOption {
+	return func(p *Store) error {
 		p.fileName = fileName
 		return nil
 	}
 }
 
-func WithScope(scope string) ConfigProviderOption {
-	return func(p *ConfigProvider) error {
+func UseGlobalScope(scope string) StoreOption {
+	return func(p *Store) error {
 		p.scope = scope
 		return nil
 	}
 }
 
-func (p *ConfigProvider) GetInt(key ConfigKey) (int64, error) {
+func (p *Store) GetInt(key FieldKey) (int64, error) {
 	return p.GetIntWithScope("", key)
 }
 
-func (p *ConfigProvider) GetString(key ConfigKey) (string, error) {
+func (p *Store) GetString(key FieldKey) (string, error) {
 	return p.GetStringWithScopeAndOverride("", key, nil)
 }
 
-func (p *ConfigProvider) GetStringWithOverride(key ConfigKey, override *string) (string, error) {
+func (p *Store) GetStringWithOverride(key FieldKey, override *string) (string, error) {
 	return p.GetStringWithScopeAndOverride("", key, override)
 }
 
-func (p *ConfigProvider) GetTernary(key ConfigKey) (Ternary, error) {
+func (p *Store) GetTernary(key FieldKey) (Ternary, error) {
 	return p.GetTernaryWithScope("", key)
 }
 
-func (p *ConfigProvider) GetTernaryWithScope(scope string, key ConfigKey) (Ternary, error) {
+func (p *Store) GetTernaryWithScope(scope string, key FieldKey) (Ternary, error) {
 	v, err := p.GetWithScope(scope, key)
 	if err != nil {
 		return Ternary(""), err
@@ -175,11 +174,11 @@ func (p *ConfigProvider) GetTernaryWithScope(scope string, key ConfigKey) (Terna
 	return Ternary(""), fmt.Errorf("value %v for key %s is not a ternary", v, key)
 }
 
-func (p *ConfigProvider) GetIntWithScope(scope string, key ConfigKey) (int64, error) {
+func (p *Store) GetIntWithScope(scope string, key FieldKey) (int64, error) {
 	return p.GetIntWithScopeAndOverride(scope, key, nil)
 }
 
-func (p *ConfigProvider) GetIntWithScopeAndOverride(scope string, key ConfigKey, override *int64) (int64, error) {
+func (p *Store) GetIntWithScopeAndOverride(scope string, key FieldKey, override *int64) (int64, error) {
 	var v interface{}
 	var err error
 
@@ -215,11 +214,11 @@ func (p *ConfigProvider) GetIntWithScopeAndOverride(scope string, key ConfigKey,
 	return 0, fmt.Errorf("value %v for key %s is not an int", v, key)
 }
 
-func (p *ConfigProvider) GetStringWithScope(scope string, key ConfigKey) (string, error) {
+func (p *Store) GetStringWithScope(scope string, key FieldKey) (string, error) {
 	return p.GetStringWithScopeAndOverride(scope, key, nil)
 }
 
-func (p *ConfigProvider) GetStringWithScopeAndOverride(scope string, key ConfigKey, override *string) (string, error) {
+func (p *Store) GetStringWithScopeAndOverride(scope string, key FieldKey, override *string) (string, error) {
 	var v interface{}
 	var err error
 
@@ -251,15 +250,15 @@ func (p *ConfigProvider) GetStringWithScopeAndOverride(scope string, key ConfigK
 	return "", fmt.Errorf("value %v for key %s is not a string", v, key)
 }
 
-func (p *ConfigProvider) Get(key ConfigKey) (interface{}, error) {
+func (p *Store) Get(key FieldKey) (interface{}, error) {
 	return p.GetWithScope("", key)
 }
 
-func (p *ConfigProvider) GetWithScope(scope string, key ConfigKey) (interface{}, error) {
+func (p *Store) GetWithScope(scope string, key FieldKey) (interface{}, error) {
 	return p.GetWithScopeAndOverride(scope, key, nil)
 }
 
-func (p *ConfigProvider) GetWithScopeAndOverride(scope string, key ConfigKey, overridePtr interface{}) (interface{}, error) {
+func (p *Store) GetWithScopeAndOverride(scope string, key FieldKey, override interface{}) (interface{}, error) {
 	d := p.getFieldDefinition(key)
 
 	if d != nil {
@@ -273,8 +272,8 @@ func (p *ConfigProvider) GetWithScopeAndOverride(scope string, key ConfigKey, ov
 		}
 	}
 
-	if overridePtr != nil {
-		return overridePtr, nil
+	if override != nil {
+		return override, nil
 	}
 
 	res, err := p.getFromConfig(p.getPath(scope, key))
@@ -289,11 +288,11 @@ func (p *ConfigProvider) GetWithScopeAndOverride(scope string, key ConfigKey, ov
 	return res.Value(), nil
 }
 
-func (p *ConfigProvider) Set(key ConfigKey, value interface{}) error {
+func (p *Store) Set(key FieldKey, value interface{}) error {
 	return p.SetWithScope("", key, value)
 }
 
-func (p *ConfigProvider) SetWithScope(scope string, key ConfigKey, value interface{}) error {
+func (p *Store) SetWithScope(scope string, key FieldKey, value interface{}) error {
 	v := p.getFieldDefinition(key)
 
 	if v != nil {
@@ -328,7 +327,7 @@ func (p *ConfigProvider) SetWithScope(scope string, key ConfigKey, value interfa
 	return nil
 }
 
-func (p *ConfigProvider) RemoveScope(scope string) error {
+func (p *Store) RemoveScope(scope string) error {
 	path := scope
 	if p.scope != "" {
 		path = fmt.Sprintf("%s.%s", p.scope, scope)
@@ -337,28 +336,28 @@ func (p *ConfigProvider) RemoveScope(scope string) error {
 	return p.deletePath(path)
 }
 
-func (p *ConfigProvider) DeleteKey(key ConfigKey) error {
+func (p *Store) DeleteKey(key FieldKey) error {
 	return p.DeleteKeyWithScope("", key)
 }
 
-func (p *ConfigProvider) DeleteKeyWithScope(scope string, key ConfigKey) error {
+func (p *Store) DeleteKeyWithScope(scope string, key FieldKey) error {
 	return p.deletePath(p.getPath(scope, key))
 }
 
-func (p *ConfigProvider) getPath(scope string, key ConfigKey) string {
-	path := scope
+func (p *Store) getPath(scope string, key FieldKey) string {
+	path := string(key)
 	if scope != "" {
 		path = fmt.Sprintf("%s.%s", scope, key)
 	}
 
 	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, key)
+		path = fmt.Sprintf("%s.%s", p.scope, path)
 	}
 
 	return path
 }
 
-func (p *ConfigProvider) deletePath(path string) error {
+func (p *Store) deletePath(path string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -374,17 +373,17 @@ func (p *ConfigProvider) deletePath(path string) error {
 	return nil
 }
 
-func (p *ConfigProvider) VisitAllFields(fn func(d FieldDefinition)) {
+func (p *Store) VisitAllFields(fn func(d FieldDefinition)) {
 	p.VisitAllFieldsWithScope("", fn)
 }
 
-func (p *ConfigProvider) VisitAllFieldsWithScope(scope string, fn func(d FieldDefinition)) {
+func (p *Store) VisitAllFieldsWithScope(scope string, fn func(d FieldDefinition)) {
 	for _, f := range p.fields {
 		fn(f)
 	}
 }
 
-func (p *ConfigProvider) GetScopes() []string {
+func (p *Store) GetScopes() []string {
 	s := []string{}
 	result := gjson.Get(p.getConfig(), "@this")
 	result.ForEach(func(key, value gjson.Result) bool {
@@ -395,7 +394,7 @@ func (p *ConfigProvider) GetScopes() []string {
 	return s
 }
 
-func (p *ConfigProvider) getFromConfig(path string) (*gjson.Result, error) {
+func (p *Store) getFromConfig(path string) (*gjson.Result, error) {
 	res := gjson.Get(p.getConfig(), path)
 
 	if !res.Exists() {
@@ -405,21 +404,20 @@ func (p *ConfigProvider) getFromConfig(path string) (*gjson.Result, error) {
 	return &res, nil
 }
 
-func (p *ConfigProvider) writeConfig(json string) error {
-	p.dirty = true
+func (p *Store) writeConfig(json string) error {
 	p.cfg = []byte(json)
 
 	if p.fileName != "" {
 		dir := filepath.Dir(p.fileName)
 		_, err := os.Stat(dir)
 		if err != nil {
-			err = os.Mkdir(dir, 0755)
+			err = os.Mkdir(dir, 0750)
 			if err != nil {
 				return err
 			}
 		}
 
-		if err := ioutil.WriteFile(p.fileName, p.cfg, 0644); err != nil {
+		if err := ioutil.WriteFile(p.fileName, p.cfg, 0640); err != nil {
 			return err
 		}
 	}
@@ -427,19 +425,17 @@ func (p *ConfigProvider) writeConfig(json string) error {
 	return nil
 }
 
-func (p *ConfigProvider) getConfig() string {
-	if p.cfg == nil || p.dirty {
+func (p *Store) getConfig() string {
+	if p.cfg == nil {
 		if p.fileName != "" {
 			p.setConfigFromFile()
 		}
-
-		p.dirty = false
 	}
 
 	return string(p.cfg)
 }
 
-func (p *ConfigProvider) setConfigFromFile() {
+func (p *Store) setConfigFromFile() {
 	data, err := ioutil.ReadFile(p.fileName)
 	if err != nil {
 		return
@@ -454,7 +450,7 @@ func escapeWildcards(key string) string {
 	return re.ReplaceAllString(key, "\\$1")
 }
 
-func (p *ConfigProvider) getFieldDefinition(key ConfigKey) *FieldDefinition {
+func (p *Store) getFieldDefinition(key FieldKey) *FieldDefinition {
 	for _, v := range p.fields {
 		if !v.CaseSensitive && strings.EqualFold(string(key), string(v.Key)) {
 			return &v
@@ -468,8 +464,8 @@ func (p *ConfigProvider) getFieldDefinition(key ConfigKey) *FieldDefinition {
 	return nil
 }
 
-func (p *ConfigProvider) getConfigValueKeys() []ConfigKey {
-	var keys []ConfigKey
+func (p *Store) getConfigValueKeys() []FieldKey {
+	var keys []FieldKey
 	for _, v := range p.fields {
 		keys = append(keys, v.Key)
 	}

@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"fmt"
@@ -13,15 +13,15 @@ import (
 )
 
 const (
-	APIKey             ConfigKey = "apiKey"
-	InsightsInsertKey  ConfigKey = "insightsInsertKey"
-	Region             ConfigKey = "region"
-	AccountID          ConfigKey = "accountID"
-	LicenseKey         ConfigKey = "licenseKey"
-	LogLevel           ConfigKey = "loglevel"
-	PluginDir          ConfigKey = "plugindir"
-	PreReleaseFeatures ConfigKey = "prereleasefeatures"
-	SendUsageData      ConfigKey = "sendusagedata"
+	APIKey             FieldKey = "apiKey"
+	InsightsInsertKey  FieldKey = "insightsInsertKey"
+	Region             FieldKey = "region"
+	AccountID          FieldKey = "accountID"
+	LicenseKey         FieldKey = "licenseKey"
+	LogLevel           FieldKey = "loglevel"
+	PluginDir          FieldKey = "plugindir"
+	PreReleaseFeatures FieldKey = "prereleasefeatures"
+	SendUsageData      FieldKey = "sendusagedata"
 
 	DefaultProfileName = "default"
 
@@ -32,8 +32,8 @@ const (
 )
 
 var (
-	configProvider      *ConfigProvider
-	credentialsProvider *ConfigProvider
+	store               *Store
+	credentialsProvider *Store
 	BasePath            string = configBasePath()
 
 	FlagProfileName string
@@ -48,14 +48,15 @@ func init() {
 
 func Init(basePath string) {
 	BasePath = basePath
-	initializeConfigProvider()
+	initializeStore()
 	initializeCredentialsProvider()
 }
 
 func initializeCredentialsProvider() {
-	p, err := NewConfigProvider(
-		WithFilePersistence(filepath.Join(BasePath, credentialsFileName)),
-		WithFieldDefinitions(
+	p, err := NewStore(
+		PersistToFile(filepath.Join(BasePath, credentialsFileName)),
+		EnforceStrictFields(),
+		ConfigureFields(
 			FieldDefinition{
 				Key:       APIKey,
 				EnvVar:    "NEW_RELIC_API_KEY",
@@ -96,11 +97,12 @@ func initializeCredentialsProvider() {
 	credentialsProvider = p
 }
 
-func initializeConfigProvider() {
-	p, err := NewConfigProvider(
-		WithFilePersistence(filepath.Join(BasePath, configFileName)),
-		WithScope("*"),
-		WithFieldDefinitions(
+func initializeStore() {
+	p, err := NewStore(
+		PersistToFile(filepath.Join(BasePath, configFileName)),
+		UseGlobalScope("*"),
+		EnforceStrictFields(),
+		ConfigureFields(
 			FieldDefinition{
 				Key:               LogLevel,
 				EnvVar:            "NEW_RELIC_CLI_LOG_LEVEL",
@@ -131,10 +133,12 @@ func initializeConfigProvider() {
 		log.Fatalf("could not create configuration provider: %s", err)
 	}
 
-	configProvider = p
+	store = p
 }
 
 func GetActiveProfileName() string {
+	//env var?
+
 	if FlagProfileName != "" {
 		return FlagProfileName
 	}
@@ -147,11 +151,11 @@ func GetActiveProfileName() string {
 	return profileName
 }
 
-func GetActiveProfileString(key ConfigKey) string {
+func GetActiveProfileString(key FieldKey) string {
 	return GetProfileString(GetActiveProfileName(), key)
 }
 
-func RequireActiveProfileString(key ConfigKey) string {
+func RequireActiveProfileString(key FieldKey) string {
 	v := GetProfileString(GetActiveProfileName(), key)
 	if v == "" {
 		log.Fatalf("%s is required", key)
@@ -160,10 +164,10 @@ func RequireActiveProfileString(key ConfigKey) string {
 	return v
 }
 
-func GetActiveProfileValue(profileName string, key ConfigKey) interface{} {
+func GetActiveProfileValue(profileName string, key FieldKey) interface{} {
 	return GetProfileValue("", key)
 }
-func GetProfileValue(profileName string, key ConfigKey) interface{} {
+func GetProfileValue(profileName string, key FieldKey) interface{} {
 	v, err := credentialsProvider.GetWithScope(profileName, key)
 	if err != nil {
 		log.Fatalf("could not load value %s from config: %s", key, err)
@@ -172,7 +176,7 @@ func GetProfileValue(profileName string, key ConfigKey) interface{} {
 	return v
 }
 
-func GetProfileString(profileName string, key ConfigKey) string {
+func GetProfileString(profileName string, key FieldKey) string {
 	v, err := credentialsProvider.GetStringWithScope(profileName, key)
 	if err != nil {
 		return ""
@@ -207,7 +211,7 @@ func GetActiveProfileAccountIDWithFlagOverride() int {
 	return GetActiveProfileIntWithOverride(AccountID, FlagAccountID)
 }
 
-func RequireActiveProfileIntWithOverride(key ConfigKey, override int) int {
+func RequireActiveProfileIntWithOverride(key FieldKey, override int) int {
 	v := GetProfileIntWithOverride(GetActiveProfileName(), key, override)
 	if v == 0 {
 		log.Fatalf("%s is required", key)
@@ -216,7 +220,7 @@ func RequireActiveProfileIntWithOverride(key ConfigKey, override int) int {
 	return v
 }
 
-func RequireActiveProfileInt(key ConfigKey) int {
+func RequireActiveProfileInt(key FieldKey) int {
 	v := GetProfileInt(GetActiveProfileName(), key)
 	if v == 0 {
 		log.Fatalf("%s is required", key)
@@ -225,16 +229,16 @@ func RequireActiveProfileInt(key ConfigKey) int {
 	return v
 }
 
-func GetActiveProfileInt(key ConfigKey) int {
+func GetActiveProfileInt(key FieldKey) int {
 	return GetProfileInt(GetActiveProfileName(), key)
 }
 
-func GetActiveProfileIntWithOverride(key ConfigKey, override int) int {
+func GetActiveProfileIntWithOverride(key FieldKey, override int) int {
 	return GetProfileIntWithOverride(GetActiveProfileName(), key, override)
 }
 
-func GetProfileInt(profileName string, key ConfigKey) int {
-	v, err := credentialsProvider.GetIntWithScope(GetActiveProfileName(), key)
+func GetProfileInt(profileName string, key FieldKey) int {
+	v, err := credentialsProvider.GetIntWithScope(profileName, key)
 	if err != nil {
 		log.Fatalf("could not load value %s from config: %s", key, err)
 	}
@@ -242,9 +246,9 @@ func GetProfileInt(profileName string, key ConfigKey) int {
 	return int(v)
 }
 
-func GetProfileIntWithOverride(profileName string, key ConfigKey, override int) int {
+func GetProfileIntWithOverride(profileName string, key FieldKey, override int) int {
 	o := int64(override)
-	v, err := credentialsProvider.GetIntWithScopeAndOverride(GetActiveProfileName(), key, &o)
+	v, err := credentialsProvider.GetIntWithScopeAndOverride(profileName, key, &o)
 	if err != nil {
 		log.Fatalf("could not load value %s from config: %s", key, err)
 	}
@@ -252,12 +256,12 @@ func GetProfileIntWithOverride(profileName string, key ConfigKey, override int) 
 	return int(v)
 }
 
-func GetConfigString(key ConfigKey) string {
+func GetConfigString(key FieldKey) string {
 	return GetConfigStringWithOverride(key, "")
 }
 
-func GetConfigStringWithOverride(key ConfigKey, override string) string {
-	v, err := configProvider.GetStringWithOverride(key, &override)
+func GetConfigStringWithOverride(key FieldKey, override string) string {
+	v, err := store.GetStringWithOverride(key, &override)
 	if err != nil {
 		log.Fatalf("could not load value %s from config: %s", key, err)
 	}
@@ -265,8 +269,8 @@ func GetConfigStringWithOverride(key ConfigKey, override string) string {
 	return v
 }
 
-func GetConfigTernary(key ConfigKey) Ternary {
-	v, err := configProvider.GetTernary(key)
+func GetConfigTernary(key FieldKey) Ternary {
+	v, err := store.GetTernary(key)
 	if err != nil {
 		log.Fatalf("could not load value %s from config: %s", key, err)
 	}
@@ -298,12 +302,12 @@ func RemoveDefaultProfile() error {
 	return os.Remove(defaultProfileFilePath)
 }
 
-func GetProfileFieldDefinition(key ConfigKey) *FieldDefinition {
+func GetProfileFieldDefinition(key FieldKey) *FieldDefinition {
 	return credentialsProvider.getFieldDefinition(key)
 }
 
-func GetConfigFieldDefinition(key ConfigKey) *FieldDefinition {
-	return configProvider.getFieldDefinition(key)
+func GetConfigFieldDefinition(key FieldKey) *FieldDefinition {
+	return store.getFieldDefinition(key)
 }
 
 func VisitAllProfileFields(profileName string, fn func(d FieldDefinition)) {
@@ -311,15 +315,15 @@ func VisitAllProfileFields(profileName string, fn func(d FieldDefinition)) {
 }
 
 func VisitAllConfigFields(fn func(d FieldDefinition)) {
-	configProvider.VisitAllFields(fn)
+	store.VisitAllFields(fn)
 }
 
-func GetValidConfigKeys() (configKeys []ConfigKey) {
-	configProvider.VisitAllFields(func(fd FieldDefinition) {
-		configKeys = append(configKeys, fd.Key)
+func GetValidFieldKeys() (fieldKeys []FieldKey) {
+	store.VisitAllFields(func(fd FieldDefinition) {
+		fieldKeys = append(fieldKeys, fd.Key)
 	})
 
-	return configKeys
+	return fieldKeys
 }
 
 func GetProfileNames() []string {
@@ -353,27 +357,27 @@ func RemoveProfile(profileName string) error {
 	return nil
 }
 
-func SetConfigString(key ConfigKey, value string) error {
+func SetConfigString(key FieldKey, value string) error {
 	return SetConfigValue(key, value)
 }
 
-func SetConfigValue(key ConfigKey, value interface{}) error {
-	return configProvider.Set(key, value)
+func SetConfigValue(key FieldKey, value interface{}) error {
+	return store.Set(key, value)
 }
 
-func SetActiveProfileString(key ConfigKey, value string) error {
+func SetActiveProfileString(key FieldKey, value string) error {
 	return SetProfileString(GetActiveProfileName(), key, value)
 }
 
-func SetProfileString(profileName string, key ConfigKey, value string) error {
+func SetProfileString(profileName string, key FieldKey, value string) error {
 	return credentialsProvider.SetWithScope(profileName, key, value)
 }
 
-func SetActiveProfileInt(key ConfigKey, value int) error {
+func SetActiveProfileInt(key FieldKey, value int) error {
 	return SetProfileInt(GetActiveProfileName(), key, value)
 }
 
-func SetProfileInt(profileName string, key ConfigKey, value int) error {
+func SetProfileInt(profileName string, key FieldKey, value int) error {
 	return credentialsProvider.SetWithScope(profileName, key, value)
 }
 

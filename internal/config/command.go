@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"strings"
@@ -32,11 +32,11 @@ The set command sets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if !isValidConfigKey() {
-			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidConfigKeys())
+		if !isValidFieldKey() {
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidFieldKeys())
 		}
 
-		if err := SetConfigString(ConfigKey(key), value); err != nil {
+		if err := SetConfigString(FieldKey(key), value); err != nil {
 			log.Fatal(err)
 		}
 
@@ -44,7 +44,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 	},
 }
 
-func isValidConfigKey() (valid bool) {
+func isValidFieldKey() (valid bool) {
 	VisitAllConfigFields(func(fd FieldDefinition) {
 		if strings.EqualFold(string(fd.Key), key) {
 			valid = true
@@ -63,11 +63,11 @@ The get command gets a persistent configuration value for the New Relic CLI.
 `,
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if !isValidConfigKey() {
-			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidConfigKeys())
+		if !isValidFieldKey() {
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidFieldKeys())
 		}
 
-		output.Text(GetConfigString(ConfigKey(key)))
+		output.Text(GetConfigString(FieldKey(key)))
 	},
 }
 
@@ -102,17 +102,17 @@ The reset command resets a configuration value to its default.
 `,
 	Example: "newrelic config reset --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
-		if !isValidConfigKey() {
-			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidConfigKeys())
+		if !isValidFieldKey() {
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidFieldKeys())
 		}
 
-		fd := GetConfigFieldDefinition(ConfigKey(key))
+		fd := GetConfigFieldDefinition(FieldKey(key))
 
 		if fd.Default == nil {
 			log.Fatalf("key %s cannot be reset to a default value since no default exists", fd.Key)
 		}
 
-		if err := SetConfigValue(ConfigKey(key), fd.Default); err != nil {
+		if err := SetConfigValue(FieldKey(key), fd.Default); err != nil {
 			log.Fatal(err)
 		}
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
@@ -115,7 +115,7 @@ func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (b
 }
 
 func (m *PollingNRQLValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
+	accountID := config.GetActiveProfileAccountIDWithFlagOverride()
 
 	nrql := nrdb.NRQL(query)
 

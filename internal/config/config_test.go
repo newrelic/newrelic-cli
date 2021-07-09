@@ -1,4 +1,4 @@
-package configuration
+package config
 
 import (
 	"io/ioutil"
@@ -96,7 +96,7 @@ func TestGetConfigValues(t *testing.T) {
 	os.Unsetenv("NEW_RELIC_CLI_PRERELEASEFEATURES")
 	os.Unsetenv("NEW_RELIC_CLI_SENDUSAGEDATA")
 
-	initializeConfigProvider()
+	initializeStore()
 
 	require.Equal(t, "debug", GetConfigString("loglevel"))
 	require.Equal(t, ".newrelic/plugins", GetConfigString("plugindir"))
@@ -119,7 +119,7 @@ func TestGetConfigValues_EnvVarOverride(t *testing.T) {
 	os.Setenv("NEW_RELIC_CLI_PRERELEASEFEATURES", "ALLOW")
 	os.Setenv("NEW_RELIC_CLI_SENDUSAGEDATA", "ALLOW")
 
-	initializeConfigProvider()
+	initializeStore()
 
 	require.Equal(t, "trace", GetConfigString("loglevel"))
 	require.Equal(t, "/tmp", GetConfigString("plugindir"))
@@ -139,7 +139,7 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 	os.Unsetenv("NEW_RELIC_CLI_PRERELEASEFEATURES")
 	os.Unsetenv("NEW_RELIC_CLI_SENDUSAGEDATA")
 
-	initializeConfigProvider()
+	initializeStore()
 
 	require.Equal(t, "info", GetConfigString("loglevel"))
 	require.Equal(t, filepath.Join(dir, pluginDir), GetConfigString("plugindir"))

@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 
 	log "github.com/sirupsen/logrus"
@@ -20,15 +20,15 @@ var (
 
 // NewClient initializes the New Relic client.
 func NewClient(profileName string) (*newrelic.NewRelic, error) {
-	apiKey := configuration.GetProfileString(profileName, configuration.APIKey)
-	insightsInsertKey := configuration.GetProfileString(profileName, configuration.InsightsInsertKey)
+	apiKey := config.GetProfileString(profileName, config.APIKey)
+	insightsInsertKey := config.GetProfileString(profileName, config.InsightsInsertKey)
 
 	if apiKey == "" && insightsInsertKey == "" {
 		return nil, errors.New("a User API key or Ingest API key is required, set a default profile or use the NEW_RELIC_API_KEY or NEW_RELIC_INSIGHTS_INSERT_KEY environment variables")
 	}
 
-	region := configuration.GetProfileString(profileName, configuration.Region)
-	logLevel := configuration.GetLogLevelWithFlagOverride()
+	region := config.GetProfileString(profileName, config.Region)
+	logLevel := config.GetLogLevelWithFlagOverride()
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
 
 	cfgOpts := []newrelic.ConfigOption{

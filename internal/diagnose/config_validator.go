@@ -9,7 +9,7 @@ import (
 
 	"github.com/shirou/gopsutil/host"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -50,7 +50,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 }
 
 func (c *ConfigValidator) Validate(ctx context.Context) error {
-	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
+	accountID := config.GetActiveProfileAccountIDWithFlagOverride()
 
 	if err := c.validateKeys(ctx); err != nil {
 		return err
@@ -119,8 +119,8 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
-	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
-	insightsInsertKey := configuration.GetActiveProfileString(configuration.InsightsInsertKey)
+	accountID := config.GetActiveProfileAccountIDWithFlagOverride()
+	insightsInsertKey := config.GetActiveProfileString(config.InsightsInsertKey)
 	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeysWithContext(ctx, accountID)
 	if err != nil {
 		return fmt.Errorf(ErrConnectionStringFormat, err)
@@ -136,8 +136,8 @@ func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
-	accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
-	licenseKey := configuration.GetActiveProfileString(configuration.LicenseKey)
+	accountID := config.GetActiveProfileAccountIDWithFlagOverride()
+	licenseKey := config.GetActiveProfileString(config.LicenseKey)
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
 			AccountIDs: []int{accountID},

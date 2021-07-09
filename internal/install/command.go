@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -59,15 +59,15 @@ var Command = &cobra.Command{
 }
 
 func assertProfileIsValid() error {
-	if configuration.GetActiveProfileAccountIDWithFlagOverride() == 0 {
+	if config.GetActiveProfileAccountIDWithFlagOverride() == 0 {
 		return fmt.Errorf("accountID is required")
 	}
 
-	if configuration.GetActiveProfileString(configuration.APIKey) == "" {
+	if config.GetActiveProfileString(config.APIKey) == "" {
 		return fmt.Errorf("API key is required")
 	}
 
-	if configuration.GetActiveProfileString(configuration.Region) == "" {
+	if config.GetActiveProfileString(config.Region) == "" {
 		return fmt.Errorf("region is required")
 	}
 

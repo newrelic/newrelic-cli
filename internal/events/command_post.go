@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -29,8 +29,8 @@ represents the custom event's type.
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := configuration.RequireActiveProfileAccountIDWithFlagOverride()
-		if configuration.GetActiveProfileString(configuration.InsightsInsertKey) == "" {
+		accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
+		if config.GetActiveProfileString(config.InsightsInsertKey) == "" {
 			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
 		}
 

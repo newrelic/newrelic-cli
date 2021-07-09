@@ -9,7 +9,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -37,7 +37,7 @@ The search command performs a query for an APM application name and/or account I
 	Example: "newrelic apm application search --name <appName>",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := configuration.GetActiveProfileAccountIDWithFlagOverride()
+		accountID := config.GetActiveProfileAccountIDWithFlagOverride()
 
 		if appGUID == "" && appName == "" && accountID == 0 {
 			utils.LogIfError(cmd.Help())

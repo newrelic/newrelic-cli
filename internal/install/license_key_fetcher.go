@@ -5,7 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 )
 
@@ -31,7 +31,7 @@ func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string,
 
 	vars := map[string]interface{}{}
 
-	accountID := configuration.GetActiveProfileString(configuration.AccountID)
+	accountID := config.GetActiveProfileString(config.AccountID)
 
 	query := `
 	query{

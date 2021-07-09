@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/configuration"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -29,8 +29,8 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	logLevel := configuration.GetLogLevelWithFlagOverride()
-	configuration.InitLogger(logLevel)
+	logLevel := config.GetLogLevelWithFlagOverride()
+	config.InitLogger(logLevel)
 
 	if client.NRClient == nil {
 		client.NRClient = createClient()
@@ -38,7 +38,7 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 }
 
 func createClient() *newrelic.NewRelic {
-	c, err := client.NewClient(configuration.GetActiveProfileName())
+	c, err := client.NewClient(config.GetActiveProfileName())
 	if err != nil {
 		// An error was encountered initializing the client.  This may not be a
 		// problem since many commands don't require the use of an initialized client
@@ -66,11 +66,11 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
-	Command.PersistentFlags().StringVar(&configuration.FlagProfileName, "profileName", configuration.DefaultProfileName, "the authentication profile to use")
+	Command.PersistentFlags().StringVar(&config.FlagProfileName, "profileName", config.DefaultProfileName, "the authentication profile to use")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
-	Command.PersistentFlags().BoolVar(&configuration.FlagDebug, "debug", false, "debug level logging")
-	Command.PersistentFlags().BoolVar(&configuration.FlagTrace, "trace", false, "trace level logging")
-	Command.PersistentFlags().IntVarP(&configuration.FlagAccountID, "accountId", "a", 0, "trace level logging")
+	Command.PersistentFlags().BoolVar(&config.FlagDebug, "debug", false, "debug level logging")
+	Command.PersistentFlags().BoolVar(&config.FlagTrace, "trace", false, "trace level logging")
+	Command.PersistentFlags().IntVarP(&config.FlagAccountID, "accountId", "a", 0, "trace level logging")
 }
 
 func initConfig() {
