@@ -66,7 +66,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	Command.PersistentFlags().StringVar(&outputFormat, "format", output.DefaultFormat.String(), "output text format ["+output.FormatOptions()+"]")
-	Command.PersistentFlags().StringVar(&config.FlagProfileName, "profileName", config.DefaultProfileName, "the authentication profile to use")
+	Command.PersistentFlags().StringVar(&config.FlagProfileName, "profile", "", "the authentication profile to use")
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
 	Command.PersistentFlags().BoolVar(&config.FlagDebug, "debug", false, "debug level logging")
 	Command.PersistentFlags().BoolVar(&config.FlagTrace, "trace", false, "trace level logging")

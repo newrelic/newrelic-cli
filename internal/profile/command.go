@@ -230,7 +230,6 @@ The list command prints out the available profiles' credentials.
 				v := config.GetProfileString(p, d.Key)
 				if !showKeys && d.Sensitive {
 					v = text.FgHiBlack.Sprint(utils.Obfuscate(v))
-				} else {
 				}
 
 				out[string(d.Key)] = v
@@ -277,12 +276,12 @@ func requireProfileName(cmd *cobra.Command, args []string) {
 func init() {
 	// Add
 	Command.AddCommand(cmdAdd)
-	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "US", "the US or EU region")
+	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
 	cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
 	cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
 	cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
-	cmdAdd.Flags().BoolVarP(&acceptDefaults, "acceptDefaults", "d", false, "suppress prompts and accept default values")
+	cmdAdd.Flags().BoolVarP(&acceptDefaults, "acceptDefaults", "y", false, "suppress prompts and accept default values")
 
 	// Default
 	Command.AddCommand(cmdDefault)

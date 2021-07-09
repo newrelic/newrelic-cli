@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
@@ -137,8 +138,6 @@ func initializeStore() {
 }
 
 func GetActiveProfileName() string {
-	//env var?
-
 	if FlagProfileName != "" {
 		return FlagProfileName
 	}
@@ -170,7 +169,7 @@ func GetActiveProfileValue(profileName string, key FieldKey) interface{} {
 func GetProfileValue(profileName string, key FieldKey) interface{} {
 	v, err := credentialsProvider.GetWithScope(profileName, key)
 	if err != nil {
-		log.Fatalf("could not load value %s from config: %s", key, err)
+		return nil
 	}
 
 	return v
@@ -240,7 +239,7 @@ func GetActiveProfileIntWithOverride(key FieldKey, override int) int {
 func GetProfileInt(profileName string, key FieldKey) int {
 	v, err := credentialsProvider.GetIntWithScope(profileName, key)
 	if err != nil {
-		log.Fatalf("could not load value %s from config: %s", key, err)
+		return 0
 	}
 
 	return int(v)
@@ -250,7 +249,7 @@ func GetProfileIntWithOverride(profileName string, key FieldKey, override int) i
 	o := int64(override)
 	v, err := credentialsProvider.GetIntWithScopeAndOverride(profileName, key, &o)
 	if err != nil {
-		log.Fatalf("could not load value %s from config: %s", key, err)
+		return 0
 	}
 
 	return int(v)
@@ -263,7 +262,7 @@ func GetConfigString(key FieldKey) string {
 func GetConfigStringWithOverride(key FieldKey, override string) string {
 	v, err := store.GetStringWithOverride(key, &override)
 	if err != nil {
-		log.Fatalf("could not load value %s from config: %s", key, err)
+		return ""
 	}
 
 	return v
@@ -272,7 +271,7 @@ func GetConfigStringWithOverride(key FieldKey, override string) string {
 func GetConfigTernary(key FieldKey) Ternary {
 	v, err := store.GetTernary(key)
 	if err != nil {
-		log.Fatalf("could not load value %s from config: %s", key, err)
+		return Ternary("")
 	}
 
 	return v
@@ -289,7 +288,7 @@ func GetDefaultProfileName() (string, error) {
 		return "", err
 	}
 
-	return string(data), nil
+	return strings.Trim(string(data), "\""), nil
 }
 
 func SetDefaultProfile(profileName string) error {
@@ -363,6 +362,10 @@ func SetConfigString(key FieldKey, value string) error {
 
 func SetConfigValue(key FieldKey, value interface{}) error {
 	return store.Set(key, value)
+}
+
+func DeleteConfigValue(key FieldKey, value interface{}) error {
+	return store.DeleteKey(key)
 }
 
 func SetActiveProfileString(key FieldKey, value string) error {

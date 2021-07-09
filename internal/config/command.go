@@ -36,7 +36,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 			log.Fatalf("%s is not a valid config field. valid values are %s", key, GetValidFieldKeys())
 		}
 
-		if err := SetConfigString(FieldKey(key), value); err != nil {
+		if err := DeleteConfigValue(FieldKey(key), value); err != nil {
 			log.Fatal(err)
 		}
 
