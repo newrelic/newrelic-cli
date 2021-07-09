@@ -188,10 +188,9 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	recipesForPlatform, err := repo.FindAll(*m)
 	if err != nil {
-		log.Debugf("should throw here %s", err)
+		log.Debugf("Unable to load any recipes, detail: %s", err)
 		return err
 	}
-	log.Tracef("recipes found for platform: %v\n", recipesForPlatform)
 
 	var recipesForInstall []types.OpenInstallationRecipe
 	if i.RecipesProvided() {
@@ -199,7 +198,8 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		log.Tracef("recipes supplied: %v\n", recipesForInstall)
+		log.Debugf("recipes provided:\n")
+		logRecipes(recipesForInstall)
 
 		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
 			return err
@@ -209,7 +209,8 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		var selected, unselected []types.OpenInstallationRecipe
 
 		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
-		log.Tracef("recipes after filtering: %v\n", recipesForInstall)
+		log.Debugf("recipes after filtering:\n")
+		logRecipes(recipesForInstall)
 
 		selected, unselected, err = i.promptUserSelect(recipesForInstall)
 		if err != nil {
@@ -533,6 +534,12 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 	}
 
 	return selectedRecipes, unselectedRecipes, nil
+}
+
+func logRecipes(recipes []types.OpenInstallationRecipe) {
+	for _, r := range recipes {
+		log.Debugf("%s", r.ToShortDisplayString())
+	}
 }
 
 func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
