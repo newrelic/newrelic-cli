@@ -1,3 +1,14 @@
+<a name="v0.29.5"></a>
+## [v0.29.5] - 2021-07-09
+### Bug Fixes
+- **install:** update downloadURL access list to remove aws s3 bucket region
+- **install:** ami_name is optional
+- **install:** skip snapcraft error when building
+- **install:** pin E2E test to go version
+- **install:** remove release notes from snapshop
+- **install:** fix mount for EU tests
+- **install:** fix E2E tests to work with ARM64
+
 <a name="v0.29.4"></a>
 ## [v0.29.4] - 2021-07-08
 <a name="v0.29.3"></a>
@@ -833,7 +844,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.5...HEAD
+[v0.29.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.4...v0.29.5
 [v0.29.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.3...v0.29.4
 [v0.29.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.2...v0.29.3
 [v0.29.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.1...v0.29.2
