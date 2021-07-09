@@ -79,6 +79,37 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 	return err
 }
 
+func (r *OpenInstallationRecipe) ToShortDisplayString() string {
+	output := r.Name
+	targets := ""
+	for _, target := range r.InstallTargets {
+		s := getInstallTargetAsString(target)
+		if targets != "" {
+			targets = fmt.Sprintf("%s-%s", targets, s)
+		} else {
+			targets = s
+		}
+	}
+	if targets != "" {
+		output = fmt.Sprintf("%s (%s)", output, targets)
+	}
+	return output
+}
+
+func getInstallTargetAsString(target OpenInstallationRecipeInstallTarget) string {
+	output := string(target.Os)
+	if target.Platform != "" {
+		output = fmt.Sprintf("%s/%s", output, target.Platform)
+	}
+	if target.PlatformVersion != "" {
+		output = fmt.Sprintf("%s/%s", output, target.PlatformVersion)
+	}
+	if target.KernelArch != "" {
+		output = fmt.Sprintf("%s/%s", output, target.KernelArch)
+	}
+	return strings.ToLower(output)
+}
+
 func expandObservabilityPacks(recipe map[string]interface{}) []OpenInstallationObservabilityPackFilter {
 	v, ok := recipe["observabilityPacks"]
 	if !ok {
