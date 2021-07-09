@@ -9,6 +9,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -61,16 +62,16 @@ var Command = &cobra.Command{
 }
 
 func assertProfileIsValid() error {
-	accountID := config.GetActiveProfileAccountIDWithFlagOverride()
+	accountID := configAPI.GetActiveProfileAccountIDWithFlagOverride()
 	if accountID == 0 {
 		return fmt.Errorf("accountID is required")
 	}
 
-	if config.GetActiveProfileString(config.APIKey) == "" {
+	if configAPI.GetActiveProfileString(config.APIKey) == "" {
 		return fmt.Errorf("API key is required")
 	}
 
-	if config.GetActiveProfileString(config.Region) == "" {
+	if configAPI.GetActiveProfileString(config.Region) == "" {
 		return fmt.Errorf("region is required")
 	}
 
@@ -78,7 +79,7 @@ func assertProfileIsValid() error {
 	if err != nil {
 		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
 	}
-	if licenseKey != config.GetActiveProfileString(config.LicenseKey) {
+	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
 	}
@@ -87,13 +88,13 @@ func assertProfileIsValid() error {
 	if err != nil {
 		return fmt.Errorf("could not fetch Insights insert key key for account %d: %s", accountID, err)
 	}
-	if insightsInsertKey != config.GetActiveProfileString(config.InsightsInsertKey) {
+	if insightsInsertKey != configAPI.GetActiveProfileString(config.InsightsInsertKey) {
 		os.Setenv("NEW_RELIC_INSIGHTS_INSERT_KEY", insightsInsertKey)
 		log.Debugf("using Insights insert key %s", utils.Obfuscate(insightsInsertKey))
 	}
 
 	// Reinitialize client, overriding fetched values
-	c, err := client.NewClient(config.GetActiveProfileName())
+	c, err := client.NewClient(configAPI.GetActiveProfileName())
 	if err != nil {
 		// An error was encountered initializing the client.  This may not be a
 		// problem since many commands don't require the use of an initialized client

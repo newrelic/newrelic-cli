@@ -12,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -67,9 +68,9 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 }
 
 func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
-	accountID := config.GetActiveProfileString(config.AccountID)
-	apiKey := config.GetActiveProfileString(config.APIKey)
-	region := config.GetActiveProfileString(config.Region)
+	accountID := configAPI.GetActiveProfileString(config.AccountID)
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
+	region := configAPI.GetActiveProfileString(config.Region)
 
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found")

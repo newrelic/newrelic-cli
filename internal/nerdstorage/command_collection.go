@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
@@ -51,7 +51,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
+			accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
 			resp, err = client.NRClient.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			resp, err = client.NRClient.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
@@ -99,7 +99,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
+			accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
 			_, err = client.NRClient.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			_, err = client.NRClient.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)

@@ -1,4 +1,6 @@
-package config
+// +build integration
+
+package api
 
 import (
 	"io/ioutil"
@@ -8,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 var (
@@ -36,9 +40,9 @@ func TestGetActiveProfileValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	Init(dir)
+	config.Init(dir)
 
-	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testCredentials), 0644)
+	err = ioutil.WriteFile(filepath.Join(dir, config.CredentialsFileName), []byte(testCredentials), 0644)
 	require.NoError(t, err)
 
 	os.Unsetenv("NEW_RELIC_API_KEY")
@@ -47,7 +51,7 @@ func TestGetActiveProfileValues(t *testing.T) {
 	os.Unsetenv("NEW_RELIC_REGION")
 	os.Unsetenv("NEW_RELIC_ACCOUNT_ID")
 
-	initializeCredentialsProvider()
+	config.InitializeCredentialsStore()
 
 	require.Equal(t, "testApiKey", GetActiveProfileString("apiKey"))
 	require.Equal(t, "testInsightsInsertKey", GetActiveProfileString("insightsInsertKey"))
@@ -61,9 +65,9 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	Init(dir)
+	config.Init(dir)
 
-	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testCredentials), 0644)
+	err = ioutil.WriteFile(filepath.Join(dir, config.CredentialsFileName), []byte(testCredentials), 0644)
 	require.NoError(t, err)
 
 	os.Setenv("NEW_RELIC_API_KEY", "apiKeyOverride")
@@ -72,7 +76,7 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 	os.Setenv("NEW_RELIC_REGION", "regionOverride")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "67890")
 
-	initializeCredentialsProvider()
+	config.InitializeCredentialsStore()
 
 	require.Equal(t, "apiKeyOverride", GetActiveProfileString("apiKey"))
 	require.Equal(t, "insightsInsertKeyOverride", GetActiveProfileString("insightsInsertKey"))
@@ -86,9 +90,9 @@ func TestGetConfigValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	Init(dir)
+	config.Init(dir)
 
-	err = ioutil.WriteFile(filepath.Join(dir, configFileName), []byte(testConfig), 0644)
+	err = ioutil.WriteFile(filepath.Join(dir, config.ConfigFileName), []byte(testConfig), 0644)
 	require.NoError(t, err)
 
 	os.Unsetenv("NEW_RELIC_CLI_LOG_LEVEL")
@@ -96,12 +100,12 @@ func TestGetConfigValues(t *testing.T) {
 	os.Unsetenv("NEW_RELIC_CLI_PRERELEASEFEATURES")
 	os.Unsetenv("NEW_RELIC_CLI_SENDUSAGEDATA")
 
-	initializeStore()
+	config.InitializeConfigStore()
 
 	require.Equal(t, "debug", GetConfigString("loglevel"))
 	require.Equal(t, ".newrelic/plugins", GetConfigString("plugindir"))
-	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("prereleasefeatures"))
-	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("sendusagedata"))
+	require.Equal(t, config.TernaryValues.Unknown, GetConfigTernary("prereleasefeatures"))
+	require.Equal(t, config.TernaryValues.Unknown, GetConfigTernary("sendusagedata"))
 }
 
 func TestGetConfigValues_EnvVarOverride(t *testing.T) {
@@ -109,9 +113,9 @@ func TestGetConfigValues_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	Init(dir)
+	config.Init(dir)
 
-	err = ioutil.WriteFile(filepath.Join(dir, credentialsFileName), []byte(testConfig), 0644)
+	err = ioutil.WriteFile(filepath.Join(dir, config.CredentialsFileName), []byte(testConfig), 0644)
 	require.NoError(t, err)
 
 	os.Setenv("NEW_RELIC_CLI_LOG_LEVEL", "trace")
@@ -119,12 +123,12 @@ func TestGetConfigValues_EnvVarOverride(t *testing.T) {
 	os.Setenv("NEW_RELIC_CLI_PRERELEASEFEATURES", "ALLOW")
 	os.Setenv("NEW_RELIC_CLI_SENDUSAGEDATA", "ALLOW")
 
-	initializeStore()
+	config.InitializeConfigStore()
 
 	require.Equal(t, "trace", GetConfigString("loglevel"))
 	require.Equal(t, "/tmp", GetConfigString("plugindir"))
-	require.Equal(t, TernaryValues.Allow, GetConfigTernary("prereleasefeatures"))
-	require.Equal(t, TernaryValues.Allow, GetConfigTernary("sendusagedata"))
+	require.Equal(t, config.TernaryValues.Allow, GetConfigTernary("prereleasefeatures"))
+	require.Equal(t, config.TernaryValues.Allow, GetConfigTernary("sendusagedata"))
 }
 
 func TestGetConfigValues_DefaultValues(t *testing.T) {
@@ -132,19 +136,19 @@ func TestGetConfigValues_DefaultValues(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	Init(dir)
+	config.Init(dir)
 
 	os.Unsetenv("NEW_RELIC_CLI_LOG_LEVEL")
 	os.Unsetenv("NEW_RELIC_CLI_PLUGIN_DIR")
 	os.Unsetenv("NEW_RELIC_CLI_PRERELEASEFEATURES")
 	os.Unsetenv("NEW_RELIC_CLI_SENDUSAGEDATA")
 
-	initializeStore()
+	config.InitializeConfigStore()
 
 	require.Equal(t, "info", GetConfigString("loglevel"))
-	require.Equal(t, filepath.Join(dir, pluginDir), GetConfigString("plugindir"))
-	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("prereleasefeatures"))
-	require.Equal(t, TernaryValues.Unknown, GetConfigTernary("sendusagedata"))
+	require.Equal(t, filepath.Join(dir, config.DefaultPluginDir), GetConfigString("plugindir"))
+	require.Equal(t, config.TernaryValues.Unknown, GetConfigTernary("prereleasefeatures"))
+	require.Equal(t, config.TernaryValues.Unknown, GetConfigTernary("sendusagedata"))
 }
 
 func TestRemoveProfile(t *testing.T) {
@@ -152,9 +156,9 @@ func TestRemoveProfile(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	Init(dir)
+	config.Init(dir)
 
-	filename := filepath.Join(dir, credentialsFileName)
+	filename := filepath.Join(dir, config.CredentialsFileName)
 	err = ioutil.WriteFile(filename, []byte(testCredentials), 0644)
 	require.NoError(t, err)
 
@@ -164,11 +168,9 @@ func TestRemoveProfile(t *testing.T) {
 	os.Setenv("NEW_RELIC_REGION", "regionOverride")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "67890")
 
-	initializeCredentialsProvider()
+	config.InitializeCredentialsStore()
 	err = RemoveProfile("default")
 	require.NoError(t, err)
-
-	require.Regexp(t, regexp.MustCompile(`{\s*}`), string(credentialsProvider.cfg))
 
 	data, err := ioutil.ReadFile(filename)
 	require.NoError(t, err)

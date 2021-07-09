@@ -259,7 +259,7 @@ func (p *Store) GetWithScope(scope string, key FieldKey) (interface{}, error) {
 }
 
 func (p *Store) GetWithScopeAndOverride(scope string, key FieldKey, override interface{}) (interface{}, error) {
-	d := p.getFieldDefinition(key)
+	d := p.GetFieldDefinition(key)
 
 	if d != nil {
 		if e, ok := os.LookupEnv(d.EnvVar); ok {
@@ -293,7 +293,7 @@ func (p *Store) Set(key FieldKey, value interface{}) error {
 }
 
 func (p *Store) SetWithScope(scope string, key FieldKey, value interface{}) error {
-	v := p.getFieldDefinition(key)
+	v := p.GetFieldDefinition(key)
 
 	if v != nil {
 		if v.SetValidationFunc != nil {
@@ -450,7 +450,7 @@ func escapeWildcards(key string) string {
 	return re.ReplaceAllString(key, "\\$1")
 }
 
-func (p *Store) getFieldDefinition(key FieldKey) *FieldDefinition {
+func (p *Store) GetFieldDefinition(key FieldKey) *FieldDefinition {
 	for _, v := range p.fields {
 		if !v.CaseSensitive && strings.EqualFold(string(key), string(v.Key)) {
 			return &v

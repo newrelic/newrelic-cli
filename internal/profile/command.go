@@ -11,6 +11,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/accounts"
@@ -61,13 +62,13 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 		addStringValueToProfile(config.FlagProfileName, insightsInsertKey, config.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey(), nil)
 		addStringValueToProfile(config.FlagProfileName, licenseKey, config.LicenseKey, "License Key", fetchLicenseKey(), nil)
 
-		profile, err := config.GetDefaultProfileName()
+		profile, err := configAPI.GetDefaultProfileName()
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		if profile == "" {
-			if err := config.SetDefaultProfile(config.FlagProfileName); err != nil {
+			if err := configAPI.SetDefaultProfile(config.FlagProfileName); err != nil {
 				log.Fatal(err)
 			}
 		}
@@ -78,7 +79,7 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 
 func addStringValueToProfile(profileName string, val string, key config.FieldKey, label string, defaultFunc func() (string, error), selectValues []string) {
 	if val == "" {
-		defaultValue := config.GetProfileString(profileName, key)
+		defaultValue := configAPI.GetProfileString(profileName, key)
 
 		if defaultValue == "" && defaultFunc != nil {
 			d, err := defaultFunc()
@@ -112,7 +113,7 @@ func addStringValueToProfile(profileName string, val string, key config.FieldKey
 		}
 	}
 
-	if err := config.SetProfileString(profileName, key, val); err != nil {
+	if err := configAPI.SetProfileString(profileName, key, val); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -123,7 +124,7 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 			Message: fmt.Sprintf("%s:", label),
 		}
 
-		defaultValue := config.GetProfileInt(profileName, key)
+		defaultValue := configAPI.GetProfileInt(profileName, key)
 
 		if defaultValue == 0 && defaultFunc != nil {
 			d, err := defaultFunc()
@@ -161,7 +162,7 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 		}
 	}
 
-	if err := config.SetProfileInt(profileName, key, val); err != nil {
+	if err := configAPI.SetProfileInt(profileName, key, val); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -198,7 +199,7 @@ The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic profile default --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := config.SetDefaultProfile(config.FlagProfileName)
+		err := configAPI.SetDefaultProfile(config.FlagProfileName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -217,17 +218,17 @@ The list command prints out the available profiles' credentials.
 	Example: "newrelic profile list",
 	Run: func(cmd *cobra.Command, args []string) {
 		list := []map[string]interface{}{}
-		for _, p := range config.GetProfileNames() {
+		for _, p := range configAPI.GetProfileNames() {
 			out := map[string]interface{}{}
 
 			name := p
-			if p == config.GetActiveProfileName() {
+			if p == configAPI.GetActiveProfileName() {
 				name += text.FgHiBlack.Sprint(defaultProfileString)
 			}
 			out["Name"] = name
 
-			config.VisitAllProfileFields(p, func(d config.FieldDefinition) {
-				v := config.GetProfileString(p, d.Key)
+			configAPI.VisitAllProfileFields(p, func(d config.FieldDefinition) {
+				v := configAPI.GetProfileString(p, d.Key)
 				if !showKeys && d.Sensitive {
 					v = text.FgHiBlack.Sprint(utils.Obfuscate(v))
 				}
@@ -254,7 +255,7 @@ The delete command removes the profile specified by name.
 `,
 	Example: "newrelic profile delete --name <profileName>",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := config.RemoveProfile(config.FlagProfileName)
+		err := configAPI.RemoveProfile(config.FlagProfileName)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -295,14 +296,14 @@ func init() {
 }
 
 func fetchLicenseKey() func() (string, error) {
-	accountID := config.GetProfileInt(config.FlagProfileName, config.AccountID)
+	accountID := configAPI.GetProfileInt(config.FlagProfileName, config.AccountID)
 	return func() (string, error) {
 		return client.FetchLicenseKey(accountID, config.FlagProfileName)
 	}
 }
 
 func fetchInsightsInsertKey() func() (string, error) {
-	accountID := config.GetProfileInt(config.FlagProfileName, config.AccountID)
+	accountID := configAPI.GetProfileInt(config.FlagProfileName, config.AccountID)
 	return func() (string, error) {
 		return client.FetchInsightsInsertKey(accountID, config.FlagProfileName)
 	}

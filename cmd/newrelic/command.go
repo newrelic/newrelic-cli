@@ -8,6 +8,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -29,7 +30,7 @@ var Command = &cobra.Command{
 }
 
 func initializeCLI(cmd *cobra.Command, args []string) {
-	logLevel := config.GetLogLevelWithFlagOverride()
+	logLevel := configAPI.GetLogLevelWithFlagOverride()
 	config.InitLogger(logLevel)
 
 	if client.NRClient == nil {
@@ -38,7 +39,7 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 }
 
 func createClient() *newrelic.NewRelic {
-	c, err := client.NewClient(config.GetActiveProfileName())
+	c, err := client.NewClient(configAPI.GetActiveProfileName())
 	if err != nil {
 		// An error was encountered initializing the client.  This may not be a
 		// problem since many commands don't require the use of an initialized client

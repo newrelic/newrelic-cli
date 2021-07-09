@@ -12,6 +12,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	configCmd "github.com/newrelic/newrelic-cli/internal/config/command"
 	"github.com/newrelic/newrelic-cli/internal/decode"
 	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/edge"
@@ -37,7 +39,7 @@ func init() {
 	Command.AddCommand(agent.Command)
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(apm.Command)
-	Command.AddCommand(config.Command)
+	Command.AddCommand(configCmd.Command)
 	Command.AddCommand(decode.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
@@ -68,8 +70,7 @@ func main() {
 // CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
 // flag is active.
 func CheckPrereleaseMode(c *cobra.Command) {
-	p := config.GetConfigTernary(config.PreReleaseFeatures)
-	if !p.Bool() {
+	if configAPI.GetConfigTernary(config.PreReleaseFeatures).Bool() {
 		return
 	}
 

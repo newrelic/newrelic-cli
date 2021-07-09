@@ -1,6 +1,6 @@
 // +build integration
 
-package config
+package api
 
 import (
 	"io/ioutil"
@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 func TestConfigSetLogLevel(t *testing.T) {
@@ -15,7 +17,7 @@ func TestConfigSetLogLevel(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	Init(f)
+	config.Init(f)
 
 	// Set the valid log levels
 	for _, l := range []string{
@@ -28,7 +30,7 @@ func TestConfigSetLogLevel(t *testing.T) {
 		err = SetConfigString("logLevel", l)
 		assert.NoError(t, err)
 
-		actual := GetConfigString(LogLevel)
+		actual := GetConfigString(config.LogLevel)
 		assert.Equal(t, l, actual)
 	}
 
@@ -41,17 +43,17 @@ func TestConfigSetSendUsageData(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	Init(f)
+	config.Init(f)
 
 	// Set the valid sendUsageData values
-	for _, l := range []Ternary{
-		TernaryValues.Allow,
-		TernaryValues.Disallow,
-		TernaryValues.Unknown,
+	for _, l := range []config.Ternary{
+		config.TernaryValues.Allow,
+		config.TernaryValues.Disallow,
+		config.TernaryValues.Unknown,
 	} {
 		err = SetConfigValue("sendUsageData", l)
 		assert.NoError(t, err)
-		assert.Equal(t, GetConfigTernary(SendUsageData), l)
+		assert.Equal(t, GetConfigTernary(config.SendUsageData), l)
 	}
 
 	err = SetConfigValue("sendUsageData", "INVALID_VALUE")
@@ -63,17 +65,17 @@ func TestConfigSetPreReleaseFeatures(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	Init(f)
+	config.Init(f)
 
 	// Set the valid pre-release feature values
-	for _, l := range []Ternary{
-		TernaryValues.Allow,
-		TernaryValues.Disallow,
-		TernaryValues.Unknown,
+	for _, l := range []config.Ternary{
+		config.TernaryValues.Allow,
+		config.TernaryValues.Disallow,
+		config.TernaryValues.Unknown,
 	} {
 		err = SetConfigValue("preReleaseFeatures", l)
 		assert.NoError(t, err)
-		assert.Equal(t, GetConfigTernary(PreReleaseFeatures), l)
+		assert.Equal(t, GetConfigTernary(config.PreReleaseFeatures), l)
 	}
 
 	err = SetConfigValue("preReleaseFeatures", "INVALID_VALUE")
@@ -85,9 +87,9 @@ func TestConfigSetPluginDir(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(f)
 
-	Init(f)
+	config.Init(f)
 
-	err = SetConfigString(PluginDir, "test")
+	err = SetConfigString(config.PluginDir, "test")
 	assert.NoError(t, err)
-	assert.Equal(t, "test", GetConfigString(PluginDir))
+	assert.Equal(t, "test", GetConfigString(config.PluginDir))
 }

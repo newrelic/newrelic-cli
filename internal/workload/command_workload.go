@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -49,7 +49,7 @@ The list command retrieves the workloads for the given account ID.
 	Example: `newrelic workload list --accountId 12345678`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
+		accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
 		builder := entities.EntitySearchQueryBuilder{
 			Type: entities.EntitySearchQueryBuilderTypeTypes.WORKLOAD,
 			Tags: []entities.EntitySearchQueryBuilderTag{
@@ -81,7 +81,7 @@ you also have access to.
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
+		accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
 
 		createInput := workloads.WorkloadCreateInput{
 			Name: name,
@@ -171,7 +171,7 @@ compose the new name.
 	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountId 12345678 --name 'New Workload'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := config.RequireActiveProfileAccountIDWithFlagOverride()
+		accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
 
 		duplicateInput := workloads.WorkloadDuplicateInput{
 			Name: name,
