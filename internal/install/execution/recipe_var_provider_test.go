@@ -205,11 +205,11 @@ func TestRecipeVarProvider_AllowInfraStaging(t *testing.T) {
 	}
 
 	// Test for NEW_RELIC_DOWNLOAD_URL
-	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-staging.s3-website-us-east-1.amazonaws.com/")
+	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-staging.s3.amazonaws.com/")
 
 	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
-	require.Contains(t, "https://nr-downloads-ohai-staging.s3-website-us-east-1.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
+	require.Contains(t, "https://nr-downloads-ohai-staging.s3.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_AllowInfraTesting(t *testing.T) {
@@ -269,11 +269,11 @@ func TestRecipeVarProvider_AllowInfraTesting(t *testing.T) {
 	}
 
 	// Test for NEW_RELIC_DOWNLOAD_URL
-	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-testing.s3-website-us-east-1.amazonaws.com/")
+	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-testing.s3.amazonaws.com/")
 
 	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
-	require.Contains(t, "https://nr-downloads-ohai-testing.s3-website-us-east-1.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
+	require.Contains(t, "https://nr-downloads-ohai-testing.s3.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_DisallowUnknownInfraTesting(t *testing.T) {
@@ -333,7 +333,7 @@ func TestRecipeVarProvider_DisallowUnknownInfraTesting(t *testing.T) {
 	}
 
 	// Test for NEW_RELIC_DOWNLOAD_URL
-	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-unknown.s3-website-us-east-1.amazonaws.com/")
+	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-unknown.s3.amazonaws.com/")
 
 	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
