@@ -1,7 +1,6 @@
 package profile
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 
@@ -12,18 +11,14 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/accounts"
-	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
 const (
 	DefaultProfileName   = "default"
 	defaultProfileString = " (default)"
-	hiddenKeyString      = "<hidden>"
 )
 
 var (
@@ -63,8 +58,8 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 		addStringValueToProfile(config.FlagProfileName, apiKey, config.APIKey, "User API Key", nil, nil)
 		addStringValueToProfile(config.FlagProfileName, flagRegion, config.Region, "Region", nil, []string{"US", "EU"})
 		addIntValueToProfile(config.FlagProfileName, accountID, config.AccountID, "Account ID", fetchAccountIDs)
-		addStringValueToProfile(config.FlagProfileName, insightsInsertKey, config.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey, nil)
-		addStringValueToProfile(config.FlagProfileName, licenseKey, config.LicenseKey, "License Key", fetchLicenseKey, nil)
+		addStringValueToProfile(config.FlagProfileName, insightsInsertKey, config.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey(), nil)
+		addStringValueToProfile(config.FlagProfileName, licenseKey, config.LicenseKey, "License Key", fetchLicenseKey(), nil)
 
 		profile, err := config.GetDefaultProfileName()
 		if err != nil {
@@ -171,83 +166,6 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 	}
 }
 
-func fetchLicenseKey() (string, error) {
-	accountID = config.GetProfileInt(config.FlagProfileName, config.AccountID)
-	client, err := client.NewClient(config.FlagProfileName)
-	if err != nil {
-		return "", err
-	}
-
-	var key string
-	retryFunc := func() error {
-		key, err = execLicenseKeyRequest(utils.SignalCtx, client, accountID)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	r := utils.NewRetry(3, 1, retryFunc)
-	if err := r.ExecWithRetries(utils.SignalCtx); err != nil {
-		return "", err
-	}
-
-	return key, nil
-}
-
-func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
-	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
-
-	variables := map[string]interface{}{
-		"accountId": accountID,
-	}
-
-	resp, err := client.NerdGraph.QueryWithContext(ctx, query, variables)
-	if err != nil {
-		return "", err
-	}
-
-	queryResp := resp.(nerdgraph.QueryResponse)
-	actor := queryResp.Actor.(map[string]interface{})
-	account := actor["account"].(map[string]interface{})
-
-	if l, ok := account["licenseKey"]; ok {
-		if l != nil {
-			return l.(string), nil
-		}
-	}
-
-	return "", types.ErrorFetchingLicenseKey
-}
-
-func fetchInsightsInsertKey() (string, error) {
-	accountID = config.GetProfileInt(config.FlagProfileName, config.AccountID)
-	client, err := client.NewClient(config.FlagProfileName)
-	if err != nil {
-		return "", err
-	}
-
-	// Check for an existing key first
-	keys, err := client.APIAccess.ListInsightsInsertKeys(accountID)
-	if err != nil {
-		return "", types.ErrorFetchingInsightsInsertKey
-	}
-
-	// We already have a key, return it
-	if len(keys) > 0 {
-		return keys[0].Key, nil
-	}
-
-	// Create a new key if one doesn't exist
-	key, err := client.APIAccess.CreateInsightsInsertKey(accountID)
-	if err != nil {
-		return "", types.ErrorFetchingInsightsInsertKey
-	}
-
-	return key.Key, nil
-}
-
 // fetchAccountID will try and retrieve the available account IDs for the given user.
 func fetchAccountIDs() (ids []int, err error) {
 	client, err := client.NewClient(config.FlagProfileName)
@@ -309,11 +227,10 @@ The list command prints out the available profiles' credentials.
 			out["Name"] = name
 
 			config.VisitAllProfileFields(p, func(d config.FieldDefinition) {
-				var v string
+				v := config.GetProfileString(p, d.Key)
 				if !showKeys && d.Sensitive {
-					v = text.FgHiBlack.Sprint(hiddenKeyString)
+					v = text.FgHiBlack.Sprint(utils.Obfuscate(v))
 				} else {
-					v = config.GetProfileString(p, d.Key)
 				}
 
 				out[string(d.Key)] = v
@@ -376,4 +293,18 @@ func init() {
 
 	// Remove
 	Command.AddCommand(cmdDelete)
+}
+
+func fetchLicenseKey() func() (string, error) {
+	accountID := config.GetProfileInt(config.FlagProfileName, config.AccountID)
+	return func() (string, error) {
+		return client.FetchLicenseKey(accountID, config.FlagProfileName)
+	}
+}
+
+func fetchInsightsInsertKey() func() (string, error) {
+	accountID := config.GetProfileInt(config.FlagProfileName, config.AccountID)
+	return func() (string, error) {
+		return client.FetchInsightsInsertKey(accountID, config.FlagProfileName)
+	}
 }

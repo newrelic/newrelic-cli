@@ -2,6 +2,7 @@ package install
 
 import (
 	"fmt"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -9,6 +10,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -59,7 +61,8 @@ var Command = &cobra.Command{
 }
 
 func assertProfileIsValid() error {
-	if config.GetActiveProfileAccountIDWithFlagOverride() == 0 {
+	accountID := config.GetActiveProfileAccountIDWithFlagOverride()
+	if accountID == 0 {
 		return fmt.Errorf("accountID is required")
 	}
 
@@ -70,6 +73,34 @@ func assertProfileIsValid() error {
 	if config.GetActiveProfileString(config.Region) == "" {
 		return fmt.Errorf("region is required")
 	}
+
+	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName)
+	if err != nil {
+		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
+	}
+	if licenseKey != config.GetActiveProfileString(config.LicenseKey) {
+		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
+		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
+	}
+
+	insightsInsertKey, err := client.FetchInsightsInsertKey(accountID, config.FlagProfileName)
+	if err != nil {
+		return fmt.Errorf("could not fetch Insights insert key key for account %d: %s", accountID, err)
+	}
+	if insightsInsertKey != config.GetActiveProfileString(config.InsightsInsertKey) {
+		os.Setenv("NEW_RELIC_INSIGHTS_INSERT_KEY", insightsInsertKey)
+		log.Debugf("using Insights insert key %s", utils.Obfuscate(insightsInsertKey))
+	}
+
+	// Reinitialize client, overriding fetched values
+	c, err := client.NewClient(config.GetActiveProfileName())
+	if err != nil {
+		// An error was encountered initializing the client.  This may not be a
+		// problem since many commands don't require the use of an initialized client
+		log.Debugf("error initializing client: %s", err)
+	}
+
+	client.NRClient = c
 
 	return nil
 }
