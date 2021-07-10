@@ -57,7 +57,7 @@ func TestGetActiveProfileValues(t *testing.T) {
 	require.Equal(t, "testInsightsInsertKey", GetActiveProfileString("insightsInsertKey"))
 	require.Equal(t, "testRegion", GetActiveProfileString("region"))
 	require.Equal(t, "testLicenseKey", GetActiveProfileString("licenseKey"))
-	require.Equal(t, 12345, GetActiveProfileInt("accountID"))
+	require.Equal(t, 12345, GetActiveProfileAccountID())
 }
 
 func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
@@ -82,7 +82,7 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 	require.Equal(t, "insightsInsertKeyOverride", GetActiveProfileString("insightsInsertKey"))
 	require.Equal(t, "regionOverride", GetActiveProfileString("region"))
 	require.Equal(t, "licenseKeyOverride", GetActiveProfileString("licenseKey"))
-	require.Equal(t, 67890, GetActiveProfileInt("accountID"))
+	require.Equal(t, 67890, GetActiveProfileAccountID())
 }
 
 func TestGetConfigValues(t *testing.T) {

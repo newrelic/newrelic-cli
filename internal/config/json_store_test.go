@@ -27,17 +27,17 @@ var (
 )
 
 func TestStore_Ctor_NilOption(t *testing.T) {
-	_, err := NewStore(nil)
+	_, err := NewJSONStore(nil)
 	require.NoError(t, err)
 }
 
 func TestStore_Ctor_OptionError(t *testing.T) {
-	_, err := NewStore(func(cp *Store) error { return errors.New("") })
+	_, err := NewJSONStore(func(*JSONStore) error { return errors.New("") })
 	require.Error(t, err)
 }
 
 func TestStore_Ctor_CaseInsensitiveKeyCollision(t *testing.T) {
-	_, err := NewStore(
+	_, err := NewJSONStore(
 		ConfigureFields(
 			FieldDefinition{Key: "asdf"},
 			FieldDefinition{Key: "ASDF"},
@@ -47,7 +47,7 @@ func TestStore_Ctor_CaseInsensitiveKeyCollision(t *testing.T) {
 }
 
 func TestStore_Ctor_CaseSensitiveKeyOverlap(t *testing.T) {
-	_, err := NewStore(
+	_, err := NewJSONStore(
 		ConfigureFields(
 			FieldDefinition{
 				Key:           "asdf",
@@ -66,7 +66,7 @@ func TestStore_GetString(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(f.Name()),
 		UseGlobalScope("*"),
 	)
@@ -85,7 +85,7 @@ func TestStore_GetString_CaseSensitive(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:           "testString",
 			CaseSensitive: true,
@@ -112,7 +112,7 @@ func TestStore_GetString_CaseInsensitive(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:           "caseInsensitiveTest",
 			CaseSensitive: false,
@@ -135,7 +135,7 @@ func TestStore_GetString_NotDefined(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(f.Name()),
 		UseGlobalScope("*"),
 	)
@@ -151,7 +151,7 @@ func TestStore_GetString_DefaultValue(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:     "prereleasefeatures",
 			Default: "NOT_ASKED",
@@ -171,7 +171,7 @@ func TestStore_GetString_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:     "prereleasefeatures",
 			Default: "NOT_ASKED",
@@ -198,7 +198,7 @@ func TestStore_GetInt(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(f.Name()),
 		UseGlobalScope("*"),
 	)
@@ -217,7 +217,7 @@ func TestStore_GetInt_NotDefined(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(f.Name()),
 		UseGlobalScope("*"),
 	)
@@ -233,7 +233,7 @@ func TestStore_GetInt_DefaultValue(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:     "testInt",
 			Default: 42,
@@ -253,7 +253,7 @@ func TestStore_GetInt_EnvVarOverride(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:    "testInt",
 			EnvVar: "TEST_INT",
@@ -276,7 +276,7 @@ func TestStore_GetInt_EnvVarOverride_WrongType(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:    "testInt",
 			EnvVar: "TEST_INT",
@@ -301,7 +301,7 @@ func TestStore_Set(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(f.Name()),
 		UseGlobalScope("*"),
 	)
@@ -323,7 +323,7 @@ func TestStore_SetTernary(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(f.Name()),
 		UseGlobalScope("*"),
 	)
@@ -345,7 +345,7 @@ func TestStore_SetTernary_Invalid(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:               "testTernary",
 			SetValidationFunc: IsTernary(),
@@ -374,7 +374,7 @@ func TestStore_Set_CaseSensitive(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		EnforceStrictFields(),
 		ConfigureFields(FieldDefinition{
 			Key:           "loglevel",
@@ -400,7 +400,7 @@ func TestStore_Set_CaseInsensitive(t *testing.T) {
 	_, err = f.WriteString(testCfg)
 	require.NoError(t, err)
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		EnforceStrictFields(),
 		ConfigureFields(FieldDefinition{
 			Key:           "loglevel",
@@ -423,7 +423,7 @@ func TestStore_Set_CaseInsensitive(t *testing.T) {
 }
 
 func TestStore_Set_FileDoesNotExist(t *testing.T) {
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		UseGlobalScope("*"),
 	)
 	require.NoError(t, err)
@@ -441,7 +441,7 @@ func TestStore_Set_ExplicitValues_CaseInsensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		EnforceStrictFields(),
 		ConfigureFields(FieldDefinition{
 			Key: "allowed",
@@ -463,7 +463,7 @@ func TestStore_Set_ExplicitValues_CaseSensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		EnforceStrictFields(),
 		ConfigureFields(FieldDefinition{
 			Key:           "allowed",
@@ -489,7 +489,7 @@ func TestStore_Set_ValidationFunc_IntGreaterThan(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:               "loglevel",
 			SetValidationFunc: IntGreaterThan(0),
@@ -511,7 +511,7 @@ func TestStore_Set_ValidationFunc_IntGreaterThan_WrongType(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:               "loglevel",
 			SetValidationFunc: IntGreaterThan(0),
@@ -533,7 +533,7 @@ func TestStore_Set_ValidationFunc_StringInStrings_CaseSensitive(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:               "loglevel",
 			SetValidationFunc: StringInStrings(true, "valid", "alsoValid"),
@@ -555,7 +555,7 @@ func TestStore_Set_ValidationFunc_StringInStrings_CaseInsensitive(t *testing.T) 
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:               "loglevel",
 			SetValidationFunc: StringInStrings(false, "valid", "alsoValid"),
@@ -577,7 +577,7 @@ func TestStore_Set_ValidationFunc_StringInStrings_WrongType(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		ConfigureFields(FieldDefinition{
 			Key:               "testInt",
 			SetValidationFunc: StringInStrings(false, "valid", "alsoValid"),

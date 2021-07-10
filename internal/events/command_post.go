@@ -30,7 +30,7 @@ represents the custom event's type.
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
+		accountID := configAPI.RequireActiveProfileAccountID()
 		if configAPI.GetActiveProfileString(config.InsightsInsertKey) == "" {
 			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
 		}

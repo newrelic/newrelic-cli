@@ -30,8 +30,8 @@ const (
 )
 
 var (
-	ConfigStore         *Store
-	CredentialsProvider *Store
+	ConfigStore         *JSONStore
+	CredentialsProvider *JSONStore
 	BasePath            string = configBasePath()
 
 	FlagProfileName string
@@ -51,7 +51,7 @@ func Init(basePath string) {
 }
 
 func InitializeCredentialsStore() {
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(filepath.Join(BasePath, CredentialsFileName)),
 		EnforceStrictFields(),
 		ConfigureFields(
@@ -96,7 +96,7 @@ func InitializeCredentialsStore() {
 }
 
 func InitializeConfigStore() {
-	p, err := NewStore(
+	p, err := NewJSONStore(
 		PersistToFile(filepath.Join(BasePath, ConfigFileName)),
 		UseGlobalScope("*"),
 		EnforceStrictFields(),

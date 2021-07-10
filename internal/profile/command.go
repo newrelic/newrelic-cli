@@ -113,7 +113,7 @@ func addStringValueToProfile(profileName string, val string, key config.FieldKey
 		}
 	}
 
-	if err := configAPI.SetProfileString(profileName, key, val); err != nil {
+	if err := configAPI.SetProfileValue(profileName, key, val); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -162,7 +162,7 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 		}
 	}
 
-	if err := configAPI.SetProfileInt(profileName, key, val); err != nil {
+	if err := configAPI.SetProfileValue(profileName, key, val); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -227,7 +227,7 @@ The list command prints out the available profiles' credentials.
 			}
 			out["Name"] = name
 
-			configAPI.VisitAllProfileFields(p, func(d config.FieldDefinition) {
+			configAPI.ForEachProfileFieldDefinition(p, func(d config.FieldDefinition) {
 				v := configAPI.GetProfileString(p, d.Key)
 				if !showKeys && d.Sensitive {
 					v = text.FgHiBlack.Sprint(utils.Obfuscate(v))

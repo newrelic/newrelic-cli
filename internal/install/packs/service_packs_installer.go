@@ -69,7 +69,7 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 }
 
 func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Context, d types.OpenInstallationObservabilityPackDashboard) (*dashboards.DashboardCreateResult, error) {
-	accountID := configAPI.GetActiveProfileAccountIDWithFlagOverride()
+	accountID := configAPI.GetActiveProfileAccountID()
 
 	body, err := getJSONfromURL(d.URL)
 	if err != nil {

@@ -35,7 +35,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 	Example: "newrelic config set --key <key> --value <value>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !isValidFieldKey() {
-			log.Fatalf("%s is not a valid config field. valid values are %s", key, configAPI.GetValidFieldKeys())
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, configAPI.GetValidConfigFieldKeys())
 		}
 
 		if err := configAPI.DeleteConfigValue(config.FieldKey(key), value); err != nil {
@@ -47,7 +47,7 @@ The set command sets a persistent configuration value for the New Relic CLI.
 }
 
 func isValidFieldKey() (valid bool) {
-	configAPI.VisitAllConfigFields(func(fd config.FieldDefinition) {
+	configAPI.ForEachConfigFieldDefinition(func(fd config.FieldDefinition) {
 		if strings.EqualFold(string(fd.Key), key) {
 			valid = true
 		}
@@ -66,7 +66,7 @@ The get command gets a persistent configuration value for the New Relic CLI.
 	Example: "newrelic config get --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !isValidFieldKey() {
-			log.Fatalf("%s is not a valid config field. valid values are %s", key, configAPI.GetValidFieldKeys())
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, configAPI.GetValidConfigFieldKeys())
 		}
 
 		output.Text(configAPI.GetConfigString(config.FieldKey(key)))
@@ -84,7 +84,7 @@ The list command lists all persistent configuration values for the New Relic CLI
 	Run: func(cmd *cobra.Command, args []string) {
 		m := map[string]interface{}{}
 
-		configAPI.VisitAllConfigFields(func(fd config.FieldDefinition) {
+		configAPI.ForEachConfigFieldDefinition(func(fd config.FieldDefinition) {
 			m[string(fd.Key)] = configAPI.GetConfigString(fd.Key)
 		})
 
@@ -105,7 +105,7 @@ The reset command resets a configuration value to its default.
 	Example: "newrelic config reset --key <key>",
 	Run: func(cmd *cobra.Command, args []string) {
 		if !isValidFieldKey() {
-			log.Fatalf("%s is not a valid config field. valid values are %s", key, configAPI.GetValidFieldKeys())
+			log.Fatalf("%s is not a valid config field. valid values are %s", key, configAPI.GetValidConfigFieldKeys())
 		}
 
 		fd := configAPI.GetConfigFieldDefinition(config.FieldKey(key))

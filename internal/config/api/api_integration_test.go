@@ -27,14 +27,14 @@ func TestConfigSetLogLevel(t *testing.T) {
 		"DEBUG",
 		"TRACE",
 	} {
-		err = SetConfigString("logLevel", l)
+		err = SetConfigValue("logLevel", l)
 		assert.NoError(t, err)
 
 		actual := GetConfigString(config.LogLevel)
 		assert.Equal(t, l, actual)
 	}
 
-	err = SetConfigString("logLevel", "INVALID_VALUE")
+	err = SetConfigValue("logLevel", "INVALID_VALUE")
 	assert.Error(t, err)
 }
 
@@ -89,7 +89,7 @@ func TestConfigSetPluginDir(t *testing.T) {
 
 	config.Init(f)
 
-	err = SetConfigString(config.PluginDir, "test")
+	err = SetConfigValue(config.PluginDir, "test")
 	assert.NoError(t, err)
 	assert.Equal(t, "test", GetConfigString(config.PluginDir))
 }

@@ -53,7 +53,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
+			accountID := configAPI.RequireActiveProfileAccountID()
 			document, err = client.NRClient.NerdStorage.GetDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			document, err = client.NRClient.NerdStorage.GetDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
@@ -107,7 +107,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
+			accountID := configAPI.RequireActiveProfileAccountID()
 			_, err = client.NRClient.NerdStorage.WriteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			_, err = client.NRClient.NerdStorage.WriteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
@@ -155,7 +155,7 @@ GUID.  A valid Nerdpack package ID is required.
 
 		switch strings.ToLower(scope) {
 		case "account":
-			accountID := configAPI.RequireActiveProfileAccountIDWithFlagOverride()
+			accountID := configAPI.RequireActiveProfileAccountID()
 			_, err = client.NRClient.NerdStorage.DeleteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
 		case "entity":
 			_, err = client.NRClient.NerdStorage.DeleteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
