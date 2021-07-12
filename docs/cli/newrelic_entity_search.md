@@ -22,7 +22,7 @@ newrelic entity search --name <applicationName>
 ### Options
 
 ```
-  -a, --alert-severity string   search for entities matching the given alert severity type
+      --alert-severity string   search for entities matching the given alert severity type
   -d, --domain string           search for entities matching the given entity domain
   -f, --fields-filter strings   filter search results to only return certain fields for each search result
   -h, --help                    help for search
@@ -35,8 +35,12 @@ newrelic entity search --name <applicationName>
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

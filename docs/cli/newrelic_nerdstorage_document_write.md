@@ -33,7 +33,6 @@ newrelic nerdstorage document write [flags]
 ### Options
 
 ```
-  -a, --accountId int       the account ID
   -c, --collection string   the collection name to write the document to
   -o, --document string     the document to be written, in JSON format (default "{}")
   -d, --documentId string   the document ID
@@ -46,8 +45,12 @@ newrelic nerdstorage document write [flags]
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

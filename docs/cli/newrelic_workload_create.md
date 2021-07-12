@@ -27,7 +27,6 @@ newrelic workload create --name 'Example workload' --accountId 12345678 --entity
 ### Options
 
 ```
-  -a, --accountId int               the New Relic account ID where you want to create the workload
   -e, --entityGuid strings          the list of entity Guids composing the workload
   -q, --entitySearchQuery strings   a list of search queries, combined using an OR operator
   -h, --help                        help for create
@@ -38,8 +37,12 @@ newrelic workload create --name 'Example workload' --accountId 12345678 --entity
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO
