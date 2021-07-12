@@ -12,7 +12,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
+	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -84,25 +84,21 @@ func FetchLicenseKey(accountID int, profileName string) (string, error) {
 }
 
 func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
-	query := `query($accountId: Int!) { actor { account(id: $accountId) { licenseKey } } }`
-
-	variables := map[string]interface{}{
-		"accountId": accountID,
+	params := apiaccess.APIAccessKeySearchQuery{
+		Scope: apiaccess.APIAccessKeySearchScope{
+			AccountIDs:  []int{accountID},
+			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
+		},
+		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
 	}
 
-	resp, err := client.NerdGraph.QueryWithContext(ctx, query, variables)
+	keys, err := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
 	if err != nil {
 		return "", err
 	}
 
-	queryResp := resp.(nerdgraph.QueryResponse)
-	actor := queryResp.Actor.(map[string]interface{})
-	account := actor["account"].(map[string]interface{})
-
-	if l, ok := account["licenseKey"]; ok {
-		if l != nil {
-			return l.(string), nil
-		}
+	if len(keys) > 0 {
+		return keys[0].Key, nil
 	}
 
 	return "", types.ErrorFetchingLicenseKey
