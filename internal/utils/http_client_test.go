@@ -18,7 +18,7 @@ func TestHttpClient(t *testing.T) {
 
 	require.NoError(t, err)
 
-	entityGUID := resp.EntityGUID
+	entityGUID := resp.GUID
 	require.Equal(t, entityGUID, "MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw")
 }
 

@@ -41,6 +41,7 @@ type RecipeInstaller struct {
 	recipeFilterer    RecipeFilterRunner
 	packsFetcher      PacksFetcher
 	packsInstaller    PacksInstaller
+	agentValidator    *validation.AgentValidator
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -86,6 +87,9 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
 
+	// TODO: Use the schema configured URL
+	av := validation.NewAgentValidator(utils.NewValidationClient(), "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status")
+
 	i := RecipeInstaller{
 		discoverer:        d,
 		fileFilterer:      gff,
@@ -103,6 +107,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFilterer:    rf,
 		packsFetcher:      spf,
 		packsInstaller:    cpi,
+		agentValidator:    av,
 	}
 
 	i.InstallerContext = ic
@@ -368,7 +373,20 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var err error
 	var validationDurationMilliseconds int64
 	start := time.Now()
-	if r.ValidationNRQL != "" {
+
+	/** TODO: Add `validation` object to recipe schemas
+	 * - http://localhost:18003/v1/status/ready
+	 * - http://localhost:18003/v1/status/entity
+	 * - http://localhost:18003/v1/status/errors
+	 */
+	validationURLFromSchema := "http://localhost:18003/v1/status/entity"
+
+	if validationURLFromSchema != "" {
+		entityGUID, err = i.agentValidator.Validate(ctx)
+		if err != nil {
+			return "", err
+		}
+	} else if r.ValidationNRQL != "" {
 		entityGUID, err = i.recipeValidator.ValidateRecipe(ctx, *m, *r)
 		if err != nil {
 			validationDurationMilliseconds = time.Since(start).Milliseconds()

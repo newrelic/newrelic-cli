@@ -1,29 +1,40 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"time"
 )
 
-type HTTPResponse struct {
-	EntityGUID string `json:"entityGuid"`
-	EntityID   string `json:"entityId"`
-	EntityKey  string `json:"entityKey"`
-}
-
+// Should this interface live in the generic interfaces directory?
 type HTTPClient interface {
-	Get(url string) (*HTTPResponse, error)
+	Get(ctx context.Context, url string) (*HTTPResponse, error)
 }
 
+// TODO: Rename this response per proper domain (e.g. AgentValidationResponse?)
+type HTTPResponse struct {
+	GUID string `json:"guid"`
+}
+
+// Should ValidationClient live in it's own file (e.g. validation_client.go)
 type ValidationClient struct{}
 
 func NewValidationClient() *ValidationClient {
 	return &ValidationClient{}
 }
 
-func (c *ValidationClient) Get(url string) (*HTTPResponse, error) {
-	resp, err := http.Get(url)
+func (c *ValidationClient) Get(ctx context.Context, url string) (*HTTPResponse, error) {
+	httpClient := &http.Client{}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +50,11 @@ func (c *ValidationClient) Get(url string) (*HTTPResponse, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Print("\n\n **************************** \n")
+	log.Printf("\n RESPONSE:  %+v \n", response)
+	log.Print("\n **************************** \n\n")
+	time.Sleep(7 * time.Second)
 
 	return &response, nil
 
