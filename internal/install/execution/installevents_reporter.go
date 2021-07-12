@@ -26,37 +26,37 @@ func NewInstallEventsReporter(client InstalleventsClient) *InstallEventsReporter
 }
 
 func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.FAILED)
+	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.FAILED)
 
-	_, err := r.client.CreateRecipeEvent(r.accountID, s)
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.INSTALLING)
+	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.INSTALLING)
 
-	_, err := r.client.CreateRecipeEvent(r.accountID, s)
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.INSTALLED)
+	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.INSTALLED)
 
-	_, err := r.client.CreateRecipeEvent(r.accountID, s)
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.SKIPPED)
+	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.SKIPPED)
 
-	_, err := r.client.CreateRecipeEvent(r.accountID, s)
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.RecipeStatusTypeTypes.RECOMMENDED)
+	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.RECOMMENDED)
 
-	_, err := r.client.CreateRecipeEvent(r.accountID, s)
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
 	return err
 }
 
@@ -113,15 +113,15 @@ func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types
 }
 
 func (r InstallEventsReporter) writeStatus(status *InstallStatus) error {
-	_, err := r.client.CreateRecipeEvent(r.accountID, buildInstallStatus(status, nil, nil))
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, buildInstallStatus(status, nil, nil))
 	return err
 }
 
-func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.RecipeStatusType) installevents.RecipeStatus {
-	i := installevents.RecipeStatus{
+func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.InstallationRecipeStatusType) installevents.InstallationRecipeStatus {
+	i := installevents.InstallationRecipeStatus{
 		CliVersion: status.CLIVersion,
 		Complete:   status.Complete,
-		Error: installevents.StatusErrorInput{
+		Error: installevents.InstallationStatusErrorInput{
 			Details: status.Error.Details,
 			Message: status.Error.Message,
 		},
