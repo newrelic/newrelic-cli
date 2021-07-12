@@ -29,11 +29,14 @@ newrelic apm application search --name <appName>
 ### Options inherited from parent commands
 
 ```
-  -a, --accountId string    A New Relic account ID
+  -a, --accountId int       trace level logging
       --applicationId int   A New Relic APM application ID
+      --debug               debug level logging
       --format string       output text format [JSON, Text, YAML] (default "JSON")
   -g, --guid string         search for results matching the given APM application GUID
       --plain               output compact text
+      --profile string      the authentication profile to use
+      --trace               trace level logging
 ```
 
 ### SEE ALSO

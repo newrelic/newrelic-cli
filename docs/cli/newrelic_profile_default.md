@@ -16,21 +16,24 @@ newrelic profile default [flags]
 ### Examples
 
 ```
-newrelic profile default --name <profileName>
+newrelic profile default --profile <profile>
 ```
 
 ### Options
 
 ```
-  -h, --help          help for default
-  -n, --name string   the profile name to set as default
+  -h, --help   help for default
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO
