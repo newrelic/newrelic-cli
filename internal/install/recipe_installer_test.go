@@ -13,7 +13,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -91,7 +90,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 }
 
 func TestInstall_DiscoveryComplete(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters = []execution.StatusSubscriber{statusReporter}
@@ -272,7 +271,7 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 }
 
 func TestInstall_RecipeFailed(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
@@ -305,7 +304,7 @@ func TestInstall_RecipeFailed(t *testing.T) {
 }
 
 func TestInstall_NonInfraRecipeFailed(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
@@ -337,7 +336,7 @@ func TestInstall_NonInfraRecipeFailed(t *testing.T) {
 }
 
 func TestInstall_AllRecipesFailed(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
@@ -568,7 +567,7 @@ func TestInstall_RecipeSkippedApmAnyKeyword(t *testing.T) {
 }
 
 func TestInstall_RecipeSkipped_SkipIntegrations(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	log.SetLevel(log.TraceLevel)
 	ic := types.InstallerContext{
 		AssumeYes:        true,
@@ -636,7 +635,7 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 }
 
 func TestInstall_RecipeRecommended(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{
 		SkipLoggingInstall: true,
 	}
@@ -758,7 +757,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 }
 
 func TestInstall_TargetedInstall_FilterAllButProvided(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{
 		RecipeNames: []string{testRecipeName},
 	}
@@ -787,7 +786,7 @@ func TestInstall_TargetedInstall_FilterAllButProvided(t *testing.T) {
 }
 
 func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{
 		RecipeNames: []string{testRecipeName},
 	}
@@ -815,7 +814,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
 }
 
 func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{
 		RecipeNames: []string{types.InfraAgentRecipeName},
 	}
@@ -838,7 +837,7 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 }
 
 func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{
 		SkipInfraInstall: true,
 		RecipeNames:      []string{types.InfraAgentRecipeName, testRecipeName},
@@ -867,7 +866,7 @@ func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
 }
 
 func TestInstall_TargetedInstall_SkipInfraDependency(t *testing.T) {
-	credentials.SetDefaultProfile(credentials.Profile{AccountID: 12345})
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{
 		SkipInfraInstall: true,
 	}

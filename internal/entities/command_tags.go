@@ -11,7 +11,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/pipe"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
@@ -39,19 +38,18 @@ var cmdTagsGet = &cobra.Command{
 The get command returns JSON output of the tags for the requested entity.
 `,
 	Example: "newrelic entity tags get --guid <entityGUID>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			// Temporary until bulk actions can be build into newrelic-client-go
-			if value, ok := pipe.Get("guid"); ok {
-				tags, err := nrClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, entities.EntityGUID(value[0]))
-				utils.LogIfFatal(err)
-				utils.LogIfError(output.Print(tags))
-			} else {
-				tags, err := nrClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID))
-				utils.LogIfFatal(err)
-				utils.LogIfError(output.Print(tags))
-			}
-		})
+		// Temporary until bulk actions can be build into newrelic-client-go
+		if value, ok := pipe.Get("guid"); ok {
+			tags, err := client.NRClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, entities.EntityGUID(value[0]))
+			utils.LogIfFatal(err)
+			utils.LogIfError(output.Print(tags))
+		} else {
+			tags, err := client.NRClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID))
+			utils.LogIfFatal(err)
+			utils.LogIfError(output.Print(tags))
+		}
 	},
 }
 
@@ -64,13 +62,12 @@ The delete command deletes all tags on the given entity
 that match the specified keys.
 `,
 	Example: "newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3,tag4",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			_, err := nrClient.Entities.TaggingDeleteTagFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), entityTags)
-			utils.LogIfFatal(err)
+		_, err := client.NRClient.Entities.TaggingDeleteTagFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), entityTags)
+		utils.LogIfFatal(err)
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -82,16 +79,15 @@ var cmdTagsDeleteValues = &cobra.Command{
 The delete-values command deletes the specified tag:value pairs on a given entity.
 `,
 	Example: "newrelic entity tags delete-values --guid <guid> --tag tag1:value1",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tagValues, err := assembleTagValuesInput(entityValues)
-			utils.LogIfFatal(err)
+		tagValues, err := assembleTagValuesInput(entityValues)
+		utils.LogIfFatal(err)
 
-			_, err = nrClient.Entities.TaggingDeleteTagValuesFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tagValues)
-			utils.LogIfFatal(err)
+		_, err = client.NRClient.Entities.TaggingDeleteTagValuesFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tagValues)
+		utils.LogIfFatal(err)
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -103,16 +99,15 @@ var cmdTagsCreate = &cobra.Command{
 The create command adds tag:value pairs to the given entity.
 `,
 	Example: "newrelic entity tags create --guid <entityGUID> --tag tag1:value1",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tags, err := assembleTagsInput(entityTags)
-			utils.LogIfFatal(err)
+		tags, err := assembleTagsInput(entityTags)
+		utils.LogIfFatal(err)
 
-			_, err = nrClient.Entities.TaggingAddTagsToEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tags)
-			utils.LogIfFatal(err)
+		_, err = client.NRClient.Entities.TaggingAddTagsToEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tags)
+		utils.LogIfFatal(err)
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -125,16 +120,15 @@ The replace command replaces any existing tag:value pairs with those
 provided for the given entity.
 `,
 	Example: "newrelic entity tags replace --guid <entityGUID> --tag tag1:value1",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			tags, err := assembleTagsInput(entityTags)
-			utils.LogIfFatal(err)
+		tags, err := assembleTagsInput(entityTags)
+		utils.LogIfFatal(err)
 
-			_, err = nrClient.Entities.TaggingReplaceTagsOnEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tags)
-			utils.LogIfFatal(err)
+		_, err = client.NRClient.Entities.TaggingReplaceTagsOnEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tags)
+		utils.LogIfFatal(err)
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -165,23 +159,6 @@ func assembleTagsInput(tags []string) ([]entities.TaggingTagInput, error) {
 	return t, nil
 }
 
-func assembleTagValues(values []string) ([]entities.EntitySearchQueryBuilderTag, error) {
-	var tagValues []entities.EntitySearchQueryBuilderTag
-
-	for _, x := range values {
-		key, value, err := assembleTagValue(x)
-
-		if err != nil {
-			return []entities.EntitySearchQueryBuilderTag{}, err
-		}
-
-		tagValues = append(tagValues, entities.EntitySearchQueryBuilderTag{Key: key, Value: value})
-	}
-
-	return tagValues, nil
-}
-
-// assembleTagValuesInput is the same as assembleTagValues
 func assembleTagValuesInput(values []string) ([]entities.TaggingTagValueInput, error) {
 	var tagValues []entities.TaggingTagValueInput
 

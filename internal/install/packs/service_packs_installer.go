@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
@@ -69,15 +69,14 @@ func (p *ServicePacksInstaller) Install(ctx context.Context, packs []types.OpenI
 }
 
 func (p *ServicePacksInstaller) createObservabilityPackDashboard(ctx context.Context, d types.OpenInstallationObservabilityPackDashboard) (*dashboards.DashboardCreateResult, error) {
-	defaultProfile := credentials.DefaultProfile()
-	accountID := defaultProfile.AccountID
+	accountID := configAPI.GetActiveProfileAccountID()
 
 	body, err := getJSONfromURL(d.URL)
 	if err != nil {
 		return nil, err
 	}
 
-	dashboard, err := transformDashboardJSON(body, defaultProfile.AccountID)
+	dashboard, err := transformDashboardJSON(body, accountID)
 	if err != nil {
 		return nil, err
 	}

@@ -20,7 +20,7 @@ var (
 	fileHookConfigured = false
 )
 
-func initLogger(logLevel string) {
+func InitLogger(logLevel string) {
 	l := log.StandardLogger()
 
 	l.SetFormatter(&log.TextFormatter{
@@ -49,16 +49,16 @@ func InitFileLogger() {
 		return
 	}
 
-	_, err := os.Stat(DefaultConfigDirectory)
+	_, err := os.Stat(BasePath)
 
 	if os.IsNotExist(err) {
-		errDir := os.MkdirAll(DefaultConfigDirectory, 0750)
+		errDir := os.MkdirAll(BasePath, 0750)
 		if errDir != nil {
 			log.Warnf("Could not create log file folder: %s", err)
 		}
 	}
 
-	fileHook, err := NewLogrusFileHook(DefaultConfigDirectory+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
+	fileHook, err := NewLogrusFileHook(BasePath+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
 	if err == nil && !fileHookConfigured {
 		l := log.StandardLogger()
 		l.Hooks.Add(fileHook)

@@ -14,18 +14,11 @@ import (
 	"github.com/go-task/task/v3/taskfile"
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestRecipeVarProvider_Basic(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -80,7 +73,7 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 		Install: installYaml,
 	}
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, m.OS, v["OS"])
 	require.Contains(t, m.Platform, v["Platform"])
@@ -93,12 +86,6 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 
 func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -156,19 +143,13 @@ func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://another.download.newrelic.com/")
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, "https://another.download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_AllowInfraStaging(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -226,19 +207,13 @@ func TestRecipeVarProvider_AllowInfraStaging(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-staging.s3.amazonaws.com/")
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, "https://nr-downloads-ohai-staging.s3.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_AllowInfraTesting(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -296,19 +271,13 @@ func TestRecipeVarProvider_AllowInfraTesting(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-testing.s3.amazonaws.com/")
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, "https://nr-downloads-ohai-testing.s3.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_DisallowUnknownInfraTesting(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -366,19 +335,13 @@ func TestRecipeVarProvider_DisallowUnknownInfraTesting(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-unknown.s3.amazonaws.com/")
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotHttps(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -436,19 +399,13 @@ func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotHttps(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "http://another.download.newrelic.com/")
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
 func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotNewRelic(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	licenseKey := "testLicenseKey"
-	p := credentials.Profile{
-		LicenseKey: "",
-	}
-	credentials.SetDefaultProfile(p)
 
 	m := types.DiscoveryManifest{
 		Hostname:        "testHostname",
@@ -506,7 +463,7 @@ func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotNewRelic(t *testing.T) 
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "http://github.com/")
 
-	v, err := e.Prepare(m, r, false, licenseKey)
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }

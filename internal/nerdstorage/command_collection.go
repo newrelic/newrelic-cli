@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -39,33 +39,33 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage collection get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var resp []interface{}
-			var err error
+		var resp []interface{}
+		var err error
 
-			input := nerdstorage.GetCollectionInput{
-				PackageID:  packageID,
-				Collection: collection,
-			}
+		input := nerdstorage.GetCollectionInput{
+			PackageID:  packageID,
+			Collection: collection,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				resp, err = nrClient.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				resp, err = nrClient.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				resp, err = nrClient.NerdStorage.GetCollectionWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			accountID := configAPI.RequireActiveProfileAccountID()
+			resp, err = client.NRClient.NerdStorage.GetCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			resp, err = client.NRClient.NerdStorage.GetCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			resp, err = client.NRClient.NerdStorage.GetCollectionWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(resp))
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(resp))
+		log.Info("success")
 	},
 }
 
@@ -88,31 +88,31 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage collection delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var err error
+		var err error
 
-			input := nerdstorage.DeleteCollectionInput{
-				PackageID:  packageID,
-				Collection: collection,
-			}
+		input := nerdstorage.DeleteCollectionInput{
+			PackageID:  packageID,
+			Collection: collection,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
-			case "entity":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
-			case "user":
-				_, err = nrClient.NerdStorage.DeleteCollectionWithUserScopeWithContext(utils.SignalCtx, input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			accountID := configAPI.RequireActiveProfileAccountID()
+			_, err = client.NRClient.NerdStorage.DeleteCollectionWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			_, err = client.NRClient.NerdStorage.DeleteCollectionWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			_, err = client.NRClient.NerdStorage.DeleteCollectionWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -120,7 +120,6 @@ func init() {
 	Command.AddCommand(cmdCollection)
 
 	cmdCollection.AddCommand(cmdCollectionGet)
-	cmdCollectionGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdCollectionGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdCollectionGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdCollectionGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
@@ -136,7 +135,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdCollection.AddCommand(cmdCollectionDelete)
-	cmdCollectionDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdCollectionDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdCollectionDelete.Flags().StringVarP(&packageID, "packageId", "", "p", "the external package ID")
 	cmdCollectionDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")
