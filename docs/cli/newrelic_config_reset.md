@@ -1,30 +1,29 @@
-## newrelic config set
+## newrelic config reset
 
-Set a configuration value
+Reset a configuration value to its default
 
 ### Synopsis
 
-Set a configuration value
+Reset a configuration value
 
-The set command sets a persistent configuration value for the New Relic CLI.
+The reset command resets a configuration value to its default.
 
 
 ```
-newrelic config set [flags]
+newrelic config reset [flags]
 ```
 
 ### Examples
 
 ```
-newrelic config set --key <key> --value <value>
+newrelic config reset --key <key>
 ```
 
 ### Options
 
 ```
-  -h, --help           help for set
-  -k, --key string     the key to set
-  -v, --value string   the value to set
+  -h, --help         help for reset
+  -k, --key string   the key to delete
 ```
 
 ### Options inherited from parent commands

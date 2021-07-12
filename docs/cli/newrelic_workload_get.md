@@ -22,16 +22,19 @@ newrelic workload get --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MT
 ### Options
 
 ```
-  -a, --accountId int   the New Relic account ID where the workload is located
-  -g, --guid string     the GUID of the workload
-  -h, --help            help for get
+  -g, --guid string   the GUID of the workload
+  -h, --help          help for get
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

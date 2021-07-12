@@ -26,16 +26,19 @@ newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amoun
 ### Options
 
 ```
-  -a, --accountId int   the account ID to create the custom event in
-  -e, --event string    a JSON-formatted event payload to post (default "{}")
-  -h, --help            help for post
+  -e, --event string   a JSON-formatted event payload to post (default "{}")
+  -h, --help           help for post
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO
