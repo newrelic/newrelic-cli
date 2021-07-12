@@ -3,6 +3,7 @@
 package utils
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,10 +12,11 @@ import (
 func TestHttpClient(t *testing.T) {
 	t.Parallel()
 
-	httpUrl = "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status"
+	httpURL := "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status"
 
 	client := NewValidationClient()
-	resp, err := client.Get(httpUrl)
+	ctx := context.Background()
+	resp, err := client.Get(ctx, httpURL)
 
 	require.NoError(t, err)
 
@@ -38,11 +40,12 @@ Timeout
 func TestHttpClient_HttpError(t *testing.T) {
 	t.Parallel()
 
-	badHttpUrl = ""
+	badHttpURL := ""
 
 	client := NewValidationClient()
-	resp, err := client.Get(BadHttpUrl)
+	ctx := context.Background()
+	_, err := client.Get(ctx, badHttpURL)
 
 	require.Error(t, err)
-	require.Equal(t, resp)
+	// require.Equal(t, resp)
 }
