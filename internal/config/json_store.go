@@ -53,11 +53,20 @@ type FieldDefinition struct {
 	// is performed for the underlying value. If the func returns an error, the
 	// set operation will not succeed.
 	SetValidationFunc FieldValueValidationFunc
+
+	// SetValueFunc is a translation func that is run when a set operation
+	// is performed for the underlying value. The value provided will be run
+	// through the func provided and the resulting value will be set.
+	SetValueFunc FieldValueTranslationFunc
 }
 
 // FieldValueValidationFunc is a configurable validation func that will ensure a field
 // value conforms to some constraints before being set.
 type FieldValueValidationFunc func(key FieldKey, value interface{}) error
+
+// FieldValueTranslationFunc is a configurable translation func that will modify
+// a value before setting it in the underlying config instance.
+type FieldValueTranslationFunc func(key FieldKey, value interface{}) (interface{}, error)
 
 // IntGreaterThan is a FieldValueValidationFunc ins a validation func that ensures
 // the field value is an integer greater than 0.
@@ -114,6 +123,18 @@ func StringInStrings(caseSensitive bool, allowedValues ...string) func(key Field
 		}
 
 		return fmt.Errorf("value %v not in allowed values: %s", s, allowedValues)
+	}
+}
+
+// ToLower is a FieldValueTranslationFunc translation func that ensures the provided
+// value is case-folded to lowercase before writing to the underlying config.
+func ToLower() func(key FieldKey, value interface{}) (interface{}, error) {
+	return func(key FieldKey, value interface{}) (interface{}, error) {
+		if s, ok := value.(string); ok {
+			return strings.ToLower(s), nil
+		}
+
+		return nil, fmt.Errorf("the value %s provided for %s is not a string", value, key)
 	}
 }
 
@@ -391,6 +412,15 @@ func (p *JSONStore) SetWithScope(scope string, key FieldKey, value interface{}) 
 			// use the case convention from the field definition
 			key = v.Key
 		}
+
+		if v.SetValueFunc != nil {
+			var err error
+			value, err = v.SetValueFunc(key, value)
+			if err != nil {
+				return err
+			}
+		}
+
 	} else if p.explicitValues {
 		return fmt.Errorf("key '%s' is not valid, valid keys are: %v", key, p.getConfigValueKeys())
 	}

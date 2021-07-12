@@ -19,7 +19,7 @@ const (
 	LogLevel           FieldKey = "loglevel"
 	PluginDir          FieldKey = "plugindir"
 	PreReleaseFeatures FieldKey = "prereleasefeatures"
-	SendUsageData      FieldKey = "sendusagedata"
+	SendUsageData      FieldKey = "sendUsageData"
 
 	DefaultProfileName = "default"
 
@@ -73,7 +73,8 @@ func InitializeCredentialsStore() {
 					region.US.String(),
 					region.EU.String(),
 				),
-				Default: region.US.String(),
+				Default:      region.US.String(),
+				SetValueFunc: ToLower(),
 			},
 			FieldDefinition{
 				Key:               AccountID,

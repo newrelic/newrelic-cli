@@ -591,3 +591,26 @@ func TestStore_Set_ValidationFunc_StringInStrings_WrongType(t *testing.T) {
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "is not a string")
 }
+
+func TestStore_Set_ValueFunc_ToLower(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(
+		ConfigureFields(FieldDefinition{
+			Key:          "testString",
+			SetValueFunc: ToLower(),
+		}),
+		PersistToFile(f.Name()),
+	)
+	require.NoError(t, err)
+
+	err = p.Set("testString", "TEST_VALUE")
+	require.NoError(t, err)
+
+	v, err := p.GetString("testString")
+	require.NoError(t, err)
+
+	require.Equal(t, "test_value", v)
+}

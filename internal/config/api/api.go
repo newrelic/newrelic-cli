@@ -225,7 +225,7 @@ func SetConfigValue(key config.FieldKey, value interface{}) error {
 }
 
 // DeleteConfigValue deletes a config value for the given key.
-func DeleteConfigValue(key config.FieldKey, value interface{}) error {
+func DeleteConfigValue(key config.FieldKey) error {
 	return config.ConfigStore.DeleteKey(key)
 }
 
