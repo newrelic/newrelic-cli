@@ -53,7 +53,7 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 	Aliases: []string{
 		"configure",
 	},
-	Example: "newrelic profile add --profileName <profileName> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
+	Example: "newrelic profile add --profile <profile> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
 	PreRun:  requireProfileName,
 	Run: func(cmd *cobra.Command, args []string) {
 		addStringValueToProfile(config.FlagProfileName, apiKey, config.APIKey, "User API Key", nil, nil)
@@ -197,7 +197,7 @@ var cmdDefault = &cobra.Command{
 
 The default command sets the profile to use by default using the specified name.
 `,
-	Example: "newrelic profile default --name <profileName>",
+	Example: "newrelic profile default --profile <profile>",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := configAPI.SetDefaultProfile(config.FlagProfileName)
 		if err != nil {
@@ -253,7 +253,7 @@ var cmdDelete = &cobra.Command{
 
 The delete command removes the profile specified by name.
 `,
-	Example: "newrelic profile delete --name <profileName>",
+	Example: "newrelic profile delete --profile <profile>",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := configAPI.RemoveProfile(config.FlagProfileName)
 		if err != nil {
@@ -270,7 +270,7 @@ The delete command removes the profile specified by name.
 
 func requireProfileName(cmd *cobra.Command, args []string) {
 	if config.FlagProfileName == "" {
-		log.Fatal("the --profileName argument is required")
+		log.Fatal("the --profile argument is required")
 	}
 }
 
