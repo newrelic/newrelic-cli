@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -41,6 +42,10 @@ func InitLogger(logLevel string) {
 	default:
 		l.SetLevel(log.InfoLevel)
 	}
+}
+
+func GetDefaultLogFilePath() string {
+	return filepath.Join(BasePath, DefaultLogFile)
 }
 
 func InitFileLogger() {
