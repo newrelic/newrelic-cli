@@ -382,7 +382,9 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	validationURLFromSchema := "http://localhost:18003/v1/status/entity"
 
 	if validationURLFromSchema != "" {
+		log.Printf("\n HERE: before validator \n")
 		entityGUID, err = i.agentValidator.Validate(ctx)
+		log.Printf("\n HERE: after validator \n")
 		if err != nil {
 			return "", err
 		}

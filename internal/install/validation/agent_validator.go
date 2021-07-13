@@ -2,6 +2,7 @@ package validation
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -16,6 +17,11 @@ type AgentValidator struct {
 	MaxAttempts       int
 	Interval          time.Duration
 	ProgressIndicator ux.ProgressIndicator
+}
+
+// TODO: Rename this response per proper domain (e.g. AgentValidationResponse?)
+type ValidationResponse struct {
+	GUID string `json:"guid"`
 }
 
 // NewAgentValidator returns a new instance of AgentValidator.
@@ -84,7 +90,14 @@ func (v *AgentValidator) waitForData(ctx context.Context) (string, error) {
 }
 
 func (v *AgentValidator) doValidate(ctx context.Context) (string, error) {
-	response, err := v.httpClient.Get(ctx, v.validationURL)
+	resp, err := v.httpClient.Get(ctx, v.validationURL)
+	if err != nil {
+		return "", err
+	}
+
+	response := ValidationResponse{}
+
+	err = json.Unmarshal(resp, &response)
 	if err != nil {
 		return "", err
 	}
