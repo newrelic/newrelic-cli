@@ -11,7 +11,7 @@ require (
 	github.com/git-chglog/git-chglog v0.14.2
 	github.com/go-openapi/strfmt v0.20.1 // indirect
 	github.com/go-task/task/v3 v3.4.3
-	github.com/golangci/golangci-lint v1.39.0
+	github.com/golangci/golangci-lint v1.41.1
 	github.com/google/uuid v1.2.0
 	github.com/goreleaser/goreleaser v0.157.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
