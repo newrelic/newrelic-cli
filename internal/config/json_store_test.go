@@ -77,6 +77,63 @@ func TestStore_GetString(t *testing.T) {
 	require.Equal(t, "debug", actual)
 }
 
+func TestStore_GetStringWithOverride(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
+
+	p, err := NewJSONStore(
+		PersistToFile(f.Name()),
+		UseGlobalScope("*"),
+	)
+	require.NoError(t, err)
+
+	override := "trace"
+	actual, err := p.GetStringWithOverride("loglevel", &override)
+	require.NoError(t, err)
+	require.Equal(t, "trace", actual)
+}
+
+func TestStore_GetStringWithScope(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
+
+	p, err := NewJSONStore(
+		PersistToFile(f.Name()),
+	)
+	require.NoError(t, err)
+
+	actual, err := p.GetStringWithScope("*", LogLevel)
+	require.NoError(t, err)
+	require.Equal(t, "debug", actual)
+}
+
+func TestStore_Get(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	_, err = f.WriteString(testCfg)
+	require.NoError(t, err)
+
+	p, err := NewJSONStore(
+		PersistToFile(f.Name()),
+		UseGlobalScope("*"),
+	)
+	require.NoError(t, err)
+
+	actual, err := p.Get(LogLevel)
+	require.NoError(t, err)
+	require.Equal(t, "debug", actual.(string))
+}
+
 func TestStore_GetString_CaseSensitive(t *testing.T) {
 	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
 	require.NoError(t, err)
@@ -613,4 +670,103 @@ func TestStore_Set_ValueFunc_ToLower(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, "test_value", v)
+}
+
+func TestStore_RemoveScope(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(
+		ConfigureFields(FieldDefinition{
+			Key: "testString",
+		}),
+	)
+	require.NoError(t, err)
+
+	err = p.RemoveScope("testString")
+	require.NoError(t, err)
+
+	_, err = p.GetString("testString")
+	require.Error(t, err)
+}
+
+func TestStore_RemoveScope_GlobalScope(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(
+		ConfigureFields(FieldDefinition{
+			Key: "testString",
+		}),
+		UseGlobalScope("*"),
+	)
+	require.NoError(t, err)
+
+	err = p.SetWithScope("scope", FieldKey("testString"), "testValue")
+	require.NoError(t, err)
+
+	err = p.RemoveScope("scope")
+	require.NoError(t, err)
+
+	_, err = p.GetStringWithScope("scope", "testString")
+	require.Error(t, err)
+}
+
+func TestStore_DeleteKey(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(
+		ConfigureFields(FieldDefinition{
+			Key: "testString",
+		}),
+	)
+	require.NoError(t, err)
+
+	err = p.DeleteKey("testString")
+	require.NoError(t, err)
+
+	_, err = p.GetString("testString")
+	require.Error(t, err)
+}
+
+func TestStore_ForEachFieldDefinition(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(
+		ConfigureFields(
+			FieldDefinition{Key: "1"},
+			FieldDefinition{Key: "2"},
+			FieldDefinition{Key: "3"},
+		),
+	)
+	require.NoError(t, err)
+
+	count := 0
+	fn := func(fd FieldDefinition) { count++ }
+	p.ForEachFieldDefinition(fn)
+	require.Equal(t, 3, count)
+}
+
+func TestStore_GetScopes(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore()
+	require.NoError(t, err)
+
+	err = p.SetWithScope("scope1", FieldKey("testKey"), "testValue")
+	require.NoError(t, err)
+
+	err = p.SetWithScope("scope2", FieldKey("testKey"), "testValue")
+	require.NoError(t, err)
+
+	s := p.GetScopes()
+	require.Equal(t, 2, len(s))
 }

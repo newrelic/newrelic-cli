@@ -79,7 +79,7 @@ func RemoveProfile(profileName string) error {
 		return err
 	}
 
-	if d == profileName {
+	if d == "" || d == profileName {
 		names := GetProfileNames()
 		if len(names) > 0 {
 			if err = SetDefaultProfile(names[0]); err != nil {
@@ -143,6 +143,7 @@ func GetActiveProfileString(key config.FieldKey) string {
 func GetProfileString(profileName string, key config.FieldKey) string {
 	v, err := config.CredentialsProvider.GetStringWithScope(profileName, key)
 	if err != nil {
+		log.Debugf("could not load string value for key %s and profile %s, returning zero value: %s", key, profileName, err)
 		return ""
 	}
 
@@ -158,6 +159,7 @@ func GetProfileString(profileName string, key config.FieldKey) string {
 func GetProfileInt(profileName string, key config.FieldKey) int {
 	v, err := config.CredentialsProvider.GetIntWithScope(profileName, key)
 	if err != nil {
+		log.Debugf("could not load int value for key %s and profile %s, returning zero value: %s", key, profileName, err)
 		return 0
 	}
 
@@ -178,15 +180,21 @@ func SetProfileValue(profileName string, key config.FieldKey, value interface{})
 // 3. A log level has been set in the config file
 // 4. If none of the above is true, the default log level will be returned.
 func GetLogLevel() string {
+	var flag string
 	if config.FlagDebug {
-		return "debug"
+		flag = "debug"
 	}
 
 	if config.FlagTrace {
-		return "trace"
+		flag = "trace"
 	}
 
-	return GetConfigString(config.LogLevel)
+	l, err := getConfigStringWithOverride(config.LogLevel, flag)
+	if err != nil {
+		return config.DefaultLogLevel
+	}
+
+	return l
 }
 
 // GetConfigString retrieves the config value set for the given key, if any.
@@ -198,6 +206,7 @@ func GetLogLevel() string {
 func GetConfigString(key config.FieldKey) string {
 	v, err := config.ConfigStore.GetString(key)
 	if err != nil {
+		log.Debugf("could not load string value for key %s, returning zero value: %s", key, err)
 		return ""
 	}
 
@@ -213,6 +222,7 @@ func GetConfigString(key config.FieldKey) string {
 func GetConfigTernary(key config.FieldKey) config.Ternary {
 	v, err := config.ConfigStore.GetTernary(key)
 	if err != nil {
+		log.Debugf("could not load Ternary value for key %s, returning zero value: %s", key, err)
 		return config.Ternary("")
 	}
 
@@ -265,6 +275,10 @@ func getProfileIntWithOverride(profileName string, key config.FieldKey, override
 	}
 
 	return int(v)
+}
+
+func getConfigStringWithOverride(key config.FieldKey, override string) (string, error) {
+	return config.ConfigStore.GetStringWithOverride(key, &override)
 }
 
 func removeDefaultProfile() error {
