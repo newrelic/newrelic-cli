@@ -8,7 +8,7 @@ type MockInstalleventsClient struct {
 	CreateInstallEventCallCount int
 }
 
-func NewMockInstalleventsClient() *MockInstalleventsClient {
+func NewMockInstallEventsClient() *MockInstalleventsClient {
 	return &MockInstalleventsClient{}
 }
 

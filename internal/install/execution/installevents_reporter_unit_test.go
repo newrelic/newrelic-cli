@@ -1,16 +1,19 @@
+//build +unit
+
 package execution
 
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	c := NewMockInstalleventsClient()
+	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
@@ -27,7 +30,7 @@ func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
 
 func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	c := NewMockInstalleventsClient()
+	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
@@ -43,7 +46,7 @@ func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
 
 func TestInstallEventsReporter_RecipeInstalled(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	c := NewMockInstalleventsClient()
+	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
@@ -59,7 +62,7 @@ func TestInstallEventsReporter_RecipeInstalled(t *testing.T) {
 
 func TestInstallEventsReporter_RecipeSkipped(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	c := NewMockInstalleventsClient()
+	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
@@ -75,7 +78,7 @@ func TestInstallEventsReporter_RecipeSkipped(t *testing.T) {
 
 func TestInstallEventsReporter_RecipeRecommended(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	c := NewMockInstalleventsClient()
+	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
@@ -91,7 +94,7 @@ func TestInstallEventsReporter_RecipeRecommended(t *testing.T) {
 
 func TestInstallEventsReporter_writeStatus(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
-	c := NewMockInstalleventsClient()
+	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
 	require.NotNil(t, r)
 
@@ -114,19 +117,7 @@ func TestInstallEventsReporter_writeStatus(t *testing.T) {
 
 	createInstallEventCallCount := 0
 
-	err := r.RecipesAvailable(status, recipes)
-	createInstallEventCallCount++
-	require.NoError(t, err)
-	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
-
-	err = r.RecipesSelected(status, recipes)
-	createInstallEventCallCount++
-	require.NoError(t, err)
-	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
-
-	manifest := types.DiscoveryManifest{}
-
-	err = r.DiscoveryComplete(status, manifest)
+	err := r.RecipeAvailable(status, recipes[0])
 	createInstallEventCallCount++
 	require.NoError(t, err)
 	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
@@ -137,15 +128,4 @@ func TestInstallEventsReporter_writeStatus(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
 	}
-
-	err = r.InstallComplete(status)
-	createInstallEventCallCount++
-	require.NoError(t, err)
-	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
-
-	err = r.InstallCanceled(status)
-	createInstallEventCallCount++
-	require.NoError(t, err)
-	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
-
 }

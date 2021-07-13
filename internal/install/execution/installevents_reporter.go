@@ -1,23 +1,23 @@
 package execution
 
 import (
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/installevents"
 )
 
 type InstallEventsReporter struct {
-	client    InstalleventsClient
+	client    InstallEventsClient
 	accountID int
 }
 
-func NewInstallEventsReporter(client InstalleventsClient) *InstallEventsReporter {
+func NewInstallEventsReporter(client InstallEventsClient) *InstallEventsReporter {
 	r := InstallEventsReporter{
 		client: client,
 	}
 
-	r.accountID = credentials.DefaultProfile().AccountID
+	r.accountID = configAPI.GetActiveProfileAccountID()
 
 	return &r
 }
@@ -61,10 +61,6 @@ func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event Re
 func (r InstallEventsReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.UNSUPPORTED, event)
 	return err
-}
-
-func (r InstallEventsReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return nil
 }
 
 func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
