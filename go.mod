@@ -33,7 +33,7 @@ require (
 	github.com/tidwall/gjson v1.8.0
 	github.com/tidwall/sjson v1.1.7
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
-	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.4
