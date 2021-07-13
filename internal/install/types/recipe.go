@@ -61,10 +61,8 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 		r.ProcessMatch = interfaceSliceToStringSlice(v.([]interface{}))
 	}
 
-	// Quickstarts are not quite ready in the API yet.
-	// The Nerdgraph type are incorrect and will get getting
-	// updated when the Quickstarts feature is worked on.
-	// r.Quickstarts = expandQuickStarts(recipe)
+	r.Quickstarts = expandQuickStarts(recipe)
+	r.ObservabilityPacks = expandObservabilityPacks(recipe)
 
 	r.Repository = toStringByFieldName("repository", recipe)
 
@@ -79,6 +77,115 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 	}
 
 	return err
+}
+
+func (r *OpenInstallationRecipe) ToShortDisplayString() string {
+	output := r.Name
+	targets := ""
+	for _, target := range r.InstallTargets {
+		s := getInstallTargetAsString(target)
+		if targets != "" {
+			targets = fmt.Sprintf("%s-%s", targets, s)
+		} else {
+			targets = s
+		}
+	}
+	if targets != "" {
+		output = fmt.Sprintf("%s (%s)", output, targets)
+	}
+	return output
+}
+
+func getInstallTargetAsString(target OpenInstallationRecipeInstallTarget) string {
+	output := string(target.Os)
+	if target.Platform != "" {
+		output = fmt.Sprintf("%s/%s", output, target.Platform)
+	}
+	if target.PlatformVersion != "" {
+		output = fmt.Sprintf("%s/%s", output, target.PlatformVersion)
+	}
+	if target.KernelArch != "" {
+		output = fmt.Sprintf("%s/%s", output, target.KernelArch)
+	}
+	return strings.ToLower(output)
+}
+
+func expandObservabilityPacks(recipe map[string]interface{}) []OpenInstallationObservabilityPackFilter {
+	v, ok := recipe["observabilityPacks"]
+	if !ok {
+		return []OpenInstallationObservabilityPackFilter{}
+	}
+
+	dataIn := v.([]interface{})
+	dataOut := make([]OpenInstallationObservabilityPackFilter, len(dataIn))
+	dataz := make([]map[string]interface{}, len(dataIn))
+
+	for i, vv := range dataIn {
+		vvv := vv.(map[interface{}]interface{})
+		varr := map[string]interface{}{}
+
+		for k, v := range vvv {
+			varr[k.(string)] = v
+			dataz[i] = varr
+		}
+	}
+
+	for i, v := range dataz {
+		vOut := OpenInstallationObservabilityPackFilter{
+			Name: toStringByFieldName("name", v),
+		}
+		if v, ok := v["level"]; ok {
+			vOut.Level = OpenInstallationObservabilityPackLevel(v.(string))
+		}
+
+		dataOut[i] = vOut
+	}
+
+	return dataOut
+}
+
+func expandQuickStarts(recipe map[string]interface{}) OpenInstallationQuickstartsFilter {
+	v, ok := recipe["quickstarts"]
+	if !ok {
+		return OpenInstallationQuickstartsFilter{}
+	}
+
+	dataIn := v.(map[interface{}]interface{})
+	reData := map[string]interface{}{}
+	for k, v := range dataIn {
+		reData[k.(string)] = v
+	}
+
+	dataOut := OpenInstallationQuickstartsFilter{
+		Name:       toStringByFieldName("name", reData),
+		EntityType: expandEntityType(reData),
+	}
+
+	if v, ok := reData["category"]; ok {
+		dataOut.Category = OpenInstallationCategory(v.(string))
+	}
+
+	return dataOut
+}
+
+func expandEntityType(data map[string]interface{}) OpenInstallationQuickstartEntityType {
+	v, ok := data["entityType"]
+	if !ok {
+		return OpenInstallationQuickstartEntityType{}
+	}
+
+	dataIn := v.(map[interface{}]interface{})
+	reData := map[string]interface{}{}
+	for k, v := range dataIn {
+		reData[k.(string)] = v
+	}
+
+	entityType := OpenInstallationQuickstartEntityType{
+		Type:   toStringByFieldName("type", reData),
+		Domain: toStringByFieldName("domain", reData),
+	}
+
+	return entityType
 }
 
 func expandSuccessLinkConfig(recipe map[string]interface{}) OpenInstallationSuccessLinkConfig {

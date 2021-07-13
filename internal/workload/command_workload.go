@@ -1,18 +1,20 @@
 package workload
 
 import (
+	"strconv"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
 
 var (
-	accountID           int
 	name                string
 	entityGUIDs         []string
 	entitySearchQueries []string
@@ -25,16 +27,15 @@ var cmdGet = &cobra.Command{
 	Short: "Get a New Relic One workload.",
 	Long: `Get a New Relic One workload
 
-The get command retrieves a specific workload by its account ID and workload GUID.
+The get command retrieves a specific workload by its workload GUID.
 `,
-	Example: `newrelic workload create --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
+	Example: `newrelic workload get --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			workload, err := nrClient.Workloads.GetWorkload(accountID, guid)
-			utils.LogIfFatal(err)
+		workload, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, []entities.EntityGUID{entities.EntityGUID(guid)})
+		utils.LogIfFatal(err)
 
-			utils.LogIfFatal(output.Print(workload))
-		})
+		utils.LogIfFatal(output.Print(workload))
 	},
 }
 
@@ -46,13 +47,22 @@ var cmdList = &cobra.Command{
 The list command retrieves the workloads for the given account ID.
 `,
 	Example: `newrelic workload list --accountId 12345678`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			workload, err := nrClient.Workloads.ListWorkloads(accountID)
-			utils.LogIfFatal(err)
+		accountID := configAPI.RequireActiveProfileAccountID()
+		builder := entities.EntitySearchQueryBuilder{
+			Type: entities.EntitySearchQueryBuilderTypeTypes.WORKLOAD,
+			Tags: []entities.EntitySearchQueryBuilderTag{
+				{
+					Key:   "accountId",
+					Value: strconv.Itoa(accountID),
+				},
+			},
+		}
+		workload, err := client.NRClient.Entities.GetEntitySearchWithContext(utils.SignalCtx, entities.EntitySearchOptions{}, "", builder, nil)
+		utils.LogIfFatal(err)
 
-			utils.LogIfFatal(output.Print(workload))
-		})
+		utils.LogIfFatal(output.Print(workload))
 	},
 }
 
@@ -69,34 +79,37 @@ IDs can optionally be provided to include entities from different sub-accounts t
 you also have access to.
 `,
 	Example: `newrelic workload create --name 'Example workload' --accountId 12345678 --entitySearchQuery "name like 'Example application'"`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			createInput := workloads.CreateInput{
-				Name: name,
+		accountID := configAPI.RequireActiveProfileAccountID()
+
+		createInput := workloads.WorkloadCreateInput{
+			Name: name,
+		}
+
+		if len(entityGUIDs) > 0 {
+			for _, e := range entityGUIDs {
+				createInput.EntityGUIDs = append(createInput.EntityGUIDs, entities.EntityGUID(e))
 			}
+		}
 
-			if len(entityGUIDs) > 0 {
-				createInput.EntityGUIDs = entityGUIDs
+		if len(entitySearchQueries) > 0 {
+			var queryInputs []workloads.WorkloadEntitySearchQueryInput
+			for _, q := range entitySearchQueries {
+				queryInputs = append(queryInputs, workloads.WorkloadEntitySearchQueryInput{Query: q})
 			}
+			createInput.EntitySearchQueries = queryInputs
+		}
 
-			if len(entitySearchQueries) > 0 {
-				var queryInputs []workloads.EntitySearchQueryInput
-				for _, q := range entitySearchQueries {
-					queryInputs = append(queryInputs, workloads.EntitySearchQueryInput{Query: q})
-				}
-				createInput.EntitySearchQueries = queryInputs
-			}
+		if len(scopeAccountIDs) > 0 {
+			createInput.ScopeAccounts = &workloads.WorkloadScopeAccountsInput{AccountIDs: scopeAccountIDs}
+		}
 
-			if len(scopeAccountIDs) > 0 {
-				createInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
-			}
+		workload, err := client.NRClient.Workloads.WorkloadCreateWithContext(utils.SignalCtx, accountID, createInput)
+		utils.LogIfFatal(err)
 
-			workload, err := nrClient.Workloads.CreateWorkload(accountID, createInput)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(workload))
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(workload))
+		log.Info("success")
 	},
 }
 
@@ -113,33 +126,35 @@ together with an OR.  Multiple account scope IDs can optionally be provided to i
 entities from different sub-accounts that you also have access to.
 `,
 	Example: `newrelic workload update --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --name 'Updated workflow'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			updateInput := workloads.UpdateInput{
-				Name: name,
+		updateInput := workloads.WorkloadUpdateInput{
+			Name: name,
+		}
+
+		if len(entityGUIDs) > 0 {
+			for _, e := range entityGUIDs {
+				updateInput.EntityGUIDs = append(updateInput.EntityGUIDs, entities.EntityGUID(e))
 			}
+		}
 
-			if len(entityGUIDs) > 0 {
-				updateInput.EntityGUIDs = entityGUIDs
+		if len(entitySearchQueries) > 0 {
+			var queryInputs []workloads.WorkloadUpdateCollectionEntitySearchQueryInput
+			for _, q := range entitySearchQueries {
+				queryInputs = append(queryInputs, workloads.WorkloadUpdateCollectionEntitySearchQueryInput{Query: q})
 			}
+			updateInput.EntitySearchQueries = queryInputs
+		}
 
-			if len(entitySearchQueries) > 0 {
-				var queryInputs []workloads.EntitySearchQueryInput
-				for _, q := range entitySearchQueries {
-					queryInputs = append(queryInputs, workloads.EntitySearchQueryInput{Query: q})
-				}
-				updateInput.EntitySearchQueries = queryInputs
-			}
+		if len(scopeAccountIDs) > 0 {
+			updateInput.ScopeAccounts = &workloads.WorkloadScopeAccountsInput{AccountIDs: scopeAccountIDs}
+		}
 
-			if len(scopeAccountIDs) > 0 {
-				updateInput.ScopeAccountsInput = &workloads.ScopeAccountsInput{AccountIDs: scopeAccountIDs}
-			}
+		workload, err := client.NRClient.Workloads.WorkloadUpdateWithContext(utils.SignalCtx, entities.EntityGUID(guid), updateInput)
+		utils.LogIfFatal(err)
 
-			_, err := nrClient.Workloads.UpdateWorkload(guid, updateInput)
-			utils.LogIfFatal(err)
-
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(workload))
+		log.Info("success")
 	},
 }
 
@@ -153,19 +168,20 @@ it to the provided account ID. An optional name can be provided for the new work
 If the name isn't specified, the name + ' copy' of the source workload is used to
 compose the new name.
 `,
-	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'`,
+	Example: `newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountId 12345678 --name 'New Workload'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			duplicateInput := &workloads.DuplicateInput{
-				Name: name,
-			}
+		accountID := configAPI.RequireActiveProfileAccountID()
 
-			workload, err := nrClient.Workloads.DuplicateWorkload(accountID, guid, duplicateInput)
-			utils.LogIfFatal(err)
+		duplicateInput := workloads.WorkloadDuplicateInput{
+			Name: name,
+		}
 
-			utils.LogIfFatal(output.Print(workload))
-			log.Info("success")
-		})
+		workload, err := client.NRClient.Workloads.WorkloadDuplicateWithContext(utils.SignalCtx, accountID, entities.EntityGUID(guid), duplicateInput)
+		utils.LogIfFatal(err)
+
+		utils.LogIfFatal(output.Print(workload))
+		log.Info("success")
 	},
 }
 
@@ -177,37 +193,30 @@ var cmdDelete = &cobra.Command{
 The delete command accepts a workload's entity GUID.
 `,
 	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			_, err := nrClient.Workloads.DeleteWorkload(guid)
-			utils.LogIfFatal(err)
+		_, err := client.NRClient.Workloads.WorkloadDeleteWithContext(utils.SignalCtx, entities.EntityGUID(guid))
+		utils.LogIfFatal(err)
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
 func init() {
 	// Get
 	Command.AddCommand(cmdGet)
-	cmdGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where the workload is located")
 	cmdGet.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload")
-	utils.LogIfError(cmdGet.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdGet.MarkFlagRequired("guid"))
 
 	// List
 	Command.AddCommand(cmdList)
-	cmdList.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID you want to list workloads for")
-	utils.LogIfError(cmdList.MarkFlagRequired("accountId"))
 
 	// Create
 	Command.AddCommand(cmdCreate)
-	cmdCreate.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic account ID where you want to create the workload")
 	cmdCreate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload")
 	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
-	utils.LogIfError(cmdCreate.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdCreate.MarkFlagRequired("name"))
 
 	// Update
@@ -222,9 +231,7 @@ func init() {
 	// Duplicate
 	Command.AddCommand(cmdDuplicate)
 	cmdDuplicate.Flags().StringVarP(&guid, "guid", "g", "", "the GUID of the workload you want to duplicate")
-	cmdDuplicate.Flags().IntVarP(&accountID, "accountId", "a", 0, "the New Relic Account ID where you want to create the new workload")
 	cmdDuplicate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload to duplicate")
-	utils.LogIfError(cmdDuplicate.MarkFlagRequired("accountId"))
 	utils.LogIfError(cmdDuplicate.MarkFlagRequired("guid"))
 
 	// Delete

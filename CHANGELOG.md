@@ -1,3 +1,90 @@
+<a name="v0.30.2"></a>
+## [v0.30.2] - 2021-07-13
+### Bug Fixes
+- **install:** use filepath.join for creating file path
+- **install:** provide cli log file path to recipe
+- **install:** ensure the newrelic-cli.log file is created for install
+
+<a name="v0.30.1"></a>
+## [v0.30.1] - 2021-07-12
+### Bug Fixes
+- **install:** add insight insert key so recipe can diagnose validate
+
+<a name="v0.30.0"></a>
+## [v0.30.0] - 2021-07-12
+### Bug Fixes
+- **install:** do not use deprecated api to fetch license key
+
+### Documentation Updates
+- **profile:** fix command flag names
+
+<a name="v0.29.5"></a>
+## [v0.29.5] - 2021-07-09
+### Bug Fixes
+- **install:** update downloadURL access list to remove aws s3 bucket region
+- **install:** ami_name is optional
+- **install:** skip snapcraft error when building
+- **install:** pin E2E test to go version
+- **install:** remove release notes from snapshop
+- **install:** fix mount for EU tests
+- **install:** fix E2E tests to work with ARM64
+
+<a name="v0.29.4"></a>
+## [v0.29.4] - 2021-07-08
+<a name="v0.29.3"></a>
+## [v0.29.3] - 2021-07-01
+<a name="v0.29.2"></a>
+## [v0.29.2] - 2021-06-30
+### Bug Fixes
+- **install:** add regex to process detection to skip newrelic install process
+- **install:** merge for simplified logic
+- **install:** simplified logic
+- **install:** skipping infra agent during a targeted install should yield an error
+- **install:** update error message when failing detection
+- **install:** targeted install uses process detection
+- **install:** skipping infra agent during a targeted install should yield an error
+- **install:** update error message when failing detection
+- **install:** targeted install uses process detection
+- **packs:** use structured error message
+
+### Features
+- **entities:** use context-aware methods for entity tag commands
+
+<a name="v0.29.1"></a>
+## [v0.29.1] - 2021-06-28
+### Bug Fixes
+- **packs:** include packs in the graphql query fragment
+
+<a name="v0.29.0"></a>
+## [v0.29.0] - 2021-06-28
+### Bug Fixes
+- **install:** append each pack status event
+- **install:** update status when there's an existing packStatus
+- **install:** use queryBuilder instead of query string
+- **install:** use entitySearch to check for existing dashboards
+- **install:** fail progress indicator when dashboard creation fails
+- **install:** check for existing dashboards before creating
+
+### Features
+- **install:** track final status for packs
+- **install:** add status reporting for pack installation
+- **install:** create observability pack dashboards when installing recipe
+
+<a name="v0.28.14"></a>
+## [v0.28.14] - 2021-06-25
+### Bug Fixes
+- **install:** ensure cache is refreshed for debian
+- **install:** fix syntax
+- **install:** fix syntax
+- **install:** handle prompt answer for case insensitive and blank
+
+<a name="v0.28.13"></a>
+## [v0.28.13] - 2021-06-24
+<a name="v0.28.12"></a>
+## [v0.28.12] - 2021-06-23
+### Bug Fixes
+- **install:** temp disable of the newrelic validation on start until default profile is fixed
+
 <a name="v0.28.11"></a>
 ## [v0.28.11] - 2021-06-17
 ### Bug Fixes
@@ -777,7 +864,19 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.2...HEAD
+[v0.30.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.1...v0.30.2
+[v0.30.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.0...v0.30.1
+[v0.30.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.5...v0.30.0
+[v0.29.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.4...v0.29.5
+[v0.29.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.3...v0.29.4
+[v0.29.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.2...v0.29.3
+[v0.29.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.1...v0.29.2
+[v0.29.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.0...v0.29.1
+[v0.29.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.14...v0.29.0
+[v0.28.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.13...v0.28.14
+[v0.28.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...v0.28.13
+[v0.28.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...v0.28.12
 [v0.28.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.10...v0.28.11
 [v0.28.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.9...v0.28.10
 [v0.28.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.8...v0.28.9

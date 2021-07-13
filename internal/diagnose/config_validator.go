@@ -9,7 +9,8 @@ import (
 
 	"github.com/shirou/gopsutil/host"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -26,7 +27,6 @@ const (
 type ConfigValidator struct {
 	client *newrelic.NewRelic
 	*validation.PollingNRQLValidator
-	profile           *credentials.Profile
 	PostRetryDelaySec int
 	PostMaxRetries    int
 }
@@ -45,14 +45,15 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 	return &ConfigValidator{
 		client:               client,
 		PollingNRQLValidator: v,
-		profile:              credentials.DefaultProfile(),
 		PostRetryDelaySec:    DefaultPostRetryDelaySec,
 		PostMaxRetries:       DefaultPostMaxRetries,
 	}
 }
 
 func (c *ConfigValidator) Validate(ctx context.Context) error {
-	if err := c.validateKeys(c.profile); err != nil {
+	accountID := configAPI.GetActiveProfileAccountID()
+
+	if err := c.validateKeys(ctx); err != nil {
 		return err
 	}
 
@@ -70,7 +71,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	}
 
 	postEvent := func() error {
-		if err = c.client.Events.CreateEvent(c.profile.AccountID, evt); err != nil {
+		if err = c.client.Events.CreateEventWithContext(ctx, accountID, evt); err != nil {
 			log.Error(err)
 			return ErrPostEvent
 		}
@@ -79,7 +80,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, postEvent)
-	if err = r.ExecWithRetries(); err != nil {
+	if err = r.ExecWithRetries(ctx); err != nil {
 		return err
 	}
 
@@ -99,33 +100,35 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	return err
 }
 
-func (c *ConfigValidator) validateKeys(profile *credentials.Profile) error {
+func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	validateKeyFunc := func() error {
-		if err := c.validateLicenseKey(profile); err != nil {
+		if err := c.validateLicenseKey(ctx); err != nil {
 			return err
 		}
 
-		if err := c.validateInsightsInsertKey(profile); err != nil {
+		if err := c.validateInsightsInsertKey(ctx); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, validateKeyFunc)
-	if err := r.ExecWithRetries(); err != nil {
+	if err := r.ExecWithRetries(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *ConfigValidator) validateInsightsInsertKey(profile *credentials.Profile) error {
-	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeys(profile.AccountID)
+func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
+	accountID := configAPI.GetActiveProfileAccountID()
+	insightsInsertKey := configAPI.GetActiveProfileString(config.InsightsInsertKey)
+	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeysWithContext(ctx, accountID)
 	if err != nil {
 		return fmt.Errorf(ErrConnectionStringFormat, err)
 	}
 
 	for _, k := range insightsInsertKeys {
-		if k.Key == profile.InsightsInsertKey {
+		if k.Key == insightsInsertKey {
 			return nil
 		}
 	}
@@ -133,23 +136,25 @@ func (c *ConfigValidator) validateInsightsInsertKey(profile *credentials.Profile
 	return ErrInsightsInsertKey
 }
 
-func (c *ConfigValidator) validateLicenseKey(profile *credentials.Profile) error {
+func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
+	accountID := configAPI.GetActiveProfileAccountID()
+	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs: []int{profile.AccountID},
+			AccountIDs: []int{accountID},
 		},
 		Types: []apiaccess.APIAccessKeyType{
 			apiaccess.APIAccessKeyTypeTypes.INGEST,
 		},
 	}
 
-	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeys(params)
+	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
 	if err != nil {
 		return fmt.Errorf(ErrConnectionStringFormat, err)
 	}
 
 	for _, k := range licenseKeys {
-		if k.Key == profile.LicenseKey {
+		if k.Key == licenseKey {
 			return nil
 		}
 	}

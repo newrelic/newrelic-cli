@@ -3,7 +3,7 @@ package execution
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
@@ -70,6 +70,30 @@ func (r NerdstorageStatusReporter) RecipeUnsupported(status *InstallStatus, even
 	return r.writeStatus(status)
 }
 
+func (r NerdstorageStatusReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
+func (r NerdstorageStatusReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
 func (r NerdstorageStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	if err := r.writeStatus(status); err != nil {
 		return err
@@ -96,8 +120,8 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 		log.Debug("no entity GUIDs available, skipping entity-scoped status updates")
 	}
 
-	defaultProfile := credentials.DefaultProfile()
-	_, err = r.client.WriteDocumentWithAccountScope(defaultProfile.AccountID, i)
+	accountID := configAPI.GetActiveProfileAccountID()
+	_, err = r.client.WriteDocumentWithAccountScope(accountID, i)
 	if err != nil {
 		log.Debug("failed to write to account scoped nerd storage")
 	}

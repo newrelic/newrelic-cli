@@ -11,7 +11,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	ng "github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
 )
 
@@ -42,32 +41,31 @@ keys are the variables to be referenced in the GraphQL query.
 
 		return nil
 	},
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var variablesParsed map[string]interface{}
+		var variablesParsed map[string]interface{}
 
-			err := json.Unmarshal([]byte(variables), &variablesParsed)
-			if err != nil {
-				log.Fatal(err)
-			}
+		err := json.Unmarshal([]byte(variables), &variablesParsed)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			query := args[0]
+		query := args[0]
 
-			result, err := nrClient.NerdGraph.Query(query, variablesParsed)
-			if err != nil {
-				log.Fatal(err)
-			}
+		result, err := client.NRClient.NerdGraph.QueryWithContext(utils.SignalCtx, query, variablesParsed)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			reqBodyBytes := new(bytes.Buffer)
+		reqBodyBytes := new(bytes.Buffer)
 
-			encoder := json.NewEncoder(reqBodyBytes)
-			err = encoder.Encode(ng.QueryResponse{
-				Actor: result.(ng.QueryResponse).Actor,
-			})
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(reqBodyBytes))
+		encoder := json.NewEncoder(reqBodyBytes)
+		err = encoder.Encode(ng.QueryResponse{
+			Actor: result.(ng.QueryResponse).Actor,
 		})
+		utils.LogIfFatal(err)
+
+		utils.LogIfFatal(output.Print(reqBodyBytes))
 	},
 }
 

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -10,7 +11,7 @@ import (
 
 const (
 	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "INFO"
+	DefaultLogLevel = "info"
 
 	// DefaultLogFile is the default log file
 	DefaultLogFile = "newrelic-cli.log"
@@ -20,7 +21,7 @@ var (
 	fileHookConfigured = false
 )
 
-func initLogger(logLevel string) {
+func InitLogger(logLevel string) {
 	l := log.StandardLogger()
 
 	l.SetFormatter(&log.TextFormatter{
@@ -43,22 +44,26 @@ func initLogger(logLevel string) {
 	}
 }
 
+func GetDefaultLogFilePath() string {
+	return filepath.Join(BasePath, DefaultLogFile)
+}
+
 func InitFileLogger() {
 	if fileHookConfigured {
 		log.Debug("file logger already configured")
 		return
 	}
 
-	_, err := os.Stat(DefaultConfigDirectory)
+	_, err := os.Stat(BasePath)
 
 	if os.IsNotExist(err) {
-		errDir := os.MkdirAll(DefaultConfigDirectory, 0750)
+		errDir := os.MkdirAll(BasePath, 0750)
 		if errDir != nil {
 			log.Warnf("Could not create log file folder: %s", err)
 		}
 	}
 
-	fileHook, err := NewLogrusFileHook(DefaultConfigDirectory+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
+	fileHook, err := NewLogrusFileHook(BasePath+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
 	if err == nil && !fileHookConfigured {
 		l := log.StandardLogger()
 		l.Hooks.Add(fileHook)

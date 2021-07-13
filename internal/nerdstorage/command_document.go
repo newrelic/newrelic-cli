@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
 
@@ -40,34 +40,34 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage document get --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var document interface{}
-			var err error
+		var document interface{}
+		var err error
 
-			input := nerdstorage.GetDocumentInput{
-				PackageID:  packageID,
-				Collection: collection,
-				DocumentID: documentID,
-			}
+		input := nerdstorage.GetDocumentInput{
+			PackageID:  packageID,
+			Collection: collection,
+			DocumentID: documentID,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				document, err = nrClient.NerdStorage.GetDocumentWithAccountScope(accountID, input)
-			case "entity":
-				document, err = nrClient.NerdStorage.GetDocumentWithEntityScope(entityGUID, input)
-			case "user":
-				document, err = nrClient.NerdStorage.GetDocumentWithUserScope(input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			accountID := configAPI.RequireActiveProfileAccountID()
+			document, err = client.NRClient.NerdStorage.GetDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			document, err = client.NRClient.NerdStorage.GetDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			document, err = client.NRClient.NerdStorage.GetDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			utils.LogIfFatal(output.Print(document))
-			log.Info("success")
-		})
+		utils.LogIfFatal(output.Print(document))
+		log.Info("success")
 	},
 }
 
@@ -90,37 +90,37 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage document write --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc --document '{"field": "myValue"}'
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var unmarshaled map[string]interface{}
-			err := json.Unmarshal([]byte(document), &unmarshaled)
-			if err != nil {
-				log.Fatalf("error parsing provided document: %s", err)
-			}
+		var unmarshaled map[string]interface{}
+		err := json.Unmarshal([]byte(document), &unmarshaled)
+		if err != nil {
+			log.Fatalf("error parsing provided document: %s", err)
+		}
 
-			input := nerdstorage.WriteDocumentInput{
-				PackageID:  packageID,
-				Collection: collection,
-				DocumentID: documentID,
-				Document:   unmarshaled,
-			}
+		input := nerdstorage.WriteDocumentInput{
+			PackageID:  packageID,
+			Collection: collection,
+			DocumentID: documentID,
+			Document:   unmarshaled,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				_, err = nrClient.NerdStorage.WriteDocumentWithAccountScope(accountID, input)
-			case "entity":
-				_, err = nrClient.NerdStorage.WriteDocumentWithEntityScope(entityGUID, input)
-			case "user":
-				_, err = nrClient.NerdStorage.WriteDocumentWithUserScope(input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			accountID := configAPI.RequireActiveProfileAccountID()
+			_, err = client.NRClient.NerdStorage.WriteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			_, err = client.NRClient.NerdStorage.WriteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			_, err = client.NRClient.NerdStorage.WriteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -143,32 +143,32 @@ GUID.  A valid Nerdpack package ID is required.
   # User scope
   newrelic nerdstorage document delete --scope USER --packageId b0dee5a1-e809-4d6f-bd3c-0682cd079612 --collection myCol --documentId myDoc
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			var err error
+		var err error
 
-			input := nerdstorage.DeleteDocumentInput{
-				PackageID:  packageID,
-				Collection: collection,
-				DocumentID: documentID,
-			}
+		input := nerdstorage.DeleteDocumentInput{
+			PackageID:  packageID,
+			Collection: collection,
+			DocumentID: documentID,
+		}
 
-			switch strings.ToLower(scope) {
-			case "account":
-				_, err = nrClient.NerdStorage.DeleteDocumentWithAccountScope(accountID, input)
-			case "entity":
-				_, err = nrClient.NerdStorage.DeleteDocumentWithEntityScope(entityGUID, input)
-			case "user":
-				_, err = nrClient.NerdStorage.DeleteDocumentWithUserScope(input)
-			default:
-				log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
+		switch strings.ToLower(scope) {
+		case "account":
+			accountID := configAPI.RequireActiveProfileAccountID()
+			_, err = client.NRClient.NerdStorage.DeleteDocumentWithAccountScopeWithContext(utils.SignalCtx, accountID, input)
+		case "entity":
+			_, err = client.NRClient.NerdStorage.DeleteDocumentWithEntityScopeWithContext(utils.SignalCtx, entityGUID, input)
+		case "user":
+			_, err = client.NRClient.NerdStorage.DeleteDocumentWithUserScopeWithContext(utils.SignalCtx, input)
+		default:
+			log.Fatal("scope must be one of ACCOUNT, ENTITY, or USER")
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
 
-			log.Info("success")
-		})
+		log.Info("success")
 	},
 }
 
@@ -176,7 +176,6 @@ func init() {
 	Command.AddCommand(cmdDocument)
 
 	cmdDocument.AddCommand(cmdDocumentGet)
-	cmdDocumentGet.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdDocumentGet.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdDocumentGet.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdDocumentGet.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to get the document from")
@@ -196,7 +195,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdDocument.AddCommand(cmdDocumentWrite)
-	cmdDocumentWrite.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdDocumentWrite.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdDocumentWrite.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdDocumentWrite.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to write the document to")
@@ -220,7 +218,6 @@ func init() {
 	utils.LogIfError(err)
 
 	cmdDocument.AddCommand(cmdDocumentDelete)
-	cmdDocumentDelete.Flags().IntVarP(&accountID, "accountId", "a", 0, "the account ID")
 	cmdDocumentDelete.Flags().StringVarP(&entityGUID, "entityGuid", "e", "", "the entity GUID")
 	cmdDocumentDelete.Flags().StringVarP(&packageID, "packageId", "p", "", "the external package ID")
 	cmdDocumentDelete.Flags().StringVarP(&collection, "collection", "c", "", "the collection name to delete the document from")

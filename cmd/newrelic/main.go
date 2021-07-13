@@ -12,7 +12,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	configCmd "github.com/newrelic/newrelic-cli/internal/config/command"
 	"github.com/newrelic/newrelic-cli/internal/decode"
 	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/edge"
@@ -22,6 +23,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
+	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
@@ -37,18 +39,17 @@ func init() {
 	Command.AddCommand(agent.Command)
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(apm.Command)
-	Command.AddCommand(config.Command)
-	Command.AddCommand(credentials.Command)
+	Command.AddCommand(configCmd.Command)
 	Command.AddCommand(decode.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
 	Command.AddCommand(entities.Command)
 	Command.AddCommand(events.Command)
 	Command.AddCommand(install.Command)
-	Command.AddCommand(install.TestCommand)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
 	Command.AddCommand(nrql.Command)
+	Command.AddCommand(profile.Command)
 	Command.AddCommand(reporting.Command)
 	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)
@@ -69,18 +70,16 @@ func main() {
 // CheckPrereleaseMode unhides subcommands marked as hidden when the pre-release
 // flag is active.
 func CheckPrereleaseMode(c *cobra.Command) {
-	config.WithConfig(func(cfg *config.Config) {
-		if !cfg.PreReleaseFeatures.Bool() {
-			return
-		}
+	if configAPI.GetConfigTernary(config.PreReleaseFeatures).Bool() {
+		return
+	}
 
-		log.Debug("Pre-release mode active")
+	log.Debug("Pre-release mode active")
 
-		for _, cmd := range c.Commands() {
-			if cmd.Hidden {
-				log.Debugf("Activating pre-release subcommand: %s", cmd.Name())
-				cmd.Hidden = false
-			}
+	for _, cmd := range c.Commands() {
+		if cmd.Hidden {
+			log.Debugf("Activating pre-release subcommand: %s", cmd.Name())
+			cmd.Hidden = false
 		}
-	})
+	}
 }

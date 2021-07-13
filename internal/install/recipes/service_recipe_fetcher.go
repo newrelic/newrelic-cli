@@ -60,6 +60,10 @@ const (
 		stability
 		repository
 		install
+		observabilityPacks {
+			name
+			level
+		}
 		installTargets {
 			type
 			os

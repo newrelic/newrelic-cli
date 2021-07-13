@@ -32,7 +32,8 @@ type RecipeFileFetcher interface {
 }
 
 type RecipeFilterRunner interface {
-	RunFilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe
+	RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe
+	EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error
 }
 
 // RecipeValidator validates installation of a recipe.
@@ -46,4 +47,12 @@ type RecipeVarPreparer interface {
 
 type RecipeRepository interface {
 	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
+}
+
+type PacksInstaller interface {
+	Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error
+}
+
+type PacksFetcher interface {
+	FetchPacks(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationObservabilityPack, error)
 }

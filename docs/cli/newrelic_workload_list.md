@@ -22,15 +22,18 @@ newrelic workload list --accountId 12345678
 ### Options
 
 ```
-  -a, --accountId int   the New Relic account ID you want to list workloads for
-  -h, --help            help for list
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

@@ -5,7 +5,6 @@ import (
 )
 
 var (
-	accountID  int
 	entityGUID string
 	packageID  string
 	collection string
