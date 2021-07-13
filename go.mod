@@ -3,7 +3,7 @@ module github.com/newrelic/newrelic-cli
 go 1.13
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.2.12
+	github.com/AlecAivazis/survey/v2 v2.2.14
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/briandowns/spinner v1.15.0
 	github.com/client9/misspell v0.3.4
@@ -33,7 +33,7 @@ require (
 	github.com/tidwall/gjson v1.8.0
 	github.com/tidwall/sjson v1.1.7
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
-	golang.org/x/term v0.0.0-20210503060354-a79de5458b56
+	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/tools v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.4
