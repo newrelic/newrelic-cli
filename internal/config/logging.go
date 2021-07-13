@@ -43,6 +43,10 @@ func InitLogger(logLevel string) {
 	}
 }
 
+func GetDefaultLogFilePath() string {
+	return BasePath + "/" + DefaultLogFile
+}
+
 func InitFileLogger() {
 	if fileHookConfigured {
 		log.Debug("file logger already configured")
