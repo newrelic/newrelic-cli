@@ -1,13 +1,10 @@
 package execution
 
 import (
-	"time"
-
 	"github.com/newrelic/newrelic-cli/internal/credentials"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/installevents"
-	"github.com/newrelic/newrelic-client-go/pkg/nrtime"
 )
 
 type InstallEventsReporter struct {
@@ -25,95 +22,95 @@ func NewInstallEventsReporter(client InstalleventsClient) *InstallEventsReporter
 	return &r
 }
 
-func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.FAILED)
+func (r InstallEventsReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+	event := RecipeStatusEvent{Recipe: recipe}
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.AVAILABLE, event)
+	return err
+}
 
-	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
+func (r InstallEventsReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.CANCELED, event)
+	return err
+}
+
+func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.FAILED, event)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.INSTALLING)
-
-	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLING, event)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.INSTALLED)
-
-	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLED, event)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.SKIPPED)
-
-	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.SKIPPED, event)
 	return err
 }
 
 func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &installevents.InstallationRecipeStatusTypeTypes.RECOMMENDED)
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.RECOMMENDED, event)
+	return err
+}
 
-	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
+func (r InstallEventsReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.UNSUPPORTED, event)
 	return err
 }
 
 func (r InstallEventsReporter) RecipesAvailable(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
-	return r.writeStatus(status)
-}
-
-func (r InstallEventsReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
-	return r.writeStatus(status)
-}
-
-func (r InstallEventsReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
-	return r.writeStatus(status)
+	return nil
 }
 
 func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
-	return r.writeStatus(status)
+	return nil
 }
 
-func (r InstallEventsReporter) writeStatus(status *InstallStatus) error {
-	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, buildInstallStatus(status, nil, nil))
+func (r InstallEventsReporter) createRecipeInstallEvent(status *InstallStatus, statusType installevents.InstallationRecipeStatusType, event RecipeStatusEvent) error {
+	s := buildInstallStatus(status, &event, &statusType)
+	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
+
 	return err
 }
 
@@ -141,7 +138,7 @@ func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusT
 		i.Name = event.Recipe.Name
 		i.DisplayName = event.Recipe.DisplayName
 		i.EntityGUID = entities.EntityGUID(event.EntityGUID)
-		i.ValidationDurationMilliseconds = nrtime.EpochMilliseconds(time.Unix(event.ValidationDurationMilliseconds, 0).UTC())
+		i.ValidationDurationMilliseconds = event.ValidationDurationMilliseconds
 	}
 
 	if statusType != nil {
