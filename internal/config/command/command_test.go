@@ -1,6 +1,6 @@
 // +build unit
 
-package config
+package command
 
 import (
 	"testing"
@@ -17,11 +17,11 @@ func TestConfigCommand(t *testing.T) {
 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
 }
 
-func TestCmdDelete(t *testing.T) {
-	assert.Equal(t, "delete", cmdDelete.Name())
+func TestCmdReset(t *testing.T) {
+	assert.Equal(t, "reset", cmdReset.Name())
 
-	testcobra.CheckCobraMetadata(t, cmdDelete)
-	testcobra.CheckCobraRequiredFlags(t, cmdDelete, []string{"key"})
+	testcobra.CheckCobraMetadata(t, cmdReset)
+	testcobra.CheckCobraRequiredFlags(t, cmdReset, []string{"key"})
 }
 
 func TestCmdGet(t *testing.T) {

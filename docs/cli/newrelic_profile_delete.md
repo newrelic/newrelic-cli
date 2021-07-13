@@ -16,21 +16,24 @@ newrelic profile delete [flags]
 ### Examples
 
 ```
-newrelic profile delete --name <profileName>
+newrelic profile delete --profile <profile>
 ```
 
 ### Options
 
 ```
-  -h, --help          help for delete
-  -n, --name string   the profile name to delete
+  -h, --help   help for delete
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

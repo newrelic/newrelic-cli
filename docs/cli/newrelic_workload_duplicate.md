@@ -19,23 +19,26 @@ newrelic workload duplicate [flags]
 ### Examples
 
 ```
-newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountID 12345678 --name 'New Workload'
+newrelic workload duplicate --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1' --accountId 12345678 --name 'New Workload'
 ```
 
 ### Options
 
 ```
-  -a, --accountId int   the New Relic Account ID where you want to create the new workload
-  -g, --guid string     the GUID of the workload you want to duplicate
-  -h, --help            help for duplicate
-  -n, --name string     the name of the workload to duplicate
+  -g, --guid string   the GUID of the workload you want to duplicate
+  -h, --help          help for duplicate
+  -n, --name string   the name of the workload to duplicate
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

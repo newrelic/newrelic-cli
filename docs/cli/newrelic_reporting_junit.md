@@ -21,18 +21,21 @@ newrelic reporting junit --accountId 12345678 --path unit.xml
 ### Options
 
 ```
-  -a, --accountId int   the New Relic account ID to send test run results to
-      --dryRun          suppress posting custom events to NRDB
-  -h, --help            help for junit
-  -o, --output          output generated custom events to stdout
-  -p, --path string     the path to a JUnit-formatted test results file
+      --dryRun        suppress posting custom events to NRDB
+  -h, --help          help for junit
+  -o, --output        output generated custom events to stdout
+  -p, --path string   the path to a JUnit-formatted test results file
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

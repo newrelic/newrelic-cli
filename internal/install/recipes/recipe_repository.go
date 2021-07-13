@@ -55,7 +55,6 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 	}
 
 	log.Debugf("Find all available out of %d recipes for host %+v", len(rf.recipes), hostMap)
-	log.Debugf("All recipes: %+v", rf.recipes)
 
 	for _, recipe := range rf.recipes {
 		matchTargetCount := []int{}

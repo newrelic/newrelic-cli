@@ -3,6 +3,7 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestShouldRetryAndPass(t *testing.T) {
 		CallsBeforeSuccess: 3,
 	}
 	r := NewRetry(3, 0, m.testErrorUntilFunc)
-	err := r.ExecWithRetries()
+	err := r.ExecWithRetries(context.Background())
 	require.Equal(t, 3, m.CallCount)
 	require.NoError(t, err)
 }
@@ -26,7 +27,7 @@ func TestShouldRetryAndPass(t *testing.T) {
 func TestShouldRetryAndFail(t *testing.T) {
 	m := MockFunc{}
 	r := NewRetry(3, 0, m.testErrorFunc)
-	err := r.ExecWithRetries()
+	err := r.ExecWithRetries(context.Background())
 	require.Equal(t, 3, m.CallCount)
 	require.Equal(t, err.Error(), errorAfterAllRetry)
 }
@@ -36,7 +37,7 @@ func TestShouldNotRetry(t *testing.T) {
 		CallsBeforeSuccess: 3,
 	}
 	r := NewRetry(3, 0, m.testOkFunc)
-	err := r.ExecWithRetries()
+	err := r.ExecWithRetries(context.Background())
 	require.Equal(t, 1, m.CallCount)
 	require.NoError(t, err)
 }

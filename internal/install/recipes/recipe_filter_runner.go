@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -65,7 +66,7 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 	return false
 }
 
-func (rf *RecipeFilterRunner) RunFilterMultiple(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
+func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
 	results := []types.OpenInstallationRecipe{}
 
 	for _, recipe := range r {
@@ -77,6 +78,28 @@ func (rf *RecipeFilterRunner) RunFilterMultiple(ctx context.Context, r []types.O
 	}
 
 	return results
+}
+
+func getRecipeFirstName(r types.OpenInstallationRecipe) string {
+	if len(r.DisplayName) > 0 {
+		parts := strings.Split(r.DisplayName, " ")
+		return parts[0]
+	}
+	return r.DisplayName
+}
+
+func (rf *RecipeFilterRunner) EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
+	for _, recipe := range r {
+		filtered := rf.RunFilter(ctx, &recipe, m)
+
+		if filtered {
+			rf.installStatus.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: recipe})
+			recipeFirstName := getRecipeFirstName(recipe)
+			return fmt.Errorf("we couldn’t install the %s. Make sure %s is installed and running on this host and rerun the newrelic-cli command", recipe.DisplayName, recipeFirstName)
+		}
+	}
+
+	return nil
 }
 
 type RecipeFilterer interface {

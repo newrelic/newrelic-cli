@@ -19,7 +19,7 @@ func TestLocalRecipeFetcher_FetchRecipes_EmptyManifest(t *testing.T) {
 	defer os.RemoveAll(tmp)
 	require.NoError(t, err)
 
-	config.DefaultConfigDirectory = tmp
+	config.Init(tmp)
 
 	path := filepath.Join(tmp, "recipes")
 	err = os.MkdirAll(path, 0750)
@@ -40,7 +40,7 @@ func TestLocalRecipeFetcher_FetchRecipes(t *testing.T) {
 	defer os.RemoveAll(tmp)
 	require.NoError(t, err)
 
-	config.DefaultConfigDirectory = tmp
+	config.Init(tmp)
 
 	path := filepath.Join(tmp, "recipes")
 

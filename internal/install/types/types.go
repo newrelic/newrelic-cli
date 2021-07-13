@@ -9,11 +9,34 @@ var OpenInstallationCategoryTypes = struct {
 	COMMUNITY OpenInstallationCategory
 	// NEWRELIC category
 	NEWRELIC OpenInstallationCategory
+	// Verified Observbility Pack
+	VERIFIED OpenInstallationCategory
 }{
 	// COMMUNITY category
 	COMMUNITY: "COMMUNITY",
 	// NEWRELIC category
 	NEWRELIC: "NEWRELIC",
+	// Verified Observbility Pack
+	VERIFIED: "VERIFIED",
+}
+
+// OpenInstallationObservabilityPackLevel - Level categorization of Observability Pack
+type OpenInstallationObservabilityPackLevel string
+
+var OpenInstallationObservabilityPackLevelTypes = struct {
+	// Community Observability Pack
+	COMMUNITY OpenInstallationObservabilityPackLevel
+	// New Relic Observability Pack
+	NEWRELIC OpenInstallationObservabilityPackLevel
+	// Verified Observbility Pack
+	VERIFIED OpenInstallationObservabilityPackLevel
+}{
+	// Community Observability Pack
+	COMMUNITY: "COMMUNITY",
+	// New Relic Observability Pack
+	NEWRELIC: "NEWRELIC",
+	// Verified Observbility Pack
+	VERIFIED: "VERIFIED",
 }
 
 // OpenInstallationOperatingSystem - Operating System of target environment
@@ -156,6 +179,38 @@ type OpenInstallationAttributes struct {
 	Logtype string `json:"logtype,omitempty" yaml:"logtype,omitempty"`
 }
 
+// OpenInstallationDocsStitchedFields - Search for and execute installation of additional instrumentation and integrations
+type OpenInstallationDocsStitchedFields struct {
+	// Fetch a observabilityPack by ID
+	ObservabilityPack OpenInstallationObservabilityPack `json:"observabilityPack,omitempty" yaml:"observabilityPack,omitempty"`
+	// Search all Observability Packs
+	ObservabilityPackSearch OpenInstallationObservabilityPackResults `json:"observabilityPackSearch,omitempty" yaml:"observabilityPackSearch,omitempty"`
+	// Fetch a recipe by ID
+	Recipe OpenInstallationRecipe `json:"recipe,omitempty" yaml:"recipe,omitempty"`
+	// Search all recipes
+	RecipeSearch OpenInstallationRecipeListResult `json:"recipeSearch,omitempty" yaml:"recipeSearch,omitempty"`
+	// Get recommendations on what instrumentation to add
+	Recommendations OpenInstallationRecommendationsResult `json:"recommendations,omitempty" yaml:"recommendations,omitempty"`
+}
+
+// OpenInstallationInstallTarget - Unique set of attributes which represent an install target
+type OpenInstallationInstallTarget struct {
+	// OS kernel architecture
+	KernelArch string `json:"kernelArch,omitempty"`
+	// OS kernel version
+	KernelVersion string `json:"kernelVersion,omitempty"`
+	// Operating system
+	Os OpenInstallationOperatingSystem `json:"os,omitempty"`
+	// OS distribution
+	Platform OpenInstallationPlatform `json:"platform,omitempty"`
+	// OS distribution family
+	PlatformFamily OpenInstallationPlatformFamily `json:"platformFamily,omitempty"`
+	// OS distribution version
+	PlatformVersion string `json:"platformVersion,omitempty"`
+	// Target type
+	Type OpenInstallationTargetType `json:"type,omitempty"`
+}
+
 // OpenInstallationLogMatch - Matches partial list of the Log forwarding parameters
 type OpenInstallationLogMatch struct {
 	// List of custom attributes, as key-value pairs, that can be used to send additional data with the logs which you can then query.
@@ -170,6 +225,74 @@ type OpenInstallationLogMatch struct {
 	Systemd string `json:"systemd,omitempty" yaml:"systemd,omitempty"`
 }
 
+// OpenInstallationObservabilityPack - An Observability Pack (collection of related Observability features)
+type OpenInstallationObservabilityPack struct {
+	// List of contributors for this Observability Pack
+	Authors []string `json:"authors"`
+	// List of Dashboards contained in this Observability Pack
+	Dashboards []OpenInstallationObservabilityPackDashboard `json:"dashboards"`
+	// A short form description for this Observability Pack. Used throughout the platform when displaying the pack.
+	Description string `json:"description"`
+	// A unique Observability Pack identifier
+	ID string `json:"id"`
+	// URL of icon for this Observability Pack
+	IconURL string `json:"iconUrl,omitempty"`
+	// Level categorization of Observability Pack
+	Level OpenInstallationObservabilityPackLevel `json:"level"`
+	// URL of logo for this Observability Pack
+	LogoURL string `json:"logoUrl,omitempty"`
+	// The name of this Observability Pack
+	Name string `json:"name"`
+	// URL of website for this Observability Pack
+	WebsiteURL string `json:"websiteUrl,omitempty"`
+}
+
+// OpenInstallationObservabilityPackDashboard - An Observability Pack Dashboard
+type OpenInstallationObservabilityPackDashboard struct {
+	// Description of this Dashboard
+	Description string `json:"description"`
+	// Name of this Dashboard
+	Name string `json:"name"`
+	// List of screenshot URLs related to this Dashboard
+	Screenshots []string `json:"screenshots"`
+	// URL of Dashboard JSON definition
+	URL string `json:"url"`
+}
+
+// OpenInstallationObservabilityPackFilter - Metadata used to filter for Observability Packs
+type OpenInstallationObservabilityPackFilter struct {
+	// Level categorization of Observability Pack
+	Level OpenInstallationObservabilityPackLevel `json:"level,omitempty"`
+	// Name of the Observability Pack
+	Name string `json:"name,omitempty"`
+}
+
+// OpenInstallationObservabilityPackInputCriteria - Input for searching installable Observability Packs
+type OpenInstallationObservabilityPackInputCriteria struct {
+	// Support level of an Observability Pack
+	Level OpenInstallationObservabilityPackLevel `json:"level,omitempty"`
+	// The name of the Observability Pack
+	Name string `json:"name,omitempty"`
+}
+
+// OpenInstallationObservabilityPackResults - A data structure that contains the detailed response of an Observability Pack search.
+//
+// The direct search result is available through results. Information about the query itself is available through count.
+type OpenInstallationObservabilityPackResults struct {
+	// Number of results
+	Count int `json:"count,omitempty"`
+	// Cursor pointing to the end of the current page of Observability Packs. Null if final page.
+	NextCursor string `json:"nextCursor,omitempty"`
+	// The paginated results of the Observability Pack search
+	Results OpenInstallationObservabilityPackSearchResult `json:"results,omitempty"`
+}
+
+// OpenInstallationObservabilityPackSearchResult - A data structure that contains Observability Packs and the related components.
+type OpenInstallationObservabilityPackSearchResult struct {
+	// List of Observability Packs returned for this search
+	ObservabilityPacks []OpenInstallationObservabilityPack `json:"observabilityPacks"`
+}
+
 // OpenInstallationPostInstallConfiguration - Optional post-install configuration items
 type OpenInstallationPostInstallConfiguration struct {
 	// Message/Docs notice displayed to user after running the recipe
@@ -181,8 +304,15 @@ type OpenInstallationPreInstallConfiguration struct {
 	// Message/Docs notice displayed to user prior to running recipe
 	Info string `json:"info,omitempty" yaml:"info,omitempty"`
 	// Message/Docs notice displayed to user prior to running recipe
-	Prompt             string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
+	Prompt string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
+	// Script block to be executed during system discovery, a successful exit status will mark the recipe for execution
 	RequireAtDiscovery string `json:"requireAtDiscovery,omitempty" yaml:"requireAtDiscovery,omitempty"`
+}
+
+// OpenInstallationProcessDetailInput - Process details
+type OpenInstallationProcessDetailInput struct {
+	// Process name
+	Name string `json:"name,omitempty"`
 }
 
 // OpenInstallationQuickstartEntityType - Entity type relation for Quickstart
@@ -227,6 +357,8 @@ type OpenInstallationRecipe struct {
 	LogMatch []OpenInstallationLogMatch `json:"logMatch" yaml:"logMatch"`
 	// Short unique handle for the name of the integration
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+	// Metadata used to recommend and install Observability Packs
+	ObservabilityPacks []OpenInstallationObservabilityPackFilter `json:"observabilityPacks" yaml:"observabilityPacks"`
 	// Object representing optional post-install configuration items
 	PostInstall OpenInstallationPostInstallConfiguration `json:"postInstall,omitempty" yaml:"postInstall,omitempty"`
 	// Object representing optional pre-install configuration items
@@ -274,6 +406,40 @@ type OpenInstallationRecipeInstallTarget struct {
 	PlatformVersion string `json:"platformVersion,omitempty" yaml:"platformVersion,omitempty"`
 	// Target type
 	Type OpenInstallationTargetType `json:"type,omitempty" yaml:"type,omitempty"`
+}
+
+// OpenInstallationRecipeListResult - List of recipes
+type OpenInstallationRecipeListResult struct {
+	// Number of recipes returned
+	Count int `json:"count,omitempty"`
+	// List of recipes
+	Results []OpenInstallationRecipe `json:"results,omitempty"`
+}
+
+// OpenInstallationRecipeSearchCriteria - Input for searching installable integration recipes
+type OpenInstallationRecipeSearchCriteria struct {
+	// Friendly name of the integration
+	DisplayName string `json:"displayName,omitempty"`
+	// Object representing the intended install target
+	InstallTarget OpenInstallationInstallTarget `json:"installTarget,omitempty"`
+	// Short unique handle for the name of the integration
+	Name string `json:"name,omitempty"`
+}
+
+// OpenInstallationRecommendationsInput - Criteria for controlling recommendations
+type OpenInstallationRecommendationsInput struct {
+	// Unique set of attributes which represent an install target
+	InstallTarget OpenInstallationInstallTarget `json:"installTarget,omitempty"`
+	// List of processes
+	ProcessDetails []OpenInstallationProcessDetailInput `json:"processDetails,omitempty"`
+}
+
+// OpenInstallationRecommendationsResult - List of instrumentation recommendations
+type OpenInstallationRecommendationsResult struct {
+	// Number of recipes returned
+	Count int `json:"count,omitempty"`
+	// List of matching recipes
+	Results []OpenInstallationRecipe `json:"results"`
 }
 
 // OpenInstallationSuccessLinkConfig - Metadata to support generating a URL after installation success

@@ -15,6 +15,12 @@ type StatusSubscriber interface {
 	RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error
 	RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error
+	ObservabilityPackFetchPending(status *InstallStatus) error
+	ObservabilityPackFetchSuccess(status *InstallStatus) error
+	ObservabilityPackFetchFailed(status *InstallStatus) error
+	ObservabilityPackInstallPending(status *InstallStatus) error
+	ObservabilityPackInstallSuccess(status *InstallStatus) error
+	ObservabilityPackInstallFailed(status *InstallStatus) error
 }
 
 // RecipeStatusEvent represents an event in a recipe's execution.
@@ -24,4 +30,10 @@ type RecipeStatusEvent struct {
 	TaskPath                       []string
 	EntityGUID                     string
 	ValidationDurationMilliseconds int64
+}
+
+type ObservabilityPackStatusEvent struct {
+	ObservabilityPack types.OpenInstallationObservabilityPack
+	Name              string
+	Msg               string
 }

@@ -20,15 +20,18 @@ newrelic edge trace-observer list --accountId <accountID>
 ### Options
 
 ```
-  -a, --accountId int   A New Relic account ID
-  -h, --help            help for trace-observer
+  -h, --help   help for trace-observer
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

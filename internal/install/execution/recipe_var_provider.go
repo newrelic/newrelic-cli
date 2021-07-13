@@ -3,15 +3,24 @@ package execution
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
-	"strconv"
+	"regexp"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+)
+
+var (
+	downloadURLAccessListRegex []string = []string{
+		`(.)?download\.newrelic\.com$`,
+		`nr-downloads-ohai-(staging|testing)\.s3\.amazonaws\.com$`,
+	}
 )
 
 type RecipeVarProvider struct{}
@@ -41,10 +50,13 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 		return types.RecipeVars{}, err
 	}
 
+	envVarsResult := varFromEnv()
+
 	results = append(results, systemInfoResult)
 	results = append(results, profileResult)
 	results = append(results, types.RecipeVariables)
 	results = append(results, inputVarsResult)
+	results = append(results, envVarsResult)
 
 	for _, result := range results {
 		for k, v := range result {
@@ -56,7 +68,10 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 }
 
 func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
-	defaultProfile := credentials.DefaultProfile()
+	accountID := configAPI.GetActiveProfileString(config.AccountID)
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
+	region := configAPI.GetActiveProfileString(config.Region)
+	insertKey := configAPI.GetActiveProfileString(config.InsightsInsertKey)
 
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found")
@@ -65,9 +80,10 @@ func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
 	vars := make(types.RecipeVars)
 
 	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
-	vars["NEW_RELIC_ACCOUNT_ID"] = strconv.Itoa(defaultProfile.AccountID)
-	vars["NEW_RELIC_API_KEY"] = defaultProfile.APIKey
-	vars["NEW_RELIC_REGION"] = defaultProfile.Region
+	vars["NEW_RELIC_ACCOUNT_ID"] = accountID
+	vars["NEW_RELIC_API_KEY"] = apiKey
+	vars["NEW_RELIC_REGION"] = region
+	vars["NEW_RELIC_INSIGHTS_INSERT_KEY"] = insertKey
 
 	return vars, nil
 }
@@ -166,4 +182,32 @@ func varFromPrompt(envConfig types.OpenInstallationRecipeInputVariable) (string,
 
 	return value, nil
 
+}
+
+func varFromEnv() types.RecipeVars {
+	vars := make(types.RecipeVars)
+
+	downloadURL := "https://download.newrelic.com/"
+	envDownloadURL := os.Getenv("NEW_RELIC_DOWNLOAD_URL")
+	if envDownloadURL != "" {
+		URL, err := url.Parse(envDownloadURL)
+		if err == nil {
+			if URL.Scheme == "https" {
+				for _, regexString := range downloadURLAccessListRegex {
+					var regex = regexp.MustCompile(regexString)
+					if regex.MatchString(URL.Host) {
+						downloadURL = envDownloadURL
+						break
+					}
+				}
+			}
+		} else {
+			log.Warnf("Could not parse download URL: %s, detail: %s", envDownloadURL, err.Error())
+		}
+	}
+	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
+
+	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
+
+	return vars
 }

@@ -24,16 +24,19 @@ newrelic nrql query --accountId 12345678 --query 'SELECT count(*) FROM Transacti
 ### Options
 
 ```
-  -a, --accountId int   the New Relic account ID where you want to query
-  -h, --help            help for query
-  -q, --query string    the NRQL query you want to execute
+  -h, --help           help for query
+  -q, --query string   the NRQL query you want to execute
 ```
 
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO

@@ -146,6 +146,22 @@ func TestEntitiesAssembleTagValues(t *testing.T) {
 	}
 }
 
+func assembleTagValues(values []string) ([]entities.EntitySearchQueryBuilderTag, error) {
+	var tagValues []entities.EntitySearchQueryBuilderTag
+
+	for _, x := range values {
+		key, value, err := assembleTagValue(x)
+
+		if err != nil {
+			return []entities.EntitySearchQueryBuilderTag{}, err
+		}
+
+		tagValues = append(tagValues, entities.EntitySearchQueryBuilderTag{Key: key, Value: value})
+	}
+
+	return tagValues, nil
+}
+
 func TestEntitiesAssembleTagValuesInput(t *testing.T) {
 	var scenarios = []struct {
 		tags     []string

@@ -33,7 +33,6 @@ newrelic nerdstorage collection get [flags]
 ### Options
 
 ```
-  -a, --accountId int       the account ID
   -c, --collection string   the collection name to get the document from
   -e, --entityGuid string   the entity GUID
   -h, --help                help for get
@@ -44,8 +43,12 @@ newrelic nerdstorage collection get [flags]
 ### Options inherited from parent commands
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO
