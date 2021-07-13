@@ -22,7 +22,7 @@ newrelic entity search --name <applicationName>
 ### Options
 
 ```
-      --alert-severity string   search for entities matching the given alert severity type
+  -s, --alert-severity string   search for entities matching the given alert severity type
   -d, --domain string           search for entities matching the given entity domain
   -f, --fields-filter strings   filter search results to only return certain fields for each search result
   -h, --help                    help for search

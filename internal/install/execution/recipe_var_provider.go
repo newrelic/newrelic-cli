@@ -71,6 +71,7 @@ func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
 	accountID := configAPI.GetActiveProfileString(config.AccountID)
 	apiKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
+	insertKey := configAPI.GetActiveProfileString(config.InsightsInsertKey)
 
 	if licenseKey == "" {
 		return types.RecipeVars{}, errors.New("license key not found")
@@ -82,6 +83,7 @@ func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
 	vars["NEW_RELIC_ACCOUNT_ID"] = accountID
 	vars["NEW_RELIC_API_KEY"] = apiKey
 	vars["NEW_RELIC_REGION"] = region
+	vars["NEW_RELIC_INSIGHTS_INSERT_KEY"] = insertKey
 
 	return vars, nil
 }
@@ -204,6 +206,8 @@ func varFromEnv() types.RecipeVars {
 		}
 	}
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
+
+	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
 
 	return vars
 }
