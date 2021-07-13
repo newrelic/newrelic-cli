@@ -3,7 +3,7 @@ package execution
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/credentials"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 )
@@ -120,8 +120,8 @@ func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 		log.Debug("no entity GUIDs available, skipping entity-scoped status updates")
 	}
 
-	defaultProfile := credentials.DefaultProfile()
-	_, err = r.client.WriteDocumentWithAccountScope(defaultProfile.AccountID, i)
+	accountID := configAPI.GetActiveProfileAccountID()
+	_, err = r.client.WriteDocumentWithAccountScope(accountID, i)
 	if err != nil {
 		log.Debug("failed to write to account scoped nerd storage")
 	}

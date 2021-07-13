@@ -9,14 +9,19 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 ### Options
 
 ```
-      --format string   output text format [JSON, Text, YAML] (default "JSON")
-  -h, --help            help for newrelic
-      --plain           output compact text
+  -a, --accountId int    trace level logging
+      --debug            debug level logging
+      --format string    output text format [JSON, Text, YAML] (default "JSON")
+  -h, --help             help for newrelic
+      --plain            output compact text
+      --profile string   the authentication profile to use
+      --trace            trace level logging
 ```
 
 ### SEE ALSO
 
 * [newrelic agent](newrelic_agent.md)	 - Utilities for New Relic Agents
+* [newrelic apiAccess](newrelic_apiAccess.md)	 - Manage New Relic API access keys
 * [newrelic apm](newrelic_apm.md)	 - Interact with New Relic APM
 * [newrelic completion](newrelic_completion.md)	 - Generates shell completion functions
 * [newrelic config](newrelic_config.md)	 - Manage the configuration of the New Relic CLI

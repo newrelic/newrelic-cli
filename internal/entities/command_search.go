@@ -9,7 +9,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
@@ -21,79 +20,78 @@ var cmdEntitySearch = &cobra.Command{
 The search command performs a search for New Relic entities.
 `,
 	Example: "newrelic entity search --name <applicationName>",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
-			params := entities.EntitySearchQueryBuilder{}
+		params := entities.EntitySearchQueryBuilder{}
 
-			if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
-				utils.LogIfError(cmd.Help())
-				log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
-			}
+		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
+			utils.LogIfError(cmd.Help())
+			log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
+		}
 
-			if entityName != "" {
-				params.Name = entityName
-			}
+		if entityName != "" {
+			params.Name = entityName
+		}
 
-			if entityType != "" {
-				params.Type = entities.EntitySearchQueryBuilderType(entityType)
-			}
+		if entityType != "" {
+			params.Type = entities.EntitySearchQueryBuilderType(entityType)
+		}
 
-			if entityAlertSeverity != "" {
-				params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
-			}
+		if entityAlertSeverity != "" {
+			params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
+		}
 
-			if entityDomain != "" {
-				params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
-			}
+		if entityDomain != "" {
+			params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
+		}
 
-			if entityTag != "" {
-				key, value, err := assembleTagValue(entityTag)
-				utils.LogIfFatal(err)
-
-				params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
-			}
-
-			if entityReporting != "" {
-				reporting, err := strconv.ParseBool(entityReporting)
-
-				if err != nil {
-					log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
-				}
-
-				params.Reporting = reporting
-			}
-
-			results, err := nrClient.Entities.GetEntitySearchWithContext(
-				utils.SignalCtx,
-				entities.EntitySearchOptions{},
-				"",
-				params,
-				[]entities.EntitySearchSortCriteria{},
-			)
+		if entityTag != "" {
+			key, value, err := assembleTagValue(entityTag)
 			utils.LogIfFatal(err)
 
-			entities := results.Results.Entities
+			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
+		}
 
-			var result interface{}
+		if entityReporting != "" {
+			reporting, err := strconv.ParseBool(entityReporting)
 
-			if len(entityFields) > 0 {
-				mapped := mapEntities(entities, entityFields, utils.StructToMap)
-
-				if len(mapped) == 1 {
-					result = mapped[0]
-				} else {
-					result = mapped
-				}
-			} else {
-				if len(entities) == 1 {
-					result = entities[0]
-				} else {
-					result = entities
-				}
+			if err != nil {
+				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
 			}
 
-			utils.LogIfFatal(output.Print(result))
-		})
+			params.Reporting = reporting
+		}
+
+		results, err := client.NRClient.Entities.GetEntitySearchWithContext(
+			utils.SignalCtx,
+			entities.EntitySearchOptions{},
+			"",
+			params,
+			[]entities.EntitySearchSortCriteria{},
+		)
+		utils.LogIfFatal(err)
+
+		entities := results.Results.Entities
+
+		var result interface{}
+
+		if len(entityFields) > 0 {
+			mapped := mapEntities(entities, entityFields, utils.StructToMap)
+
+			if len(mapped) == 1 {
+				result = mapped[0]
+			} else {
+				result = mapped
+			}
+		} else {
+			if len(entities) == 1 {
+				result = entities[0]
+			} else {
+				result = entities
+			}
+		}
+
+		utils.LogIfFatal(output.Print(result))
 	},
 }
 
@@ -111,7 +109,7 @@ func init() {
 	Command.AddCommand(cmdEntitySearch)
 	cmdEntitySearch.Flags().StringVarP(&entityName, "name", "n", "", "search for entities matching the given name")
 	cmdEntitySearch.Flags().StringVarP(&entityType, "type", "t", "", "search for entities matching the given type")
-	cmdEntitySearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "a", "", "search for entities matching the given alert severity type")
+	cmdEntitySearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "s", "", "search for entities matching the given alert severity type")
 	cmdEntitySearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "search for entities based on whether or not an entity is reporting (true or false)")
 	cmdEntitySearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for entities matching the given entity domain")
 	cmdEntitySearch.Flags().StringVar(&entityTag, "tag", "", "search for entities matching the given entity tag")

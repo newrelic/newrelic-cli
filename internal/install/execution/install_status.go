@@ -116,7 +116,7 @@ func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGe
 	s := InstallStatus{
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
-		LogFilePath:           config.DefaultConfigDirectory + "/" + config.DefaultLogFile,
+		LogFilePath:           config.GetDefaultLogFilePath(),
 		statusSubscriber:      reporters,
 		PlatformLinkGenerator: PlatformLinkGenerator,
 		HTTPSProxy:            httpproxy.FromEnvironment().HTTPSProxy,

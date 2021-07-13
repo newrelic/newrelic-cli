@@ -8,7 +8,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
 )
 
@@ -28,14 +27,12 @@ var cmdKey = &cobra.Command{
 	Short:   "Fetch a single key by ID and type.\n\n---\n**NR Internal** | [#help-unified-api](https://newrelic.slack.com/archives/CBHJRSPSA) | visibility(customer)\n\n",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessGetKey --id --keyType",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		resp, err := client.NRClient.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.GetAPIAccessKeyWithContext(utils.SignalCtx, apiAccessGetKeyid, apiaccess.APIAccessKeyType(apiAccessGetKeykeyType))
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 var apiAccessCreateKeysInput string
@@ -45,19 +42,17 @@ var cmdAPIAccessCreateKeys = &cobra.Command{
 	Short:   "Create keys. You can create keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessCreateKeys --keys",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		var keys apiaccess.APIAccessCreateInput
 
-			var keys apiaccess.APIAccessCreateInput
+		err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
+		utils.LogIfFatal(err)
 
-			err := json.Unmarshal([]byte(apiAccessCreateKeysInput), &keys)
-			utils.LogIfFatal(err)
+		resp, err := client.NRClient.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.CreateAPIAccessKeysWithContext(utils.SignalCtx, keys)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 var apiAccessUpdateKeysInput string
@@ -67,19 +62,17 @@ var cmdAPIAccessUpdateKeys = &cobra.Command{
 	Short:   "Update keys. You can update keys for multiple accounts at once. You can read more about managing keys on [this documentation page](https://docs.newrelic.com/docs/apis/nerdgraph/examples/use-nerdgraph-manage-license-keys-personal-api-keys).",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessUpdateKeys --keys",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		var keys apiaccess.APIAccessUpdateInput
 
-			var keys apiaccess.APIAccessUpdateInput
+		err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
+		utils.LogIfFatal(err)
 
-			err := json.Unmarshal([]byte(apiAccessUpdateKeysInput), &keys)
-			utils.LogIfFatal(err)
+		resp, err := client.NRClient.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.UpdateAPIAccessKeysWithContext(utils.SignalCtx, keys)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 var apiAccessDeleteKeysInput string
@@ -89,19 +82,17 @@ var cmdAPIAccessDeleteKeys = &cobra.Command{
 	Short:   "A mutation to delete keys.",
 	Long:    "",
 	Example: "newrelic apiAccess apiAccessDeleteKeys --keys",
+	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		client.WithClient(func(nrClient *newrelic.NewRelic) {
+		var keys apiaccess.APIAccessDeleteInput
 
-			var keys apiaccess.APIAccessDeleteInput
+		err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
+		utils.LogIfFatal(err)
 
-			err := json.Unmarshal([]byte(apiAccessDeleteKeysInput), &keys)
-			utils.LogIfFatal(err)
+		resp, err := client.NRClient.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
+		utils.LogIfFatal(err)
 
-			resp, err := nrClient.APIAccess.DeleteAPIAccessKeyWithContext(utils.SignalCtx, keys)
-			utils.LogIfFatal(err)
-
-			utils.LogIfFatal(output.Print(resp))
-		})
+		utils.LogIfFatal(output.Print(resp))
 	},
 }
 

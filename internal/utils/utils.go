@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -140,4 +141,29 @@ func StringInSlice(str string, slice []string) bool {
 	}
 
 	return false
+}
+
+func IntSliceToStringSlice(in []int) (out []string) {
+	for _, i := range in {
+		out = append(out, strconv.Itoa(i))
+	}
+
+	return out
+}
+
+// Obfuscate receives a string, and replaces everything after the first 8
+// characters with an asterisk before returning the result.
+func Obfuscate(input string) string {
+	result := make([]string, len(input))
+	parts := strings.Split(input, "")
+
+	for i, x := range parts {
+		if i < 8 {
+			result[i] = x
+		} else {
+			result[i] = "*"
+		}
+	}
+
+	return strings.Join(result, "")
 }
