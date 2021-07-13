@@ -11,7 +11,7 @@ import (
 
 const (
 	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "INFO"
+	DefaultLogLevel = "info"
 
 	// DefaultLogFile is the default log file
 	DefaultLogFile = "newrelic-cli.log"

@@ -105,7 +105,7 @@ func InitializeConfigStore() {
 			FieldDefinition{
 				Key:               LogLevel,
 				EnvVar:            "NEW_RELIC_CLI_LOG_LEVEL",
-				Default:           "info",
+				Default:           DefaultLogLevel,
 				SetValidationFunc: StringInStrings(false, "Info", "Debug", "Trace", "Warn", "Error"),
 			},
 			FieldDefinition{
