@@ -1,3 +1,5 @@
+//+build integration
+
 package execution
 
 import (
@@ -5,10 +7,11 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/config"
-	"github.com/stretchr/testify/require"
 )
 
 func TestInstallEventsReporter_Basic(t *testing.T) {
