@@ -43,6 +43,8 @@ var Command = &cobra.Command{
 			SkipInfraInstall:   skipInfra,
 		}
 
+		config.InitFileLogger()
+
 		err := assertProfileIsValid()
 		if err != nil {
 			log.Fatal(err)
