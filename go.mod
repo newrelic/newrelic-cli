@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.14
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/briandowns/spinner v1.15.0
+	github.com/briandowns/spinner v1.16.0
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.14.2
@@ -25,7 +25,7 @@ require (
 	github.com/newrelic/tutone v0.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/psampaz/go-mod-outdated v0.8.0
-	github.com/shirou/gopsutil v3.21.5+incompatible
+	github.com/shirou/gopsutil v3.21.6+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
