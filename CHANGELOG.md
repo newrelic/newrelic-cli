@@ -1,3 +1,14 @@
+<a name="v0.30.3"></a>
+## [v0.30.3] - 2021-07-14
+### Bug Fixes
+- **install:** move prompting of discovered log file to the recipe
+
+### Documentation Updates
+- add homebrew release badge
+
+### Features
+- add fish completion support and update doc
+
 <a name="v0.30.2"></a>
 ## [v0.30.2] - 2021-07-13
 ### Bug Fixes
@@ -864,7 +875,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.3...HEAD
+[v0.30.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.2...v0.30.3
 [v0.30.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.1...v0.30.2
 [v0.30.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.0...v0.30.1
 [v0.30.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.5...v0.30.0
