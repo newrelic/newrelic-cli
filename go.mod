@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.14
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/briandowns/spinner v1.15.0
+	github.com/briandowns/spinner v1.16.0
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.14.2
