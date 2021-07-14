@@ -1,8 +1,5 @@
 project_name: newrelic-cli
 
-env:
-  - GO111MODULE=on
-
 before:
   hooks:
     - go mod download

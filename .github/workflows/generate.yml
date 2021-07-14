@@ -8,7 +8,7 @@ on:
 jobs:
   createPullRequest:
     runs-on: ubuntu-latest
-    container: golang:1.15-buster
+    container: golang:1.16-buster
     steps:
       - uses: actions/checkout@v2
 
