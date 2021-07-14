@@ -32,7 +32,7 @@ const (
 var (
 	ConfigStore         *JSONStore
 	CredentialsProvider *JSONStore
-	BasePath            string = configBasePath()
+	BasePath            = configBasePath()
 
 	FlagProfileName string
 	FlagDebug       bool

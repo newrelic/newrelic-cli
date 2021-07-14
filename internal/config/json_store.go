@@ -435,11 +435,7 @@ func (p *JSONStore) SetWithScope(scope string, key FieldKey, value interface{}) 
 		return err
 	}
 
-	if err := p.writeConfig(cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return p.writeConfig(cfg)
 }
 
 // Remove scope removes an entire scope from this config instance, including all
@@ -523,11 +519,7 @@ func (p *JSONStore) deletePath(path string) error {
 		return err
 	}
 
-	if err := p.writeConfig(cfg); err != nil {
-		return err
-	}
-
-	return nil
+	return p.writeConfig(cfg)
 }
 
 func (p *JSONStore) getFromConfig(path string) (*gjson.Result, error) {

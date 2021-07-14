@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	kernelArch      string = "KernelArch"
-	kernelVersion   string = "KernelVersion"
-	oS              string = "OS"
-	platform        string = "Platform"
-	platformFamily  string = "PlatformFamily"
-	platformVersion string = "PlatformVersion"
+	kernelArch      = "KernelArch"
+	kernelVersion   = "KernelVersion"
+	oS              = "OS"
+	platform        = "Platform"
+	platformFamily  = "PlatformFamily"
+	platformVersion = "PlatformVersion"
 )
 
 type RecipeRepository struct {

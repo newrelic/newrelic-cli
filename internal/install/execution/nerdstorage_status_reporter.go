@@ -95,11 +95,7 @@ func (r NerdstorageStatusReporter) ObservabilityPackInstallFailed(status *Instal
 }
 
 func (r NerdstorageStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
-	if err := r.writeStatus(status); err != nil {
-		return err
-	}
-
-	return nil
+	return r.writeStatus(status)
 }
 
 func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {

@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	errorAfterAllRetry string = "all retry attempts have been made"
+	errorAfterAllRetry = "all retry attempts have been made"
 )
 
 func TestShouldRetryAndPass(t *testing.T) {

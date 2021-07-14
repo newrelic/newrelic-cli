@@ -28,7 +28,7 @@ type stdinPipeReader struct {
 
 func (spr stdinPipeReader) ReadPipe() (string, error) {
 	text := ""
-	var err error = nil
+	var err error
 	scanner := bufio.NewScanner(spr.input)
 
 	for scanner.Scan() {

@@ -33,7 +33,7 @@ func NewManifestValidator() *ManifestValidator {
 }
 
 func (mv *ManifestValidator) Validate(m *types.DiscoveryManifest) error {
-	var accumulator error = nil
+	var accumulator error
 	errors := mv.FindAllValidationErrors(m)
 	for _, single := range errors {
 		if accumulator == nil {
