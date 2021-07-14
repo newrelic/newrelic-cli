@@ -9,6 +9,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/main/LICENSE)
 [![CLA assistant](https://cla-assistant.io/readme/badge/newrelic/newrelic-cli)](https://cla-assistant.io/newrelic/newrelic-cli)
 [![Release](https://img.shields.io/github/v/release/newrelic/newrelic-cli?sort=semver)](https://github.com/newrelic/newrelic-cli/releases/latest)
+[![Homebrew](https://img.shields.io/badge/dynamic/json.svg?url=https://formulae.brew.sh/api/formula/newrelic-cli.json&query=$.versions.stable&label=homebrew)](https://formulae.brew.sh/formula/newrelic-cli)
 
 [![Docker Stars](https://img.shields.io/docker/stars/newrelic/cli.svg)](https://hub.docker.com/r/newrelic/cli)
 [![Docker Pulls](https://img.shields.io/docker/pulls/newrelic/cli.svg)](https://hub.docker.com/r/newrelic/cli)
