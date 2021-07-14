@@ -9,14 +9,12 @@ require (
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.15.0
-	github.com/go-openapi/strfmt v0.20.1 // indirect
 	github.com/go-task/task/v3 v3.4.3
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v0.173.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/itchyny/gojq v0.12.4
-	github.com/jedib0t/go-pretty v4.3.0+incompatible
 	github.com/jedib0t/go-pretty/v6 v6.2.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/llorllale/go-gitlint v0.0.0-20210608233938-d6303cc52cc5
