@@ -2,7 +2,6 @@ package install
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -21,29 +20,12 @@ func installLogging(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryM
 	}
 
 	log.WithFields(log.Fields{
-		"possible_matches": len(logMatches),
+		"logMatches": len(logMatches),
 	}).Debug("filtered log matches")
-
-	var acceptedLogMatches []types.OpenInstallationLogMatch
-	var ok bool
-	for _, match := range logMatches {
-		ok, err = i.userAcceptsLogFile(match)
-		if err != nil {
-			return err
-		}
-
-		if ok {
-			acceptedLogMatches = append(acceptedLogMatches, match)
-		}
-	}
-
-	log.WithFields(log.Fields{
-		"matches": acceptedLogMatches,
-	}).Debug("matches accepted")
 
 	// Build a comma-separated list of discovered log file paths
 	discoveredLogFiles := []string{}
-	for _, logMatch := range acceptedLogMatches {
+	for _, logMatch := range logMatches {
 		discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
 	}
 
@@ -56,22 +38,4 @@ func installLogging(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryM
 
 	_, err = i.executeAndValidateWithProgress(ctx, m, r)
 	return err
-}
-
-func (i *RecipeInstaller) userAccepts(msg string) (bool, error) {
-	if i.AssumeYes {
-		return true, nil
-	}
-
-	val, err := i.prompter.PromptYesNo(msg)
-	if err != nil {
-		return false, err
-	}
-
-	return val, nil
-}
-
-func (i *RecipeInstaller) userAcceptsLogFile(match types.OpenInstallationLogMatch) (bool, error) {
-	msg := fmt.Sprintf("Files have been found at the following pattern: %s Do you want to watch them?", match.File)
-	return i.userAccepts(msg)
 }
