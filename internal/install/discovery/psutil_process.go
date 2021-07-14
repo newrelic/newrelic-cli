@@ -4,11 +4,18 @@ import (
 	"github.com/shirou/gopsutil/process"
 )
 
-type PSUtilProcess process.Process
+type PSUtilProcess struct {
+	proc *process.Process
+}
+
+func NewPSUtilProcess(p *process.Process) PSUtilProcess {
+	return PSUtilProcess{
+		proc: p,
+	}
+}
 
 func (p PSUtilProcess) Name() (string, error) {
-	pp := process.Process(p)
-	n, err := pp.Name()
+	n, err := p.proc.Name()
 	if err != nil {
 		return "", err
 	}
@@ -17,8 +24,7 @@ func (p PSUtilProcess) Name() (string, error) {
 }
 
 func (p PSUtilProcess) Cmd() (string, error) {
-	pp := process.Process(p)
-	n, err := pp.Cmdline()
+	n, err := p.proc.Cmdline()
 	if err != nil {
 		return "", err
 	}
@@ -27,5 +33,5 @@ func (p PSUtilProcess) Cmd() (string, error) {
 }
 
 func (p PSUtilProcess) PID() int32 {
-	return process.Process(p).Pid
+	return p.proc.Pid
 }

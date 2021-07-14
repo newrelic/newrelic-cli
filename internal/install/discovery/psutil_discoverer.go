@@ -53,7 +53,8 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 			continue
 		}
 
-		processes = append(processes, PSUtilProcess(*pp))
+		p := NewPSUtilProcess(pp)
+		processes = append(processes, p)
 	}
 
 	m.DiscoveredProcesses = processes
