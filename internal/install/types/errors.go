@@ -30,6 +30,7 @@ func (e GoTaskGeneralError) Error() string {
 }
 
 func (e GoTaskGeneralError) SetError(msg string) {
+	//nolint:staticcheck
 	e.error = errors.New(msg)
 }
 
