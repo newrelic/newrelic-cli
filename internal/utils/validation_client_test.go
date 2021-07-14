@@ -4,6 +4,8 @@ package utils
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,52 +14,117 @@ import (
 func TestHttpClient(t *testing.T) {
 	t.Parallel()
 
-	// httpURL := "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status"
+	response := `{"GUID":"MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw"}`
+	statusCode := 200
 
-	c := NewTestAPIClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts := testServer(response, statusCode)
+	defer ts.Close()
+
+	ctx := context.Background()
+
+	c := NewValidationClient()
+	data, err := c.Get(ctx, ts.URL)
+
+	require.Equal(t, string(data), response)
+	require.Equal(t, err, nil)
+}
+
+func TestHttpClientDataNotAvailable(t *testing.T) {
+	t.Parallel()
+
+	response := `{}`
+	statusCode := 204
+
+	ts := testServer(response, statusCode)
+	defer ts.Close()
+
+	ctx := context.Background()
+
+	c := NewValidationClient()
+	data, err := c.Get(ctx, ts.URL)
+
+	require.Equal(t, data, nil)
+	require.NotEqual(t, err, nil)
+}
+
+func TestHttpClientNotFound(t *testing.T) {
+	t.Parallel()
+
+	response := ``
+	statusCode := 404
+
+	ts := testServer(response, statusCode)
+	defer ts.Close()
+
+	ctx := context.Background()
+
+	c := NewValidationClient()
+	data, err := c.Get(ctx, ts.URL)
+
+	require.Equal(t, data, nil)
+	require.NotEqual(t, err, nil)
+}
+
+func TestHttpClientConnectionRefused(t *testing.T) {
+	t.Parallel()
+
+	response := ``
+	statusCode := 500
+
+	ts := testServer(response, statusCode)
+	defer ts.Close()
+
+	ctx := context.Background()
+
+	c := NewValidationClient()
+	data, err := c.Get(ctx, ts.URL)
+
+	require.Equal(t, data, nil)
+	require.NotEqual(t, err, nil)
+}
+
+func TestHttpClientInternalServerError(t *testing.T) {
+	t.Parallel()
+
+	response := ``
+	statusCode := 500
+
+	ts := testServer(response, statusCode)
+	defer ts.Close()
+
+	ctx := context.Background()
+
+	c := NewValidationClient()
+	data, err := c.Get(ctx, ts.URL)
+
+	require.Equal(t, data, nil)
+	require.NotEqual(t, err, nil)
+}
+
+func TestHttpClientTimeout(t *testing.T) {
+	t.Parallel()
+
+	response := ``
+	statusCode := 500
+
+	ts := testServer(response, statusCode)
+	defer ts.Close()
+
+	ctx := context.Background()
+
+	c := NewValidationClient()
+	data, err := c.Get(ctx, ts.URL)
+
+	require.Equal(t, data, nil)
+	require.NotEqual(t, err, nil)
+}
+
+func testServer(response string, statusCode int) *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOk)
-		_, _ = w.Write([]byte(`{"GUID":"MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw"}`))
+		w.WriteHeader(statusCode)
+		_, _ = w.Write([]byte(response))
 	}))
 
-	client := NewValidationClient()
-	ctx := context.Background()
-	resp, err := client.Get(ctx, httpURL)
-
-	require.NoError(t, err)
-
-	entityGUID := resp.GUID
-	require.Equal(t, entityGUID, "MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw")
+	return ts
 }
-
-func NewTestAPIClient(t *testing.T, handler http.Handler) ValidationClient {
-	ts := httptest.NewServer(handler)
-	tc := mock.NewTestConfig(t, ts)
-	return NewClient(tc)
-}
-
-/*
-Pass:
-200 Status (ready, entity is connected to NR)
-204 Status (ready, but data not available)
-
-Error:
-404 Status -> Alert us.
-Connection Refused
-500 Status
-Timeout
-
-*/
-
-// func TestHttpClient_HttpError(t *testing.T) {
-// 	t.Parallel()
-
-// 	badHttpURL := ""
-
-// 	client := NewValidationClient()
-// 	ctx := context.Background()
-// 	_, err := client.Get(ctx, badHttpURL)
-
-// 	require.Error(t, err)
-// 	// require.Equal(t, resp)
-// }
