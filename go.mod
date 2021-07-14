@@ -22,7 +22,7 @@ require (
 	github.com/llorllale/go-gitlint v0.0.0-20210608233938-d6303cc52cc5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.60.2
-	github.com/newrelic/tutone v0.6.1
+	github.com/newrelic/tutone v0.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/psampaz/go-mod-outdated v0.8.0
 	github.com/shirou/gopsutil v3.21.5+incompatible
@@ -32,9 +32,9 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.1
 	github.com/tidwall/sjson v1.1.7
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
+	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
-	golang.org/x/tools v0.1.0
+	golang.org/x/tools v0.1.3
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.6.4
 	mvdan.cc/sh/v3 v3.3.0
