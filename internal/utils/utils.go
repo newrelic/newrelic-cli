@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	SignalCtx context.Context = getSignalContext()
+	SignalCtx = getSignalContext()
 )
 
 func getSignalContext() context.Context {

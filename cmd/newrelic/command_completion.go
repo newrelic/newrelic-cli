@@ -14,26 +14,46 @@ var (
 )
 
 var cmdCompletion = &cobra.Command{
-	Use:   "completion",
-	Short: "Generates shell completion functions",
-	Long: `Generate shell completion functions
+	Use:   "completion --shell [bash|zsh|fish|powershell]",
+	Short: "Generate completion script",
+	Long: `To load completions:
 
-To load completion run the following.
+	Bash:
 
-. <(newrelic completion --shell bash)
+		$ source <(newrelic completion bash)
 
-To configure your shell to load the completions on start, include the following in your shell's rc file.
+		# To load completions for each session, execute once:
+		# Linux:
+		$ newrelic completion bash > /etc/bash_completion.d/newrelic
+		# macOS:
+		$ newrelic completion bash > /usr/local/etc/bash_completion.d/newrelic
 
-Using bash, for example:
+	Zsh:
 
-# ~/.bashrc or ~/.profile
-. <(newrelic completion --shell bash)
+		# If shell completion is not already enabled in your environment,
+		# you will need to enable it.  You can execute the following once:
 
+		$ echo "autoload -U compinit; compinit" >> ~/.zshrc
 
-Using zsh, for example:
+		# To load completions for each session, execute once:
+		$ newrelic completion zsh > "${fpath[1]}/_newrelic"
 
-# ~/.zshrc
-. <(newrelic completion --shell zsh)
+		# You will need to start a new shell for this setup to take effect.
+
+	fish:
+
+		$ newrelic completion fish | source
+
+		# To load completions for each session, execute once:
+		$ newrelic completion fish > ~/.config/fish/completions/newrelic.fish
+
+	PowerShell:
+
+		PS> newrelic completion powershell | Out-String | Invoke-Expression
+
+		# To load completions for every new session, run:
+		PS> newrelic completion powershell > newrelic.ps1
+		# and source this file from your PowerShell profile.
 `,
 	Example: "newrelic completion --shell zsh",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -44,18 +64,23 @@ Using zsh, for example:
 			if err != nil {
 				log.Error(err)
 			}
-		case "powershell":
-			err := Command.GenPowerShellCompletion(os.Stdout)
-			if err != nil {
-				log.Error(err)
-			}
 		case "zsh":
 			err := Command.GenZshCompletion(os.Stdout)
 			if err != nil {
 				log.Error(err)
 			}
+		case "fish":
+			err := Command.GenFishCompletion(os.Stdout, true)
+			if err != nil {
+				log.Error(err)
+			}
+		case "powershell":
+			err := Command.GenPowerShellCompletion(os.Stdout)
+			if err != nil {
+				log.Error(err)
+			}
 		default:
-			log.Error("--shell must be one of [bash, powershell, zsh]")
+			log.Error("--shell must be one of [bash, zsh, fish, powershell]")
 		}
 	},
 }

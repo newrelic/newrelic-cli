@@ -43,11 +43,10 @@ linters:
     - errcheck
     - gocyclo
     - gofmt
-    - golint
+    - revive
     - gosimple
     - govet
     - ineffassign
-    - maligned
     - misspell
     - staticcheck
     - structcheck

@@ -46,7 +46,7 @@ type RecipeInstaller struct {
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
 var (
-	recipeInstallFuncs map[string]RecipeInstallFunc = map[string]RecipeInstallFunc{
+	recipeInstallFuncs = map[string]RecipeInstallFunc{
 		"logs-integration": installLogging,
 	}
 )

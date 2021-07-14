@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	downloadURLAccessListRegex []string = []string{
+	downloadURLAccessListRegex = []string{
 		`(.)?download\.newrelic\.com$`,
 		`nr-downloads-ohai-(staging|testing)\.s3\.amazonaws\.com$`,
 	}

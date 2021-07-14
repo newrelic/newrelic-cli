@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/jedib0t/go-pretty/text"
+	"github.com/jedib0t/go-pretty/v6/text"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 

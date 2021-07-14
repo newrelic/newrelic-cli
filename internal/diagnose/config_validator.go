@@ -106,17 +106,11 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 			return err
 		}
 
-		if err := c.validateInsightsInsertKey(ctx); err != nil {
-			return err
-		}
-		return nil
+		return c.validateInsightsInsertKey(ctx)
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec, validateKeyFunc)
-	if err := r.ExecWithRetries(ctx); err != nil {
-		return err
-	}
-	return nil
+	return r.ExecWithRetries(ctx)
 }
 
 func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
