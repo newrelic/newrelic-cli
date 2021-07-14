@@ -13,7 +13,7 @@ require (
 	github.com/go-task/task/v3 v3.4.3
 	github.com/golangci/golangci-lint v1.39.0
 	github.com/google/uuid v1.2.0
-	github.com/goreleaser/goreleaser v0.157.0
+	github.com/goreleaser/goreleaser v0.173.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/itchyny/gojq v0.12.4
 	github.com/jedib0t/go-pretty v4.3.0+incompatible
@@ -27,12 +27,12 @@ require (
 	github.com/psampaz/go-mod-outdated v0.8.0
 	github.com/shirou/gopsutil v3.21.6+incompatible
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.1.3
+	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.1
 	github.com/tidwall/sjson v1.1.7
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/net v0.0.0-20210505214959-0714010a04ed
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/tools v0.1.3
 	gopkg.in/yaml.v2 v2.4.0
