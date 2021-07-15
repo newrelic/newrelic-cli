@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
@@ -19,6 +18,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
+	log "github.com/newrelic/newrelic-cli/internal/logging"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
@@ -127,14 +127,14 @@ func (i *RecipeInstaller) Install() error {
 	fmt.Println()
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
-	log.WithFields(log.Fields{
-		"ShouldInstallInfraAgent":   i.ShouldInstallInfraAgent(),
-		"ShouldInstallLogging":      i.ShouldInstallLogging(),
-		"ShouldInstallIntegrations": i.ShouldInstallIntegrations(),
-		"RecipesProvided":           i.RecipesProvided(),
-		"RecipePathsProvided":       i.RecipePathsProvided(),
-		"RecipeNamesProvided":       i.RecipeNamesProvided(),
-	}).Debug("context summary")
+
+	log.Debugf("context summary ShouldInstallInfraAgent:%s ShouldInstallLogging:%s ShouldInstallIntegrations:%s RecipesProvided:%s RecipePathsProvided:%s RecipeNamesProvided:%s",
+		i.ShouldInstallInfraAgent(),
+		i.ShouldInstallLogging(),
+		i.ShouldInstallIntegrations(),
+		i.RecipesProvided(),
+		i.RecipePathsProvided(),
+		i.RecipeNamesProvided())
 
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
 	defer cancel()
@@ -270,17 +270,13 @@ func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.Dis
 }
 
 func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.OpenInstallationRecipe) error {
-	log.WithFields(log.Fields{
-		"recipe_count": len(recipes),
-	}).Debug("installing recipes")
+	log.Debugf("installing recipes count:%s", len(recipes))
+
 	var lastError error
 
 	for _, r := range recipes {
 		var err error
-
-		log.WithFields(log.Fields{
-			"name": r.Name,
-		}).Debug("installing recipe")
+		log.Debugf("installing recipe name:%s", r.Name)
 
 		if f, ok := recipeInstallFuncs[r.Name]; ok {
 			err = f(ctx, i, m, &r, recipes)
@@ -319,7 +315,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 }
 
 func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
-	log.Debug("discovering system information")
+	log.Debugf("discovering system information")
 
 	m, err := i.discoverer.Discover(ctx)
 	if err != nil {
@@ -438,18 +434,14 @@ func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipe
 
 	// Load the recipes from the provided file names.
 	for _, n := range i.RecipePaths {
-		log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
+		log.Debugf(fmt.Sprintf("Attempting to match recipePath %s.", n))
 		recipe, err := i.recipeFromPath(n)
 		if err != nil {
-			log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
+			log.Debugf(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
 			return nil, err
 		}
 
-		log.WithFields(log.Fields{
-			"name":         recipe.Name,
-			"display_name": recipe.DisplayName,
-			"path":         n,
-		}).Debug("found recipe at path")
+		log.Debugf("found recipe at path name:%s display_name:%s path:%s", recipe.Name, recipe.DisplayName, n)
 
 		recipes = append(recipes, *recipe)
 	}
@@ -457,13 +449,10 @@ func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipe
 	// Load the recipes from the provided file names.
 	for _, n := range i.RecipeNames {
 		found := false
-		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
+		log.Debugf(fmt.Sprintf("Attempting to match recipe name %s.", n))
 		for _, r := range recipesForPlatform {
 			if strings.EqualFold(r.Name, n) {
-				log.WithFields(log.Fields{
-					"name":         r.Name,
-					"display_name": r.DisplayName,
-				}).Debug("found recipe with name")
+				log.Debugf("found recipe with name:%s display_name:%s", r.Name, r.DisplayName)
 				recipes = append(recipes, r)
 				found = true
 				break

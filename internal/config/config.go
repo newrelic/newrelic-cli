@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
+
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-client-go/pkg/region"
@@ -38,6 +39,9 @@ var (
 	FlagDebug       bool
 	FlagTrace       bool
 	FlagAccountID   int
+
+	// DefaultLogLevel is the default log level
+	DefaultLogLevel = "info"
 )
 
 func init() {

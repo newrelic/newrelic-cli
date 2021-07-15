@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	log "github.com/newrelic/newrelic-cli/internal/logging"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -43,7 +43,7 @@ var Command = &cobra.Command{
 			SkipInfraInstall:   skipInfra,
 		}
 
-		config.InitFileLogger()
+		log.InitFileLogger()
 
 		err := assertProfileIsValid()
 		if err != nil {

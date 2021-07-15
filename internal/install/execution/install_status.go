@@ -1,14 +1,12 @@
 package execution
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/google/uuid"
-	log "github.com/sirupsen/logrus"
+	log "github.com/newrelic/newrelic-cli/internal/logging"
 	"golang.org/x/net/http/httpproxy"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -116,7 +114,7 @@ func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGe
 	s := InstallStatus{
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
-		LogFilePath:           config.GetDefaultLogFilePath(),
+		LogFilePath:           log.GetDefaultLogFilePath(),
 		statusSubscriber:      reporters,
 		PlatformLinkGenerator: PlatformLinkGenerator,
 		HTTPSProxy:            httpproxy.FromEnvironment().HTTPSProxy,
@@ -373,9 +371,7 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 		}
 	}
 
-	log.WithFields(log.Fields{
-		"guid": entityGUID,
-	}).Debug("new GUID")
+	log.Debugf("new GUID:%s", entityGUID)
 
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
 }
@@ -433,12 +429,7 @@ func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEven
 	}
 	s.ObservabilityPackStatuses = append(s.ObservabilityPackStatuses, observabilityPackStatus)
 
-	log.WithFields(log.Fields{
-		"observabilityPack_name": e.ObservabilityPack.Name,
-		"status":                 opst,
-		"error":                  statusError.Message,
-		"statusCount":            len(s.Statuses),
-	}).Debug("observabilityPack event")
+	log.Debugf("observabilityPack event name:%s status:%s error:%s statusCount:%s", e.ObservabilityPack.Name, opst, statusError.Message, len(s.Statuses))
 }
 
 func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType) {
@@ -492,15 +483,14 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 
 	s.Timestamp = utils.GetTimestamp()
 
-	log.WithFields(log.Fields{
-		"recipe_name":                    e.Recipe.Name,
-		"status":                         rs,
-		"error":                          statusError.Message,
-		"tasks":                          statusError.TaskPath,
-		"guid":                           e.EntityGUID,
-		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
-		"statusCount":                    len(s.Statuses),
-	}).Debug("recipe event")
+	log.Debugf("recipe event name:%s status:%s error:%s tasks:%s guid:%s validationMs:%s. statusCount:%s",
+		e.Recipe.Name,
+		rs,
+		statusError.Message,
+		statusError.TaskPath,
+		e.EntityGUID,
+		e.ValidationDurationMilliseconds,
+		len(s.Statuses))
 }
 
 func (s *InstallStatus) completed(err error) {
@@ -524,9 +514,7 @@ func (s *InstallStatus) completed(err error) {
 		s.Error = statusError
 	}
 
-	log.WithFields(log.Fields{
-		"timestamp": s.Timestamp,
-	}).Debug("completed")
+	log.Debugf("completed timestamp:%s", s.Timestamp)
 
 	s.updateFinalInstallationStatuses(false, isUnsupported)
 	s.setRedirectURL()
@@ -535,9 +523,7 @@ func (s *InstallStatus) completed(err error) {
 func (s *InstallStatus) canceled() {
 	s.Timestamp = utils.GetTimestamp()
 
-	log.WithFields(log.Fields{
-		"timestamp": s.Timestamp,
-	}).Debug("canceled")
+	log.Debugf("canceled timestamp:%s", s.Timestamp)
 
 	s.updateFinalInstallationStatuses(true, false)
 }
@@ -551,22 +537,6 @@ func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus 
 
 	return nil
 }
-
-// This is unused for now: these events are sent too
-// quick for the UI to keep up when we modify an existing status.
-// Instead, we'll now send a list of events
-//
-// We can switch back to using this once the install-events-service
-// is in place
-// func (s *InstallStatus) getObservabilityPackStatusByPackName(name string) *ObservabilityPackStatus {
-// 	for _, pack := range s.ObservabilityPackStatuses {
-// 		if pack.Name == name {
-// 			return pack
-// 		}
-// 	}
-
-// 	return nil
-// }
 
 func (s *InstallStatus) getObservabilityPackStatusByPackStatusType(st ObservabilityPackStatusType) *ObservabilityPackStatus {
 	for _, pack := range s.ObservabilityPackStatuses {
@@ -586,15 +556,11 @@ func (s *InstallStatus) updateFinalInstallationStatuses(installCanceled bool, is
 	packs := s.collectStatuses()
 	s.updateObservabililtyPackStatuses(packs, installCanceled)
 
-	log.WithFields(log.Fields{
-		"hasInstalledRecipes": s.HasInstalledRecipes,
-		"hasSkippedRecipes":   s.HasSkippedRecipes,
-		"hasCanceledRecipes":  s.HasCanceledRecipes,
-		"hasFailedRecipes":    s.HasFailedRecipes,
-		"hasInstalledPacks":   s.HasInstalledPacks,
-		"hasCanceledPacks":    s.HasCanceledPacks,
-		"hasFailedPacks":      s.HasFailedPacks,
-	}).Debug("final installation statuses updated")
+	log.Debugf("final installation statuses updated hasInstalledRecipes:%s hasSkippedRecipes:%s hasCanceledRecipes:%s hasFailedRecipes:%s",
+		s.HasInstalledRecipes,
+		s.HasSkippedRecipes,
+		s.HasCanceledRecipes,
+		s.HasFailedRecipes)
 }
 
 func (s *InstallStatus) updateRecipeStatuses(installCanceled bool, isUnsupported bool) {
@@ -610,9 +576,7 @@ func (s *InstallStatus) updateRecipeStatuses(installCanceled bool, isUnsupported
 				debugMsg = "unsupported"
 			}
 
-			log.WithFields(log.Fields{
-				"recipe": s.Statuses[i].Name,
-			}).Debug(fmt.Sprintf("marking recipe %s", debugMsg))
+			log.Debugf("marking recipe %s name:%s", debugMsg, s.Statuses[i].Name)
 
 			if installCanceled {
 				s.Statuses[i].Status = RecipeStatusTypes.CANCELED
@@ -670,10 +634,7 @@ func (s *InstallStatus) updateObservabililtyPackStatuses(packs map[string][]Obse
 					debugMsg = "canceled"
 				}
 
-				log.WithFields(log.Fields{
-					"lastStatus":        lastStatus,
-					"observabilityPack": s.ObservabilityPackStatuses[i].Name,
-				}).Debug(fmt.Sprintf("marking observabilityPack %s", debugMsg))
+				log.Debugf("marking observabilityPack %s name:%s lastStatus:%s", debugMsg, s.ObservabilityPackStatuses[i].Name, lastStatus)
 
 				if installCanceled {
 					s.ObservabilityPackStatuses[i].Status = ObservabilityPackStatusTypes.Canceled

@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	log "github.com/newrelic/newrelic-cli/internal/logging"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
@@ -31,7 +31,7 @@ var Command = &cobra.Command{
 
 func initializeCLI(cmd *cobra.Command, args []string) {
 	logLevel := configAPI.GetLogLevel()
-	config.InitLogger(logLevel)
+	log.InitLogger(logLevel)
 
 	if client.NRClient == nil {
 		client.NRClient = createClient()

@@ -9,7 +9,7 @@ import (
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
-	log "github.com/sirupsen/logrus"
+	log "github.com/newrelic/newrelic-cli/internal/logging"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
@@ -30,9 +30,7 @@ func NewRecipeVarProvider() *RecipeVarProvider {
 }
 
 func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
-	log.WithFields(log.Fields{
-		"name": r.Name,
-	}).Debug("preparing recipe")
+	log.Debugf("preparing recipe name:%s", r.Name)
 
 	vars := types.RecipeVars{}
 
@@ -121,16 +119,11 @@ func varsFromInput(inputVars []types.OpenInstallationRecipeInputVariable, assume
 				return types.RecipeVars{}, fmt.Errorf("no default value for environment variable %s and none provided", envConfig.Name)
 			}
 
-			log.WithFields(log.Fields{
-				"name":    envConfig.Name,
-				"default": envConfig.Default,
-			}).Debug("required env var not found, using default")
+			log.Debugf("required env var not found, using default name:%s default:%s", envConfig.Name, envConfig.Default)
 
 			envValue = envConfig.Default
 		} else {
-			log.WithFields(log.Fields{
-				"name": envConfig.Name,
-			}).Debug("required environment variable not found")
+			log.Debugf("required environment variable not found name:%s", envConfig.Name)
 
 			envValue, err = varFromPrompt(envConfig)
 			if err != nil {
@@ -207,7 +200,7 @@ func varFromEnv() types.RecipeVars {
 	}
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
 
-	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
+	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = log.GetDefaultLogFilePath()
 
 	return vars
 }

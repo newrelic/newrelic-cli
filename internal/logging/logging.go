@@ -1,4 +1,4 @@
-package config
+package logging
 
 import (
 	"fmt"
@@ -6,20 +6,88 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	// DefaultLogLevel is the default log level
-	DefaultLogLevel = "info"
-
 	// DefaultLogFile is the default log file
 	DefaultLogFile = "newrelic-cli.log"
 )
 
 var (
-	fileHookConfigured = false
+	fileHook *LogrusFileHook = nil
 )
+
+func LogTrace(args ...interface{}) {
+	log.Trace(args)
+	if fileHook != nil {
+		fileHook.logger.Trace(args)
+	}
+}
+
+func Warn(args ...interface{}) {
+	log.Warn(args)
+	if fileHook != nil {
+		fileHook.logger.Warn(args)
+	}
+}
+
+func Error(args ...interface{}) {
+	log.Error(args)
+	if fileHook != nil {
+		fileHook.logger.Error(args)
+	}
+}
+
+func Fatal(args ...interface{}) {
+	log.Fatal(args)
+	if fileHook != nil {
+		fileHook.logger.Fatal(args)
+	}
+}
+
+func Tracef(format string, args ...interface{}) {
+	log.Tracef(format, args)
+	if fileHook != nil {
+		fileHook.logger.Tracef(format, args)
+	}
+}
+
+func Debugf(format string, args ...interface{}) {
+	log.Debugf(format, args)
+	if fileHook != nil {
+		fileHook.logger.Debugf(format, args)
+	}
+}
+
+func Warnf(format string, args ...interface{}) {
+	log.Warnf(format, args)
+	if fileHook != nil {
+		fileHook.logger.Warnf(format, args)
+	}
+}
+
+func Errorf(format string, args ...interface{}) {
+	log.Errorf(format, args)
+	if fileHook != nil {
+		fileHook.logger.Errorf(format, args)
+	}
+}
+
+func Fatalf(format string, args ...interface{}) {
+	log.Fatalf(format, args)
+	if fileHook != nil {
+		fileHook.logger.Fatalf(format, args)
+	}
+}
+
+func Printf(format string, args ...interface{}) {
+	log.Printf(format, args)
+	if fileHook != nil {
+		fileHook.logger.Printf(format, args)
+	}
+}
 
 func InitLogger(logLevel string) {
 	l := log.StandardLogger()
@@ -45,30 +113,28 @@ func InitLogger(logLevel string) {
 }
 
 func GetDefaultLogFilePath() string {
-	return filepath.Join(BasePath, DefaultLogFile)
+	return filepath.Join(config.BasePath, DefaultLogFile)
 }
 
 func InitFileLogger() {
-	if fileHookConfigured {
+	if fileHook != nil {
 		log.Debug("file logger already configured")
 		return
 	}
 
-	_, err := os.Stat(BasePath)
+	_, err := os.Stat(config.BasePath)
 
 	if os.IsNotExist(err) {
-		errDir := os.MkdirAll(BasePath, 0750)
+		errDir := os.MkdirAll(config.BasePath, 0750)
 		if errDir != nil {
 			log.Warnf("Could not create log file folder: %s", err)
 		}
 	}
 
-	fileHook, err := NewLogrusFileHook(BasePath+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
-	if err == nil && !fileHookConfigured {
-		l := log.StandardLogger()
-		l.Hooks.Add(fileHook)
-		fileHookConfigured = true
-	}
+	filepath := GetDefaultLogFilePath()
+	fileHook, err := NewLogrusFileHook(filepath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+	fileHook.logger.SetLevel(log.DebugLevel)
+	fileHook.logger.Hooks.Add(fileHook)
 }
 
 type LogrusFileHook struct {
@@ -76,6 +142,7 @@ type LogrusFileHook struct {
 	flag      int
 	chmod     os.FileMode
 	formatter *log.TextFormatter
+	logger    *log.Logger
 }
 
 func NewLogrusFileHook(file string, flag int, chmod os.FileMode) (*LogrusFileHook, error) {
@@ -86,7 +153,7 @@ func NewLogrusFileHook(file string, flag int, chmod os.FileMode) (*LogrusFileHoo
 		return nil, err
 	}
 
-	return &LogrusFileHook{logFile, flag, chmod, plainFormatter}, err
+	return &LogrusFileHook{logFile, flag, chmod, plainFormatter, log.New()}, err
 }
 
 func (hook *LogrusFileHook) Fire(entry *log.Entry) error {
