@@ -233,11 +233,11 @@ make recipes
 
 Recipe files are stored in `internal/install/recipes/files`. Once files have been
 fetched, they will be included in future CLI builds. If a particular version of
-the recipe library is desired, it can be passed to the make target via the `RECIPES_VERSION`
-option:
+the recipe library is desired, the archive download URL can be passed to the make
+target via the `RECIPES_ARCHIVE_URL` option:
 
 ```
-make recipes RECIPES_VERSION=v0.49.28
+make recipes RECIPES_ARCHIVE_URL=https://github.com/newrelic/open-install-library/releases/download/v0.49.28/recipes.zip
 ```
 
 To clean recipe files, use the `recipes-clean` target:
