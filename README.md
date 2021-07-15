@@ -218,40 +218,6 @@ $ make test-unit
 $ make test-integration
 ```
 
-### Working with recipes
-
-#### Core recipe library
-
-A core library of installation recipes is included with the CLI for use within the
-`install` command. Recipe files are syndicated from [open-install-library](https://github.com/newrelic/open-install-library)
-and embedded in the CLI binary at release time. To fetch the latest recipe library
-while developing, the following make target can be used:
-
-```
-make recipes
-```
-
-Recipe files are stored in `internal/install/recipes/files`. Once files have been
-fetched, they will be included in future CLI builds. If a particular version of
-the recipe library is desired, the archive download URL can be passed to the make
-target via the `RECIPES_ARCHIVE_URL` option:
-
-```
-make recipes RECIPES_ARCHIVE_URL=https://github.com/newrelic/open-install-library/releases/download/v0.50.0/recipes.zip
-```
-
-To clean recipe files, use the `recipes-clean` target:
-
-```
-make recipes-clean
-```
-
-#### Custom recipe files
-
-A path can also be passed to the `--localRecipes` flag when running the `install`
-command. This will bypass the methods described above and load files from the designated
-path.
-
 ### Commit Messages
 
 Using the following format for commit messages allows for auto-generation of
