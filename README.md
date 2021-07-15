@@ -237,7 +237,7 @@ the recipe library is desired, the archive download URL can be passed to the mak
 target via the `RECIPES_ARCHIVE_URL` option:
 
 ```
-make recipes RECIPES_ARCHIVE_URL=https://github.com/newrelic/open-install-library/releases/download/v0.49.28/recipes.zip
+make recipes RECIPES_ARCHIVE_URL=https://github.com/newrelic/open-install-library/releases/download/v0.50.0/recipes.zip
 ```
 
 To clean recipe files, use the `recipes-clean` target:
