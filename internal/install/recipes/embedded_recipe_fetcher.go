@@ -16,7 +16,7 @@ const (
 )
 
 var (
-	//go:embed files
+	//go:embed files/*
 	EmbeddedFS embed.FS
 )
 
