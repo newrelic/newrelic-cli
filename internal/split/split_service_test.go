@@ -19,7 +19,7 @@ func TestNewSplitService(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	service := setup(t)
+	service := setup()
 
 	actualTreatment := service.Get("feature1")
 	expectedTreatment := "on"
@@ -28,7 +28,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	service := setup(t)
+	service := setup()
 
 	splits := []string{"feature1", "feature2"}
 	actualTreatments := service.GetAll(splits)
@@ -40,7 +40,7 @@ func TestGetAll(t *testing.T) {
 	require.Equal(t, expectedTreatments, actualTreatments)
 }
 
-func setup(t *testing.T) *Service {
+func setup() *Service {
 	service, _ := NewSplitService("localhost", "staging")
 
 	return service
