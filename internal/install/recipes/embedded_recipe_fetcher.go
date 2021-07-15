@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -55,7 +56,7 @@ func (f *EmbeddedRecipeFetcher) getYAMLFiles(path string) (out []string, err err
 
 func isYAMLFile(path string) bool {
 	e := filepath.Ext(path)
-	return e == ".yml" || e == ".yaml"
+	return strings.EqualFold(e, ".yml") || strings.EqualFold(e, ".yaml")
 }
 
 func (f *EmbeddedRecipeFetcher) getFiles(path string, filterFunc func(string) bool) (out []string, err error) {
