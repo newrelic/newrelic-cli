@@ -1,25 +1,19 @@
 package split
 
 import (
-	"strings"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 )
 
-var (
-	SplitService *Service
-)
+var SplitService *Service
 
 func Init() {
 	region := configAPI.GetConfigString(config.Region)
-	apiKey := GetAPIKeyByRegion(strings.ToLower(region))
-
-	service, err := NewSplitService(apiKey, region)
+	service, err := NewService(region)
 	if err != nil {
-		log.Errorf("could not initialize SplitService: %s\n", err)
+		log.Fatalf("could not initialize SplitService: %s\n", err)
 	}
 	SplitService = service
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewSplitService(t *testing.T) {
-	service, _ := NewSplitService("localhost", "staging")
+	service, _ := NewService("localhost")
 
 	actualType := reflect.TypeOf(service)
 	expectedType := reflect.TypeOf(&Service{client: &client.SplitClient{}})
@@ -41,7 +41,6 @@ func TestGetAll(t *testing.T) {
 }
 
 func setup() *Service {
-	service, _ := NewSplitService("localhost", "staging")
-
+	service, _ := NewService("localhost")
 	return service
 }

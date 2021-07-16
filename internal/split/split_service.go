@@ -1,8 +1,10 @@
 package split
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/splitio/go-client/v6/splitio/client"
@@ -17,9 +19,9 @@ import (
 // serve is to retrieve experiments and can not be used to modify anything
 // within our internal Split.io system.
 var (
-	prod      = "8me2vu6v8lhssdkrpenp1uunl9s3bdc8njqp"
-	staging   = "mcf9oimts3laqli01e2ktrjdudkdbh8dg42a"
-	accountID = configAPI.GetActiveProfileAccountID()
+	prodKey    = "8me2vu6v8lhssdkrpenp1uunl9s3bdc8njqp"
+	stagingKey = "mcf9oimts3laqli01e2ktrjdudkdbh8dg42a"
+	accountID  = configAPI.GetActiveProfileAccountID()
 )
 
 type Service struct {
@@ -29,23 +31,24 @@ type Service struct {
 // Creates a new instance of a Split Factory
 // Using "localhost" as the apiKey allows us to use Split.io
 // in localhost mode as defined in their documentation
-func NewSplitService(apiKey string, region string) (*Service, error) {
+func NewService(region string) (*Service, error) {
+	var apiKey = getAPIKeyByRegion(region)
 	cfg := conf.Default()
-	if apiKey == "localhost" {
-		cfg.SplitFile = CreateMockSplits()
+	if region == "localhost" {
+		apiKey = "localhost"
+		cfg.SplitFile = createMockSplits()
 	}
 
 	factory, err := client.NewSplitFactory(apiKey, cfg)
 	if err != nil {
 		log.Errorf("Split SDK init error: %s\n", err)
-		return nil, err
+		return nil, fmt.Errorf("split SDK init error: %s", err)
 	}
 
 	client := factory.Client()
 	err = client.BlockUntilReady(10)
 	if err != nil {
-		log.Errorf("Split SDK timeout: %s\n", err)
-		return nil, err
+		return nil, fmt.Errorf("split SDK timeout: %s", err)
 	}
 
 	return &Service{client: client}, nil
@@ -63,14 +66,13 @@ func (s *Service) GetAll(splits []string) map[string]string {
 }
 
 // Creates a temporary file with splits used for unit-testing
-func CreateMockSplits() string {
+func createMockSplits() string {
 	dir, err := os.UserHomeDir()
 	if err != nil {
 		log.Errorf("could not get user home directory: %s", err)
 	}
 	// Create a temporary file that holds test splits for testing purposes
 	blob := []byte(MockSplits)
-
 	filename := dir + "/mock.split"
 	err = ioutil.WriteFile(filename, blob, 0777)
 	if err != nil {
@@ -80,9 +82,9 @@ func CreateMockSplits() string {
 	return filename
 }
 
-func GetAPIKeyByRegion(region string) string {
-	if region == "staging" {
-		return staging
+func getAPIKeyByRegion(region string) string {
+	if strings.EqualFold(region, "staging") {
+		return stagingKey
 	}
-	return prod
+	return prodKey
 }
