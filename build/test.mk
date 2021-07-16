@@ -28,7 +28,7 @@ test-unit: tools
 	@mkdir -p $(COVERAGE_DIR)
 	@$(TEST_RUNNER) -f testname --junitfile $(COVERAGE_DIR)/unit.xml -- -v -ldflags=$(LDFLAGS_UNIT) -parallel 4 -tags unit -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/unit.tmp $(GO_PKGS)
 
-test-integration: recipes tools
+test-integration: tools
 	@echo "=== $(PROJECT_NAME) === [ test-integration ]: running integration tests..."
 	@mkdir -p $(COVERAGE_DIR)
 	@$(TEST_RUNNER) -f testname --junitfile $(COVERAGE_DIR)/integration.xml --rerun-fails=3 --packages "$(GO_PKGS)" -- -v -parallel 4 -tags integration -covermode=$(COVERMODE) -coverprofile $(COVERAGE_DIR)/integration.tmp $(GO_PKGS)
