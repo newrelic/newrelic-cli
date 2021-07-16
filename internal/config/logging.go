@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,12 +20,11 @@ const (
 
 var (
 	fileHookConfigured = false
+	stdoutLog          = log.New()
 )
 
 func InitLogger(logLevel string) {
-	l := log.StandardLogger()
-
-	l.SetFormatter(&log.TextFormatter{
+	stdoutLog.SetFormatter(&log.TextFormatter{
 		DisableLevelTruncation:    true,
 		DisableTimestamp:          true,
 		EnvironmentOverrideColors: true,
@@ -32,15 +32,15 @@ func InitLogger(logLevel string) {
 
 	switch level := strings.ToUpper(logLevel); level {
 	case "TRACE":
-		l.SetLevel(log.TraceLevel)
+		stdoutLog.SetLevel(log.TraceLevel)
 	case "DEBUG":
-		l.SetLevel(log.DebugLevel)
+		stdoutLog.SetLevel(log.DebugLevel)
 	case "WARN":
-		l.SetLevel(log.WarnLevel)
+		stdoutLog.SetLevel(log.WarnLevel)
 	case "ERROR":
-		l.SetLevel(log.ErrorLevel)
+		stdoutLog.SetLevel(log.ErrorLevel)
 	default:
-		l.SetLevel(log.InfoLevel)
+		stdoutLog.SetLevel(log.InfoLevel)
 	}
 }
 
@@ -66,6 +66,8 @@ func InitFileLogger() {
 	fileHook, err := NewLogrusFileHook(BasePath+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
 	if err == nil && !fileHookConfigured {
 		l := log.StandardLogger()
+		l.SetOutput(ioutil.Discard)
+		l.SetLevel(log.DebugLevel)
 		l.Hooks.Add(fileHook)
 		fileHookConfigured = true
 	}
@@ -75,21 +77,24 @@ type LogrusFileHook struct {
 	file      *os.File
 	flag      int
 	chmod     os.FileMode
-	formatter *log.TextFormatter
+	formatter *log.JSONFormatter
 }
 
 func NewLogrusFileHook(file string, flag int, chmod os.FileMode) (*LogrusFileHook, error) {
-	plainFormatter := &log.TextFormatter{DisableColors: true}
+	formatter := &log.JSONFormatter{}
 	logFile, err := os.OpenFile(file, flag, chmod)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "unable to write file on filehook %v", err)
 		return nil, err
 	}
 
-	return &LogrusFileHook{logFile, flag, chmod, plainFormatter}, err
+	return &LogrusFileHook{logFile, flag, chmod, formatter}, err
 }
 
 func (hook *LogrusFileHook) Fire(entry *log.Entry) error {
+
+	stdoutLog.Log(entry.Level, entry.Message)
+
 	plainformat, err := hook.formatter.Format(entry)
 	if err != nil {
 		return err
@@ -113,5 +118,6 @@ func (hook *LogrusFileHook) Levels() []log.Level {
 		log.WarnLevel,
 		log.InfoLevel,
 		log.DebugLevel,
+		log.TraceLevel,
 	}
 }
