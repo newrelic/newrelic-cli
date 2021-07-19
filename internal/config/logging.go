@@ -20,7 +20,7 @@ const (
 
 var (
 	fileHookConfigured = false
-	logger             = log.StandardLogger()
+	Logger             = log.StandardLogger()
 )
 
 func InitLogger(logger *log.Logger, logLevel string) {
@@ -40,8 +40,8 @@ func GetDefaultLogFilePath() string {
 }
 
 func InitFileLogger(terminalLogLevel string) {
-	logger = log.New()
-	InitLogger(logger, terminalLogLevel)
+	Logger = log.New()
+	InitLogger(Logger, terminalLogLevel)
 
 	if fileHookConfigured {
 		log.Debug("file logger already configured")
@@ -92,7 +92,7 @@ func NewLogrusFileHook(file string, flag int, chmod os.FileMode) (*LogrusFileHoo
 
 func (hook *LogrusFileHook) Fire(entry *log.Entry) error {
 
-	logger.Log(entry.Level, entry.Message)
+	Logger.Log(entry.Level, entry.Message)
 
 	plainformat, err := hook.formatter.Format(entry)
 	if err != nil {

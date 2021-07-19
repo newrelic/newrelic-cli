@@ -5,6 +5,7 @@ import (
 	"time"
 
 	spinnerLib "github.com/briandowns/spinner"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -32,7 +33,7 @@ func NewSpinner() *Spinner {
 
 func (s *Spinner) Start(msg string) {
 	// Only start the spinner of the log level is info or below.
-	if log.IsLevelEnabled(log.DebugLevel) {
+	if config.Logger.IsLevelEnabled(log.DebugLevel) {
 		log.Debug(msg)
 	} else {
 		s.Spinner = spinnerLib.New(charSet, interval)
@@ -44,9 +45,11 @@ func (s *Spinner) Start(msg string) {
 
 func (s *Spinner) Stop() {
 	// Only stop the spinner of the log level is info or below.
-	if log.IsLevelEnabled(log.InfoLevel) {
-		s.Spinner.Stop()
+	if config.Logger.IsLevelEnabled(log.DebugLevel) {
+		log.Debug(s.Suffix)
+	} else {
 		fmt.Println(s.Suffix)
+		s.Spinner.Stop()
 	}
 }
 
