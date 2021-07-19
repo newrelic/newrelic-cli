@@ -7,7 +7,7 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 )
 
-var SplitService *Service
+var Service *Srvc
 
 func Init() {
 	region := configAPI.GetConfigString(config.Region)
@@ -15,7 +15,7 @@ func Init() {
 	if err != nil {
 		log.Fatalf("could not initialize SplitService: %s\n", err)
 	}
-	SplitService = service
+	Service = service
 }
 
 func init() {

@@ -15,7 +15,7 @@ func TestNewSplitService(t *testing.T) {
 	service, _ := NewService("localhost")
 
 	actualType := reflect.TypeOf(service)
-	expectedType := reflect.TypeOf(&Service{client: &client.SplitClient{}})
+	expectedType := reflect.TypeOf(&Srvc{client: &client.SplitClient{}})
 
 	require.NotNil(t, service)
 	require.Equal(t, expectedType, actualType)
@@ -43,7 +43,7 @@ func TestGetAll(t *testing.T) {
 	require.Equal(t, expectedTreatments, actualTreatments)
 }
 
-func setup() *Service {
+func setup() *Srvc {
 	// Set a custom split config
 	splitConfig.SplitFile = createMockSplits()
 	service, _ := NewService("localhost")

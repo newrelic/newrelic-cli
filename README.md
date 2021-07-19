@@ -218,6 +218,39 @@ $ make test-unit
 $ make test-integration
 ```
 
+### Experimenting (internal New Relic usage only)
+
+Using A/B tests, New Relic developers have the ability to gradually roll out new features. 
+
+#### Define an experiment
+
+With access to Split.io, internal New Relic developers can create new A/B tests. Upon creating one, reference the exact name of the experiment in `internal/split/constants.go`. Make sure this is the exact name of the experiment in Split.io.
+
+#### Retrieve treatments
+
+You can retrieve the status of the treatment by using the `SplitService`.
+
+```golang
+// Retrieve a single treatment given an experiment (split)
+treatment := split.SplitService.Get(split.VirtuosoCLITest)
+
+if treatment == "on" {
+  // insert code here to show on treatment
+} else if treatment == "off" {
+  // insert code here to show off treatment 
+} else {
+  // insert your control treatment code here
+}
+
+// Retrieve multiple treatments given a list of experiments (splits)
+splits := []string{split.VirtuosoCLITest, split.VirtuosoCliTest2}
+treatments := split.Service.GetAll(splits)
+for split, treatment := range treatments {
+    fmt.Printf("Treatment for feature %s is %s\n", split, treatment)
+    // Evaluate treatments
+}
+
+```
 ### Working with recipes
 
 #### Core recipe library

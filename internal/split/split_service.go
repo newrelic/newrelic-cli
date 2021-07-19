@@ -23,14 +23,14 @@ var (
 	splitConfig *conf.SplitSdkConfig = conf.Default()
 )
 
-type Service struct {
+type Srvc struct {
 	client *client.SplitClient
 }
 
 // Creates a new instance of a Split Factory
 // Using "localhost" as the apiKey allows us to use Split.io
 // in localhost mode as defined in their documentation
-func NewService(region string) (*Service, error) {
+func NewService(region string) (*Srvc, error) {
 	var apiKey = getAPIKeyByRegion(region)
 	if region == "localhost" {
 		apiKey = "localhost"
@@ -48,16 +48,16 @@ func NewService(region string) (*Service, error) {
 		return nil, fmt.Errorf("split SDK timeout: %s", err)
 	}
 
-	return &Service{client: client}, nil
+	return &Srvc{client: client}, nil
 }
 
 // Get a treatment from Split.io given the name of the split
-func (s *Service) Get(split string) string {
+func (s *Srvc) Get(split string) string {
 	return s.client.Treatment(accountID, split, nil)
 }
 
 // Get all treatments from Split.io given a list of splits
-func (s *Service) GetAll(splits []string) map[string]string {
+func (s *Srvc) GetAll(splits []string) map[string]string {
 	log.Debugf("Retrieving treatments for splits: %s", splits)
 	return s.client.Treatments(accountID, splits, nil)
 }
