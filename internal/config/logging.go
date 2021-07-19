@@ -20,35 +20,29 @@ const (
 
 var (
 	fileHookConfigured = false
-	stdoutLog          = log.New()
+	logger             = log.StandardLogger()
 )
 
-func InitLogger(logLevel string) {
-	stdoutLog.SetFormatter(&log.TextFormatter{
+func InitLogger(logger *log.Logger, logLevel string) {
+	logger.SetFormatter(&log.TextFormatter{
 		DisableLevelTruncation:    true,
 		DisableTimestamp:          true,
 		EnvironmentOverrideColors: true,
 	})
 
-	switch level := strings.ToUpper(logLevel); level {
-	case "TRACE":
-		stdoutLog.SetLevel(log.TraceLevel)
-	case "DEBUG":
-		stdoutLog.SetLevel(log.DebugLevel)
-	case "WARN":
-		stdoutLog.SetLevel(log.WarnLevel)
-	case "ERROR":
-		stdoutLog.SetLevel(log.ErrorLevel)
-	default:
-		stdoutLog.SetLevel(log.InfoLevel)
-	}
+	level := getLevelFromString(logLevel, log.InfoLevel)
+
+	logger.SetLevel(level)
 }
 
 func GetDefaultLogFilePath() string {
 	return filepath.Join(BasePath, DefaultLogFile)
 }
 
-func InitFileLogger() {
+func InitFileLogger(terminalLogLevel string) {
+	logger = log.New()
+	InitLogger(logger, terminalLogLevel)
+
 	if fileHookConfigured {
 		log.Debug("file logger already configured")
 		return
@@ -63,11 +57,16 @@ func InitFileLogger() {
 		}
 	}
 
+	fileLoggerLevel := log.DebugLevel
+	if l := os.Getenv("NEW_RELIC_CLI_FILE_LOG_LEVEL"); l != "" {
+		fileLoggerLevel = getLevelFromString(l, log.DebugLevel)
+	}
+
 	fileHook, err := NewLogrusFileHook(BasePath+"/"+DefaultLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0640)
 	if err == nil && !fileHookConfigured {
 		l := log.StandardLogger()
 		l.SetOutput(ioutil.Discard)
-		l.SetLevel(log.DebugLevel)
+		l.SetLevel(fileLoggerLevel)
 		l.Hooks.Add(fileHook)
 		fileHookConfigured = true
 	}
@@ -93,7 +92,7 @@ func NewLogrusFileHook(file string, flag int, chmod os.FileMode) (*LogrusFileHoo
 
 func (hook *LogrusFileHook) Fire(entry *log.Entry) error {
 
-	stdoutLog.Log(entry.Level, entry.Message)
+	logger.Log(entry.Level, entry.Message)
 
 	plainformat, err := hook.formatter.Format(entry)
 	if err != nil {
@@ -119,5 +118,21 @@ func (hook *LogrusFileHook) Levels() []log.Level {
 		log.InfoLevel,
 		log.DebugLevel,
 		log.TraceLevel,
+	}
+}
+
+func getLevelFromString(logLevel string, defaultLevel log.Level) log.Level {
+	switch level := strings.ToUpper(logLevel); level {
+	case "TRACE":
+		return log.TraceLevel
+	case "DEBUG":
+		return log.DebugLevel
+	case "WARN":
+		return log.WarnLevel
+	case "ERROR":
+		return log.ErrorLevel
+	default:
+		log.Debugf("log level %s could not be parsed, using default level %s", level, defaultLevel)
+		return defaultLevel
 	}
 }
