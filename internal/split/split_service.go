@@ -2,8 +2,6 @@ package split
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -19,9 +17,10 @@ import (
 // serve is to retrieve experiments and can not be used to modify anything
 // within our internal Split.io system.
 var (
-	prodKey    = "8me2vu6v8lhssdkrpenp1uunl9s3bdc8njqp"
-	stagingKey = "mcf9oimts3laqli01e2ktrjdudkdbh8dg42a"
-	accountID  = configAPI.GetActiveProfileAccountID()
+	prodKey                          = "8me2vu6v8lhssdkrpenp1uunl9s3bdc8njqp"
+	stagingKey                       = "mcf9oimts3laqli01e2ktrjdudkdbh8dg42a"
+	accountID                        = configAPI.GetActiveProfileAccountID()
+	splitConfig *conf.SplitSdkConfig = conf.Default()
 )
 
 type Service struct {
@@ -33,13 +32,11 @@ type Service struct {
 // in localhost mode as defined in their documentation
 func NewService(region string) (*Service, error) {
 	var apiKey = getAPIKeyByRegion(region)
-	cfg := conf.Default()
 	if region == "localhost" {
 		apiKey = "localhost"
-		cfg.SplitFile = createMockSplits()
 	}
 
-	factory, err := client.NewSplitFactory(apiKey, cfg)
+	factory, err := client.NewSplitFactory(apiKey, splitConfig)
 	if err != nil {
 		log.Errorf("Split SDK init error: %s\n", err)
 		return nil, fmt.Errorf("split SDK init error: %s", err)
@@ -63,23 +60,6 @@ func (s *Service) Get(split string) string {
 func (s *Service) GetAll(splits []string) map[string]string {
 	log.Debugf("Retrieving treatments for splits: %s", splits)
 	return s.client.Treatments(accountID, splits, nil)
-}
-
-// Creates a temporary file with splits used for unit-testing
-func createMockSplits() string {
-	dir, err := os.UserHomeDir()
-	if err != nil {
-		log.Errorf("could not get user home directory: %s", err)
-	}
-	// Create a temporary file that holds test splits for testing purposes
-	blob := []byte(MockSplits)
-	filename := dir + "/mock.split"
-	err = ioutil.WriteFile(filename, blob, 0777)
-	if err != nil {
-		log.Errorf("could not create temp file: %s", err)
-	}
-
-	return filename
 }
 
 func getAPIKeyByRegion(region string) string {
