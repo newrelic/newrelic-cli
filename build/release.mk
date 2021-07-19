@@ -18,12 +18,12 @@ release-clean:
 	@echo "=== $(PROJECT_NAME) === [ release-clean    ]: distribution files..."
 	@rm -rfv $(DIST_DIR) $(SRCDIR)/tmp
 
-release-publish: clean tools docker-login snapcraft-login release-notes
+release-publish: clean tools docker-login snapcraft-login release-notes recipes
 	@echo "=== $(PROJECT_NAME) === [ release-publish  ]: Publishing release via $(REL_CMD)"
 	$(REL_CMD) --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE)
 
 # Local Snapshot
-snapshot: clean tools
+snapshot: clean tools recipes
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]: Creating release via $(REL_CMD)"
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]:   THIS WILL NOT BE PUBLISHED!"
 	@$(REL_CMD) --skip-publish --snapshot
