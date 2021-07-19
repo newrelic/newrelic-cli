@@ -61,7 +61,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 			Path: ic.LocalRecipes,
 		}
 	} else {
-		recipeFetcher = recipes.NewServiceRecipeFetcher(&nrClient.NerdGraph)
+		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
 
 	mv := discovery.NewManifestValidator()

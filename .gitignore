@@ -13,3 +13,7 @@ Release/*
 *.nupkg
 build/package/chocolatey/tools/LICENSE.txt
 schema.json
+
+# Embedded recipe files
+internal/install/recipes/files/**/*
+!internal/install/recipes/files/.keep
