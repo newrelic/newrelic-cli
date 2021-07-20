@@ -22,12 +22,13 @@ var (
 
 type Spinner struct {
 	*spinnerLib.Spinner
+	isStarted bool
 }
 
 func NewSpinner() *Spinner {
 	s := Spinner{}
 	s.Spinner = spinnerLib.New(charSet, interval)
-
+	s.isStarted = false
 	return &s
 }
 
@@ -40,16 +41,16 @@ func (s *Spinner) Start(msg string) {
 		s.Prefix = indentation
 		s.Suffix = fmt.Sprintf(" %s", msg)
 		s.Spinner.Start()
+		s.isStarted = true
 	}
 }
 
 func (s *Spinner) Stop() {
 	// Only stop the spinner of the log level is info or below.
-	if config.Logger.IsLevelEnabled(log.DebugLevel) {
-		log.Debug(s.Suffix)
-	} else {
-		fmt.Println(s.Suffix)
+	if s.isStarted {
 		s.Spinner.Stop()
+		fmt.Println(s.Suffix)
+		s.isStarted = false
 	}
 }
 
