@@ -5,8 +5,9 @@ import (
 	"time"
 
 	spinnerLib "github.com/briandowns/spinner"
-	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 )
 
 const (
