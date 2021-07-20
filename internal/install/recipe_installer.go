@@ -88,7 +88,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
 
 	// TODO: Use the schema configured URL
-	av := validation.NewAgentValidator(utils.NewValidationClient(), "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status")
+	av := validation.NewAgentValidator(utils.NewHTTPClient(), "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status")
 
 	i := RecipeInstaller{
 		discoverer:        d,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
@@ -12,7 +13,7 @@ import (
 
 // AgentValidator polls NRDB to assert data is being reported for the given query.
 type AgentValidator struct {
-	httpClient        utils.HTTPClient
+	httpClient        utils.HTTPClientInterface
 	validationURL     string
 	MaxAttempts       int
 	Interval          time.Duration
@@ -20,17 +21,32 @@ type AgentValidator struct {
 }
 
 // TODO: Rename this response per proper domain (e.g. AgentValidationResponse?)
-type ValidationResponse struct {
+type AgentSuccessResponse struct {
 	GUID string `json:"guid"`
 }
 
+type AgentStatusResponse struct {
+	Checks []AgentEndpoint   `json:"checks"`
+	Config AgentStatusConfig `json:"config"`
+}
+
+type AgentEndpoint struct {
+	Url       string `json:"url"`
+	Reachable bool   `json:"reachable"`
+	Error     string `json:"error"`
+}
+
+type AgentStatusConfig struct {
+	ReachabilityTimeout string `json:"reachability_timeout"`
+}
+
 // NewAgentValidator returns a new instance of AgentValidator.
-func NewAgentValidator(c utils.HTTPClient, validationURL string) *AgentValidator {
+func NewAgentValidator(c utils.HTTPClientInterface, validationURL string) *AgentValidator {
 	v := AgentValidator{
 		MaxAttempts:       3,
 		Interval:          5 * time.Second,
 		ProgressIndicator: ux.NewSpinner(),
-		httpClient:        utils.NewValidationClient(),
+		httpClient:        utils.NewHTTPClient(),
 		validationURL:     validationURL, // "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status",
 		// JUST IDEAS
 		// validation: {
@@ -95,8 +111,12 @@ func (v *AgentValidator) doValidate(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	response := ValidationResponse{}
+	log.Print("\n\n **************************** \n")
+	log.Printf("\n doValidate:  %+v \n", resp)
+	log.Print("\n **************************** \n\n")
+	time.Sleep(3 * time.Second)
 
+	response := AgentSuccessResponse{}
 	err = json.Unmarshal(resp, &response)
 	if err != nil {
 		return "", err
