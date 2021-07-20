@@ -64,7 +64,7 @@ func (f *RegexProcessMatchFinder) findMatches(r types.OpenInstallationRecipe, pr
 
 		matched, err := regexp.Match(pattern, []byte(cmd))
 		if err != nil {
-			log.Debugf("could not execute pattern %s against process invocation %s, %s", pattern, cmd, err)
+			log.Tracef("could not execute pattern %s against process invocation %s, %s", pattern, cmd, err)
 			continue
 		}
 
@@ -73,7 +73,7 @@ func (f *RegexProcessMatchFinder) findMatches(r types.OpenInstallationRecipe, pr
 			mp.GenericProcess = process
 			mp.MatchingPattern = pattern
 			mp.MatchingRecipe = r
-			log.Debugf("Process matching pattern %s with %s for recipe %s.", pattern, cmd, r.DisplayName)
+			log.Tracef("Process matching pattern %s with %s for recipe %s.", pattern, cmd, r.DisplayName)
 
 			matches = append(matches, *mp)
 		}

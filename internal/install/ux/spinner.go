@@ -5,6 +5,7 @@ import (
 	"time"
 
 	spinnerLib "github.com/briandowns/spinner"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -26,28 +27,29 @@ type Spinner struct {
 func NewSpinner() *Spinner {
 	s := Spinner{}
 	s.Spinner = spinnerLib.New(charSet, interval)
-
 	return &s
 }
 
 func (s *Spinner) Start(msg string) {
-	// Only start the spinner of the log level is info or below.
-	if log.IsLevelEnabled(log.DebugLevel) {
-		log.Debug(msg)
-	} else {
+	// Suppress spinner output when logging at debug or trace level.
+	// Output is garbled when verbose log messages are sent during an active spinner.
+	if !config.Logger.IsLevelEnabled(log.DebugLevel) {
 		s.Spinner = spinnerLib.New(charSet, interval)
 		s.Prefix = indentation
 		s.Suffix = fmt.Sprintf(" %s", msg)
 		s.Spinner.Start()
 	}
+	log.Debug(msg)
 }
 
 func (s *Spinner) Stop() {
-	// Only stop the spinner of the log level is info or below.
-	if log.IsLevelEnabled(log.InfoLevel) {
+	// Suppress stopping the spinner when logging at debug or trace level.
+	// See above.
+	if !config.Logger.IsLevelEnabled(log.DebugLevel) {
 		s.Spinner.Stop()
 		fmt.Println(s.Suffix)
 	}
+	log.Debug(s.Suffix)
 }
 
 func (s *Spinner) Fail(msg string) {

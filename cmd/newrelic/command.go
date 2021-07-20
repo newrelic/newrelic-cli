@@ -31,7 +31,7 @@ var Command = &cobra.Command{
 
 func initializeCLI(cmd *cobra.Command, args []string) {
 	logLevel := configAPI.GetLogLevel()
-	config.InitLogger(logLevel)
+	config.InitLogger(log.StandardLogger(), logLevel)
 
 	if client.NRClient == nil {
 		client.NRClient = createClient()
