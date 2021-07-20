@@ -40,7 +40,7 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 	for _, f := range rf.availablilityFilters {
 		filtered := f.Filter(ctx, r, m)
 		if filtered {
-			log.Debugf("Filtering out unavailable recipe %s", r.Name)
+			log.Tracef("Filtering out unavailable recipe %s", r.Name)
 			return true
 		}
 	}
@@ -57,7 +57,7 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 		filtered := f.Filter(ctx, r, m)
 
 		if filtered {
-			log.Debugf("Filtering out skipped recipe %s", r.Name)
+			log.Tracef("Filtering out skipped recipe %s", r.Name)
 			rf.installStatus.RecipeSkipped(execution.RecipeStatusEvent{Recipe: *r})
 			return true
 		}
@@ -122,7 +122,7 @@ func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenIn
 	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
 
 	if filtered {
-		log.Debugf("recipe %s not matching any process", r.Name)
+		log.Tracef("recipe %s not matching any process", r.Name)
 	}
 
 	return filtered
@@ -142,7 +142,7 @@ func NewScriptEvaluationRecipeFilterer() *ScriptEvaluationRecipeFilterer {
 
 func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
-		log.Debugf("recipe %s failed script evaluation %s", r.Name, err)
+		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
 		return true
 	}
 
@@ -193,21 +193,21 @@ func (f *SkipFilterer) Filter(ctx context.Context, r *types.OpenInstallationReci
 		}
 
 		if filtered {
-			log.Debugf("recipe %s does not match provided names %s", r.Name, f.onlyNames)
+			log.Tracef("recipe %s does not match provided names %s", r.Name, f.onlyNames)
 			return true
 		}
 	}
 
 	for _, n := range f.skipNames {
 		if strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(r.Name)) {
-			log.Debugf("recipe %s found in skip list %s", r.Name, f.skipNames)
+			log.Tracef("recipe %s found in skip list %s", r.Name, f.skipNames)
 			return true
 		}
 	}
 
 	for _, k := range f.skipKeywords {
 		if r.HasKeyword(k) {
-			log.Debugf("recipe %s has keyword %s found in skip list %s", r.Name, k, f.skipKeywords)
+			log.Tracef("recipe %s has keyword %s found in skip list %s", r.Name, k, f.skipKeywords)
 			return true
 		}
 	}
@@ -219,7 +219,7 @@ func (f *SkipFilterer) Filter(ctx context.Context, r *types.OpenInstallationReci
 
 	for _, t := range f.skipTypes {
 		if r.HasTargetType(types.OpenInstallationTargetType(t)) {
-			log.Debugf("recipe %s has type %s found in skip list %s", r.Name, t, f.skipTypes)
+			log.Tracef("recipe %s has type %s found in skip list %s", r.Name, t, f.skipTypes)
 			return true
 		}
 	}
