@@ -2,6 +2,8 @@ package execution
 
 import (
 	"io"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type LineCaptureBuffer struct {
@@ -22,9 +24,12 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 	for _, b := range p {
 		if b == '\n' {
 			s := string(c.current)
+
 			if s != "" {
+				log.Debugf(s)
 				c.LastFullLine = s
 			}
+
 			c.current = []byte{}
 		} else {
 			c.current = append(c.current, b)
