@@ -477,7 +477,7 @@
 <a name="v0.18.19"></a>
 ## [v0.18.19] - 2021-01-27
 ### Bug Fixes
-- **install:** ensure prompt respones are handled correctly
+- **install:** ensure prompt response are handled correctly
 
 <a name="v0.18.18"></a>
 ## [v0.18.18] - 2021-01-25
