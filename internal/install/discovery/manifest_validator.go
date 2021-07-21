@@ -28,6 +28,9 @@ func NewManifestValidator() *ManifestValidator {
 	mv.validators = append(mv.validators, NewOsValidator())
 	mv.validators = append(mv.validators, NewOsVersionValidator("windows", "", 6, 2))
 	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "ubuntu", 16, 04))
+	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "centos", 7, 0))
+	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "debian", 8, 0))
+	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "redhat", 6, 0))
 
 	return &mv
 }
