@@ -75,7 +75,7 @@ func FetchLicenseKey(accountID int, profileName string) (string, error) {
 		return nil
 	}
 
-	r := utils.NewRetry(3, 1, retryFunc)
+	r := utils.NewRetry(5, 5, retryFunc)
 	if err := r.ExecWithRetries(utils.SignalCtx); err != nil {
 		return "", err
 	}
