@@ -1,6 +1,7 @@
 <a name="v0.31.0"></a>
-## [v0.31.0] - 2021-07-20
+## [v0.31.0] - 2021-07-21
 ### Bug Fixes
+- **install:** fix loading embedded files on windows
 - **install:** suppress spinner output during verbose logging
 - **install:** remove spinner suppression during debug logging
 - **install:** obfuscate license key
@@ -468,7 +469,7 @@
 <a name="v0.18.19"></a>
 ## [v0.18.19] - 2021-01-27
 ### Bug Fixes
-- **install:** ensure prompt respones are handled correctly
+- **install:** ensure prompt response are handled correctly
 
 <a name="v0.18.18"></a>
 ## [v0.18.18] - 2021-01-25
