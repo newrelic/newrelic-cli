@@ -26,6 +26,25 @@ func TestToStringByFieldName(t *testing.T) {
 	require.Equal(t, "false", boolAsString)
 }
 
+func TestExpandValidation(t *testing.T) {
+	data := map[string]interface{}{
+		"validation": map[interface{}]interface{}{
+			"localUrl": "http://localhost:18003/v1/status/entity",
+			"nrql":     "SELECT count(*) from SystemSample",
+		},
+	}
+
+	output := expandValidation(data)
+	require.Equal(t, "http://localhost:18003/v1/status/entity", output.LocalURL)
+	require.Equal(t, "SELECT count(*) from SystemSample", output.NRQL)
+}
+
+func TestExpandValidationEmpty(t *testing.T) {
+	expected := expandValidation(map[string]interface{}{})
+
+	require.Equal(t, OpenInstallationRecipeValidationConfig{}, expected)
+}
+
 func Test_shouldDisplayShortString(t *testing.T) {
 
 	recipe := OpenInstallationRecipe{

@@ -72,11 +72,34 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 
 	r.SuccessLinkConfig = expandSuccessLinkConfig(recipe)
 
+	// DEPRECATED: Use `validation` parameter instead
 	if v, ok := recipe["validationNrql"]; ok {
 		r.ValidationNRQL = NRQL(v.(string))
 	}
 
+	r.Validation = expandValidation(recipe)
+
 	return err
+}
+
+func expandValidation(recipe map[string]interface{}) OpenInstallationRecipeValidationConfig {
+	v, ok := recipe["validation"]
+	if !ok {
+		return OpenInstallationRecipeValidationConfig{}
+	}
+
+	dataIn := v.(map[interface{}]interface{})
+	reData := map[string]interface{}{}
+	for k, v := range dataIn {
+		reData[k.(string)] = v
+	}
+
+	dataOut := OpenInstallationRecipeValidationConfig{
+		LocalURL: toStringByFieldName("localUrl", reData),
+		NRQL:     toStringByFieldName("nrql", reData),
+	}
+
+	return dataOut
 }
 
 func (r *OpenInstallationRecipe) ToShortDisplayString() string {
