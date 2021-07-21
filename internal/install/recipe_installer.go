@@ -69,6 +69,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
+		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
 	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
 	slg := execution.NewPlatformLinkGenerator()
