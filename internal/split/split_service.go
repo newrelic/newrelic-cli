@@ -30,6 +30,9 @@ type Srvc struct {
 // Creates a new instance of a Split Factory
 // Using "localhost" as the apiKey allows us to use Split.io
 // in localhost mode as defined in their documentation
+// If the service is not available we return nil on these methods:
+// - Get
+// - GetAll
 func NewService(region string) (*Srvc, error) {
 	var apiKey = getAPIKeyByRegion(region)
 	if region == "localhost" {
@@ -38,7 +41,6 @@ func NewService(region string) (*Srvc, error) {
 
 	factory, err := client.NewSplitFactory(apiKey, splitConfig)
 	if err != nil {
-		log.Errorf("Split SDK init error: %s\n", err)
 		return nil, fmt.Errorf("split SDK init error: %s", err)
 	}
 
@@ -53,11 +55,17 @@ func NewService(region string) (*Srvc, error) {
 
 // Get a treatment from Split.io given the name of the split
 func (s *Srvc) Get(split string) string {
+	if s == nil {
+		return ""
+	}
 	return s.client.Treatment(accountID, split, nil)
 }
 
 // Get all treatments from Split.io given a list of splits
 func (s *Srvc) GetAll(splits []string) map[string]string {
+	if s == nil {
+		return nil
+	}
 	log.Debugf("Retrieving treatments for splits: %s", splits)
 	return s.client.Treatments(accountID, splits, nil)
 }

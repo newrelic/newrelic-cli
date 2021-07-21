@@ -13,7 +13,7 @@ func Init() {
 	region := configAPI.GetConfigString(config.Region)
 	service, err := NewService(region)
 	if err != nil {
-		log.Fatalf("could not initialize SplitService: %s\n", err)
+		log.Debugf("could not initialize SplitService: %s\n", err)
 	}
 	Service = service
 }
