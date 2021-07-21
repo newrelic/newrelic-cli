@@ -59,7 +59,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 
 	i, err := host.InfoWithContext(ctx)
 	if err != nil {
-		log.Error(err)
+		log.Debug(err)
 		return ErrDiscovery
 	}
 
@@ -72,7 +72,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 
 	postEvent := func() error {
 		if err = c.client.Events.CreateEventWithContext(ctx, accountID, evt); err != nil {
-			log.Error(err)
+			log.Debug(err)
 			return ErrPostEvent
 		}
 
@@ -93,7 +93,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	`, evt.EventType, evt.Hostname, evt.GUID)
 
 	if _, err = c.PollingNRQLValidator.Validate(ctx, query); err != nil {
-		log.Error(err)
+		log.Debug(err)
 		err = ErrValidation
 	}
 
