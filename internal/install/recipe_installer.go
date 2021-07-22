@@ -88,7 +88,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
 
 	// TODO: Use the schema configured URL
-	av := validation.NewAgentValidator(utils.NewHTTPClient(), "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status")
+	av := validation.NewAgentValidator(utils.NewHTTPClient())
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -374,17 +374,8 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var validationDurationMilliseconds int64
 	start := time.Now()
 
-	/** TODO: Add `validation` object to recipe schemas
-	 * - http://localhost:18003/v1/status/ready
-	 * - http://localhost:18003/v1/status/entity
-	 * - http://localhost:18003/v1/status/errors
-	 */
-	validationURLFromSchema := "http://localhost:18003/v1/status/entity"
-
-	if validationURLFromSchema != "" {
-		log.Printf("\n HERE: before validator \n")
-		entityGUID, err = i.agentValidator.Validate(ctx)
-		log.Printf("\n HERE: after validator \n")
+	if hasAgentValidationURL(r) {
+		entityGUID, err = i.agentValidator.Validate(ctx, r.Validation.AgentURL)
 		if err != nil {
 			return "", err
 		}
@@ -412,6 +403,14 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	})
 
 	return entityGUID, nil
+}
+
+func hasAgentValidationURL(r *types.OpenInstallationRecipe) bool {
+	if r.Validation == nil {
+		return false
+	}
+
+	return r.Validation.AgentURL != ""
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {

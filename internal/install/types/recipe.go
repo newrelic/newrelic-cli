@@ -82,10 +82,10 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 	return err
 }
 
-func expandValidation(recipe map[string]interface{}) OpenInstallationRecipeValidationConfig {
+func expandValidation(recipe map[string]interface{}) *OpenInstallationRecipeValidationConfig {
 	v, ok := recipe["validation"]
 	if !ok {
-		return OpenInstallationRecipeValidationConfig{}
+		return &OpenInstallationRecipeValidationConfig{}
 	}
 
 	dataIn := v.(map[interface{}]interface{})
@@ -95,11 +95,11 @@ func expandValidation(recipe map[string]interface{}) OpenInstallationRecipeValid
 	}
 
 	dataOut := OpenInstallationRecipeValidationConfig{
-		LocalURL: toStringByFieldName("localUrl", reData),
+		AgentURL: toStringByFieldName("agentUrl", reData),
 		NRQL:     toStringByFieldName("nrql", reData),
 	}
 
-	return dataOut
+	return &dataOut
 }
 
 func (r *OpenInstallationRecipe) ToShortDisplayString() string {

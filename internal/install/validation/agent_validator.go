@@ -41,13 +41,13 @@ type AgentStatusConfig struct {
 }
 
 // NewAgentValidator returns a new instance of AgentValidator.
-func NewAgentValidator(c utils.HTTPClientInterface, validationURL string) *AgentValidator {
+func NewAgentValidator(c utils.HTTPClientInterface) *AgentValidator {
 	v := AgentValidator{
 		MaxAttempts:       3,
 		Interval:          5 * time.Second,
 		ProgressIndicator: ux.NewSpinner(),
 		httpClient:        utils.NewHTTPClient(),
-		validationURL:     validationURL, // "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status",
+		//validationURL:     validationURL, // "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status",
 		// JUST IDEAS
 		// validation: {
 		// 	baseURL: "",
@@ -60,13 +60,13 @@ func NewAgentValidator(c utils.HTTPClientInterface, validationURL string) *Agent
 }
 
 // Validate
-func (v *AgentValidator) Validate(ctx context.Context) (string, error) {
-	return v.waitForData(ctx)
+func (v *AgentValidator) Validate(ctx context.Context, url string) (string, error) {
+	return v.waitForData(ctx, url)
 }
 
 // TODO: Find repeated code from other `waitForData` methods and
 // consider consolidation for better DRY practices.
-func (v *AgentValidator) waitForData(ctx context.Context) (string, error) {
+func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, error) {
 	count := 0
 	ticker := time.NewTicker(v.Interval)
 	defer ticker.Stop()
@@ -81,7 +81,7 @@ func (v *AgentValidator) waitForData(ctx context.Context) (string, error) {
 			return "", fmt.Errorf("reached max validation attempts")
 		}
 
-		entityGUID, err := v.doValidate(ctx)
+		entityGUID, err := v.doValidate(ctx, url)
 		if err != nil {
 			v.ProgressIndicator.Fail("")
 			return "", err
@@ -105,8 +105,8 @@ func (v *AgentValidator) waitForData(ctx context.Context) (string, error) {
 	}
 }
 
-func (v *AgentValidator) doValidate(ctx context.Context) (string, error) {
-	resp, err := v.httpClient.Get(ctx, v.validationURL)
+func (v *AgentValidator) doValidate(ctx context.Context, url string) (string, error) {
+	resp, err := v.httpClient.Get(ctx, url)
 	if err != nil {
 		return "", err
 	}

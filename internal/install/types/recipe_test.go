@@ -29,13 +29,13 @@ func TestToStringByFieldName(t *testing.T) {
 func TestExpandValidation(t *testing.T) {
 	data := map[string]interface{}{
 		"validation": map[interface{}]interface{}{
-			"localUrl": "http://localhost:18003/v1/status/entity",
+			"agentUrl": "http://localhost:18003/v1/status/entity",
 			"nrql":     "SELECT count(*) from SystemSample",
 		},
 	}
 
 	output := expandValidation(data)
-	require.Equal(t, "http://localhost:18003/v1/status/entity", output.LocalURL)
+	require.Equal(t, "http://localhost:18003/v1/status/entity", output.AgentURL)
 	require.Equal(t, "SELECT count(*) from SystemSample", output.NRQL)
 }
 
