@@ -55,6 +55,11 @@ func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event Reci
 	return err
 }
 
+func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
+	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
+	return err
+}
+
 func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
@@ -64,13 +69,7 @@ func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []
 }
 
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
-	return err
-}
-
-func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
-	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
-	return err
+	return nil
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {

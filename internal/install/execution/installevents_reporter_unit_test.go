@@ -11,35 +11,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestInstallEventsReporter_InstallComplete(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-	c := NewMockInstallEventsClient()
-	r := NewInstallEventsReporter(c)
-	require.NotNil(t, r)
-
-	slg := NewMockPlatformLinkGenerator()
-	status := NewInstallStatus([]StatusSubscriber{}, slg)
-	status.withEntityGUID("testGuid")
-	status.Statuses = []*RecipeStatus{
-		{
-			Name:   "test-recipe1",
-			Status: RecipeStatusTypes.AVAILABLE,
-		},
-		{
-			Name:   "test-recipe2",
-			Status: RecipeStatusTypes.AVAILABLE,
-		},
-		{
-			Name:   "test-recipe3",
-			Status: RecipeStatusTypes.AVAILABLE,
-		},
-	}
-
-	err := r.InstallComplete(status)
-	require.NoError(t, err)
-	require.Equal(t, 3, c.CreateInstallEventCallCount)
-}
-
 func TestInstallEventsReporter_InstallCanceled(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	c := NewMockInstallEventsClient()
