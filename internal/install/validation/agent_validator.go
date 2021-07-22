@@ -30,7 +30,7 @@ type AgentStatusResponse struct {
 }
 
 type AgentEndpoint struct {
-	Url       string `json:"url"`
+	URL       string `json:"url"`
 	Reachable bool   `json:"reachable"`
 	Error     string `json:"error"`
 }
