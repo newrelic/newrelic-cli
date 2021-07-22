@@ -1,6 +1,8 @@
 package execution
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
@@ -28,23 +30,8 @@ func (r InstallEventsReporter) RecipeAvailable(status *InstallStatus, recipe typ
 	return err
 }
 
-func (r InstallEventsReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.CANCELED, event)
-	return err
-}
-
-func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.FAILED, event)
-	return err
-}
-
 func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
 	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLING, event)
-	return err
-}
-
-func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLED, event)
 	return err
 }
 
@@ -63,15 +50,25 @@ func (r InstallEventsReporter) RecipeUnsupported(status *InstallStatus, event Re
 	return err
 }
 
+func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLED, event)
+	return err
+}
+
+func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
+	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
+	return err
+}
+
+func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
+	return nil
+}
+
 func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	return nil
 }
 
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	return nil
-}
-
-func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
 	return nil
 }
 
@@ -100,6 +97,40 @@ func (r InstallEventsReporter) ObservabilityPackInstallFailed(status *InstallSta
 }
 
 func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
+	return nil
+}
+
+func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *InstallStatus, event RecipeStatusEvent) error {
+	for _, ss := range status.Statuses {
+		i := installevents.InstallationRecipeStatus{
+			CliVersion: status.CLIVersion,
+			Complete:   status.Complete,
+			Error: installevents.InstallationStatusErrorInput{
+				Details: ss.Error.Details,
+				Message: ss.Error.Message,
+			},
+			Status:                         installevents.InstallationRecipeStatusType(ss.Status),
+			Name:                           ss.Name,
+			DisplayName:                    ss.DisplayName,
+			EntityGUID:                     entities.EntityGUID(ss.EntityGUID),
+			ValidationDurationMilliseconds: ss.ValidationDurationMilliseconds,
+			HostName:                       status.DiscoveryManifest.Hostname,
+			KernelArch:                     status.DiscoveryManifest.KernelArch,
+			KernelVersion:                  status.DiscoveryManifest.KernelVersion,
+			LogFilePath:                    status.LogFilePath,
+			Os:                             status.DiscoveryManifest.OS,
+			Platform:                       status.DiscoveryManifest.Platform,
+			PlatformFamily:                 status.DiscoveryManifest.PlatformFamily,
+			PlatformVersion:                status.DiscoveryManifest.PlatformVersion,
+			RedirectURL:                    status.RedirectURL,
+			TargetedInstall:                status.targetedInstall,
+		}
+
+		_, err := r.client.InstallationCreateRecipeEvent(r.accountID, i)
+		if err != nil {
+			log.Debugf("could not create multiple recipe install events: %s", err)
+		}
+	}
 	return nil
 }
 
