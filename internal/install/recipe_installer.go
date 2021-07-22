@@ -86,8 +86,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
-
-	// TODO: Use the schema configured URL
 	av := validation.NewAgentValidator(utils.NewHTTPClient())
 
 	i := RecipeInstaller{

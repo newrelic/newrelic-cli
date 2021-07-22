@@ -47,13 +47,6 @@ func NewAgentValidator(c utils.HTTPClientInterface) *AgentValidator {
 		Interval:          5 * time.Second,
 		ProgressIndicator: ux.NewSpinner(),
 		httpClient:        utils.NewHTTPClient(),
-		//validationURL:     validationURL, // "https://af062943-dc76-45d1-8067-7849cbfe0d98.mock.pstmn.io/v1/status",
-		// JUST IDEAS
-		// validation: {
-		// 	baseURL: "",
-		// 	port: "",
-		// 	endpoint: "",
-		// }
 	}
 
 	return &v
@@ -110,11 +103,6 @@ func (v *AgentValidator) doValidate(ctx context.Context, url string) (string, er
 	if err != nil {
 		return "", err
 	}
-
-	log.Print("\n\n **************************** \n")
-	log.Printf("\n doValidate:  %+v \n", resp)
-	log.Print("\n **************************** \n\n")
-	time.Sleep(3 * time.Second)
 
 	response := AgentSuccessResponse{}
 	err = json.Unmarshal(resp, &response)
