@@ -11,7 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
+func TestInstallEventsReporter_InstallComplete(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	c := NewMockInstallEventsClient()
 	r := NewInstallEventsReporter(c)
@@ -20,12 +20,53 @@ func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
 	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 	status.withEntityGUID("testGuid")
-	e := RecipeStatusEvent{}
+	status.Statuses = []*RecipeStatus{
+		{
+			Name:   "test-recipe1",
+			Status: RecipeStatusTypes.AVAILABLE,
+		},
+		{
+			Name:   "test-recipe2",
+			Status: RecipeStatusTypes.AVAILABLE,
+		},
+		{
+			Name:   "test-recipe3",
+			Status: RecipeStatusTypes.AVAILABLE,
+		},
+	}
 
-	err := r.RecipeFailed(status, e)
+	err := r.InstallComplete(status)
 	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
+	require.Equal(t, 3, c.CreateInstallEventCallCount)
+}
 
+func TestInstallEventsReporter_InstallCanceled(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	c := NewMockInstallEventsClient()
+	r := NewInstallEventsReporter(c)
+	require.NotNil(t, r)
+
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	status.withEntityGUID("testGuid")
+	status.Statuses = []*RecipeStatus{
+		{
+			Name:   "test-recipe1",
+			Status: RecipeStatusTypes.AVAILABLE,
+		},
+		{
+			Name:   "test-recipe2",
+			Status: RecipeStatusTypes.AVAILABLE,
+		},
+		{
+			Name:   "test-recipe3",
+			Status: RecipeStatusTypes.AVAILABLE,
+		},
+	}
+
+	err := r.InstallCanceled(status)
+	require.NoError(t, err)
+	require.Equal(t, 3, c.CreateInstallEventCallCount)
 }
 
 func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
@@ -40,22 +81,6 @@ func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
 	e := RecipeStatusEvent{}
 
 	err := r.RecipeInstalling(status, e)
-	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
-}
-
-func TestInstallEventsReporter_RecipeInstalled(t *testing.T) {
-	log.SetLevel(log.DebugLevel)
-	c := NewMockInstallEventsClient()
-	r := NewInstallEventsReporter(c)
-	require.NotNil(t, r)
-
-	slg := NewMockPlatformLinkGenerator()
-	status := NewInstallStatus([]StatusSubscriber{}, slg)
-	status.withEntityGUID("testGuid")
-	e := RecipeStatusEvent{}
-
-	err := r.RecipeInstalled(status, e)
 	require.NoError(t, err)
 	require.Equal(t, 1, c.CreateInstallEventCallCount)
 }

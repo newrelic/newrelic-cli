@@ -1,11 +1,12 @@
 package execution
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/installevents"
-	log "github.com/sirupsen/logrus"
 )
 
 type InstallEventsReporter struct {
