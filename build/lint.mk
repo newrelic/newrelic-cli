@@ -32,7 +32,7 @@ GOTOOLS += github.com/client9/misspell/cmd/misspell \
 
 
 lint: deps spell-check gofmt lint-commit golangci goimports outdated
-lint-fix: deps spell-check-fix gofmt-fix goimports
+lint-fix: deps gofmt-fix goimports
 
 #
 # Check spelling on all the files, not just source code
