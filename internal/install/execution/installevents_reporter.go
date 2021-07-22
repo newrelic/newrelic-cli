@@ -5,6 +5,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/installevents"
+	log "github.com/sirupsen/logrus"
 )
 
 type InstallEventsReporter struct {
@@ -25,11 +26,6 @@ func NewInstallEventsReporter(client InstallEventsClient) *InstallEventsReporter
 func (r InstallEventsReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
 	event := RecipeStatusEvent{Recipe: recipe}
 	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.AVAILABLE, event)
-	return err
-}
-
-func (r InstallEventsReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.CANCELED, event)
 	return err
 }
 
@@ -72,7 +68,8 @@ func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
 }
 
 func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
-	return nil
+	err := r.createMultipleRecipeInstallEvents(status, installevents.InstallationRecipeStatusTypeTypes.CANCELED, RecipeStatusEvent{})
+	return err
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
@@ -100,6 +97,40 @@ func (r InstallEventsReporter) ObservabilityPackInstallFailed(status *InstallSta
 }
 
 func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
+	return nil
+}
+
+func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *InstallStatus, statusType installevents.InstallationRecipeStatusType, event RecipeStatusEvent) error {
+	for _, ss := range status.Statuses {
+		i := installevents.InstallationRecipeStatus{
+			CliVersion: status.CLIVersion,
+			Complete:   status.Complete,
+			Error: installevents.InstallationStatusErrorInput{
+				Details: ss.Error.Details,
+				Message: ss.Error.Message,
+			},
+			Status:                         installevents.InstallationRecipeStatusType(ss.Status),
+			Name:                           ss.Name,
+			DisplayName:                    ss.DisplayName,
+			EntityGUID:                     entities.EntityGUID(ss.EntityGUID),
+			ValidationDurationMilliseconds: ss.ValidationDurationMilliseconds,
+			HostName:                       status.DiscoveryManifest.Hostname,
+			KernelArch:                     status.DiscoveryManifest.KernelArch,
+			KernelVersion:                  status.DiscoveryManifest.KernelVersion,
+			LogFilePath:                    status.LogFilePath,
+			Os:                             status.DiscoveryManifest.OS,
+			Platform:                       status.DiscoveryManifest.Platform,
+			PlatformFamily:                 status.DiscoveryManifest.PlatformFamily,
+			PlatformVersion:                status.DiscoveryManifest.PlatformVersion,
+			RedirectURL:                    status.RedirectURL,
+			TargetedInstall:                status.targetedInstall,
+		}
+
+		_, err := r.client.InstallationCreateRecipeEvent(r.accountID, i)
+		if err != nil {
+			log.Debug("could not create multiple recipe install events: %s", err)
+		}
+	}
 	return nil
 }
 
