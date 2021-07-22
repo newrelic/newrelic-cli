@@ -1,6 +1,15 @@
-<a name="v0.31.0"></a>
-## [v0.31.0] - 2021-07-20
+<a name="v0.31.1"></a>
+## [v0.31.1] - 2021-07-21
 ### Bug Fixes
+- **execution:** use better interface contract to match nerdgraph API
+
+### Features
+- **install:** update log level to debug when failing to update status
+
+<a name="v0.31.0"></a>
+## [v0.31.0] - 2021-07-21
+### Bug Fixes
+- **install:** fix loading embedded files on windows
 - **install:** suppress spinner output during verbose logging
 - **install:** remove spinner suppression during debug logging
 - **install:** obfuscate license key
@@ -904,7 +913,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.1...HEAD
+[v0.31.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.0...v0.31.1
 [v0.31.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.5...v0.31.0
 [v0.30.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.4...v0.30.5
 [v0.30.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.3...v0.30.4
