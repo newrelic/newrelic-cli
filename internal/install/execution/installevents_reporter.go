@@ -39,11 +39,6 @@ func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event Rec
 	return err
 }
 
-func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLED, event)
-	return err
-}
-
 func (r InstallEventsReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
 	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.SKIPPED, event)
 	return err
@@ -64,11 +59,12 @@ func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []
 }
 
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	return nil
+	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
+	return err
 }
 
 func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
-	err := r.createMultipleRecipeInstallEvents(status, installevents.InstallationRecipeStatusTypeTypes.CANCELED, RecipeStatusEvent{})
+	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
 	return err
 }
 
@@ -100,7 +96,7 @@ func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types
 	return nil
 }
 
-func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *InstallStatus, statusType installevents.InstallationRecipeStatusType, event RecipeStatusEvent) error {
+func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *InstallStatus, event RecipeStatusEvent) error {
 	for _, ss := range status.Statuses {
 		i := installevents.InstallationRecipeStatus{
 			CliVersion: status.CLIVersion,
@@ -128,7 +124,7 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 
 		_, err := r.client.InstallationCreateRecipeEvent(r.accountID, i)
 		if err != nil {
-			log.Debug("could not create multiple recipe install events: %s", err)
+			log.Debugf("could not create multiple recipe install events: %s", err)
 		}
 	}
 	return nil
