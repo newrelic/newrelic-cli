@@ -1,3 +1,12 @@
+<a name="v0.31.2"></a>
+## [v0.31.2] - 2021-07-22
+### Bug Fixes
+- emit canceled status correctly
+- install tutone before generating
+- increase retries when fetching license key
+- **install:** lower log level to debug when retry failures occur during validation
+- **logging:** pass logrus instance to NR client
+
 <a name="v0.31.1"></a>
 ## [v0.31.1] - 2021-07-21
 ### Bug Fixes
@@ -913,7 +922,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.2...HEAD
+[v0.31.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.1...v0.31.2
 [v0.31.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.0...v0.31.1
 [v0.31.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.5...v0.31.0
 [v0.30.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.4...v0.30.5
