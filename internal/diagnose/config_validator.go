@@ -19,8 +19,6 @@ import (
 
 const (
 	validationEventType          = "NrIntegrationError"
-	DefaultPostRetryDelaySec     = 5
-	DefaultPostMaxRetries        = 20
 	DefaultMaxValidationAttempts = 20
 )
 
@@ -45,8 +43,8 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 	return &ConfigValidator{
 		client:               client,
 		PollingNRQLValidator: v,
-		PostRetryDelaySec:    DefaultPostRetryDelaySec,
-		PostMaxRetries:       DefaultPostMaxRetries,
+		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
+		PostMaxRetries:       config.DefaultPostMaxRetries,
 	}
 }
 
