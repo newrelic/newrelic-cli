@@ -91,7 +91,6 @@ func NewLogrusFileHook(file string, flag int, chmod os.FileMode) (*LogrusFileHoo
 }
 
 func (hook *LogrusFileHook) Fire(entry *log.Entry) error {
-
 	Logger.Log(entry.Level, entry.Message)
 
 	plainformat, err := hook.formatter.Format(entry)
