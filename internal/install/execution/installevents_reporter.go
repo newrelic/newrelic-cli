@@ -61,7 +61,8 @@ func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
 }
 
 func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	return nil
+	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.FAILED, event)
+	return err
 }
 
 func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
