@@ -533,3 +533,11 @@ func (r *OpenInstallationRecipe) GetOrderKey() string {
 	}
 	return fmt.Sprintf("%d-%s", 50, r.Name)
 }
+
+func (r *OpenInstallationRecipe) HasAgentValidationURL() bool {
+	if r.Validation == nil {
+		return false
+	}
+
+	return r.Validation.AgentURL != ""
+}

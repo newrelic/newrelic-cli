@@ -373,15 +373,15 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	start := time.Now()
 
 	log.Print("\n\n **************************** \n")
-	log.Printf("\n hasAgentValidationURL:  %+v \n", hasAgentValidationURL(r))
+	log.Printf("\n hasAgentValidationURL:  %+v \n", r.HasAgentValidationURL())
 	log.Print("\n **************************** \n\n")
 
-	if hasAgentValidationURL(r) {
+	if r.HasAgentValidationURL() {
 		log.Print("\n\n **************************** \n")
-		log.Printf("\n isValidAbsoluteURL:  %+v \n", isValidAbsoluteURL(r.Validation.AgentURL))
+		log.Printf("\n IsAbsoluteURL:  %+v \n", utils.IsAbsoluteURL(r.Validation.AgentURL))
 		log.Print("\n **************************** \n\n")
 
-		if !isValidAbsoluteURL(r.Validation.AgentURL) {
+		if !utils.IsAbsoluteURL(r.Validation.AgentURL) {
 			return "", fmt.Errorf("the provided agent validation URL is invalid: %s. Please provide a valid full URL", r.Validation.AgentURL)
 		}
 
@@ -418,23 +418,6 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	})
 
 	return entityGUID, nil
-}
-
-func hasAgentValidationURL(r *types.OpenInstallationRecipe) bool {
-	if r.Validation == nil {
-		return false
-	}
-
-	return r.Validation.AgentURL != ""
-}
-
-func isValidAbsoluteURL(rawURL string) bool {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return false
-	}
-
-	return u.Scheme != "" && u.Host != ""
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
