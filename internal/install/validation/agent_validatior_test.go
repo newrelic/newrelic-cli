@@ -1,8 +1,12 @@
+// +build unit
+
 package validation
 
 import (
 	"context"
+	"log"
 	"testing"
+	"time"
 
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/stretchr/testify/require"
@@ -11,15 +15,14 @@ import (
 const infraAgentValidationURL = "http://localhost:18003/v1/status/entity"
 
 func TestAgentValidator(t *testing.T) {
-	c := utils.NewMockHTTPClient()
+	agentResponseSuccess := `{"GUID":"MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw"}`
+	c := utils.NewMockHTTPClient(agentResponseSuccess)
 	av := NewAgentValidator(c)
 
-	ctx, cancel := context.WithCancel(utils.SignalCtx)
-	defer cancel()
-
+	ctx := context.Background()
 	guid, err := av.Validate(ctx, infraAgentValidationURL)
 
-	require.Equal(t, guid, "MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw")
+	require.Equal(t, "MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw", guid)
 	require.Equal(t, err, nil)
 }
 

@@ -6,68 +6,60 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
+const validationInProgressMsg string = "Checking for data in New Relic (this may take a few minutes)..."
+
 // AgentValidator polls NRDB to assert data is being reported for the given query.
 type AgentValidator struct {
 	httpClient        utils.HTTPClientInterface
-	validationURL     string
 	MaxAttempts       int
 	Interval          time.Duration
 	ProgressIndicator ux.ProgressIndicator
 }
 
-// TODO: Rename this response per proper domain (e.g. AgentValidationResponse?)
+// AgentSuccessResponse represents the response object
+// returned from infra agent `/v1/status/entity` endpoint.
+//
+// Docs: https://github.com/newrelic/infrastructure-agent/blob/master/docs/status_api.md#report-entity
 type AgentSuccessResponse struct {
 	GUID string `json:"guid"`
 }
 
-type AgentStatusResponse struct {
-	Checks []AgentEndpoint   `json:"checks"`
-	Config AgentStatusConfig `json:"config"`
-}
-
-type AgentEndpoint struct {
-	URL       string `json:"url"`
-	Reachable bool   `json:"reachable"`
-	Error     string `json:"error"`
-}
-
-type AgentStatusConfig struct {
-	ReachabilityTimeout string `json:"reachability_timeout"`
-}
-
 // NewAgentValidator returns a new instance of AgentValidator.
-func NewAgentValidator(c utils.HTTPClientInterface) *AgentValidator {
+func NewAgentValidator(httpClient utils.HTTPClientInterface) *AgentValidator {
 	v := AgentValidator{
 		MaxAttempts:       3,
 		Interval:          5 * time.Second,
 		ProgressIndicator: ux.NewSpinner(),
-		httpClient:        utils.NewHTTPClient(),
+		httpClient:        httpClient,
 	}
 
 	return &v
 }
 
-// Validate
 func (v *AgentValidator) Validate(ctx context.Context, url string) (string, error) {
 	return v.waitForData(ctx, url)
 }
 
-// TODO: Find repeated code from other `waitForData` methods and
-// consider consolidation for better DRY practices.
 func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, error) {
 	count := 0
 	ticker := time.NewTicker(v.Interval)
 	defer ticker.Stop()
 
-	progressMsg := "Checking for data in New Relic (this may take a few minutes)..."
-	v.ProgressIndicator.Start(progressMsg)
+	v.ProgressIndicator.Start(validationInProgressMsg)
 	defer v.ProgressIndicator.Stop()
 
 	for {
+		log.WithFields(log.Fields{
+			"retryAttempts": count,
+			"url":           url,
+		}).Debug("validating installation")
+
 		if count == v.MaxAttempts {
 			v.ProgressIndicator.Fail("")
 			return "", fmt.Errorf("reached max validation attempts")

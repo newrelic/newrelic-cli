@@ -1,6 +1,8 @@
 package utils
 
-import "context"
+import (
+	"context"
+)
 
 type MockHTTPClient struct {
 	GetErr       error
@@ -8,11 +10,9 @@ type MockHTTPClient struct {
 	GetVal       []byte
 }
 
-func NewMockHTTPClient() *MockHTTPClient {
-	mockReponse := `{"GUID":"MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw"}`
-
+func NewMockHTTPClient(mockGetResponse string) *MockHTTPClient {
 	c := MockHTTPClient{}
-	c.GetVal = []byte(mockReponse)
+	c.GetVal = []byte(mockGetResponse)
 	return &c
 }
 
