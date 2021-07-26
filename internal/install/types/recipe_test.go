@@ -45,6 +45,37 @@ func TestExpandValidationEmpty(t *testing.T) {
 	require.Equal(t, OpenInstallationRecipeValidationConfig{}, expected)
 }
 
+func TestHasAgentValidationURL(t *testing.T) {
+	scenarios := []struct {
+		HasValidationURL bool
+		Recipe           OpenInstallationRecipe
+	}{
+		{
+			{
+				Name: "recipe-with-agent-validation-url",
+				Validation: OpenInstallationRecipeValidationConfig{
+					AgentURL: "http://localhost:18003/v1/status/entity",
+				},
+			},
+			HasValidation: false,
+		},
+		{
+			{
+				Name: "recipe-without-agent-validation-url",
+			},
+			HasValidation: false,
+		},
+	}
+
+	for _, s := range scenarios {
+		require.Equal(t, v.HasValidationURL, s.Recipe.HasAgentValidationURL())
+	}
+
+	output := expandValidation(data)
+	require.Equal(t, "http://localhost:18003/v1/status/entity", output.AgentURL)
+	require.Equal(t, "SELECT count(*) from SystemSample", output.NRQL)
+}
+
 func Test_shouldDisplayShortString(t *testing.T) {
 
 	recipe := OpenInstallationRecipe{

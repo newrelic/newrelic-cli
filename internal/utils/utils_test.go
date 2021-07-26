@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStructToMap(t *testing.T) {
@@ -38,4 +39,33 @@ func TestStructToMap(t *testing.T) {
 	}
 
 	assert.Equal(t, expected, result)
+}
+
+func TestIsAbsoluteURL(t *testing.T) {
+	urls := []struct {
+		URL        string
+		IsAbsolute bool
+	}{
+		{
+			URL:        "https://one.newrelic.com",
+			IsAbsolute: true,
+		},
+		{
+			URL:        "one.newrelic.com",
+			IsAbsolute: false,
+		},
+		{
+			URL:        "http://localhost:18003/v1/status/entity",
+			IsAbsolute: true,
+		},
+		{
+			URL:        "/v1/status/entity",
+			IsAbsolute: false,
+		},
+	}
+
+	for _, u := range urls {
+		result := IsAbsoluteURL(u.URL)
+		require.Equal(t, u.IsAbsolute, result)
+	}
 }
