@@ -50,6 +50,15 @@ func (f *EmbeddedRecipeFetcher) FetchRecipes(context.Context) (out []types.OpenI
 	return out, nil
 }
 
+func (f *EmbeddedRecipeFetcher) FetchLibraryVersion(ctx context.Context) string {
+	versionFilename := "version.txt"
+	data, err := EmbeddedFS.ReadFile(embeddedRecipesPath + "/" + versionFilename)
+	if err == nil {
+		return string(data)
+	}
+	return ""
+}
+
 func (f *EmbeddedRecipeFetcher) getYAMLFiles(path string) (out []string, err error) {
 	return f.getFiles(path, isYAMLFile)
 }
