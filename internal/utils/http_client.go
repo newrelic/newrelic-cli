@@ -10,9 +10,9 @@ import (
 
 type HTTPClientInterface interface {
 	Get(ctx context.Context, url string) ([]byte, error)
+	Do(req *http.Request) (*http.Response, error)
 }
 
-// TODO: Consider renaming to InternalHTTPClient (or something like that)
 type HTTPClient struct {
 	httpClient *http.Client
 }
@@ -24,13 +24,13 @@ func NewHTTPClient() *HTTPClient {
 }
 
 func (c *HTTPClient) Get(ctx context.Context, url string) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.Do(req)
 	if err != nil {
 		log.Debug(err.Error())
 		return nil, err
@@ -41,4 +41,8 @@ func (c *HTTPClient) Get(ctx context.Context, url string) ([]byte, error) {
 	data, _ := ioutil.ReadAll(resp.Body)
 
 	return data, nil
+}
+
+func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
+	return c.httpClient.Do(req)
 }

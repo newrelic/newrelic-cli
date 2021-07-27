@@ -14,7 +14,8 @@ import (
 
 const validationInProgressMsg string = "Checking for data in New Relic (this may take a few minutes)..."
 
-// AgentValidator polls NRDB to assert data is being reported for the given query.
+// AgentValidator attempts to validate that the infra agent
+// was successfully installed and is sending data to New Relic.
 type AgentValidator struct {
 	httpClient        utils.HTTPClientInterface
 	MaxAttempts       int
@@ -42,6 +43,9 @@ func NewAgentValidator(httpClient utils.HTTPClientInterface) *AgentValidator {
 	return &v
 }
 
+// Validate performs the attempt(s) to validate successful
+// installation if the infra agent. If successful, it returns
+// the installed entity's GUID.
 func (v *AgentValidator) Validate(ctx context.Context, url string) (string, error) {
 	return v.waitForData(ctx, url)
 }
