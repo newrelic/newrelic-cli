@@ -372,13 +372,15 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var validationDurationMilliseconds int64
 	start := time.Now()
 
-	if r.ValidationURL != "" {
-		if !utils.IsAbsoluteURL(r.ValidationURL) {
-			return "", fmt.Errorf("the provided agent validation URL is invalid: %s. Please provide a valid full URL", r.ValidationURL)
-		}
+	hasValidationURL := r.ValidationURL != ""
+	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
 
+	if hasValidationURL && !isAbsoluteURL {
+		log.Debugf("warning: `validationUrl` %s for recipe %s must be a full URL including protocol, host, and port (if applicable). Attempting to validate with via NRDB instead.", r.ValidationURL, r.Name)
+	}
+
+	if hasValidationURL && isAbsoluteURL {
 		entityGUID, err = i.agentValidator.Validate(ctx, r.ValidationURL)
-
 		if err != nil {
 			return "", err
 		}
