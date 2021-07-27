@@ -33,6 +33,10 @@ func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.OpenInst
 	return recipes, nil
 }
 
+func (f *LocalRecipeFetcher) FetchLibraryVersion(ctx context.Context) string {
+	return ""
+}
+
 func loadRecipesFromDir(ctx context.Context, path string) ([]types.OpenInstallationRecipe, error) {
 	recipePaths := []string{}
 
