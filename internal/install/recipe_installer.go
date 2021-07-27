@@ -169,6 +169,10 @@ func (i *RecipeInstaller) Install() error {
 }
 
 func (i *RecipeInstaller) install(ctx context.Context) error {
+	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
+	log.Debugf("Using open-install-library version %s", installLibraryVersion)
+	i.status.SetVersions(installLibraryVersion)
+
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
 	if err != nil {

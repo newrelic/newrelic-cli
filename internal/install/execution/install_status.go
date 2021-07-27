@@ -24,6 +24,7 @@ type InstallStatus struct {
 	ObservabilityPackStatuses []*ObservabilityPackStatus `json:"packs"`
 	Timestamp                 int64                      `json:"timestamp"`
 	CLIVersion                string                     `json:"cliVersion"`
+	InstallLibraryVersion     string                     `json:"installLibraryVersion"`
 	HasInstalledRecipes       bool                       `json:"hasInstalledRecipes"`
 	HasCanceledRecipes        bool                       `json:"hasCanceledRecipes"`
 	HasSkippedRecipes         bool                       `json:"hasSkippedRecipes"`
@@ -380,14 +381,18 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
 }
 
-func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
-	s.DiscoveryManifest = dm
-	s.Timestamp = utils.GetTimestamp()
+func (s *InstallStatus) SetVersions(installLibraryVersion string) {
+	s.InstallLibraryVersion = installLibraryVersion
 
 	version := os.Getenv("NEW_RELIC_CLI_VERSION")
 	if version != "" {
 		s.CLIVersion = version
 	}
+}
+
+func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
+	s.DiscoveryManifest = dm
+	s.Timestamp = utils.GetTimestamp()
 }
 
 func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEvent, opst ObservabilityPackStatusType) {
