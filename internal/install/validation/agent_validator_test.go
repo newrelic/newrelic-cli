@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/utils"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 const infraAgentValidationURL = "http://localhost:18003/v1/status/entity"
@@ -53,18 +53,5 @@ func TestAgentValidator_InternalServerError(t *testing.T) {
 }
 
 func TestAgentValidator_Retry(t *testing.T) {
-	// response := `{"GUID":"MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw"}`
-	c := utils.NewMockHTTPClient(utils.CreateMockHTTPDoFunc("", 500, nil))
-	av := NewAgentValidator(c)
-
-	ctx := context.Background()
-	result, err := av.Validate(ctx, infraAgentValidationURL)
-
-	log.Print("\n\n **************************** \n")
-	log.Printf("\n test result:  %+v \n", result)
-	log.Print("\n **************************** \n\n")
-
-	// require.Equal(t, "MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw", result)
-	require.Error(t, err)
-	require.Equal(t, 1, c.GetCallCount)
+	// TODO
 }

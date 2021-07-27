@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -57,11 +59,6 @@ func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, e
 	defer v.ProgressIndicator.Stop()
 
 	for {
-		// log.WithFields(log.Fields{
-		// 	"retryAttempts": count,
-		// 	"url":           url,
-		// }).Trace("validating installation")
-
 		entityGUID, err := v.doValidate(ctx, url)
 		if err != nil {
 			v.ProgressIndicator.Fail("")
@@ -86,14 +83,20 @@ func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, e
 
 func (v *AgentValidator) doValidate(ctx context.Context, url string) (string, error) {
 	var guid string
-
+	count := 1
 	retryFunc := func() error {
+		log.WithFields(log.Fields{
+			"retryAttempts": count,
+			"url":           url,
+		}).Trace("validating installation")
+
 		var err error
 		guid, err = v.executeAgentValidationRequest(ctx, url)
 		if err != nil {
 			return err
 		}
 
+		count++
 		return nil
 	}
 
