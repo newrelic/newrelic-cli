@@ -62,7 +62,7 @@ func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, e
 		log.WithFields(log.Fields{
 			"retryAttempts": count,
 			"url":           url,
-		}).Debug("validating installation")
+		}).Trace("validating installation")
 
 		if count == v.MaxAttempts {
 			v.ProgressIndicator.Fail("")
