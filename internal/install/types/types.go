@@ -378,15 +378,7 @@ type OpenInstallationRecipe struct {
 	ValidationNRQL NRQL `json:"validationNrql,omitempty" yaml:"validationNrql,omitempty"`
 
 	// MANUALLY ADDED
-	Validation *OpenInstallationRecipeValidationConfig `json:"validation,omitempty" yaml:"validation,omitempty"`
-}
-
-// OpenInstallationRecipeInputVariable - Recipe input variable prompts displayed to the user prior to execution
-type OpenInstallationRecipeValidationConfig struct {
-	// Localhost endpoint address for validating install success
-	AgentURL string `json:"agentUrl,omitempty" yaml:"agentUrl,omitempty"`
-	// NRQL statement for validating install success
-	NRQL string `json:"nrql,omitempty" yaml:"nrql,omitempty"`
+	ValidationURL string `json:"validationUrl,omitempty" yaml:"validationUrl,omitempty"`
 }
 
 // OpenInstallationRecipeInputVariable - Recipe input variable prompts displayed to the user prior to execution

@@ -372,12 +372,12 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var validationDurationMilliseconds int64
 	start := time.Now()
 
-	if r.HasAgentValidationURL() {
-		if !utils.IsAbsoluteURL(r.Validation.AgentURL) {
-			return "", fmt.Errorf("the provided agent validation URL is invalid: %s. Please provide a valid full URL", r.Validation.AgentURL)
+	if r.ValidationURL != "" {
+		if !utils.IsAbsoluteURL(r.ValidationURL) {
+			return "", fmt.Errorf("the provided agent validation URL is invalid: %s. Please provide a valid full URL", r.ValidationURL)
 		}
 
-		entityGUID, err = i.agentValidator.Validate(ctx, r.Validation.AgentURL)
+		entityGUID, err = i.agentValidator.Validate(ctx, r.ValidationURL)
 
 		if err != nil {
 			return "", err

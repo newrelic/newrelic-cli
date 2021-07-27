@@ -77,29 +77,11 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 		r.ValidationNRQL = NRQL(v.(string))
 	}
 
-	r.Validation = expandValidation(recipe)
+	if v, ok := recipe["validationUrl"]; ok {
+		r.ValidationURL = v.(string)
+	}
 
 	return err
-}
-
-func expandValidation(recipe map[string]interface{}) *OpenInstallationRecipeValidationConfig {
-	v, ok := recipe["validation"]
-	if !ok {
-		return &OpenInstallationRecipeValidationConfig{}
-	}
-
-	dataIn := v.(map[interface{}]interface{})
-	reData := map[string]interface{}{}
-	for k, v := range dataIn {
-		reData[k.(string)] = v
-	}
-
-	dataOut := OpenInstallationRecipeValidationConfig{
-		AgentURL: toStringByFieldName("agentUrl", reData),
-		NRQL:     toStringByFieldName("nrql", reData),
-	}
-
-	return &dataOut
 }
 
 func (r *OpenInstallationRecipe) ToShortDisplayString() string {
@@ -532,12 +514,4 @@ func (r *OpenInstallationRecipe) GetOrderKey() string {
 		return fmt.Sprintf("%d-%s", 20, LoggingRecipeName)
 	}
 	return fmt.Sprintf("%d-%s", 50, r.Name)
-}
-
-func (r *OpenInstallationRecipe) HasAgentValidationURL() bool {
-	if r.Validation == nil {
-		return false
-	}
-
-	return r.Validation.AgentURL != ""
 }
