@@ -1,3 +1,47 @@
+<a name="v0.31.4"></a>
+## [v0.31.4] - 2021-07-23
+<a name="v0.31.3"></a>
+## [v0.31.3] - 2021-07-23
+### Bug Fixes
+- failure events
+
+<a name="v0.31.2"></a>
+## [v0.31.2] - 2021-07-22
+### Bug Fixes
+- emit canceled status correctly
+- install tutone before generating
+- increase retries when fetching license key
+- **install:** lower log level to debug when retry failures occur during validation
+- **logging:** pass logrus instance to NR client
+
+<a name="v0.31.1"></a>
+## [v0.31.1] - 2021-07-21
+### Bug Fixes
+- **execution:** use better interface contract to match nerdgraph API
+
+### Features
+- **install:** update log level to debug when failing to update status
+
+<a name="v0.31.0"></a>
+## [v0.31.0] - 2021-07-21
+### Bug Fixes
+- **install:** fix loading embedded files on windows
+- **install:** suppress spinner output during verbose logging
+- **install:** remove spinner suppression during debug logging
+- **install:** obfuscate license key
+- **install:** decrease debug log
+- **install:** continue on spinner fix
+- **install:** WIP checking for data spinner
+- **install:** wire debug log to file
+- **install:** fix build by embedding .keep file
+
+### Documentation Updates
+- **install:** update README
+- **install:** update README with directions for recipe make targets
+
+### Features
+- **install:** log recipe output
+
 <a name="v0.30.5"></a>
 ## [v0.30.5] - 2021-07-14
 ### Bug Fixes
@@ -164,10 +208,10 @@
 - **install:** remove debug
 - **install:** fix recipe matching, ensure recipe with most match count is selected
 
-<a name="v0.28.0"></a>
-## [v0.28.0] - 2021-06-09
 <a name="v0.28.1"></a>
 ## [v0.28.1] - 2021-06-09
+<a name="v0.28.0"></a>
+## [v0.28.0] - 2021-06-09
 ### Bug Fixes
 - **cmd:** avoid nil pointer for license key fetching
 - **install:** suppress preInstall script stderr/stdout streams
@@ -885,7 +929,12 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.4...HEAD
+[v0.31.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.3...v0.31.4
+[v0.31.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.2...v0.31.3
+[v0.31.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.1...v0.31.2
+[v0.31.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.0...v0.31.1
+[v0.31.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.5...v0.31.0
 [v0.30.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.4...v0.30.5
 [v0.30.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.3...v0.30.4
 [v0.30.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.2...v0.30.3
@@ -910,9 +959,9 @@
 [v0.28.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.4...v0.28.5
 [v0.28.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.3...v0.28.4
 [v0.28.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.2...v0.28.3
-[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.2
-[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.0
-[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.1
+[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.2
+[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.1
+[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.0
 [v0.27.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.4...v0.27.5
 [v0.27.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.3...v0.27.4
 [v0.27.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.2...v0.27.3

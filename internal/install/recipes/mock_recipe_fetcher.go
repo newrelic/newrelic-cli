@@ -22,3 +22,7 @@ func (f *MockRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.OpenInsta
 	f.FetchRecipesCallCount++
 	return f.FetchRecipesVal, f.FetchRecipesErr
 }
+
+func (f *MockRecipeFetcher) FetchLibraryVersion(ctx context.Context) string {
+	return ""
+}

@@ -69,6 +69,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
+		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
 	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
 	slg := execution.NewPlatformLinkGenerator()
@@ -168,6 +169,10 @@ func (i *RecipeInstaller) Install() error {
 }
 
 func (i *RecipeInstaller) install(ctx context.Context) error {
+	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
+	log.Debugf("Using open-install-library version %s", installLibraryVersion)
+	i.status.SetVersions(installLibraryVersion)
+
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
 	if err != nil {

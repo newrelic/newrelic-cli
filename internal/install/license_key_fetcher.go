@@ -8,6 +8,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 // relies on the Nerdgraph service
@@ -34,6 +35,6 @@ func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string,
 		return "", err
 	}
 
-	log.Debugf("Found license key %s", licenseKey)
+	log.Debugf("Found license key %s", utils.Obfuscate(licenseKey))
 	return licenseKey, nil
 }

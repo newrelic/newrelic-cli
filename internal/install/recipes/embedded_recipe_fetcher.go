@@ -50,6 +50,15 @@ func (f *EmbeddedRecipeFetcher) FetchRecipes(context.Context) (out []types.OpenI
 	return out, nil
 }
 
+func (f *EmbeddedRecipeFetcher) FetchLibraryVersion(ctx context.Context) string {
+	versionFilename := "version.txt"
+	data, err := EmbeddedFS.ReadFile(embeddedRecipesPath + "/" + versionFilename)
+	if err == nil {
+		return string(data)
+	}
+	return ""
+}
+
 func (f *EmbeddedRecipeFetcher) getYAMLFiles(path string) (out []string, err error) {
 	return f.getFiles(path, isYAMLFile)
 }
@@ -66,8 +75,9 @@ func (f *EmbeddedRecipeFetcher) getFiles(path string, filterFunc func(string) bo
 	}
 
 	for _, d := range dirs {
+		pathname := path + "/" + d.Name()
 		if d.IsDir() {
-			files, err := f.getFiles(filepath.Join(path, d.Name()), filterFunc)
+			files, err := f.getFiles(pathname, filterFunc)
 			if err != nil {
 				return nil, err
 			}
@@ -75,7 +85,7 @@ func (f *EmbeddedRecipeFetcher) getFiles(path string, filterFunc func(string) bo
 			out = append(out, files...)
 		} else {
 			if filterFunc(d.Name()) {
-				out = append(out, filepath.Join(path, d.Name()))
+				out = append(out, pathname)
 			}
 		}
 	}

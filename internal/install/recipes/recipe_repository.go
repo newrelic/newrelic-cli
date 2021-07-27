@@ -67,10 +67,10 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 				}
 				isValueMatching := matchRecipeCriteria(hostMap, k, v)
 				if isValueMatching {
-					log.Debugf("matching recipe %s field name %s and value %s using hostMap %+v", recipe.Name, k, v, hostMap)
+					log.Tracef("matching recipe %s field name %s and value %s using hostMap %+v", recipe.Name, k, v, hostMap)
 					matchCount++
 				} else {
-					log.Debugf("recipe %s defines %s=%s but input did not provide a match using hostMap %+v", recipe.Name, k, v, hostMap)
+					log.Tracef("recipe %s defines %s=%s but input did not provide a match using hostMap %+v", recipe.Name, k, v, hostMap)
 					matchCount = -1
 					break
 				}
@@ -85,7 +85,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 			if len(matchTargetCount) > 0 {
 				maxMatchTargetCount = mathMax(matchTargetCount)
 			}
-			log.Debugf("Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), maxMatchTargetCount)
+			log.Tracef("Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), maxMatchTargetCount)
 
 			match := recipeMatch{
 				recipe:     recipe,
@@ -107,7 +107,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 			if len(matches) > 0 {
 				match := findMaxMatch(matches)
 				singleRecipe := match.recipe
-				log.Debugf("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
+				log.Tracef("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
 				key := singleRecipe.GetOrderKey()
 				keys = append(keys, key)
 				unorderedResults[key] = singleRecipe
