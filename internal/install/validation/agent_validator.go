@@ -3,10 +3,9 @@ package validation
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -19,7 +18,7 @@ const validationInProgressMsg string = "Checking for data in New Relic (this may
 type AgentValidator struct {
 	httpClient        utils.HTTPClientInterface
 	MaxAttempts       int
-	Interval          time.Duration
+	IntervalSeconds   int
 	ProgressIndicator ux.ProgressIndicator
 }
 
@@ -34,8 +33,8 @@ type AgentSuccessResponse struct {
 // NewAgentValidator returns a new instance of AgentValidator.
 func NewAgentValidator(httpClient utils.HTTPClientInterface) *AgentValidator {
 	v := AgentValidator{
-		MaxAttempts:       3,
-		Interval:          5 * time.Second,
+		MaxAttempts:       60,
+		IntervalSeconds:   5,
 		ProgressIndicator: ux.NewSpinner(),
 		httpClient:        httpClient,
 	}
@@ -51,31 +50,23 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 }
 
 func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, error) {
-	count := 0
-	ticker := time.NewTicker(v.Interval)
+	ticker := time.NewTicker(time.Duration(v.IntervalSeconds) * time.Second)
 	defer ticker.Stop()
 
 	v.ProgressIndicator.Start(validationInProgressMsg)
 	defer v.ProgressIndicator.Stop()
 
 	for {
-		log.WithFields(log.Fields{
-			"retryAttempts": count,
-			"url":           url,
-		}).Trace("validating installation")
-
-		if count == v.MaxAttempts {
-			v.ProgressIndicator.Fail("")
-			return "", fmt.Errorf("reached max validation attempts")
-		}
+		// log.WithFields(log.Fields{
+		// 	"retryAttempts": count,
+		// 	"url":           url,
+		// }).Trace("validating installation")
 
 		entityGUID, err := v.doValidate(ctx, url)
 		if err != nil {
 			v.ProgressIndicator.Fail("")
-			return "", err
+			return "", fmt.Errorf("reached max validation attempts: %s", err)
 		}
-
-		count++
 
 		if entityGUID != "" {
 			v.ProgressIndicator.Success("")
@@ -94,15 +85,40 @@ func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, e
 }
 
 func (v *AgentValidator) doValidate(ctx context.Context, url string) (string, error) {
-	resp, err := v.httpClient.Get(ctx, url)
+	var guid string
+
+	retryFunc := func() error {
+		var err error
+		guid, err = v.executeAgentValidationRequest(ctx, url)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	r := utils.NewRetry(v.MaxAttempts, v.IntervalSeconds, retryFunc)
+	if err := r.ExecWithRetries(ctx); err != nil {
+		return "", err
+	}
+
+	return guid, nil
+}
+
+func (v *AgentValidator) executeAgentValidationRequest(ctx context.Context, url string) (string, error) {
+	data, err := v.httpClient.Get(ctx, url)
 	if err != nil {
 		return "", err
 	}
 
 	response := AgentSuccessResponse{}
-	err = json.Unmarshal(resp, &response)
+	err = json.Unmarshal(data, &response)
 	if err != nil {
 		return "", err
+	}
+
+	if response.GUID == "" {
+		return "", errors.New("no entity GUID returned in response")
 	}
 
 	return response.GUID, nil
