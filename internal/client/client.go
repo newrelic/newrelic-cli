@@ -78,7 +78,7 @@ func FetchLicenseKey(accountID int, profileName string) (string, error) {
 		return nil
 	}
 
-  r := utils.NewRetry(config.DefaultPostMaxRetries, (config.DefaultPostRetryDelaySec*1000), retryFunc)
+	r := utils.NewRetry(config.DefaultPostMaxRetries, (config.DefaultPostRetryDelaySec * 1000), retryFunc)
 	if err := r.ExecWithRetries(utils.SignalCtx); err != nil {
 		return "", err
 	}
