@@ -12,13 +12,13 @@ import (
 )
 
 // Split.io client API keys
-// These keys are client-facing and are only used to fetch splits.
+// These keys are client-facing and are compiled in via Github secrets and ldflags.
 // There is no security risk in exposing these keys, as the only purpose they
 // serve is to retrieve experiments and can not be used to modify anything
 // within our internal Split.io system.
 var (
-	prodKey                          = "8me2vu6v8lhssdkrpenp1uunl9s3bdc8njqp"
-	stagingKey                       = "mcf9oimts3laqli01e2ktrjdudkdbh8dg42a"
+	prodKey                          = "localhost"
+	stagingKey                       = "localhost"
 	accountID                        = configAPI.GetActiveProfileAccountID()
 	splitConfig *conf.SplitSdkConfig = conf.Default()
 )
