@@ -15,6 +15,7 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
+	InstallID                 string                     `json:"installId"`
 	Complete                  bool                       `json:"complete"`
 	DiscoveryManifest         types.DiscoveryManifest    `json:"discoveryManifest"`
 	EntityGUIDs               []string                   `json:"entityGuids"`
@@ -24,6 +25,7 @@ type InstallStatus struct {
 	ObservabilityPackStatuses []*ObservabilityPackStatus `json:"packs"`
 	Timestamp                 int64                      `json:"timestamp"`
 	CLIVersion                string                     `json:"cliVersion"`
+	InstallLibraryVersion     string                     `json:"installLibraryVersion"`
 	HasInstalledRecipes       bool                       `json:"hasInstalledRecipes"`
 	HasCanceledRecipes        bool                       `json:"hasCanceledRecipes"`
 	HasSkippedRecipes         bool                       `json:"hasSkippedRecipes"`
@@ -114,6 +116,7 @@ type StatusError struct {
 
 func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
+		InstallID:             uuid.New().String(),
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
 		LogFilePath:           config.GetDefaultLogFilePath(),
@@ -130,7 +133,7 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.DiscoveryComplete(s, dm); err != nil {
-			log.Errorf("Could not report discovery info: %s", err)
+			log.Debugf("Could not report discovery info: %s", err)
 		}
 	}
 }
@@ -140,7 +143,7 @@ func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeAvailable(s, recipe); err != nil {
-			log.Errorf("Could not report recipe execution status: %s", err)
+			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
 }
@@ -148,7 +151,7 @@ func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
 func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) {
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipesSelected(s, recipes); err != nil {
-			log.Errorf("Could not report recipe execution status: %s", err)
+			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
 }
@@ -158,7 +161,7 @@ func (s *InstallStatus) ObservabilityPackFetchPending(event ObservabilityPackSta
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackFetchPending(s); err != nil {
-			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+			log.Debugf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -168,7 +171,7 @@ func (s *InstallStatus) ObservabilityPackFetchSuccess(event ObservabilityPackSta
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackFetchSuccess(s); err != nil {
-			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+			log.Debugf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -178,7 +181,7 @@ func (s *InstallStatus) ObservabilityPackFetchFailed(event ObservabilityPackStat
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackFetchFailed(s); err != nil {
-			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+			log.Debugf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -188,7 +191,7 @@ func (s *InstallStatus) ObservabilityPackInstallPending(event ObservabilityPackS
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackInstallPending(s); err != nil {
-			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+			log.Debugf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -198,7 +201,7 @@ func (s *InstallStatus) ObservabilityPackInstallSuccess(event ObservabilityPackS
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackInstallSuccess(s); err != nil {
-			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+			log.Debugf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -208,7 +211,7 @@ func (s *InstallStatus) ObservabilityPackInstallFailed(event ObservabilityPackSt
 
 	for _, r := range s.statusSubscriber {
 		if err := r.ObservabilityPackInstallFailed(s); err != nil {
-			log.Errorf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
+			log.Debugf("Error writing observabilityPack status for pack %s: %s", event.ObservabilityPack.Name, err)
 		}
 	}
 }
@@ -218,7 +221,7 @@ func (s *InstallStatus) RecipeInstalled(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeInstalled(s, event); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+			log.Debugf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
@@ -233,7 +236,7 @@ func (s *InstallStatus) RecipeRecommended(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeRecommended(s, event); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+			log.Debugf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
@@ -243,7 +246,7 @@ func (s *InstallStatus) RecipeInstalling(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeInstalling(s, event); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+			log.Debugf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
@@ -253,7 +256,7 @@ func (s *InstallStatus) RecipeFailed(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeFailed(s, event); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+			log.Debugf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
@@ -263,7 +266,7 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeSkipped(s, event); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+			log.Debugf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
@@ -273,7 +276,7 @@ func (s *InstallStatus) RecipeUnsupported(event RecipeStatusEvent) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeUnsupported(s, event); err != nil {
-			log.Errorf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
+			log.Debugf("Error writing recipe status for recipe %s: %s", event.Recipe.Name, err)
 		}
 	}
 }
@@ -283,7 +286,7 @@ func (s *InstallStatus) InstallComplete(err error) {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.InstallComplete(s); err != nil {
-			log.Errorf("Error writing execution status: %s", err)
+			log.Debugf("Error writing execution status: %s", err)
 		}
 	}
 }
@@ -293,7 +296,7 @@ func (s *InstallStatus) InstallCanceled() {
 
 	for _, r := range s.statusSubscriber {
 		if err := r.InstallCanceled(s); err != nil {
-			log.Errorf("Error writing execution status: %s", err)
+			log.Debugf("Error writing execution status: %s", err)
 		}
 	}
 }
@@ -380,14 +383,18 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
 }
 
-func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
-	s.DiscoveryManifest = dm
-	s.Timestamp = utils.GetTimestamp()
+func (s *InstallStatus) SetVersions(installLibraryVersion string) {
+	s.InstallLibraryVersion = installLibraryVersion
 
 	version := os.Getenv("NEW_RELIC_CLI_VERSION")
 	if version != "" {
 		s.CLIVersion = version
 	}
+}
+
+func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
+	s.DiscoveryManifest = dm
+	s.Timestamp = utils.GetTimestamp()
 }
 
 func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEvent, opst ObservabilityPackStatusType) {

@@ -13,6 +13,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
+	clientLogging "github.com/newrelic/newrelic-client-go/pkg/logging"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -33,13 +34,15 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	}
 
 	region := configAPI.GetProfileString(profileName, config.Region)
-	logLevel := configAPI.GetLogLevel()
 	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
+
+	// Feed our logrus instance to the client's logrus adapter
+	logger := clientLogging.NewLogrusLogger(clientLogging.ConfigLoggerInstance(config.Logger))
 
 	cfgOpts := []newrelic.ConfigOption{
 		newrelic.ConfigPersonalAPIKey(apiKey),
 		newrelic.ConfigInsightsInsertKey(insightsInsertKey),
-		newrelic.ConfigLogLevel(logLevel),
+		newrelic.ConfigLogger(logger),
 		newrelic.ConfigRegion(region),
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
@@ -75,7 +78,7 @@ func FetchLicenseKey(accountID int, profileName string) (string, error) {
 		return nil
 	}
 
-	r := utils.NewRetry(3, 1000, retryFunc)
+  r := utils.NewRetry(config.DefaultPostMaxRetries, (config.DefaultPostRetryDelaySec*1000), retryFunc)
 	if err := r.ExecWithRetries(utils.SignalCtx); err != nil {
 		return "", err
 	}
