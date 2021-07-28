@@ -2,7 +2,9 @@ package validation
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
@@ -12,25 +14,27 @@ import (
 )
 
 const (
-	defaultMaxAttempts = 60
-	defaultInterval    = 5 * time.Second
+	DefaultMaxAttempts      = 60
+	DefaultIntervalSeconds  = 5
+	ValidationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
+	ReachexMaxValidationMsg = "reached max validation attempts"
 )
 
 // PollingNRQLValidator polls NRDB to assert data is being reported for the given query.
 type PollingNRQLValidator struct {
-	MaxAttempts       int
-	Interval          time.Duration
-	ProgressIndicator ux.ProgressIndicator
-	client            utils.NRDBClient
+	MaxAttempts          int
+	IntervalMilliSeconds int
+	ProgressIndicator    ux.ProgressIndicator
+	client               utils.NRDBClient
 }
 
 // NewPollingNRQLValidator returns a new instance of PollingNRQLValidator.
 func NewPollingNRQLValidator(c utils.NRDBClient) *PollingNRQLValidator {
 	v := PollingNRQLValidator{
-		client:            c,
-		MaxAttempts:       defaultMaxAttempts,
-		Interval:          defaultInterval,
-		ProgressIndicator: ux.NewSpinner(),
+		client:               c,
+		MaxAttempts:          DefaultMaxAttempts,
+		IntervalMilliSeconds: DefaultIntervalSeconds * 1000,
+		ProgressIndicator:    ux.NewSpinner(),
 	}
 
 	return &v
@@ -38,33 +42,23 @@ func NewPollingNRQLValidator(c utils.NRDBClient) *PollingNRQLValidator {
 
 // Validate polls NRDB to assert data is being reported for the given query.
 func (m *PollingNRQLValidator) Validate(ctx context.Context, query string) (string, error) {
-	return m.waitForData(ctx, query)
-}
-
-func (m *PollingNRQLValidator) waitForData(ctx context.Context, query string) (string, error) {
-	count := 0
-	ticker := time.NewTicker(m.Interval)
+	ticker := time.NewTicker(time.Duration(m.IntervalMilliSeconds) * time.Millisecond)
 	defer ticker.Stop()
 
-	progressMsg := "Checking for data in New Relic (this may take a few minutes)..."
-	m.ProgressIndicator.Start(progressMsg)
+	m.ProgressIndicator.Start(ValidationInProgressMsg)
 	defer m.ProgressIndicator.Stop()
 
 	for {
-		if count == m.MaxAttempts {
-			m.ProgressIndicator.Fail("")
-			return "", fmt.Errorf("reached max validation attempts")
-		}
-
-		ok, entityGUID, err := m.tryValidate(ctx, query)
+		entityGUID, err := m.tryValidate(ctx, query)
 		if err != nil {
 			m.ProgressIndicator.Fail("")
-			return "", err
+			if strings.Contains(err.Error(), "context canceled") {
+				return "", err
+			}
+			return "", fmt.Errorf("%s: %s", ReachexMaxValidationMsg, err)
 		}
 
-		count++
-
-		if ok {
+		if entityGUID != "" {
 			m.ProgressIndicator.Success("")
 			return entityGUID, nil
 		}
@@ -80,38 +74,50 @@ func (m *PollingNRQLValidator) waitForData(ctx context.Context, query string) (s
 	}
 }
 
-func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (bool, string, error) {
-	results, err := m.executeQuery(ctx, query)
-	if err != nil {
-		return false, "", err
-	}
-
-	if len(results) == 0 {
-		return false, "", nil
-	}
-
-	// The query is assumed to use a count aggregate function
-	count := results[0]["count"].(float64)
-
-	if count > 0 {
-		// Try and parse an entity GUID from the results.  The query is assumed to
-		// optionally use a facet over entityGuid.  The standard case seems to be
-		// that all entities contain a facet of "entityGuid", and so if we find it
-		// here, we return it.
-		if entityGUID, ok := results[0]["entityGuid"]; ok {
-			return true, entityGUID.(string), nil
+func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (string, error) {
+	var guid string
+	validatorFunc := func() error {
+		results, err := m.executeQuery(ctx, query)
+		if err != nil {
+			return err
 		}
 
-		// In the logs integration, the facet doesn't contain "entityGuid", but
-		// does contain, "entity.guid", so here we check for that also.
-		if entityGUID, ok := results[0]["entity.guids"]; ok {
-			return true, entityGUID.(string), nil
+		if len(results) == 0 {
+			return errors.New("no results returned")
 		}
 
-		return true, "", nil
+		// The query is assumed to use a count aggregate function
+		count := results[0]["count"].(float64)
+
+		if count > 0 {
+			// Try and parse an entity GUID from the results.  The query is assumed to
+			// optionally use a facet over entityGuid.  The standard case seems to be
+			// that all entities contain a facet of "entityGuid", and so if we find it
+			// here, we return it.
+			if entityGUID, ok := results[0]["entityGuid"]; ok {
+				guid = entityGUID.(string)
+				return nil
+			}
+
+			// In the logs integration, the facet doesn't contain "entityGuid", but
+			// does contain, "entity.guid", so here we check for that also.
+			if entityGUID, ok := results[0]["entity.guids"]; ok {
+				guid = entityGUID.(string)
+				return nil
+			}
+
+			return errors.New("no entityGuid or entity.guids found in results")
+		}
+
+		return errors.New("no count found in results")
 	}
 
-	return false, "", nil
+	retry := utils.NewRetry(m.MaxAttempts, m.IntervalMilliSeconds, validatorFunc)
+	if err := retry.ExecWithRetries(ctx); err != nil {
+		return "", err
+	}
+
+	return guid, nil
 }
 
 func (m *PollingNRQLValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {

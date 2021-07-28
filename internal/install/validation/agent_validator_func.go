@@ -6,9 +6,9 @@ import (
 )
 
 type AgentValidatorFunc struct {
-	Count     int
-	RetryFunc func() error
-	GUID      string
+	Count int
+	Func  func() error
+	GUID  string
 }
 
 // NewAgentValidatorFunc returns a func to validate and get a GUID
@@ -18,7 +18,7 @@ func NewAgentValidatorFunc(clientFunc func() ([]byte, error)) *AgentValidatorFun
 		Count: 0,
 	}
 
-	agentValidatorFunc.RetryFunc = func() error {
+	agentValidatorFunc.Func = func() error {
 		agentValidatorFunc.Count++
 
 		guid, err := executeAgentValidationRequest(clientFunc)

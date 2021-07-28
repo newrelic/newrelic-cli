@@ -31,7 +31,7 @@ func TestAgentValidator_AllAttemptFailed(t *testing.T) {
 	c := utils.CreateMockGetResponse("", errors.New("an error was returned"))
 	av := NewAgentValidator(c)
 	av.MaxAttempts = 2
-	av.IntervalSeconds = 1
+	av.IntervalMilliSeconds = 1
 
 	ctx := context.Background()
 	result, err := av.Validate(ctx, infraAgentValidationURL)
@@ -47,7 +47,7 @@ func TestAgentValidator_EmptyGuidShouldFail(t *testing.T) {
 	c := utils.CreateMockGetResponse("", nil)
 	av := NewAgentValidator(c)
 	av.MaxAttempts = 2
-	av.IntervalSeconds = 1
+	av.IntervalMilliSeconds = 1
 
 	ctx := context.Background()
 	result, err := av.Validate(ctx, infraAgentValidationURL)
