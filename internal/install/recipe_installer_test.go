@@ -47,7 +47,7 @@ var (
 	rvp             = execution.NewRecipeVarProvider()
 	pf              = packs.NewMockPacksFetcher(status)
 	cpi             = packs.NewMockPacksInstaller(status)
-	av              = validation.NewAgentValidator(utils.NewHTTPClient(), "")
+	av              = validation.NewAgentValidator(utils.CreateMockEmptyGetResponse())
 )
 
 func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {

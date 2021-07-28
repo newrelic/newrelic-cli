@@ -51,3 +51,16 @@ func CreateMockHTTPDoFunc(mockResponse string, statusCode int, err error) MockHT
 		}, err
 	}
 }
+
+func CreateMockGetResponse(response string, err error) func(ctx context.Context, url string) ([]byte, error) {
+	getFunc := func(ctx context.Context, url string) ([]byte, error) {
+		return ([]byte)(response), err
+	}
+	return getFunc
+}
+
+func CreateMockEmptyGetResponse() func(ctx context.Context, url string) ([]byte, error) {
+	return func(ctx context.Context, url string) ([]byte, error) {
+		return ([]byte)(""), nil
+	}
+}

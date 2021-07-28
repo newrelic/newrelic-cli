@@ -10,11 +10,11 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
-const infraAgentValidationURL = "http://localhost:18003/v1/status/entity"
+const infraAgentValidationURL = "infra validation url"
 
 func TestAgentValidator_EntityGUID(t *testing.T) {
 	response := `{"GUID":"MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw"}`
-	c := utils.NewMockHTTPClient(utils.CreateMockHTTPDoFunc(response, 200, nil))
+	c := utils.CreateMockGetResponse(response, nil)
 	av := NewAgentValidator(c)
 
 	ctx := context.Background()
@@ -22,36 +22,37 @@ func TestAgentValidator_EntityGUID(t *testing.T) {
 
 	require.Equal(t, "MTA5ODI2NzB8SU5GUkF8TkF8Nzc0NTc3NjI1NjYyNzI5NzYzNw", result)
 	require.Equal(t, err, nil)
-	require.Equal(t, 1, c.GetCallCount)
+	require.Equal(t, 1, av.Count)
 }
 
-func TestAgentValidator_NoContentResponse(t *testing.T) {
+func TestAgentValidator_AllAttemptFailed(t *testing.T) {
 	t.Parallel()
 
-	c := utils.NewMockHTTPClient(utils.CreateMockHTTPDoFunc("", 204, nil))
+	c := utils.CreateMockGetResponse("", errors.New("an error was returned"))
 	av := NewAgentValidator(c)
+	av.MaxAttempts = 2
+	av.IntervalSeconds = 1
 
 	ctx := context.Background()
 	result, err := av.Validate(ctx, infraAgentValidationURL)
 
 	require.Equal(t, "", result)
-	require.Nil(t, err)
-	require.Equal(t, 1, c.GetCallCount)
+	require.Error(t, err)
+	require.Equal(t, 2, av.Count)
 }
 
-func TestAgentValidator_InternalServerError(t *testing.T) {
+func TestAgentValidator_EmptyGuidShouldFail(t *testing.T) {
 	t.Parallel()
 
-	c := utils.NewMockHTTPClient(utils.CreateMockHTTPDoFunc("", 500, errors.New("Internal Server Error")))
+	c := utils.CreateMockGetResponse("", nil)
 	av := NewAgentValidator(c)
+	av.MaxAttempts = 2
+	av.IntervalSeconds = 1
 
 	ctx := context.Background()
-	_, err := av.Validate(ctx, infraAgentValidationURL)
+	result, err := av.Validate(ctx, infraAgentValidationURL)
 
+	require.Equal(t, "", result)
 	require.Error(t, err)
-	require.Equal(t, 1, c.GetCallCount)
-}
-
-func TestAgentValidator_Retry(t *testing.T) {
-	// TODO
+	require.Equal(t, 2, av.Count)
 }

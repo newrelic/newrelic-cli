@@ -2,12 +2,8 @@ package validation
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -18,9 +14,10 @@ const validationInProgressMsg string = "Checking for data in New Relic (this may
 // AgentValidator attempts to validate that the infra agent
 // was successfully installed and is sending data to New Relic.
 type AgentValidator struct {
-	httpClient        utils.HTTPClientInterface
+	clientFunc        func(context.Context, string) ([]byte, error)
 	MaxAttempts       int
 	IntervalSeconds   int
+	Count             int
 	ProgressIndicator ux.ProgressIndicator
 }
 
@@ -33,12 +30,12 @@ type AgentSuccessResponse struct {
 }
 
 // NewAgentValidator returns a new instance of AgentValidator.
-func NewAgentValidator(httpClient utils.HTTPClientInterface) *AgentValidator {
+func NewAgentValidator(clientFunc func(context.Context, string) ([]byte, error)) *AgentValidator {
 	v := AgentValidator{
 		MaxAttempts:       60,
 		IntervalSeconds:   5,
 		ProgressIndicator: ux.NewSpinner(),
-		httpClient:        httpClient,
+		clientFunc:        clientFunc,
 	}
 
 	return &v
@@ -82,47 +79,18 @@ func (v *AgentValidator) waitForData(ctx context.Context, url string) (string, e
 }
 
 func (v *AgentValidator) doValidate(ctx context.Context, url string) (string, error) {
-	var guid string
-	count := 1
-	retryFunc := func() error {
-		log.WithFields(log.Fields{
-			"retryAttempts": count,
-			"url":           url,
-		}).Trace("validating installation")
-
-		var err error
-		guid, err = v.executeAgentValidationRequest(ctx, url)
-		if err != nil {
-			return err
-		}
-
-		count++
-		return nil
+	clientFunc := func() ([]byte, error) {
+		return v.clientFunc(ctx, url)
 	}
 
-	r := utils.NewRetry(v.MaxAttempts, v.IntervalSeconds, retryFunc)
+	retryFunc := NewAgentValidatorFunc(clientFunc)
+
+	r := utils.NewRetry(v.MaxAttempts, v.IntervalSeconds, retryFunc.RetryFunc)
 	if err := r.ExecWithRetries(ctx); err != nil {
+		v.Count = retryFunc.Count
 		return "", err
 	}
 
-	return guid, nil
-}
-
-func (v *AgentValidator) executeAgentValidationRequest(ctx context.Context, url string) (string, error) {
-	data, err := v.httpClient.Get(ctx, url)
-	if err != nil {
-		return "", err
-	}
-
-	response := AgentSuccessResponse{}
-	err = json.Unmarshal(data, &response)
-	if err != nil {
-		return "", err
-	}
-
-	if response.GUID == "" {
-		return "", errors.New("no entity GUID returned in response")
-	}
-
-	return response.GUID, nil
+	v.Count = retryFunc.Count
+	return retryFunc.GUID, nil
 }

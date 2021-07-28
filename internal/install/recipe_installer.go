@@ -86,7 +86,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
-	av := validation.NewAgentValidator(utils.NewHTTPClient())
+	av := validation.NewAgentValidator(func(ctx context.Context, url string) ([]byte, error) { return utils.NewHTTPClient().Get(ctx, url) })
 
 	i := RecipeInstaller{
 		discoverer:        d,
