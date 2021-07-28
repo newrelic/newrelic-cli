@@ -15,6 +15,7 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
+	InstallID                 string                     `json:"installId"`
 	Complete                  bool                       `json:"complete"`
 	DiscoveryManifest         types.DiscoveryManifest    `json:"discoveryManifest"`
 	EntityGUIDs               []string                   `json:"entityGuids"`
@@ -115,6 +116,7 @@ type StatusError struct {
 
 func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
+		InstallID:             uuid.New().String(),
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
 		LogFilePath:           config.GetDefaultLogFilePath(),
