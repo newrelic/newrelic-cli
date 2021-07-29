@@ -21,7 +21,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -47,7 +46,7 @@ var (
 	rvp             = execution.NewRecipeVarProvider()
 	pf              = packs.NewMockPacksFetcher(status)
 	cpi             = packs.NewMockPacksInstaller(status)
-	av              = validation.NewAgentValidator(utils.CreateMockEmptyGetResponse())
+	av              = validation.NewAgentValidator()
 )
 
 func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {

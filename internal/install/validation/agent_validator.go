@@ -2,6 +2,8 @@ package validation
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -11,10 +13,12 @@ import (
 	utilsvalidation "github.com/newrelic/newrelic-cli/internal/utils/validation"
 )
 
+type clientFunc func(ctx context.Context, url string) ([]byte, error)
+
 // AgentValidator attempts to validate that the infra agent
 // was successfully installed and is sending data to New Relic.
 type AgentValidator struct {
-	clientFunc           func(context.Context, string) ([]byte, error)
+	fn                   clientFunc
 	MaxAttempts          int
 	IntervalMilliSeconds int
 	Count                int
@@ -30,12 +34,12 @@ type AgentSuccessResponse struct {
 }
 
 // NewAgentValidator returns a new instance of AgentValidator.
-func NewAgentValidator(clientFunc func(context.Context, string) ([]byte, error)) *AgentValidator {
+func NewAgentValidator() *AgentValidator {
 	v := AgentValidator{
 		MaxAttempts:          utilsvalidation.DefaultMaxAttempts,
 		IntervalMilliSeconds: utilsvalidation.DefaultIntervalSeconds * 1000,
 		ProgressIndicator:    ux.NewSpinner(),
-		clientFunc:           clientFunc,
+		fn:                   getDefaultClientFunc(),
 	}
 
 	return &v
@@ -78,18 +82,43 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 }
 
 func (v *AgentValidator) tryValidate(ctx context.Context, url string) (string, error) {
-	clientFunc := func() ([]byte, error) {
-		return v.clientFunc(ctx, url)
+	var guid string
+	var err error
+
+	fn := func() error {
+		guid, err = v.executeAgentValidationRequest(ctx, url)
+		return err
 	}
 
-	validator := NewAgentValidatorFunc(clientFunc)
-
-	retry := utils.NewRetry(v.MaxAttempts, v.IntervalMilliSeconds, validator.Func)
+	retry := utils.NewRetry(v.MaxAttempts, v.IntervalMilliSeconds, fn)
 	if err := retry.ExecWithRetries(ctx); err != nil {
-		v.Count = validator.Count
 		return "", err
 	}
 
-	v.Count = validator.Count
-	return validator.GUID, nil
+	return guid, nil
+}
+
+func (v *AgentValidator) executeAgentValidationRequest(ctx context.Context, url string) (string, error) {
+	data, err := v.fn(ctx, url)
+	if err != nil {
+		return "", err
+	}
+
+	response := AgentSuccessResponse{}
+	err = json.Unmarshal(data, &response)
+	if err != nil {
+		return "", err
+	}
+
+	if response.GUID == "" {
+		return "", errors.New("no entity GUID returned in response")
+	}
+
+	return response.GUID, nil
+}
+
+func getDefaultClientFunc() clientFunc {
+	return func(ctx context.Context, url string) ([]byte, error) {
+		return utils.NewHTTPClient().Get(ctx, url)
+	}
 }
