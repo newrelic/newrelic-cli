@@ -4,6 +4,7 @@ import (
 	"context"
 	b64 "encoding/base64"
 	"fmt"
+	"net/url"
 	"os"
 	"os/signal"
 	"reflect"
@@ -166,4 +167,13 @@ func Obfuscate(input string) string {
 	}
 
 	return strings.Join(result, "")
+}
+
+func IsAbsoluteURL(rawURL string) bool {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+
+	return u.Scheme != "" && u.Host != ""
 }

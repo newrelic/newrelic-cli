@@ -72,8 +72,13 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 
 	r.SuccessLinkConfig = expandSuccessLinkConfig(recipe)
 
+	// DEPRECATED: Use `validationUrl` parameter instead
 	if v, ok := recipe["validationNrql"]; ok {
 		r.ValidationNRQL = NRQL(v.(string))
+	}
+
+	if v, ok := recipe["validationUrl"]; ok {
+		r.ValidationURL = v.(string)
 	}
 
 	return err

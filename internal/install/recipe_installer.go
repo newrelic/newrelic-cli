@@ -41,6 +41,7 @@ type RecipeInstaller struct {
 	recipeFilterer    RecipeFilterRunner
 	packsFetcher      PacksFetcher
 	packsInstaller    PacksInstaller
+	agentValidator    *validation.AgentValidator
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -86,6 +87,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
+	av := validation.NewAgentValidator()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -104,6 +106,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFilterer:    rf,
 		packsFetcher:      spf,
 		packsInstaller:    cpi,
+		agentValidator:    av,
 	}
 
 	i.InstallerContext = ic
@@ -373,7 +376,21 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	var err error
 	var validationDurationMilliseconds int64
 	start := time.Now()
-	if r.ValidationNRQL != "" {
+
+	hasValidationURL := r.ValidationURL != ""
+	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
+
+	if hasValidationURL && !isAbsoluteURL {
+		log.Debugf("warning: `validationUrl` %s for recipe %s must be a full URL including protocol, host, and port (if applicable). Attempting to validate with via NRDB instead.", r.ValidationURL, r.Name)
+	}
+
+	if hasValidationURL && isAbsoluteURL {
+		entityGUID, err = i.agentValidator.Validate(ctx, r.ValidationURL)
+		if err != nil {
+			return "", err
+		}
+		// Deprecated validation
+	} else if r.ValidationNRQL != "" {
 		entityGUID, err = i.recipeValidator.ValidateRecipe(ctx, *m, *r)
 		if err != nil {
 			validationDurationMilliseconds = time.Since(start).Milliseconds()
