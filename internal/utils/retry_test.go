@@ -19,17 +19,23 @@ func TestShouldRetryAndPass(t *testing.T) {
 		CallsBeforeSuccess: 3,
 	}
 	r := NewRetry(3, 0, m.testErrorUntilFunc)
-	err := r.ExecWithRetries(context.Background())
+	ctx, err := r.ExecWithRetries(context.Background())
 	require.Equal(t, 3, m.CallCount)
 	require.NoError(t, err)
+	require.True(t, ctx.Success)
+	require.Equal(t, 3, ctx.RetryCount)
+	require.Equal(t, 2, len(ctx.Errors))
 }
 
 func TestShouldRetryAndFail(t *testing.T) {
 	m := MockFunc{}
 	r := NewRetry(3, 0, m.testErrorFunc)
-	err := r.ExecWithRetries(context.Background())
+	ctx, err := r.ExecWithRetries(context.Background())
 	require.Equal(t, 3, m.CallCount)
+	require.False(t, ctx.Success)
 	require.Equal(t, err.Error(), errorAfterAllRetry)
+	require.Equal(t, 3, ctx.RetryCount)
+	require.Equal(t, 3, len(ctx.Errors))
 }
 
 func TestShouldNotRetry(t *testing.T) {
@@ -37,9 +43,12 @@ func TestShouldNotRetry(t *testing.T) {
 		CallsBeforeSuccess: 3,
 	}
 	r := NewRetry(3, 0, m.testOkFunc)
-	err := r.ExecWithRetries(context.Background())
+	ctx, err := r.ExecWithRetries(context.Background())
 	require.Equal(t, 1, m.CallCount)
 	require.NoError(t, err)
+	require.True(t, ctx.Success)
+	require.Equal(t, 1, ctx.RetryCount)
+	require.Equal(t, 0, len(ctx.Errors))
 }
 
 type MockFunc struct {

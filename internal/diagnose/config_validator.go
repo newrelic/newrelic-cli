@@ -78,7 +78,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, postEvent)
-	if err = r.ExecWithRetries(ctx); err != nil {
+	if _, err = r.ExecWithRetries(ctx); err != nil {
 		return err
 	}
 
@@ -108,7 +108,9 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, validateKeyFunc)
-	return r.ExecWithRetries(ctx)
+	_, err := r.ExecWithRetries(ctx)
+
+	return err
 }
 
 func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {

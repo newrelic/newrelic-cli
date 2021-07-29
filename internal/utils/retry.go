@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+type RetryContext struct {
+	RetryCount int
+	Errors     []error
+	Success    bool
+}
+
 type Retry struct {
 	MaxRetries   int
 	retryDelayMs int
@@ -19,14 +25,16 @@ func NewRetry(maxRetries int, retryDelayMs int, retryFunc func() error) *Retry {
 	}
 }
 
-func (r *Retry) ExecWithRetries(ctx context.Context) error {
-	tries := 0
+func (r *Retry) ExecWithRetries(ctx context.Context) (*RetryContext, error) {
+	retryCtx := RetryContext{}
 	success := false
 	for !success {
-		tries++
+		retryCtx.RetryCount++
 		if err := r.RetryFunc(); err != nil {
-			if tries == r.MaxRetries {
-				return err
+			retryCtx.Errors = append(retryCtx.Errors, err)
+
+			if retryCtx.RetryCount == r.MaxRetries {
+				return &retryCtx, err
 			}
 
 			w := make(chan struct{}, 1)
@@ -37,7 +45,7 @@ func (r *Retry) ExecWithRetries(ctx context.Context) error {
 
 			select {
 			case <-ctx.Done():
-				return context.Canceled
+				return &retryCtx, context.Canceled
 			case <-w:
 			}
 		} else {
@@ -45,5 +53,6 @@ func (r *Retry) ExecWithRetries(ctx context.Context) error {
 		}
 	}
 
-	return nil
+	retryCtx.Success = true
+	return &retryCtx, nil
 }
