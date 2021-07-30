@@ -114,7 +114,7 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			Name:                           ss.Name,
 			DisplayName:                    ss.DisplayName,
 			EntityGUID:                     entities.EntityGUID(ss.EntityGUID),
-			ValidationDurationMilliseconds: ss.ValidationDurationMilliseconds,
+			ValidationDurationMilliseconds: ss.validationDurationMs,
 			HostName:                       status.DiscoveryManifest.Hostname,
 			KernelArch:                     status.DiscoveryManifest.KernelArch,
 			KernelVersion:                  status.DiscoveryManifest.KernelVersion,
@@ -166,7 +166,7 @@ func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusT
 		i.Name = event.Recipe.Name
 		i.DisplayName = event.Recipe.DisplayName
 		i.EntityGUID = entities.EntityGUID(event.EntityGUID)
-		i.ValidationDurationMilliseconds = event.ValidationDurationMilliseconds
+		i.ValidationDurationMilliseconds = event.ValidationDurationMs
 	}
 
 	if statusType != nil {

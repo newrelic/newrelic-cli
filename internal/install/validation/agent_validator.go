@@ -45,9 +45,8 @@ func NewAgentValidator() *AgentValidator {
 	return &v
 }
 
-// Validate performs the attempt(s) to validate successful
-// installation if the infra agent. If successful, it returns
-// the installed entity's GUID.
+// Validate attempts to validate if the infra agent installation is successful.
+// If it is successful, Validate returns the installed entity's GUID.
 func (v *AgentValidator) Validate(ctx context.Context, url string) (string, error) {
 	ticker := time.NewTicker(time.Duration(v.IntervalMilliSeconds) * time.Millisecond)
 	defer ticker.Stop()
@@ -62,7 +61,7 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 			if strings.Contains(err.Error(), "context canceled") {
 				return "", err
 			}
-			return "", fmt.Errorf("%s: %s", utilsvalidation.ReachexMaxValidationMsg, err)
+			return "", fmt.Errorf("%s: %s", utilsvalidation.ReachedMaxValidationMsg, err)
 		}
 
 		if entityGUID != "" {

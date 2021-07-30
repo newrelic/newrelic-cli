@@ -374,14 +374,14 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 	var entityGUID string
 	var err error
-	var validationDurationMilliseconds int64
+	var validationDurationMs int64
 	start := time.Now()
 
 	hasValidationURL := r.ValidationURL != ""
 	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
 
 	if hasValidationURL && !isAbsoluteURL {
-		log.Debugf("warning: `validationUrl` %s for recipe %s must be a full URL including protocol, host, and port (if applicable). Attempting to validate with via NRDB instead.", r.ValidationURL, r.Name)
+		log.Debugf("warning: `validationUrl` %s for recipe %s must be a full URL including protocol, host, and port (if applicable). Attempting to validate via NRDB instead.", r.ValidationURL, r.Name)
 	}
 
 	if hasValidationURL && isAbsoluteURL {
@@ -393,12 +393,12 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	} else if r.ValidationNRQL != "" {
 		entityGUID, err = i.recipeValidator.ValidateRecipe(ctx, *m, *r)
 		if err != nil {
-			validationDurationMilliseconds = time.Since(start).Milliseconds()
+			validationDurationMs = time.Since(start).Milliseconds()
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.status.RecipeFailed(execution.RecipeStatusEvent{
-				Recipe:                         *r,
-				Msg:                            msg,
-				ValidationDurationMilliseconds: validationDurationMilliseconds,
+				Recipe:               *r,
+				Msg:                  msg,
+				ValidationDurationMs: validationDurationMs,
 			})
 			return "", errors.New(msg)
 		}
@@ -406,11 +406,11 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		log.Debugf("skipping validation due to missing validation query")
 	}
 
-	validationDurationMilliseconds = time.Since(start).Milliseconds()
+	validationDurationMs = time.Since(start).Milliseconds()
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
-		Recipe:                         *r,
-		EntityGUID:                     entityGUID,
-		ValidationDurationMilliseconds: validationDurationMilliseconds,
+		Recipe:               *r,
+		EntityGUID:           entityGUID,
+		ValidationDurationMs: validationDurationMs,
 	})
 
 	return entityGUID, nil

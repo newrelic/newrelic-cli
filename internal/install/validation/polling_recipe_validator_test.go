@@ -169,7 +169,7 @@ func TestValidate_QueryError(t *testing.T) {
 
 	_, err := v.ValidateRecipe(getTestContext(), m, r)
 
-	require.EqualError(t, err, utilsvalidation.ReachexMaxValidationMsg+": test error")
+	require.EqualError(t, err, utilsvalidation.ReachedMaxValidationMsg+": test error")
 }
 
 func getTestContext() context.Context {

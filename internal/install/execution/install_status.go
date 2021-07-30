@@ -56,8 +56,8 @@ type RecipeStatus struct {
 	Name        string           `json:"name"`
 	Status      RecipeStatusType `json:"status"`
 	EntityGUID  string           `json:"entityGuid,omitempty"`
-	// ValidationDurationMilliseconds is duration in Milliseconds that a recipe took to validate data was flowing.
-	ValidationDurationMilliseconds int64 `json:"validationDurationMilliseconds,omitempty"`
+	// validationDurationMs is duration in Milliseconds that a recipe took to validate data was flowing.
+	validationDurationMs int64 `json:"validationDurationMs,omitempty"`
 }
 
 type RecipeStatusType string
@@ -471,8 +471,8 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 			found.EntityGUID = e.EntityGUID
 		}
 
-		if e.ValidationDurationMilliseconds > 0 {
-			found.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
+		if e.ValidationDurationMs > 0 {
+			found.validationDurationMs = e.ValidationDurationMs
 		}
 
 		if e.Msg != "" {
@@ -490,8 +490,8 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 			recipeStatus.EntityGUID = e.EntityGUID
 		}
 
-		if e.ValidationDurationMilliseconds > 0 {
-			recipeStatus.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
+		if e.ValidationDurationMs > 0 {
+			recipeStatus.validationDurationMs = e.ValidationDurationMs
 		}
 
 		s.Statuses = append(s.Statuses, recipeStatus)
@@ -500,13 +500,13 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	s.Timestamp = utils.GetTimestamp()
 
 	log.WithFields(log.Fields{
-		"recipe_name":                    e.Recipe.Name,
-		"status":                         rs,
-		"error":                          statusError.Message,
-		"tasks":                          statusError.TaskPath,
-		"guid":                           e.EntityGUID,
-		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
-		"statusCount":                    len(s.Statuses),
+		"recipe_name":          e.Recipe.Name,
+		"status":               rs,
+		"error":                statusError.Message,
+		"tasks":                statusError.TaskPath,
+		"guid":                 e.EntityGUID,
+		"validationDurationMs": e.ValidationDurationMs,
+		"statusCount":          len(s.Statuses),
 	}).Debug("recipe event")
 }
 
