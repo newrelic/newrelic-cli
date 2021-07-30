@@ -87,7 +87,6 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	SELECT count(*)
 	WHERE hostname LIKE '%s%%'
 	AND guid = '%s'
-	FACET guid as 'entityGuid'
 	SINCE 10 MINUTES AGO
 	`, evt.EventType, evt.Hostname, evt.GUID)
 

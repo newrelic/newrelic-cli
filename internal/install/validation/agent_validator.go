@@ -70,6 +70,7 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 			return entityGUID, nil
 		}
 
+		// This is no longer needed, it is implemented in the ExecWithRetries. Remove with the for loop
 		select {
 		case <-ticker.C:
 			continue
