@@ -48,34 +48,20 @@ func (m *PollingNRQLValidator) Validate(ctx context.Context, query string) (stri
 	m.ProgressIndicator.Start(ValidationInProgressMsg)
 	defer m.ProgressIndicator.Stop()
 
-	for {
-		entityGUID, err := m.tryValidate(ctx, query)
-		if err != nil {
-			m.ProgressIndicator.Fail("")
-			if strings.Contains(err.Error(), "context canceled") {
-				return "", err
-			}
-			return "", fmt.Errorf("%s: %s", ReachexMaxValidationMsg, err)
+	entityGUID, err := m.tryValidate(ctx, query)
+	if err != nil {
+		m.ProgressIndicator.Fail("")
+		if strings.Contains(err.Error(), "context canceled") {
+			return "", err
 		}
-
-		if entityGUID != "" {
-			m.ProgressIndicator.Success("")
-			return entityGUID, nil
-		}
-
-		select {
-		case <-ticker.C:
-			continue
-
-		case <-ctx.Done():
-			m.ProgressIndicator.Fail("")
-			return "", fmt.Errorf("validation cancelled")
-		}
+		return "", fmt.Errorf("%s: %s", ReachexMaxValidationMsg, err)
 	}
+	m.ProgressIndicator.Success("")
+	return entityGUID, nil
 }
 
 func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (string, error) {
-	var guid string
+	guid := ""
 	validatorFunc := func() error {
 		results, err := m.executeQuery(ctx, query)
 		if err != nil {
@@ -106,7 +92,8 @@ func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (s
 				return nil
 			}
 
-			return errors.New("no entityGuid or entity.guids found in results")
+			// entity guid is optional, no error returned
+			return nil
 		}
 
 		return errors.New("no count found in results")
