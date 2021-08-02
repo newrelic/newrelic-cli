@@ -57,7 +57,7 @@ type RecipeStatus struct {
 	Status      RecipeStatusType `json:"status"`
 	EntityGUID  string           `json:"entityGuid,omitempty"`
 	// validationDurationMs is duration in Milliseconds that a recipe took to validate data was flowing.
-	validationDurationMs int64 `json:"validationDurationMs,omitempty"`
+	ValidationDurationMs int64 `json:"validationDurationMs,omitempty"`
 }
 
 type RecipeStatusType string
@@ -472,7 +472,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		}
 
 		if e.ValidationDurationMs > 0 {
-			found.validationDurationMs = e.ValidationDurationMs
+			found.ValidationDurationMs = e.ValidationDurationMs
 		}
 
 		if e.Msg != "" {
@@ -491,7 +491,7 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		}
 
 		if e.ValidationDurationMs > 0 {
-			recipeStatus.validationDurationMs = e.ValidationDurationMs
+			recipeStatus.ValidationDurationMs = e.ValidationDurationMs
 		}
 
 		s.Statuses = append(s.Statuses, recipeStatus)

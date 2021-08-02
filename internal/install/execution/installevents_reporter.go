@@ -114,7 +114,7 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			Name:                           ss.Name,
 			DisplayName:                    ss.DisplayName,
 			EntityGUID:                     entities.EntityGUID(ss.EntityGUID),
-			ValidationDurationMilliseconds: ss.validationDurationMs,
+			ValidationDurationMilliseconds: ss.ValidationDurationMs,
 			HostName:                       status.DiscoveryManifest.Hostname,
 			KernelArch:                     status.DiscoveryManifest.KernelArch,
 			KernelVersion:                  status.DiscoveryManifest.KernelVersion,
