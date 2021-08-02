@@ -6,16 +6,16 @@ import (
 )
 
 type Retry struct {
-	MaxRetries         int
-	retryDelayMilliSec int
-	RetryFunc          func() error
+	MaxRetries   int
+	retryDelayMs int
+	RetryFunc    func() error
 }
 
-func NewRetry(maxRetries int, retryDelayMilliSec int, retryFunc func() error) *Retry {
+func NewRetry(maxRetries int, retryDelayMs int, retryFunc func() error) *Retry {
 	return &Retry{
-		MaxRetries:         maxRetries,
-		retryDelayMilliSec: retryDelayMilliSec,
-		RetryFunc:          retryFunc,
+		MaxRetries:   maxRetries,
+		retryDelayMs: retryDelayMs,
+		RetryFunc:    retryFunc,
 	}
 }
 
@@ -31,7 +31,7 @@ func (r *Retry) ExecWithRetries(ctx context.Context) error {
 
 			w := make(chan struct{}, 1)
 			go func() {
-				time.Sleep(time.Duration(r.retryDelayMilliSec) * time.Millisecond)
+				time.Sleep(time.Duration(r.retryDelayMs) * time.Millisecond)
 				w <- struct{}{}
 			}()
 

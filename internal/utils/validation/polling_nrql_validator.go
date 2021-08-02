@@ -17,7 +17,7 @@ const (
 	DefaultMaxAttempts      = 60
 	DefaultIntervalSeconds  = 5
 	ValidationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
-	ReachexMaxValidationMsg = "reached max validation attempts"
+	ReachedMaxValidationMsg = "reached max validation attempts"
 )
 
 // PollingNRQLValidator polls NRDB to assert data is being reported for the given query.
@@ -54,7 +54,7 @@ func (m *PollingNRQLValidator) Validate(ctx context.Context, query string) (stri
 		if strings.Contains(err.Error(), "context canceled") {
 			return "", err
 		}
-		return "", fmt.Errorf("%s: %s", ReachexMaxValidationMsg, err)
+		return "", fmt.Errorf("%s: %s", ReachedMaxValidationMsg, err)
 	}
 	m.ProgressIndicator.Success("")
 	return entityGUID, nil
