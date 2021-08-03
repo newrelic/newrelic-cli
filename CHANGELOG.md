@@ -1,3 +1,18 @@
+<a name="v0.32.2"></a>
+## [v0.32.2] - 2021-08-02
+<a name="v0.32.1"></a>
+## [v0.32.1] - 2021-07-30
+### Bug Fixes
+- **install:** add comment
+- **install:** fix nrql validation when no guid is returned
+
+<a name="v0.32.0"></a>
+## [v0.32.0] - 2021-07-29
+### Features
+- **install:** validate infra agent install directly via the agent server
+
+<a name="v0.31.4"></a>
+## [v0.31.4] - 2021-07-26
 <a name="v0.31.3"></a>
 ## [v0.31.3] - 2021-07-23
 ### Bug Fixes
@@ -792,6 +807,8 @@
 - **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
+<a name="v0.6.2-test"></a>
+## [v0.6.2-test] - 2020-04-09
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
@@ -925,7 +942,11 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.2...HEAD
+[v0.32.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.1...v0.32.2
+[v0.32.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.0...v0.32.1
+[v0.32.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.4...v0.32.0
+[v0.31.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.3...v0.31.4
 [v0.31.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.2...v0.31.3
 [v0.31.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.1...v0.31.2
 [v0.31.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.0...v0.31.1
@@ -1041,7 +1062,8 @@
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.7.0
+[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.6.2-test
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0

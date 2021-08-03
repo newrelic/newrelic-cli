@@ -15,6 +15,7 @@ import (
 
 // nolint: maligned
 type InstallStatus struct {
+	InstallID                 string                     `json:"installId"`
 	Complete                  bool                       `json:"complete"`
 	DiscoveryManifest         types.DiscoveryManifest    `json:"discoveryManifest"`
 	EntityGUIDs               []string                   `json:"entityGuids"`
@@ -24,6 +25,7 @@ type InstallStatus struct {
 	ObservabilityPackStatuses []*ObservabilityPackStatus `json:"packs"`
 	Timestamp                 int64                      `json:"timestamp"`
 	CLIVersion                string                     `json:"cliVersion"`
+	InstallLibraryVersion     string                     `json:"installLibraryVersion"`
 	HasInstalledRecipes       bool                       `json:"hasInstalledRecipes"`
 	HasCanceledRecipes        bool                       `json:"hasCanceledRecipes"`
 	HasSkippedRecipes         bool                       `json:"hasSkippedRecipes"`
@@ -54,8 +56,8 @@ type RecipeStatus struct {
 	Name        string           `json:"name"`
 	Status      RecipeStatusType `json:"status"`
 	EntityGUID  string           `json:"entityGuid,omitempty"`
-	// ValidationDurationMilliseconds is duration in Milliseconds that a recipe took to validate data was flowing.
-	ValidationDurationMilliseconds int64 `json:"validationDurationMilliseconds,omitempty"`
+	// validationDurationMs is duration in Milliseconds that a recipe took to validate data was flowing.
+	ValidationDurationMs int64 `json:"validationDurationMs,omitempty"`
 }
 
 type RecipeStatusType string
@@ -114,6 +116,7 @@ type StatusError struct {
 
 func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
+		InstallID:             uuid.New().String(),
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
 		LogFilePath:           config.GetDefaultLogFilePath(),
@@ -380,14 +383,18 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 	s.EntityGUIDs = append(s.EntityGUIDs, entityGUID)
 }
 
-func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
-	s.DiscoveryManifest = dm
-	s.Timestamp = utils.GetTimestamp()
+func (s *InstallStatus) SetVersions(installLibraryVersion string) {
+	s.InstallLibraryVersion = installLibraryVersion
 
 	version := os.Getenv("NEW_RELIC_CLI_VERSION")
 	if version != "" {
 		s.CLIVersion = version
 	}
+}
+
+func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
+	s.DiscoveryManifest = dm
+	s.Timestamp = utils.GetTimestamp()
 }
 
 func (s *InstallStatus) withObservabilityPackEvent(e ObservabilityPackStatusEvent, opst ObservabilityPackStatusType) {
@@ -464,8 +471,8 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 			found.EntityGUID = e.EntityGUID
 		}
 
-		if e.ValidationDurationMilliseconds > 0 {
-			found.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
+		if e.ValidationDurationMs > 0 {
+			found.ValidationDurationMs = e.ValidationDurationMs
 		}
 
 		if e.Msg != "" {
@@ -483,8 +490,8 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 			recipeStatus.EntityGUID = e.EntityGUID
 		}
 
-		if e.ValidationDurationMilliseconds > 0 {
-			recipeStatus.ValidationDurationMilliseconds = e.ValidationDurationMilliseconds
+		if e.ValidationDurationMs > 0 {
+			recipeStatus.ValidationDurationMs = e.ValidationDurationMs
 		}
 
 		s.Statuses = append(s.Statuses, recipeStatus)
@@ -493,13 +500,13 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	s.Timestamp = utils.GetTimestamp()
 
 	log.WithFields(log.Fields{
-		"recipe_name":                    e.Recipe.Name,
-		"status":                         rs,
-		"error":                          statusError.Message,
-		"tasks":                          statusError.TaskPath,
-		"guid":                           e.EntityGUID,
-		"validationDurationMilliseconds": e.ValidationDurationMilliseconds,
-		"statusCount":                    len(s.Statuses),
+		"recipe_name":          e.Recipe.Name,
+		"status":               rs,
+		"error":                statusError.Message,
+		"tasks":                statusError.TaskPath,
+		"guid":                 e.EntityGUID,
+		"validationDurationMs": e.ValidationDurationMs,
+		"statusCount":          len(s.Statuses),
 	}).Debug("recipe event")
 }
 

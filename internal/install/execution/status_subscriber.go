@@ -25,11 +25,11 @@ type StatusSubscriber interface {
 
 // RecipeStatusEvent represents an event in a recipe's execution.
 type RecipeStatusEvent struct {
-	Recipe                         types.OpenInstallationRecipe
-	Msg                            string
-	TaskPath                       []string
-	EntityGUID                     string
-	ValidationDurationMilliseconds int64
+	Recipe               types.OpenInstallationRecipe
+	Msg                  string
+	TaskPath             []string
+	EntityGUID           string
+	ValidationDurationMs int64
 }
 
 type ObservabilityPackStatusEvent struct {

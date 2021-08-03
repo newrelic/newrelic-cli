@@ -41,6 +41,7 @@ type RecipeInstaller struct {
 	recipeFilterer    RecipeFilterRunner
 	packsFetcher      PacksFetcher
 	packsInstaller    PacksInstaller
+	agentValidator    *validation.AgentValidator
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -86,6 +87,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
 	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
+	av := validation.NewAgentValidator()
 
 	i := RecipeInstaller{
 		discoverer:        d,
@@ -104,6 +106,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFilterer:    rf,
 		packsFetcher:      spf,
 		packsInstaller:    cpi,
+		agentValidator:    av,
 	}
 
 	i.InstallerContext = ic
@@ -169,6 +172,10 @@ func (i *RecipeInstaller) Install() error {
 }
 
 func (i *RecipeInstaller) install(ctx context.Context) error {
+	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
+	log.Debugf("Using open-install-library version %s", installLibraryVersion)
+	i.status.SetVersions(installLibraryVersion)
+
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
 	if err != nil {
@@ -367,17 +374,31 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 	var entityGUID string
 	var err error
-	var validationDurationMilliseconds int64
+	var validationDurationMs int64
 	start := time.Now()
-	if r.ValidationNRQL != "" {
+
+	hasValidationURL := r.ValidationURL != ""
+	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
+
+	if hasValidationURL && !isAbsoluteURL {
+		log.Debugf("warning: `validationUrl` %s for recipe %s must be a full URL including protocol, host, and port (if applicable). Attempting to validate via NRDB instead.", r.ValidationURL, r.Name)
+	}
+
+	if hasValidationURL && isAbsoluteURL {
+		entityGUID, err = i.agentValidator.Validate(ctx, r.ValidationURL)
+		if err != nil {
+			return "", err
+		}
+		// Deprecated validation
+	} else if r.ValidationNRQL != "" {
 		entityGUID, err = i.recipeValidator.ValidateRecipe(ctx, *m, *r)
 		if err != nil {
-			validationDurationMilliseconds = time.Since(start).Milliseconds()
+			validationDurationMs = time.Since(start).Milliseconds()
 			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
 			i.status.RecipeFailed(execution.RecipeStatusEvent{
-				Recipe:                         *r,
-				Msg:                            msg,
-				ValidationDurationMilliseconds: validationDurationMilliseconds,
+				Recipe:               *r,
+				Msg:                  msg,
+				ValidationDurationMs: validationDurationMs,
 			})
 			return "", errors.New(msg)
 		}
@@ -385,11 +406,11 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		log.Debugf("skipping validation due to missing validation query")
 	}
 
-	validationDurationMilliseconds = time.Since(start).Milliseconds()
+	validationDurationMs = time.Since(start).Milliseconds()
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
-		Recipe:                         *r,
-		EntityGUID:                     entityGUID,
-		ValidationDurationMilliseconds: validationDurationMilliseconds,
+		Recipe:               *r,
+		EntityGUID:           entityGUID,
+		ValidationDurationMs: validationDurationMs,
 	})
 
 	return entityGUID, nil
