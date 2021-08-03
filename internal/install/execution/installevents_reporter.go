@@ -1,6 +1,8 @@
 package execution
 
 import (
+	"strings"
+
 	log "github.com/sirupsen/logrus"
 
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
@@ -70,7 +72,8 @@ func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []
 }
 
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	return nil
+	err := r.createInstallStatusEvent(installevents.InstallationInstallStateTypeTypes.COMPLETED, status, RecipeStatusEvent{})
+	return err
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
@@ -125,6 +128,8 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			PlatformVersion:                status.DiscoveryManifest.PlatformVersion,
 			RedirectURL:                    status.RedirectURL,
 			TargetedInstall:                status.targetedInstall,
+			InstallId:                      status.InstallID,
+			InstallLibraryVersion:          status.InstallLibraryVersion,
 		}
 
 		_, err := r.client.InstallationCreateRecipeEvent(r.accountID, i)
@@ -142,6 +147,13 @@ func (r InstallEventsReporter) createRecipeInstallEvent(status *InstallStatus, s
 	return err
 }
 
+func (r InstallEventsReporter) createInstallStatusEvent(state installevents.InstallationInstallStateType, status *InstallStatus, event RecipeStatusEvent) error {
+	s := buildInstallStatus(state, status, &event)
+	_, err := r.client.InstallationCreateInstallStatus(r.accountID, s)
+
+	return err
+}
+
 func buildInstallStatus(state installevents.InstallationInstallStateType, status *InstallStatus, event *RecipeStatusEvent) installevents.InstallationInstallStatusInput {
 	i := installevents.InstallationInstallStatusInput{
 		CliVersion: status.CLIVersion,
@@ -149,19 +161,26 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 			Details: status.Error.Details,
 			Message: status.Error.Message,
 		},
-		HostName:        status.DiscoveryManifest.Hostname,
-		KernelArch:      status.DiscoveryManifest.KernelArch,
-		KernelVersion:   status.DiscoveryManifest.KernelVersion,
-		LogFilePath:     status.LogFilePath,
-		Os:              status.DiscoveryManifest.OS,
-		Platform:        status.DiscoveryManifest.Platform,
-		PlatformFamily:  status.DiscoveryManifest.PlatformFamily,
-		PlatformVersion: status.DiscoveryManifest.PlatformVersion,
-		RedirectURL:     status.RedirectURL,
-		TargetedInstall: status.targetedInstall,
-		IsUnsupported:   status.DiscoveryManifest.IsUnsupported,
-		State:           state,
+		HostName:              status.DiscoveryManifest.Hostname,
+		KernelArch:            status.DiscoveryManifest.KernelArch,
+		KernelVersion:         status.DiscoveryManifest.KernelVersion,
+		LogFilePath:           status.LogFilePath,
+		Os:                    status.DiscoveryManifest.OS,
+		Platform:              status.DiscoveryManifest.Platform,
+		PlatformFamily:        status.DiscoveryManifest.PlatformFamily,
+		PlatformVersion:       status.DiscoveryManifest.PlatformVersion,
+		RedirectURL:           status.RedirectURL,
+		TargetedInstall:       status.targetedInstall,
+		IsUnsupported:         status.DiscoveryManifest.IsUnsupported,
+		State:                 state,
+		InstallId:             status.InstallID,
+		InstallLibraryVersion: status.InstallLibraryVersion,
 	}
+
+	if status.HTTPSProxy != "" {
+		i.EnabledProxy = true
+	}
+
 	return i
 }
 
@@ -173,16 +192,18 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 			Details: status.Error.Details,
 			Message: status.Error.Message,
 		},
-		HostName:        status.DiscoveryManifest.Hostname,
-		KernelArch:      status.DiscoveryManifest.KernelArch,
-		KernelVersion:   status.DiscoveryManifest.KernelVersion,
-		LogFilePath:     status.LogFilePath,
-		Os:              status.DiscoveryManifest.OS,
-		Platform:        status.DiscoveryManifest.Platform,
-		PlatformFamily:  status.DiscoveryManifest.PlatformFamily,
-		PlatformVersion: status.DiscoveryManifest.PlatformVersion,
-		RedirectURL:     status.RedirectURL,
-		TargetedInstall: status.targetedInstall,
+		HostName:              status.DiscoveryManifest.Hostname,
+		KernelArch:            status.DiscoveryManifest.KernelArch,
+		KernelVersion:         status.DiscoveryManifest.KernelVersion,
+		LogFilePath:           status.LogFilePath,
+		Os:                    status.DiscoveryManifest.OS,
+		Platform:              status.DiscoveryManifest.Platform,
+		PlatformFamily:        status.DiscoveryManifest.PlatformFamily,
+		PlatformVersion:       status.DiscoveryManifest.PlatformVersion,
+		RedirectURL:           status.RedirectURL,
+		TargetedInstall:       status.targetedInstall,
+		InstallId:             status.InstallID,
+		InstallLibraryVersion: status.InstallLibraryVersion,
 	}
 
 	if event != nil {
@@ -190,6 +211,7 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.DisplayName = event.Recipe.DisplayName
 		i.EntityGUID = entities.EntityGUID(event.EntityGUID)
 		i.ValidationDurationMilliseconds = event.ValidationDurationMs
+		i.TaskPath = strings.Join(event.TaskPath, ",")
 	}
 
 	if statusType != nil {
