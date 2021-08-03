@@ -10,7 +10,7 @@ require (
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.15.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
-	github.com/go-task/task/v3 v3.4.3
+	github.com/go-task/task/v3 v3.7.0
 	github.com/golangci/golangci-lint v1.41.1
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v0.174.2
