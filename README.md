@@ -232,7 +232,7 @@ You can retrieve the status of the treatment by using the `SplitService`.
 
 ```golang
 // Retrieve a single treatment given an experiment (split)
-treatment := split.SplitService.Get(split.VirtuosoCLITest)
+treatment := split.Service.Get(split.VirtuosoCLITest)
 
 if treatment == "on" {
   // insert code here to show on treatment
