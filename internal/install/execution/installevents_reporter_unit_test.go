@@ -11,6 +11,21 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+func TestInstallEventsReporter_InstallComplete(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+	c := NewMockInstallEventsClient()
+	r := NewInstallEventsReporter(c)
+	require.NotNil(t, r)
+
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	status.withEntityGUID("testGuid")
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 1, c.CreateInstallStatusCallCount)
+}
+
 func TestInstallEventsReporter_InstallCanceled(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	c := NewMockInstallEventsClient()
