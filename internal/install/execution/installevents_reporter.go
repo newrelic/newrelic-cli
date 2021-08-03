@@ -136,13 +136,36 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 }
 
 func (r InstallEventsReporter) createRecipeInstallEvent(status *InstallStatus, statusType installevents.InstallationRecipeStatusType, event RecipeStatusEvent) error {
-	s := buildInstallStatus(status, &event, &statusType)
+	s := buildRecipeStatus(status, &event, &statusType)
 	_, err := r.client.InstallationCreateRecipeEvent(r.accountID, s)
 
 	return err
 }
 
-func buildInstallStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.InstallationRecipeStatusType) installevents.InstallationRecipeStatus {
+func buildInstallStatus(state installevents.InstallationInstallStateType, status *InstallStatus, event *RecipeStatusEvent) installevents.InstallationInstallStatusInput {
+	i := installevents.InstallationInstallStatusInput{
+		CliVersion: status.CLIVersion,
+		Error: installevents.InstallationStatusErrorInput{
+			Details: status.Error.Details,
+			Message: status.Error.Message,
+		},
+		HostName:        status.DiscoveryManifest.Hostname,
+		KernelArch:      status.DiscoveryManifest.KernelArch,
+		KernelVersion:   status.DiscoveryManifest.KernelVersion,
+		LogFilePath:     status.LogFilePath,
+		Os:              status.DiscoveryManifest.OS,
+		Platform:        status.DiscoveryManifest.Platform,
+		PlatformFamily:  status.DiscoveryManifest.PlatformFamily,
+		PlatformVersion: status.DiscoveryManifest.PlatformVersion,
+		RedirectURL:     status.RedirectURL,
+		TargetedInstall: status.targetedInstall,
+		IsUnsupported:   status.DiscoveryManifest.IsUnsupported,
+		State:           state,
+	}
+	return i
+}
+
+func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.InstallationRecipeStatusType) installevents.InstallationRecipeStatus {
 	i := installevents.InstallationRecipeStatus{
 		CliVersion: status.CLIVersion,
 		Complete:   status.Complete,
