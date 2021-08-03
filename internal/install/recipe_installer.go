@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -153,6 +154,25 @@ func (i *RecipeInstaller) Install() error {
 	log.Printf("Validating connectivity to the New Relic platform...")
 	if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
 		return err
+	}
+
+	// If not in a dev environemt, check to see if
+	// the installed CLI is up to date.
+	if !cli.IsDevEnvironment() {
+		latestReleaseVersion, vErr := cli.GetLatestReleaseVersion(ctx)
+		if vErr != nil {
+			return vErr
+		}
+
+		isLatestCLIVersion, vErr := cli.IsLatestVersion(ctx, latestReleaseVersion)
+		if vErr != nil {
+			return vErr
+		}
+
+		if !isLatestCLIVersion {
+			cli.PrintUpdateCLIMessage(latestReleaseVersion)
+			return nil
+		}
 	}
 
 	go func(ctx context.Context) {

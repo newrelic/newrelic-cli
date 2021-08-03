@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	log "github.com/sirupsen/logrus"
@@ -14,6 +15,8 @@ import (
 
 var (
 	Version = "dev"
+
+	installCLISnippet = `curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo newrelic install`
 )
 
 // GitHubRepositoryTagResponse is the data structure returned
@@ -31,40 +34,50 @@ const PrereleaseEnvironmentMsgFormat string = `
   To upgrade the New Relic CLI, you must be using non-prerelease version.
 `
 
-const OldVersionMsgFormat string = `
-  You are using an old version of the New Relic CLI.
+const UpdateVersionMsgFormat string = `
+  We need to update your New Relic CLI version to continue.
 
-    Current version: %s
-    Latest version:  %s
+    Installed version: %s
+    Latest version:    %s
 
-  Upgrade to the latest version using the following command:
+  To update your CLI and continue this installation, run this command:
 
-    newrelic version upgrade
+    %s
 `
 
-// IsLatestVersion returns true if the latest remote release version matches
-// the currently installed version.
-func IsLatestVersion(ctx context.Context, currentVersion string) (bool, error) {
-	cv, err := semver.NewVersion(currentVersion)
+// TODO: Refactor this into a singleton object that can be shared across packages
+
+// IsLatestVersion returns true if the provided version string matches
+// the current installed version.
+func IsLatestVersion(ctx context.Context, latestVersion string) (bool, error) {
+	installedVersion, err := semver.NewVersion(Version)
 	if err != nil {
-		log.Fatalf("error parsing current CLI version %s: %s", cv.String(), err.Error())
+		return false, fmt.Errorf("error parsing current CLI version %s: %s", Version, err.Error())
 	}
 
-	latestRelease, err := FetchLatestRelease(ctx)
+	lv, err := semver.NewVersion(latestVersion)
+
+	log.Printf("\n latest version prerelease:     %+v \n", lv.Prerelease())
+	log.Printf("\n installed version prerelease:  %+v \n", installedVersion.Prerelease())
+
 	if err != nil {
-		return false, fmt.Errorf("error fetching latest release %s: %s", latestRelease.TagName, err.Error())
+		return false, fmt.Errorf("error parsing version to check %s: %s", latestVersion, err.Error())
 	}
 
-	latestVersion, err := semver.NewVersion(latestRelease.TagName)
-	if err != nil {
-		return false, fmt.Errorf("error parsing latest tag %s: %s", latestRelease.TagName, err.Error())
-	}
-
-	if cv.LessThan(latestVersion) {
+	if installedVersion.LessThan(lv) {
 		return false, nil
 	}
 
-	return cv.Equal(latestVersion), nil
+	return installedVersion.Equal(lv), nil
+}
+
+func GetLatestReleaseVersion(ctx context.Context) (string, error) {
+	latestRelease, err := FetchLatestRelease(ctx)
+	if err != nil {
+		return "", fmt.Errorf("error fetching latest release: %s", err.Error())
+	}
+
+	return latestRelease.TagName, nil
 }
 
 func FetchLatestRelease(ctx context.Context) (*GitHubRepositoryTagResponse, error) {
@@ -88,35 +101,41 @@ func FetchLatestRelease(ctx context.Context) (*GitHubRepositoryTagResponse, erro
 	return &repoTag, nil
 }
 
-// UpgradeCLIVersion handles upgrading the CLI to newer version.
-// By default, the latest version is installed. If a target version
-// if provided, the specified version will be installed.
-func UpgradeCLIVersion(ctx context.Context, internalVersion string, targetVersion string, forceUpgrade bool) error {
-	currentVersion, err := semver.NewVersion(internalVersion)
+// IsDevEnvironment returns true when the installed CLI version
+// is either in a prerelease state or in a dirty state. The version
+// string is generated at compile time using git. The prerelease string
+// is appended to the primary semver version string.
+//
+// Examples of prerelease version strings
+//
+//  v0.32.1-10-gbe63a24
+//  v0.32.1-10-gbe63a24-dirty
+//
+// In this example version string, "10" represents the number of
+// commits since the 0.32.1 tag was created. The "gbe63a24" is the
+// previous commit's abbreviated sha. The "dirty" part means that
+// git was in a dirty state at compile time, meaning an updated file
+// was saved, but not yet committed.
+func IsDevEnvironment() bool {
+	v, err := semver.NewVersion(Version)
 	if err != nil {
-		return fmt.Errorf("error parsing current CLI version %s", internalVersion)
+		return true
 	}
 
-	isDevEnvironment := currentVersion.Prerelease() != ""
-	if isDevEnvironment && !forceUpgrade {
-		return fmt.Errorf(PrereleaseEnvironmentMsgFormat, internalVersion)
+	prereleaseString := v.Prerelease()
+	hasPrereleaseString := prereleaseString != ""
+
+	if hasPrereleaseString && strings.Contains(prereleaseString, "dirty") {
+		return true
 	}
 
-	release, err := FetchLatestRelease(ctx)
-	if err != nil {
-		return err
+	if hasPrereleaseString && !strings.Contains(prereleaseString, "alpha") && !strings.Contains(prereleaseString, "beta") {
+		return true
 	}
 
-	latestVersion, err := semver.NewVersion(release.TagName)
-	if err != nil {
-		return fmt.Errorf("error parsing latest CLI version %s", release.TagName)
-	}
+	return false
+}
 
-	if currentVersion.LessThan(latestVersion) {
-		output.Printf(OldVersionMsgFormat, currentVersion.String(), latestVersion.String())
-	}
-
-	// TODO: Refactor this function now that the POC seems viable.
-
-	return nil
+func PrintUpdateCLIMessage(latestVersion string) {
+	output.Printf(UpdateVersionMsgFormat, Version, latestVersion, installCLISnippet)
 }
