@@ -326,6 +326,8 @@ github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e h1:/cwV7t2xezilMljIftb7WlFtzGANRCnoOhPjtl2ifcs=
 github.com/elazarl/goproxy v0.0.0-20210110162100-a92cc753f88e/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
+github.com/elazarl/goproxy v0.0.0-20210801061803-8e322dfb79c4 h1:lS3P5Nw3oPO05Lk2gFiYUOL3QPaH+fRoI1wFOc4G1UY=
+github.com/elazarl/goproxy v0.0.0-20210801061803-8e322dfb79c4/go.mod h1:Ro8st/ElPeALwNFlcTpWmkr6IoMFfkjXAvTHpevnDsM=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2 h1:dWB6v3RcOy03t/bUadywsbyrQwCqZeNIEX6M1OtSZOM=
 github.com/elazarl/goproxy/ext v0.0.0-20190711103511-473e67f1d7d2/go.mod h1:gNh8nYJoAm43RfaxurUnxr+N1PwuFV3ZMl/efxlIlY8=
 github.com/emirpasic/gods v1.9.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
@@ -954,6 +956,8 @@ github.com/newrelic/newrelic-client-go v0.61.4 h1:FYfAeQXV6h2DfTdcuTbfnuRad8uJp8
 github.com/newrelic/newrelic-client-go v0.61.4/go.mod h1:ejGD81//o2UqWdaRl7bPrVpCgWuAL9YdcBsbpkNNYjI=
 github.com/newrelic/newrelic-client-go v0.62.0 h1:mZBBRx09j5ntmggCvG/+lk+OF/H34CyA/OyXpLFNW4Y=
 github.com/newrelic/newrelic-client-go v0.62.0/go.mod h1:ejGD81//o2UqWdaRl7bPrVpCgWuAL9YdcBsbpkNNYjI=
+github.com/newrelic/newrelic-client-go v0.62.1 h1:3EtnALMolln8G2EdDWx2TUYgh8VqAGJmoqFE46rBoeE=
+github.com/newrelic/newrelic-client-go v0.62.1/go.mod h1:rJrNRX5HzgCnxJm2Hcn6IXmN1KCP/ppmvwkUbnm2Kto=
 github.com/newrelic/tutone v0.8.1 h1:rHECh0rLEGAEvHEhLUWuVSltQEU+b24EM9I8zw3TZ0M=
 github.com/newrelic/tutone v0.8.1/go.mod h1:accJfu4YQbE+JG7Yyfc/XNgnyRTEzVm0S8mFpb9sZjs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
