@@ -101,21 +101,24 @@ func FetchLatestRelease(ctx context.Context) (*GitHubRepositoryTagResponse, erro
 	return &repoTag, nil
 }
 
-// IsDevEnvironment returns true when the installed CLI version
-// is either in a prerelease state or in a dirty state. The version
-// string is generated at compile time using git. The prerelease string
+// IsDevEnvironment is a naive implementation to determine if the CLI
+// is being run in a dev environment. IsDevEnvironment returns true when
+// the installed CLI version is either in a prerelease state or in a dirty state.
+// The version string is generated at compile time using git. The prerelease string
 // is appended to the primary semver version string.
 //
-// Examples of prerelease version strings
+// If you're doing local development on the CLI, your version may look similar to
+// the examples below.
+//
+// Examples of versions that have a prerelease tag (i.e. the suffix):
 //
 //  v0.32.1-10-gbe63a24
 //  v0.32.1-10-gbe63a24-dirty
 //
-// In this example version string, "10" represents the number of
-// commits since the 0.32.1 tag was created. The "gbe63a24" is the
-// previous commit's abbreviated sha. The "dirty" part means that
-// git was in a dirty state at compile time, meaning an updated file
-// was saved, but not yet committed.
+// In this example version string, "10" represents the number of commits
+// since the 0.32.1 tag was created. The "gbe63a24" is the previous commit's
+// abbreviated sha. The "dirty" part means that git was in a dirty state at compile
+// time, meaning an updated file was saved, but not yet committed.
 func IsDevEnvironment() bool {
 	v, err := semver.NewVersion(Version)
 	if err != nil {
@@ -123,17 +126,17 @@ func IsDevEnvironment() bool {
 	}
 
 	prereleaseString := v.Prerelease()
-	hasPrereleaseString := prereleaseString != ""
+	if prereleaseString == "" {
+		return false
+	}
 
-	if hasPrereleaseString && strings.Contains(prereleaseString, "dirty") {
+	if strings.Contains(prereleaseString, "dirty") {
 		return true
 	}
 
-	if hasPrereleaseString && !strings.Contains(prereleaseString, "alpha") && !strings.Contains(prereleaseString, "beta") {
-		return true
-	}
+	hasDevVersionSuffix := len(strings.Split(prereleaseString, "-")) > 1
 
-	return false
+	return hasDevVersionSuffix
 }
 
 func PrintUpdateCLIMessage(latestVersion string) {
