@@ -56,7 +56,7 @@ func init() {
 
 	CheckPrereleaseMode(Command)
 
-	os.Setenv("NEW_RELIC_CLI_VERSION", cli.Version)
+	os.Setenv("NEW_RELIC_CLI_VERSION", cli.Version())
 }
 
 func main() {

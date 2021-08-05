@@ -14,16 +14,11 @@ import (
 )
 
 var (
-	Version = "dev"
-
-	installCLISnippet = `curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo newrelic install`
+	version       string
+	latestVersion string
 )
 
-// GitHubRepositoryTagResponse is the data structure returned
-// from a repository's `/releases/latest` endpoint.
-type GitHubRepositoryTagResponse struct {
-	TagName string `json:"tag_name"`
-}
+const installCLISnippet = `curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo newrelic install`
 
 // NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data.
 const NewRelicCLILatestReleaseURL string = "https://api.github.com/repos/newrelic/newrelic-cli/releases/latest"
@@ -45,21 +40,19 @@ const UpdateVersionMsgFormat string = `
     %s
 `
 
-// TODO: Refactor this into a singleton object that can be shared across packages
+func Version() string {
+	return version
+}
 
 // IsLatestVersion returns true if the provided version string matches
 // the current installed version.
 func IsLatestVersion(ctx context.Context, latestVersion string) (bool, error) {
-	installedVersion, err := semver.NewVersion(Version)
+	installedVersion, err := semver.NewVersion(version)
 	if err != nil {
-		return false, fmt.Errorf("error parsing current CLI version %s: %s", Version, err.Error())
+		return false, fmt.Errorf("error parsing current CLI version %s: %s", version, err.Error())
 	}
 
 	lv, err := semver.NewVersion(latestVersion)
-
-	log.Printf("\n latest version prerelease:     %+v \n", lv.Prerelease())
-	log.Printf("\n installed version prerelease:  %+v \n", installedVersion.Prerelease())
-
 	if err != nil {
 		return false, fmt.Errorf("error parsing version to check %s: %s", latestVersion, err.Error())
 	}
@@ -72,7 +65,11 @@ func IsLatestVersion(ctx context.Context, latestVersion string) (bool, error) {
 }
 
 func GetLatestReleaseVersion(ctx context.Context) (string, error) {
-	latestRelease, err := FetchLatestRelease(ctx)
+	if latestVersion != "" {
+		return latestVersion, nil
+	}
+
+	latestRelease, err := fetchLatestRelease(ctx)
 	if err != nil {
 		return "", fmt.Errorf("error fetching latest release: %s", err.Error())
 	}
@@ -80,7 +77,13 @@ func GetLatestReleaseVersion(ctx context.Context) (string, error) {
 	return latestRelease.TagName, nil
 }
 
-func FetchLatestRelease(ctx context.Context) (*GitHubRepositoryTagResponse, error) {
+// GitHubRepositoryTagResponse is the data structure returned
+// from a repository's `/releases/latest` endpoint.
+type gitHubRepositoryTagResponse struct {
+	TagName string `json:"tag_name"`
+}
+
+func fetchLatestRelease(ctx context.Context) (*gitHubRepositoryTagResponse, error) {
 	client := utils.NewHTTPClient()
 
 	respBytes, err := client.Get(ctx, NewRelicCLILatestReleaseURL)
@@ -88,17 +91,17 @@ func FetchLatestRelease(ctx context.Context) (*GitHubRepositoryTagResponse, erro
 		return nil, err
 	}
 
-	repoTag := GitHubRepositoryTagResponse{}
-	err = json.Unmarshal(respBytes, &repoTag)
+	gitTag := gitHubRepositoryTagResponse{}
+	err = json.Unmarshal(respBytes, &gitTag)
 	if err != nil {
 		return nil, err
 	}
 
 	log.WithFields(log.Fields{
-		"tag": repoTag.TagName,
+		"tag": gitTag.TagName,
 	}).Debug("fetch tag success")
 
-	return &repoTag, nil
+	return &gitTag, nil
 }
 
 // IsDevEnvironment is a naive implementation to determine if the CLI
@@ -120,7 +123,7 @@ func FetchLatestRelease(ctx context.Context) (*GitHubRepositoryTagResponse, erro
 // abbreviated sha. The "dirty" part means that git was in a dirty state at compile
 // time, meaning an updated file was saved, but not yet committed.
 func IsDevEnvironment() bool {
-	v, err := semver.NewVersion(Version)
+	v, err := semver.NewVersion(version)
 	if err != nil {
 		return true
 	}
