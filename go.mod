@@ -5,12 +5,13 @@ go 1.16
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.14
 	github.com/Masterminds/semver/v3 v3.1.1
+	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.15.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
-	github.com/go-task/task/v3 v3.4.3
+	github.com/go-task/task/v3 v3.7.0
 	github.com/golangci/golangci-lint v1.41.1
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v0.174.2
@@ -24,17 +25,18 @@ require (
 	github.com/newrelic/tutone v0.8.1
 	github.com/pkg/errors v0.9.1
 	github.com/psampaz/go-mod-outdated v0.8.0
-	github.com/shirou/gopsutil v3.21.6+incompatible
+	github.com/shirou/gopsutil v3.21.7+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.1
 	github.com/tidwall/sjson v1.1.7
+	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	golang.org/x/net v0.0.0-20210505214959-0714010a04ed
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
 	golang.org/x/tools v0.1.3
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.7.0
-	mvdan.cc/sh/v3 v3.3.0
+	mvdan.cc/sh/v3 v3.3.1
 )
