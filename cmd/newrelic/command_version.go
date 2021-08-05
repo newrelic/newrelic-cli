@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var cmdVersion = &cobra.Command{
 `,
 	Example: "newrelic version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("newrelic version %s\n", version)
+		fmt.Printf("newrelic version %s\n", cli.Version)
 	},
 }
 

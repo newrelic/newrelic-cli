@@ -11,6 +11,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/agent"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	configCmd "github.com/newrelic/newrelic-cli/internal/config/command"
@@ -31,7 +32,6 @@ import (
 
 var (
 	appName = "newrelic-dev"
-	version = "dev"
 )
 
 func init() {
@@ -56,7 +56,7 @@ func init() {
 
 	CheckPrereleaseMode(Command)
 
-	os.Setenv("NEW_RELIC_CLI_VERSION", version)
+	os.Setenv("NEW_RELIC_CLI_VERSION", cli.Version)
 }
 
 func main() {

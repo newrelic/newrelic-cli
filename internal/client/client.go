@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -21,7 +22,6 @@ import (
 var (
 	NRClient    *newrelic.NewRelic
 	serviceName = "newrelic-cli"
-	version     = "dev"
 )
 
 // NewClient initializes the New Relic client.
@@ -34,7 +34,7 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	}
 
 	region := configAPI.GetProfileString(profileName, config.Region)
-	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", version)
+	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", cli.Version)
 
 	// Feed our logrus instance to the client's logrus adapter
 	logger := clientLogging.NewLogrusLogger(clientLogging.ConfigLoggerInstance(config.Logger))
