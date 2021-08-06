@@ -815,6 +815,8 @@
 - **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
+<a name="v0.6.2-test"></a>
+## [v0.6.2-test] - 2020-04-09
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
 ### Bug Fixes
@@ -1072,7 +1074,8 @@
 [v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
+[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.7.0
+[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.6.2-test
 [v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
