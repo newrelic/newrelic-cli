@@ -31,6 +31,7 @@ func NewManifestValidator() *ManifestValidator {
 	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "centos", 7, 0))
 	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "debian", 8, 0))
 	mv.validators = append(mv.validators, NewOsVersionValidator("linux", "redhat", 6, 0))
+	mv.validators = append(mv.validators, NewOsVersionValidator("darwin", "", 10, 14))
 
 	return &mv
 }
