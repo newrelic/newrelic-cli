@@ -8,6 +8,7 @@ import (
 	"github.com/splitio/go-client/v6/splitio/client"
 	"github.com/splitio/go-client/v6/splitio/conf"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 )
 
@@ -17,10 +18,10 @@ import (
 // serve is to retrieve experiments and can not be used to modify anything
 // within our internal Split.io system.
 var (
-	prodKey                          = "localhost"
-	stagingKey                       = "localhost"
-	accountID                        = configAPI.GetActiveProfileAccountID()
-	splitConfig *conf.SplitSdkConfig = conf.Default()
+	prodKey     = "localhost"
+	stagingKey  = "localhost"
+	accountID   = configAPI.GetActiveProfileAccountID()
+	splitConfig = conf.Default()
 )
 
 type Srvc struct {
@@ -38,6 +39,10 @@ func NewService(region string) (*Srvc, error) {
 	if region == "localhost" {
 		apiKey = "localhost"
 	}
+
+	splitConfig.LoggerConfig.Prefix = "[splitio/client]"
+	splitConfig.LoggerConfig.WarningWriter = config.Logger.WriterLevel(log.DebugLevel)
+	splitConfig.LoggerConfig.ErrorWriter = config.Logger.WriterLevel(log.DebugLevel)
 
 	factory, err := client.NewSplitFactory(apiKey, splitConfig)
 	if err != nil {

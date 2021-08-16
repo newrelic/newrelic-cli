@@ -17,7 +17,3 @@ func Init() {
 	}
 	Service = service
 }
-
-func init() {
-	Init()
-}
