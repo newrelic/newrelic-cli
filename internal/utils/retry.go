@@ -9,6 +9,15 @@ type RetryContext struct {
 	RetryCount int
 	Errors     []error
 	Success    bool
+	Canceled   bool
+}
+
+func (c *RetryContext) MostRecentError() error {
+	if len(c.Errors) > 0 {
+		return c.Errors[len(c.Errors)-1]
+	}
+
+	return nil
 }
 
 type Retry struct {
@@ -25,16 +34,16 @@ func NewRetry(maxRetries int, retryDelayMs int, retryFunc func() error) *Retry {
 	}
 }
 
-func (r *Retry) ExecWithRetries(ctx context.Context) (*RetryContext, error) {
+func (r *Retry) ExecWithRetries(ctx context.Context) *RetryContext {
 	retryCtx := RetryContext{}
-	success := false
-	for !success {
+	for !retryCtx.Success {
 		retryCtx.RetryCount++
 		if err := r.RetryFunc(); err != nil {
 			retryCtx.Errors = append(retryCtx.Errors, err)
 
 			if retryCtx.RetryCount == r.MaxRetries {
-				return &retryCtx, err
+				retryCtx.Success = false
+				return &retryCtx
 			}
 
 			w := make(chan struct{}, 1)
@@ -45,14 +54,15 @@ func (r *Retry) ExecWithRetries(ctx context.Context) (*RetryContext, error) {
 
 			select {
 			case <-ctx.Done():
-				return &retryCtx, context.Canceled
+				retryCtx.Canceled = true
+				retryCtx.Errors = append(retryCtx.Errors, context.Canceled)
+				return &retryCtx
 			case <-w:
 			}
 		} else {
-			success = true
+			retryCtx.Success = true
 		}
 	}
 
-	retryCtx.Success = true
-	return &retryCtx, nil
+	return &retryCtx
 }
