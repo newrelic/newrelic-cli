@@ -60,6 +60,10 @@ func NewMockStatusReporter() *MockStatusReporter {
 	return &MockStatusReporter{}
 }
 
+func (r *MockStatusReporter) UpdateRequired(status *InstallStatus) error {
+	return nil
+}
+
 func (r *MockStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeFailedCallCount++
 	if len(r.ReportFailed) == 0 {

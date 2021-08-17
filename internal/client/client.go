@@ -34,7 +34,7 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	}
 
 	region := configAPI.GetProfileString(profileName, config.Region)
-	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", cli.Version)
+	userAgent := fmt.Sprintf("newrelic-cli/%s (https://github.com/newrelic/newrelic-cli)", cli.Version())
 
 	// Feed our logrus instance to the client's logrus adapter
 	logger := clientLogging.NewLogrusLogger(clientLogging.ConfigLoggerInstance(config.Logger))

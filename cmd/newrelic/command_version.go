@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/spf13/cobra"
+
+	"github.com/newrelic/newrelic-cli/internal/cli"
 )
 
 var cmdVersion = &cobra.Command{

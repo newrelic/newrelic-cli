@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 
@@ -46,15 +47,19 @@ const UpdateVersionMsgFormat string = `
 
 // Version returns the version of the CLI that's currently installed.
 func Version() string {
+	if version == "" {
+		version = os.Getenv("NEW_RELIC_CLI_VERSION")
+	}
+
 	return version
 }
 
 // IsLatestVersion returns true if the provided version string matches
 // the current installed version.
 func IsLatestVersion(ctx context.Context, latestVersion string) (bool, error) {
-	installedVersion, err := semver.NewVersion(version)
+	installedVersion, err := semver.NewVersion(Version())
 	if err != nil {
-		return false, fmt.Errorf("error parsing current CLI version %s: %s", version, err.Error())
+		return false, fmt.Errorf("error parsing installed CLI version %s: %s", version, err.Error())
 	}
 
 	lv, err := semver.NewVersion(latestVersion)
