@@ -140,11 +140,6 @@ func setLatestVersion(v string) {
 }
 
 func isWindowsOS() bool {
-
-	log.Print("\n\n **************************** \n")
-	log.Printf("\n runtime.GOOS:  %+v \n", runtime.GOOS)
-	log.Print("\n **************************** \n\n")
-
 	return runtime.GOOS == "windows"
 }
 

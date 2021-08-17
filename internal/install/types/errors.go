@@ -92,6 +92,16 @@ func (e *UnsupportedOperatingSytemError) Error() string {
 	return e.Err.Error()
 }
 
+// UpdateRequiredWarning is a hack
+type UpdateRequiredError struct {
+	Err     error
+	Details string
+}
+
+func (e *UpdateRequiredError) Error() string {
+	return e.Err.Error()
+}
+
 // nolint: golint
 var ErrorFetchingLicenseKey = errors.New("Oops, we're having some difficulties fetching your license key. Please try again later, or see our documentation for installing manually https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/install-new-relic")
 var ErrorFetchingInsightsInsertKey = errors.New("error retrieving Insights insert key")

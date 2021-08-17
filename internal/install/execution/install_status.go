@@ -43,6 +43,7 @@ type InstallStatus struct {
 	InstalledPacks            []*ObservabilityPackStatus `json:"packslInstalled"`
 	RedirectURL               string                     `json:"redirectUrl"`
 	HTTPSProxy                string                     `json:"httpsProxy"`
+	UpdateRequired            bool
 	DocumentID                string
 	targetedInstall           bool
 	statusSubscriber          []StatusSubscriber
@@ -518,6 +519,10 @@ func (s *InstallStatus) completed(err error) {
 	if err != nil {
 		statusError := StatusError{
 			Message: err.Error(),
+		}
+
+		if e, ok := err.(*types.UpdateRequiredError); ok {
+			statusError.Details = e.Details
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {

@@ -154,6 +154,16 @@ func (r InstallEventsReporter) createInstallStatusEvent(state installevents.Inst
 	return err
 }
 
+func (r InstallEventsReporter) UpdateRequired(status *InstallStatus) error {
+	err := r.createInstallStatusEvent(
+		installevents.InstallationInstallStateType(installevents.InstallationRecipeStatusTypeTypes.UNSUPPORTED),
+		status,
+		RecipeStatusEvent{},
+	)
+
+	return err
+}
+
 func buildInstallStatus(state installevents.InstallationInstallStateType, status *InstallStatus, event *RecipeStatusEvent) installevents.InstallationInstallStatusInput {
 	i := installevents.InstallationInstallStatusInput{
 		CliVersion: status.CLIVersion,
@@ -171,7 +181,7 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 		PlatformVersion:       status.DiscoveryManifest.PlatformVersion,
 		RedirectURL:           status.RedirectURL,
 		TargetedInstall:       status.targetedInstall,
-		IsUnsupported:         status.DiscoveryManifest.IsUnsupported,
+		IsUnsupported:         status.DiscoveryManifest.IsUnsupported || status.UpdateRequired,
 		State:                 state,
 		InstallId:             status.InstallID,
 		InstallLibraryVersion: status.InstallLibraryVersion,
