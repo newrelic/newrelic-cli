@@ -29,6 +29,8 @@ const PrereleaseEnvironmentMsgFormat string = `
   To upgrade the New Relic CLI, you must be using non-prerelease version.
 `
 
+// UpdateVersionMsgFormat is the message displayed to a user when an older
+// version of the CLI is installed.
 const UpdateVersionMsgFormat string = `
   We need to update your New Relic CLI version to continue.
 
@@ -40,6 +42,7 @@ const UpdateVersionMsgFormat string = `
     %s
 `
 
+// Version returns the version of the CLI that's currently installed.
 func Version() string {
 	return version
 }
@@ -64,6 +67,8 @@ func IsLatestVersion(ctx context.Context, latestVersion string) (bool, error) {
 	return installedVersion.Equal(lv), nil
 }
 
+// GetLatestReleaseVersion returns the latest released tag.
+// The latest tag is pulled from the newrelic-cli GitHub repository.
 func GetLatestReleaseVersion(ctx context.Context) (string, error) {
 	if latestVersion != "" {
 		return latestVersion, nil
@@ -74,34 +79,10 @@ func GetLatestReleaseVersion(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("error fetching latest release: %s", err.Error())
 	}
 
+	// Cache the latest version string
+	setLatestVersion(latestRelease.TagName)
+
 	return latestRelease.TagName, nil
-}
-
-// GitHubRepositoryTagResponse is the data structure returned
-// from a repository's `/releases/latest` endpoint.
-type gitHubRepositoryTagResponse struct {
-	TagName string `json:"tag_name"`
-}
-
-func fetchLatestRelease(ctx context.Context) (*gitHubRepositoryTagResponse, error) {
-	client := utils.NewHTTPClient()
-
-	respBytes, err := client.Get(ctx, NewRelicCLILatestReleaseURL)
-	if err != nil {
-		return nil, err
-	}
-
-	gitTag := gitHubRepositoryTagResponse{}
-	err = json.Unmarshal(respBytes, &gitTag)
-	if err != nil {
-		return nil, err
-	}
-
-	log.WithFields(log.Fields{
-		"tag": gitTag.TagName,
-	}).Debug("fetch tag success")
-
-	return &gitTag, nil
 }
 
 // IsDevEnvironment is a naive implementation to determine if the CLI
@@ -143,5 +124,36 @@ func IsDevEnvironment() bool {
 }
 
 func PrintUpdateCLIMessage(latestVersion string) {
-	output.Printf(UpdateVersionMsgFormat, Version, latestVersion, installCLISnippet)
+	output.Printf(UpdateVersionMsgFormat, version, latestVersion, installCLISnippet)
+}
+
+func setLatestVersion(v string) {
+	latestVersion = v
+}
+
+// GitHubRepositoryTagResponse is the data structure returned
+// from a repository's `/releases/latest` endpoint.
+type gitHubRepositoryTagResponse struct {
+	TagName string `json:"tag_name"`
+}
+
+func fetchLatestRelease(ctx context.Context) (*gitHubRepositoryTagResponse, error) {
+	client := utils.NewHTTPClient()
+
+	respBytes, err := client.Get(ctx, NewRelicCLILatestReleaseURL)
+	if err != nil {
+		return nil, err
+	}
+
+	gitTag := gitHubRepositoryTagResponse{}
+	err = json.Unmarshal(respBytes, &gitTag)
+	if err != nil {
+		return nil, err
+	}
+
+	log.WithFields(log.Fields{
+		"tag": gitTag.TagName,
+	}).Debug("fetch tag success")
+
+	return &gitTag, nil
 }
