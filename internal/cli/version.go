@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
@@ -18,7 +19,8 @@ var (
 	latestVersion string
 )
 
-const installCLISnippet = `curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo newrelic install`
+const installCLISnippetLinux = `curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo newrelic install`
+const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile("https://github.com/newrelic/newrelic-cli/releases/latest/download/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi"); msiexec.exe /qn /i $env:TEMP\NewRelicCLIInstaller.msi | Out-Null; & 'C:\Program Files\New Relic\New Relic CLI\newrelic.exe' install`
 
 // NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data.
 const NewRelicCLILatestReleaseURL string = "https://api.github.com/repos/newrelic/newrelic-cli/releases/latest"
@@ -124,11 +126,26 @@ func IsDevEnvironment() bool {
 }
 
 func PrintUpdateCLIMessage(latestVersion string) {
-	output.Printf(UpdateVersionMsgFormat, version, latestVersion, installCLISnippet)
+	snippet := installCLISnippetLinux
+
+	if isWindowsOS() {
+		snippet = installCLISnippetWindows
+	}
+
+	output.Printf(UpdateVersionMsgFormat, version, latestVersion, snippet)
 }
 
 func setLatestVersion(v string) {
 	latestVersion = v
+}
+
+func isWindowsOS() bool {
+
+	log.Print("\n\n **************************** \n")
+	log.Printf("\n runtime.GOOS:  %+v \n", runtime.GOOS)
+	log.Print("\n **************************** \n\n")
+
+	return runtime.GOOS == "windows"
 }
 
 // GitHubRepositoryTagResponse is the data structure returned
