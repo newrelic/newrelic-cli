@@ -78,8 +78,10 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, postEvent)
-	if err = r.ExecWithRetries(ctx); err != nil {
-		return err
+	retryCtx := r.ExecWithRetries(ctx)
+
+	if !retryCtx.Success {
+		return retryCtx.MostRecentError()
 	}
 
 	query := fmt.Sprintf(`
@@ -108,7 +110,13 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, validateKeyFunc)
-	return r.ExecWithRetries(ctx)
+	retryCtx := r.ExecWithRetries(ctx)
+
+	if !retryCtx.Success {
+		return retryCtx.MostRecentError()
+	}
+
+	return nil
 }
 
 func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
