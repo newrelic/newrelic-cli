@@ -2,12 +2,12 @@ package execution
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -387,10 +387,7 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 func (s *InstallStatus) SetVersions(installLibraryVersion string) {
 	s.InstallLibraryVersion = installLibraryVersion
 
-	version := os.Getenv("NEW_RELIC_CLI_VERSION")
-	if version != "" {
-		s.CLIVersion = version
-	}
+	s.CLIVersion = cli.Version()
 }
 
 func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
