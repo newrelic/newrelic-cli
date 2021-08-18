@@ -92,7 +92,8 @@ func (e *UnsupportedOperatingSytemError) Error() string {
 	return e.Err.Error()
 }
 
-// UpdateRequiredWarning is a hack
+// UpdateRequiredError represents when a user is using an older version
+// of the CLI and is required to update when running the `newrelic install` command.
 type UpdateRequiredError struct {
 	Err     error
 	Details string
