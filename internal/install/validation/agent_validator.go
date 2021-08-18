@@ -90,9 +90,11 @@ func (v *AgentValidator) tryValidate(ctx context.Context, url string) (string, e
 		return err
 	}
 
-	retry := utils.NewRetry(v.MaxAttempts, v.IntervalMilliSeconds, fn)
-	if err := retry.ExecWithRetries(ctx); err != nil {
-		return "", err
+	r := utils.NewRetry(v.MaxAttempts, v.IntervalMilliSeconds, fn)
+	retryCtx := r.ExecWithRetries(ctx)
+
+	if !retryCtx.Success {
+		return "", retryCtx.MostRecentError()
 	}
 
 	return guid, nil

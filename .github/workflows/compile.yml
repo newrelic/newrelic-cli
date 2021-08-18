@@ -29,3 +29,6 @@ jobs:
 
       - name: Compile
         run: make compile-only
+        env:
+          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}

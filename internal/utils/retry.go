@@ -5,6 +5,21 @@ import (
 	"time"
 )
 
+type RetryContext struct {
+	RetryCount int
+	Errors     []error
+	Success    bool
+	Canceled   bool
+}
+
+func (c *RetryContext) MostRecentError() error {
+	if len(c.Errors) > 0 {
+		return c.Errors[len(c.Errors)-1]
+	}
+
+	return nil
+}
+
 type Retry struct {
 	MaxRetries   int
 	retryDelayMs int
@@ -19,14 +34,16 @@ func NewRetry(maxRetries int, retryDelayMs int, retryFunc func() error) *Retry {
 	}
 }
 
-func (r *Retry) ExecWithRetries(ctx context.Context) error {
-	tries := 0
-	success := false
-	for !success {
-		tries++
+func (r *Retry) ExecWithRetries(ctx context.Context) *RetryContext {
+	retryCtx := RetryContext{}
+	for !retryCtx.Success {
+		retryCtx.RetryCount++
 		if err := r.RetryFunc(); err != nil {
-			if tries == r.MaxRetries {
-				return err
+			retryCtx.Errors = append(retryCtx.Errors, err)
+
+			if retryCtx.RetryCount == r.MaxRetries {
+				retryCtx.Success = false
+				return &retryCtx
 			}
 
 			w := make(chan struct{}, 1)
@@ -37,13 +54,15 @@ func (r *Retry) ExecWithRetries(ctx context.Context) error {
 
 			select {
 			case <-ctx.Done():
-				return context.Canceled
+				retryCtx.Canceled = true
+				retryCtx.Errors = append(retryCtx.Errors, context.Canceled)
+				return &retryCtx
 			case <-w:
 			}
 		} else {
-			success = true
+			retryCtx.Success = true
 		}
 	}
 
-	return nil
+	return &retryCtx
 }

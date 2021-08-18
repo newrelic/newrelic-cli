@@ -99,9 +99,11 @@ func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (s
 		return errors.New("no count found in results")
 	}
 
-	retry := utils.NewRetry(m.MaxAttempts, m.IntervalMilliSeconds, validatorFunc)
-	if err := retry.ExecWithRetries(ctx); err != nil {
-		return "", err
+	r := utils.NewRetry(m.MaxAttempts, m.IntervalMilliSeconds, validatorFunc)
+	retryCtx := r.ExecWithRetries(ctx)
+
+	if !retryCtx.Success {
+		return "", retryCtx.MostRecentError()
 	}
 
 	return guid, nil
