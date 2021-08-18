@@ -35,6 +35,9 @@ jobs:
       - name: Compile all distros
         run: make snapshot
         continue-on-error: true
+        env:
+          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
 
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests

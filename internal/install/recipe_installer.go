@@ -146,6 +146,10 @@ func (i *RecipeInstaller) Install() error {
 	errChan := make(chan error)
 	var err error
 
+	// Test split service
+	// treatment := split.Service.Get(split.VirtuosoCLITest)
+	// log.Printf("Got treatment: %s for %s", treatment, split.VirtuosoCLITest)
+
 	log.Printf("Validating connectivity to the New Relic platform...")
 	if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
 		return err
