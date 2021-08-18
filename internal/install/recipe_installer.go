@@ -158,30 +158,30 @@ func (i *RecipeInstaller) Install() error {
 
 	// If not in a dev environemt, check to see if
 	// the installed CLI is up to date.
-	// if !cli.IsDevEnvironment() {
-	latestReleaseVersion, vErr := cli.GetLatestReleaseVersion(ctx)
-	if vErr != nil {
-		return vErr
-	}
-
-	isLatestCLIVersion, vErr := cli.IsLatestVersion(ctx, latestReleaseVersion)
-	if vErr != nil {
-		return vErr
-	}
-
-	if !isLatestCLIVersion {
-		i.status.UpdateRequired = true
-
-		cli.PrintUpdateCLIMessage(latestReleaseVersion)
-
-		err = &types.UpdateRequiredError{
-			Err:     fmt.Errorf("%s", "update required error test"),
-			Details: "UpdateRequiredError",
+	if !cli.IsDevEnvironment() {
+		latestReleaseVersion, vErr := cli.GetLatestReleaseVersion(ctx)
+		if vErr != nil {
+			return vErr
 		}
-		i.status.InstallComplete(err)
-		return err
+
+		isLatestCLIVersion, vErr := cli.IsLatestVersion(ctx, latestReleaseVersion)
+		if vErr != nil {
+			return vErr
+		}
+
+		if !isLatestCLIVersion {
+			i.status.UpdateRequired = true
+
+			cli.PrintUpdateCLIMessage(latestReleaseVersion)
+
+			err = &types.UpdateRequiredError{
+				Err:     fmt.Errorf("%s", "update required error test"),
+				Details: "UpdateRequiredError",
+			}
+			i.status.InstallComplete(err)
+			return err
+		}
 	}
-	// }
 
 	go func(ctx context.Context) {
 		errChan <- i.install(ctx)

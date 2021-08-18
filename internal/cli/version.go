@@ -16,7 +16,10 @@ import (
 )
 
 var (
-	version       string
+	// Represents the currently installed/compiled version of the CLI
+	version string
+
+	// Represents the latest release version per the GitHub repository's latest release
 	latestVersion string
 )
 
@@ -86,10 +89,16 @@ func GetLatestReleaseVersion(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("error fetching latest release: %s", err.Error())
 	}
 
-	// Cache the latest version string
-	setLatestVersion(latestRelease.TagName)
+	lv, err := semver.NewVersion(latestRelease.TagName)
+	if err != nil {
+		return "", fmt.Errorf("error parsing latest release version string '%s': %s", latestRelease.TagName, err.Error())
+	}
 
-	return latestRelease.TagName, nil
+	// Cache the latest version string
+	versionString := lv.String()
+	setLatestVersion(versionString)
+
+	return versionString, nil
 }
 
 // IsDevEnvironment is a naive implementation to determine if the CLI
@@ -130,14 +139,14 @@ func IsDevEnvironment() bool {
 	return hasDevVersionSuffix
 }
 
-func PrintUpdateCLIMessage(latestVersion string) {
+func PrintUpdateCLIMessage(latestReleaseVersion string) {
 	snippet := installCLISnippetLinux
 
 	if isWindowsOS() {
 		snippet = installCLISnippetWindows
 	}
 
-	output.Printf(UpdateVersionMsgFormat, version, latestVersion, snippet)
+	output.Printf(UpdateVersionMsgFormat, version, latestReleaseVersion, snippet)
 }
 
 func setLatestVersion(v string) {
