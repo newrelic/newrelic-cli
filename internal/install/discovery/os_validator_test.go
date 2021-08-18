@@ -15,11 +15,11 @@ func Test(t *testing.T) {
 
 func Test_FailsOnInvalidOs(t *testing.T) {
 	discover := NewMockDiscoverer()
-	discover.SetOs("darwin")
-	result := NewOsValidator().Validate(discover.GetManifest())
-	require.Contains(t, result.Error(), operatingSystemNotSupportedPrefix)
-	require.Contains(t, result.Error(), "darwin")
-	require.Contains(t, result.Error(), operatingSystemNotSupportedSuffix)
+	discover.SetOs("freebsd")
+	err := NewOsValidator().Validate(discover.GetManifest())
+	require.Error(t, err)
+	require.Contains(t, err.Error(), operatingSystemNotSupportedPrefix)
+	require.Contains(t, err.Error(), "freebsd")
 }
 
 func Test_FailsOnNoOs(t *testing.T) {

@@ -112,30 +112,6 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 	require.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
 }
 
-func TestInstall_FailsOnInvalidOs(t *testing.T) {
-	ic := types.InstallerContext{}
-	discover := discovery.NewMockDiscoverer()
-	discover.SetOs("darwin")
-	mv = discovery.NewManifestValidator()
-	statusReporter := execution.NewMockStatusReporter()
-	statusReporters = []execution.StatusSubscriber{statusReporter}
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		{
-			Name:           types.InfraAgentRecipeName,
-			DisplayName:    types.InfraAgentRecipeName,
-			ValidationNRQL: "testNrql",
-		},
-	}
-
-	i := RecipeInstaller{ic, discover, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
-
-	err := i.Install()
-	require.Error(t, err)
-	require.IsType(t, &types.UnsupportedOperatingSytemError{}, err)
-}
-
 func TestInstall_UnsupportedKernelArch(t *testing.T) {
 	ic := types.InstallerContext{}
 	discover := discovery.NewMockDiscoverer()
