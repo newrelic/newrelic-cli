@@ -1,9 +1,6 @@
 name: Release
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: [push, pull_request]
 
 jobs:
   release:
@@ -24,9 +21,6 @@ jobs:
           # Needed for release notes
           fetch-depth: 0
 
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v1
-
       - name: Install PGP private key
         shell: bash
         env:
@@ -37,11 +31,8 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
-          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
         run: make release-publish
 
       - uses: actions/upload-artifact@v2
@@ -49,25 +40,6 @@ jobs:
           name: windows-binary
           path: dist/newrelic_windows_amd64/newrelic.exe
 
-      - name: Checkout newrelic-forks/homebrew-core
-        uses: actions/checkout@v2
-        with:
-          repository: newrelic-forks/homebrew-core
-          path: homebrew-core
-          token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-
-      - name: Create homebrew-core pull request
-        shell: bash
-        run: ./scripts/brew_formula_pull_request.sh
-        env:
-          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
-          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
-
-      - name: Upload chocolatey package
-        shell: bash
-        run: make chocolatey-publish
-        env:
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
 
   release-windows-installer:
     runs-on: windows-latest
