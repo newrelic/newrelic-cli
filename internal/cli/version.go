@@ -26,14 +26,9 @@ var (
 const installCLISnippetLinux = `curl -Ls https://raw.githubusercontent.com/newrelic/newrelic-cli/master/scripts/install.sh | bash && sudo newrelic install`
 const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile("https://github.com/newrelic/newrelic-cli/releases/latest/download/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi"); msiexec.exe /qn /i $env:TEMP\NewRelicCLIInstaller.msi | Out-Null; & 'C:\Program Files\New Relic\New Relic CLI\newrelic.exe' install`
 
-// NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data.
+// NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data utilizing GitHub's API.
+// GitHub API Docs: https://docs.github.com/en/rest/reference/repos#get-the-latest-release
 const NewRelicCLILatestReleaseURL string = "https://api.github.com/repos/newrelic/newrelic-cli/releases/latest"
-
-// NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data.
-const PrereleaseEnvironmentMsgFormat string = `
-  It appears you're in a development environment using prerelease version %s.
-  To upgrade the New Relic CLI, you must be using non-prerelease version.
-`
 
 // UpdateVersionMsgFormat is the message displayed to a user when an older
 // version of the CLI is installed.
