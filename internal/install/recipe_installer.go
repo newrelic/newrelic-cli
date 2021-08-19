@@ -115,6 +115,33 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	return &i
 }
 
+func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error {
+	latestReleaseVersion, vErr := cli.GetLatestReleaseVersion(ctx)
+	if vErr != nil {
+		return vErr
+	}
+
+	isLatestCLIVersion, vErr := cli.IsLatestVersion(ctx, latestReleaseVersion)
+	if vErr != nil {
+		return vErr
+	}
+
+	if !isLatestCLIVersion {
+		i.status.UpdateRequired = true
+
+		cli.PrintUpdateCLIMessage(latestReleaseVersion)
+
+		err := &types.UpdateRequiredError{
+			Err:     fmt.Errorf("%s", "update required error test"),
+			Details: "UpdateRequiredError",
+		}
+		i.status.InstallComplete(err)
+		return err
+	}
+
+	return nil
+}
+
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
    _   _                 ____      _ _
@@ -159,26 +186,7 @@ func (i *RecipeInstaller) Install() error {
 	// If not in a dev environemt, check to see if
 	// the installed CLI is up to date.
 	if !cli.IsDevEnvironment() {
-		latestReleaseVersion, vErr := cli.GetLatestReleaseVersion(ctx)
-		if vErr != nil {
-			return vErr
-		}
-
-		isLatestCLIVersion, vErr := cli.IsLatestVersion(ctx, latestReleaseVersion)
-		if vErr != nil {
-			return vErr
-		}
-
-		if !isLatestCLIVersion {
-			i.status.UpdateRequired = true
-
-			cli.PrintUpdateCLIMessage(latestReleaseVersion)
-
-			err = &types.UpdateRequiredError{
-				Err:     fmt.Errorf("%s", "update required error test"),
-				Details: "UpdateRequiredError",
-			}
-			i.status.InstallComplete(err)
+		if err = i.promptIfNotLatestCLIVersion(ctx); err != nil {
 			return err
 		}
 	}
