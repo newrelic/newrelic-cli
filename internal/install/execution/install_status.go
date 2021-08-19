@@ -43,7 +43,7 @@ type InstallStatus struct {
 	InstalledPacks            []*ObservabilityPackStatus `json:"packslInstalled"`
 	RedirectURL               string                     `json:"redirectUrl"`
 	HTTPSProxy                string                     `json:"httpsProxy"`
-	UpdateRequired            bool
+	UpdateRequired            bool                       `json:"updateRequired"`
 	DocumentID                string
 	targetedInstall           bool
 	statusSubscriber          []StatusSubscriber
@@ -124,6 +124,7 @@ func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGe
 		statusSubscriber:      reporters,
 		PlatformLinkGenerator: PlatformLinkGenerator,
 		HTTPSProxy:            httpproxy.FromEnvironment().HTTPSProxy,
+		CLIVersion:            cli.Version(),
 	}
 
 	return &s
@@ -386,7 +387,6 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 
 func (s *InstallStatus) SetVersions(installLibraryVersion string) {
 	s.InstallLibraryVersion = installLibraryVersion
-
 	s.CLIVersion = cli.Version()
 }
 
@@ -520,6 +520,7 @@ func (s *InstallStatus) completed(err error) {
 
 		if e, ok := err.(*types.UpdateRequiredError); ok {
 			statusError.Details = e.Details
+			s.CLIVersion = cli.Version()
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {

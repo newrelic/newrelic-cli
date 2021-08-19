@@ -135,13 +135,17 @@ func IsDevEnvironment() bool {
 }
 
 func PrintUpdateCLIMessage(latestReleaseVersion string) {
+	output.Printf("%s", FormatUpdateVersionMessage(latestReleaseVersion))
+}
+
+func FormatUpdateVersionMessage(latestReleaseVersion string) string {
 	snippet := installCLISnippetLinux
 
 	if isWindowsOS() {
 		snippet = installCLISnippetWindows
 	}
 
-	output.Printf(UpdateVersionMsgFormat, version, latestReleaseVersion, snippet)
+	return fmt.Sprintf(UpdateVersionMsgFormat, version, latestReleaseVersion, snippet)
 }
 
 func setLatestVersion(v string) {

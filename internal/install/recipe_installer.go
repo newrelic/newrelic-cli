@@ -132,10 +132,9 @@ func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error
 		cli.PrintUpdateCLIMessage(latestReleaseVersion)
 
 		err := &types.UpdateRequiredError{
-			Err:     fmt.Errorf("%s", "update required error test"),
+			Err:     fmt.Errorf(`%s`, cli.FormatUpdateVersionMessage(latestReleaseVersion)),
 			Details: "UpdateRequiredError",
 		}
-		i.status.InstallComplete(err)
 		return err
 	}
 
@@ -187,6 +186,7 @@ func (i *RecipeInstaller) Install() error {
 	// the installed CLI is up to date.
 	if !cli.IsDevEnvironment() {
 		if err = i.promptIfNotLatestCLIVersion(ctx); err != nil {
+			i.status.InstallComplete(err)
 			return err
 		}
 	}
