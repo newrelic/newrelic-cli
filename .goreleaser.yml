@@ -157,3 +157,9 @@ nfpms:
     bindir: /usr/local/bin
     epoch: 1
     release: 1
+
+blobs:
+  -
+    provider: s3
+    bucket: install
+    region: us-west-2
