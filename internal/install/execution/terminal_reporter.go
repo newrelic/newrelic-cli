@@ -140,3 +140,7 @@ func (r TerminalStatusReporter) ObservabilityPackInstallSuccess(status *InstallS
 func (r TerminalStatusReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
 	return nil
 }
+
+func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
+	return nil
+}

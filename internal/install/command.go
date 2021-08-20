@@ -59,6 +59,10 @@ var Command = &cobra.Command{
 				return
 			}
 
+			if _, ok := err.(*types.UpdateRequiredError); ok {
+				return
+			}
+
 			log.Fatalf("We encountered an error during the installation: %s. If this problem persists please visit the documentation and support page for additional help here: https://one.newrelic.com/-/06vjAeZLKjP", err)
 		}
 	},

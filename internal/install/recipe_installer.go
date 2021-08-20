@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -114,6 +115,34 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	return &i
 }
 
+func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error {
+	latestReleaseVersion, err := cli.GetLatestReleaseVersion(ctx)
+	if err != nil {
+		log.Debug(err)
+		return nil
+	}
+
+	isLatestCLIVersion, err := cli.IsLatestVersion(ctx, latestReleaseVersion)
+	if err != nil {
+		log.Debug(err)
+		return nil
+	}
+
+	if !isLatestCLIVersion {
+		i.status.UpdateRequired = true
+
+		cli.PrintUpdateCLIMessage(latestReleaseVersion)
+
+		err := &types.UpdateRequiredError{
+			Err:     fmt.Errorf(`%s`, cli.FormatUpdateVersionMessage(latestReleaseVersion)),
+			Details: "UpdateRequiredError",
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
    _   _                 ____      _ _
@@ -153,6 +182,15 @@ func (i *RecipeInstaller) Install() error {
 	log.Printf("Validating connectivity to the New Relic platform...")
 	if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
 		return err
+	}
+
+	// If not in a dev environemt, check to see if
+	// the installed CLI is up to date.
+	if !cli.IsDevEnvironment() {
+		if err = i.promptIfNotLatestCLIVersion(ctx); err != nil {
+			i.status.InstallComplete(err)
+			return err
+		}
 	}
 
 	go func(ctx context.Context) {

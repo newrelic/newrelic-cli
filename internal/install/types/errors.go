@@ -92,6 +92,17 @@ func (e *UnsupportedOperatingSytemError) Error() string {
 	return e.Err.Error()
 }
 
+// UpdateRequiredError represents when a user is using an older version
+// of the CLI and is required to update when running the `newrelic install` command.
+type UpdateRequiredError struct {
+	Err     error
+	Details string
+}
+
+func (e *UpdateRequiredError) Error() string {
+	return e.Err.Error()
+}
+
 // nolint: golint
 var ErrorFetchingLicenseKey = errors.New("Oops, we're having some difficulties fetching your license key. Please try again later, or see our documentation for installing manually https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/install-configure/install-new-relic")
 var ErrorFetchingInsightsInsertKey = errors.New("error retrieving Insights insert key")

@@ -40,7 +40,7 @@ if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
 fi
 
 # Auto-generate CHANGELOG updates
-git-chglog --next-tag v${RELEASE_VERSION} -o CHANGELOG.md
+git-chglog --next-tag v${RELEASE_VERSION} -o CHANGELOG.md --sort semver
 
 # Commit CHANGELOG updates
 git add CHANGELOG.md
