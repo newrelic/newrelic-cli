@@ -98,6 +98,10 @@ func (r NerdstorageStatusReporter) DiscoveryComplete(status *InstallStatus, dm t
 	return r.writeStatus(status)
 }
 
+func (r NerdstorageStatusReporter) UpdateRequired(status *InstallStatus) error {
+	return nil
+}
+
 func (r NerdstorageStatusReporter) writeStatus(status *InstallStatus) error {
 	i := r.buildExecutionStatusDocument(status)
 	_, err := r.client.WriteDocumentWithUserScope(i)

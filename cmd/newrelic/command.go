@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
@@ -26,7 +27,7 @@ var Command = &cobra.Command{
 	Use:               appName,
 	Short:             "The New Relic CLI",
 	Long:              `The New Relic CLI enables users to perform tasks against the New Relic APIs`,
-	Version:           version,
+	Version:           cli.Version(),
 	DisableAutoGenTag: true, // Do not print generation date on documentation
 }
 
@@ -59,7 +60,7 @@ func createClient() *newrelic.NewRelic {
 // This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute() error {
 	Command.Use = appName
-	Command.Version = version
+	Command.Version = cli.Version()
 	Command.SilenceUsage = os.Getenv("CI") != ""
 
 	// Silence Cobra's internal handling of error messaging

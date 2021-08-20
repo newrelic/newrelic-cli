@@ -6,7 +6,7 @@ GO         ?= go
 BUILD_DIR  ?= ./bin
 PROJECT_MODULE ?= $(shell $(GO) list -m)
 # $b replaced by the binary name in the compile loop, -s/w remove debug symbols
-LDFLAGS    ?= "-s -w -X main.version=$(PROJECT_VER) -X main.appName=$$b -X $(PROJECT_MODULE)/internal/client.version=$(PROJECT_VER) -X $(PROJECT_MODULE)/internal/split.prodKey=$(SPLIT_PROD_KEY) -X $(PROJECT_MODULE)/internal/split.stagingKey=$(SPLIT_STAGING_KEY)"
+LDFLAGS    ?= "-s -w -X main.appName=$$b -X $(PROJECT_MODULE)/internal/cli.version=$(PROJECT_VER) -X $(PROJECT_MODULE)/internal/split.prodKey=$(SPLIT_PROD_KEY) -X $(PROJECT_MODULE)/internal/split.stagingKey=$(SPLIT_STAGING_KEY)"
 SRCDIR     ?= .
 COMPILE_OS ?= darwin linux windows
 

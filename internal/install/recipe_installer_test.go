@@ -901,7 +901,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	rv.ValidateVal = "GUID"
 
 	// Test for NEW_RELIC_CLI_VERSION
-	os.Setenv("NEW_RELIC_CLI_VERSION", "testversion0.0.1")
+	os.Setenv("NEW_RELIC_CLI_VERSION", "v0.0.1")
 
 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
@@ -911,7 +911,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, rv.ValidateVal, statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[types.InfraAgentRecipeName])
 	require.Equal(t, rv.ValidateVal, statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
-	require.Equal(t, status.CLIVersion, "testversion0.0.1")
+	require.Equal(t, status.CLIVersion, "v0.0.1")
 	require.Equal(t, 3, len(statusReporters[0].(*execution.MockStatusReporter).Durations))
 	for _, duration := range statusReporters[0].(*execution.MockStatusReporter).Durations {
 		require.Less(t, int64(0), duration)

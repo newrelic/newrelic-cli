@@ -2,12 +2,12 @@ package execution
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -43,6 +43,7 @@ type InstallStatus struct {
 	InstalledPacks            []*ObservabilityPackStatus `json:"packslInstalled"`
 	RedirectURL               string                     `json:"redirectUrl"`
 	HTTPSProxy                string                     `json:"httpsProxy"`
+	UpdateRequired            bool                       `json:"updateRequired"`
 	DocumentID                string
 	targetedInstall           bool
 	statusSubscriber          []StatusSubscriber
@@ -123,6 +124,7 @@ func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGe
 		statusSubscriber:      reporters,
 		PlatformLinkGenerator: PlatformLinkGenerator,
 		HTTPSProxy:            httpproxy.FromEnvironment().HTTPSProxy,
+		CLIVersion:            cli.Version(),
 	}
 
 	return &s
@@ -385,11 +387,7 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 
 func (s *InstallStatus) SetVersions(installLibraryVersion string) {
 	s.InstallLibraryVersion = installLibraryVersion
-
-	version := os.Getenv("NEW_RELIC_CLI_VERSION")
-	if version != "" {
-		s.CLIVersion = version
-	}
+	s.CLIVersion = cli.Version()
 }
 
 func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {
@@ -518,6 +516,11 @@ func (s *InstallStatus) completed(err error) {
 	if err != nil {
 		statusError := StatusError{
 			Message: err.Error(),
+		}
+
+		if e, ok := err.(*types.UpdateRequiredError); ok {
+			statusError.Details = e.Details
+			s.CLIVersion = cli.Version()
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {
