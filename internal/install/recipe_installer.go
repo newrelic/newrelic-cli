@@ -116,14 +116,16 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 }
 
 func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error {
-	latestReleaseVersion, vErr := cli.GetLatestReleaseVersion(ctx)
-	if vErr != nil {
-		return vErr
+	latestReleaseVersion, err := cli.GetLatestReleaseVersion(ctx)
+	if err != nil {
+		log.Debug(err)
+		return nil
 	}
 
-	isLatestCLIVersion, vErr := cli.IsLatestVersion(ctx, latestReleaseVersion)
-	if vErr != nil {
-		return vErr
+	isLatestCLIVersion, err := cli.IsLatestVersion(ctx, latestReleaseVersion)
+	if err != nil {
+		log.Debug(err)
+		return nil
 	}
 
 	if !isLatestCLIVersion {
