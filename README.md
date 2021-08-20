@@ -184,7 +184,7 @@ are used to construct or destroy an item, respectively.
 
 ### Requirements
 
-- Go 1.16.0+
+- Go 1.17.0+
 - GNU Make
 - git
 
@@ -220,7 +220,7 @@ $ make test-integration
 
 ### Experimenting (internal New Relic usage only)
 
-Using A/B tests, New Relic developers have the ability to gradually roll out new features. 
+Using A/B tests, New Relic developers have the ability to gradually roll out new features.
 
 #### Define an experiment
 
@@ -237,7 +237,7 @@ treatment := split.Service.Get(split.VirtuosoCLITest)
 if treatment == "on" {
   // insert code here to show on treatment
 } else if treatment == "off" {
-  // insert code here to show off treatment 
+  // insert code here to show off treatment
 } else {
   // insert your control treatment code here
 }
