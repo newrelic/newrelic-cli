@@ -161,5 +161,6 @@ nfpms:
 blobs:
   -
     provider: s3
-    bucket: install
-    region: us-west-2
+    bucket: nr-downloads-main
+    region: us-west-1
+    folder: "install/newrelic-cli/{{.Version}}"

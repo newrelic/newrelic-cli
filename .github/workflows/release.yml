@@ -62,7 +62,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "us-west-1"
         with:
-          args: s3 cp ./dist/currentVersion.txt s3://install/newrelic-cli/currentVersion.txt
+          args: s3 cp ./dist/currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt
 
       - name: Upload install.sh to S3
         id: upload-install-script-s3
@@ -72,7 +72,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "us-west-1"
         with:
-          args: s3 cp ./scripts/install.sh s3://install/newrelic-cli/scripts/install.sh
+          args: s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh
 
       - uses: actions/upload-artifact@v2
         with:
@@ -172,4 +172,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "us-west-1"
         with:
-          args: s3 cp ./dist/NewRelicCLIInstaller.msi s3://install/newrelic-cli/${{ steps.get-version.outputs.version }}/NewRelicCLIInstaller_${{ steps.get-version.outputs.version }}.msi
+          args: s3 cp ./dist/NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/NewRelicCLIInstaller_${{ steps.get-version.outputs.version }}.msi
