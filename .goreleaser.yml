@@ -162,5 +162,5 @@ blobs:
   -
     provider: s3
     bucket: nr-downloads-main
-    region: us-west-1
+    region: us-east-1
     folder: "install/newrelic-cli/{{.Version}}"

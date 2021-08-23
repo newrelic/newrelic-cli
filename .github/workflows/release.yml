@@ -60,7 +60,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-west-1"
+          AWS_DEFAULT_REGION: "us-east-1"
         with:
           args: s3 cp ./dist/currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt
 
@@ -70,7 +70,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-west-1"
+          AWS_DEFAULT_REGION: "us-east-1"
         with:
           args: s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh
 
@@ -170,6 +170,6 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "us-west-1"
+          AWS_DEFAULT_REGION: "us-east-1"
         with:
           args: s3 cp ./dist/NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/NewRelicCLIInstaller_${{ steps.get-version.outputs.version }}.msi
