@@ -1,3 +1,8 @@
+<a name="v0.34.1"></a>
+## [v0.34.1] - 2021-08-23
+### Bug Fixes
+- **install:** fix bucket region
+
 <a name="v0.34.0"></a>
 ## [v0.34.0] - 2021-08-23
 ### Features
@@ -1028,7 +1033,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.1...HEAD
+[v0.34.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.0...v0.34.1
 [v0.34.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.33.1...v0.34.0
 [v0.33.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.33.0...v0.33.1
 [v0.33.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.6...v0.33.0
