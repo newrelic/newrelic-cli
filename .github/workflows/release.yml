@@ -36,18 +36,18 @@ jobs:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
         run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
 
-      - name: Publish Release
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
-          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: make release-publish
+      # - name: Publish Release
+      #   shell: bash
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+      #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      #     SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
+      #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #   run: make release-publish
 
       - uses: "finnp/create-file-action@master"
         env:
