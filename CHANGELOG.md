@@ -1,5 +1,10 @@
+<a name="v0.34.9"></a>
+## [v0.34.9] - 2021-08-24
+### Bug Fixes
+- **build:** use correct ldflags for CLI version during goreleaser build and release
+
 <a name="v0.34.8"></a>
-## [v0.34.8] - 2021-08-23
+## [v0.34.8] - 2021-08-24
 <a name="v0.34.7"></a>
 ## [v0.34.7] - 2021-08-23
 ### Features
@@ -1060,7 +1065,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.9...HEAD
+[v0.34.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.8...v0.34.9
 [v0.34.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.7...v0.34.8
 [v0.34.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.6...v0.34.7
 [v0.34.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.5...v0.34.6
