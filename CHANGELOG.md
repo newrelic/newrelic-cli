@@ -1,3 +1,30 @@
+<a name="v0.34.8"></a>
+## [v0.34.8] - 2021-08-23
+<a name="v0.34.7"></a>
+## [v0.34.7] - 2021-08-23
+### Features
+- **install:** fix windows install
+
+<a name="v0.34.6"></a>
+## [v0.34.6] - 2021-08-23
+<a name="v0.34.5"></a>
+## [v0.34.5] - 2021-08-23
+### Bug Fixes
+- **install:** remove publish from goreleaser
+
+<a name="v0.34.4"></a>
+## [v0.34.4] - 2021-08-23
+<a name="v0.34.3"></a>
+## [v0.34.3] - 2021-08-23
+### Bug Fixes
+- **install:** attempt to fix region for goreleaser
+- **install:** put back go releaser
+
+<a name="v0.34.2"></a>
+## [v0.34.2] - 2021-08-23
+### Bug Fixes
+- **install:** temp disable publish release
+
 <a name="v0.34.1"></a>
 ## [v0.34.1] - 2021-08-23
 ### Bug Fixes
@@ -1033,7 +1060,14 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.8...HEAD
+[v0.34.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.7...v0.34.8
+[v0.34.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.6...v0.34.7
+[v0.34.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.5...v0.34.6
+[v0.34.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.4...v0.34.5
+[v0.34.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.3...v0.34.4
+[v0.34.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.2...v0.34.3
+[v0.34.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.1...v0.34.2
 [v0.34.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.0...v0.34.1
 [v0.34.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.33.1...v0.34.0
 [v0.33.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.33.0...v0.33.1
