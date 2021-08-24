@@ -2,6 +2,7 @@ package execution
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -387,7 +388,11 @@ func (s *InstallStatus) withEntityGUID(entityGUID string) {
 
 func (s *InstallStatus) SetVersions(installLibraryVersion string) {
 	s.InstallLibraryVersion = installLibraryVersion
-	s.CLIVersion = cli.Version()
+
+	version := os.Getenv("NEW_RELIC_CLI_VERSION")
+	if version != "" {
+		s.CLIVersion = version
+	}
 }
 
 func (s *InstallStatus) withDiscoveryInfo(dm types.DiscoveryManifest) {

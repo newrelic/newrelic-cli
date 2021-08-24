@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 
@@ -45,10 +44,6 @@ const UpdateVersionMsgFormat string = `
 
 // Version returns the version of the CLI that's currently installed.
 func Version() string {
-	if version == "" {
-		version = os.Getenv("NEW_RELIC_CLI_VERSION")
-	}
-
 	return version
 }
 
