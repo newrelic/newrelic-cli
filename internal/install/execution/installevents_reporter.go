@@ -192,6 +192,11 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 		i.EnabledProxy = true
 	}
 
+	log.WithFields(log.Fields{
+		"installevents": "buildInstallStatus",
+		"cliVersion":    i.CliVersion,
+	}).Debug("InstallationInstallStatusInput.CliVersion")
+
 	return i
 }
 
@@ -228,6 +233,11 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 	if statusType != nil {
 		i.Status = *statusType
 	}
+
+	log.WithFields(log.Fields{
+		"installevents": "buildRecipeStatus",
+		"cliVersion":    i.CliVersion,
+	}).Debug("InstallationRecipeStatus.CliVersion")
 
 	return i
 }

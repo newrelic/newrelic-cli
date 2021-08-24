@@ -42,8 +42,20 @@ const UpdateVersionMsgFormat string = `
     %s
 `
 
+func init() {
+	log.WithFields(log.Fields{
+		"package": "cli",
+		"version": version,
+	}).Debug("cli.init()")
+}
+
 // Version returns the version of the CLI that's currently installed.
 func Version() string {
+	log.WithFields(log.Fields{
+		"package": "cli",
+		"version": version,
+	}).Debug("cli.Version()")
+
 	return version
 }
 
