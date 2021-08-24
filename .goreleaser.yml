@@ -26,7 +26,7 @@ builds:
         goarm: 7
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.appName={{.Binary}}
-        -X github.com/newrelic/newrelic-cli/internal/client.version={{.Version}}
+        -X github.com/newrelic/newrelic-cli/internal/cli.version={{.Version}}
 
 release:
   name_template: "{{.ProjectName}} v{{.Version}}"
