@@ -6,7 +6,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"syscall"
 )
@@ -15,6 +15,7 @@ const (
 	metricArg      = "metrics"
 	inventoryArg   = "inventory"
 	eventsArg      = "events"
+	exeSuffix      = ".exe"
 	prefixArg      = "--"
 	prefixArgShort = "-"
 )
@@ -99,7 +100,8 @@ func populateConfigEntry(pluginV1Instance *PluginV1Instance, pluginV1Command *Pl
 	}
 
 	executable := pluginV1Command.Command[0]
-	configEntry.InstanceName = path.Base(executable)
+	binaryName := filepath.Base(executable)
+	configEntry.InstanceName = strings.TrimSuffix(binaryName, exeSuffix)
 	configEntry.Interval = fmt.Sprintf("%ds", pluginV1Command.Interval)
 	configEntry.Labels = pluginV1Instance.Labels
 	configEntry.User = pluginV1Instance.IntegrationUser
@@ -111,7 +113,7 @@ func populateConfigEntry(pluginV1Instance *PluginV1Instance, pluginV1Command *Pl
 
 	// Please notice that this is a simplification. If it is an absolute path we are adding it to the exec
 	// if is a relative path or a integration name, we are assuming it is a standard integration included into the path
-	if path.IsAbs(executable) {
+	if filepath.IsAbs(executable) {
 		configEntry.Exec = pluginV1Command.Command
 	} else {
 		buildCLIArgs(pluginV1Command, &configEntry)
