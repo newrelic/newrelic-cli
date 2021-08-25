@@ -150,10 +150,15 @@ jobs:
             source_profile = virtuoso_user
           write-mode: overwrite
 
-      - name: Upload currentVersion.txt
-        id: upload-current-version
+      - name: Upload release artifacts
+        id: upload-release-artifacts
         run: |
           aws s3 cp ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+
+      - name: Upload install script
+        id: upload-install-script
+        run: |
+          aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
 
       - name: Create currentVersion.txt
         id: create-current-version
