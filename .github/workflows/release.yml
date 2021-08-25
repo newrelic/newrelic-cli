@@ -110,3 +110,64 @@ jobs:
           asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
           asset_name: NewRelicCLIInstaller.msi
           asset_content_type: application/octet-stream
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: release-windows-installer
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - id: get-version
+        uses: battila7/get-version-action@v2.2.1
+
+      - uses: actions/download-artifact@v2
+        with:
+          path: ./dist
+
+      - name: Install aws cli
+        run: |
+          sudo apt-get install awscli -y
+
+      - name: Write config 1
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/credentials
+          contents:  |
+            [virtuoso_user]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          write-mode: overwrite
+
+      - name: Write config 2
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/config
+          contents:  |
+            [profile virtuoso]
+            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            region = ${{ secrets.AWS_DEFAULT_REGION }}
+            source_profile = virtuoso_user
+          write-mode: overwrite
+
+      - name: Upload currentVersion.txt
+        id: upload-current-version
+        run: |
+          aws s3 cp ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+
+      - name: Create currentVersion.txt
+        id: create-current-version
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "dist/currentVersion.txt"
+          FILE_DATA: "${{ steps.get-version.outputs.version }}"
+
+      - name: Upload currentVersion.txt
+        id: upload-current-version
+        run: |
+          aws s3 cp ./dist/currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso
+
+      - name: Cleanup configs
+        run: |
+          rm -rf /home/runner/.aws/credentials
+          rm -rf /home/runner/.aws/config
