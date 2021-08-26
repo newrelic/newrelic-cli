@@ -121,10 +121,6 @@ jobs:
       - id: get-version
         uses: battila7/get-version-action@v2.2.1
 
-      - name: login gh
-        run: |
-          gh auth login --with-token ${{ secrets.DEV_TOOLKIT_TOKEN }}
-
       - name: download release assets
         run: |
           gh release download ${{ steps.get-version.outputs.version }} --dir ./dist
