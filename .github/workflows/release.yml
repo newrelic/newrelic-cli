@@ -44,6 +44,9 @@ jobs:
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
         run: make release-publish
 
+      - id: get-version
+        uses: battila7/get-version-action@v2.2.1
+
       - uses: actions/upload-artifact@v2
         with:
           name: windows-binary
@@ -68,6 +71,41 @@ jobs:
         run: make chocolatey-publish
         env:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+
+      - name: Install aws cli
+        run: |
+          sudo apt-get install awscli -y
+
+      - name: Write config 1
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/credentials
+          contents:  |
+            [virtuoso_user]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          write-mode: overwrite
+
+      - name: Write config 2
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/config
+          contents:  |
+            [profile virtuoso]
+            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            region = ${{ secrets.AWS_DEFAULT_REGION }}
+            source_profile = virtuoso_user
+          write-mode: overwrite
+
+      - name: Upload install script
+        id: upload-install-script
+        run: |
+          aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
+
+      - name: Upload release artifacts
+        id: upload-release-artifacts
+        run: |
+          aws s3 cp --recursive ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
 
   release-windows-installer:
     runs-on: windows-latest
@@ -121,14 +159,6 @@ jobs:
       - id: get-version
         uses: battila7/get-version-action@v2.2.1
 
-      - name: login gh
-        run: |
-          gh auth login
-
-      - name: download release assets
-        run: |
-          gh release download ${{ steps.get-version.outputs.version }} --dir ./dist
-
       - name: Install aws cli
         run: |
           sudo apt-get install awscli -y
@@ -154,15 +184,16 @@ jobs:
             source_profile = virtuoso_user
           write-mode: overwrite
 
-      - name: Upload release artifacts
-        id: upload-release-artifacts
-        run: |
-          aws s3 cp --recursive ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+      - uses: wyozi/download-gh-release-asset@1.0.0
+        with:
+          args: NewRelicCLIInstaller.msi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload install script
-        id: upload-install-script
+      - name: Upload Windows MSI
+        id: upload-windows-msi
         run: |
-          aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
+          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/NewRelicCLIInstaller.msi --profile virtuoso
 
       - name: Create currentVersion.txt
         id: create-current-version
