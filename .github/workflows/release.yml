@@ -105,7 +105,7 @@ jobs:
       - name: Upload release artifacts
         id: upload-release-artifacts
         run: |
-          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.snap" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
 
       - name: Cleanup configs
         run: |
@@ -207,13 +207,13 @@ jobs:
         id: create-current-version
         uses: "finnp/create-file-action@master"
         env:
-          FILE_NAME: "dist/currentVersion.txt"
+          FILE_NAME: "currentVersion.txt"
           FILE_DATA: "${{ steps.get-version.outputs.version }}"
 
       - name: Upload currentVersion.txt
         id: upload-current-version
         run: |
-          aws s3 cp ./dist/currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso
+          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso
 
       - name: Cleanup configs
         run: |
