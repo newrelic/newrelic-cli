@@ -105,7 +105,12 @@ jobs:
       - name: Upload release artifacts
         id: upload-release-artifacts
         run: |
-          aws s3 cp --recursive ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.snap" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+
+      - name: Cleanup configs
+        run: |
+          rm -rf /home/runner/.aws/credentials
+          rm -rf /home/runner/.aws/config
 
   release-windows-installer:
     runs-on: windows-latest
@@ -184,11 +189,14 @@ jobs:
             source_profile = virtuoso_user
           write-mode: overwrite
 
-      - uses: wyozi/download-gh-release-asset@1.0.0
+      - name: Fetch Github Release Asset
+        uses: dsaltares/fetch-gh-release-asset@0.06
         with:
-          args: NewRelicCLIInstaller.msi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo: "newrelic/newrelic-cli"
+          version: "tags/${{ steps.get-version.outputs.version }}"
+          file: "NewRelicCLIInstaller.msi"
+          target: "NewRelicCLIInstaller.msi"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Windows MSI
         id: upload-windows-msi
