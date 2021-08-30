@@ -78,7 +78,7 @@ func init() {
 	Command.PersistentFlags().BoolVar(&outputPlain, "plain", false, "output compact text")
 	Command.PersistentFlags().BoolVar(&config.FlagDebug, "debug", false, "debug level logging")
 	Command.PersistentFlags().BoolVar(&config.FlagTrace, "trace", false, "trace level logging")
-	Command.PersistentFlags().IntVarP(&config.FlagAccountID, "accountId", "a", 0, "trace level logging")
+	Command.PersistentFlags().IntVarP(&config.FlagAccountID, "accountId", "a", 0, "the account ID to use")
 }
 
 func initConfig() {
