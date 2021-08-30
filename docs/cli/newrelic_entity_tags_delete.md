@@ -31,7 +31,7 @@ newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3
 ### Options inherited from parent commands
 
 ```
-  -a, --accountId int    trace level logging
+  -a, --accountId int    the account ID to use. Can be overridden by setting NEW_RELIC_ACCOUNT_ID
       --debug            debug level logging
       --format string    output text format [JSON, Text, YAML] (default "JSON")
       --plain            output compact text
