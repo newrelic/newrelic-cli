@@ -3,6 +3,7 @@ package execution
 import (
 	"fmt"
 
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -110,6 +111,12 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
+	fmt.Println()
+	fmt.Println("  Installation canceled.")
+	fmt.Println("  To finish your installation please use New Relic's installation wizard using the following link.")
+	fmt.Printf("  %s  %s", color.GreenString("\u2B95"), status.PlatformLinkGenerator.GenerateRedirectURL(*status))
+	fmt.Print("\n\n")
+
 	return nil
 }
 

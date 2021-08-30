@@ -568,6 +568,7 @@ func (s *InstallStatus) canceled() {
 	}).Debug("canceled")
 
 	s.updateFinalInstallationStatuses(true, false)
+	s.setRedirectURL()
 }
 
 func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus {
