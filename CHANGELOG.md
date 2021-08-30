@@ -1,5 +1,10 @@
+<a name="v0.34.25"></a>
+## [v0.34.25] - 2021-08-30
+### Documentation Updates
+- updating inline accountID help text
+
 <a name="v0.34.24"></a>
-## [v0.34.24] - 2021-08-27
+## [v0.34.24] - 2021-08-30
 <a name="v0.34.23"></a>
 ## [v0.34.23] - 2021-08-27
 <a name="v0.34.22"></a>
@@ -1126,7 +1131,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.24...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.25...HEAD
+[v0.34.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.24...v0.34.25
 [v0.34.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.23...v0.34.24
 [v0.34.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.22...v0.34.23
 [v0.34.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.21...v0.34.22
