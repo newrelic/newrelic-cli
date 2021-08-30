@@ -60,11 +60,11 @@ if [ $IS_CURL_INSTALLED -eq 0 ]; then
 fi
 
 # GitHub's URL for the latest release, will redirect.
-LATEST_URL="https://github.com/newrelic/newrelic-cli/releases/latest"
+LATEST_URL="https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
 DESTDIR="${DESTDIR:-/usr/local/bin}"
 
 if [ -z "$VERSION" ]; then
-    VERSION=$(curl -sLI -o /dev/null -w '%{url_effective}' $LATEST_URL | cut -d "v" -f 2)
+    VERSION=$(curl -sL $LATEST_URL | cut -d "v" -f 2)
 fi
 
 echo "Installing New Relic CLI v${VERSION}"
@@ -80,7 +80,7 @@ function error {
 
 trap error ERR
 
-RELEASE_URL="https://github.com/newrelic/newrelic-cli/releases/download/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
 
 # Download & unpack the release tarball.
 curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
