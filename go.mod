@@ -5,14 +5,13 @@ go 1.16
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.14
 	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
 	github.com/client9/misspell v0.3.4
 	github.com/fatih/color v1.12.0
 	github.com/git-chglog/git-chglog v0.15.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
-	github.com/golangci/golangci-lint v1.41.1
+	github.com/golangci/golangci-lint v1.42.0
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v0.174.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
@@ -33,10 +32,9 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.8.1
 	github.com/tidwall/sjson v1.1.7
-	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	golang.org/x/net v0.0.0-20210505214959-0714010a04ed
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
-	golang.org/x/tools v0.1.3
+	golang.org/x/tools v0.1.5
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools/gotestsum v1.7.0
 	mvdan.cc/sh/v3 v3.3.1
