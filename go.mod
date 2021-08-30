@@ -3,7 +3,7 @@ module github.com/newrelic/newrelic-cli
 go 1.16
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.2.14
+	github.com/AlecAivazis/survey/v2 v2.3.1
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
