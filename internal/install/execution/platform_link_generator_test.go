@@ -1,3 +1,4 @@
+//go:build unit
 // +build unit
 
 package execution
@@ -13,7 +14,10 @@ func TestGenerateExplorerLink(t *testing.T) {
 	g := NewPlatformLinkGenerator()
 
 	expectedEncodedQueryParamSubstring := utils.Base64Encode(cliURLReferrerParam)
-	result := g.GenerateExplorerLink("")
+
+	installStatus := InstallStatus{}
+
+	result := g.GenerateExplorerLink(installStatus)
 
 	require.Contains(t, result, expectedEncodedQueryParamSubstring)
 }

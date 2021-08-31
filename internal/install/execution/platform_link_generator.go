@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -22,18 +23,12 @@ var nrPlatformHostnames = struct {
 	EU:      "one.eu.newrelic.com",
 }
 
-// The CLI URL referrer param is a JSON string containing information
-// the UI can use to understand how/where the URL was generated. This allows the
-// UI to return to its previous state in the case of a user closing the browser
-// and then clicking a redirect URL in the CLI's output.
-const cliURLReferrerParam = `{"nerdletId":"nr1-install-newrelic.installation-plan","referrer": "newrelic-cli"}`
-
 func NewPlatformLinkGenerator() *PlatformLinkGenerator {
 	return &PlatformLinkGenerator{}
 }
 
-func (g *PlatformLinkGenerator) GenerateExplorerLink(filter string) string {
-	return generateExplorerLink(filter)
+func (g *PlatformLinkGenerator) GenerateExplorerLink(status InstallStatus) string {
+	return generateExplorerLink(status)
 }
 
 func (g *PlatformLinkGenerator) GenerateEntityLink(entityGUID string) string {
@@ -45,28 +40,52 @@ func (g *PlatformLinkGenerator) GenerateEntityLink(entityGUID string) string {
 // also provided in the nerdstorage document. This provides the user two options
 // to see their data - click from the CLI output or from the frontend.
 func (g *PlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string {
-	if status.HasFailedRecipes || status.HasCanceledRecipes {
-		return g.GenerateExplorerLink("")
+	if status.AllSelectedRecipesInstalled() {
+		return g.GenerateEntityLink(status.HostEntityGUID())
 	}
 
 	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
-		switch t := status.successLinkConfig.Type; {
-		case strings.EqualFold(string(t), "explorer"):
-			return g.GenerateExplorerLink(status.successLinkConfig.Filter)
-		default:
-			return g.GenerateEntityLink(status.HostEntityGUID())
-		}
+		return g.GenerateExplorerLink(status)
 	}
 
-	return ""
+	return "" // g.GenerateExplorerLink("")
 }
 
-func generateExplorerLink(filter string) string {
+type referrerParamValue struct {
+	NerdletID  string `json:"nerdletId,omitempty"`
+	Referrer   string `json:"referrer,omitempty"`
+	EntityGUID string `json:"entityGuid,omitempty"`
+}
+
+// The CLI URL referrer param is a JSON string containing information
+// the UI can use to understand how/where the URL was generated. This allows the
+// UI to return to its previous state in the case of a user closing the browser
+// and then clicking a redirect URL in the CLI's output.
+func generateReferrerParam(entityGUID string) string {
+	p := referrerParamValue{
+		NerdletID: "nr1-install-newrelic.installation-plan",
+		Referrer:  "newrelic-cli",
+	}
+
+	if entityGUID != "" {
+		p.EntityGUID = entityGUID
+	}
+
+	stringifiedParam, err := json.Marshal(p)
+	if err != nil {
+		// TODO: add debug log
+		return ""
+	}
+
+	return string(stringifiedParam)
+}
+
+func generateExplorerLink(status InstallStatus) string {
 	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d&cards[0]=%s",
 		nrPlatformHostname(),
-		utils.Base64Encode(filter),
+		utils.Base64Encode(status.successLinkConfig.Filter),
 		configAPI.GetActiveProfileAccountID(),
-		utils.Base64Encode(cliURLReferrerParam),
+		utils.Base64Encode(generateReferrerParam(status.HostEntityGUID())),
 	)
 }
 

@@ -13,7 +13,7 @@ func NewMockPlatformLinkGenerator() *MockPlatformLinkGenerator {
 	return &MockPlatformLinkGenerator{}
 }
 
-func (g *MockPlatformLinkGenerator) GenerateExplorerLink(filter string) string {
+func (g *MockPlatformLinkGenerator) GenerateExplorerLink(status InstallStatus) string {
 	g.GenerateExplorerLinkCallCount++
 	return g.GenerateExplorerLinkVal
 }
@@ -27,7 +27,7 @@ func (g *MockPlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) st
 	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
 		switch t := status.successLinkConfig.Type; {
 		case strings.EqualFold(string(t), "explorer"):
-			return g.GenerateExplorerLink(status.successLinkConfig.Filter)
+			return g.GenerateExplorerLink(status)
 		default:
 			return g.GenerateEntityLink(status.HostEntityGUID())
 		}
