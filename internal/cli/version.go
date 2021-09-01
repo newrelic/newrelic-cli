@@ -24,8 +24,7 @@ var (
 )
 
 const installCLISnippetLinux = `curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash && sudo newrelic install`
-
-var installCLISnippetWindows = fmt.Sprintf(`[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile("https://download.newrelic.com/install/newrelic-cli/v%s/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi"); msiexec.exe /qn /i $env:TEMP\NewRelicCLIInstaller.msi | Out-Null; & 'C:\Program Files\New Relic\New Relic CLI\newrelic.exe' install`, version)
+const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile(\"https://download.newrelic.com/install/newrelic-cli/scripts/install.ps1\", \"$env:TEMP\\install.ps1\");", "& $env:TEMP\\install.ps1;", "& 'C:\\Program Files\\New Relic\\New Relic CLI\\newrelic.exe' install`
 
 // NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data utilizing GitHub's API.
 // GitHub API Docs: https://docs.github.com/en/rest/reference/repos#get-the-latest-release
