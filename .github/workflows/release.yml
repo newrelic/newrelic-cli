@@ -102,6 +102,11 @@ jobs:
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
 
+      - name: Upload install script (Windows)
+        id: upload-install-script-windows
+        run: |
+          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
+
       - name: Upload release artifacts
         id: upload-release-artifacts
         run: |
