@@ -627,6 +627,7 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 		if r.Name != types.InfraAgentRecipeName {
 			names = append(names, r.DisplayName)
 		} else {
+			fmt.Println()
 			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
 		}
 	}

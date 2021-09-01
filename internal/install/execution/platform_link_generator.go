@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -44,11 +46,7 @@ func (g *PlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string
 		return g.GenerateEntityLink(status.HostEntityGUID())
 	}
 
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
-		return g.GenerateExplorerLink(status)
-	}
-
-	return "" // g.GenerateExplorerLink("")
+	return g.GenerateExplorerLink(status)
 }
 
 type referrerParamValue struct {
@@ -73,7 +71,7 @@ func generateReferrerParam(entityGUID string) string {
 
 	stringifiedParam, err := json.Marshal(p)
 	if err != nil {
-		// TODO: add debug log
+		log.Debugf("error marshaling referrer param: %s", err)
 		return ""
 	}
 

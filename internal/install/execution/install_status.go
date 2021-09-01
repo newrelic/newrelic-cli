@@ -343,7 +343,12 @@ func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
 }
 
 func (s *InstallStatus) AllSelectedRecipesInstalled() bool {
-	return len(s.Installed) == len(s.recipesSelected)
+	installedCount := len(s.Installed)
+	if installedCount == 0 {
+		return false
+	}
+
+	return installedCount == len(s.recipesSelected)
 }
 
 func (s *InstallStatus) SetTargetedInstall() {
