@@ -3,14 +3,15 @@
 # Makefile fragment for recipe actions
 #
 EMBEDDED_RECIPES_PATH         ?= internal/install/recipes/files
-RECIPES_ARCHIVE_URL           ?= https://github.com/newrelic/open-install-library/releases/latest/download/recipes.zip
-
+RECIPE_ARCHIVE_VERSION        ?= $(shell curl -Ls https://download.newrelic.com/install/open-install-library/currentVersion.txt)
+RECIPE_ARCHIVE_URL            ?= https://download.newrelic.com/install/open-install-library/${RECIPE_ARCHIVE_VERSION}/recipes.zip
 
 recipes: recipes-clean recipes-fetch
 
 recipes-fetch:
 	@echo "=== $(PROJECT_NAME) === [ recipes-fetch       ]: fetching recipes..."
-	curl -sL -o ${EMBEDDED_RECIPES_PATH}/recipes.zip ${RECIPES_ARCHIVE_URL}
+	curl -sL -o ${EMBEDDED_RECIPES_PATH}/recipes.zip ${RECIPE_ARCHIVE_URL}
+
 	@echo "=== $(PROJECT_NAME) === [ recipes-fetch       ]: extracting recipes..."
 	unzip ${EMBEDDED_RECIPES_PATH}/recipes.zip -d ${EMBEDDED_RECIPES_PATH}
 
