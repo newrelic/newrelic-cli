@@ -15,7 +15,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/goreleaser/goreleaser v0.174.2
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
-	github.com/itchyny/gojq v0.12.4
+	github.com/itchyny/gojq v0.12.5
 	github.com/jedib0t/go-pretty/v6 v6.2.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/llorllale/go-gitlint v0.0.0-20210608233938-d6303cc52cc5
