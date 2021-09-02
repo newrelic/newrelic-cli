@@ -38,6 +38,9 @@ func (s *Spinner) Start(msg string) {
 		s.Spinner = spinnerLib.New(charSet, interval)
 		s.Prefix = indentation
 		s.Suffix = fmt.Sprintf(" %s", msg)
+
+		fmt.Println()
+
 		s.Spinner.Start()
 	}
 	log.Debug(msg)
@@ -49,6 +52,7 @@ func (s *Spinner) Stop() {
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) {
 		s.Spinner.Stop()
 		fmt.Println(s.Suffix)
+		fmt.Println()
 	}
 	log.Debug(s.Suffix)
 }
@@ -61,4 +65,9 @@ func (s *Spinner) Fail(msg string) {
 func (s *Spinner) Success(msg string) {
 	s.FinalMSG = indentation + checkmark
 	s.Suffix = s.Suffix + "success."
+}
+
+func (s *Spinner) Canceled(msg string) {
+	s.FinalMSG = indentation + crossmark
+	s.Suffix = s.Suffix + "canceled."
 }

@@ -356,8 +356,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			lastError = err
 
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-			log.Warn(err)
-			log.Warn(i.failMessage(r.DisplayName))
+			log.Debug(err)
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
@@ -530,7 +529,12 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 
 	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 	if err != nil {
-		i.progressIndicator.Fail(msg)
+		if errors.Is(err, types.ErrInterrupt) {
+			i.progressIndicator.Canceled(msg)
+		} else {
+			i.progressIndicator.Fail(msg)
+		}
+
 		return "", err
 	}
 
@@ -627,7 +631,6 @@ func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecip
 		if r.Name != types.InfraAgentRecipeName {
 			names = append(names, r.DisplayName)
 		} else {
-			fmt.Println()
 			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
 		}
 	}
