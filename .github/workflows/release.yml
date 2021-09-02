@@ -66,12 +66,6 @@ jobs:
           GH_USER_EMAIL: developer-toolkit-team@newrelic.com
           GH_USER_NAME: 'New Relic Developer Toolkit Bot'
 
-      - name: Upload chocolatey package
-        shell: bash
-        run: make chocolatey-publish
-        env:
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-
       - name: Install aws cli
         run: |
           sudo apt-get install awscli -y
@@ -219,6 +213,12 @@ jobs:
         id: upload-current-version
         run: |
           aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso
+
+      - name: Upload chocolatey package
+        shell: bash
+        run: make chocolatey-publish
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
 
       - name: Cleanup configs
         run: |
