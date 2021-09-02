@@ -1,3 +1,8 @@
+<a name="v0.34.30"></a>
+## [v0.34.30] - 2021-09-02
+### Bug Fixes
+- do not cache the current version file in s3
+
 <a name="v0.34.29"></a>
 ## [v0.34.29] - 2021-09-02
 ### Bug Fixes
@@ -1143,7 +1148,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.29...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.30...HEAD
+[v0.34.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.29...v0.34.30
 [v0.34.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.28...v0.34.29
 [v0.34.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.27...v0.34.28
 [v0.34.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.26...v0.34.27
