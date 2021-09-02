@@ -14,7 +14,7 @@ const (
 	interval    = 100 * time.Millisecond
 	checkmark   = "\u2705"
 	crossmark   = "\u274C"
-	indentation = "    "
+	indentation = "  "
 )
 
 var (

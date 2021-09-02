@@ -92,7 +92,8 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("  ---")
 	}
 
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
+	hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+	if hasInstalledRecipes {
 		fmt.Println("  New Relic installation complete!")
 	}
 
@@ -101,8 +102,9 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
 	}
 
-	if linkToData != "" {
-		fmt.Printf("  Your data is available at %s", linkToData)
+	if hasInstalledRecipes && linkToData != "" {
+		fmt.Println("  Use the link below to view your data.")
+		fmt.Printf("  %s  %s", color.GreenString("\u2B95"), linkToData)
 	}
 
 	fmt.Println()
