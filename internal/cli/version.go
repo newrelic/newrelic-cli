@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
@@ -28,7 +27,7 @@ const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 
 
 // NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data utilizing GitHub's API.
 // GitHub API Docs: https://docs.github.com/en/rest/reference/repos#get-the-latest-release
-const NewRelicCLILatestReleaseURL string = "https://api.github.com/repos/newrelic/newrelic-cli/releases/latest"
+const NewRelicCLILatestReleaseURL string = "https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
 
 // UpdateVersionMsgFormat is the message displayed to a user when an older
 // version of the CLI is installed.
@@ -81,12 +80,12 @@ func GetLatestReleaseVersion(ctx context.Context) (string, error) {
 
 	latestRelease, err := fetchLatestRelease(ctx)
 	if err != nil {
-		return "", fmt.Errorf("error fetching latest release: %s", err.Error())
+		return "", fmt.Errorf("error fetching latest release: %w", err)
 	}
 
-	lv, err := semver.NewVersion(latestRelease.TagName)
+	lv, err := semver.NewVersion(latestRelease)
 	if err != nil {
-		return "", fmt.Errorf("error parsing latest release version string '%s': %s", latestRelease.TagName, err.Error())
+		return "", fmt.Errorf("error parsing latest release version string '%s': %w", latestRelease, err)
 	}
 
 	// Cache the latest version string
@@ -156,29 +155,23 @@ func isWindowsOS() bool {
 	return runtime.GOOS == "windows"
 }
 
-// GitHubRepositoryTagResponse is the data structure returned
-// from a repository's `/releases/latest` endpoint.
-type gitHubRepositoryTagResponse struct {
-	TagName string `json:"tag_name"`
-}
-
-func fetchLatestRelease(ctx context.Context) (*gitHubRepositoryTagResponse, error) {
+func fetchLatestRelease(ctx context.Context) (string, error) {
 	client := utils.NewHTTPClient()
 
 	respBytes, err := client.Get(ctx, NewRelicCLILatestReleaseURL)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	gitTag := gitHubRepositoryTagResponse{}
-	err = json.Unmarshal(respBytes, &gitTag)
+	gitTag := string(respBytes)
+	_, err = semver.NewVersion(gitTag)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	log.WithFields(log.Fields{
-		"tag": gitTag.TagName,
+		"tag": gitTag,
 	}).Debug("fetch tag success")
 
-	return &gitTag, nil
+	return gitTag, nil
 }
