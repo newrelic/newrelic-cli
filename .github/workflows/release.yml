@@ -212,7 +212,7 @@ jobs:
       - name: Upload currentVersion.txt
         id: upload-current-version
         run: |
-          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso
+          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso --cache-control no-cache
 
       - name: Upload chocolatey package
         shell: bash
