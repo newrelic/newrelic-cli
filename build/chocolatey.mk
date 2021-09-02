@@ -18,7 +18,7 @@ chocolatey-build:
 	@cp LICENSE $(CHOCOLATEY_BUILD_DIR)/tools/LICENSE.txt
 	@curl -sL -o $(CHOCOLATEY_BUILD_DIR)/tools/NewRelicCLIInstaller.msi https://download.newrelic.com/install/newrelic-cli/v${PROJECT_VER_TAGGED}/NewRelicCLIInstaller.msi
 	@rm -f newrelic-cli.${PROJECT_VER_TAGGED}.nupkg
-	@sed -i '' -e "s/    <version>.*<\/version>/    <version>${PROJECT_VER_TAGGED}<\/version>/g" $(CHOCOLATEY_BUILD_DIR)/newrelic-cli.nuspec
+	@sed -i.bak -e "s/    <version>.*<\/version>/    <version>${PROJECT_VER_TAGGED}<\/version>/g" $(CHOCOLATEY_BUILD_DIR)/newrelic-cli.nuspec
 	$(CHOCO) pack
 
 .PHONY: chocolatey-build chocolatey-publish

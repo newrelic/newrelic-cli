@@ -12,6 +12,7 @@ Release/*
 *.msi
 *.nupkg
 build/package/chocolatey/tools/LICENSE.txt
+build/package/chocolatey/*.bak
 schema.json
 Dockerfile
 

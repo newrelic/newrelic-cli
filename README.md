@@ -81,7 +81,7 @@ choco install newrelic-cli
 
 #### Standalone installer
 
-A standalone MSI installer is available on the GitHub releases page. You can download the installer for the latest version [here](https://github.com/newrelic/newrelic-cli/releases).
+A standalone MSI installer is available on the New Relic download site. You can download the installer for the latest version [here](https://download.newrelic.com/install/newrelic-cli).
 
 #### Powershell
 
@@ -102,7 +102,7 @@ sudo snap install newrelic-cli
 
 ### Pre-built binaries
 
-Pre-built binaries are created on the GitHub releases page for all of the above platforms. You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases). The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
+Pre-built binaries are available for all of the above platforms. You can download the latest releases [here](https://download.newrelic.com/install/newrelic-cli). The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
 
 Verify that the fingerprint for the downloaded key matches the following:
 
@@ -218,39 +218,6 @@ $ make test-unit
 $ make test-integration
 ```
 
-### Experimenting (internal New Relic usage only)
-
-Using A/B tests, New Relic developers have the ability to gradually roll out new features. 
-
-#### Define an experiment
-
-With access to Split.io, internal New Relic developers can create new A/B tests. Upon creating one, reference the exact name of the experiment in `internal/split/constants.go`. Make sure this is the exact name of the experiment in Split.io.
-
-#### Retrieve treatments
-
-You can retrieve the status of the treatment by using the `SplitService`.
-
-```golang
-// Retrieve a single treatment given an experiment (split)
-treatment := split.Service.Get(split.VirtuosoCLITest)
-
-if treatment == "on" {
-  // insert code here to show on treatment
-} else if treatment == "off" {
-  // insert code here to show off treatment 
-} else {
-  // insert your control treatment code here
-}
-
-// Retrieve multiple treatments given a list of experiments (splits)
-splits := []string{split.VirtuosoCLITest, split.VirtuosoCliTest2}
-treatments := split.Service.GetAll(splits)
-for split, treatment := range treatments {
-    fmt.Printf("Treatment for feature %s is %s\n", split, treatment)
-    // Evaluate treatments
-}
-
-```
 ### Working with recipes
 
 #### Core recipe library
