@@ -2,6 +2,7 @@ package execution
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
@@ -94,7 +95,9 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 	hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
 	if hasInstalledRecipes {
-		fmt.Println("  New Relic installation complete!")
+		fmt.Println("  New Relic installation complete")
+
+		printInstallationSummary(status)
 	}
 
 	linkToData := ""
@@ -110,6 +113,41 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	fmt.Println()
 
 	return nil
+}
+
+func printInstallationSummary(status *InstallStatus) {
+	fmt.Println()
+	fmt.Println("  --------------------")
+	fmt.Println("  Installation Summary")
+	fmt.Println()
+
+	successIcon := color.GreenString("\u2705")
+	failedIcon := color.RedString("\u274C")
+	neurtalIcon := color.RedString("\u2796")
+
+	for _, s := range status.Statuses {
+		var icon string
+		suffix := fmt.Sprintf("(%s)", strings.ToLower(string(s.Status)))
+
+		if s.Status == RecipeStatusTypes.INSTALLED {
+			icon = successIcon
+			suffix = fmt.Sprintf("(%s)", color.GreenString(strings.ToLower(string(s.Status))))
+		}
+
+		if s.Status == RecipeStatusTypes.FAILED {
+			icon = failedIcon
+			suffix = fmt.Sprintf("(%s)", color.RedString(strings.ToLower(string(s.Status))))
+		}
+
+		if s.Status == RecipeStatusTypes.SKIPPED || s.Status == RecipeStatusTypes.CANCELED {
+			icon = neurtalIcon
+		}
+
+		fmt.Printf("  %s  %s %s\n", icon, s.DisplayName, suffix)
+	}
+
+	fmt.Println("  --------------------")
+	fmt.Println()
 }
 
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
