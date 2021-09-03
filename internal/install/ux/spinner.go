@@ -59,7 +59,7 @@ func (s *Spinner) Stop() {
 
 func (s *Spinner) Fail(msg string) {
 	s.FinalMSG = indentation + crossmark
-	s.Suffix = s.Suffix + "failed."
+	s.Suffix = s.Suffix + "incomplete."
 }
 
 func (s *Spinner) Success(msg string) {

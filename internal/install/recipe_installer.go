@@ -509,7 +509,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
-	msg := fmt.Sprintf("Installing %s", r.Name)
+	msg := fmt.Sprintf("Installing %s", r.DisplayName)
 	i.progressIndicator.Start(msg)
 	defer func() { i.progressIndicator.Stop() }()
 
