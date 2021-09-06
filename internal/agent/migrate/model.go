@@ -1,4 +1,4 @@
-package integrations
+package migrate
 
 import "time"
 
@@ -6,6 +6,7 @@ import "time"
 // To avoid an extra dependency it has been copied/pasted
 
 // V3 Configuration Model
+// https://github.com/newrelic/infrastructure-agent/blob/e25f6a3bfb4c637f6222663d07dbb34afee956a2/pkg/integrations/legacy/types.go#L35
 
 // Plugin represents a single plugin, with all associated metadata
 type Plugin struct {
@@ -36,6 +37,7 @@ type PluginV1Instance struct {
 }
 
 // V4 Configuration Model
+// https://github.com/newrelic/infrastructure-agent/blob/e25f6a3bfb4c637f6222663d07dbb34afee956a2/pkg/integrations/v4/config/config.go#L15
 
 // YAML stores the information from a single V4 integrations file
 type v4 struct {

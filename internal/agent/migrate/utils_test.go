@@ -1,10 +1,11 @@
 // +build unit
 
-package integrations
+package migrate
 
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io/ioutil"
 	"path"
 	"strings"
 	"testing"
@@ -82,23 +83,12 @@ func TestPopulateV4ConfigAbsolutePath(t *testing.T) {
 
 }
 
-func TestPopulateV4ConfigWrongName(t *testing.T) {
-	v4Config, err := populateV4Config(
-		Plugin{
-			Name: "testIntegration",
-		},
-		PluginInstanceWrapper{
-			IntegrationName: "different",
-		},
-	)
-
-	require.Error(t, err, "error is expected")
-	require.Nil(t, v4Config, 0)
-}
-
 func TestYAMLValidity(t *testing.T) {
 	tmpPath := t.TempDir()
 	tmpFile := path.Join(tmpPath, "testingFile")
+	tmpCommentFile := path.Join(tmpPath, "commentFile")
+	err := ioutil.WriteFile(tmpCommentFile, []byte("testComment"), 0666)
+	require.NoError(t, err, "no error is expected")
 
 	command := []string{
 		"./relative/path/testBinary",
@@ -117,14 +107,26 @@ func TestYAMLValidity(t *testing.T) {
 	v4Config, err := populateV4Config(plugin, pluginWrapper)
 	require.NoError(t, err, "no error is expected")
 
-	err = writeOutput(tmpFile, v4Config, []byte("testComment"), []byte("testCommentTwo"))
+	err = writeOutput(v4Config, tmpCommentFile, tmpCommentFile, tmpFile)
 	require.NoError(t, err, "no error is expected")
 
 	testV4 := v4{}
-	readBytes, err := readAndUnmarshallConfig(tmpFile, &testV4)
+	err = readAndUnmarshallConfig(tmpFile, &testV4)
 	require.NoError(t, err, "no error is expected")
+}
 
-	assert.Equal(t, testV4, *v4Config, readBytes)
+func TestPopulateV4ConfigWrongName(t *testing.T) {
+	v4Config, err := populateV4Config(
+		Plugin{
+			Name: "testIntegration",
+		},
+		PluginInstanceWrapper{
+			IntegrationName: "different",
+		},
+	)
+
+	require.Error(t, err, "error is expected")
+	require.Nil(t, v4Config, 0)
 }
 
 func getPluginExample(command []string) Plugin {

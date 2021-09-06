@@ -1,4 +1,4 @@
-package integrations
+package migrate
 
 import (
 	"fmt"
@@ -25,17 +25,22 @@ type MigrateV3toV4Result struct {
 	MigrateV3toV4Result string `json:"migrateV3toV4Result"`
 }
 
-func migrateV3toV4(pathConfiguration string, pathDefinition string, pathOutput string) string {
+func MigrateV3toV4(pathConfiguration string, pathDefinition string, pathOutput string, overwrite bool) string {
+
+	if _, err := os.Stat(pathOutput); err == nil && !overwrite {
+		log.Fatal(fmt.Errorf("file '%s' already exist and overwrite option is set to false", pathOutput))
+	}
+
 	// Reading old Definition file
 	v3Definition := Plugin{}
-	v3DefinitionBytes, err := readAndUnmarshallConfig(pathDefinition, &v3Definition)
+	err := readAndUnmarshallConfig(pathDefinition, &v3Definition)
 	if err != nil {
 		log.Fatal(fmt.Errorf("error reading old config definition: %w", err))
 	}
 
 	// Reading old Configuration file
 	v3Configuration := PluginInstanceWrapper{}
-	v3ConfigurationBytes, err := readAndUnmarshallConfig(pathConfiguration, &v3Configuration)
+	err = readAndUnmarshallConfig(pathConfiguration, &v3Configuration)
 	if err != nil {
 		log.Fatal(fmt.Errorf("error reading old config configuration: %w", err))
 	}
@@ -47,7 +52,7 @@ func migrateV3toV4(pathConfiguration string, pathDefinition string, pathOutput s
 	}
 
 	// Writing output
-	err = writeOutput(pathOutput, v4config, v3DefinitionBytes, v3ConfigurationBytes)
+	err = writeOutput(v4config, pathDefinition, pathConfiguration, pathOutput)
 	if err != nil {
 		log.Fatal(fmt.Errorf("error writing output: %w", err))
 	}
@@ -55,19 +60,19 @@ func migrateV3toV4(pathConfiguration string, pathDefinition string, pathOutput s
 	return fmt.Sprintf("The config has been migrated and placed in: %s", pathOutput)
 }
 
-func readAndUnmarshallConfig(path string, out interface{}) ([]byte, error) {
-	// Reading old definition file
-	bytes, err := ioutil.ReadFile(path)
+func readAndUnmarshallConfig(path string, out interface{}) error {
+	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s, %w", path, err)
+		return fmt.Errorf("opening %s, %w", path, err)
+	}
+	defer file.Close()
+
+	err = yaml.NewDecoder(file).Decode(out)
+	if err != nil {
+		return fmt.Errorf("decoding %s, %w", path, err)
 	}
 
-	err = yaml.Unmarshal(bytes, out)
-	if err != nil {
-		return nil, fmt.Errorf("unmashalling %s, %w", path, err)
-	}
-
-	return bytes, nil
+	return nil
 }
 
 func populateV4Config(v3Definition Plugin, v3Configuration PluginInstanceWrapper) (*v4, error) {
@@ -138,7 +143,7 @@ func buildCLIArgs(pluginV1Command *PluginV1Command, configEntry *ConfigEntry) {
 	}
 }
 
-func writeOutput(pathOutput string, v4Config *v4, definitionBytes []byte, configurationBytes []byte) error {
+func writeOutput(v4Config *v4, pathDefinition string, pathConfiguration string, pathOutput string) error {
 	if v4Config == nil {
 		return fmt.Errorf("v4Config pointer is nil")
 	}
@@ -154,12 +159,12 @@ func writeOutput(pathOutput string, v4Config *v4, definitionBytes []byte, config
 		return fmt.Errorf("writing v4 config, %w", err)
 	}
 
-	err = writeTextAsComment(file, string(definitionBytes))
+	err = writeFileAsComment(file, pathDefinition)
 	if err != nil {
 		return fmt.Errorf("adding old definition as comment, %w", err)
 	}
 
-	err = writeTextAsComment(file, string(configurationBytes))
+	err = writeFileAsComment(file, pathConfiguration)
 	if err != nil {
 		return fmt.Errorf("adding old configuration as comment, %w", err)
 	}
@@ -170,23 +175,23 @@ func writeOutput(pathOutput string, v4Config *v4, definitionBytes []byte, config
 func writeV4Config(v4Config *v4, file *os.File) error {
 	// see https://github.com/go-yaml/yaml/commit/7649d4548cb53a614db133b2a8ac1f31859dda8c
 	yaml.FutureLineWrap()
-	v4ConfigBytes, err := yaml.Marshal(*v4Config)
-	if err != nil {
-		return fmt.Errorf("marshallig v4Config, %w", err)
-	}
 
-	_, err = file.Write(v4ConfigBytes)
+	err := yaml.NewEncoder(file).Encode(*v4Config)
 	if err != nil {
 		return fmt.Errorf("writing v4ConfigBytes, %w", err)
 	}
+
 	return nil
 }
 
-func writeTextAsComment(file *os.File, text string) error {
-	fileCommented := strings.ReplaceAll(text, "\n", "\n## ")
-	fileCommented = "\n\n## " + fileCommented
+func writeFileAsComment(file *os.File, filename string) error {
+	fileContent, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("reading file to add it as comment: %w", err)
+	}
 
-	_, err := file.Write([]byte(fileCommented))
+	fileCommented := strings.ReplaceAll(string(fileContent), "\n", "\n## ")
+	_, err = file.Write([]byte("\n\n## " + fileCommented))
 	if err != nil {
 		return fmt.Errorf("writing text as comment: %w", err)
 	}
