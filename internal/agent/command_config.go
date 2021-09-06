@@ -35,8 +35,8 @@ should be placed in the Agent configuration or in an environment variable."
 	Example: "newrelic agent config obfuscate --value <config_value> --key <obfuscation_key>",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		result := obfuscate.ObfuscationResult{
-			ObfuscatedValue: obfuscate.ObfuscateStringWithKey(textToEncode, encodeKey),
+		result := obfuscate.Result{
+			Value: obfuscate.StringWithKey(textToEncode, encodeKey),
 		}
 
 		utils.LogIfFatal(output.Print(result))
@@ -50,8 +50,8 @@ var cmdMigrateV3toV4 = &cobra.Command{
 	Example: "newrelic integrations config migrateV3toV4 --pathDefinition /file/path --pathConfiguration /file/path --pathOutput /file/path",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		result := migrate.MigrateV3toV4Result{
-			MigrateV3toV4Result: migrate.MigrateV3toV4(pathConfiguration, pathDefinition, pathOutput, overwrite),
+		result := migrate.V3toV4Result{
+			V3toV4Result: migrate.V3toV4(pathConfiguration, pathDefinition, pathOutput, overwrite),
 		}
 
 		utils.LogIfFatal(output.Print(result))

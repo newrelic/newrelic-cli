@@ -8,39 +8,39 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestObfuscateStringWithKey(t *testing.T) {
+func TestStringWithKey(t *testing.T) {
 	t.Parallel()
 
 	var result string
 
 	//empty text to obfuscate
-	result = ObfuscateStringWithKey("", "RandomKey")
+	result = StringWithKey("", "RandomKey")
 	assert.Equal(t, "", result)
 
 	//empty key
-	result = ObfuscateStringWithKey("RandomString", "")
+	result = StringWithKey("RandomString", "")
 	assert.Equal(t, "", result)
 
 	//empty text to obfuscate and empty key
-	result = ObfuscateStringWithKey("", "")
+	result = StringWithKey("", "")
 	assert.Equal(t, "", result)
 
 	//text to obfuscate with length longer than key
-	result = ObfuscateStringWithKey("ThisIs18Characters", "ThisIs13Chars")
+	result = StringWithKey("ThisIs18Characters", "ThisIs13Chars")
 	assert.NotEmpty(t, result)
 
 	//text to obfuscate with length shorter than key
-	result = ObfuscateStringWithKey("ThisIs13Chars", "ThisIs18Characters")
+	result = StringWithKey("ThisIs13Chars", "ThisIs18Characters")
 	assert.NotEmpty(t, result)
 
 	//expected results
-	result = ObfuscateStringWithKey("XYZ", "123")
+	result = StringWithKey("XYZ", "123")
 	assert.Equal(t, "aWtp", result)
 
-	result = ObfuscateStringWithKey("XYZ", "456")
+	result = StringWithKey("XYZ", "456")
 	assert.Equal(t, "bGxs", result)
 
-	result = ObfuscateStringWithKey("国字 kokuji", "123")
+	result = StringWithKey("国字 kokuji", "123")
 	assert.Equal(t, "1KmO1J+kEVlcWkdZWA==", result)
 
 }

@@ -88,11 +88,11 @@
 	"eventType": "TestRun",
 	"go.version": "go1.16.4 darwin/amd64",
 	"id": "125e067c-b501-42b1-b121-f05e9a423912",
-	"name": "TestObfuscateStringWithKey",
+	"name": "TestStringWithKey",
 	"package": "",
 	"status": "passed",
 	"suite": "github.com/newrelic/newrelic-cli/internal/agent",
-	"test": "TestObfuscateStringWithKey",
+	"test": "TestStringWithKey",
 	"time": "0.000000"
 }, {
 	"classname": "github.com/newrelic/newrelic-cli/internal/apm",

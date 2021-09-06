@@ -20,12 +20,12 @@ const (
 	prefixArgShort = "-"
 )
 
-// MigrateV3toV4Result represents the result of a migration
-type MigrateV3toV4Result struct {
-	MigrateV3toV4Result string `json:"migrateV3toV4Result"`
+// V3toV4Result represents the result of a migration
+type V3toV4Result struct {
+	V3toV4Result string `json:"migrateV3toV4Result"`
 }
 
-func MigrateV3toV4(pathConfiguration string, pathDefinition string, pathOutput string, overwrite bool) string {
+func V3toV4(pathConfiguration string, pathDefinition string, pathOutput string, overwrite bool) string {
 
 	if _, err := os.Stat(pathOutput); err == nil && !overwrite {
 		log.Fatal(fmt.Errorf("file '%s' already exist and overwrite option is set to false", pathOutput))
