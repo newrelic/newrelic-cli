@@ -1,10 +1,10 @@
 package agent
 
 import (
-	"github.com/newrelic/newrelic-cli/internal/agent/migrate"
-	"github.com/newrelic/newrelic-cli/internal/agent/obfuscate"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-cli/internal/agent/migrate"
+	"github.com/newrelic/newrelic-cli/internal/agent/obfuscate"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
