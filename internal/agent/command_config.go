@@ -75,7 +75,7 @@ func init() {
 	cmdMigrateV3toV4.Flags().StringVarP(&pathConfiguration, "pathConfiguration", "c", "", "path configuration")
 	cmdMigrateV3toV4.Flags().StringVarP(&pathDefinition, "pathDefinition", "d", "", "path definition")
 	cmdMigrateV3toV4.Flags().StringVarP(&pathOutput, "pathOutput", "o", "", "path output")
-	cmdMigrateV3toV4.Flags().BoolVar(&overwrite, "overwrite", false, "if false and pathOutput exists the old file is removed ")
+	cmdMigrateV3toV4.Flags().BoolVar(&overwrite, "overwrite", false, "if set ti true and pathOutput file exists already the old file is removed ")
 
 	utils.LogIfError(cmdMigrateV3toV4.MarkFlagRequired("pathConfiguration"))
 	utils.LogIfError(cmdMigrateV3toV4.MarkFlagRequired("pathDefinition"))
