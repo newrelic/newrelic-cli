@@ -592,7 +592,7 @@ func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipe
 
 func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
 	recipeURL, parseErr := url.Parse(recipePath)
-	if parseErr == nil && recipeURL.Scheme != "" {
+	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
 		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
