@@ -1,3 +1,7 @@
+<a name="v0.34.33"></a>
+## [v0.34.33] - 2021-09-03
+<a name="v0.34.32"></a>
+## [v0.34.32] - 2021-09-02
 <a name="v0.34.31"></a>
 ## [v0.34.31] - 2021-09-02
 <a name="v0.34.30"></a>
@@ -1019,6 +1023,8 @@
 
 <a name="v0.6.2"></a>
 ## [v0.6.2] - 2020-04-08
+<a name="v0.6.2-test"></a>
+## [v0.6.2-test] - 2020-04-09
 ### Bug Fixes
 - **region:** Add custom decoder for region for NR1 compatibility
 
@@ -1150,7 +1156,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.31...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.33...HEAD
+[v0.34.33]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.32...v0.34.33
+[v0.34.32]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.31...v0.34.32
 [v0.34.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.30...v0.34.31
 [v0.34.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.29...v0.34.30
 [v0.34.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.28...v0.34.29
@@ -1309,7 +1317,8 @@
 [v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
 [v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
 [v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
-[v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2
+[v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.6.2
+[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2-test
 [v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
 [v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
 [v0.5.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...v0.5.0
