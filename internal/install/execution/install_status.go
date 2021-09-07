@@ -10,6 +10,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -114,6 +115,14 @@ type StatusError struct {
 	Message  string   `json:"message"`
 	Details  string   `json:"details"`
 	TaskPath []string `json:"taskPath"`
+}
+
+var StatusIconMap = map[RecipeStatusType]string{
+	RecipeStatusTypes.INSTALLED:   ux.IconCheckmark,
+	RecipeStatusTypes.FAILED:      ux.IconError,
+	RecipeStatusTypes.UNSUPPORTED: ux.IconUnsupported,
+	RecipeStatusTypes.SKIPPED:     ux.IconMinus,
+	RecipeStatusTypes.CANCELED:    ux.IconMinus,
 }
 
 func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {

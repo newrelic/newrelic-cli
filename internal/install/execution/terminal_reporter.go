@@ -75,10 +75,6 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		return nil
 	}
 
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) {
-		fmt.Printf("  One or more installations failed.  Check the install log for more details: %s\n", status.LogFilePath)
-	}
-
 	recs := status.recommendations()
 
 	if len(recs) > 0 {
@@ -108,8 +104,13 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("")
 		printInstallationSummary(status)
 
+		msg := "View your data at the link below:\n"
+		if status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) {
+			msg = "\n  Installation was successful overall, however, one or more installations could not be completed.\n  Follow the instructions at the URL below to complete the installation process. \n"
+		}
+
 		if linkToData != "" {
-			fmt.Println("\n  See your data:")
+			fmt.Printf("\n  %s", msg)
 			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
 		}
 	}
@@ -123,29 +124,21 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 func printInstallationSummary(status *InstallStatus) {
 	for _, s := range status.Statuses {
-		var icon string
-		suffix := fmt.Sprintf("(%s)", strings.ToLower(string(s.Status)))
+		statusSuffix := strings.ToLower(string(s.Status))
 
 		if s.Status == RecipeStatusTypes.INSTALLED {
-			icon = ux.IconSuccess
-			suffix = fmt.Sprintf("(%s)", color.GreenString(strings.ToLower(string(s.Status))))
+			statusSuffix = color.GreenString(statusSuffix)
 		}
 
 		if s.Status == RecipeStatusTypes.FAILED {
-			icon = ux.IconError
-			suffix = fmt.Sprintf("(%s)", color.RedString("incomplete"))
+			statusSuffix = color.RedString("incomplete")
 		}
 
 		if s.Status == RecipeStatusTypes.UNSUPPORTED {
-			icon = ux.IconUnsupported
-			suffix = fmt.Sprintf("(%s)", color.RedString(strings.ToLower(string(s.Status))))
+			statusSuffix = color.RedString(statusSuffix)
 		}
 
-		if s.Status == RecipeStatusTypes.SKIPPED || s.Status == RecipeStatusTypes.CANCELED {
-			icon = ux.IconMinus
-		}
-
-		fmt.Printf("  %s  %s  %s\n", icon, s.DisplayName, suffix)
+		fmt.Printf("  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
 	}
 }
 

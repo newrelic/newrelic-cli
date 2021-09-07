@@ -64,7 +64,7 @@ var Command = &cobra.Command{
 			}
 
 			fmt.Println()
-			fmt.Printf("We encountered an error during the installation: %s.\n\n", err)
+			fmt.Printf("We encountered an issue during the installation: %s.\n\n", err)
 			fmt.Println("If this problem persists please visit the documentation and support page for additional help here: https://one.newrelic.com/-/06vjAeZLKjP")
 			fmt.Println()
 		}
