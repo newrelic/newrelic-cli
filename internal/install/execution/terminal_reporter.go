@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 )
 
 type TerminalStatusReporter struct{}
@@ -93,61 +94,59 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("  ---")
 	}
 
-	hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
-	if hasInstalledRecipes {
-		fmt.Println("  New Relic installation complete")
-
-		printInstallationSummary(status)
-	}
-
 	linkToData := ""
 	if status.PlatformLinkGenerator != nil {
 		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
 	}
 
-	if hasInstalledRecipes && linkToData != "" {
-		fmt.Println("  Use the link below to view your data.")
-		fmt.Printf("  %s  %s", color.GreenString("\u2B95"), linkToData)
+	hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+	if hasInstalledRecipes {
+		fmt.Print("\n  New Relic installation complete \n")
+
+		fmt.Println("  --------------------")
+		fmt.Println("  Installation Summary")
+		fmt.Println("")
+		printInstallationSummary(status)
+
+		if linkToData != "" {
+			fmt.Println("\n  See your data:")
+			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
+		}
 	}
 
+	fmt.Println()
+	fmt.Println("\n  --------------------")
 	fmt.Println()
 
 	return nil
 }
 
 func printInstallationSummary(status *InstallStatus) {
-	fmt.Println()
-	fmt.Println("  --------------------")
-	fmt.Println("  Installation Summary")
-	fmt.Println()
-
-	successIcon := color.GreenString("\u2705")
-	failedIcon := color.RedString("\u274C")
-	neurtalIcon := color.RedString("\u2796")
-
 	for _, s := range status.Statuses {
 		var icon string
 		suffix := fmt.Sprintf("(%s)", strings.ToLower(string(s.Status)))
 
 		if s.Status == RecipeStatusTypes.INSTALLED {
-			icon = successIcon
+			icon = ux.IconSuccess
 			suffix = fmt.Sprintf("(%s)", color.GreenString(strings.ToLower(string(s.Status))))
 		}
 
 		if s.Status == RecipeStatusTypes.FAILED {
-			icon = failedIcon
+			icon = ux.IconError
+			suffix = fmt.Sprintf("(%s)", color.RedString("incomplete"))
+		}
+
+		if s.Status == RecipeStatusTypes.UNSUPPORTED {
+			icon = ux.IconUnsupported
 			suffix = fmt.Sprintf("(%s)", color.RedString(strings.ToLower(string(s.Status))))
 		}
 
 		if s.Status == RecipeStatusTypes.SKIPPED || s.Status == RecipeStatusTypes.CANCELED {
-			icon = neurtalIcon
+			icon = ux.IconMinus
 		}
 
-		fmt.Printf("  %s  %s %s\n", icon, s.DisplayName, suffix)
+		fmt.Printf("  %s  %s  %s\n", icon, s.DisplayName, suffix)
 	}
-
-	fmt.Println("  --------------------")
-	fmt.Println()
 }
 
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
