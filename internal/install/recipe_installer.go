@@ -419,7 +419,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	}
 
 	validationStart := time.Now()
-	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m)
+	validationResult, err := i.validateRecipeViaAllMethods(ctx, r, m)
 	validationDurationMs := time.Since(validationStart).Milliseconds()
 	if err != nil {
 		validationErr := fmt.Errorf("encountered an error while validating receipt of data for %s: %w", r.Name, err)
@@ -432,22 +432,34 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		return "", validationErr
 	}
 
-	i.status.RecipeInstalled(execution.RecipeStatusEvent{
+	e := execution.RecipeStatusEvent{
 		Recipe:               *r,
-		EntityGUID:           entityGUID,
 		ValidationDurationMs: validationDurationMs,
-	})
+	}
+
+	var entityGUID string
+	if validationResult != nil {
+		entityGUID = validationResult.entityGUID
+		e.EntityGUID = entityGUID
+		e.ValidationMethod = validationResult.method
+	}
+
+	i.status.RecipeInstalled(e)
 
 	return entityGUID, nil
 }
 
-type validationFunc func() (string, error)
+type validationFunc func() (validationResult, error)
+type validationResult struct {
+	method     string
+	entityGUID string
+}
 
-func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) (string, error) {
+func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) (*validationResult, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
 	defer cancel()
 
-	entityGUIDChan := make(chan string)
+	validationResultChan := make(chan validationResult)
 	validationErrorChan := make(chan error)
 	validationErrors := []error{}
 
@@ -457,8 +469,9 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	hasValidationURL := r.ValidationURL != ""
 	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
 	if hasValidationURL && isAbsoluteURL {
-		validationFuncs = append(validationFuncs, func() (string, error) {
-			return i.agentValidator.Validate(timeoutCtx, r.ValidationURL)
+		validationFuncs = append(validationFuncs, func() (validationResult, error) {
+			entityGUID, err := i.agentValidator.Validate(timeoutCtx, r.ValidationURL)
+			return validationResult{"agent validation", entityGUID}, err
 		})
 	} else {
 		log.Debugf("skipping agent validation due to lack of validationUrl")
@@ -466,8 +479,9 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 
 	// Add NRQL validation if configured
 	if r.ValidationNRQL != "" {
-		validationFuncs = append(validationFuncs, func() (string, error) {
-			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r)
+		validationFuncs = append(validationFuncs, func() (validationResult, error) {
+			entityGUID, err := i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r)
+			return validationResult{"NRQL validation", entityGUID}, err
 		})
 	} else {
 		log.Debugf("skipping NRQL validation due to lack of validationNRQL")
@@ -475,34 +489,34 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 
 	if len(validationFuncs) == 0 {
 		log.Debugf("skipping recipe validation since no validation targets were configured")
-		return "", nil
+		return nil, nil
 	}
 
 	for _, f := range validationFuncs {
 		go func(fn validationFunc) {
-			entityGUID, err := fn()
+			validationResult, err := fn()
 			if err != nil {
 				validationErrorChan <- err
 				return
 			}
 
-			entityGUIDChan <- entityGUID
+			validationResultChan <- validationResult
 		}(f)
 	}
 
 	for {
 		select {
-		case entityGUID := <-entityGUIDChan:
-			return entityGUID, nil
+		case r := <-validationResultChan:
+			return &r, nil
 		case err := <-validationErrorChan:
 			validationErrors = append(validationErrors, err)
 			log.Debugf("validation error encountered: %s", err)
 
 			if len(validationErrors) == len(validationFuncs) {
-				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
+				return nil, fmt.Errorf("no validation was successful. most recent validation error: %w", err)
 			}
 		case <-timeoutCtx.Done():
-			return "", fmt.Errorf("timed out waiting for validation to succeed")
+			return nil, fmt.Errorf("timed out waiting for validation to succeed")
 		}
 	}
 }

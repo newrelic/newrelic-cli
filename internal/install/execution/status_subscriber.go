@@ -31,6 +31,7 @@ type RecipeStatusEvent struct {
 	TaskPath             []string
 	EntityGUID           string
 	ValidationDurationMs int64
+	ValidationMethod     string
 }
 
 type ObservabilityPackStatusEvent struct {

@@ -221,6 +221,7 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.DisplayName = event.Recipe.DisplayName
 		i.EntityGUID = entities.EntityGUID(event.EntityGUID)
 		i.ValidationDurationMilliseconds = event.ValidationDurationMs
+		i.ValidationMethod = event.ValidationMethod
 		i.TaskPath = strings.Join(event.TaskPath, ",")
 	}
 
