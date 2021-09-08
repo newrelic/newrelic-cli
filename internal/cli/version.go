@@ -25,9 +25,8 @@ var (
 const installCLISnippetLinux = `curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash && sudo newrelic install`
 const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile(\"https://download.newrelic.com/install/newrelic-cli/scripts/install.ps1\", \"$env:TEMP\\install.ps1\");", "& $env:TEMP\\install.ps1;", "& 'C:\\Program Files\\New Relic\\New Relic CLI\\newrelic.exe' install`
 
-// NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data utilizing GitHub's API.
-// GitHub API Docs: https://docs.github.com/en/rest/reference/repos#get-the-latest-release
-const NewRelicCLILatestReleaseURL string = "https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
+// NewRelicCLILatestReleaseURL is the URL used to fetch the latest CLI release.
+const NewRelicCLILatestReleaseURL string = "https://s3.us-east-1.amazonaws.com/nr-downloads-main/install/newrelic-cli/currentVersion.txt"
 
 // UpdateVersionMsgFormat is the message displayed to a user when an older
 // version of the CLI is installed.
