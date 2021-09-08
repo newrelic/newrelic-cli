@@ -95,8 +95,8 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
 	}
 
-	hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
-	if hasInstalledRecipes {
+	hasStatuses := len(status.Statuses) > 0
+	if hasStatuses {
 		fmt.Print("\n  New Relic installation complete \n\n")
 
 		fmt.Println("  --------------------")
@@ -113,40 +113,20 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 			fmt.Printf("\n  %s", msg)
 			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
 		}
-	}
 
-	fmt.Println()
-	fmt.Println("\n  --------------------")
-	fmt.Println()
+		fmt.Println()
+		fmt.Println("\n  --------------------")
+		fmt.Println()
+	}
 
 	return nil
 }
 
-func printInstallationSummary(status *InstallStatus) {
-	for _, s := range status.Statuses {
-		statusSuffix := strings.ToLower(string(s.Status))
-
-		if s.Status == RecipeStatusTypes.INSTALLED {
-			statusSuffix = color.GreenString(statusSuffix)
-		}
-
-		if s.Status == RecipeStatusTypes.FAILED {
-			statusSuffix = color.YellowString("incomplete")
-		}
-
-		if s.Status == RecipeStatusTypes.UNSUPPORTED {
-			statusSuffix = color.RedString(statusSuffix)
-		}
-
-		fmt.Printf("  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
-	}
-}
-
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
-	fmt.Println()
+	fmt.Print("\n\n")
 	fmt.Println("  Installation canceled.")
 	fmt.Println("  To finish your installation please use New Relic's installation wizard using the following link.")
-	fmt.Printf("  %s  %s", color.GreenString("\u2B95"), status.PlatformLinkGenerator.GenerateRedirectURL(*status))
+	fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), status.PlatformLinkGenerator.GenerateRedirectURL(*status))
 	fmt.Print("\n\n")
 
 	return nil
@@ -186,4 +166,24 @@ func (r TerminalStatusReporter) ObservabilityPackInstallFailed(status *InstallSt
 
 func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
+}
+
+func printInstallationSummary(status *InstallStatus) {
+	for _, s := range status.Statuses {
+		statusSuffix := strings.ToLower(string(s.Status))
+
+		if s.Status == RecipeStatusTypes.INSTALLED {
+			statusSuffix = color.GreenString(statusSuffix)
+		}
+
+		if s.Status == RecipeStatusTypes.FAILED {
+			statusSuffix = color.YellowString("incomplete")
+		}
+
+		if s.Status == RecipeStatusTypes.UNSUPPORTED {
+			statusSuffix = color.RedString(statusSuffix)
+		}
+
+		fmt.Printf("  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
+	}
 }

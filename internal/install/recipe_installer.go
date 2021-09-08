@@ -367,7 +367,9 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 	}
 
 	if !i.status.WasSuccessful() {
-		return fmt.Errorf("no recipes were installed")
+		return &types.UncaughtError{
+			Err: fmt.Errorf("no recipes were installed"),
+		}
 	}
 
 	return nil
