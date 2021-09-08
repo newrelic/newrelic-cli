@@ -548,12 +548,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) failMessage(componentName string) error {
-	searchURL := "https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/not-seeing-data/"
-
-	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
-}
-
 func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
 	var recipes []types.OpenInstallationRecipe
 
