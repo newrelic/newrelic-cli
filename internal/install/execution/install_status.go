@@ -118,7 +118,7 @@ type StatusError struct {
 }
 
 var StatusIconMap = map[RecipeStatusType]string{
-	RecipeStatusTypes.INSTALLED:   ux.IconCheckmark,
+	RecipeStatusTypes.INSTALLED:   ux.IconSuccess,
 	RecipeStatusTypes.FAILED:      ux.IconError,
 	RecipeStatusTypes.UNSUPPORTED: ux.IconUnsupported,
 	RecipeStatusTypes.SKIPPED:     ux.IconMinus,

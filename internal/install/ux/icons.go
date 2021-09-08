@@ -4,13 +4,17 @@ import (
 	"github.com/fatih/color"
 )
 
+// Unicode characters
+// https://unicode-table.com/en/
 var (
-	IconCheckmark      = "\u2705"
+	IconCheckmark      = "\u2714"
 	IconMultiplication = "\u274C"
-	IconMinus          = "\u2796"
+	IconMinus          = "\u2212"
 	IconArrowRight     = "\u2B95"
+	IconExclamation    = "\u0021"
+	IconCircleSlash    = "\u2298"
 
 	IconSuccess     = color.GreenString(IconCheckmark)
-	IconError       = color.RedString(IconMultiplication)
-	IconUnsupported = "🚫"
+	IconError       = color.YellowString(IconExclamation) // We display "warning"	 symbol to avoid scary "red" colors
+	IconUnsupported = color.RedString(IconCircleSlash)
 )
