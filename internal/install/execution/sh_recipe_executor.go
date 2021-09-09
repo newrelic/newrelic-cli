@@ -13,6 +13,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -24,8 +25,11 @@ type ShRecipeExecutor struct {
 }
 
 func NewShRecipeExecutor() *ShRecipeExecutor {
+	writer := config.Logger.WriterLevel(log.DebugLevel)
 	return &ShRecipeExecutor{
-		Stdin: os.Stdin,
+		Stdin:  os.Stdin,
+		Stdout: writer,
+		Stderr: writer,
 	}
 }
 
@@ -42,16 +46,6 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	p, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
 		return err
-	}
-
-	if e.Stdin == nil {
-		e.Stdin = os.Stdin
-	}
-	if e.Stdout == nil {
-		e.Stdout = os.Stdout
-	}
-	if e.Stderr == nil {
-		e.Stderr = os.Stderr
 	}
 
 	environ := append(os.Environ(), v.ToSlice()...)

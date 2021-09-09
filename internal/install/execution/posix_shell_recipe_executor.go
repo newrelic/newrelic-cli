@@ -9,6 +9,9 @@ import (
 	"os/exec"
 	"regexp"
 
+	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -26,8 +29,11 @@ type PosixShellRecipeExecutor struct {
 }
 
 func NewPosixShellRecipeExecutor() *PosixShellRecipeExecutor {
+	writer := config.Logger.WriterLevel(log.DebugLevel)
 	return &PosixShellRecipeExecutor{
 		Stdin:     os.Stdin,
+		Stdout:    writer,
+		Stderr:    writer,
 		ShellPath: BashPath,
 	}
 }
@@ -42,16 +48,6 @@ func (e *PosixShellRecipeExecutor) ExecutePreInstall(ctx context.Context, r type
 
 func (e *PosixShellRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {
 	c := exec.Command(e.ShellPath, "-c", script)
-
-	if e.Stdin == nil {
-		e.Stdin = os.Stdin
-	}
-	if e.Stdout == nil {
-		e.Stdout = os.Stdout
-	}
-	if e.Stderr == nil {
-		e.Stderr = os.Stderr
-	}
 
 	stdoutCapture := NewLineCaptureBuffer(e.Stdout)
 	stderrCapture := NewLineCaptureBuffer(e.Stderr)
