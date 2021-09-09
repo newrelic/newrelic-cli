@@ -44,6 +44,16 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 		return err
 	}
 
+	if e.Stdin == nil {
+		e.Stdin = os.Stdin
+	}
+	if e.Stdout == nil {
+		e.Stdout = os.Stdout
+	}
+	if e.Stderr == nil {
+		e.Stderr = os.Stderr
+	}
+
 	environ := append(os.Environ(), v.ToSlice()...)
 	stdoutCapture := NewLineCaptureBuffer(e.Stdout)
 	stderrCapture := NewLineCaptureBuffer(e.Stderr)
@@ -58,7 +68,8 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 		return err
 	}
 
-	if err := i.Run(ctx, p); err != nil {
+	err = i.Run(ctx, p)
+	if err != nil {
 		if _, ok := interp.IsExitStatus(err); ok {
 			return fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine)
 		}
