@@ -9,6 +9,9 @@ import (
 	"os/exec"
 	"regexp"
 
+	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -26,8 +29,11 @@ type PosixShellRecipeExecutor struct {
 }
 
 func NewPosixShellRecipeExecutor() *PosixShellRecipeExecutor {
+	writer := config.Logger.WriterLevel(log.DebugLevel)
 	return &PosixShellRecipeExecutor{
 		Stdin:     os.Stdin,
+		Stdout:    writer,
+		Stderr:    writer,
 		ShellPath: BashPath,
 	}
 }
