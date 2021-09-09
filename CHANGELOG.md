@@ -1,3 +1,9 @@
+<a name="v0.34.35"></a>
+## [v0.34.35] - 2021-09-09
+### Bug Fixes
+- **install:** wire log writer for sh and posix executor
+- **install:** wire stdin, out, err when executing sh and posix script
+
 <a name="v0.34.34"></a>
 ## [v0.34.34] - 2021-09-09
 ### Bug Fixes
@@ -1165,7 +1171,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.34...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.35...HEAD
+[v0.34.35]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.34...v0.34.35
 [v0.34.34]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.33...v0.34.34
 [v0.34.33]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.32...v0.34.33
 [v0.34.32]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.31...v0.34.32
