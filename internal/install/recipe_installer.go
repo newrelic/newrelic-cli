@@ -53,6 +53,10 @@ var (
 	}
 )
 
+const (
+	validationTimeout = 5 * time.Minute
+)
+
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
 	checkNetwork(nrClient)
 
@@ -414,41 +418,20 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		return "", err
 	}
 
-	var entityGUID string
-	var err error
-	var validationDurationMs int64
-	start := time.Now()
+	validationStart := time.Now()
+	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m)
+	validationDurationMs := time.Since(validationStart).Milliseconds()
+	if err != nil {
+		validationErr := fmt.Errorf("encountered an error while validating receipt of data for %s: %w", r.Name, err)
+		i.status.RecipeFailed(execution.RecipeStatusEvent{
+			Recipe:               *r,
+			Msg:                  validationErr.Error(),
+			ValidationDurationMs: validationDurationMs,
+		})
 
-	hasValidationURL := r.ValidationURL != ""
-	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
-
-	if hasValidationURL && !isAbsoluteURL {
-		log.Debugf("warning: `validationUrl` %s for recipe %s must be a full URL including protocol, host, and port (if applicable). Attempting to validate via NRDB instead.", r.ValidationURL, r.Name)
+		return "", validationErr
 	}
 
-	if hasValidationURL && isAbsoluteURL {
-		entityGUID, err = i.agentValidator.Validate(ctx, r.ValidationURL)
-		if err != nil {
-			return "", err
-		}
-		// Deprecated validation
-	} else if r.ValidationNRQL != "" {
-		entityGUID, err = i.recipeValidator.ValidateRecipe(ctx, *m, *r)
-		if err != nil {
-			validationDurationMs = time.Since(start).Milliseconds()
-			msg := fmt.Sprintf("encountered an error while validating receipt of data for %s: %s", r.Name, err)
-			i.status.RecipeFailed(execution.RecipeStatusEvent{
-				Recipe:               *r,
-				Msg:                  msg,
-				ValidationDurationMs: validationDurationMs,
-			})
-			return "", errors.New(msg)
-		}
-	} else {
-		log.Debugf("skipping validation due to missing validation query")
-	}
-
-	validationDurationMs = time.Since(start).Milliseconds()
 	i.status.RecipeInstalled(execution.RecipeStatusEvent{
 		Recipe:               *r,
 		EntityGUID:           entityGUID,
@@ -456,6 +439,72 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	})
 
 	return entityGUID, nil
+}
+
+type validationFunc func() (string, error)
+
+func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) (string, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
+	defer cancel()
+
+	entityGUIDChan := make(chan string)
+	validationErrorChan := make(chan error)
+	validationErrors := []error{}
+
+	validationFuncs := []validationFunc{}
+
+	// Add agent validation if configured
+	hasValidationURL := r.ValidationURL != ""
+	isAbsoluteURL := utils.IsAbsoluteURL(r.ValidationURL)
+	if hasValidationURL && isAbsoluteURL {
+		validationFuncs = append(validationFuncs, func() (string, error) {
+			return i.agentValidator.Validate(timeoutCtx, r.ValidationURL)
+		})
+	} else {
+		log.Debugf("skipping agent validation due to lack of validationUrl")
+	}
+
+	// Add NRQL validation if configured
+	if r.ValidationNRQL != "" {
+		validationFuncs = append(validationFuncs, func() (string, error) {
+			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r)
+		})
+	} else {
+		log.Debugf("skipping NRQL validation due to lack of validationNRQL")
+	}
+
+	if len(validationFuncs) == 0 {
+		log.Debugf("skipping recipe validation since no validation targets were configured")
+		return "", nil
+	}
+
+	for _, f := range validationFuncs {
+		go func(fn validationFunc) {
+			entityGUID, err := fn()
+			if err != nil {
+				validationErrorChan <- err
+				return
+			}
+
+			entityGUIDChan <- entityGUID
+		}(f)
+	}
+
+	for {
+		select {
+		case entityGUID := <-entityGUIDChan:
+			return entityGUID, nil
+		case err := <-validationErrorChan:
+			validationErrors = append(validationErrors, err)
+			log.Debugf("validation error encountered: %s", err)
+
+			if len(validationErrors) == len(validationFuncs) {
+				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
+			}
+		case <-timeoutCtx.Done():
+			return "", fmt.Errorf("timed out waiting for validation to succeed")
+		}
+	}
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
@@ -543,7 +592,7 @@ func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipe
 
 func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
 	recipeURL, parseErr := url.Parse(recipePath)
-	if parseErr == nil && recipeURL.Scheme != "" {
+	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
 		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
