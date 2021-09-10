@@ -71,6 +71,10 @@ func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []
 	return nil
 }
 
+func (r InstallEventsReporter) InstallStarted(status *InstallStatus) error {
+	return nil
+}
+
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
 	err := r.createInstallStatusEvent(installevents.InstallationInstallStateTypeTypes.COMPLETED, status, RecipeStatusEvent{})
 	return err

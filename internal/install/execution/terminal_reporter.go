@@ -63,6 +63,10 @@ func (r TerminalStatusReporter) RecipeAvailable(status *InstallStatus, recipe ty
 	return nil
 }
 
+func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
+	return nil
+}
+
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	if status.hasAnyRecipeStatus(RecipeStatusTypes.CANCELED) {
 		return nil

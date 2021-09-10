@@ -58,6 +58,10 @@ func (r NerdstorageStatusReporter) RecipeSkipped(status *InstallStatus, event Re
 	return r.writeStatus(status)
 }
 
+func (r NerdstorageStatusReporter) InstallStarted(status *InstallStatus) error {
+	return r.writeStatus(status)
+}
+
 func (r NerdstorageStatusReporter) InstallComplete(status *InstallStatus) error {
 	return r.writeStatus(status)
 }

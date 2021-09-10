@@ -188,6 +188,8 @@ func (i *RecipeInstaller) Install() error {
 		return err
 	}
 
+	i.status.InstallStarted()
+
 	// If not in a dev environemt, check to see if
 	// the installed CLI is up to date.
 	if !cli.IsDevEnvironment() {
