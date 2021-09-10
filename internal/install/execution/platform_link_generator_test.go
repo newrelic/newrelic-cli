@@ -36,7 +36,7 @@ func TestGenerateRedirectURL_InstallSuccess(t *testing.T) {
 		EntityGUIDs:     []string{entityGUID},
 	}
 
-	expectedURL := fmt.Sprintf("https://one.newrelic.com/redirect/entity/%s", entityGUID)
+	expectedURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
 	result := g.GenerateRedirectURL(installStatus)
 	require.Equal(t, expectedURL, result)
 }
