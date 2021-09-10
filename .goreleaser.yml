@@ -67,8 +67,6 @@ dockers:
       - "newrelic/cli:{{ .Tag }}"
       - "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
       - "newrelic/cli:latest"
-    binaries:
-      - newrelic
     build_flag_templates:
       - "--pull"
       - "--label=repository=http://github.com/newrelic/newrelic-cli"
