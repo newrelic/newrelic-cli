@@ -40,6 +40,9 @@ func TestInstallEventsReporter_Basic(t *testing.T) {
 	status := NewInstallStatus([]StatusSubscriber{r}, NewPlatformLinkGenerator())
 	status.withEntityGUID(entityGUID)
 
+	err = r.InstallStarted(status)
+	require.NoError(t, err)
+
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
 		Recipe: rec,

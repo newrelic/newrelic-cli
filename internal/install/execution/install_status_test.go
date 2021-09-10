@@ -129,6 +129,10 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
+	s.InstallStarted()
+	require.False(t, s.Complete)
+	require.NotNil(t, s.Timestamp)
+
 	s.RecipeAvailable(r)
 
 	result := s.getStatus(r)

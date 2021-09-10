@@ -15,6 +15,7 @@ type MockStatusReporter struct {
 	RecipeRecommendedErr       error
 	RecipeSkippedErr           error
 	RecipeUnsupportedErr       error
+	InstallStartedErr          error
 	InstallCompleteErr         error
 	InstallCanceledErr         error
 	DiscoveryCompleteErr       error
@@ -25,6 +26,7 @@ type MockStatusReporter struct {
 	RecipeInstallingCallCount  int
 	RecipeRecommendedCallCount int
 	RecipeSkippedCallCount     int
+	InstallStartedCallCount    int
 	InstallCompleteCallCount   int
 	InstallCanceledCallCount   int
 	DiscoveryCompleteCallCount int
@@ -136,6 +138,11 @@ func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types
 func (r *MockStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	r.RecipesSelectedCallCount++
 	return r.RecipesSelectedErr
+}
+
+func (r *MockStatusReporter) InstallStarted(status *InstallStatus) error {
+	r.InstallStartedCallCount++
+	return r.InstallStartedErr
 }
 
 func (r *MockStatusReporter) InstallComplete(status *InstallStatus) error {
