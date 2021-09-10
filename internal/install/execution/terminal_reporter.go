@@ -97,7 +97,11 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 	hasStatuses := len(status.Statuses) > 0
 	if hasStatuses {
-		fmt.Print("\n  New Relic installation complete \n\n")
+		hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+
+		if hasInstalledRecipes {
+			fmt.Print("\n  New Relic installation complete \n\n")
+		}
 
 		fmt.Println("  --------------------")
 		fmt.Println("  Installation Summary")
@@ -105,8 +109,11 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		printInstallationSummary(status)
 
 		msg := "View your data at the link below:\n"
-		if status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) {
-			msg = "Installation was successful overall, however, one or more installations could not be completed.\n  Follow the instructions at the URL below to complete the installation process. \n\n"
+		followInstructionsMsg := "Follow the instructions at the URL below to complete the installation process."
+		if hasInstalledRecipes && (status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) || status.hasAnyRecipeStatus(RecipeStatusTypes.UNSUPPORTED)) {
+			msg = fmt.Sprintf("Installation was successful overall, however, one or more installations could not be completed.\n  %s \n\n", followInstructionsMsg)
+		} else if !hasInstalledRecipes {
+			msg = fmt.Sprintf("Installation incomplete. %s \n\n", followInstructionsMsg)
 		}
 
 		if linkToData != "" {
