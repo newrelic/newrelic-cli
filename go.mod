@@ -13,7 +13,7 @@ require (
 	github.com/go-task/task/v3 v3.7.0
 	github.com/golangci/golangci-lint v1.42.0
 	github.com/google/uuid v1.3.0
-	github.com/goreleaser/goreleaser v0.174.2
+	github.com/goreleaser/goreleaser v0.178.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/itchyny/gojq v0.12.5
 	github.com/jedib0t/go-pretty/v6 v6.2.4
