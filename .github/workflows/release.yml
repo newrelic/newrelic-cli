@@ -68,6 +68,7 @@ jobs:
 
       - name: Install aws cli
         run: |
+          sudo apt-get update -y
           sudo apt-get install awscli -y
 
       - name: Write config 1
