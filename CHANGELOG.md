@@ -1,5 +1,14 @@
+<a name="v0.34.37"></a>
+## [v0.34.37] - 2021-09-10
+### Bug Fixes
+- remove deprecated goreleaser config
+
+### Features
+- post event to install events service
+- capture start event
+
 <a name="v0.34.36"></a>
-## [v0.34.36] - 2021-09-09
+## [v0.34.36] - 2021-09-10
 <a name="v0.34.35"></a>
 ## [v0.34.35] - 2021-09-09
 ### Bug Fixes
@@ -1173,7 +1182,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.36...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.37...HEAD
+[v0.34.37]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.36...v0.34.37
 [v0.34.36]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.35...v0.34.36
 [v0.34.35]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.34...v0.34.35
 [v0.34.34]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.33...v0.34.34
