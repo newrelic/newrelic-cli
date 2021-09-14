@@ -1,8 +1,10 @@
 package execution
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -79,16 +81,65 @@ func generateReferrerParam(entityGUID string) string {
 }
 
 func generateExplorerLink(status InstallStatus) string {
-	return fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d&cards[0]=%s",
+	longURL := fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d&cards[0]=%s",
 		nrPlatformHostname(),
 		utils.Base64Encode(status.successLinkConfig.Filter),
 		configAPI.GetActiveProfileAccountID(),
 		utils.Base64Encode(generateReferrerParam(status.HostEntityGUID())),
 	)
+
+	shortURL, err := shortenURL(longURL)
+	if err != nil {
+		return longURL
+	}
+
+	return shortURL
 }
 
 func generateEntityLink(entityGUID string) string {
-	return fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
+	longURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
+	shortURL, err := shortenURL(longURL)
+	if err != nil {
+		return longURL
+	}
+
+	return shortURL
+}
+
+// The shortenURL function utilizes a New Relic service to convert
+// a New Relic URL to a shortened URL that redirects to the original URL.
+//
+// If an error occurs while attempting to shorten the URL, the original
+// long URL is returned along with the error.
+//
+// Note: This API only works in a production environment.
+func shortenURL(longURL string) (string, error) {
+	const shortURLServiceURL = "https://urly.service.newrelic.com/"
+
+	httpClient := utils.NewHTTPClient(os.Getenv("NEW_RELIC_API_KEY"))
+
+	reqBody := []byte(fmt.Sprintf(`{"url": "%s"}`, longURL))
+	respBytes, err := httpClient.Post(context.Background(), shortURLServiceURL, reqBody)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"longURL":      longURL,
+			"errorMessage": err.Error(),
+		}).Debugf("error creating short URL")
+
+		return longURL, err
+	}
+
+	var resp struct {
+		URL string `json:"url"`
+	}
+
+	err = json.Unmarshal(respBytes, &resp)
+	if err != nil {
+		log.Debugf("error unmarshaling short URL API response: %s", err)
+		return "", err
+	}
+
+	return resp.URL, nil
 }
 
 // nrPlatformHostname returns the host for the platform based on the region set.
