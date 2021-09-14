@@ -1,5 +1,31 @@
+<a name="v0.34.37"></a>
+## [v0.34.37] - 2021-09-10
+### Bug Fixes
+- remove deprecated goreleaser config
+
+### Features
+- post event to install events service
+- capture start event
+
+<a name="v0.34.36"></a>
+## [v0.34.36] - 2021-09-10
+<a name="v0.34.35"></a>
+## [v0.34.35] - 2021-09-09
+### Bug Fixes
+- **install:** wire log writer for sh and posix executor
+- **install:** wire stdin, out, err when executing sh and posix script
+
+<a name="v0.34.34"></a>
+## [v0.34.34] - 2021-09-09
+### Bug Fixes
+- **install:** fix loading of a local recipe file on windows
+
+### Features
+- **install:** bypass fastly when fetching recipes
+- **install:** validate recipes in parallel with all available methods
+
 <a name="v0.34.33"></a>
-## [v0.34.33] - 2021-09-03
+## [v0.34.33] - 2021-09-07
 <a name="v0.34.32"></a>
 ## [v0.34.32] - 2021-09-02
 <a name="v0.34.31"></a>
@@ -1156,7 +1182,11 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.33...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.37...HEAD
+[v0.34.37]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.36...v0.34.37
+[v0.34.36]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.35...v0.34.36
+[v0.34.35]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.34...v0.34.35
+[v0.34.34]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.33...v0.34.34
 [v0.34.33]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.32...v0.34.33
 [v0.34.32]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.31...v0.34.32
 [v0.34.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.30...v0.34.31

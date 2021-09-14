@@ -5,6 +5,7 @@ import "github.com/newrelic/newrelic-cli/internal/install/types"
 // StatusSubscriber is notified during the lifecycle of the recipe execution status.
 type StatusSubscriber interface {
 	UpdateRequired(status *InstallStatus) error
+	InstallStarted(status *InstallStatus) error
 	InstallCanceled(status *InstallStatus) error
 	InstallComplete(status *InstallStatus) error
 	DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error

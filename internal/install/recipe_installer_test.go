@@ -344,6 +344,19 @@ func TestInstall_AllRecipesFailed(t *testing.T) {
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeFailedCallCount)
 }
 
+func TestInstall_InstallStarted(t *testing.T) {
+	ic := types.InstallerContext{}
+
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f = recipes.NewMockRecipeFetcher()
+
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	_ = i.Install()
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallStartedCallCount)
+}
+
 func TestInstall_InstallComplete(t *testing.T) {
 	ic := types.InstallerContext{
 		SkipLoggingInstall: true,

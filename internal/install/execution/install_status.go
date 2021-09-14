@@ -283,6 +283,16 @@ func (s *InstallStatus) RecipeUnsupported(event RecipeStatusEvent) {
 	}
 }
 
+func (s *InstallStatus) InstallStarted() {
+	s.started()
+
+	for _, r := range s.statusSubscriber {
+		if err := r.InstallStarted(s); err != nil {
+			log.Debugf("Error writing execution status: %s", err)
+		}
+	}
+}
+
 func (s *InstallStatus) InstallComplete(err error) {
 	s.completed(err)
 
@@ -506,6 +516,14 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 		"validationDurationMs": e.ValidationDurationMs,
 		"statusCount":          len(s.Statuses),
 	}).Debug("recipe event")
+}
+
+func (s *InstallStatus) started() {
+	s.Timestamp = utils.GetTimestamp()
+
+	log.WithFields(log.Fields{
+		"timestamp": s.Timestamp,
+	}).Debug("started")
 }
 
 func (s *InstallStatus) completed(err error) {

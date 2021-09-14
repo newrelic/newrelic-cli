@@ -28,52 +28,47 @@ func NewInstallEventsReporter(client InstallEventsClient) *InstallEventsReporter
 
 func (r InstallEventsReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
 	event := RecipeStatusEvent{Recipe: recipe}
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.AVAILABLE, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.AVAILABLE, event)
 }
 
 func (r InstallEventsReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLING, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLING, event)
 }
 
 func (r InstallEventsReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.SKIPPED, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.SKIPPED, event)
 }
 
 func (r InstallEventsReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.RECOMMENDED, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.RECOMMENDED, event)
 }
 
 func (r InstallEventsReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.UNSUPPORTED, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.UNSUPPORTED, event)
 }
 
 func (r InstallEventsReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLED, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.INSTALLED, event)
 }
 
 func (r InstallEventsReporter) InstallCanceled(status *InstallStatus) error {
-	err := r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
-	return err
+	return r.createMultipleRecipeInstallEvents(status, RecipeStatusEvent{})
 }
 
 func (r InstallEventsReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
-	err := r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.FAILED, event)
-	return err
+	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.FAILED, event)
 }
 
 func (r InstallEventsReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	return nil
 }
 
+func (r InstallEventsReporter) InstallStarted(status *InstallStatus) error {
+	return r.createInstallStatusEvent(installevents.InstallationInstallStateTypeTypes.STARTED, status, RecipeStatusEvent{})
+}
+
 func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
-	err := r.createInstallStatusEvent(installevents.InstallationInstallStateTypeTypes.COMPLETED, status, RecipeStatusEvent{})
-	return err
+	return r.createInstallStatusEvent(installevents.InstallationInstallStateTypeTypes.COMPLETED, status, RecipeStatusEvent{})
 }
 
 func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
@@ -155,13 +150,11 @@ func (r InstallEventsReporter) createInstallStatusEvent(state installevents.Inst
 }
 
 func (r InstallEventsReporter) UpdateRequired(status *InstallStatus) error {
-	err := r.createInstallStatusEvent(
+	return r.createInstallStatusEvent(
 		installevents.InstallationInstallStateType(installevents.InstallationRecipeStatusTypeTypes.UNSUPPORTED),
 		status,
 		RecipeStatusEvent{},
 	)
-
-	return err
 }
 
 func buildInstallStatus(state installevents.InstallationInstallStateType, status *InstallStatus, event *RecipeStatusEvent) installevents.InstallationInstallStatusInput {
