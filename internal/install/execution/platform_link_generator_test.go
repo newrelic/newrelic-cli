@@ -17,6 +17,10 @@ func TestGenerateRedirectURL_InstallSuccess(t *testing.T) {
 	t.Parallel()
 
 	g := NewPlatformLinkGenerator()
+	// We set an API key in the unit test so we don't make an real HTTP request
+	// to the New Relic short URL service (see integration test), and so we can test
+	// the query param being added for the fallback installation strategy below.
+	g.apiKey = ""
 
 	recipeName := "infrastructure-agent-installer"
 	entityGUID := "ABC123"
@@ -45,6 +49,10 @@ func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {
 	t.Parallel()
 
 	g := NewPlatformLinkGenerator()
+	// We set an API key in the unit test so we don't make an real HTTP request
+	// to the New Relic short URL service (see integration test), and so we can test
+	// the query param being added for the fallback installation strategy below.
+	g.apiKey = ""
 
 	infraEntityGUID := "ABC123"
 	infraRecipe := types.OpenInstallationRecipe{
@@ -73,7 +81,7 @@ func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {
 		EntityGUIDs:     []string{infraEntityGUID},
 		Statuses:        []*RecipeStatus{installedRecipeStatus, failedRecipeStatus},
 	}
-	expectedEncodedQueryParamSubstring := utils.Base64Encode(generateReferrerParam(infraEntityGUID))
+	expectedEncodedQueryParamSubstring := utils.Base64Encode(g.generateReferrerParam(infraEntityGUID))
 
 	result := g.GenerateRedirectURL(installStatus)
 	require.Contains(t, result, expectedEncodedQueryParamSubstring)
@@ -83,6 +91,10 @@ func TestGenerateRedirectURL_InstallFailed(t *testing.T) {
 	t.Parallel()
 
 	g := NewPlatformLinkGenerator()
+	// We set an API key in the unit test so we don't make an real HTTP request
+	// to the New Relic short URL service (see integration test), and so we can test
+	// the query param being added for the fallback installation strategy below.
+	g.apiKey = ""
 
 	infraRecipe := types.OpenInstallationRecipe{
 		Name:        "infrastructure-agent-installer",
@@ -108,6 +120,11 @@ func TestGenerateRedirectURL_NoRecipesInstalled(t *testing.T) {
 	t.Parallel()
 
 	g := NewPlatformLinkGenerator()
+	// We unset the API key in the unit test so we don't make
+	// an HTTP request to the New Relic short URL service and
+	// so we can test the referrer param being added for the fallback
+	// installation strategy.
+	g.apiKey = ""
 
 	installStatus := InstallStatus{}
 	expectedEncodedQueryParamSubstring := "eyJuZXJkbGV0SWQiOiJucjEtaW5zdGFsbC1uZXdyZWxpYy5pbnN0YWxsYXRpb24tcGxhbiIsInJlZmVycmVyIjoibmV3cmVsaWMtY2xpIn0="

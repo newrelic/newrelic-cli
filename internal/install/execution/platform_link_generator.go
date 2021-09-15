@@ -15,7 +15,9 @@ import (
 	"github.com/newrelic/newrelic-client-go/pkg/region"
 )
 
-type PlatformLinkGenerator struct{}
+type PlatformLinkGenerator struct {
+	apiKey string
+}
 
 var nrPlatformHostnames = struct {
 	Staging string
@@ -28,15 +30,17 @@ var nrPlatformHostnames = struct {
 }
 
 func NewPlatformLinkGenerator() *PlatformLinkGenerator {
-	return &PlatformLinkGenerator{}
+	return &PlatformLinkGenerator{
+		apiKey: os.Getenv("NEW_RELIC_API_KEY"),
+	}
 }
 
 func (g *PlatformLinkGenerator) GenerateExplorerLink(status InstallStatus) string {
-	return generateExplorerLink(status)
+	return g.generateExplorerLink(status)
 }
 
 func (g *PlatformLinkGenerator) GenerateEntityLink(entityGUID string) string {
-	return generateEntityLink(entityGUID)
+	return g.generateEntityLink(entityGUID)
 }
 
 // GenerateRedirectURL creates a URL for the user to navigate to after running
@@ -61,7 +65,7 @@ type referrerParamValue struct {
 // the UI can use to understand how/where the URL was generated. This allows the
 // UI to return to its previous state in the case of a user closing the browser
 // and then clicking a redirect URL in the CLI's output.
-func generateReferrerParam(entityGUID string) string {
+func (g *PlatformLinkGenerator) generateReferrerParam(entityGUID string) string {
 	p := referrerParamValue{
 		NerdletID: "nr1-install-newrelic.installation-plan",
 		Referrer:  "newrelic-cli",
@@ -80,15 +84,15 @@ func generateReferrerParam(entityGUID string) string {
 	return string(stringifiedParam)
 }
 
-func generateExplorerLink(status InstallStatus) string {
+func (g *PlatformLinkGenerator) generateExplorerLink(status InstallStatus) string {
 	longURL := fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d&cards[0]=%s",
 		nrPlatformHostname(),
 		utils.Base64Encode(status.successLinkConfig.Filter),
 		configAPI.GetActiveProfileAccountID(),
-		utils.Base64Encode(generateReferrerParam(status.HostEntityGUID())),
+		utils.Base64Encode(g.generateReferrerParam(status.HostEntityGUID())),
 	)
 
-	shortURL, err := shortenURL(longURL)
+	shortURL, err := g.generateShortNewRelicURL(longURL)
 	if err != nil {
 		return longURL
 	}
@@ -96,9 +100,9 @@ func generateExplorerLink(status InstallStatus) string {
 	return shortURL
 }
 
-func generateEntityLink(entityGUID string) string {
+func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 	longURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
-	shortURL, err := shortenURL(longURL)
+	shortURL, err := g.generateShortNewRelicURL(longURL)
 	if err != nil {
 		return longURL
 	}
@@ -113,10 +117,14 @@ func generateEntityLink(entityGUID string) string {
 // long URL is returned along with the error.
 //
 // Note: This API only works in a production environment.
-func shortenURL(longURL string) (string, error) {
+func (g *PlatformLinkGenerator) generateShortNewRelicURL(longURL string) (string, error) {
 	const shortURLServiceURL = "https://urly.service.newrelic.com/"
 
-	httpClient := utils.NewHTTPClient(os.Getenv("NEW_RELIC_API_KEY"))
+	if g.apiKey == "" {
+		return longURL, fmt.Errorf("cannot shorten long URL %s due to invalid or missing API key", longURL)
+	}
+
+	httpClient := utils.NewHTTPClient(g.apiKey)
 
 	reqBody := []byte(fmt.Sprintf(`{"url": "%s"}`, longURL))
 	respBytes, err := httpClient.Post(context.Background(), shortURLServiceURL, reqBody)
@@ -136,7 +144,7 @@ func shortenURL(longURL string) (string, error) {
 	err = json.Unmarshal(respBytes, &resp)
 	if err != nil {
 		log.Debugf("error unmarshaling short URL API response: %s", err)
-		return "", err
+		return longURL, err
 	}
 
 	return resp.URL, nil
