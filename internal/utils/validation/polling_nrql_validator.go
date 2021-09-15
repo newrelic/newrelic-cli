@@ -8,7 +8,6 @@ import (
 	"time"
 
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
-	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
@@ -16,7 +15,6 @@ import (
 const (
 	DefaultMaxAttempts      = 60
 	DefaultIntervalSeconds  = 5
-	ValidationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
 	ReachedMaxValidationMsg = "reached max validation attempts"
 )
 
@@ -24,7 +22,6 @@ const (
 type PollingNRQLValidator struct {
 	MaxAttempts          int
 	IntervalMilliSeconds int
-	ProgressIndicator    ux.ProgressIndicator
 	client               utils.NRDBClient
 }
 
@@ -34,7 +31,6 @@ func NewPollingNRQLValidator(c utils.NRDBClient) *PollingNRQLValidator {
 		client:               c,
 		MaxAttempts:          DefaultMaxAttempts,
 		IntervalMilliSeconds: DefaultIntervalSeconds * 1000,
-		ProgressIndicator:    ux.NewSpinner(),
 	}
 
 	return &v
@@ -45,18 +41,13 @@ func (m *PollingNRQLValidator) Validate(ctx context.Context, query string) (stri
 	ticker := time.NewTicker(time.Duration(m.IntervalMilliSeconds) * time.Millisecond)
 	defer ticker.Stop()
 
-	m.ProgressIndicator.Start(ValidationInProgressMsg)
-	defer m.ProgressIndicator.Stop()
-
 	entityGUID, err := m.tryValidate(ctx, query)
 	if err != nil {
-		m.ProgressIndicator.Fail("")
 		if strings.Contains(err.Error(), "context canceled") {
 			return "", err
 		}
 		return "", fmt.Errorf("%s: %s", ReachedMaxValidationMsg, err)
 	}
-	m.ProgressIndicator.Success("")
 	return entityGUID, nil
 }
 

@@ -26,23 +26,24 @@ import (
 
 type RecipeInstaller struct {
 	types.InstallerContext
-	discoverer        Discoverer
-	fileFilterer      FileFilterer
-	manifestValidator *discovery.ManifestValidator
-	recipeFetcher     recipes.RecipeFetcher
-	recipeExecutor    execution.RecipeExecutor
-	recipeValidator   RecipeValidator
-	recipeFileFetcher RecipeFileFetcher
-	status            *execution.InstallStatus
-	prompter          Prompter
-	progressIndicator ux.ProgressIndicator
-	licenseKeyFetcher LicenseKeyFetcher
-	configValidator   ConfigValidator
-	recipeVarPreparer RecipeVarPreparer
-	recipeFilterer    RecipeFilterRunner
-	packsFetcher      PacksFetcher
-	packsInstaller    PacksInstaller
-	agentValidator    *validation.AgentValidator
+	discoverer                  Discoverer
+	fileFilterer                FileFilterer
+	manifestValidator           *discovery.ManifestValidator
+	recipeFetcher               recipes.RecipeFetcher
+	recipeExecutor              execution.RecipeExecutor
+	recipeValidator             RecipeValidator
+	recipeFileFetcher           RecipeFileFetcher
+	status                      *execution.InstallStatus
+	prompter                    Prompter
+	executionProgressIndicator  ux.ProgressIndicator
+	validationProgressIndicator ux.ProgressIndicator
+	licenseKeyFetcher           LicenseKeyFetcher
+	configValidator             ConfigValidator
+	recipeVarPreparer           RecipeVarPreparer
+	recipeFilterer              RecipeFilterRunner
+	packsFetcher                PacksFetcher
+	packsInstaller              PacksInstaller
+	agentValidator              *validation.AgentValidator
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -54,7 +55,8 @@ var (
 )
 
 const (
-	validationTimeout = 5 * time.Minute
+	validationTimeout       = 5 * time.Minute
+	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
 )
 
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
@@ -88,6 +90,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	cv := diagnose.NewConfigValidator(nrClient)
 	p := ux.NewPromptUIPrompter()
 	pi := ux.NewPlainProgress()
+	sp := ux.NewSpinner()
 	rvp := execution.NewRecipeVarProvider()
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
@@ -95,23 +98,24 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstaller{
-		discoverer:        d,
-		fileFilterer:      gff,
-		manifestValidator: mv,
-		recipeFetcher:     recipeFetcher,
-		recipeExecutor:    re,
-		recipeValidator:   v,
-		recipeFileFetcher: ff,
-		status:            statusRollup,
-		prompter:          p,
-		progressIndicator: pi,
-		licenseKeyFetcher: lkf,
-		configValidator:   cv,
-		recipeVarPreparer: rvp,
-		recipeFilterer:    rf,
-		packsFetcher:      spf,
-		packsInstaller:    cpi,
-		agentValidator:    av,
+		discoverer:                  d,
+		fileFilterer:                gff,
+		manifestValidator:           mv,
+		recipeFetcher:               recipeFetcher,
+		recipeExecutor:              re,
+		recipeValidator:             v,
+		recipeFileFetcher:           ff,
+		status:                      statusRollup,
+		prompter:                    p,
+		executionProgressIndicator:  pi,
+		validationProgressIndicator: sp,
+		licenseKeyFetcher:           lkf,
+		configValidator:             cv,
+		recipeVarPreparer:           rvp,
+		recipeFilterer:              rf,
+		packsFetcher:                spf,
+		packsInstaller:              cpi,
+		agentValidator:              av,
 	}
 
 	i.InstallerContext = ic
@@ -480,6 +484,9 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 		return "", nil
 	}
 
+	i.validationProgressIndicator.Start(validationInProgressMsg)
+	defer i.validationProgressIndicator.Stop()
+
 	for _, f := range validationFuncs {
 		go func(fn validationFunc) {
 			entityGUID, err := fn()
@@ -495,12 +502,14 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	for {
 		select {
 		case entityGUID := <-entityGUIDChan:
+			i.validationProgressIndicator.Success("")
 			return entityGUID, nil
 		case err := <-validationErrorChan:
 			validationErrors = append(validationErrors, err)
 			log.Debugf("validation error encountered: %s", err)
 
 			if len(validationErrors) == len(validationFuncs) {
+				i.validationProgressIndicator.Fail("")
 				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
 			}
 		case <-timeoutCtx.Done():
@@ -511,8 +520,8 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
 	msg := fmt.Sprintf("Installing %s", r.Name)
-	i.progressIndicator.Start(msg)
-	defer func() { i.progressIndicator.Stop() }()
+	i.executionProgressIndicator.Start(msg)
+	defer func() { i.executionProgressIndicator.Stop() }()
 
 	if r.PreInstallMessage() != "" {
 		fmt.Println(r.PreInstallMessage())
@@ -530,7 +539,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 
 	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 	if err != nil {
-		i.progressIndicator.Fail(msg)
+		i.executionProgressIndicator.Fail(msg)
 		return "", err
 	}
 
@@ -538,7 +547,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		fmt.Println(r.PostInstallMessage())
 	}
 
-	i.progressIndicator.Success(msg)
+	i.executionProgressIndicator.Success(msg)
 	return entityGUID, nil
 }
 

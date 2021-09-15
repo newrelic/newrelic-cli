@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	utilsvalidation "github.com/newrelic/newrelic-cli/internal/utils/validation"
 )
@@ -22,7 +21,6 @@ type AgentValidator struct {
 	MaxAttempts          int
 	IntervalMilliSeconds int
 	Count                int
-	ProgressIndicator    ux.ProgressIndicator
 }
 
 // AgentSuccessResponse represents the response object
@@ -38,7 +36,6 @@ func NewAgentValidator() *AgentValidator {
 	v := AgentValidator{
 		MaxAttempts:          utilsvalidation.DefaultMaxAttempts,
 		IntervalMilliSeconds: utilsvalidation.DefaultIntervalSeconds * 1000,
-		ProgressIndicator:    ux.NewSpinner(),
 		fn:                   getDefaultClientFunc(),
 	}
 
@@ -51,13 +48,9 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 	ticker := time.NewTicker(time.Duration(v.IntervalMilliSeconds) * time.Millisecond)
 	defer ticker.Stop()
 
-	v.ProgressIndicator.Start(utilsvalidation.ValidationInProgressMsg)
-	defer v.ProgressIndicator.Stop()
-
 	for {
 		entityGUID, err := v.tryValidate(ctx, url)
 		if err != nil {
-			v.ProgressIndicator.Fail("")
 			if strings.Contains(err.Error(), "context canceled") {
 				return "", err
 			}
@@ -65,7 +58,6 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 		}
 
 		if entityGUID != "" {
-			v.ProgressIndicator.Success("")
 			return entityGUID, nil
 		}
 
@@ -75,7 +67,6 @@ func (v *AgentValidator) Validate(ctx context.Context, url string) (string, erro
 			continue
 
 		case <-ctx.Done():
-			v.ProgressIndicator.Fail("")
 			return "", fmt.Errorf("validation cancelled")
 		}
 	}
