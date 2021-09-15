@@ -31,7 +31,7 @@ func TestGenerateShortNewRelicURL_NoAPIKey(t *testing.T) {
 	result, err := g.generateShortNewRelicURL(longURL)
 
 	require.Error(t, err)
-	require.Equal(t, len(result), len(longURL))
+	require.Equal(t, result, longURL)
 }
 
 func TestGenerateShortNewRelicURL_InvalidAPIKey(t *testing.T) {
@@ -43,5 +43,15 @@ func TestGenerateShortNewRelicURL_InvalidAPIKey(t *testing.T) {
 	result, err := g.generateShortNewRelicURL(longURL)
 
 	require.Error(t, err)
-	require.Equal(t, len(result), len(longURL))
+	require.Equal(t, result, longURL)
+}
+
+func TestGenerateShortNewRelicURL_NonNewRelicURL(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+	longURL := "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+	result, _ := g.generateShortNewRelicURL(longURL)
+
+	require.Equal(t, result, longURL)
 }
