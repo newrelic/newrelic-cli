@@ -2,6 +2,16 @@
 
 Configuration utilities/helpers for New Relic agents
 
+### Synopsis
+
+Configuration utilities/helpers for New Relic agents
+
+### Examples
+
+```
+newrelic agent config obfuscate --value <config_value> --key <obfuscation_key>
+```
+
 ### Options
 
 ```
@@ -22,5 +32,6 @@ Configuration utilities/helpers for New Relic agents
 ### SEE ALSO
 
 * [newrelic agent](newrelic_agent.md)	 - Utilities for New Relic Agents
+* [newrelic agent config migrateV3toV4](newrelic_agent_config_migrateV3toV4.md)	 - migrate V3 configuration to V4 configuration format
 * [newrelic agent config obfuscate](newrelic_agent_config_obfuscate.md)	 - Obfuscate a configuration value using a key
 
