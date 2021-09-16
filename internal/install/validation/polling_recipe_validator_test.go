@@ -10,8 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/install/ux"
-	utilsvalidation "github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
 )
 
@@ -39,9 +37,7 @@ func TestValidate_shouldSucceed(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 1)
 
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 1
 
 	r := types.OpenInstallationRecipe{}
@@ -58,9 +54,7 @@ func TestValidate_shouldFailEmpty(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, emptyResults, 1)
 
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 1
 
 	r := types.OpenInstallationRecipe{}
@@ -74,9 +68,7 @@ func TestValidate_shouldFailEmpty(t *testing.T) {
 func TestValidate_PassAfterNAttempts(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 5
 	v.IntervalMilliSeconds = 1
 
@@ -94,9 +86,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 func TestValidate_FailAfterNAttempts(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	c := NewMockNRDBClient()
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 3
 	v.IntervalMilliSeconds = 1
 
@@ -115,9 +105,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 1
 	v.IntervalMilliSeconds = 1
 
@@ -135,9 +123,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 2)
 
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 2
 	v.IntervalMilliSeconds = 1
 
@@ -158,9 +144,7 @@ func TestValidate_QueryError(t *testing.T) {
 
 	c.ThrowError("test error")
 
-	pi := ux.NewMockProgressIndicator()
 	v := NewPollingRecipeValidator(c)
-	v.ProgressIndicator = pi
 	v.MaxAttempts = 2
 	v.IntervalMilliSeconds = 1
 
@@ -169,7 +153,7 @@ func TestValidate_QueryError(t *testing.T) {
 
 	_, err := v.ValidateRecipe(getTestContext(), m, r)
 
-	require.EqualError(t, err, utilsvalidation.ReachedMaxValidationMsg+": test error")
+	require.Error(t, err)
 }
 
 func getTestContext() context.Context {

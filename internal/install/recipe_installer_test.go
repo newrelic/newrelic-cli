@@ -41,6 +41,7 @@ var (
 	status          = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
 	p               = ux.NewMockPrompter()
 	pi              = ux.NewMockProgressIndicator()
+	sp              = ux.NewMockProgressIndicator()
 	lkf             = NewMockLicenseKeyFetcher()
 	cv              = diagnose.NewMockConfigValidator()
 	rvp             = execution.NewRecipeVarProvider()
@@ -59,7 +60,7 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 	}
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 
 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 }
@@ -69,7 +70,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 
 	recipe, err := i.recipeFromPath("http://recipe/URL")
 	require.NoError(t, err)
@@ -82,7 +83,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 
 	recipe, err := i.recipeFromPath("file.txt")
 	require.NoError(t, err)
@@ -105,7 +106,7 @@ func TestInstall_DiscoveryComplete(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 
 	err := i.Install()
 	require.NoError(t, err)
@@ -145,7 +146,7 @@ func TestInstall_UnsupportedKernelArch(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 
 	err := i.Install()
 	require.Error(t, err)
@@ -175,7 +176,7 @@ func TestInstall_RecipeAvailable(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
@@ -203,7 +204,7 @@ func TestFetchAndInstallPacks(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ObservabilityPackFetchPendingCallCount)
@@ -241,7 +242,7 @@ func TestInstall_RecipeInstalled(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -272,7 +273,7 @@ func TestInstall_RecipeFailed(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateErr = errors.New("validationErr")
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 1, rv.ValidateCallCount)
@@ -305,7 +306,7 @@ func TestInstall_NonInfraRecipeFailed(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateErrs = []error{nil, errors.New("validationErr")}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 2, rv.ValidateCallCount)
@@ -337,7 +338,7 @@ func TestInstall_AllRecipesFailed(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateErr = errors.New("validationErr")
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 2, rv.ValidateCallCount)
@@ -352,7 +353,7 @@ func TestInstall_InstallStarted(t *testing.T) {
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	f = recipes.NewMockRecipeFetcher()
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	_ = i.Install()
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallStartedCallCount)
 }
@@ -376,7 +377,7 @@ func TestInstall_InstallComplete(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -394,7 +395,7 @@ func TestInstall_InstallCanceled(t *testing.T) {
 	f = recipes.NewMockRecipeFetcher()
 	f.FetchRecipesErr = types.ErrInterrupt
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -419,7 +420,7 @@ func TestInstall_InstallCompleteError(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateErr = errors.New("test error")
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -451,7 +452,7 @@ func TestInstall_InstallCompleteError_NoFailureWhenAnyRecipeSucceeds(t *testing.
 		errors.New("testing error"),
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -482,7 +483,7 @@ func TestInstall_RecipeSkipped(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -515,7 +516,7 @@ func TestInstall_RecipeSkippedApm(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -548,7 +549,7 @@ func TestInstall_RecipeSkippedApmAnyKeyword(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -586,7 +587,7 @@ func TestInstall_RecipeSkipped_SkipIntegrations(t *testing.T) {
 		PromptMultiSelectVal: []string{},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -616,7 +617,7 @@ func TestInstall_RecipeSkipped_MultiSelect(t *testing.T) {
 		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -679,7 +680,7 @@ func TestInstall_RecipeRecommended(t *testing.T) {
 		PromptMultiSelectVal: []string{testRecipeName},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -716,7 +717,7 @@ func TestInstall_RecipeSkipped_AssumeYes(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -739,7 +740,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgent(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -768,7 +769,7 @@ func TestInstall_TargetedInstall_FilterAllButProvided(t *testing.T) {
 
 	v = validation.NewMockRecipeValidator()
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -796,7 +797,7 @@ func TestInstall_TargetedInstall_InstallsInfraAgentDependency(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -819,7 +820,7 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -847,7 +848,7 @@ func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.Error(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -876,7 +877,7 @@ func TestInstall_TargetedInstall_SkipInfraDependency(t *testing.T) {
 		},
 	}
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -916,7 +917,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	// Test for NEW_RELIC_CLI_VERSION
 	os.Setenv("NEW_RELIC_CLI_VERSION", "v0.0.1")
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, lkf, cv, rvp, rf, pf, cpi, av}
+	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
 	err := i.Install()
 	require.NoError(t, err)
 	require.Equal(t, 2, rv.ValidateCallCount)
