@@ -1,3 +1,8 @@
+<a name="v0.35.1"></a>
+## [v0.35.1] - 2021-09-16
+### Bug Fixes
+- **install:** add defensive code to trim whitespace from version string so version check works again
+
 <a name="v0.35.0"></a>
 ## [v0.35.0] - 2021-09-15
 ### Bug Fixes
@@ -1207,7 +1212,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.1...HEAD
+[v0.35.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.0...v0.35.1
 [v0.35.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.39...v0.35.0
 [v0.34.39]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.38...v0.34.39
 [v0.34.38]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.37...v0.34.38
