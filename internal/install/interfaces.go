@@ -48,11 +48,3 @@ type RecipeVarPreparer interface {
 type RecipeRepository interface {
 	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
 }
-
-type PacksInstaller interface {
-	Install(ctx context.Context, packs []types.OpenInstallationObservabilityPack) error
-}
-
-type PacksFetcher interface {
-	FetchPacks(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationObservabilityPack, error)
-}

@@ -15,7 +15,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
-	"github.com/newrelic/newrelic-cli/internal/install/packs"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
@@ -41,8 +40,6 @@ type RecipeInstaller struct {
 	configValidator             ConfigValidator
 	recipeVarPreparer           RecipeVarPreparer
 	recipeFilterer              RecipeFilterRunner
-	packsFetcher                PacksFetcher
-	packsInstaller              PacksInstaller
 	agentValidator              *validation.AgentValidator
 }
 
@@ -93,8 +90,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	sp := ux.NewSpinner()
 	rvp := execution.NewRecipeVarProvider()
 	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
-	spf := packs.NewServicePacksFetcher(&nrClient.NerdGraph, statusRollup)
-	cpi := packs.NewServicePacksInstaller(nrClient, statusRollup)
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstaller{
@@ -113,8 +108,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		configValidator:             cv,
 		recipeVarPreparer:           rvp,
 		recipeFilterer:              rf,
-		packsFetcher:                spf,
-		packsInstaller:              cpi,
 		agentValidator:              av,
 	}
 
@@ -294,29 +287,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	if err = i.fetchAndInstallPacks(ctx, recipesForInstall); err != nil {
-		return err
-	}
-
 	log.Debugf("Done installing.")
-	return nil
-}
-
-func (i *RecipeInstaller) fetchAndInstallPacks(ctx context.Context, recipesForInstall []types.OpenInstallationRecipe) error {
-	packs, err := i.packsFetcher.FetchPacks(ctx, recipesForInstall)
-	if err != nil {
-		// nolint: golint
-		return fmt.Errorf("Failed to fetch observability packs: %s", err)
-	}
-	log.Debugf("Fetched Packs: %d", len(packs))
-
-	if len(packs) > 0 {
-		if err := i.packsInstaller.Install(ctx, packs); err != nil {
-			// nolint: golint
-			return fmt.Errorf("Failed to install observability pack: %s", err)
-		}
-	}
-
 	return nil
 }
 
