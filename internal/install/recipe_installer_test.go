@@ -182,37 +182,6 @@ func TestInstall_RecipeAvailable(t *testing.T) {
 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
 }
 
-func TestFetchAndInstallPacks(t *testing.T) {
-	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	pf = packs.NewMockPacksFetcher(status)
-	cpi = packs.NewMockPacksInstaller(status)
-
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		{
-			Name:           types.InfraAgentRecipeName,
-			DisplayName:    types.InfraAgentRecipeName,
-			ValidationNRQL: "testNrql",
-			ObservabilityPacks: []types.OpenInstallationObservabilityPackFilter{
-				{
-					Name:  "test",
-					Level: types.OpenInstallationObservabilityPackLevelTypes.NEWRELIC,
-				},
-			},
-		},
-	}
-
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, pf, cpi, av}
-	err := i.Install()
-	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ObservabilityPackFetchPendingCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ObservabilityPackFetchSuccessCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ObservabilityPackInstallPendingCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).ObservabilityPackInstallSuccessCallCount)
-}
-
 func TestInstall_RecipeInstalled(t *testing.T) {
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}

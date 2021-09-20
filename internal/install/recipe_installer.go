@@ -294,29 +294,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	if err = i.fetchAndInstallPacks(ctx, recipesForInstall); err != nil {
-		return err
-	}
-
 	log.Debugf("Done installing.")
-	return nil
-}
-
-func (i *RecipeInstaller) fetchAndInstallPacks(ctx context.Context, recipesForInstall []types.OpenInstallationRecipe) error {
-	packs, err := i.packsFetcher.FetchPacks(ctx, recipesForInstall)
-	if err != nil {
-		// nolint: golint
-		return fmt.Errorf("Failed to fetch observability packs: %s", err)
-	}
-	log.Debugf("Fetched Packs: %d", len(packs))
-
-	if len(packs) > 0 {
-		if err := i.packsInstaller.Install(ctx, packs); err != nil {
-			// nolint: golint
-			return fmt.Errorf("Failed to install observability pack: %s", err)
-		}
-	}
-
 	return nil
 }
 
