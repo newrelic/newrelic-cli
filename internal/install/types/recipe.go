@@ -61,8 +61,6 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 		r.ProcessMatch = interfaceSliceToStringSlice(v.([]interface{}))
 	}
 
-	r.Quickstarts = expandQuickStarts(recipe)
-
 	r.Repository = toStringByFieldName("repository", recipe)
 
 	if v, ok := recipe["stability"]; ok {
@@ -112,50 +110,6 @@ func getInstallTargetAsString(target OpenInstallationRecipeInstallTarget) string
 		output = fmt.Sprintf("%s/%s", output, target.KernelArch)
 	}
 	return strings.ToLower(output)
-}
-
-func expandQuickStarts(recipe map[string]interface{}) OpenInstallationQuickstartsFilter {
-	v, ok := recipe["quickstarts"]
-	if !ok {
-		return OpenInstallationQuickstartsFilter{}
-	}
-
-	dataIn := v.(map[interface{}]interface{})
-	reData := map[string]interface{}{}
-	for k, v := range dataIn {
-		reData[k.(string)] = v
-	}
-
-	dataOut := OpenInstallationQuickstartsFilter{
-		Name:       toStringByFieldName("name", reData),
-		EntityType: expandEntityType(reData),
-	}
-
-	if v, ok := reData["category"]; ok {
-		dataOut.Category = OpenInstallationCategory(v.(string))
-	}
-
-	return dataOut
-}
-
-func expandEntityType(data map[string]interface{}) OpenInstallationQuickstartEntityType {
-	v, ok := data["entityType"]
-	if !ok {
-		return OpenInstallationQuickstartEntityType{}
-	}
-
-	dataIn := v.(map[interface{}]interface{})
-	reData := map[string]interface{}{}
-	for k, v := range dataIn {
-		reData[k.(string)] = v
-	}
-
-	entityType := OpenInstallationQuickstartEntityType{
-		Type:   toStringByFieldName("type", reData),
-		Domain: toStringByFieldName("domain", reData),
-	}
-
-	return entityType
 }
 
 func expandSuccessLinkConfig(recipe map[string]interface{}) OpenInstallationSuccessLinkConfig {
