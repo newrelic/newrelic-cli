@@ -62,7 +62,6 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 	}
 
 	r.Quickstarts = expandQuickStarts(recipe)
-	r.ObservabilityPacks = expandObservabilityPacks(recipe)
 
 	r.Repository = toStringByFieldName("repository", recipe)
 
@@ -113,40 +112,6 @@ func getInstallTargetAsString(target OpenInstallationRecipeInstallTarget) string
 		output = fmt.Sprintf("%s/%s", output, target.KernelArch)
 	}
 	return strings.ToLower(output)
-}
-
-func expandObservabilityPacks(recipe map[string]interface{}) []OpenInstallationObservabilityPackFilter {
-	v, ok := recipe["observabilityPacks"]
-	if !ok {
-		return []OpenInstallationObservabilityPackFilter{}
-	}
-
-	dataIn := v.([]interface{})
-	dataOut := make([]OpenInstallationObservabilityPackFilter, len(dataIn))
-	dataz := make([]map[string]interface{}, len(dataIn))
-
-	for i, vv := range dataIn {
-		vvv := vv.(map[interface{}]interface{})
-		varr := map[string]interface{}{}
-
-		for k, v := range vvv {
-			varr[k.(string)] = v
-			dataz[i] = varr
-		}
-	}
-
-	for i, v := range dataz {
-		vOut := OpenInstallationObservabilityPackFilter{
-			Name: toStringByFieldName("name", v),
-		}
-		if v, ok := v["level"]; ok {
-			vOut.Level = OpenInstallationObservabilityPackLevel(v.(string))
-		}
-
-		dataOut[i] = vOut
-	}
-
-	return dataOut
 }
 
 func expandQuickStarts(recipe map[string]interface{}) OpenInstallationQuickstartsFilter {
