@@ -11,12 +11,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/pkg/common"
 	"github.com/newrelic/newrelic-client-go/pkg/config"
-	"github.com/newrelic/newrelic-client-go/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
 	"github.com/newrelic/newrelic-client-go/pkg/workloads"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestReportRecipeSucceeded_Basic(t *testing.T) {
@@ -174,6 +175,6 @@ func createEntity(t *testing.T, accountID int, c *newrelic.NewRelic) string {
 }
 
 func deleteEntity(t *testing.T, guid string, c *newrelic.NewRelic) {
-	_, err := c.Workloads.WorkloadDelete(entities.EntityGUID(guid))
+	_, err := c.Workloads.WorkloadDelete(common.EntityGUID(guid))
 	require.NoError(t, err)
 }

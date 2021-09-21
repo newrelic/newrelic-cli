@@ -7,11 +7,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-client-go/pkg/common"
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
+
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/pipe"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/pkg/entities"
 )
 
 var (
@@ -42,11 +44,11 @@ The get command returns JSON output of the tags for the requested entity.
 	Run: func(cmd *cobra.Command, args []string) {
 		// Temporary until bulk actions can be build into newrelic-client-go
 		if value, ok := pipe.Get("guid"); ok {
-			tags, err := client.NRClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, entities.EntityGUID(value[0]))
+			tags, err := client.NRClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, common.EntityGUID(value[0]))
 			utils.LogIfFatal(err)
 			utils.LogIfError(output.Print(tags))
 		} else {
-			tags, err := client.NRClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID))
+			tags, err := client.NRClient.Entities.GetTagsForEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID))
 			utils.LogIfFatal(err)
 			utils.LogIfError(output.Print(tags))
 		}
@@ -64,7 +66,7 @@ that match the specified keys.
 	Example: "newrelic entity tags delete --guid <entityGUID> --tag tag1 --tag tag2 --tag tag3,tag4",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := client.NRClient.Entities.TaggingDeleteTagFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), entityTags)
+		_, err := client.NRClient.Entities.TaggingDeleteTagFromEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID), entityTags)
 		utils.LogIfFatal(err)
 
 		log.Info("success")
@@ -84,7 +86,7 @@ The delete-values command deletes the specified tag:value pairs on a given entit
 		tagValues, err := assembleTagValuesInput(entityValues)
 		utils.LogIfFatal(err)
 
-		_, err = client.NRClient.Entities.TaggingDeleteTagValuesFromEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tagValues)
+		_, err = client.NRClient.Entities.TaggingDeleteTagValuesFromEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID), tagValues)
 		utils.LogIfFatal(err)
 
 		log.Info("success")
@@ -104,7 +106,7 @@ The create command adds tag:value pairs to the given entity.
 		tags, err := assembleTagsInput(entityTags)
 		utils.LogIfFatal(err)
 
-		_, err = client.NRClient.Entities.TaggingAddTagsToEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tags)
+		_, err = client.NRClient.Entities.TaggingAddTagsToEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID), tags)
 		utils.LogIfFatal(err)
 
 		log.Info("success")
@@ -125,7 +127,7 @@ provided for the given entity.
 		tags, err := assembleTagsInput(entityTags)
 		utils.LogIfFatal(err)
 
-		_, err = client.NRClient.Entities.TaggingReplaceTagsOnEntityWithContext(utils.SignalCtx, entities.EntityGUID(entityGUID), tags)
+		_, err = client.NRClient.Entities.TaggingReplaceTagsOnEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID), tags)
 		utils.LogIfFatal(err)
 
 		log.Info("success")

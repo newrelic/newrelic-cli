@@ -6,12 +6,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-client-go/pkg/common"
+	"github.com/newrelic/newrelic-client-go/pkg/entities"
+	"github.com/newrelic/newrelic-client-go/pkg/workloads"
+
 	"github.com/newrelic/newrelic-cli/internal/client"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/pkg/entities"
-	"github.com/newrelic/newrelic-client-go/pkg/workloads"
 )
 
 var (
@@ -32,7 +34,7 @@ The get command retrieves a specific workload by its workload GUID.
 	Example: `newrelic workload get --accountId 12345678 --guid MjUyMDUyOHxOUjF8V09SS0xPQUR8MTI4Myt`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		workload, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, []entities.EntityGUID{entities.EntityGUID(guid)})
+		workload, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, []common.EntityGUID{common.EntityGUID(guid)})
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(workload))
@@ -89,7 +91,7 @@ you also have access to.
 
 		if len(entityGUIDs) > 0 {
 			for _, e := range entityGUIDs {
-				createInput.EntityGUIDs = append(createInput.EntityGUIDs, entities.EntityGUID(e))
+				createInput.EntityGUIDs = append(createInput.EntityGUIDs, common.EntityGUID(e))
 			}
 		}
 
@@ -134,7 +136,7 @@ entities from different sub-accounts that you also have access to.
 
 		if len(entityGUIDs) > 0 {
 			for _, e := range entityGUIDs {
-				updateInput.EntityGUIDs = append(updateInput.EntityGUIDs, entities.EntityGUID(e))
+				updateInput.EntityGUIDs = append(updateInput.EntityGUIDs, common.EntityGUID(e))
 			}
 		}
 
@@ -150,7 +152,7 @@ entities from different sub-accounts that you also have access to.
 			updateInput.ScopeAccounts = &workloads.WorkloadScopeAccountsInput{AccountIDs: scopeAccountIDs}
 		}
 
-		workload, err := client.NRClient.Workloads.WorkloadUpdateWithContext(utils.SignalCtx, entities.EntityGUID(guid), updateInput)
+		workload, err := client.NRClient.Workloads.WorkloadUpdateWithContext(utils.SignalCtx, common.EntityGUID(guid), updateInput)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(workload))
@@ -177,7 +179,7 @@ compose the new name.
 			Name: name,
 		}
 
-		workload, err := client.NRClient.Workloads.WorkloadDuplicateWithContext(utils.SignalCtx, accountID, entities.EntityGUID(guid), duplicateInput)
+		workload, err := client.NRClient.Workloads.WorkloadDuplicateWithContext(utils.SignalCtx, accountID, common.EntityGUID(guid), duplicateInput)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(workload))
@@ -195,7 +197,7 @@ The delete command accepts a workload's entity GUID.
 	Example: `newrelic workload delete --guid 'MjUyMDUyOHxBOE28QVBQTElDQVRDT058MjE1MDM3Nzk1'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		_, err := client.NRClient.Workloads.WorkloadDeleteWithContext(utils.SignalCtx, entities.EntityGUID(guid))
+		_, err := client.NRClient.Workloads.WorkloadDeleteWithContext(utils.SignalCtx, common.EntityGUID(guid))
 		utils.LogIfFatal(err)
 
 		log.Info("success")
