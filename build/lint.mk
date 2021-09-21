@@ -31,7 +31,7 @@ GOTOOLS += github.com/client9/misspell/cmd/misspell \
 		   gotest.tools/gotestsum
 
 
-lint: deps spell-check gofmt lint-commit golangci goimports outdated
+lint: deps spell-check gofmt lint-commit golangci goimports outdated tools-outdated
 lint-fix: deps gofmt-fix goimports
 
 #
