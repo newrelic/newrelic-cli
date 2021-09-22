@@ -35,7 +35,11 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 		PlatformVersion: i.PlatformVersion,
 	}
 
+	log.Debugf("discovered manifest %+v", m)
+
 	m = filterValues(m)
+
+	log.Debugf("filtered manifest %+v", m)
 
 	pids, err := process.PidsWithContext(ctx)
 	if err != nil {
