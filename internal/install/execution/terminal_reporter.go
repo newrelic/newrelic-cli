@@ -2,10 +2,13 @@ package execution
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 )
 
 type TerminalStatusReporter struct{}
@@ -72,10 +75,6 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		return nil
 	}
 
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) {
-		fmt.Printf("  One or more installations failed.  Check the install log for more details: %s\n", status.LogFilePath)
-	}
-
 	recs := status.recommendations()
 
 	if len(recs) > 0 {
@@ -91,25 +90,52 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("  ---")
 	}
 
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
-		fmt.Println("  New Relic installation complete!")
-	}
-
 	linkToData := ""
 	if status.PlatformLinkGenerator != nil {
 		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
 	}
 
-	if linkToData != "" {
-		fmt.Printf("  Your data is available at %s", linkToData)
-	}
+	hasStatuses := len(status.Statuses) > 0
+	if hasStatuses {
+		hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
 
-	fmt.Println()
+		if hasInstalledRecipes {
+			fmt.Print("\n  New Relic installation complete \n\n")
+		}
+
+		fmt.Println("  --------------------")
+		fmt.Println("  Installation Summary")
+		fmt.Println("")
+		printInstallationSummary(status)
+
+		msg := "View your data at the link below:\n"
+		followInstructionsMsg := "Follow the instructions at the URL below to complete the installation process."
+		if hasInstalledRecipes && (status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) || status.hasAnyRecipeStatus(RecipeStatusTypes.UNSUPPORTED)) {
+			msg = fmt.Sprintf("Installation was successful overall, however, one or more installations could not be completed.\n  %s \n\n", followInstructionsMsg)
+		} else if !hasInstalledRecipes {
+			msg = fmt.Sprintf("Installation incomplete. %s \n\n", followInstructionsMsg)
+		}
+
+		if linkToData != "" {
+			fmt.Printf("\n  %s", msg)
+			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
+		}
+
+		fmt.Println()
+		fmt.Println("\n  --------------------")
+		fmt.Println()
+	}
 
 	return nil
 }
 
 func (r TerminalStatusReporter) InstallCanceled(status *InstallStatus) error {
+	fmt.Print("\n\n")
+	fmt.Println("  Installation canceled.")
+	fmt.Println("  To finish your installation please use New Relic's installation wizard using the following link.")
+	fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), status.PlatformLinkGenerator.GenerateRedirectURL(*status))
+	fmt.Print("\n\n")
+
 	return nil
 }
 
@@ -123,4 +149,24 @@ func (r TerminalStatusReporter) RecipeUnsupported(status *InstallStatus, event R
 
 func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
+}
+
+func printInstallationSummary(status *InstallStatus) {
+	for _, s := range status.Statuses {
+		statusSuffix := strings.ToLower(string(s.Status))
+
+		if s.Status == RecipeStatusTypes.INSTALLED {
+			statusSuffix = color.GreenString(statusSuffix)
+		}
+
+		if s.Status == RecipeStatusTypes.FAILED {
+			statusSuffix = color.YellowString("incomplete")
+		}
+
+		if s.Status == RecipeStatusTypes.UNSUPPORTED {
+			statusSuffix = color.RedString(statusSuffix)
+		}
+
+		fmt.Printf("  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
+	}
 }

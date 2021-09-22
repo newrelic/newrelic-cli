@@ -331,8 +331,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			lastError = err
 
 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-			log.Warn(err)
-			log.Warn(i.failMessage(r.DisplayName))
+			log.Debug(err)
 		}
 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
 	}
@@ -343,7 +342,9 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 	}
 
 	if !i.status.WasSuccessful() {
-		return fmt.Errorf("no recipes were installed")
+		return &types.UncaughtError{
+			Err: fmt.Errorf("no recipes were installed"),
+		}
 	}
 
 	return nil
@@ -490,7 +491,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 }
 
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
-	msg := fmt.Sprintf("Installing %s", r.Name)
+	msg := fmt.Sprintf("Installing %s", r.DisplayName)
 	i.executionProgressIndicator.Start(msg)
 	defer func() { i.executionProgressIndicator.Stop() }()
 
@@ -510,7 +511,11 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 
 	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 	if err != nil {
-		i.executionProgressIndicator.Fail(msg)
+		if errors.Is(err, types.ErrInterrupt) {
+			i.executionProgressIndicator.Canceled(msg)
+		} else {
+			i.executionProgressIndicator.Fail(msg)
+		}
 		return "", err
 	}
 
@@ -520,12 +525,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 
 	i.executionProgressIndicator.Success(msg)
 	return entityGUID, nil
-}
-
-func (i *RecipeInstaller) failMessage(componentName string) error {
-	searchURL := "https://docs.newrelic.com/docs/using-new-relic/cross-product-functions/troubleshooting/not-seeing-data/"
-
-	return fmt.Errorf("execution of %s failed, please see the following link for clues on how to resolve the issue: %s", componentName, searchURL)
 }
 
 func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {

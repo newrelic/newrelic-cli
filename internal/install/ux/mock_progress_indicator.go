@@ -17,3 +17,6 @@ func (s *MockProgressIndicator) Start(string) {
 
 func (s MockProgressIndicator) Stop() {
 }
+
+func (s MockProgressIndicator) Canceled(string) {
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
@@ -42,6 +43,7 @@ type InstallStatus struct {
 	statusSubscriber      []StatusSubscriber
 	successLinkConfig     types.OpenInstallationSuccessLinkConfig
 	PlatformLinkGenerator LinkGenerator
+	recipesSelected       []types.OpenInstallationRecipe
 }
 
 type RecipeStatus struct {
@@ -82,6 +84,14 @@ type StatusError struct {
 	TaskPath []string `json:"taskPath"`
 }
 
+var StatusIconMap = map[RecipeStatusType]string{
+	RecipeStatusTypes.INSTALLED:   ux.IconSuccess,
+	RecipeStatusTypes.FAILED:      ux.IconError,
+	RecipeStatusTypes.UNSUPPORTED: ux.IconUnsupported,
+	RecipeStatusTypes.SKIPPED:     ux.IconMinus,
+	RecipeStatusTypes.CANCELED:    ux.IconMinus,
+}
+
 func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
 		InstallID:             uuid.New().String(),
@@ -118,6 +128,8 @@ func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
 }
 
 func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) {
+	s.recipesSelected = recipes
+
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipesSelected(s, recipes); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
@@ -244,6 +256,15 @@ func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
 	}
 
 	return false
+}
+
+func (s *InstallStatus) AllSelectedRecipesInstalled() bool {
+	installedCount := len(s.Installed)
+	if installedCount == 0 {
+		return false
+	}
+
+	return installedCount == len(s.recipesSelected)
 }
 
 func (s *InstallStatus) SetTargetedInstall() {
@@ -424,6 +445,7 @@ func (s *InstallStatus) canceled() {
 	}).Debug("canceled")
 
 	s.updateFinalInstallationStatuses(true, false)
+	s.setRedirectURL()
 }
 
 func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus {

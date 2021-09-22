@@ -155,7 +155,7 @@ func isWindowsOS() bool {
 }
 
 func fetchLatestRelease(ctx context.Context) (string, error) {
-	client := utils.NewHTTPClient()
+	client := utils.NewHTTPClient("")
 
 	respBytes, err := client.Get(ctx, NewRelicCLILatestReleaseURL)
 	if err != nil {

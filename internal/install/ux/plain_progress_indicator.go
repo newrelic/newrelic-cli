@@ -22,6 +22,7 @@ func (p *PlainProgress) Start(msg string) {
 	x.Printf(" %s", msg)
 
 	fmt.Printf("...\n")
+	fmt.Println()
 }
 
 func (p *PlainProgress) Success(msg string) {
@@ -39,7 +40,16 @@ func (p *PlainProgress) Fail(msg string) {
 	x := color.New(color.Bold)
 	x.Printf(" %s", msg)
 
-	fmt.Printf("...failed.\n\n")
+	fmt.Printf("...incomplete.\n\n")
+}
+
+func (p *PlainProgress) Canceled(msg string) {
+	c := color.New(color.FgCyan)
+	c.Printf("==>")
+	x := color.New(color.Bold)
+	x.Printf(" %s", msg)
+
+	fmt.Printf("...canceled.\n\n")
 }
 
 func (p *PlainProgress) Stop() {}

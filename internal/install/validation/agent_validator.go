@@ -112,6 +112,6 @@ func (v *AgentValidator) executeAgentValidationRequest(ctx context.Context, url 
 
 func getDefaultClientFunc() clientFunc {
 	return func(ctx context.Context, url string) ([]byte, error) {
-		return utils.NewHTTPClient().Get(ctx, url)
+		return utils.NewHTTPClient("").Get(ctx, url)
 	}
 }
