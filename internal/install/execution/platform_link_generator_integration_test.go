@@ -4,6 +4,8 @@
 package execution
 
 import (
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -11,6 +13,8 @@ import (
 
 func TestGenerateShortNewRelicURL(t *testing.T) {
 	t.Parallel()
+
+	skipTestIfMissingEnvVars(t, []string{"NEW_RELIC_API_KEY"})
 
 	g := NewPlatformLinkGenerator()
 
@@ -54,4 +58,12 @@ func TestGenerateShortNewRelicURL_NonNewRelicURL(t *testing.T) {
 	result, _ := g.generateShortNewRelicURL(longURL)
 
 	require.Equal(t, result, longURL)
+}
+
+func skipTestIfMissingEnvVars(t *testing.T, vars []string) {
+	for _, v := range vars {
+		if os.Getenv(v) == "" {
+			t.Skipf("Skipping test. The following environment variables are required to run this test: %s", strings.Join(vars[:], ", "))
+		}
+	}
 }
