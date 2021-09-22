@@ -162,7 +162,7 @@ func fetchLatestRelease(ctx context.Context) (string, error) {
 		return "", err
 	}
 
-	gitTag := string(respBytes)
+	gitTag := strings.TrimSpace(string(respBytes))
 	_, err = semver.NewVersion(gitTag)
 	if err != nil {
 		return "", err

@@ -1,14 +1,16 @@
+//go:build unit
 // +build unit
 
 package migrate
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPopulateV4ConfigRelativePath(t *testing.T) {

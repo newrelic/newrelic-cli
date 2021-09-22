@@ -17,7 +17,7 @@ GOLINTER      = golangci-lint
 EXCLUDEDIR      ?= .git
 SRCDIR          ?= .
 GO_PKGS         ?= $(shell ${GO} list ./... | grep -v -e "/vendor/" -e "/example")
-FILES           ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/')
+FILES           ?= $(shell find ${SRCDIR} -type f | grep -v -e '.git/' -e '/vendor/' -e 'go.sum')
 GO_FILES        ?= $(shell find $(SRCDIR) -type f -name "*.go" | grep -v -e ".git/" -e '/vendor/' -e '/example/')
 PROJECT_MODULE  ?= $(shell $(GO) list -m)
 
@@ -31,7 +31,7 @@ GOTOOLS += github.com/client9/misspell/cmd/misspell \
 		   gotest.tools/gotestsum
 
 
-lint: deps spell-check gofmt lint-commit golangci goimports outdated
+lint: deps spell-check gofmt lint-commit golangci goimports outdated tools-outdated
 lint-fix: deps gofmt-fix goimports
 
 #
@@ -47,11 +47,11 @@ spell-check-fix: deps
 
 gofmt: deps
 	@echo "=== $(PROJECT_NAME) === [ gofmt            ]: Checking file format with $(GOFMT)..."
-	@find . -path "$(EXCLUDEDIR)" -prune -print0 | xargs -0 $(GOFMT) -e -l -s -d ${SRCDIR}
+	@$(GOFMT) -e -l -s -d $(GO_FILES)
 
 gofmt-fix: deps
 	@echo "=== $(PROJECT_NAME) === [ gofmt-fix        ]: Fixing file format with $(GOFMT)..."
-	@find . -path "$(EXCLUDEDIR)" -prune -print0 | xargs -0 $(GOFMT) -e -l -s -w ${SRCDIR}
+	@$(GOFMT) -e -l -s -w $(GO_FILES)
 
 goimports: deps
 	@echo "=== $(PROJECT_NAME) === [ goimports        ]: Checking imports with $(GOIMPORTS)..."

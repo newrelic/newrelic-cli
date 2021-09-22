@@ -71,30 +71,6 @@ func (r InstallEventsReporter) InstallComplete(status *InstallStatus) error {
 	return r.createInstallStatusEvent(installevents.InstallationInstallStateTypeTypes.COMPLETED, status, RecipeStatusEvent{})
 }
 
-func (r InstallEventsReporter) ObservabilityPackFetchPending(status *InstallStatus) error {
-	return nil
-}
-
-func (r InstallEventsReporter) ObservabilityPackFetchSuccess(status *InstallStatus) error {
-	return nil
-}
-
-func (r InstallEventsReporter) ObservabilityPackFetchFailed(status *InstallStatus) error {
-	return nil
-}
-
-func (r InstallEventsReporter) ObservabilityPackInstallPending(status *InstallStatus) error {
-	return nil
-}
-
-func (r InstallEventsReporter) ObservabilityPackInstallSuccess(status *InstallStatus) error {
-	return nil
-}
-
-func (r InstallEventsReporter) ObservabilityPackInstallFailed(status *InstallStatus) error {
-	return nil
-}
-
 func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	return nil
 }
