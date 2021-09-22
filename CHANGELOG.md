@@ -1,3 +1,9 @@
+<a name="v0.36.0"></a>
+## [v0.36.0] - 2021-09-22
+### Features
+- **install:** add installation summary for newrelic install command
+- **install:** provide redirect URL for fallback installation, add installation summary
+
 <a name="v0.35.2"></a>
 ## [v0.35.2] - 2021-09-20
 <a name="v0.35.1"></a>
@@ -716,7 +722,7 @@
 <a name="v0.18.19"></a>
 ## [v0.18.19] - 2021-01-27
 ### Bug Fixes
-- **install:** ensure prompt respones are handled correctly
+- **install:** ensure prompt response are handled correctly
 
 <a name="v0.18.18"></a>
 ## [v0.18.18] - 2021-01-25
@@ -1214,7 +1220,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.0...HEAD
+[v0.36.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.2...v0.36.0
 [v0.35.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.1...v0.35.2
 [v0.35.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.0...v0.35.1
 [v0.35.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.39...v0.35.0
