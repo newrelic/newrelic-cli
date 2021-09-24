@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -79,25 +80,42 @@ func (c *HTTPClient) Post(ctx context.Context, url string, requestBody []byte) (
 func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 	resp, err := c.httpClient.Do(req)
 
+	if err != nil {
+		if strings.Contains(err.Error(), "context canceled") {
+			return resp, err
+		}
+	}
+
+	respStatusCode := getResponseCodeString(resp)
 	if err != nil || !isResponseSuccess(resp) {
 		log.WithFields(log.Fields{
 			"method":     req.Method,
-			"statusCode": resp.StatusCode,
+			"statusCode": respStatusCode,
 			"url":        req.URL.String(),
 			"error":      err,
 		}).Debug("HTTPClient: error performing request")
 	}
 
 	if !isResponseSuccess(resp) {
-		err = fmt.Errorf("error performing %s request to %s: %d", req.Method, req.URL.String(), resp.StatusCode)
+		err = fmt.Errorf("error performing %s request to %s: %s", req.Method, req.URL.String(), respStatusCode)
 	}
 
 	return resp, err
 }
 
+func getResponseCodeString(resp *http.Response) string {
+	if resp == nil {
+		return ""
+	}
+	return fmt.Sprintf("%d", resp.StatusCode)
+}
+
 // Ensures the response status code falls within the
 // status codes that are commonly considered successful.
 func isResponseSuccess(resp *http.Response) bool {
+	if resp == nil {
+		return false
+	}
 	statusCode := resp.StatusCode
 
 	return statusCode >= http.StatusOK && statusCode <= 299
