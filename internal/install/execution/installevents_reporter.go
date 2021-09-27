@@ -5,10 +5,11 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-client-go/pkg/common"
+	"github.com/newrelic/newrelic-client-go/pkg/installevents"
+
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-client-go/pkg/entities"
-	"github.com/newrelic/newrelic-client-go/pkg/installevents"
 )
 
 type InstallEventsReporter struct {
@@ -87,7 +88,7 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			Status:                         installevents.InstallationRecipeStatusType(ss.Status),
 			Name:                           ss.Name,
 			DisplayName:                    ss.DisplayName,
-			EntityGUID:                     entities.EntityGUID(ss.EntityGUID),
+			EntityGUID:                     common.EntityGUID(ss.EntityGUID),
 			ValidationDurationMilliseconds: ss.ValidationDurationMs,
 			HostName:                       status.DiscoveryManifest.Hostname,
 			KernelArch:                     status.DiscoveryManifest.KernelArch,
@@ -188,7 +189,7 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 	if event != nil {
 		i.Name = event.Recipe.Name
 		i.DisplayName = event.Recipe.DisplayName
-		i.EntityGUID = entities.EntityGUID(event.EntityGUID)
+		i.EntityGUID = common.EntityGUID(event.EntityGUID)
 		i.ValidationDurationMilliseconds = event.ValidationDurationMs
 		i.TaskPath = strings.Join(event.TaskPath, ",")
 	}

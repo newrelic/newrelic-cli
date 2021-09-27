@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/newrelic/newrelic-client-go/pkg/common"
 	"github.com/newrelic/newrelic-client-go/pkg/entities"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
@@ -54,7 +55,7 @@ The search command performs a query for an APM application name and/or account I
 			}
 
 			var singleResult *entities.EntityInterface
-			singleResult, err = client.NRClient.Entities.GetEntity(entities.EntityGUID(appGUID))
+			singleResult, err = client.NRClient.Entities.GetEntity(common.EntityGUID(appGUID))
 			utils.LogIfFatal(err)
 			utils.LogIfFatal(output.Print(*singleResult))
 		} else {
@@ -101,7 +102,7 @@ The get command performs a query for an APM application by GUID.
 		var err error
 
 		if appGUID != "" {
-			results, err = client.NRClient.Entities.GetEntity(entities.EntityGUID(appGUID))
+			results, err = client.NRClient.Entities.GetEntity(common.EntityGUID(appGUID))
 			utils.LogIfFatal(err)
 		} else {
 			utils.LogIfError(cmd.Help())
