@@ -67,6 +67,7 @@ var RecipeStatusTypes = struct {
 	SKIPPED     RecipeStatusType
 	RECOMMENDED RecipeStatusType
 	UNSUPPORTED RecipeStatusType
+	DETECTED    RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
 	CANCELED:    "CANCELED",
@@ -76,6 +77,7 @@ var RecipeStatusTypes = struct {
 	SKIPPED:     "SKIPPED",
 	RECOMMENDED: "RECOMMENDED",
 	UNSUPPORTED: "UNSUPPORTED",
+	DETECTED:    "DETECTED",
 }
 
 type StatusError struct {
@@ -113,6 +115,17 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 	for _, r := range s.statusSubscriber {
 		if err := r.DiscoveryComplete(s, dm); err != nil {
 			log.Debugf("Could not report discovery info: %s", err)
+		}
+	}
+}
+
+// RecipeCompatilityDetected handles setting the DETECTED status for the provided instrumentation recipe.
+func (s *InstallStatus) RecipeCompatilityDetected(recipe types.OpenInstallationRecipe) {
+	s.withDetectedRecipe(recipe)
+
+	for _, r := range s.statusSubscriber {
+		if err := r.RecipeDetected(s, recipe); err != nil {
+			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
 }
@@ -303,6 +316,11 @@ func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRec
 func (s *InstallStatus) withAvailableRecipe(r types.OpenInstallationRecipe) {
 	e := RecipeStatusEvent{Recipe: r}
 	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
+}
+
+func (s *InstallStatus) withDetectedRecipe(r types.OpenInstallationRecipe) {
+	e := RecipeStatusEvent{Recipe: r}
+	s.withRecipeEvent(e, RecipeStatusTypes.DETECTED)
 }
 
 func (s *InstallStatus) withSuccessLinkConfig(l types.OpenInstallationSuccessLinkConfig) {

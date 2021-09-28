@@ -28,6 +28,10 @@ func NewNerdStorageStatusReporter(client NerdStorageClient) *NerdstorageStatusRe
 	return &r
 }
 
+func (r NerdstorageStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+	return nil
+}
+
 func (r NerdstorageStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	return nil
 }
