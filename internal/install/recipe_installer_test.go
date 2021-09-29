@@ -899,6 +899,31 @@ func TestInstall_GuidReport(t *testing.T) {
 	}
 }
 
+func TestInstall_RecipeDetected(t *testing.T) {
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+	ic := types.InstallerContext{}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f = recipes.NewMockRecipeFetcher()
+
+	recipe := types.OpenInstallationRecipe{
+		Name:           testRecipeName,
+		ValidationNRQL: "testNrql",
+	}
+
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{recipe}
+
+	v = validation.NewMockRecipeValidator()
+
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+
+	err := i.Install()
+
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+}
+
 func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
 	return testRecipeFile, nil
 }
