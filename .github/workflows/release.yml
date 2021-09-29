@@ -218,6 +218,7 @@ jobs:
 
       - name: Upload chocolatey package
         shell: bash
+        continue-on-error: true
         run: make chocolatey-publish
         env:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
