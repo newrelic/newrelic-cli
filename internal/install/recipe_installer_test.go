@@ -14,6 +14,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -881,9 +882,6 @@ func TestInstall_GuidReport(t *testing.T) {
 	rv := validation.NewMockRecipeValidator()
 	rv.ValidateVal = "GUID"
 
-	// Test for NEW_RELIC_CLI_VERSION
-	os.Setenv("NEW_RELIC_CLI_VERSION", "v0.0.1")
-
 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 	err := i.Install()
 	require.NoError(t, err)
@@ -892,14 +890,14 @@ func TestInstall_GuidReport(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
 	require.Equal(t, rv.ValidateVal, statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[types.InfraAgentRecipeName])
 	require.Equal(t, rv.ValidateVal, statusReporters[0].(*execution.MockStatusReporter).RecipeGUID[testRecipeName])
-	require.Equal(t, status.CLIVersion, "v0.0.1")
+	require.Equal(t, status.CLIVersion, cli.Version())
 	require.Equal(t, 3, len(statusReporters[0].(*execution.MockStatusReporter).Durations))
 	for _, duration := range statusReporters[0].(*execution.MockStatusReporter).Durations {
 		require.Less(t, int64(0), duration)
 	}
 }
 
-func TestInstall_RecipeDetected(t *testing.T) {
+func TestInstall_DetectedRecipe(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
@@ -922,6 +920,53 @@ func TestInstall_RecipeDetected(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+}
+
+func TestInstall_DetectedMultipleRecipes(t *testing.T) {
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+	ic := types.InstallerContext{}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f = recipes.NewMockRecipeFetcher()
+
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+		// Should NOT be detected
+		{
+			Name:           "incompatible-recipe-1",
+			ValidationNRQL: "testNrql",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				RequireAtDiscovery: `exit 132`,
+			},
+		},
+		// Should NOT be detected
+		{
+			Name:           "incompatible-recipe-2",
+			ValidationNRQL: "testNrql",
+			PreInstall: types.OpenInstallationPreInstallConfiguration{
+				RequireAtDiscovery: `exit 132`,
+			},
+		},
+		// Should be detected
+		{
+			Name:           "compatible-recipe-1",
+			ValidationNRQL: "testNrql",
+		},
+		// Should be detected
+		{
+			Name:           "compatible-recipe-2",
+			ValidationNRQL: "testNrql",
+		},
+	}
+
+	v = validation.NewMockRecipeValidator()
+
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+
+	err := i.Install()
+
+	require.NoError(t, err)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
