@@ -119,7 +119,6 @@ func NewProcessMatchRecipeFilterer() *ProcessMatchRecipeFilterer {
 
 func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	matches := f.processMatchFinder.FindMatches(ctx, m.DiscoveredProcesses, *r)
-
 	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
 
 	if filtered {

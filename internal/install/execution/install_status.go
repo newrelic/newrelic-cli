@@ -119,7 +119,10 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 	}
 }
 
-// RecipeCompatilityDetected handles setting the DETECTED status for the provided instrumentation recipe.
+// RecipeCompatilityDetected handles setting the DETECTED status for the provided
+// recipe as well sending out the DETECTED status event to the install events service.
+// RecipeCompatilityDetected is called when a recipe is available and passes the checks in both
+// the process match and the pre-install steps of recipe execution.
 func (s *InstallStatus) RecipeCompatilityDetected(recipe types.OpenInstallationRecipe) {
 	s.withDetectedRecipe(recipe)
 
