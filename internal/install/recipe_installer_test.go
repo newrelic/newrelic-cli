@@ -897,7 +897,7 @@ func TestInstall_GuidReport(t *testing.T) {
 	}
 }
 
-func TestInstall_DetectedRecipe(t *testing.T) {
+func TestInstall_ShouldDetectRecipe(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
@@ -922,7 +922,7 @@ func TestInstall_DetectedRecipe(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
-func TestInstall_DetectedMultipleRecipes(t *testing.T) {
+func TestInstall_ShouldDetectMultipleRecipes(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
@@ -931,22 +931,6 @@ func TestInstall_DetectedMultipleRecipes(t *testing.T) {
 	f = recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		// Should NOT be detected
-		{
-			Name:           "incompatible-recipe-1",
-			ValidationNRQL: "testNrql",
-			PreInstall: types.OpenInstallationPreInstallConfiguration{
-				RequireAtDiscovery: `exit 132`,
-			},
-		},
-		// Should NOT be detected
-		{
-			Name:           "incompatible-recipe-2",
-			ValidationNRQL: "testNrql",
-			PreInstall: types.OpenInstallationPreInstallConfiguration{
-				RequireAtDiscovery: `exit 132`,
-			},
-		},
 		// Should be detected
 		{
 			Name:           "compatible-recipe-1",
@@ -967,6 +951,53 @@ func TestInstall_DetectedMultipleRecipes(t *testing.T) {
 
 	require.NoError(t, err)
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+}
+
+func TestInstall_ShouldNotDetectRecipeWithProcessMatch(t *testing.T) {
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+	ic := types.InstallerContext{}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+
+	incompatiblePHPRecipe := types.OpenInstallationRecipe{
+		Name:           "php-agent-installer",
+		ValidationNRQL: "testNrql",
+		ProcessMatch:   []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `exit 132`, // fails preinstall check, hence incompatible
+		},
+	}
+
+	// Update the matched processes to make sure the preinstall check works
+	status.DiscoveryManifest.MatchedProcesses = []types.MatchedProcess{
+		{
+			MatchingPattern: "apache2",
+			MatchingRecipe:  incompatiblePHPRecipe,
+		},
+	}
+
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f = recipes.NewMockRecipeFetcher()
+
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+		// Should be detected
+		types.OpenInstallationRecipe{
+			Name:           "infrastructure-agent-installer",
+			ValidationNRQL: "testNrql",
+		},
+
+		// Should NOT be detected due to preinstall check failing
+		incompatiblePHPRecipe,
+	}
+
+	v = validation.NewMockRecipeValidator()
+
+	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+
+	err := i.Install()
+
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
