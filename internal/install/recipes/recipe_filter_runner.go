@@ -73,7 +73,7 @@ func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenIn
 		filtered := rf.RunFilter(ctx, &recipe, m)
 
 		if !filtered {
-			rf.installStatus.RecipeCompatilityDetected(recipe)
+			rf.installStatus.RecipeDetected(recipe)
 			results = append(results, recipe)
 		}
 	}
