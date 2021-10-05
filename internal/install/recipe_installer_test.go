@@ -953,11 +953,16 @@ func TestInstall_ShouldDetectMultipleRecipes(t *testing.T) {
 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
-func TestInstall_ShouldNotDetectRecipeWithProcessMatch(t *testing.T) {
+func TestInstall_ShouldNotDetectRecipes(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+
+	infraRecipe := types.OpenInstallationRecipe{
+		Name:           "infrastructure-agent-installer",
+		ValidationNRQL: "testNrql",
+	}
 
 	incompatiblePHPRecipe := types.OpenInstallationRecipe{
 		Name:           "php-agent-installer",
@@ -968,26 +973,49 @@ func TestInstall_ShouldNotDetectRecipeWithProcessMatch(t *testing.T) {
 		},
 	}
 
-	// Update the matched processes to make sure the preinstall check works
-	status.DiscoveryManifest.MatchedProcesses = []types.MatchedProcess{
-		{
-			MatchingPattern: "apache2",
-			MatchingRecipe:  incompatiblePHPRecipe,
+	recipeNoProcessMatch := types.OpenInstallationRecipe{
+		Name:           "mysql-open-source-integration",
+		ValidationNRQL: "testNrql",
+		ProcessMatch:   []string{"mysqld"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `exit 0`,
 		},
 	}
+
+	recipeFailedPrecheck := types.OpenInstallationRecipe{
+		Name:           "mongodb-open-source-integration",
+		ValidationNRQL: "testNrql",
+		ProcessMatch:   []string{"mongod"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `exit 1`,
+		},
+	}
+
+	matchedProcess := mockProcess{
+		cmdline: "apache2",
+		name:    `apache2`,
+		pid:     int32(1234),
+	}
+
+	// Update the matched processes to make sure the preinstall check works
+	status.DiscoveryManifest.DiscoveredProcesses = []types.GenericProcess{matchedProcess}
 
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	f = recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected
-		types.OpenInstallationRecipe{
-			Name:           "infrastructure-agent-installer",
-			ValidationNRQL: "testNrql",
-		},
+		infraRecipe,
 
 		// Should NOT be detected due to preinstall check failing
 		incompatiblePHPRecipe,
+
+		// Should NOT be detected due to zero processes matched
+		recipeNoProcessMatch,
+
+		// Should NOT be detected due to failed preinstall check
+		// even with a matched process.
+		recipeFailedPrecheck,
 	}
 
 	v = validation.NewMockRecipeValidator()
@@ -1006,4 +1034,22 @@ func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, err
 
 func loadRecipeFileFunc(filename string) (*types.OpenInstallationRecipe, error) {
 	return testRecipeFile, nil
+}
+
+type mockProcess struct {
+	cmdline string
+	name    string
+	pid     int32
+}
+
+func (p mockProcess) Name() (string, error) {
+	return p.name, nil
+}
+
+func (p mockProcess) Cmd() (string, error) {
+	return p.cmdline, nil
+}
+
+func (p mockProcess) PID() int32 {
+	return p.pid
 }
