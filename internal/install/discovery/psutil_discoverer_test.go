@@ -12,15 +12,15 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestIsValidOpenInstallationPlatform(t *testing.T) {
-	require.True(t, isValidOpenInstallationPlatform(string(types.OpenInstallationPlatformTypes.AMAZON)))
-	require.True(t, isValidOpenInstallationPlatform(strings.ToLower(string(types.OpenInstallationPlatformTypes.AMAZON))))
-	require.False(t, isValidOpenInstallationPlatform("invalidValue"))
+func TestValidateOpenInstallationPlatform(t *testing.T) {
+	require.Equal(t, validateOpenInstallationPlatform(string(types.OpenInstallationPlatformTypes.AMAZON)), "amazon")
+	require.Equal(t, validateOpenInstallationPlatform(strings.ToLower(string(types.OpenInstallationPlatformTypes.AMAZON))), "amazon")
+	require.Equal(t, validateOpenInstallationPlatform("invalidValue"), "")
 }
 
 func TestIsValidOpenInstallationPlatformFamily(t *testing.T) {
 	require.True(t, isValidOpenInstallationPlatformFamily(string(types.OpenInstallationPlatformFamilyTypes.SUSE)))
-	require.True(t, isValidOpenInstallationPlatform(strings.ToLower(string(types.OpenInstallationPlatformFamilyTypes.SUSE))))
+	require.True(t, isValidOpenInstallationPlatformFamily(strings.ToLower(string(types.OpenInstallationPlatformFamilyTypes.SUSE))))
 	require.False(t, isValidOpenInstallationPlatformFamily("invalidValue"))
 }
 
@@ -32,7 +32,7 @@ func TestFilterValues_ValidPlatform(t *testing.T) {
 	}
 	m = filterValues(m)
 
-	require.Equal(t, string(types.OpenInstallationPlatformTypes.AMAZON), m.Platform)
+	require.Equal(t, strings.ToLower(string(types.OpenInstallationPlatformTypes.AMAZON)), m.Platform)
 	require.Equal(t, string(types.OpenInstallationPlatformFamilyTypes.DEBIAN), m.PlatformFamily)
 }
 
