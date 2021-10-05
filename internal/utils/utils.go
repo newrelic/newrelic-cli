@@ -177,3 +177,8 @@ func IsAbsoluteURL(rawURL string) bool {
 
 	return u.Scheme != "" && u.Host != ""
 }
+
+func IsExitStatusCode(exitCode int, err error) bool {
+	exitCodeString := fmt.Sprintf("exit status %d", exitCode)
+	return strings.Contains(err.Error(), exitCodeString)
+}

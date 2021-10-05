@@ -70,3 +70,61 @@ func TestShouldGetRecipeFirstNameInvalid(t *testing.T) {
 	name := getRecipeFirstName(recipe)
 	require.True(t, name == "")
 }
+
+func TestRecipeFilterRunner_ShouldMatchRecipe(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name:         "test-recipe",
+		ProcessMatch: []string{"php-fpm"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: "exit 0",
+		},
+	}
+
+	matchedProcess := mockProcess{
+		cmdline: "php-fpm",
+		name:    `php-fpm`,
+		pid:     int32(1234),
+	}
+
+	m := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+
+	installStatus := &execution.InstallStatus{
+		DiscoveryManifest: m,
+	}
+
+	r := NewRecipeFilterRunner(types.InstallerContext{}, installStatus)
+
+	filtered := r.RunFilter(context.Background(), &recipe, &m)
+	require.False(t, filtered) // ensure recipe is not filtered out
+}
+
+func TestRecipeFilterRunner_ShouldFilterOutRecipeWithPreInstallError(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name:         "test-recipe",
+		ProcessMatch: []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: "exit 132", // simulate failed preinstall check (should be filtered out)
+		},
+	}
+
+	matchedProcess := mockProcess{
+		cmdline: "apache2",
+		name:    `apache2`,
+		pid:     int32(1234),
+	}
+
+	m := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+
+	installStatus := &execution.InstallStatus{
+		DiscoveryManifest: m,
+	}
+
+	r := NewRecipeFilterRunner(types.InstallerContext{}, installStatus)
+
+	filtered := r.RunFilter(context.Background(), &recipe, &m)
+	require.True(t, filtered)
+}
