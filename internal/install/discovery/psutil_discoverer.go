@@ -67,9 +67,7 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 }
 
 func filterValues(m types.DiscoveryManifest) types.DiscoveryManifest {
-	if !isValidOpenInstallationPlatform(m.Platform) {
-		m.Platform = ""
-	}
+	m.Platform = validateOpenInstallationPlatform(m.Platform)
 
 	if !isValidOpenInstallationPlatformFamily(m.PlatformFamily) {
 		m.PlatformFamily = ""
@@ -78,17 +76,21 @@ func filterValues(m types.DiscoveryManifest) types.DiscoveryManifest {
 	return m
 }
 
-func isValidOpenInstallationPlatform(platform string) bool {
+func validateOpenInstallationPlatform(platform string) string {
 	s := reflect.ValueOf(&types.OpenInstallationPlatformTypes).Elem()
 
 	for i := 0; i < s.NumField(); i++ {
-		v := s.Field(i).Interface().(types.OpenInstallationPlatform)
-		if strings.EqualFold(string(v), platform) {
-			return true
+		value := s.Field(i).Interface().(types.OpenInstallationPlatform)
+
+		v := strings.ToLower(string(value))
+		p := strings.ToLower(platform)
+
+		if strings.Contains(p, v) {
+			return v
 		}
 	}
 
-	return false
+	return ""
 }
 
 func isValidOpenInstallationPlatformFamily(platformFamily string) bool {
