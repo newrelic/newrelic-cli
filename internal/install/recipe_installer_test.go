@@ -897,99 +897,12 @@ func TestInstall_GuidReport(t *testing.T) {
 	}
 }
 
-func TestInstall_ShouldDetectRecipe(t *testing.T) {
+func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	mockDiscoverer := discovery.NewMockDiscoverer()
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
-
-	recipe := types.OpenInstallationRecipe{
-		Name:           testRecipeName,
-		ValidationNRQL: "testNrql",
-	}
-
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{recipe}
-
-	v = validation.NewMockRecipeValidator()
-
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
-	err := i.Install()
-
-	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
-}
-
-func TestInstall_ShouldDetectMultipleRecipes(t *testing.T) {
-	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
-	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
-
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		// Should be detected
-		{
-			Name:           "compatible-recipe-1",
-			ValidationNRQL: "testNrql",
-		},
-		// Should be detected
-		{
-			Name:           "compatible-recipe-2",
-			ValidationNRQL: "testNrql",
-		},
-	}
-
-	v = validation.NewMockRecipeValidator()
-
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
-	err := i.Install()
-
-	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
-}
-
-func TestInstall_ShouldNotDetectRecipes(t *testing.T) {
-	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
-	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-
-	infraRecipe := types.OpenInstallationRecipe{
-		Name:           "infrastructure-agent-installer",
-		ValidationNRQL: "testNrql",
-	}
-
-	incompatiblePHPRecipe := types.OpenInstallationRecipe{
-		Name:           "php-agent-installer",
-		ValidationNRQL: "testNrql",
-		ProcessMatch:   []string{"apache2"},
-		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: `exit 132`, // fails preinstall check, hence incompatible
-		},
-	}
-
-	recipeNoProcessMatch := types.OpenInstallationRecipe{
-		Name:           "mysql-open-source-integration",
-		ValidationNRQL: "testNrql",
-		ProcessMatch:   []string{"mysqld"},
-		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: `exit 0`,
-		},
-	}
-
-	recipeFailedPrecheck := types.OpenInstallationRecipe{
-		Name:           "mongodb-open-source-integration",
-		ValidationNRQL: "testNrql",
-		ProcessMatch:   []string{"mongod"},
-		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: `exit 1`,
-		},
-	}
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -997,34 +910,149 @@ func TestInstall_ShouldNotDetectRecipes(t *testing.T) {
 		pid:     int32(1234),
 	}
 
-	// Update the matched processes to make sure the preinstall check works
-	status.DiscoveryManifest.DiscoveredProcesses = []types.GenericProcess{matchedProcess}
+	dm := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+
+	mockDiscoverer.DiscoveryManifest = &dm
+
+	infraRecipe := types.OpenInstallationRecipe{
+		Name:           "infrastructure-agent-installer",
+		ValidationNRQL: "testNrql",
+	}
+
+	testRecipe := types.OpenInstallationRecipe{
+		Name:           "php-agent-installer",
+		ValidationNRQL: "testNrql",
+		ProcessMatch:   []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `exit 132`,
+		},
+	}
 
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	f = recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		// Should be detected
+		// Should be detected and installed
 		infraRecipe,
 
-		// Should NOT be detected due to preinstall check failing
-		incompatiblePHPRecipe,
-
-		// Should NOT be detected due to zero processes matched
-		recipeNoProcessMatch,
-
-		// Should NOT be detected due to failed preinstall check
-		// even with a matched process.
-		recipeFailedPrecheck,
+		// Should be detected (but not installed) due to preinstall check exiting with 132 status code
+		testRecipe,
 	}
 
 	v = validation.NewMockRecipeValidator()
-
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
-
 	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+}
+
+func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+	ic := types.InstallerContext{}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	mockDiscoverer := discovery.NewMockDiscoverer()
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+
+	matchedProcess := mockProcess{
+		cmdline: "apache2",
+		name:    `apache2`,
+		pid:     int32(1234),
+	}
+
+	dm := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+
+	mockDiscoverer.DiscoveryManifest = &dm
+
+	infraRecipe := types.OpenInstallationRecipe{
+		Name:           "infrastructure-agent-installer",
+		ValidationNRQL: "testNrql",
+	}
+
+	testRecipe := types.OpenInstallationRecipe{
+		Name:           "php-agent-installer",
+		ValidationNRQL: "testNrql",
+		ProcessMatch:   []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `exit 0`, // simulate successfull preinstall check
+		},
+	}
+
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f = recipes.NewMockRecipeFetcher()
+
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+		// Should be detected and installed
+		infraRecipe,
+
+		// Should be detected and installed
+		testRecipe,
+	}
+
+	v = validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+}
+
+func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+	ic := types.InstallerContext{}
+	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	mockDiscoverer := discovery.NewMockDiscoverer()
+	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+
+	matchedProcess := mockProcess{
+		cmdline: "apache2",
+		name:    `apache2`,
+		pid:     int32(1234),
+	}
+
+	dm := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+
+	mockDiscoverer.DiscoveryManifest = &dm
+
+	infraRecipe := types.OpenInstallationRecipe{
+		Name:           "infrastructure-agent-installer",
+		ValidationNRQL: "testNrql",
+	}
+
+	testRecipe := types.OpenInstallationRecipe{
+		Name:           "php-agent-installer",
+		ValidationNRQL: "testNrql",
+		ProcessMatch:   []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: `exit 1`, // simulate misc error in preinstall check
+		},
+	}
+
+	rf := recipes.NewRecipeFilterRunner(ic, status)
+	f = recipes.NewMockRecipeFetcher()
+
+	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+		// Should be detected and installed
+		infraRecipe,
+
+		// Should NOT be detected and should NOT be installed due to error in preinstall check
+		testRecipe,
+	}
+
+	v = validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+
+	err := i.Install()
+	require.NoError(t, err)
+	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 

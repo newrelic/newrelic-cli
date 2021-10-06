@@ -18,7 +18,6 @@ func NewRegexProcessMatchFinder() *RegexProcessMatchFinder {
 }
 
 func (f *RegexProcessMatchFinder) FindMatches(ctx context.Context, processes []types.GenericProcess, recipe types.OpenInstallationRecipe) []types.MatchedProcess {
-
 	matches := []types.MatchedProcess{}
 	for _, p := range processes {
 		m := f.findMatches(recipe, p)
