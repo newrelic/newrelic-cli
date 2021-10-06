@@ -67,10 +67,6 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 }
 
 func filterValues(m types.DiscoveryManifest) types.DiscoveryManifest {
-	if strings.EqualFold(m.Platform, "opensuse-leap") {
-		m.Platform = "suse"
-	}
-
 	if !isValidOpenInstallationPlatform(m.Platform) {
 		m.Platform = ""
 	}

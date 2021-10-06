@@ -30,6 +30,8 @@ var OpenInstallationPlatformTypes = struct {
 	CENTOS OpenInstallationPlatform
 	// Debian operating system
 	DEBIAN OpenInstallationPlatform
+	// openSUSE operating system
+	OPENSUSE OpenInstallationPlatform
 	// RedHat Enterprise Linux operating system
 	REDHAT OpenInstallationPlatform
 	// SUSE operating system
@@ -43,6 +45,8 @@ var OpenInstallationPlatformTypes = struct {
 	CENTOS: "CENTOS",
 	// Debian operating system
 	DEBIAN: "DEBIAN",
+	// openSUSE operating system
+	OPENSUSE: "OPENSUSE-LEAP",
 	// RedHat Enterprise Linux operating system
 	REDHAT: "REDHAT",
 	// SUSE operating system
