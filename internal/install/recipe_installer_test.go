@@ -979,7 +979,7 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 		ValidationNRQL: "testNrql",
 		ProcessMatch:   []string{"apache2"},
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: `exit 0`, // simulate successfull preinstall check
+			RequireAtDiscovery: `exit 0`, // simulate successful preinstall check
 		},
 	}
 
