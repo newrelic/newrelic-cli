@@ -9,6 +9,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 type RecipeFilterRunner struct {
@@ -28,7 +29,7 @@ func NewRecipeFilterRunner(ic types.InstallerContext, s *execution.InstallStatus
 		installStatus: s,
 		availablilityFilters: []RecipeFilterer{
 			NewProcessMatchRecipeFilterer(),
-			NewScriptEvaluationRecipeFilterer(),
+			NewScriptEvaluationRecipeFilterer(s),
 		},
 		userSkippedFilters: []RecipeFilterer{
 			skipFilter,
@@ -73,6 +74,7 @@ func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenIn
 		filtered := rf.RunFilter(ctx, &recipe, m)
 
 		if !filtered {
+			rf.installStatus.RecipeDetected(recipe)
 			results = append(results, recipe)
 		}
 	}
@@ -118,7 +120,6 @@ func NewProcessMatchRecipeFilterer() *ProcessMatchRecipeFilterer {
 
 func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	matches := f.processMatchFinder.FindMatches(ctx, m.DiscoveredProcesses, *r)
-
 	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
 
 	if filtered {
@@ -130,19 +131,26 @@ func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenIn
 
 type ScriptEvaluationRecipeFilterer struct {
 	recipeExecutor execution.RecipeExecutor
+	installStatus  *execution.InstallStatus
 }
 
-func NewScriptEvaluationRecipeFilterer() *ScriptEvaluationRecipeFilterer {
+func NewScriptEvaluationRecipeFilterer(installStatus *execution.InstallStatus) *ScriptEvaluationRecipeFilterer {
 	recipeExecutor := execution.NewShRecipeExecutor()
 
 	return &ScriptEvaluationRecipeFilterer{
 		recipeExecutor: recipeExecutor,
+		installStatus:  installStatus,
 	}
 }
 
 func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
 		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
+
+		if utils.IsExitStatusCode(132, err) {
+			f.installStatus.RecipeDetected(*r)
+		}
+
 		return true
 	}
 
