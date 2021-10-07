@@ -644,40 +644,9 @@ func TestInstall_TargetedInstallInfraAgent_NoInfraAgentDuplicate(t *testing.T) {
 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 }
 
-func TestInstall_TargetedInstall_SkipInfra(t *testing.T) {
-	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
-	ic := types.InstallerContext{
-		SkipInfraInstall: true,
-		RecipeNames:      []string{types.InfraAgentRecipeName, testRecipeName},
-	}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-		{
-			Name:           types.InfraAgentRecipeName,
-			ValidationNRQL: "testNrql",
-		},
-		{
-			Name:           testRecipeName,
-			ValidationNRQL: "testNrql",
-		},
-	}
-
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-	err := i.Install()
-	require.Error(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
-	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
-}
-
 func TestInstall_TargetedInstall_SkipInfraDependency(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
-	ic := types.InstallerContext{
-		SkipInfraInstall: true,
-	}
+	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
 	rf := recipes.NewRecipeFilterRunner(ic, status)

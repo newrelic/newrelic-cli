@@ -6,24 +6,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestShouldInstallInfraAgent_Default(t *testing.T) {
-	ic := InstallerContext{}
-	require.True(t, ic.ShouldInstallInfraAgent())
-
-	ic.SkipInfraInstall = true
-	require.False(t, ic.ShouldInstallInfraAgent())
-}
-
-func TestShouldInstallInfraAgent_RecipePathsProvided(t *testing.T) {
-	ic := InstallerContext{
-		RecipePaths: []string{"testPath"},
-	}
-	require.False(t, ic.ShouldInstallInfraAgent())
-}
-
 func TestRecipeNamesProvided(t *testing.T) {
 	ic := InstallerContext{}
-
 	require.False(t, ic.RecipeNamesProvided())
 
 	ic.RecipeNames = []string{"testName"}

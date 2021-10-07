@@ -19,7 +19,6 @@ type RecipeFilterRunner struct {
 
 func NewRecipeFilterRunner(ic types.InstallerContext, s *execution.InstallStatus) *RecipeFilterRunner {
 	skipFilter := NewSkipFilterer(s)
-	skipFilter.SkipNames(ic.SkipNames()...)
 	skipFilter.OnlyNames(ic.RecipeNames...)
 
 	return &RecipeFilterRunner{

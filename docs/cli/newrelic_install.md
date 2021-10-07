@@ -14,7 +14,6 @@ newrelic install [flags]
       --localRecipes string   a path to local recipes to load instead of service other fetching
   -n, --recipe strings        the name of a recipe to install
   -c, --recipePath strings    the path to a recipe file to install
-  -i, --skipInfra             skips installation for infrastructure agent (only for targeted install)
   -t, --testMode              fakes operations for UX testing
 ```
 

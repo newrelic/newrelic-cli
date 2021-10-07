@@ -10,12 +10,7 @@ type InstallerContext struct {
 	RecipeNames []string
 	RecipePaths []string
 	// LocalRecipes is the path to a local recipe directory from which to load recipes.
-	LocalRecipes     string
-	SkipInfraInstall bool
-}
-
-func (i *InstallerContext) ShouldInstallInfraAgent() bool {
-	return !i.RecipesProvided() && !i.SkipInfraInstall
+	LocalRecipes string
 }
 
 func (i *InstallerContext) RecipePathsProvided() bool {
@@ -28,16 +23,4 @@ func (i *InstallerContext) RecipeNamesProvided() bool {
 
 func (i *InstallerContext) RecipesProvided() bool {
 	return i.RecipePathsProvided() || i.RecipeNamesProvided()
-}
-
-func (i *InstallerContext) SkipNames() []string {
-	skipNames := []string{}
-	if i.RecipesProvided() {
-		// Skip infra only in Targeted
-		if i.SkipInfraInstall {
-			skipNames = append(skipNames, InfraAgentRecipeName)
-		}
-	}
-
-	return skipNames
 }
