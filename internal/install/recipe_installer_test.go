@@ -900,11 +900,11 @@ func TestInstall_GuidReport(t *testing.T) {
 func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	reporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	installStatus := execution.NewInstallStatus(reporters, execution.NewPlatformLinkGenerator())
 	mockOsValidator := discovery.NewMockOsValidator()
-	mv := discovery.NewMockManifestValidator(mockOsValidator)
+	mValidator := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -932,10 +932,10 @@ func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 		},
 	}
 
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f := recipes.NewMockRecipeFetcher()
+	rf := recipes.NewRecipeFilterRunner(ic, installStatus)
+	rFetcher := recipes.NewMockRecipeFetcher()
 
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+	rFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
 		infraRecipe,
 
@@ -943,23 +943,23 @@ func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 		testRecipe,
 	}
 
-	v := validation.NewMockRecipeValidator()
-	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	mrv := validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 2, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	reporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	installStatus := execution.NewInstallStatus(reporters, execution.NewPlatformLinkGenerator())
 	mockOsValidator := discovery.NewMockOsValidator()
-	mv := discovery.NewMockManifestValidator(mockOsValidator)
+	mValidator := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -987,10 +987,10 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 		},
 	}
 
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f := recipes.NewMockRecipeFetcher()
+	rf := recipes.NewRecipeFilterRunner(ic, installStatus)
+	rFetcher := recipes.NewMockRecipeFetcher()
 
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+	rFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
 		infraRecipe,
 
@@ -998,23 +998,23 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 		testRecipe,
 	}
 
-	v := validation.NewMockRecipeValidator()
-	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	mrv := validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+	require.Equal(t, 2, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 2, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	reporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	installStatus := execution.NewInstallStatus(reporters, execution.NewPlatformLinkGenerator())
 	mockOsValidator := discovery.NewMockOsValidator()
-	mv := discovery.NewMockManifestValidator(mockOsValidator)
+	mValidator := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -1039,10 +1039,10 @@ func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 		ProcessMatch:   []string{"apache2"},
 	}
 
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f := recipes.NewMockRecipeFetcher()
+	rf := recipes.NewRecipeFilterRunner(ic, installStatus)
+	rFetcher := recipes.NewMockRecipeFetcher()
 
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+	rFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
 		infraRecipe,
 
@@ -1050,23 +1050,23 @@ func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 		testRecipe,
 	}
 
-	v := validation.NewMockRecipeValidator()
-	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	mrv := validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+	require.Equal(t, 2, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 2, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	reporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	installStatus := execution.NewInstallStatus(reporters, execution.NewPlatformLinkGenerator())
 	mockOsValidator := discovery.NewMockOsValidator()
-	mv := discovery.NewMockManifestValidator(mockOsValidator)
+	mValidator := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "node",
@@ -1091,10 +1091,10 @@ func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 		ProcessMatch:   []string{"apache2"}, // does not match mocked `node` process
 	}
 
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f := recipes.NewMockRecipeFetcher()
+	rf := recipes.NewRecipeFilterRunner(ic, installStatus)
+	rFetcher := recipes.NewMockRecipeFetcher()
 
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+	rFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
 		infraRecipe,
 
@@ -1102,23 +1102,23 @@ func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 		testRecipe,
 	}
 
-	v := validation.NewMockRecipeValidator()
-	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	mrv := validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	reporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	installStatus := execution.NewInstallStatus(reporters, execution.NewPlatformLinkGenerator())
 	mockOsValidator := discovery.NewMockOsValidator()
-	mv := discovery.NewMockManifestValidator(mockOsValidator)
+	mValidator := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -1131,9 +1131,6 @@ func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
 	}
 
 	mockDiscoverer.DiscoveryManifest = &dm
-	mockDiscoverer.SetOs("linux")
-	// mockDiscoverer.SetPlatform("debian")
-	// mockDiscoverer.Set
 
 	infraRecipe := types.OpenInstallationRecipe{
 		Name:           "infrastructure-agent-installer",
@@ -1149,10 +1146,10 @@ func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
 		},
 	}
 
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
+	rf := recipes.NewRecipeFilterRunner(ic, installStatus)
+	rFetcher := recipes.NewMockRecipeFetcher()
 
-	f.FetchRecipesVal = []types.OpenInstallationRecipe{
+	rFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
 		infraRecipe,
 
@@ -1160,13 +1157,13 @@ func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
 		testRecipe,
 	}
 
-	v = validation.NewMockRecipeValidator()
-	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	mrv := validation.NewMockRecipeValidator()
+	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
-	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 }
 
 func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
