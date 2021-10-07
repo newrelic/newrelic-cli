@@ -31,6 +31,7 @@ type MockStatusReporter struct {
 	InstallCanceledCallCount   int
 	DiscoveryCompleteCallCount int
 	RecipeUnsupportedCallCount int
+	RecipeDetectedCallCount    int
 
 	ReportSkipped     map[string]int
 	ReportInstalled   map[string]int
@@ -47,6 +48,11 @@ type MockStatusReporter struct {
 // NewMockStatusReporter returns a new instance of MockExecutionStatusReporter.
 func NewMockStatusReporter() *MockStatusReporter {
 	return &MockStatusReporter{}
+}
+
+func (r *MockStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+	r.RecipeDetectedCallCount++
+	return nil
 }
 
 func (r *MockStatusReporter) UpdateRequired(status *InstallStatus) error {

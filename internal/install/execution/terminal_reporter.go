@@ -20,6 +20,10 @@ func NewTerminalStatusReporter() *TerminalStatusReporter {
 	return &r
 }
 
+func (r TerminalStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+	return nil
+}
+
 func (r TerminalStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
