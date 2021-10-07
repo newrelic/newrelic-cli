@@ -15,15 +15,12 @@ import (
 )
 
 var (
-	assumeYes          bool
-	localRecipes       string
-	recipeNames        []string
-	recipePaths        []string
-	skipIntegrations   bool
-	skipLoggingInstall bool
-	skipApm            bool
-	skipInfra          bool
-	testMode           bool
+	assumeYes    bool
+	localRecipes string
+	recipeNames  []string
+	recipePaths  []string
+	skipInfra    bool
+	testMode     bool
 )
 
 // Command represents the install command.
@@ -33,14 +30,11 @@ var Command = &cobra.Command{
 	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		ic := types.InstallerContext{
-			AssumeYes:          assumeYes,
-			LocalRecipes:       localRecipes,
-			RecipeNames:        recipeNames,
-			RecipePaths:        recipePaths,
-			SkipIntegrations:   skipIntegrations,
-			SkipLoggingInstall: skipLoggingInstall,
-			SkipApm:            skipApm,
-			SkipInfraInstall:   skipInfra,
+			AssumeYes:        assumeYes,
+			LocalRecipes:     localRecipes,
+			RecipeNames:      recipeNames,
+			RecipePaths:      recipePaths,
+			SkipInfraInstall: skipInfra,
 		}
 
 		logLevel := configAPI.GetLogLevel()
@@ -131,9 +125,6 @@ func assertProfileIsValid() error {
 func init() {
 	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
 	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
-	Command.Flags().BoolVarP(&skipIntegrations, "skipIntegrations", "r", false, "skips installation of recommended New Relic integrations")
-	Command.Flags().BoolVarP(&skipLoggingInstall, "skipLoggingInstall", "l", false, "skips installation of New Relic Logging")
-	Command.Flags().BoolVarP(&skipApm, "skipApm", "s", false, "skips installation for APM")
 	Command.Flags().BoolVarP(&skipInfra, "skipInfra", "i", false, "skips installation for infrastructure agent (only for targeted install)")
 	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
