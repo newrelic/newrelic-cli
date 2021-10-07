@@ -900,9 +900,11 @@ func TestInstall_GuidReport(t *testing.T) {
 func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	mockOsValidator := discovery.NewMockOsValidator()
+	mv := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -931,7 +933,7 @@ func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 	}
 
 	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
+	f := recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
@@ -941,7 +943,7 @@ func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 		testRecipe,
 	}
 
-	v = validation.NewMockRecipeValidator()
+	v := validation.NewMockRecipeValidator()
 	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
@@ -955,7 +957,9 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 	ic := types.InstallerContext{}
 	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	mockOsValidator := discovery.NewMockOsValidator()
+	mv := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -984,7 +988,7 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 	}
 
 	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
+	f := recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
@@ -994,7 +998,7 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 		testRecipe,
 	}
 
-	v = validation.NewMockRecipeValidator()
+	v := validation.NewMockRecipeValidator()
 	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
@@ -1006,9 +1010,11 @@ func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
 func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	mockOsValidator := discovery.NewMockOsValidator()
+	mv := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -1034,7 +1040,7 @@ func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 	}
 
 	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
+	f := recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
@@ -1044,7 +1050,7 @@ func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 		testRecipe,
 	}
 
-	v = validation.NewMockRecipeValidator()
+	v := validation.NewMockRecipeValidator()
 	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
@@ -1056,9 +1062,11 @@ func TestInstall_ShouldDetect_ProcessMatch_NoScript(t *testing.T) {
 func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
-	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	mockOsValidator := discovery.NewMockOsValidator()
+	mv := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "node",
@@ -1084,7 +1092,7 @@ func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 	}
 
 	rf := recipes.NewRecipeFilterRunner(ic, status)
-	f = recipes.NewMockRecipeFetcher()
+	f := recipes.NewMockRecipeFetcher()
 
 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
 		// Should be detected and installed
@@ -1094,7 +1102,7 @@ func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 		testRecipe,
 	}
 
-	v = validation.NewMockRecipeValidator()
+	v := validation.NewMockRecipeValidator()
 	i := RecipeInstaller{ic, mockDiscoverer, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	err := i.Install()
@@ -1106,9 +1114,11 @@ func TestInstall_ShouldNotDetect_NoProcessMatch(t *testing.T) {
 func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 	ic := types.InstallerContext{}
-	statusReporters = []execution.StatusSubscriber{execution.NewMockStatusReporter()}
+	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
 	mockDiscoverer := discovery.NewMockDiscoverer()
 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	mockOsValidator := discovery.NewMockOsValidator()
+	mv := discovery.NewMockManifestValidator(mockOsValidator)
 
 	matchedProcess := mockProcess{
 		cmdline: "apache2",
@@ -1121,6 +1131,9 @@ func TestInstall_ShouldNotDetect_PreInstallError(t *testing.T) {
 	}
 
 	mockDiscoverer.DiscoveryManifest = &dm
+	mockDiscoverer.SetOs("linux")
+	// mockDiscoverer.SetPlatform("debian")
+	// mockDiscoverer.Set
 
 	infraRecipe := types.OpenInstallationRecipe{
 		Name:           "infrastructure-agent-installer",
