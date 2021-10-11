@@ -5,7 +5,7 @@
 Interact with New Relic Synthetics
 
 ```
-newrelic-dev synthetics [command]
+newrelic synthetics [command]
 ```
 
 ### Available Commands
