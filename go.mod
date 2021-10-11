@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
+	github.com/client9/misspell v0.3.4 // indirect
 	github.com/fatih/color v1.12.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
@@ -32,8 +33,9 @@ require (
 	github.com/tidwall/gjson v1.9.0
 	github.com/tidwall/sjson v1.1.7
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
-	golang.org/x/net v0.0.0-20210505214959-0714010a04ed
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/term v0.0.0-20210916214954-140adaaadfaf
+	golang.org/x/tools v0.1.7 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.3.1

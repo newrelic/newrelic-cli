@@ -26,6 +26,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/nrql"
 	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
+	"github.com/newrelic/newrelic-cli/internal/synthetics"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
@@ -38,6 +39,7 @@ func init() {
 	// Bind imported sub-commands
 	Command.AddCommand(agent.Command)
 	Command.AddCommand(apiaccess.Command)
+	Command.AddCommand(synthetics.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(configCmd.Command)
 	Command.AddCommand(decode.Command)
