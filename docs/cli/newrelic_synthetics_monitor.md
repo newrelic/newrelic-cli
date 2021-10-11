@@ -5,7 +5,7 @@
 Interact with New Relic Synthetics monitors
 
 ```
-newrelic-dev synthetics monitor [command]
+newrelic synthetics monitor [command]
 ```
 
 ### Available Commands

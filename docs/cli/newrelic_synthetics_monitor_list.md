@@ -36,5 +36,5 @@ newrelic synthetics monitor list --statusFilter "DISABLED, MUTED"
 
 ### SEE ALSO
 
-* [newrelic apm application](newrelic_apm_application.md)	 - Interact with New Relic APM applications
+* [newrelic synthetics monitor](newrelic_synthetics_monitor.md)	 - Interact with New Relic Synthetics monitors
 

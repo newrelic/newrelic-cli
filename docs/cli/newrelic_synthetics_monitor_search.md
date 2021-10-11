@@ -2,12 +2,12 @@
 
 ### Synopsis
 
-Search for a New Relic application
+Search for a New Relic Synthetics Monitor
 
-The search command performs a query for an APM application name and/or account ID.
+The search command performs a query for a Synthetics Monitor by name.
 
 ```
-newrelic apm application search [flags]
+newrelic synthetics monitor search [flags]
 ```
 
 ### Examples
@@ -36,5 +36,5 @@ newrelic synthetics monitor search --name <monitorName>
 
 ### SEE ALSO
 
-* [newrelic apm application](newrelic_apm_application.md)	 - Interact with New Relic APM applications
+* [newrelic synthetics monitor](newrelic_synthetics_monitor.md)	 - Interact with New Relic Synthetics monitors
 
