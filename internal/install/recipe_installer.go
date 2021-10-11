@@ -162,12 +162,9 @@ func (i *RecipeInstaller) Install() error {
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
 	log.WithFields(log.Fields{
-		"ShouldInstallInfraAgent":   i.ShouldInstallInfraAgent(),
-		"ShouldInstallLogging":      i.ShouldInstallLogging(),
-		"ShouldInstallIntegrations": i.ShouldInstallIntegrations(),
-		"RecipesProvided":           i.RecipesProvided(),
-		"RecipePathsProvided":       i.RecipePathsProvided(),
-		"RecipeNamesProvided":       i.RecipeNamesProvided(),
+		"RecipesProvided":     i.RecipesProvided(),
+		"RecipePathsProvided": i.RecipePathsProvided(),
+		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
 
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
