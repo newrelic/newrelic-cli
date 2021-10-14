@@ -110,7 +110,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("  --------------------")
 		fmt.Println("  Installation Summary")
 		fmt.Println("")
-		printInstallationSummary(status)
+		r.printInstallationSummary(status)
 
 		msg := "View your data at the link below:\n"
 		followInstructionsMsg := "Follow the instructions at the URL below to complete the installation process."
@@ -155,15 +155,10 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
 }
 
-func printInstallationSummary(status *InstallStatus) {
-	for _, s := range status.Statuses {
-		// Don't display recipes with a DETECTED status.
-		// A DETECTED status at this point means the
-		// instrumentation was not installed.
-		if s.Status == RecipeStatusTypes.DETECTED {
-			continue
-		}
+func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) {
+	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
 
+	for _, s := range statusesToDisplay {
 		statusSuffix := strings.ToLower(string(s.Status))
 
 		if s.Status == RecipeStatusTypes.INSTALLED {
@@ -180,4 +175,18 @@ func printInstallationSummary(status *InstallStatus) {
 
 		fmt.Printf("  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
 	}
+}
+
+// getRecipesStatusesForInstallationSummary returns the recipe installation results
+// to show the user. Recipes with a DETECTED status are not displayed to the user
+// because a DETECTED status at this point means the instrumentation was not installed.
+func (r TerminalStatusReporter) getRecipesStatusesForInstallationSummary(status *InstallStatus) []*RecipeStatus {
+	statusesToDisplay := []*RecipeStatus{}
+	for _, s := range status.Statuses {
+		if s.Status != RecipeStatusTypes.DETECTED {
+			statusesToDisplay = append(statusesToDisplay, s)
+		}
+	}
+
+	return statusesToDisplay
 }
