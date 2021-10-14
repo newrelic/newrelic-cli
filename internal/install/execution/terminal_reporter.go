@@ -157,6 +157,13 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 
 func printInstallationSummary(status *InstallStatus) {
 	for _, s := range status.Statuses {
+		// Don't display recipes with a DETECTED status.
+		// A DETECTED status at this point means the
+		// instrumentation was not installed.
+		if s.Status == RecipeStatusTypes.DETECTED {
+			continue
+		}
+
 		statusSuffix := strings.ToLower(string(s.Status))
 
 		if s.Status == RecipeStatusTypes.INSTALLED {
