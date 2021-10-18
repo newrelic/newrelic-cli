@@ -127,7 +127,7 @@ func Test_ShouldNotGenerateExplorerLinkWhenNoRecipes(t *testing.T) {
 	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
 }
 
-func Test_ShouldNotIncludeDetectedRecipeInSummary(t *testing.T) {
+func TestTerminalStatusReporter_ShouldNotIncludeDetectedRecipeInSummary(t *testing.T) {
 	r := NewTerminalStatusReporter()
 
 	status := &InstallStatus{}

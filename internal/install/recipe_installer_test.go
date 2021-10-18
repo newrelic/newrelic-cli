@@ -765,8 +765,11 @@ func TestInstall_ShouldDetect_PreInstallDetected(t *testing.T) {
 
 	err := i.Install()
 	require.NoError(t, err)
-	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
 	require.Equal(t, 2, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeInstallingCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
+	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
 }
 
 func TestInstall_ShouldDetect_PreInstallOk(t *testing.T) {
