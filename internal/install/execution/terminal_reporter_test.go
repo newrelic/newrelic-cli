@@ -126,3 +126,33 @@ func Test_ShouldNotGenerateExplorerLinkWhenNoRecipes(t *testing.T) {
 	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
 	require.Equal(t, 0, g.GenerateExplorerLinkCallCount)
 }
+
+func TestTerminalStatusReporter_ShouldNotIncludeDetectedRecipeInSummary(t *testing.T) {
+	r := NewTerminalStatusReporter()
+
+	status := &InstallStatus{}
+	recipeInstalled := &RecipeStatus{
+		Name:        "test-recipe-installed",
+		DisplayName: "Test Recipe Installed",
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+	recipeDetected := &RecipeStatus{
+		Name:        "test-recipe-detected",
+		DisplayName: "Test Recipe Detected",
+		Status:      RecipeStatusTypes.DETECTED,
+	}
+
+	status.Statuses = []*RecipeStatus{
+		recipeInstalled,
+		recipeDetected,
+	}
+
+	expected := []*RecipeStatus{
+		recipeInstalled,
+	}
+
+	recipesToSummarize := r.getRecipesStatusesForInstallationSummary(status)
+
+	require.Equal(t, len(expected), len(recipesToSummarize))
+	require.Equal(t, expected[0].Name, recipesToSummarize[0].Name)
+}
