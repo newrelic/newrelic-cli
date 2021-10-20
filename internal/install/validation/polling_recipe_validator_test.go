@@ -43,8 +43,9 @@ func TestValidate_shouldSucceed(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
-	_, err := v.ValidateRecipe(getTestContext(), m, r)
+	_, err := v.ValidateRecipe(getTestContext(), m, r, vars)
 
 	require.NoError(t, err)
 }
@@ -60,8 +61,9 @@ func TestValidate_shouldFailEmpty(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
-	_, err := v.ValidateRecipe(getTestContext(), m, r)
+	_, err := v.ValidateRecipe(getTestContext(), m, r, vars)
 
 	require.Error(t, err)
 }
@@ -77,8 +79,9 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
-	_, err := v.ValidateRecipe(getTestContext(), m, r)
+	_, err := v.ValidateRecipe(getTestContext(), m, r, vars)
 
 	require.NoError(t, err)
 	require.Equal(t, 5, c.Attempts())
@@ -93,8 +96,9 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
-	_, err := v.ValidateRecipe(getTestContext(), m, r)
+	_, err := v.ValidateRecipe(getTestContext(), m, r, vars)
 
 	require.Error(t, err)
 	require.Equal(t, 3, c.Attempts())
@@ -112,8 +116,9 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
-	_, err := v.ValidateRecipe(getTestContext(), m, r)
+	_, err := v.ValidateRecipe(getTestContext(), m, r, vars)
 
 	require.Error(t, err)
 }
@@ -130,11 +135,12 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
 	ctx, cancel := context.WithCancel(getTestContext())
 	cancel()
 
-	_, err := v.ValidateRecipe(ctx, m, r)
+	_, err := v.ValidateRecipe(ctx, m, r, vars)
 
 	require.Error(t, err)
 }
@@ -151,8 +157,9 @@ func TestValidate_QueryError(t *testing.T) {
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
+	vars := types.RecipeVars{}
 
-	_, err := v.ValidateRecipe(getTestContext(), m, r)
+	_, err := v.ValidateRecipe(getTestContext(), m, r, vars)
 
 	require.Error(t, err)
 }
