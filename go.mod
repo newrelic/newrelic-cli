@@ -33,7 +33,7 @@ require (
 	github.com/tidwall/sjson v1.1.7
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
-	golang.org/x/term v0.0.0-20210916214954-140adaaadfaf
+	golang.org/x/term$203fcf44c2211
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.3.1
