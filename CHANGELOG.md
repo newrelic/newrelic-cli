@@ -1,3 +1,14 @@
+<a name="v0.36.21"></a>
+## [v0.36.21] - 2021-10-21
+### Bug Fixes
+- **install:** mod tidy
+
+### Features
+- synthetics api - fixed documentation
+- synthetics api - fixed documentation
+- synthetics api - update branch with main
+- synthetics api
+
 <a name="v0.36.20"></a>
 ## [v0.36.20] - 2021-10-21
 <a name="v0.36.19"></a>
@@ -1276,7 +1287,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.20...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.21...HEAD
+[v0.36.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.20...v0.36.21
 [v0.36.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.19...v0.36.20
 [v0.36.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.18...v0.36.19
 [v0.36.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.17...v0.36.18
