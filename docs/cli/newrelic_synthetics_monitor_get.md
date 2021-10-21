@@ -1,10 +1,13 @@
 ## newrelic synthetics monitor get
 
+Get a New Relic Synthetics monitor
+
 ### Synopsis
 
 Get a New Relic Synthetics monitor
 
 The get command performs a query for an Synthetics monitor by ID.
+
 
 ```
 newrelic synthetics monitor get [flags]

@@ -1,23 +1,11 @@
 ## newrelic synthetics
 
-### Synopsis
-
 Interact with New Relic Synthetics
-
-```
-newrelic synthetics [command]
-```
-
-### Available Commands
-
-```
-  monitor     Interact with New Relic Synthetics monitors
-```
 
 ### Options
 
 ```
-  -h, --help               help for synthetics
+  -h, --help   help for synthetics
 ```
 
 ### Options inherited from parent commands
