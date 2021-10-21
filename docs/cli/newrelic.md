@@ -37,6 +37,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 * [newrelic nrql](newrelic_nrql.md)	 - Commands for interacting with the New Relic Database
 * [newrelic profile](newrelic_profile.md)	 - Manage the authentication profiles for this tool
 * [newrelic reporting](newrelic_reporting.md)	 - Commands for reporting data into New Relic
+* [newrelic synthetics](newrelic_synthetics.md)	 - Interact with New Relic Synthetics
 * [newrelic utils](newrelic_utils.md)	 - Various utility methods
 * [newrelic version](newrelic_version.md)	 - Show the version of the New Relic CLI
 * [newrelic workload](newrelic_workload.md)	 - Interact with New Relic One workloads

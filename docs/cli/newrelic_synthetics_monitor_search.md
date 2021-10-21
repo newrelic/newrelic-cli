@@ -1,10 +1,13 @@
-## newrelic apm application search
+## newrelic synthetics monitor search
+
+Search for a New Relic Synthetics Monitor
 
 ### Synopsis
 
 Search for a New Relic Synthetics Monitor
 
 The search command performs a query for a Synthetics Monitor by name.
+
 
 ```
 newrelic synthetics monitor search [flags]

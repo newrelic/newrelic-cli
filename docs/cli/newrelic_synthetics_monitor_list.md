@@ -1,10 +1,13 @@
 ## newrelic synthetics monitor list
 
+List New Relic Synthetics monitors
+
 ### Synopsis
 
-List the New Relic Synthetics monitors for an account.
+List New Relic Synthetics monitors
 
 The list command performs a query for all Synthetics monitors, optionally filtered on the status field.
+
 
 ```
 newrelic synthetics monitor list [flags]

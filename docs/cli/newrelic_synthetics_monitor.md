@@ -1,20 +1,10 @@
 ## newrelic synthetics monitor
 
+Interact with New Relic Synthetics monitors
+
 ### Synopsis
 
 Interact with New Relic Synthetics monitors
-
-```
-newrelic synthetics monitor [command]
-```
-
-### Available Commands
-
-```
-  get         Get a New Relic Synthetics monitor
-  list        List New Relic Synthetics monitors
-  search      Search for a New Relic Synthetics Monitor
-```
 
 ### Examples
 
@@ -43,7 +33,6 @@ newrelic synthetics monitor --help
 
 * [newrelic synthetics](newrelic_synthetics.md)	 - Interact with New Relic Synthetics
 * [newrelic synthetics monitor get](newrelic_synthetics_monitor_get.md)	 - Get a New Relic Synthetics monitor
-* [newrelic synthetics monitor search](newrelic_synthetics_monitor_search.md)	 - Search for a New Relic Synthetics monitor
-* [newrelic synthetics monitor list](newrelic_synthetics_monitor_list.md)	 - List the New Relic Synthetics monitors for the account
-
+* [newrelic synthetics monitor list](newrelic_synthetics_monitor_list.md)	 - List New Relic Synthetics monitors
+* [newrelic synthetics monitor search](newrelic_synthetics_monitor_search.md)	 - Search for a New Relic Synthetics Monitor
 
