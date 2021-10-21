@@ -1,5 +1,41 @@
+<a name="v0.36.20"></a>
+## [v0.36.20] - 2021-10-21
+<a name="v0.36.19"></a>
+## [v0.36.19] - 2021-10-19
+<a name="v0.36.18"></a>
+## [v0.36.18] - 2021-10-19
+### Bug Fixes
+- **install:** DETECTED event must happen before AVAILABLE event
+- **install:** remove detected status recipes from installation summary
+
+<a name="v0.36.17"></a>
+## [v0.36.17] - 2021-10-18
+### Features
+- detected status for targeted install
+
+<a name="v0.36.16"></a>
+## [v0.36.16] - 2021-10-12
+<a name="v0.36.15"></a>
+## [v0.36.15] - 2021-10-11
+<a name="v0.36.14"></a>
+## [v0.36.14] - 2021-10-08
+<a name="v0.36.13"></a>
+## [v0.36.13] - 2021-10-08
+<a name="v0.36.12"></a>
+## [v0.36.12] - 2021-10-07
+<a name="v0.36.11"></a>
+## [v0.36.11] - 2021-10-07
+<a name="v0.36.10"></a>
+## [v0.36.10] - 2021-10-07
+### Features
+- **install:** send DETECTED status when New Relic compatibility is detected
+
+<a name="v0.36.9"></a>
+## [v0.36.9] - 2021-10-05
+<a name="v0.36.8"></a>
+## [v0.36.8] - 2021-10-04
 <a name="v0.36.7"></a>
-## [v0.36.7] - 2021-09-29
+## [v0.36.7] - 2021-10-04
 ### Bug Fixes
 - **install:** skip chocolatey publish intermittent error
 
@@ -1240,7 +1276,20 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.20...HEAD
+[v0.36.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.19...v0.36.20
+[v0.36.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.18...v0.36.19
+[v0.36.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.17...v0.36.18
+[v0.36.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.16...v0.36.17
+[v0.36.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.15...v0.36.16
+[v0.36.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.14...v0.36.15
+[v0.36.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.13...v0.36.14
+[v0.36.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.12...v0.36.13
+[v0.36.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.11...v0.36.12
+[v0.36.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.10...v0.36.11
+[v0.36.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.9...v0.36.10
+[v0.36.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.8...v0.36.9
+[v0.36.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.7...v0.36.8
 [v0.36.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.6...v0.36.7
 [v0.36.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.5...v0.36.6
 [v0.36.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.4...v0.36.5

@@ -43,13 +43,16 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 		}
 	}
 
+	// The DETECTED event must happen before AVAILABLE event
+	rf.installStatus.RecipeDetected(*r)
+
 	if r.HasApplicationTargetType() {
 		if !r.HasKeyword(types.ApmKeyword) {
 			rf.installStatus.RecipeRecommended(execution.RecipeStatusEvent{Recipe: *r})
 		}
-	} else {
-		rf.installStatus.RecipeAvailable(*r)
 	}
+
+	rf.installStatus.RecipeAvailable(*r)
 
 	for _, f := range rf.userSkippedFilters {
 		filtered := f.Filter(ctx, r, m)
@@ -71,7 +74,6 @@ func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenIn
 		filtered := rf.RunFilter(ctx, &recipe, m)
 
 		if !filtered {
-			rf.installStatus.RecipeDetected(recipe)
 			results = append(results, recipe)
 		}
 	}

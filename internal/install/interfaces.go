@@ -38,7 +38,7 @@ type RecipeFilterRunner interface {
 
 // RecipeValidator validates installation of a recipe.
 type RecipeValidator interface {
-	ValidateRecipe(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe) (entityGUID string, err error)
+	ValidateRecipe(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, types.RecipeVars) (entityGUID string, err error)
 }
 
 type RecipeVarPreparer interface {

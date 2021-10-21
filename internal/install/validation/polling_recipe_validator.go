@@ -28,8 +28,8 @@ func NewPollingRecipeValidator(c utils.NRDBClient) *PollingRecipeValidator {
 }
 
 // ValidateRecipe polls NRDB to assert data is being reported for the given recipe.
-func (m *PollingRecipeValidator) ValidateRecipe(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (string, error) {
-	query, err := substituteHostname(dm, r)
+func (m *PollingRecipeValidator) ValidateRecipe(ctx context.Context, dm types.DiscoveryManifest, r types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
+	query, err := substituteRecipeVars(dm, r, vars)
 	if err != nil {
 		return "", err
 	}
@@ -37,20 +37,14 @@ func (m *PollingRecipeValidator) ValidateRecipe(ctx context.Context, dm types.Di
 	return m.Validate(ctx, query)
 }
 
-func substituteHostname(dm types.DiscoveryManifest, r types.OpenInstallationRecipe) (string, error) {
+func substituteRecipeVars(dm types.DiscoveryManifest, r types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	tmpl, err := template.New("validationNRQL").Parse(string(r.ValidationNRQL))
 	if err != nil {
 		panic(err)
 	}
 
-	v := struct {
-		HOSTNAME string
-	}{
-		HOSTNAME: dm.Hostname,
-	}
-
 	var tpl bytes.Buffer
-	if err = tmpl.Execute(&tpl, v); err != nil {
+	if err = tmpl.Execute(&tpl, vars); err != nil {
 		return "", err
 	}
 
