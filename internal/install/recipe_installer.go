@@ -394,7 +394,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	}
 
 	validationStart := time.Now()
-	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m)
+	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m, vars)
 	validationDurationMs := time.Since(validationStart).Milliseconds()
 	if err != nil {
 		validationErr := fmt.Errorf("encountered an error while validating receipt of data for %s: %w", r.Name, err)
@@ -418,7 +418,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 type validationFunc func() (string, error)
 
-func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) (string, error) {
+func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
 	defer cancel()
 
@@ -442,7 +442,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	// Add NRQL validation if configured
 	if r.ValidationNRQL != "" {
 		validationFuncs = append(validationFuncs, func() (string, error) {
-			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r)
+			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r, vars)
 		})
 	} else {
 		log.Debugf("skipping NRQL validation due to lack of validationNRQL")
