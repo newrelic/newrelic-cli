@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
-	github.com/fatih/color v1.12.0
+	github.com/fatih/color v1.13.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
 	github.com/google/go-cmp v0.5.6 // indirect
