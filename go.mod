@@ -1,6 +1,6 @@
 module github.com/newrelic/newrelic-cli
 
-go 1.16
+go 1.17
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.14
@@ -37,4 +37,42 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.3.1
+)
+
+require (
+	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
+	github.com/go-redis/redis/v8 v8.0.0 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
+	github.com/imdario/mergo v0.3.12 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/itchyny/timefmt-go v0.1.3 // indirect
+	github.com/joho/godotenv v1.3.0 // indirect
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/mattn/go-isatty v0.0.13 // indirect
+	github.com/mattn/go-zglob v0.0.3 // indirect
+	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
+	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/radovskyb/watcher v1.0.7 // indirect
+	github.com/russross/blackfriday/v2 v2.0.1 // indirect
+	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
+	github.com/splitio/go-split-commons/v3 v3.1.0 // indirect
+	github.com/splitio/go-toolkit/v4 v4.2.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
+	github.com/tklauser/numcpus v0.2.3 // indirect
+	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
+	go.opentelemetry.io/otel v0.11.0 // indirect
+	golang.org/x/exp v0.0.0-20200908183739-ae8ad444f925 // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
+	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e // indirect
+	golang.org/x/text v0.3.6 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

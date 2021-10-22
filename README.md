@@ -184,7 +184,7 @@ are used to construct or destroy an item, respectively.
 
 ### Requirements
 
-- Go 1.16.0+
+- Go 1.17.0+
 - GNU Make
 - git
 
