@@ -12,7 +12,7 @@ import (
 )
 
 func TestExecutePreInstall_Basic(t *testing.T) {
-	e := NewShRecipeExecutor()
+	e := NewShRecipeExecutor(false)
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 
@@ -29,7 +29,7 @@ func TestExecutePreInstall_Basic(t *testing.T) {
 }
 
 func TestExecutePreInstall_Error(t *testing.T) {
-	e := NewShRecipeExecutor()
+	e := NewShRecipeExecutor(false)
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 
@@ -46,7 +46,7 @@ func TestExecutePreInstall_Error(t *testing.T) {
 }
 
 func TestExecutePreInstall_RecipeVars(t *testing.T) {
-	e := NewShRecipeExecutor()
+	e := NewShRecipeExecutor(false)
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 
@@ -65,7 +65,7 @@ func TestExecutePreInstall_RecipeVars(t *testing.T) {
 }
 
 func TestExecutePreInstall_EnvVars(t *testing.T) {
-	e := NewShRecipeExecutor()
+	e := NewShRecipeExecutor(false)
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 
@@ -83,7 +83,7 @@ func TestExecutePreInstall_EnvVars(t *testing.T) {
 }
 
 func TestExecutePreInstall_AllVars(t *testing.T) {
-	e := NewShRecipeExecutor()
+	e := NewShRecipeExecutor(false)
 	b := bytes.NewBufferString("")
 	e.Stdout = b
 

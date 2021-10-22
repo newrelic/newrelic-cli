@@ -24,12 +24,15 @@ type ShRecipeExecutor struct {
 	Stdout io.Writer
 }
 
-func NewShRecipeExecutor() *ShRecipeExecutor {
-	writer := config.Logger.WriterLevel(log.DebugLevel)
+func NewShRecipeExecutor(infoLogging bool) *ShRecipeExecutor {
+	errLogLevel := log.DebugLevel
+	if infoLogging {
+		errLogLevel = log.InfoLevel
+	}
 	return &ShRecipeExecutor{
 		Stdin:  os.Stdin,
-		Stdout: writer,
-		Stderr: writer,
+		Stdout: config.Logger.WriterLevel(log.DebugLevel),
+		Stderr: config.Logger.WriterLevel(errLogLevel),
 	}
 }
 

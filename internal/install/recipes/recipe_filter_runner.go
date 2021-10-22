@@ -26,7 +26,7 @@ func NewRecipeFilterRunner(ic types.InstallerContext, s *execution.InstallStatus
 		installStatus: s,
 		availablilityFilters: []RecipeFilterer{
 			NewProcessMatchRecipeFilterer(),
-			NewScriptEvaluationRecipeFilterer(s),
+			NewScriptEvaluationRecipeFilterer(s, ic.RecipesProvided()),
 		},
 		userSkippedFilters: []RecipeFilterer{
 			skipFilter,
@@ -133,8 +133,8 @@ type ScriptEvaluationRecipeFilterer struct {
 	installStatus  *execution.InstallStatus
 }
 
-func NewScriptEvaluationRecipeFilterer(installStatus *execution.InstallStatus) *ScriptEvaluationRecipeFilterer {
-	recipeExecutor := execution.NewShRecipeExecutor()
+func NewScriptEvaluationRecipeFilterer(installStatus *execution.InstallStatus, infoLogging bool) *ScriptEvaluationRecipeFilterer {
+	recipeExecutor := execution.NewShRecipeExecutor(infoLogging)
 
 	return &ScriptEvaluationRecipeFilterer{
 		recipeExecutor: recipeExecutor,
