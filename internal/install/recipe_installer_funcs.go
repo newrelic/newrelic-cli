@@ -2,6 +2,7 @@ package install
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -37,5 +38,21 @@ func installLogging(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryM
 	}).Debug("discovered log files")
 
 	_, err = i.executeAndValidateWithProgress(ctx, m, r)
+	return err
+}
+
+func installAWS(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error {
+	log.Debugf("validating IMDS endpoint: %s", r.IMDSMatch)
+
+	fmt.Printf("THE RECIPE STRUCT: %+v", r)
+
+	matches := i.urlValidator.Validate(utils.SignalCtx, r.IMDSMatch)
+	if !matches {
+		return types.ErrorValidatingUrl
+	}
+
+	log.Debugf("validated IMDS endpoint")
+
+	_, err := i.executeAndValidateWithProgress(ctx, m, r)
 	return err
 }

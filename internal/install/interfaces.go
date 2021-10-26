@@ -21,6 +21,10 @@ type FileFilterer interface {
 	Filter(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error)
 }
 
+type UrlValidator interface {
+	Validate(context.Context, string) bool
+}
+
 type Prompter interface {
 	PromptYesNo(msg string) (bool, error)
 	MultiSelect(msg string, options []string) ([]string, error)

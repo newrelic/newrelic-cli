@@ -27,6 +27,7 @@ type RecipeInstaller struct {
 	types.InstallerContext
 	discoverer                  Discoverer
 	fileFilterer                FileFilterer
+	urlValidator                UrlValidator
 	manifestValidator           *discovery.ManifestValidator
 	recipeFetcher               recipes.RecipeFetcher
 	recipeExecutor              execution.RecipeExecutor
@@ -47,6 +48,7 @@ type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.Di
 
 var (
 	recipeInstallFuncs = map[string]RecipeInstallFunc{
+		"aws-integration":  installAWS,
 		"logs-integration": installLogging,
 	}
 )
@@ -82,6 +84,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	d := discovery.NewPSUtilDiscoverer()
 	gff := discovery.NewGlobFileFilterer()
+	uv := discovery.NewHttpUrlValidator()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	cv := diagnose.NewConfigValidator(nrClient)
@@ -95,6 +98,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	i := RecipeInstaller{
 		discoverer:                  d,
 		fileFilterer:                gff,
+		urlValidator:                uv,
 		manifestValidator:           mv,
 		recipeFetcher:               recipeFetcher,
 		recipeExecutor:              re,

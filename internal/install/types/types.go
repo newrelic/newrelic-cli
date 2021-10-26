@@ -227,6 +227,8 @@ type OpenInstallationRecipe struct {
 	Keywords []string `json:"keywords"`
 	// # Partial list of possible Log forwarding parameters
 	LogMatch []OpenInstallationLogMatch `json:"logMatch"`
+	// IMDS endpoint to check for cloud connectivity
+	IMDSMatch string `json:"imdsMatch,omitempty"`
 	// Short unique handle for the name of the integration
 	Name string `json:"name,omitempty"`
 	// Object representing optional post-install configuration items
