@@ -1,9 +1,18 @@
 name: Release
 
+permissions: write-all
+
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: New release version
+        # NOTE...
+        #
+        # TBD: If we make this required, we won't need to do
+        # the automated version bump with svu and gobump
+        required: false
+        default: x.x.x
 
 jobs:
   release:
@@ -42,7 +51,13 @@ jobs:
           SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-        run: make release-publish
+        run: |
+          git config --global user.name nr-developer-toolkit
+          git config --global user.email 62031461+nr-developer-toolkit@users.noreply.github.com
+
+          ./scripts/release.sh
+
+          make release-publish
 
       - id: get-version
         uses: battila7/get-version-action@v2.3.0
