@@ -35,7 +35,7 @@ echo " "
 
 if [ "${VER_CURR}" = "${VER_NEXT}" ]; then
   echo "No new version recommended, exiting"
-  exit 0
+  exit 1
 fi
 
 GIT_USER=$(git config user.name)
