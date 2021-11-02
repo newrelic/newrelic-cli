@@ -24,8 +24,8 @@ CHANGELOG_FILE=CHANGELOG.md
 SPELL_CMD=${GOBIN}/misspell
 
 # Compare versions
-VER_CURR=$(${VER_CMD} current --strip-prefix)
-VER_NEXT=$(${VER_CMD} next --strip-prefix)
+VER_CURR=$(${VER_CMD} current)
+VER_NEXT=$(${VER_CMD} next)
 
 echo " "
 echo "Comparing tag versions..."
@@ -51,7 +51,7 @@ if [ -z "${GIT_EMAIL}" ]; then
   exit 1
 fi
 
-echo "Generating release for v${VER_NEXT} with git user ${GIT_USER}"
+echo "Generating release for ${VER_NEXT} with git user ${GIT_USER}"
 
 # Auto-generate CLI documentation
 NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
@@ -62,18 +62,18 @@ if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
    git add docs/cli/*
 
    # Commit generated docs
-   git commit --no-verify -m "chore(docs): regenerate CLI docs for v${VER_NEXT}"
+   git commit --no-verify -m "chore(docs): regenerate CLI docs for ${VER_NEXT}"
 fi
 
 # Auto-generate CHANGELOG updates
-${CHANGELOG_CMD} --next-tag v${VER_NEXT} -o ${CHANGELOG_FILE}
+${CHANGELOG_CMD} --next-tag ${VER_NEXT} -o ${CHANGELOG_FILE}
 
 # Fix any spelling issues in the CHANGELOG
 ${SPELL_CMD} -source text -w ${CHANGELOG_FILE}
 
 # Commit CHANGELOG updates
 git add ${CHANGELOG_FILE}
-git commit --no-verify -m "chore(changelog): update CHANGELOG for v${VER_NEXT}"
+git commit --no-verify -m "chore(changelog): update CHANGELOG for ${VER_NEXT}"
 git push --no-verify origin HEAD:${DEFAULT_BRANCH}
 
 if [ $? -ne 0 ]; then
@@ -82,7 +82,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Create and push new tag
-git tag v${VER_NEXT}
+git tag ${VER_NEXT}
 git push --no-verify origin HEAD:${DEFAULT_BRANCH} --tags
 
 if [ $? -ne 0 ]; then
