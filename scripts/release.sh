@@ -72,7 +72,7 @@ ${CHANGELOG_CMD} --next-tag v${VER_NEXT} -o ${CHANGELOG_FILE}
 ${SPELL_CMD} -source text -w ${CHANGELOG_FILE}
 
 # Commit CHANGELOG updates
-git add CHANGELOG.md
+git add ${CHANGELOG_FILE}
 git commit --no-verify -m "chore(changelog): update CHANGELOG for v${VER_NEXT}"
 git push --no-verify origin HEAD:${DEFAULT_BRANCH}
 
