@@ -2,20 +2,24 @@ name: Release
 
 permissions: write-all
 
+# Triggered via GitHub Actions UI
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: New release version
-        # NOTE...
-        #
-        # TBD: If we make this required, we won't need to do
-        # the automated version bump with svu and gobump
-        required: false
-        default: x.x.x
 
 jobs:
+  test:
+    if: github.ref == 'refs/heads/main'
+    uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+  e2e:
+    if: github.ref == 'refs/heads/main'
+    uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
+  e2e-eu:
+    if: github.ref == 'refs/heads/main'
+    uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
+
   release:
+    if: github.ref == 'refs/heads/main'
+    needs: [test, e2e, e2e-eu]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -32,6 +36,7 @@ jobs:
         with:
           # Needed for release notes
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
@@ -45,7 +50,7 @@ jobs:
       - name: Publish Release
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}

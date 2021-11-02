@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Release workflow calls this workflow
+  workflow_call:
 
 jobs:
   validate-all:
