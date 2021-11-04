@@ -38,7 +38,6 @@ jobs:
         run: make lint
 
   test-unit:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -65,7 +64,6 @@ jobs:
         run: make test-unit
 
   test-integration:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
