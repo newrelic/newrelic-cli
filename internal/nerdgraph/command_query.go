@@ -61,7 +61,9 @@ keys are the variables to be referenced in the GraphQL query.
 
 		encoder := json.NewEncoder(reqBodyBytes)
 		err = encoder.Encode(ng.QueryResponse{
-			Actor: result.(ng.QueryResponse).Actor,
+			Actor:          result.(ng.QueryResponse).Actor,
+			Docs:           result.(ng.QueryResponse).Docs,
+			RequestContext: result.(ng.QueryResponse).RequestContext,
 		})
 		utils.LogIfFatal(err)
 
