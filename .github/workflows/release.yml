@@ -12,9 +12,11 @@ jobs:
     uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
   e2e:
     if: github.ref == 'refs/heads/main'
+    needs: test
     uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
   e2e-eu:
     if: github.ref == 'refs/heads/main'
+    needs: test
     uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
 
   release:
