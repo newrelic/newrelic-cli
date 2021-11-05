@@ -16,7 +16,7 @@ on:
         required: true
       GIT_DEPLOYER_CANADA_AWS_PEM:
         required: true
-      GIT_DEPLOYER_DOCKER_USER_CONFIG:
+      GIT_DEPLOYER_DOCKER_USER_CONFIG_EU:
         required: true
 
 jobs:
