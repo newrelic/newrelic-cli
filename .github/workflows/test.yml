@@ -7,6 +7,21 @@ on:
     branches: [main]
   # Release workflow calls this workflow
   workflow_call:
+    secrets:
+      NEW_RELIC_ACCOUNT_ID:
+        required: true
+      NEW_RELIC_ADMIN_API_KEY:
+        required: true
+      NEW_RELIC_API_KEY:
+        required: true
+      NEW_RELIC_LICENSE_KEY:
+        required: true
+      NEW_RELIC_REGION:
+        required: true
+      SPLIT_PROD_KEY:
+        required: true
+      SPLIT_STAGING_KEY:
+        required: true
 
 jobs:
   lint:
