@@ -10,6 +10,14 @@ jobs:
   test:
     if: github.ref == 'refs/heads/main'
     uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+    secrets:
+      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+      NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
   e2e:
     if: github.ref == 'refs/heads/main'
     needs: test
