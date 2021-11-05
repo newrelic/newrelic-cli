@@ -14,10 +14,23 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: test
     uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
   e2e-eu:
     if: github.ref == 'refs/heads/main'
     needs: test
     uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+
 
   release:
     if: github.ref == 'refs/heads/main'

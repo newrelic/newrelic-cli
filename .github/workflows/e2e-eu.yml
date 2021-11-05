@@ -7,6 +7,17 @@ on:
     branches: [main]
   # Release workflow calls this workflow
   workflow_call:
+    secrets:
+      PGP_PRIVATE_KEY:
+        required: true
+      SPLIT_PROD_KEY:
+        required: true
+      SPLIT_STAGING_KEY:
+        required: true
+      GIT_DEPLOYER_CANADA_AWS_PEM:
+        required: true
+      GIT_DEPLOYER_DOCKER_USER_CONFIG:
+        required: true
 
 jobs:
   validate-all:
