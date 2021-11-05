@@ -14,6 +14,8 @@ if [ $CURRENT_GIT_BRANCH != 'main' ]; then
   exit 1
 fi
 
+echo "GOBIN - before: ${GOBIN}"
+
 SRCDIR=${SRCDIR:-"."}
 GOBIN=$(go env GOPATH)/bin
 VER_PACKAGE="internal/version"
@@ -26,6 +28,8 @@ SPELL_CMD=${GOBIN}/misspell
 # Compare versions
 VER_CURR=$(${VER_CMD} current)
 VER_NEXT=$(${VER_CMD} next)
+
+echo "GOBIN - after:  ${GOBIN}"
 
 echo " "
 echo "Comparing tag versions..."

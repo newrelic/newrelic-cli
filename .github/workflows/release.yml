@@ -84,9 +84,6 @@ jobs:
 
           make tools
 
-          go get github.com/caarlos0/svu
-          go get github.com/x-motemen/gobump/cmd/gobump
-
           ./scripts/release.sh
 
           make release-publish
