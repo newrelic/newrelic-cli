@@ -215,14 +215,17 @@ jobs:
           token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Output latest tag
+        id: latest-tag
         run: |
-          git fetch origin && git checkout main
+          git fetch --prune --unshallow
 
           latestTag=$(git describe --tags --abbrev=0)
 
           echo " "
           echo "Publishing tag version ${latestTag}"
           echo " "
+
+          echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
 
       - name: Install aws cli
         run: |
