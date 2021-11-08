@@ -186,14 +186,14 @@ jobs:
         id: get-latest-release-upload-url
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
 
       - name: Upload Windows installer
         id: upload-windows-installer
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
           asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
@@ -243,7 +243,7 @@ jobs:
           version: "tags/${{ steps.get-version.outputs.version }}"
           file: "NewRelicCLIInstaller.msi"
           target: "NewRelicCLIInstaller.msi"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Upload Windows MSI
         id: upload-windows-msi
