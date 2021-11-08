@@ -63,7 +63,7 @@ func Test_ShouldFindMatchingByRegex(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_ShouldFindRegexWithoutParenthesis(t *testing.T) {
+func Test_ShouldNotFindRegexWhenMissingParenthesis(t *testing.T) {
 	Setup()
 	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "10\\.?.*", "aarch64")
 	discoveryManifest.OS = "linux"
@@ -72,8 +72,7 @@ func Test_ShouldFindRegexWithoutParenthesis(t *testing.T) {
 
 	results, _ := repository.FindAll(discoveryManifest)
 
-	require.Len(t, results, 1)
-	require.Equal(t, results[0].ID, "id1")
+	require.Len(t, results, 0)
 }
 
 func Test_ShouldFilterOutMatchingByRegex(t *testing.T) {
