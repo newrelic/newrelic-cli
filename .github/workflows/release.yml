@@ -88,6 +88,10 @@ jobs:
 
           ./scripts/release.sh
 
+          echo "GitHub Ref: ${{ github.ref }}"
+
+          git describe --abbrev=0 --tags
+
           make release-publish
 
       - id: get-version
