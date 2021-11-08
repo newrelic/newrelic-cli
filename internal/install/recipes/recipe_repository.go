@@ -158,14 +158,13 @@ func mathMax(numbers []int) int {
 
 func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) bool {
 	if val, ok := hostMap[rkey]; ok {
-		if len(rvalue) > 0 && rvalue[0] == '(' {
+		if strings.EqualFold(rkey, platformVersion) {
 			if regex, error := regexp.Compile(rvalue); error == nil {
 				return regex.MatchString(val)
 			}
 		}
 		return strings.EqualFold(val, rvalue)
 	}
-
 	return false
 }
 
