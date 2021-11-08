@@ -210,6 +210,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - id: get-version
         uses: battila7/get-version-action@v2.3.0
