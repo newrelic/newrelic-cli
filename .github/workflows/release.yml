@@ -211,18 +211,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
+          ref: main
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Output latest tag
         id: latest-tag
         run: |
-          git fetch --prune --unshallow
+          tag=$(git describe --tags --abbrev=0)
+
+          echo " "
+          echo "Latest tag - before: ${tag}"
+          echo " "
+
+          git fetch origin
+          git fetch --tags
 
           latestTag=$(git describe --tags --abbrev=0)
 
           echo " "
-          echo "Publishing tag version ${latestTag}"
+          echo "Latest tag - after:  ${latestTag}"
           echo " "
 
           echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
