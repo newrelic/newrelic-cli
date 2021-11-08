@@ -84,9 +84,9 @@ jobs:
 
           make tools
 
-          go install github.com/caarlos0/svu@1.7.0
-          go install github.com/x-motemen/gobump/cmd/gobump@0.2.0
-          go install golang.org/x/tools@0.1.7
+          go install github.com/caarlos0/svu
+          go install github.com/x-motemen/gobump/cmd/gobump
+          go install golang.org/x/tools
 
           ./scripts/release.sh
 
