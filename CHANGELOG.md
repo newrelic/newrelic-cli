@@ -1,8 +1,9 @@
 <a name="v0.36.30"></a>
-## [v0.36.30] - 2021-11-05
+## [v0.36.30] - 2021-11-08
 ### Bug Fixes
 - **install:** add gpg key for e2e
 - **nerdgraph:** enable Docs and RequestContext fields in QueryResponse ([#1167](https://github.com/newrelic/newrelic-client-go/issues/1167))
+- **release:** use go install command to avoid affecting go.mod file during release
 
 <a name="v0.36.29"></a>
 ## [v0.36.29] - 2021-11-03
