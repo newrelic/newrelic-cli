@@ -213,6 +213,8 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Output latest tag
         run: |
           git fetch origin && git checkout main
 
