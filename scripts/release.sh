@@ -20,8 +20,8 @@ SRCDIR=${SRCDIR:-"."}
 GOBIN=$(go env GOPATH)/bin
 
 # Install release dependencies
-go install github.com/caarlos0/svu
-go install github.com/x-motemen/gobump/cmd/gobump
+go install github.com/caarlos0/svu@latest
+go install github.com/x-motemen/gobump/cmd/gobump@latest
 
 VER_PACKAGE="internal/version"
 VER_CMD=${GOBIN}/svu
