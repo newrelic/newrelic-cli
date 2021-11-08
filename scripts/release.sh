@@ -18,6 +18,11 @@ echo "GOBIN - before: ${GOBIN}"
 
 SRCDIR=${SRCDIR:-"."}
 GOBIN=$(go env GOPATH)/bin
+
+# Install release dependencies
+go install github.com/caarlos0/svu
+go install github.com/x-motemen/gobump/cmd/gobump
+
 VER_PACKAGE="internal/version"
 VER_CMD=${GOBIN}/svu
 VER_BUMP=${GOBIN}/gobump
