@@ -213,6 +213,14 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          git fetch origin && git checkout main
+
+          latestTag=$(git describe --tags --abbrev=0)
+
+          echo " "
+          echo "Publishing tag version ${latestTag}"
+          echo " "
 
       - name: Install aws cli
         run: |
