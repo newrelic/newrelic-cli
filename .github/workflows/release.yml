@@ -94,8 +94,8 @@ jobs:
 
           make release-publish
 
-      - id: get-version
-        uses: battila7/get-version-action@v2.3.0
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
 
       - uses: actions/upload-artifact@v2
         with:
@@ -155,7 +155,7 @@ jobs:
       - name: Upload release artifacts
         id: upload-release-artifacts
         run: |
-          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/ --profile virtuoso
 
       - name: Cleanup configs
         run: |
@@ -214,8 +214,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - id: get-version
-        uses: battila7/get-version-action@v2.3.0
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
 
       - name: Install aws cli
         run: |
@@ -247,7 +247,7 @@ jobs:
         uses: dsaltares/fetch-gh-release-asset@0.06
         with:
           repo: "newrelic/newrelic-cli"
-          version: "tags/${{ steps.get-version.outputs.version }}"
+          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
           file: "NewRelicCLIInstaller.msi"
           target: "NewRelicCLIInstaller.msi"
           token: ${{ secrets.RELEASE_TOKEN }}
@@ -255,14 +255,14 @@ jobs:
       - name: Upload Windows MSI
         id: upload-windows-msi
         run: |
-          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/NewRelicCLIInstaller.msi --profile virtuoso
+          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi --profile virtuoso
 
       - name: Create currentVersion.txt
         id: create-current-version
         uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: "currentVersion.txt"
-          FILE_DATA: "${{ steps.get-version.outputs.version }}"
+          FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
 
       - name: Upload currentVersion.txt
         id: upload-current-version
