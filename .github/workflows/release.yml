@@ -94,9 +94,6 @@ jobs:
 
           make release-publish
 
-      - id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
-
       - uses: actions/upload-artifact@v2
         with:
           name: windows-binary
@@ -151,6 +148,9 @@ jobs:
         id: upload-install-script-windows
         run: |
           aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
+
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
 
       - name: Upload release artifacts
         id: upload-release-artifacts
@@ -214,9 +214,6 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
-
       - name: Install aws cli
         run: |
           sudo apt-get update -y
@@ -242,6 +239,9 @@ jobs:
             region = ${{ secrets.AWS_DEFAULT_REGION }}
             source_profile = virtuoso_user
           write-mode: overwrite
+
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
 
       - name: Fetch Github Release Asset
         uses: dsaltares/fetch-gh-release-asset@0.06
