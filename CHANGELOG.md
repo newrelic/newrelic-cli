@@ -1,3 +1,8 @@
+<a name="v0.37.3"></a>
+## [v0.37.3] - 2021-11-08
+### Bug Fixes
+- **install:** move get latest tag
+
 <a name="v0.37.2"></a>
 ## [v0.37.2] - 2021-11-08
 ### Bug Fixes
@@ -282,10 +287,10 @@
 ### Bug Fixes
 - **install:** remove publish from goreleaser
 
-<a name="v0.34.4"></a>
-## [v0.34.4] - 2021-08-23
 <a name="v0.34.3"></a>
 ## [v0.34.3] - 2021-08-23
+<a name="v0.34.4"></a>
+## [v0.34.4] - 2021-08-23
 ### Bug Fixes
 - **install:** attempt to fix region for goreleaser
 - **install:** put back go releaser
@@ -1272,7 +1277,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.3...HEAD
+[v0.37.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.2...v0.37.3
 [v0.37.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.1...v0.37.2
 [v0.37.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.0...v0.37.1
 [v0.37.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.30...v0.37.0
@@ -1344,9 +1350,9 @@
 [v0.34.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.7...v0.34.8
 [v0.34.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.6...v0.34.7
 [v0.34.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.5...v0.34.6
-[v0.34.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.4...v0.34.5
-[v0.34.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.3...v0.34.4
-[v0.34.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.2...v0.34.3
+[v0.34.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.3...v0.34.5
+[v0.34.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.4...v0.34.3
+[v0.34.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.2...v0.34.4
 [v0.34.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.1...v0.34.2
 [v0.34.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.0...v0.34.1
 [v0.34.0]: https://github.com/newrelic/newrelic-client-go/compare/list...v0.34.0
