@@ -1,5 +1,10 @@
+<a name="v0.37.7"></a>
+## [v0.37.7] - 2021-11-09
+### Bug Fixes
+- **install:** kick release
+
 <a name="v0.37.6"></a>
-## [v0.37.6] - 2021-11-08
+## [v0.37.6] - 2021-11-09
 ### Bug Fixes
 - **release:** specify ref for checkout step in push job
 
@@ -1293,7 +1298,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.7...HEAD
+[v0.37.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.6...v0.37.7
 [v0.37.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.5...v0.37.6
 [v0.37.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.4...v0.37.5
 [v0.37.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.3...v0.37.4
