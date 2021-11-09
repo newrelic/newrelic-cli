@@ -5,50 +5,43 @@ permissions: write-all
 # Triggered via GitHub Actions UI
 on:
   workflow_dispatch:
-    inputs:
-      # The force-release input is typically used
-      # when we need to release an open-install-library update.
-      force-release:
-        description: 'Enter 1 to force a patch release (only needed for isolated open-install-library updates).'
-        required: false
-        default: ''
 
 jobs:
-  # test:
-  #   if: github.ref == 'refs/heads/main'
-  #   uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
-  #   secrets:
-  #     NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-  #     NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
-  #     NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-  #     NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-  #     NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
-  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  # e2e:
-  #   if: github.ref == 'refs/heads/main'
-  #   needs: test
-  #   uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
-  #   secrets:
-  #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  #     GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
-  #     GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
-  # e2e-eu:
-  #   if: github.ref == 'refs/heads/main'
-  #   needs: test
-  #   uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
-  #   secrets:
-  #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  #     GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
-  #     GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
+  test:
+    if: github.ref == 'refs/heads/main'
+    uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+    secrets:
+      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+      NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+  e2e:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+  e2e-eu:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
 
   release:
-    # if: github.ref == 'refs/heads/main'
-    # needs: [test, e2e, e2e-eu]
+    if: github.ref == 'refs/heads/main'
+    needs: [test, e2e, e2e-eu]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -67,14 +60,14 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      # - name: Install Snapcraft
-      #   uses: samuelmeuli/action-snapcraft@v1
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v1
 
-      # - name: Install PGP private key
-      #   shell: bash
-      #   env:
-      #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-      #   run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+      - name: Install PGP private key
+        shell: bash
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+        run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
 
       - name: Publish Release
         shell: bash
@@ -85,219 +78,218 @@ jobs:
           SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-          FORCE_RELEASE: ${{ github.event.inputs.force-release }}
         run: |
           git config --global user.name ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}
           git config --global user.email ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}
 
           ./scripts/release.sh
 
-      #     make release-publish
+          make release-publish
 
-      # - uses: actions/upload-artifact@v2
-      #   with:
-      #     name: windows-binary
-      #     path: dist/newrelic_windows_amd64/newrelic.exe
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows-binary
+          path: dist/newrelic_windows_amd64/newrelic.exe
 
-      # - name: Checkout newrelic-forks/homebrew-core
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: newrelic-forks/homebrew-core
-      #     path: homebrew-core
-      #     token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+      - name: Checkout newrelic-forks/homebrew-core
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic-forks/homebrew-core
+          path: homebrew-core
+          token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
 
-      # - name: Create homebrew-core pull request
-      #   shell: bash
-      #   run: ./scripts/brew_formula_pull_request.sh
-      #   env:
-      #     GH_USER_EMAIL: developer-toolkit-team@newrelic.com
-      #     GH_USER_NAME: 'New Relic Developer Toolkit Bot'
+      - name: Create homebrew-core pull request
+        shell: bash
+        run: ./scripts/brew_formula_pull_request.sh
+        env:
+          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
+          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
 
-      # - name: Install aws cli
-      #   run: |
-      #     sudo apt-get update -y
-      #     sudo apt-get install awscli -y
+      - name: Install aws cli
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install awscli -y
 
-      # - name: Write config 1
-      #   uses: DamianReeves/write-file-action@v1.0
-      #   with:
-      #     path: /home/runner/.aws/credentials
-      #     contents:  |
-      #       [virtuoso_user]
-      #       aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-      #       aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     write-mode: overwrite
+      - name: Write config 1
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/credentials
+          contents:  |
+            [virtuoso_user]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          write-mode: overwrite
 
-      # - name: Write config 2
-      #   uses: DamianReeves/write-file-action@v1.0
-      #   with:
-      #     path: /home/runner/.aws/config
-      #     contents:  |
-      #       [profile virtuoso]
-      #       role_arn = ${{ secrets.AWS_ROLE_ARN }}
-      #       region = ${{ secrets.AWS_DEFAULT_REGION }}
-      #       source_profile = virtuoso_user
-      #     write-mode: overwrite
+      - name: Write config 2
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/config
+          contents:  |
+            [profile virtuoso]
+            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            region = ${{ secrets.AWS_DEFAULT_REGION }}
+            source_profile = virtuoso_user
+          write-mode: overwrite
 
-      # - name: Upload install script
-      #   id: upload-install-script
-      #   run: |
-      #     aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
+      - name: Upload install script
+        id: upload-install-script
+        run: |
+          aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
 
-      # - name: Upload install script (Windows)
-      #   id: upload-install-script-windows
-      #   run: |
-      #     aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
+      - name: Upload install script (Windows)
+        id: upload-install-script-windows
+        run: |
+          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
 
-      # - id: get-latest-tag
-      #   uses: actions-ecosystem/action-get-latest-tag@v1
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
 
-      # - name: Upload release artifacts
-      #   id: upload-release-artifacts
-      #   run: |
-      #     aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/ --profile virtuoso
+      - name: Upload release artifacts
+        id: upload-release-artifacts
+        run: |
+          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/ --profile virtuoso
 
-      # - name: Cleanup configs
-      #   run: |
-      #     rm -rf /home/runner/.aws/credentials
-      #     rm -rf /home/runner/.aws/config
+      - name: Cleanup configs
+        run: |
+          rm -rf /home/runner/.aws/credentials
+          rm -rf /home/runner/.aws/config
 
-  # release-windows-installer:
-  #   runs-on: windows-latest
-  #   needs: release
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+  release-windows-installer:
+    runs-on: windows-latest
+    needs: release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Add msbuild to PATH
-  #       uses: microsoft/setup-msbuild@v1.0.3
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.3
 
-  #     - uses: actions/download-artifact@v2
-  #       with:
-  #         name: windows-binary
-  #         path: .\dist\newrelic_windows_amd64
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows-binary
+          path: .\dist\newrelic_windows_amd64
 
-  #     - name: Compile installer
-  #       run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
+      - name: Compile installer
+        run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
 
-  #     - name: Sign installer
-  #       env:
-  #         PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
-  #       working-directory: .\build\package\msi\NewRelicCLIInstaller
-  #       run: .\SignMSI.cmd
+      - name: Sign installer
+        env:
+          PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+        working-directory: .\build\package\msi\NewRelicCLIInstaller
+        run: .\SignMSI.cmd
 
-  #     - name: Get latest release upload URL
-  #       id: get-latest-release-upload-url
-  #       shell: bash
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-  #       run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+      - name: Get latest release upload URL
+        id: get-latest-release-upload-url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
 
-  #     - name: Upload Windows installer
-  #       id: upload-windows-installer
-  #       uses: actions/upload-release-asset@v1
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-  #       with:
-  #         upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-  #         asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
-  #         asset_name: NewRelicCLIInstaller.msi
-  #         asset_content_type: application/octet-stream
+      - name: Upload Windows installer
+        id: upload-windows-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+          asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
+          asset_name: NewRelicCLIInstaller.msi
+          asset_content_type: application/octet-stream
 
-  # publish:
-  #   runs-on: ubuntu-latest
-  #   needs: release-windows-installer
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
-  #       with:
-  #         ref: main
-  #         fetch-depth: 0
-  #         token: ${{ secrets.RELEASE_TOKEN }}
+  publish:
+    runs-on: ubuntu-latest
+    needs: release-windows-installer
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
-  #     - name: Output latest tag
-  #       id: latest-tag
-  #       run: |
-  #         tag=$(git describe --tags --abbrev=0)
+      - name: Output latest tag
+        id: latest-tag
+        run: |
+          tag=$(git describe --tags --abbrev=0)
 
-  #         echo " "
-  #         echo "Latest tag - before: ${tag}"
-  #         echo " "
+          echo " "
+          echo "Latest tag - before: ${tag}"
+          echo " "
 
-  #         git fetch origin
-  #         git fetch --tags
+          git fetch origin
+          git fetch --tags
 
-  #         latestTag=$(git describe --tags --abbrev=0)
+          latestTag=$(git describe --tags --abbrev=0)
 
-  #         echo " "
-  #         echo "Latest tag - after:  ${latestTag}"
-  #         echo " "
+          echo " "
+          echo "Latest tag - after:  ${latestTag}"
+          echo " "
 
-  #         echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
+          echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
 
-  #     - name: Install aws cli
-  #       run: |
-  #         sudo apt-get update -y
-  #         sudo apt-get install awscli -y
+      - name: Install aws cli
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install awscli -y
 
-  #     - name: Write config 1
-  #       uses: DamianReeves/write-file-action@v1.0
-  #       with:
-  #         path: /home/runner/.aws/credentials
-  #         contents:  |
-  #           [virtuoso_user]
-  #           aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-  #           aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         write-mode: overwrite
+      - name: Write config 1
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/credentials
+          contents:  |
+            [virtuoso_user]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          write-mode: overwrite
 
-  #     - name: Write config 2
-  #       uses: DamianReeves/write-file-action@v1.0
-  #       with:
-  #         path: /home/runner/.aws/config
-  #         contents:  |
-  #           [profile virtuoso]
-  #           role_arn = ${{ secrets.AWS_ROLE_ARN }}
-  #           region = ${{ secrets.AWS_DEFAULT_REGION }}
-  #           source_profile = virtuoso_user
-  #         write-mode: overwrite
+      - name: Write config 2
+        uses: DamianReeves/write-file-action@v1.0
+        with:
+          path: /home/runner/.aws/config
+          contents:  |
+            [profile virtuoso]
+            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            region = ${{ secrets.AWS_DEFAULT_REGION }}
+            source_profile = virtuoso_user
+          write-mode: overwrite
 
-  #     - id: get-latest-tag
-  #       uses: actions-ecosystem/action-get-latest-tag@v1
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
 
-  #     - name: Fetch Github Release Asset
-  #       uses: dsaltares/fetch-gh-release-asset@0.06
-  #       with:
-  #         repo: "newrelic/newrelic-cli"
-  #         version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
-  #         file: "NewRelicCLIInstaller.msi"
-  #         target: "NewRelicCLIInstaller.msi"
-  #         token: ${{ secrets.RELEASE_TOKEN }}
+      - name: Fetch Github Release Asset
+        uses: dsaltares/fetch-gh-release-asset@0.06
+        with:
+          repo: "newrelic/newrelic-cli"
+          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
+          file: "NewRelicCLIInstaller.msi"
+          target: "NewRelicCLIInstaller.msi"
+          token: ${{ secrets.RELEASE_TOKEN }}
 
-  #     - name: Upload Windows MSI
-  #       id: upload-windows-msi
-  #       run: |
-  #         aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi --profile virtuoso
+      - name: Upload Windows MSI
+        id: upload-windows-msi
+        run: |
+          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi --profile virtuoso
 
-  #     - name: Create currentVersion.txt
-  #       id: create-current-version
-  #       uses: "finnp/create-file-action@master"
-  #       env:
-  #         FILE_NAME: "currentVersion.txt"
-  #         FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
+      - name: Create currentVersion.txt
+        id: create-current-version
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "currentVersion.txt"
+          FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
 
-  #     - name: Upload currentVersion.txt
-  #       id: upload-current-version
-  #       run: |
-  #         aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso --cache-control no-cache
+      - name: Upload currentVersion.txt
+        id: upload-current-version
+        run: |
+          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso --cache-control no-cache
 
-  #     - name: Upload chocolatey package
-  #       shell: bash
-  #       continue-on-error: true
-  #       run: make chocolatey-publish
-  #       env:
-  #         CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      - name: Upload chocolatey package
+        shell: bash
+        continue-on-error: true
+        run: make chocolatey-publish
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
 
-  #     - name: Cleanup configs
-  #       run: |
-  #         rm -rf /home/runner/.aws/credentials
-  #         rm -rf /home/runner/.aws/config
+      - name: Cleanup configs
+        run: |
+          rm -rf /home/runner/.aws/credentials
+          rm -rf /home/runner/.aws/config

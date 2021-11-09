@@ -4,7 +4,6 @@ COLOR_NONE='\033[0m'
 COLOR_RED='\033[0;31m'
 COLOR_GREEN='\033[0;32m'
 COLOR_LIGHT_GREEN='\033[1;32m'
-COLOR_ORANGE='\033[0;33m'
 
 DEFAULT_BRANCH='main'
 CURRENT_GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -42,16 +41,9 @@ echo "Next version:    ${VER_NEXT}"
 echo ""
 
 if [ "${VER_CURR}" = "${VER_NEXT}" ]; then
-  if [[ $FORCE_RELEASE -eq 1 ]]; then
     VER_NEXT=$(${VER_CMD} patch)
 
-    printf "Force release requested. Bumping current version ${COLOR_GREEN}${VER_CURR}${COLOR_NONE} to version ${COLOR_LIGHT_GREEN}${VER_NEXT}${COLOR_NONE} for release."
-    echo ""
-  else
-    echo "${COLOR_ORANGE}No new version recommended, exiting.${COLOR_NONE}"
-    echo ""
-    exit 1
-  fi
+    printf "Bumping current version ${COLOR_GREEN}${VER_CURR}${COLOR_NONE} to version ${COLOR_LIGHT_GREEN}${VER_NEXT}${COLOR_NONE} for release."
 fi
 
 GIT_USER=$(git config user.name)
