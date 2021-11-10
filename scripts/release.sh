@@ -1,22 +1,22 @@
 #!/bin/bash
 
-COLOR_RED='\033[0;31m'
 COLOR_NONE='\033[0m'
+COLOR_RED='\033[0;31m'
+COLOR_GREEN='\033[0;32m'
+COLOR_LIGHT_GREEN='\033[1;32m'
 
 DEFAULT_BRANCH='main'
 CURRENT_GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-if [ $CURRENT_GIT_BRANCH != 'main' ]; then
+if [ $CURRENT_GIT_BRANCH != $DEFAULT_BRANCH ]; then
   printf "\n"
-  printf "${COLOR_RED} Error: Must be on main branch to create a new release. \n ${COLOR_NONE}"
+  printf "${COLOR_RED} Error: Must be on main branch to create a new release. ${COLOR_NONE}"
   printf "\n"
 
   exit 1
 fi
 
-echo "GOBIN - before: ${GOBIN}"
-
-SRCDIR=${SRCDIR:-"."}
+# Set GOBIN env variable for Go dependencies
 GOBIN=$(go env GOPATH)/bin
 
 # Install release dependencies
@@ -34,17 +34,16 @@ SPELL_CMD=${GOBIN}/misspell
 VER_CURR=$(${VER_CMD} current)
 VER_NEXT=$(${VER_CMD} next)
 
-echo "GOBIN - after:  ${GOBIN}"
-
-echo " "
+echo ""
 echo "Comparing tag versions..."
 echo "Current version: ${VER_CURR}"
 echo "Next version:    ${VER_NEXT}"
-echo " "
+echo ""
 
 if [ "${VER_CURR}" = "${VER_NEXT}" ]; then
-  echo "No new version recommended, exiting"
-  exit 1
+    VER_NEXT=$(${VER_CMD} patch)
+
+    printf "Bumping current version ${COLOR_GREEN}${VER_CURR}${COLOR_NONE} to version ${COLOR_LIGHT_GREEN}${VER_NEXT}${COLOR_NONE} for release."
 fi
 
 GIT_USER=$(git config user.name)

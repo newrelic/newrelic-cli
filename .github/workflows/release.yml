@@ -7,41 +7,41 @@ on:
   workflow_dispatch:
 
 jobs:
-  # test:
-  #   if: github.ref == 'refs/heads/main'
-  #   uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
-  #   secrets:
-  #     NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-  #     NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
-  #     NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-  #     NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-  #     NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
-  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  # e2e:
-  #   if: github.ref == 'refs/heads/main'
-  #   needs: test
-  #   uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
-  #   secrets:
-  #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  #     GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
-  #     GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
-  # e2e-eu:
-  #   if: github.ref == 'refs/heads/main'
-  #   needs: test
-  #   uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
-  #   secrets:
-  #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  #     GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
-  #     GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
+  test:
+    if: github.ref == 'refs/heads/main'
+    uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+    secrets:
+      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+      NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+  e2e:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+  e2e-eu:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
 
   release:
     if: github.ref == 'refs/heads/main'
-    # needs: [test, e2e, e2e-eu]
+    needs: [test, e2e, e2e-eu]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -82,15 +82,7 @@ jobs:
           git config --global user.name ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}
           git config --global user.email ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}
 
-          export GOBIN=$(go env GOPATH)/bin
-
-          make tools
-
           ./scripts/release.sh
-
-          echo "GitHub Ref: ${{ github.ref }}"
-
-          git describe --abbrev=0 --tags
 
           make release-publish
 
