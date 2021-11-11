@@ -70,6 +70,40 @@ func TestInstallEventsReporter_InstallCanceled(t *testing.T) {
 	require.Equal(t, 3, c.CreateInstallEventCallCount)
 }
 
+func TestInstallEventsReporter_InstallCanceled_ShouldNotReportDetectedEvent(t *testing.T) {
+	c := NewMockInstallEventsClient()
+	r := NewInstallEventsReporter(c)
+	require.NotNil(t, r)
+
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	status.withEntityGUID("testGuid")
+	status.Statuses = []*RecipeStatus{
+		{
+			Name:   "php-agent-installer",
+			Status: RecipeStatusTypes.DETECTED, // Not reported when install canceled
+		},
+		{
+			Name:   "aws-integration",
+			Status: RecipeStatusTypes.DETECTED, // Not reported when install canceled
+		},
+		{
+			Name:   "logs-integration",
+			Status: RecipeStatusTypes.INSTALLING,
+		},
+		{
+			Name:   "mysql-open-source-integration",
+			Status: RecipeStatusTypes.CANCELED,
+		},
+	}
+
+	status.HasCanceledRecipes = true
+
+	err := r.InstallCanceled(status)
+	require.NoError(t, err)
+	require.Equal(t, 2, c.CreateInstallEventCallCount)
+}
+
 func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	c := NewMockInstallEventsClient()
