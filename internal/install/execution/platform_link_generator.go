@@ -43,6 +43,10 @@ func (g *PlatformLinkGenerator) GenerateEntityLink(entityGUID string) string {
 	return g.generateEntityLink(entityGUID)
 }
 
+func (g *PlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
+	return g.generateLoggingLink(entityGUID)
+}
+
 // GenerateRedirectURL creates a URL for the user to navigate to after running
 // through an installation. The URL is displayed in the CLI out as well and is
 // also provided in the nerdstorage document. This provides the user two options
@@ -102,6 +106,16 @@ func (g *PlatformLinkGenerator) generateExplorerLink(status InstallStatus) strin
 
 func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 	longURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
+	shortURL, err := g.generateShortNewRelicURL(longURL)
+	if err != nil {
+		return longURL
+	}
+
+	return shortURL
+}
+
+func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
+	longURL := fmt.Sprintf("https://%s/Loggingnerdletthing/?QueryParams=%s", nrPlatformHostname(), entityGUID)
 	shortURL, err := g.generateShortNewRelicURL(longURL)
 	if err != nil {
 		return longURL

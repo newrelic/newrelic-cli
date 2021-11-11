@@ -5,8 +5,10 @@ import "strings"
 type MockPlatformLinkGenerator struct {
 	GenerateExplorerLinkCallCount int
 	GenerateEntityLinkCallCount   int
+	GenerateLoggingLinkCallCount   int
 	GenerateExplorerLinkVal       string
 	GenerateEntityLinkVal         string
+	GenerateLoggingLinkVal         string
 }
 
 func NewMockPlatformLinkGenerator() *MockPlatformLinkGenerator {
@@ -21,6 +23,11 @@ func (g *MockPlatformLinkGenerator) GenerateExplorerLink(status InstallStatus) s
 func (g *MockPlatformLinkGenerator) GenerateEntityLink(entityGUID string) string {
 	g.GenerateEntityLinkCallCount++
 	return g.GenerateEntityLinkVal
+}
+
+func (g *MockPlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
+	g.GenerateLoggingLinkCallCount++
+	return g.GenerateLoggingLinkVal
 }
 
 func (g *MockPlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string {
