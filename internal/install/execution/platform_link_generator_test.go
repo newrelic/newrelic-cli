@@ -45,6 +45,53 @@ func TestGenerateRedirectURL_InstallSuccess(t *testing.T) {
 	require.Equal(t, expectedURL, result)
 }
 
+
+func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+	// We set an API key in the unit test so we don't make an real HTTP request
+	// to the New Relic short URL service (see integration test), and so we can test
+	// the query param being added for the fallback installation strategy below.
+	g.apiKey = ""
+
+	infraEntityGUID := "MTA1Nzc0NDJ8RVhUfFNFUlZJQ0V8LTE0NDE0ODA2MDQwNDMxMjk3Ng"
+	infraRecipe := types.OpenInstallationRecipe{
+		Name:        "infrastructure-agent-installer",
+		DisplayName: "Infrastructure Agent",
+	}
+	logsRecipe := types.OpenInstallationRecipe{
+		Name:        "logs-integration",
+		DisplayName: "Logs integration",
+	}
+	agentInstalledStatus := &RecipeStatus{
+		DisplayName: "Infrastructure Agent",
+		Name:        "infrastructure-agent-installer",
+		Status:      RecipeStatusTypes.INSTALLED,
+		EntityGUID:  infraEntityGUID,
+	}
+	logsInstalledStatus := &RecipeStatus{
+		DisplayName: "Logs integration",
+		Name:        "logs-integration",
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+	installStatus := InstallStatus{
+		recipesSelected: []types.OpenInstallationRecipe{infraRecipe, logsRecipe},
+		Installed:       []*RecipeStatus{agentInstalledStatus,logsInstalledStatus},
+		EntityGUIDs:     []string{infraEntityGUID},
+		Statuses:        []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
+	}
+
+	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
+	expectedLoggingLink := fmt.Sprintf("https://%s/Logging.nerdlet?blahshdhdhd%s",nrPlatformHostname(), infraEntityGUID)
+
+	redirectURLResult := g.GenerateRedirectURL(installStatus)
+	loggingLinkResult := g.GenerateLoggingLink(infraEntityGUID)
+	require.Contains(t, redirectURLResult, expectedRedirectURL)
+	require.Contains(t, loggingLinkResult, expectedLoggingLink)
+}
+
+
 func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {
 	t.Parallel()
 

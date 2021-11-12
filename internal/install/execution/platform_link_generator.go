@@ -115,7 +115,10 @@ func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 }
 
 func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
-	longURL := fmt.Sprintf("https://%s/Loggingnerdletthing/?QueryParams=%s", nrPlatformHostname(), entityGUID)
+	// TODO: find out where the account id is stored and pass it in (maybe deconstruct entityGUID?)
+	decodedGuid := utils.Base64Decode(entityGUID)
+	accountID := strings.Split(decodedGuid,"|")[0]
+	longURL := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%s&QueryParams=%s", nrPlatformHostname(), accountID, entityGUID)
 	shortURL, err := g.generateShortNewRelicURL(longURL)
 	if err != nil {
 		return longURL
