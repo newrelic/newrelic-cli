@@ -22,6 +22,9 @@ GOBIN=$(go env GOPATH)/bin
 # Install release dependencies
 go install github.com/caarlos0/svu@latest
 go install github.com/x-motemen/gobump/cmd/gobump@latest
+go install github.com/x-motemen/gobump/cmd/gobump@latest
+go install github.com/git-chglog/git-chglog/cmd/git-chglog@lates
+go install github.com/client9/misspell/cmd/misspell@latest
 
 VER_PACKAGE="internal/version"
 VER_CMD=${GOBIN}/svu
