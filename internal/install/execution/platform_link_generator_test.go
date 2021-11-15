@@ -50,12 +50,14 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 	t.Parallel()
 
 	g := NewPlatformLinkGenerator()
+
 	// We set an API key in the unit test so we don't make an real HTTP request
 	// to the New Relic short URL service (see integration test), and so we can test
 	// the query param being added for the fallback installation strategy below.
 	g.apiKey = ""
 
-	infraEntityGUID := "MTA1Nzc0NDJ8RVhUfFNFUlZJQ0V8LTE0NDE0ODA2MDQwNDMxMjk3Ng"
+	infraEntityGUID := "MzMxMDYxM3xJTkZSQXxOQXw1MTE2ODUyMzE3MjU4ODYwOTM5"
+	accountID := "3310613"
 	infraRecipe := types.OpenInstallationRecipe{
 		Name:        "infrastructure-agent-installer",
 		DisplayName: "Infrastructure Agent",
@@ -83,7 +85,7 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 	}
 
 	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
-	expectedLoggingLink := fmt.Sprintf("https://%s/Logging.nerdlet?blahshdhdhd%s",nrPlatformHostname(), infraEntityGUID)
+	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%s",nrPlatformHostname(), accountID)
 
 	redirectURLResult := g.GenerateRedirectURL(installStatus)
 	loggingLinkResult := g.GenerateLoggingLink(infraEntityGUID)
