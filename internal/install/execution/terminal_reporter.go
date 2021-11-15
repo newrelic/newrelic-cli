@@ -125,6 +125,9 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
 		}
 
+		r.printLoggingLink(status)
+
+
 		fmt.Println()
 		fmt.Println("\n  --------------------")
 		fmt.Println()
@@ -154,6 +157,24 @@ func (r TerminalStatusReporter) RecipeUnsupported(status *InstallStatus, event R
 func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
 }
+
+func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
+	linkToLogging := ""
+	loggingMsg := "View your logs at the link below:\n"
+	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
+
+	for _, s := range statusesToDisplay {
+		if s.Status == RecipeStatusTypes.INSTALLED && s.DisplayName == "Logs integration" {
+			linkToLogging = status.PlatformLinkGenerator.GenerateLoggingLink(status.HostEntityGUID())
+		}
+	}
+		
+	if linkToLogging != "" {
+		fmt.Printf("\n  %s", loggingMsg)
+		fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToLogging)
+	}
+}
+
 
 func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) {
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
