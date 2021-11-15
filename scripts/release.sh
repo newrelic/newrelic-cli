@@ -31,7 +31,6 @@ VER_CMD=${GOBIN}/svu
 VER_BUMP=${GOBIN}/gobump
 CHANGELOG_CMD=${GOBIN}/git-chglog
 CHANGELOG_FILE=CHANGELOG.md
-RELEASE_NOTES_FILE=tmp/relnotes.md
 SPELL_CMD=${GOBIN}/misspell
 
 # Compare versions
@@ -101,11 +100,3 @@ if [ $? -ne 0 ]; then
   echo "Failed to push tag, exiting"
   exit $?
 fi
-
-# Generate release notes for GoReleaser to add to the GitHub release description
-${CHANGELOG_CMD} -o ${RELEASE_NOTES_FILE} ${VER_NEXT} --sort semver
-
-# Correct spelling mistakes in release notes
-${SPELL_CMD} -source text -w ${RELEASE_NOTES_FILE}
-
-cat ${RELEASE_NOTES_FILE} || true

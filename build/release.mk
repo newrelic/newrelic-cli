@@ -21,7 +21,7 @@ release-clean:
 release-publish: clean tools docker-login snapcraft-login release-notes recipes
 	@echo "=== $(PROJECT_NAME) === [ release-publish  ]: Publishing release via $(REL_CMD)"
 	@cat $(SRCDIR)/tmp/$(RELEASE_NOTES_FILE) || true
-	$(REL_CMD) --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE)
+	$(REL_CMD) release --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE)
 
 # Local Snapshot
 snapshot: clean tools recipes
