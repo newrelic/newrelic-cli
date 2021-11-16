@@ -127,7 +127,6 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 		r.printLoggingLink(status)
 
-
 		fmt.Println()
 		fmt.Println("\n  --------------------")
 		fmt.Println()
@@ -168,13 +167,12 @@ func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 			linkToLogging = status.PlatformLinkGenerator.GenerateLoggingLink(status.HostEntityGUID())
 		}
 	}
-		
+
 	if linkToLogging != "" {
 		fmt.Printf("\n  %s", loggingMsg)
 		fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToLogging)
 	}
 }
-
 
 func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) {
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)

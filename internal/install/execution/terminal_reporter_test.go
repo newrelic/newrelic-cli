@@ -96,12 +96,11 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 	}
 
 	loggingRecipeStatus := &RecipeStatus{
-		DisplayName:   "Logs integration",
-		Status: RecipeStatusTypes.INSTALLED,
+		DisplayName: "Logs integration",
+		Status:      RecipeStatusTypes.INSTALLED,
 	}
 
 	status.Statuses = append(status.Statuses, loggingRecipeStatus)
-
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)

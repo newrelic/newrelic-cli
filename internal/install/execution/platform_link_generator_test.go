@@ -45,7 +45,6 @@ func TestGenerateRedirectURL_InstallSuccess(t *testing.T) {
 	require.Equal(t, expectedURL, result)
 }
 
-
 func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 	t.Parallel()
 
@@ -78,21 +77,20 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 	}
 	installStatus := InstallStatus{
 		recipesSelected: []types.OpenInstallationRecipe{infraRecipe, logsRecipe},
-		Installed:       []*RecipeStatus{agentInstalledStatus,logsInstalledStatus},
+		Installed:       []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
 		EntityGUIDs:     []string{infraEntityGUID},
 		Statuses:        []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
 	}
 
 	launcherEncodedParams := "eyJxdWVyeSI6IlwiZW50aXR5Lmd1aWRcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiJ9"
 	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
-	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=0&launcher=%s",nrPlatformHostname(), launcherEncodedParams)
+	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=0&launcher=%s", nrPlatformHostname(), launcherEncodedParams)
 
 	redirectURLResult := g.GenerateRedirectURL(installStatus)
 	loggingLinkResult := g.GenerateLoggingLink(infraEntityGUID)
 	require.Contains(t, redirectURLResult, expectedRedirectURL)
 	require.Contains(t, loggingLinkResult, expectedLoggingLink)
 }
-
 
 func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {
 	t.Parallel()
