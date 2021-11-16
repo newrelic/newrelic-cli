@@ -56,9 +56,8 @@ func (f *EmbeddedRecipeFetcher) FetchLibraryVersion(ctx context.Context) string 
 	data, err := EmbeddedFS.ReadFile(embeddedRecipesPath + "/" + versionFilename)
 	if err == nil {
 		return f.getLibraryVersion(data)
-	} else {
-		log.Debugf("Unable to read library version, detail: %s", err)
 	}
+	log.Debugf("Unable to read library version, detail: %s", err)
 	return ""
 }
 
