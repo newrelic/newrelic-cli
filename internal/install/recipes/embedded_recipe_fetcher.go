@@ -9,8 +9,9 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 const (
