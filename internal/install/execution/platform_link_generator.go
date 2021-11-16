@@ -66,6 +66,10 @@ type referrerParamValue struct {
 	EntityGUID string `json:"entityGuid,omitempty"`
 }
 
+type loggingLauncher struct {
+	query string `json:"query"`
+}
+
 // The CLI URL referrer param is a JSON string containing information
 // the UI can use to understand how/where the URL was generated. This allows the
 // UI to return to its previous state in the case of a user closing the browser
@@ -114,17 +118,40 @@ func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 
 	return shortURL
 }
+// https://staging-one.newrelic.com/launcher/logger.log-launcher?platform[accountId]=1&launcher=eyJhY3RpdmVWaWV3IjoiVmlldyBBbGwgTG9ncyIsInF1ZXJ5IjoiIFwiZW50aXR5Lmd1aWRcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiIsImJlZ2luIjpudWxsLCJlbmQiOm51bGwsImV2ZW50VHlwZXMiOlsiTG9nIl0sImlzRW50aXRsZWQiOnRydWV9
 
 func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
-	decodedGuid := utils.Base64Decode(entityGUID)
-	accountID := strings.Split(decodedGuid,"|")[0]
-	longURL := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%s", nrPlatformHostname(), accountID)
+
+	longURL := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%d&launcher=%s",
+		nrPlatformHostname(),
+		configAPI.GetActiveProfileAccountID(),
+		utils.Base64Encode(g.generateLoggingLauncherParams(entityGUID)),
+	)
+
+
 	shortURL, err := g.generateShortNewRelicURL(longURL)
 	if err != nil {
 		return longURL
 	}
 
 	return shortURL
+}
+
+func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string) string {
+	p := loggingLauncher{
+		query: fmt.Sprintf("\"entity.guid\":\"%s\"",entityGUID),
+	}
+
+	stringifiedParam, err := json.Marshal(p)
+	if err != nil {
+		log.Debugf("error marshaling referrer param: %s", err)
+		return ""
+	}
+
+	// {
+	//  "query": " \"entity.guid\":\"MXxBUE18QVBQTElDQVRJT058OTE2NzQxNg\""
+	// }
+	return string(stringifiedParam)
 }
 
 // The shortenURL function utilizes a New Relic service to convert

@@ -125,15 +125,6 @@ func Base64Encode(data string) string {
 	return b64.StdEncoding.EncodeToString([]byte(data))
 }
 
-// Base64Decode base 64 decodes a string.
-func Base64Decode(data string) string {
-	decoded, err := b64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return "error decoding"
-	}
-	return string(decoded)
-}
-
 // Standard way to check for stdin in most environments (https://stackoverflow.com/questions/22563616/determine-if-stdin-has-data-with-go)
 func StdinExists() bool {
 	fi, err := os.Stdin.Stat()

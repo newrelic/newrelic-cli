@@ -95,8 +95,8 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 		PlatformLinkGenerator: g,
 	}
 
-	loggingRecipeStatus := &RecipeStatus{ 	
-		Name:   "Logs integration",
+	loggingRecipeStatus := &RecipeStatus{
+		DisplayName:   "Logs integration",
 		Status: RecipeStatusTypes.INSTALLED,
 	}
 
@@ -105,7 +105,7 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
-	require.Equal(t, 0, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
 	require.Equal(t, 1, g.GenerateLoggingLinkCallCount)
 }
 
