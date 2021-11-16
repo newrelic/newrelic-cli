@@ -1,3 +1,9 @@
+<a name="v0.37.18"></a>
+## [v0.37.18] - 2021-11-16
+### Bug Fixes
+- **install:** fix lint
+- **install:** remove library version 'v' prefix
+
 <a name="v0.37.17"></a>
 ## [v0.37.17] - 2021-11-15
 ### Bug Fixes
@@ -1394,7 +1400,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.18...HEAD
+[v0.37.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...v0.37.18
 [v0.37.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.16...v0.37.17
 [v0.37.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.15...v0.37.16
 [v0.37.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.14...v0.37.15
