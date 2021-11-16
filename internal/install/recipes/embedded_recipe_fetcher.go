@@ -10,6 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -54,9 +55,16 @@ func (f *EmbeddedRecipeFetcher) FetchLibraryVersion(ctx context.Context) string 
 	versionFilename := "version.txt"
 	data, err := EmbeddedFS.ReadFile(embeddedRecipesPath + "/" + versionFilename)
 	if err == nil {
-		return string(data)
+		return f.getLibraryVersion(data)
 	}
+	log.Debugf("Unable to read library version, detail: %s", err)
 	return ""
+}
+
+func (f *EmbeddedRecipeFetcher) getLibraryVersion(data []byte) string {
+	sVersion := string(data)
+	sVersion = strings.Trim(sVersion, "v")
+	return sVersion
 }
 
 func (f *EmbeddedRecipeFetcher) getYAMLFiles(path string) (out []string, err error) {
