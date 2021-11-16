@@ -56,8 +56,7 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 	// the query param being added for the fallback installation strategy below.
 	g.apiKey = ""
 
-	infraEntityGUID := "MzMxMDYxM3xJTkZSQXxOQXw1MTE2ODUyMzE3MjU4ODYwOTM5"
-	accountID := "3310613"
+	infraEntityGUID := "MXxBUE18QVBQTElDQVRJT058OTE2NzQxNg"
 	infraRecipe := types.OpenInstallationRecipe{
 		Name:        "infrastructure-agent-installer",
 		DisplayName: "Infrastructure Agent",
@@ -84,8 +83,9 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 		Statuses:        []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
 	}
 
+	launcherEncodedParams := "eyJxdWVyeSI6IlwiZW50aXR5Lmd1aWRcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiJ9"
 	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
-	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%s",nrPlatformHostname(), accountID)
+	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=0&launcher=%s",nrPlatformHostname(), launcherEncodedParams)
 
 	redirectURLResult := g.GenerateRedirectURL(installStatus)
 	loggingLinkResult := g.GenerateLoggingLink(infraEntityGUID)

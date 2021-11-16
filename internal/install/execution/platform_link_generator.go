@@ -67,7 +67,7 @@ type referrerParamValue struct {
 }
 
 type loggingLauncher struct {
-	query string `json:"query"`
+	Query string `json:"query"`
 }
 
 // The CLI URL referrer param is a JSON string containing information
@@ -118,7 +118,6 @@ func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 
 	return shortURL
 }
-// https://staging-one.newrelic.com/launcher/logger.log-launcher?platform[accountId]=1&launcher=eyJhY3RpdmVWaWV3IjoiVmlldyBBbGwgTG9ncyIsInF1ZXJ5IjoiIFwiZW50aXR5Lmd1aWRcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiIsImJlZ2luIjpudWxsLCJlbmQiOm51bGwsImV2ZW50VHlwZXMiOlsiTG9nIl0sImlzRW50aXRsZWQiOnRydWV9
 
 func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
 
@@ -139,18 +138,15 @@ func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
 
 func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string) string {
 	p := loggingLauncher{
-		query: fmt.Sprintf("\"entity.guid\":\"%s\"",entityGUID),
+		Query: fmt.Sprintf("\"entity.guid\":\"%s\"",entityGUID),
 	}
 
 	stringifiedParam, err := json.Marshal(p)
 	if err != nil {
-		log.Debugf("error marshaling referrer param: %s", err)
+		log.Debugf("error marshaling launcher param: %s", err)
 		return ""
 	}
 
-	// {
-	//  "query": " \"entity.guid\":\"MXxBUE18QVBQTElDQVRJT058OTE2NzQxNg\""
-	// }
 	return string(stringifiedParam)
 }
 
