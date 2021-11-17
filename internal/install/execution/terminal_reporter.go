@@ -169,6 +169,7 @@ func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 	}
 
 	if linkToLogging != "" {
+		fmt.Println("")
 		fmt.Printf("\n  %s", loggingMsg)
 		fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToLogging)
 	}
