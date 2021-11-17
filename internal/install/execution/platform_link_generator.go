@@ -136,7 +136,7 @@ func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
 
 func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string) string {
 	p := loggingLauncher{
-		Query: fmt.Sprintf("\"entity.guid\":\"%s\"", entityGUID),
+		Query: fmt.Sprintf("\"entity.guid.INFRA\":\"%s\"", entityGUID),
 	}
 
 	stringifiedParam, err := json.Marshal(p)
