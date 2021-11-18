@@ -43,6 +43,10 @@ func (g *PlatformLinkGenerator) GenerateEntityLink(entityGUID string) string {
 	return g.generateEntityLink(entityGUID)
 }
 
+func (g *PlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
+	return g.generateLoggingLink(entityGUID)
+}
+
 // GenerateRedirectURL creates a URL for the user to navigate to after running
 // through an installation. The URL is displayed in the CLI out as well and is
 // also provided in the nerdstorage document. This provides the user two options
@@ -59,6 +63,10 @@ type referrerParamValue struct {
 	NerdletID  string `json:"nerdletId,omitempty"`
 	Referrer   string `json:"referrer,omitempty"`
 	EntityGUID string `json:"entityGuid,omitempty"`
+}
+
+type loggingLauncher struct {
+	Query string `json:"query"`
 }
 
 // The CLI URL referrer param is a JSON string containing information
@@ -108,6 +116,36 @@ func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 	}
 
 	return shortURL
+}
+
+func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
+
+	longURL := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%d&launcher=%s",
+		nrPlatformHostname(),
+		configAPI.GetActiveProfileAccountID(),
+		utils.Base64Encode(g.generateLoggingLauncherParams(entityGUID)),
+	)
+
+	shortURL, err := g.generateShortNewRelicURL(longURL)
+	if err != nil {
+		return longURL
+	}
+
+	return shortURL
+}
+
+func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string) string {
+	p := loggingLauncher{
+		Query: fmt.Sprintf("\"entity.guid.INFRA\":\"%s\"", entityGUID),
+	}
+
+	stringifiedParam, err := json.Marshal(p)
+	if err != nil {
+		log.Debugf("error marshaling launcher param: %s", err)
+		return ""
+	}
+
+	return string(stringifiedParam)
 }
 
 // The shortenURL function utilizes a New Relic service to convert
