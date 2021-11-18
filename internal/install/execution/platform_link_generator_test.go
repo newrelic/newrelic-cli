@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	
+
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
