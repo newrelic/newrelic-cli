@@ -163,7 +163,7 @@ func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statusesToDisplay {
-		if s.Status == RecipeStatusTypes.INSTALLED && s.DisplayName == "Logs integration" {
+		if s.Status == RecipeStatusTypes.INSTALLED && s.Name == types.LoggingRecipeName {
 			linkToLogging = status.PlatformLinkGenerator.GenerateLoggingLink(status.HostEntityGUID())
 		}
 	}

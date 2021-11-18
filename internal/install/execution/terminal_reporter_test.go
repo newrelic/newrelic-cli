@@ -97,6 +97,7 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 
 	loggingRecipeStatus := &RecipeStatus{
 		DisplayName: "Logs integration",
+		Name:        types.LoggingRecipeName,
 		Status:      RecipeStatusTypes.INSTALLED,
 	}
 

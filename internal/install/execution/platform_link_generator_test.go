@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
+	
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -54,6 +55,7 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 	// to the New Relic short URL service (see integration test), and so we can test
 	// the query param being added for the fallback installation strategy below.
 	g.apiKey = ""
+	accountID := configAPI.GetActiveProfileAccountID()
 
 	infraEntityGUID := "MXxBUE18QVBQTElDQVRJT058OTE2NzQxNg"
 	infraRecipe := types.OpenInstallationRecipe{
@@ -84,7 +86,7 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 
 	launcherEncodedParams := "eyJxdWVyeSI6IlwiZW50aXR5Lmd1aWQuSU5GUkFcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiJ9"
 	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
-	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=0&launcher=%s", nrPlatformHostname(), launcherEncodedParams)
+	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%d&launcher=%s", nrPlatformHostname(), accountID, launcherEncodedParams)
 
 	redirectURLResult := g.GenerateRedirectURL(installStatus)
 	loggingLinkResult := g.GenerateLoggingLink(infraEntityGUID)
