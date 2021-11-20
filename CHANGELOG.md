@@ -1,3 +1,17 @@
+<a name="v0.38.0"></a>
+## [v0.38.0] - 2021-11-18
+### Features
+- update tests
+- add new line
+- updated entity guid
+- update entity guid to refer to infra entity
+- added logging launcher params
+- added logging launcher params
+- add logging link url
+- fix tests
+- added util for decoding account id
+- add logging url
+
 <a name="v0.37.19"></a>
 ## [v0.37.19] - 2021-11-16
 <a name="v0.37.18"></a>
@@ -1402,7 +1416,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.19...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.38.0...HEAD
+[v0.38.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.19...v0.38.0
 [v0.37.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.18...v0.37.19
 [v0.37.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...v0.37.18
 [v0.37.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.16...v0.37.17
