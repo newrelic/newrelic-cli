@@ -84,7 +84,7 @@ func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
 		Statuses:        []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
 	}
 
-	launcherEncodedParams := "eyJxdWVyeSI6IlwiZW50aXR5Lmd1aWQuSU5GUkFcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiJ9"
+	launcherEncodedParams := "eyJxdWVyeSI6IlwiZW50aXR5Lmd1aWQuSU5GUkFcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiIsInJlZmVycmVyIjoibmV3cmVsaWMtY2xpIn0="
 	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
 	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%d&launcher=%s", nrPlatformHostname(), accountID, launcherEncodedParams)
 
