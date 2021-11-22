@@ -9,7 +9,7 @@ require (
 	github.com/golangci/golangci-lint v1.42.1
 	github.com/goreleaser/goreleaser v0.184.0
 	github.com/llorllale/go-gitlint v0.0.0-20210608233938-d6303cc52cc5
-	github.com/newrelic/tutone v0.9.0
+	github.com/newrelic/tutone v0.10.1
 	github.com/psampaz/go-mod-outdated v0.8.0
 	github.com/stretchr/testify v1.7.0
 	github.com/x-motemen/gobump v0.2.0
