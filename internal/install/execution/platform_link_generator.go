@@ -67,6 +67,7 @@ type referrerParamValue struct {
 
 type loggingLauncher struct {
 	Query string `json:"query"`
+	Referrer   string `json:"referrer,omitempty"`
 }
 
 // The CLI URL referrer param is a JSON string containing information
@@ -137,6 +138,7 @@ func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
 func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string) string {
 	p := loggingLauncher{
 		Query: fmt.Sprintf("\"entity.guid.INFRA\":\"%s\"", entityGUID),
+		Referrer:  "newrelic-cli",
 	}
 
 	stringifiedParam, err := json.Marshal(p)
