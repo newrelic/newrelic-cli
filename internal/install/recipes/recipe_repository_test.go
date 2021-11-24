@@ -50,6 +50,43 @@ func Test_ShouldFindSingleOsRecipe(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
+func Test_ShouldFindMatchingByRegex(t *testing.T) {
+	Setup()
+	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "((8|9|10)\\.?.*)", "aarch64")
+	discoveryManifest.OS = "linux"
+	discoveryManifest.PlatformVersion = "10.11"
+	discoveryManifest.KernelArch = "aarch64"
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 1)
+	require.Equal(t, results[0].ID, "id1")
+}
+
+func Test_ShouldNotFindRegexWhenMissingParenthesis(t *testing.T) {
+	Setup()
+	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "10\\.?.*", "aarch64")
+	discoveryManifest.OS = "linux"
+	discoveryManifest.PlatformVersion = "10.11"
+	discoveryManifest.KernelArch = "aarch64"
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 0)
+}
+
+func Test_ShouldFilterOutMatchingByRegex(t *testing.T) {
+	Setup()
+	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "((8|9|10)\\.?.*)", "aarch64")
+	discoveryManifest.OS = "linux"
+	discoveryManifest.PlatformVersion = "7.2"
+	discoveryManifest.KernelArch = "aarch64"
+
+	results, _ := repository.FindAll(discoveryManifest)
+
+	require.Len(t, results, 0)
+}
+
 func Test_ShouldNotFindSingleOsRecipe(t *testing.T) {
 	// log.SetLevel(log.TraceLevel)
 	Setup()

@@ -1,5 +1,128 @@
+<a name="v0.38.0"></a>
+## [v0.38.0] - 2021-11-18
+### Features
+- update tests
+- add new line
+- updated entity guid
+- update entity guid to refer to infra entity
+- added logging launcher params
+- added logging launcher params
+- add logging link url
+- fix tests
+- added util for decoding account id
+- add logging url
+
+<a name="v0.37.19"></a>
+## [v0.37.19] - 2021-11-16
+<a name="v0.37.18"></a>
+## [v0.37.18] - 2021-11-16
+### Bug Fixes
+- **install:** fix lint
+- **install:** remove library version 'v' prefix
+
+<a name="v0.37.17"></a>
+## [v0.37.17] - 2021-11-15
+### Bug Fixes
+- **install:** set targeted install to true on status when recipe(s) provided in command
+
+<a name="v0.37.16"></a>
+## [v0.37.16] - 2021-11-15
+### Bug Fixes
+- **release:** include release notes per .goreleaser.yml config change from v0.180.0+
+
+<a name="v0.37.15"></a>
+## [v0.37.15] - 2021-11-15
+### Bug Fixes
+- **release:** need to use 'goreleaser release' command to add release notes
+
+<a name="v0.37.14"></a>
+## [v0.37.14] - 2021-11-15
+### Bug Fixes
+- **release:** add release notes back to GitHub release description
+
+<a name="v0.37.13"></a>
+## [v0.37.13] - 2021-11-12
+<a name="v0.37.12"></a>
+## [v0.37.12] - 2021-11-12
+### Bug Fixes
+- **release:** stupid typo
+
+<a name="v0.37.11"></a>
+## [v0.37.11] - 2021-11-12
+<a name="v0.37.10"></a>
+## [v0.37.10] - 2021-11-11
+### Bug Fixes
+- **install:** prevent duplicate DETECTED events when installation canceled
+
+<a name="v0.37.9"></a>
+## [v0.37.9] - 2021-11-10
+<a name="v0.37.8"></a>
+## [v0.37.8] - 2021-11-10
+<a name="v0.37.7"></a>
+## [v0.37.7] - 2021-11-09
+### Bug Fixes
+- **install:** kick release
+
+<a name="v0.37.6"></a>
+## [v0.37.6] - 2021-11-09
+### Bug Fixes
+- **release:** specify ref for checkout step in push job
+
+<a name="v0.37.5"></a>
+## [v0.37.5] - 2021-11-08
+### Bug Fixes
+- **release:** output latest tag version before publish
+
+<a name="v0.37.4"></a>
+## [v0.37.4] - 2021-11-08
+### Bug Fixes
+- **release:** output latest tag version before publish
+- **release:** output latest tag version before publish
+
+<a name="v0.37.3"></a>
+## [v0.37.3] - 2021-11-08
+### Bug Fixes
+- **install:** move get latest tag
+
+<a name="v0.37.2"></a>
+## [v0.37.2] - 2021-11-08
+### Bug Fixes
+- **install:** fix publishing of a release by using actions-ecosystem to fetch latest tag
+
+<a name="v0.37.1"></a>
+## [v0.37.1] - 2021-11-08
+### Bug Fixes
+- **release:** test release
+
+<a name="v0.37.0"></a>
+## [v0.37.0] - 2021-11-08
+### Bug Fixes
+- **release:** use RELEASE_TOKEN to fetch assets and publish
+
+### Features
+- **install:** revert to use regex only when parenthesis is present on first char
+- **install:** wire platformVersion evaluation to regex only
+- **install:** allow recipe target to define a regular expression for matching
+
+<a name="v0.36.30"></a>
+## [v0.36.30] - 2021-11-08
+### Bug Fixes
+- **install:** add gpg key for e2e
+- **nerdgraph:** enable Docs and RequestContext fields in QueryResponse ([#1167](https://github.com/newrelic/newrelic-client-go/issues/1167))
+- **release:** use go install command to avoid affecting go.mod file during release
+
+<a name="v0.36.29"></a>
+## [v0.36.29] - 2021-11-03
+<a name="v0.36.28"></a>
+## [v0.36.28] - 2021-11-01
+<a name="v0.36.27"></a>
+## [v0.36.27] - 2021-10-27
+<a name="v0.36.26"></a>
+## [v0.36.26] - 2021-10-26
+<a name="v0.36.25"></a>
+## [v0.36.25] - 2021-10-26
 <a name="v0.36.24"></a>
-## [v0.36.24] - 2021-10-22
+## [v0.36.24] - 2021-10-25
 <a name="v0.36.23"></a>
 ## [v0.36.23] - 2021-10-22
 <a name="v0.36.22"></a>
@@ -1293,7 +1416,34 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.24...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.38.0...HEAD
+[v0.38.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.19...v0.38.0
+[v0.37.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.18...v0.37.19
+[v0.37.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...v0.37.18
+[v0.37.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.16...v0.37.17
+[v0.37.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.15...v0.37.16
+[v0.37.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.14...v0.37.15
+[v0.37.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.13...v0.37.14
+[v0.37.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.12...v0.37.13
+[v0.37.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.11...v0.37.12
+[v0.37.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.10...v0.37.11
+[v0.37.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.9...v0.37.10
+[v0.37.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.8...v0.37.9
+[v0.37.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.7...v0.37.8
+[v0.37.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.6...v0.37.7
+[v0.37.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.5...v0.37.6
+[v0.37.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.4...v0.37.5
+[v0.37.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.3...v0.37.4
+[v0.37.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.2...v0.37.3
+[v0.37.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.1...v0.37.2
+[v0.37.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.0...v0.37.1
+[v0.37.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.30...v0.37.0
+[v0.36.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.29...v0.36.30
+[v0.36.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.28...v0.36.29
+[v0.36.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.27...v0.36.28
+[v0.36.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.26...v0.36.27
+[v0.36.26]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.25...v0.36.26
+[v0.36.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.24...v0.36.25
 [v0.36.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.23...v0.36.24
 [v0.36.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.22...v0.36.23
 [v0.36.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.21...v0.36.22

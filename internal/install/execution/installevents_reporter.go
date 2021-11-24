@@ -81,8 +81,22 @@ func (r InstallEventsReporter) DiscoveryComplete(status *InstallStatus, dm types
 	return nil
 }
 
+func (r InstallEventsReporter) canSendRecipeStatusEvent(status *InstallStatus, recipeStatus installevents.InstallationRecipeStatusType) bool {
+	// Prevent sending duplicate DETECTED events when installation is canceled because
+	// the DETECTED event was already sent at the beginning of the installation process.
+	if recipeStatus == installevents.InstallationRecipeStatusTypeTypes.DETECTED && status.HasCanceledRecipes {
+		return false
+	}
+
+	return true
+}
+
 func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *InstallStatus, event RecipeStatusEvent) error {
 	for _, ss := range status.Statuses {
+		if !r.canSendRecipeStatusEvent(status, installevents.InstallationRecipeStatusType(ss.Status)) {
+			continue
+		}
+
 		i := installevents.InstallationRecipeStatus{
 			CliVersion: status.CLIVersion,
 			Complete:   status.Complete,

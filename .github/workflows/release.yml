@@ -1,12 +1,47 @@
 name: Release
 
+permissions: write-all
+
+# Triggered via GitHub Actions UI
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
 
 jobs:
+  test:
+    if: github.ref == 'refs/heads/main'
+    uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+    secrets:
+      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+      NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+  e2e:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+  e2e-eu:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
+    secrets:
+      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+      GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
+
   release:
+    if: github.ref == 'refs/heads/main'
+    needs: [test, e2e, e2e-eu]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -23,6 +58,7 @@ jobs:
         with:
           # Needed for release notes
           fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
@@ -36,16 +72,19 @@ jobs:
       - name: Publish Release
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-        run: make release-publish
+        run: |
+          git config --global user.name ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}
+          git config --global user.email ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}
 
-      - id: get-version
-        uses: battila7/get-version-action@v2.3.0
+          ./scripts/release.sh
+
+          make release-publish
 
       - uses: actions/upload-artifact@v2
         with:
@@ -102,10 +141,13 @@ jobs:
         run: |
           aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
 
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+
       - name: Upload release artifacts
         id: upload-release-artifacts
         run: |
-          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/ --profile virtuoso
+          aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/ --profile virtuoso
 
       - name: Cleanup configs
         run: |
@@ -140,14 +182,14 @@ jobs:
         id: get-latest-release-upload-url
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
 
       - name: Upload Windows installer
         id: upload-windows-installer
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
           asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
@@ -160,9 +202,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
 
-      - id: get-version
-        uses: battila7/get-version-action@v2.3.0
+      - name: Output latest tag
+        id: latest-tag
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+
+          echo " "
+          echo "Latest tag - before: ${tag}"
+          echo " "
+
+          git fetch origin
+          git fetch --tags
+
+          latestTag=$(git describe --tags --abbrev=0)
+
+          echo " "
+          echo "Latest tag - after:  ${latestTag}"
+          echo " "
+
+          echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
 
       - name: Install aws cli
         run: |
@@ -190,26 +253,29 @@ jobs:
             source_profile = virtuoso_user
           write-mode: overwrite
 
+      - id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+
       - name: Fetch Github Release Asset
         uses: dsaltares/fetch-gh-release-asset@0.06
         with:
           repo: "newrelic/newrelic-cli"
-          version: "tags/${{ steps.get-version.outputs.version }}"
+          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
           file: "NewRelicCLIInstaller.msi"
           target: "NewRelicCLIInstaller.msi"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: Upload Windows MSI
         id: upload-windows-msi
         run: |
-          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-version.outputs.version }}/NewRelicCLIInstaller.msi --profile virtuoso
+          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi --profile virtuoso
 
       - name: Create currentVersion.txt
         id: create-current-version
         uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: "currentVersion.txt"
-          FILE_DATA: "${{ steps.get-version.outputs.version }}"
+          FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
 
       - name: Upload currentVersion.txt
         id: upload-current-version

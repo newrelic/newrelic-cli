@@ -5,6 +5,19 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Release workflow calls this workflow
+  workflow_call:
+    secrets:
+      PGP_PRIVATE_KEY:
+        required: true
+      SPLIT_PROD_KEY:
+        required: true
+      SPLIT_STAGING_KEY:
+        required: true
+      GIT_DEPLOYER_CANADA_AWS_PEM:
+        required: true
+      GIT_DEPLOYER_DOCKER_USER_CONFIG_EU:
+        required: true
 
 jobs:
   validate-all:
@@ -32,12 +45,25 @@ jobs:
       - name: Install Snapcraft
         uses: samuelmeuli/action-snapcraft@v1
 
+      - name: Install PGP private key
+        shell: bash
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+        run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+
       - name: Compile all distros
-        run: make snapshot
         continue-on-error: true
         env:
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+        # Creating the Snapcraft directories ahead of the snapshot is a workaround
+        # to deal with a race condition with parallel builds between distros.
+        #
+        # https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
+        run: |
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+          make snapshot
 
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
@@ -144,7 +170,7 @@ jobs:
         env:
           USER_JSON: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
         run: |
-          echo "$USER_JSON" > configs/gitusdkrnrcli${{ github.run_id }}.json
+          echo "$USER_JSON" > configs/gitusdkrnrclieu${{ github.run_id }}.json
 
       - name: Pull Deployer image
         run: |
@@ -161,7 +187,7 @@ jobs:
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions-eu/smoke -s 20 -m deploy -l debug
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrclieu${{ github.run_id }}.json -d test/definitions-eu/smoke -s 20 -m deploy -l debug
           echo ::set-output name=exit_status::$?
 
       - name: Cleanup all resources
@@ -173,7 +199,7 @@ jobs:
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions-eu/smoke -s 20 -m teardown -i
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrclieu${{ github.run_id }}.json -d test/definitions-eu/smoke -s 20 -m teardown -i
 
       - name: Report any error
         if: steps.deployerRun.outputs.exit_status != 0

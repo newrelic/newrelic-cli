@@ -5,6 +5,23 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Release workflow calls this workflow
+  workflow_call:
+    secrets:
+      NEW_RELIC_ACCOUNT_ID:
+        required: true
+      NEW_RELIC_ADMIN_API_KEY:
+        required: true
+      NEW_RELIC_API_KEY:
+        required: true
+      NEW_RELIC_LICENSE_KEY:
+        required: true
+      NEW_RELIC_REGION:
+        required: true
+      SPLIT_PROD_KEY:
+        required: true
+      SPLIT_STAGING_KEY:
+        required: true
 
 jobs:
   lint:
@@ -36,7 +53,6 @@ jobs:
         run: make lint
 
   test-unit:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -63,7 +79,6 @@ jobs:
         run: make test-unit
 
   test-integration:
-    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -87,7 +102,6 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Integration Tests
-        if: github.event.pull_request.head.repo.full_name == github.repository
         run: make test-integration
         env:
           NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
