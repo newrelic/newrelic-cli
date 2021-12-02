@@ -10,7 +10,6 @@ require (
 	github.com/fatih/color v1.12.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/itchyny/gojq v0.12.5
@@ -36,5 +35,5 @@ require (
 	golang.org/x/term v0.0.0-20210916214954-140adaaadfaf
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	mvdan.cc/sh/v3 v3.3.1
+	mvdan.cc/sh/v3 v3.4.1
 )
