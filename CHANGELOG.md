@@ -1,5 +1,13 @@
+<a name="v0.40.0"></a>
+## [v0.40.0] - 2021-12-04
+### Bug Fixes
+- **install:** reverting sh package because of windows 2016 powershell not found
+
+### Features
+- **nerdgraph query:** added support for file inputs
+
 <a name="v0.39.2"></a>
-## [v0.39.2] - 2021-11-30
+## [v0.39.2] - 2021-12-01
 <a name="v0.39.1"></a>
 ## [v0.39.1] - 2021-11-30
 <a name="v0.39.0"></a>
@@ -1426,7 +1434,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.0...HEAD
+[v0.40.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.2...v0.40.0
 [v0.39.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.1...v0.39.2
 [v0.39.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.0...v0.39.1
 [v0.39.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.38.0...v0.39.0
