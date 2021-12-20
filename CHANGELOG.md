@@ -1,5 +1,7 @@
+<a name="v0.41.1"></a>
+## [v0.41.1] - 2021-12-16
 <a name="v0.41.0"></a>
-## [v0.41.0] - 2021-12-15
+## [v0.41.0] - 2021-12-16
 ### Bug Fixes
 - Grammar/spelling fix
 
@@ -1451,7 +1453,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.1...HEAD
+[v0.41.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.0...v0.41.1
 [v0.41.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.4...v0.41.0
 [v0.40.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.3...v0.40.4
 [v0.40.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.2...v0.40.3
