@@ -42,6 +42,36 @@ func (e *ShRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenIn
 	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
 }
 
+// func (e *ShRecipeExecutor) readStderr() error {
+// 	old := os.Stderr // keep backup of the real stdout
+// 	r, w, _ := os.Pipe()
+// 	os.Stderr = w
+
+// 	print()
+
+// 	outC := make(chan string)
+// 	// copy the output in a separate goroutine so printing can't block indefinitely
+// 	go func() {
+// 		var buf bytes.Buffer
+// 		io.Copy(&buf, r)
+// 		outC <- buf.String()
+// 	}()
+
+// 	// back to normal state
+// 	w.Close()
+// 	os.Stderr = old // restoring the real stdout
+// 	out := <-outC
+
+// 	log.Print("\n****************************\n")
+
+// 	log.Println("stderr")
+// 	log.Printf("stdERR: %+v \n", out)
+
+// 	log.Print("\n****************************\n")
+
+// 	return nil
+// }
+
 func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {
 	p, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
@@ -63,9 +93,21 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	}
 
 	err = i.Run(ctx, p)
+
+	// e.readStderr()
+
+	log.Print("\n****************************\n")
+
+	log.Printf("LastFullLine: %+v \n", stderrCapture.LastFullLine)
+	log.Printf("Error:        %+v \n", err)
+
 	if err != nil {
-		if _, ok := interp.IsExitStatus(err); ok {
-			return fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine)
+		if exitCode, ok := interp.IsExitStatus(err); ok {
+			return &types.ShError{
+				Err:      fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine),
+				ExitCode: int(exitCode),
+				Details:  stderrCapture.LastFullLine,
+			}
 		}
 
 		return err

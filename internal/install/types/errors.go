@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -109,6 +110,39 @@ type UncaughtError struct {
 
 func (e *UncaughtError) Error() string {
 	return e.Err.Error()
+}
+
+type ShError struct {
+	Details  string
+	Err      error
+	ExitCode int
+}
+
+func (e ShError) Error() string {
+	return e.Err.Error()
+}
+
+type discoveredMetadata struct {
+	Language string `json:"error,omitempty"`
+}
+
+type shErrDetails struct {
+	Error    string             `json:"error,omitempty"`
+	Metadata discoveredMetadata `json:"metadata,omitempty"`
+}
+
+func (e ShError) UnmarshalDetails() map[string]interface{} {
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(e.Details), &data); err != nil {
+		// TODO: Change to log.Debug() before code review
+		fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
+
+		return map[string]interface{}{
+			"error": err.Error(),
+		}
+	}
+
+	return data
 }
 
 // nolint: golint
