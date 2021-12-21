@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -142,9 +143,29 @@ func NewScriptEvaluationRecipeFilterer(installStatus *execution.InstallStatus) *
 	}
 }
 
+type CustomScriptError struct {
+	Error string `json:"error,omitempty"`
+}
+
 func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
 	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
 		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
+
+		fmt.Printf("\nScriptEvaluationRecipeFilterer - Incoming:          %+v \n", err)
+
+		if e, ok := err.(*types.ShError); ok {
+			// fmt.Printf("\n ScriptEvaluationRecipeFilterer - Details:    %+v \n", e.Details)
+			// fmt.Printf("\n ScriptEvaluationRecipeFilterer - Exit Code:  %+v \n", e.ExitCode)
+
+			data := e.UnmarshalDetails()
+
+			fmt.Printf("\nScriptEvaluationRecipeFilterer - Unmarshaled Data:   %+v \n", data)
+
+		}
+
+		fmt.Print("\n **************************** \n\n")
+
+		os.Exit(0)
 
 		if utils.IsExitStatusCode(132, err) {
 			f.installStatus.RecipeDetected(*r)
