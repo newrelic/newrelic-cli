@@ -151,13 +151,10 @@ func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.Op
 	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
 		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
 
-		fmt.Printf("\nScriptEvaluationRecipeFilterer - Incoming:          %+v \n", err)
+		fmt.Printf("\nScriptEvaluationRecipeFilterer - Incoming:           %+v \n", err)
 
 		if e, ok := err.(*types.ShError); ok {
-			// fmt.Printf("\n ScriptEvaluationRecipeFilterer - Details:    %+v \n", e.Details)
-			// fmt.Printf("\n ScriptEvaluationRecipeFilterer - Exit Code:  %+v \n", e.ExitCode)
-
-			data := e.UnmarshalDetails()
+			data := e.UnmarshalMetadata()
 
 			fmt.Printf("\nScriptEvaluationRecipeFilterer - Unmarshaled Data:   %+v \n", data)
 

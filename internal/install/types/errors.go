@@ -113,27 +113,20 @@ func (e *UncaughtError) Error() string {
 }
 
 type ShError struct {
-	Details  string
 	Err      error
 	ExitCode int
+	Metadata string
 }
 
 func (e ShError) Error() string {
 	return e.Err.Error()
 }
 
-type discoveredMetadata struct {
-	Language string `json:"error,omitempty"`
-}
-
-type shErrDetails struct {
-	Error    string             `json:"error,omitempty"`
-	Metadata discoveredMetadata `json:"metadata,omitempty"`
-}
-
-func (e ShError) UnmarshalDetails() map[string]interface{} {
+// TODO: Add a custom unmarshal method for the whole ShError object
+//       instead of just the metadata
+func (e ShError) UnmarshalMetadata() map[string]interface{} {
 	var data map[string]interface{}
-	if err := json.Unmarshal([]byte(e.Details), &data); err != nil {
+	if err := json.Unmarshal([]byte(e.Metadata), &data); err != nil {
 		// TODO: Change to log.Debug() before code review
 		fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
 
