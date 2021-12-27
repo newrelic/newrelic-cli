@@ -374,11 +374,10 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		if e, ok := err.(*types.ShError); ok {
 			fmt.Print("\n\n **************************** \n")
 			fmt.Printf("\n RecipeInstaller - Error:      %+v \n", e)
-			fmt.Printf("\n RecipeInstaller - Details:    %+v \n", e.Details)
-			fmt.Printf("\n RecipeInstaller - Exit Code:  %+v \n", e.ExitCode)
+			fmt.Printf("\n RecipeInstaller - Metadata:    %+v \n", e.Metadata)
 
 			var data interface{}
-			if err = json.Unmarshal([]byte(e.Details), &data); err != nil {
+			if err = json.Unmarshal([]byte(e.Metadata), &data); err != nil {
 				fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
 			}
 
