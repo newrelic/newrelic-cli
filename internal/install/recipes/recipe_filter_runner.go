@@ -112,7 +112,7 @@ func (rf *RecipeFilterRunner) EnsureDoesNotFilter(ctx context.Context, r []types
 
 func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	for _, recipe := range r {
-		err := rf.RunCompatibilityCheck(ctx, &recipe, m)
+		err := rf.runCompatibilityCheck(ctx, &recipe, m)
 
 		if err != nil {
 			recipeStatusEvent := execution.RecipeStatusEvent{
@@ -133,7 +133,7 @@ func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []
 	return nil
 }
 
-func (rf *RecipeFilterRunner) RunCompatibilityCheck(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
+func (rf *RecipeFilterRunner) runCompatibilityCheck(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	for _, f := range rf.availablilityFilters {
 		err := f.CheckCompatibility(ctx, r, m)
 		if err != nil {
