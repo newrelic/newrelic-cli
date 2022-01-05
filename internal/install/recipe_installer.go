@@ -2,7 +2,6 @@ package install
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -256,7 +255,11 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		log.Debugf("recipes provided:\n")
 		logRecipes(recipesForInstall)
 
-		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
+		// if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
+		// 	return err
+		// }
+
+		if err = i.recipeFilterer.ConfirmCompatibleRecipes(ctx, recipesForInstall, m); err != nil {
 			return err
 		}
 
@@ -376,12 +379,12 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			fmt.Printf("\n RecipeInstaller - Error:      %+v \n", e)
 			fmt.Printf("\n RecipeInstaller - Metadata:    %+v \n", e.Metadata)
 
-			var data interface{}
-			if err = json.Unmarshal([]byte(e.Metadata), &data); err != nil {
-				fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
-			}
+			// var data interface{}
+			// if err = json.Unmarshal([]byte(e.Metadata), &data); err != nil {
+			// 	fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
+			// }
 
-			fmt.Printf("\nRecipeInstaller - Data:        %+v \n", data)
+			fmt.Printf("\nRecipeInstaller - Data:        %+v \n", e.ParseMetadata())
 
 			fmt.Print("\n **************************** \n\n")
 		}
@@ -405,6 +408,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			Msg:    msg,
 		}
 
+		// Will this check fail if using types.ShError?
 		if e, ok := err.(types.GoTaskError); ok {
 			e.SetError(msg)
 			se.TaskPath = e.TaskPath()
