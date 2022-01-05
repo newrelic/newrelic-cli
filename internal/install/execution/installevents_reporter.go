@@ -182,8 +182,9 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 		i.EnabledProxy = true
 	}
 
+	// REMOVE BEFORE ASKIN FOR A REVIEW ;)
 	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n INSTALL Status:  %+v \n", i.Error)
+	fmt.Printf("\n Event Reporter INSTALL Status:  %+v \n", i.Error)
 	fmt.Print("\n **************************** \n\n")
 
 	return i
@@ -224,8 +225,9 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.Status = *statusType
 	}
 
+	// REMOVE BEFORE ASKIN FOR A REVIEW ;)
 	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n RECIPE Status:  %+v \n", i.Error)
+	fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Error)
 	fmt.Print("\n **************************** \n\n")
 
 	return i

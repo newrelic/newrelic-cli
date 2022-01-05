@@ -255,10 +255,6 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		log.Debugf("recipes provided:\n")
 		logRecipes(recipesForInstall)
 
-		// if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
-		// 	return err
-		// }
-
 		if err = i.recipeFilterer.ConfirmCompatibleRecipes(ctx, recipesForInstall, m); err != nil {
 			return err
 		}
