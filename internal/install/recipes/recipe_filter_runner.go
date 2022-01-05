@@ -3,15 +3,18 @@ package recipes
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/utils"
 )
+
+type RecipeFilterer interface {
+	Filter(context.Context, *types.OpenInstallationRecipe, *types.DiscoveryManifest) bool
+	CheckCompatibility(context.Context, *types.OpenInstallationRecipe, *types.DiscoveryManifest) error
+}
 
 type RecipeFilterRunner struct {
 	availablilityFilters []RecipeFilterer
@@ -45,7 +48,10 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 	}
 
 	// The DETECTED event must happen before AVAILABLE event
-	rf.installStatus.RecipeDetected(*r)
+	event := execution.RecipeStatusEvent{
+		Recipe: *r,
+	}
+	rf.installStatus.RecipeDetected(*r, event)
 
 	if r.HasApplicationTargetType() {
 		if !r.HasKeyword(types.ApmKeyword) {
@@ -97,157 +103,68 @@ func (rf *RecipeFilterRunner) EnsureDoesNotFilter(ctx context.Context, r []types
 		if filtered {
 			rf.installStatus.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: recipe})
 			recipeFirstName := getRecipeFirstName(recipe)
-			return fmt.Errorf("we couldn’t install the %s. Make sure %s is installed and running on this host and rerun the newrelic-cli command", recipe.DisplayName, recipeFirstName)
+			return fmt.Errorf("we couldn't install the %s. Make sure %s is installed and running on this host and rerun the newrelic-cli command", recipe.DisplayName, recipeFirstName)
 		}
 	}
 
 	return nil
 }
 
-type RecipeFilterer interface {
-	Filter(context.Context, *types.OpenInstallationRecipe, *types.DiscoveryManifest) bool
-}
+func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
+	for _, recipe := range r {
+		err := rf.RunCompatCheck(ctx, &recipe, m)
 
-type ProcessMatchRecipeFilterer struct {
-	processMatchFinder ProcessMatchFinder
-}
-
-func NewProcessMatchRecipeFilterer() *ProcessMatchRecipeFilterer {
-	return &ProcessMatchRecipeFilterer{
-		processMatchFinder: NewRegexProcessMatchFinder(),
-	}
-}
-
-func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
-	matches := f.processMatchFinder.FindMatches(ctx, m.DiscoveredProcesses, *r)
-	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
-
-	if filtered {
-		log.Tracef("recipe %s not matching any process", r.Name)
-	}
-
-	return filtered
-}
-
-type ScriptEvaluationRecipeFilterer struct {
-	recipeExecutor execution.RecipeExecutor
-	installStatus  *execution.InstallStatus
-}
-
-func NewScriptEvaluationRecipeFilterer(installStatus *execution.InstallStatus) *ScriptEvaluationRecipeFilterer {
-	recipeExecutor := execution.NewShRecipeExecutor()
-
-	return &ScriptEvaluationRecipeFilterer{
-		recipeExecutor: recipeExecutor,
-		installStatus:  installStatus,
-	}
-}
-
-type CustomScriptError struct {
-	Error string `json:"error,omitempty"`
-}
-
-func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
-	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
-		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
-
-		fmt.Printf("\nScriptEvaluationRecipeFilterer - Incoming:           %+v \n", err)
-
-		if e, ok := err.(*types.ShError); ok {
-			data := e.UnmarshalMetadata()
-
-			fmt.Printf("\nScriptEvaluationRecipeFilterer - Unmarshaled Data:   %+v \n", data)
-
-		}
-
-		fmt.Print("\n **************************** \n\n")
-
-		os.Exit(0)
-
-		if utils.IsExitStatusCode(132, err) {
-			f.installStatus.RecipeDetected(*r)
-		}
-
-		return true
-	}
-
-	return false
-}
-
-type SkipFilterer struct {
-	*execution.InstallStatus
-	skipNames    []string
-	skipTypes    []string
-	skipKeywords []string
-	onlyNames    []string
-}
-
-func NewSkipFilterer(s *execution.InstallStatus) *SkipFilterer {
-	return &SkipFilterer{
-		InstallStatus: s,
-		skipNames:     []string{},
-		skipTypes:     []string{},
-		skipKeywords:  []string{},
-		onlyNames:     []string{},
-	}
-}
-
-func (f *SkipFilterer) SkipNames(names ...string) {
-	f.skipNames = append(f.skipNames, names...)
-}
-
-func (f *SkipFilterer) OnlyNames(names ...string) {
-	f.onlyNames = append(f.onlyNames, names...)
-}
-
-func (f *SkipFilterer) SkipTypes(types ...string) {
-	f.skipTypes = append(f.skipNames, types...)
-}
-
-func (f *SkipFilterer) SkipKeywords(keywords ...string) {
-	f.skipKeywords = append(f.skipNames, keywords...)
-}
-
-func (f *SkipFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
-	if len(f.onlyNames) > 0 {
-		filtered := true
-		for _, n := range f.onlyNames {
-			if strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(r.Name)) {
-				filtered = false
+		if err != nil {
+			recipeStatusEvent := execution.RecipeStatusEvent{
+				Recipe: recipe,
 			}
+
+			if e, ok := err.(*types.ShError); ok {
+				recipeStatusEvent.Metadata = e.ParseMetadata()
+			}
+
+			rf.installStatus.RecipeUnsupported(recipeStatusEvent)
+			recipeFirstName := getRecipeFirstName(recipe)
+
+			return fmt.Errorf("we couldn't install the %s. Make sure %s is installed and running on this host and rerun the newrelic-cli command", recipe.DisplayName, recipeFirstName)
 		}
+	}
+
+	return nil
+}
+
+func (rf *RecipeFilterRunner) RunCompatCheck(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
+	for _, f := range rf.availablilityFilters {
+		err := f.CheckCompatibility(ctx, r, m)
+		if err != nil {
+			log.Tracef("Filtering out unavailable recipe %s", r.Name)
+			return err
+		}
+	}
+
+	// The DETECTED event must happen before AVAILABLE event
+	event := execution.RecipeStatusEvent{
+		Recipe: *r,
+	}
+	rf.installStatus.RecipeDetected(*r, event)
+
+	if r.HasApplicationTargetType() {
+		if !r.HasKeyword(types.ApmKeyword) {
+			rf.installStatus.RecipeRecommended(execution.RecipeStatusEvent{Recipe: *r})
+		}
+	}
+
+	rf.installStatus.RecipeAvailable(*r)
+
+	for _, f := range rf.userSkippedFilters {
+		filtered := f.Filter(ctx, r, m)
 
 		if filtered {
-			log.Tracef("recipe %s does not match provided names %s", r.Name, f.onlyNames)
-			return true
+			log.Tracef("Filtering out skipped recipe %s", r.Name)
+			rf.installStatus.RecipeSkipped(execution.RecipeStatusEvent{Recipe: *r})
+			return fmt.Errorf("recipe %s skipped", r.Name)
 		}
 	}
 
-	for _, n := range f.skipNames {
-		if strings.EqualFold(strings.TrimSpace(n), strings.TrimSpace(r.Name)) {
-			log.Tracef("recipe %s found in skip list %s", r.Name, f.skipNames)
-			return true
-		}
-	}
-
-	for _, k := range f.skipKeywords {
-		if r.HasKeyword(k) {
-			log.Tracef("recipe %s has keyword %s found in skip list %s", r.Name, k, f.skipKeywords)
-			return true
-		}
-	}
-
-	// Infra should never be skipped based on type
-	if r.Name == types.InfraAgentRecipeName {
-		return false
-	}
-
-	for _, t := range f.skipTypes {
-		if r.HasTargetType(types.OpenInstallationTargetType(t)) {
-			log.Tracef("recipe %s has type %s found in skip list %s", r.Name, t, f.skipTypes)
-			return true
-		}
-	}
-
-	return false
+	return nil
 }

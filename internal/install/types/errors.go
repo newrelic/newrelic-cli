@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -112,9 +114,20 @@ func (e *UncaughtError) Error() string {
 	return e.Err.Error()
 }
 
+// ShError represents our standard recipe error object that is returned
+// in caught error scenarios during recipe installations. The standard error
+// is represented as a JSON within the recipe and is then passed to the CLI
+// for interpretation and handling.
 type ShError struct {
-	Err      error
+	// The original error message that was redirected to stderr
+	Err error
+
+	// The exit code used at point of failure in the recipe
 	ExitCode int
+
+	// JSON string that contains additional information if the
+	// recipe provides it via stderr. Use ShError.ParseMetadata()
+	// access the data in Go.
 	Metadata string
 }
 
@@ -122,17 +135,33 @@ func (e ShError) Error() string {
 	return e.Err.Error()
 }
 
-// TODO: Add a custom unmarshal method for the whole ShError object
-//       instead of just the metadata
-func (e ShError) UnmarshalMetadata() map[string]interface{} {
+// ParseMetadata converts the incoming JSON string to a map[string]interface{}.
+// If the incoming metadata is a simple string, we still return `metadata` as
+// a map to keep data structure consistent.
+func (e ShError) ParseMetadata() map[string]interface{} {
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(e.Metadata), &data); err != nil {
-		// TODO: Change to log.Debug() before code review
-		fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
+		log.Debugf("\n Could not unmarshal e.Metadata:  %+v \n", err)
+
+		fmt.Printf("\b ParseMetadata didnt unmarshal:   %+v \n", e.Metadata)
 
 		return map[string]interface{}{
-			"error": err.Error(),
+			"metadata": map[string]string{
+				"message": e.Metadata,
+			},
 		}
+	}
+
+	if m, ok := data["metadata"].(string); ok {
+		return map[string]interface{}{
+			"metadata": map[string]string{
+				"message": m,
+			},
+		}
+	}
+
+	if m, ok := data["metadata"].(map[string]interface{}); ok {
+		return m
 	}
 
 	return data

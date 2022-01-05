@@ -81,9 +81,10 @@ var RecipeStatusTypes = struct {
 }
 
 type StatusError struct {
-	Message  string   `json:"message"`
-	Details  string   `json:"details"`
-	TaskPath []string `json:"taskPath"`
+	Message  string                 `json:"message"`
+	Details  string                 `json:"details"`
+	TaskPath []string               `json:"taskPath"`
+	Metadata map[string]interface{} `json:"metadata"`
 }
 
 var StatusIconMap = map[RecipeStatusType]string{
@@ -123,11 +124,11 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 // recipe as well sending out the DETECTED status event to the install events service.
 // RecipeDetected is called when a recipe is available and passes the checks in both
 // the process match and the pre-install steps of recipe execution.
-func (s *InstallStatus) RecipeDetected(recipe types.OpenInstallationRecipe) {
+func (s *InstallStatus) RecipeDetected(recipe types.OpenInstallationRecipe, event RecipeStatusEvent) {
 	s.withDetectedRecipe(recipe)
 
 	for _, r := range s.statusSubscriber {
-		if err := r.RecipeDetected(s, recipe); err != nil {
+		if err := r.RecipeDetected(s, recipe, event); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}

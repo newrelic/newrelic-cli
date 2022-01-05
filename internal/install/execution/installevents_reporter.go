@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -27,8 +28,7 @@ func NewInstallEventsReporter(client InstallEventsClient) *InstallEventsReporter
 	return &r
 }
 
-func (r InstallEventsReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
-	event := RecipeStatusEvent{Recipe: recipe}
+func (r InstallEventsReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe, event RecipeStatusEvent) error {
 	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.DETECTED, event)
 }
 
@@ -101,8 +101,9 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			CliVersion: status.CLIVersion,
 			Complete:   status.Complete,
 			Error: installevents.InstallationStatusErrorInput{
-				Details: ss.Error.Details,
-				Message: ss.Error.Message,
+				Details:  ss.Error.Details,
+				Message:  ss.Error.Message,
+				Metadata: event.Metadata,
 			},
 			Status:                         installevents.InstallationRecipeStatusType(ss.Status),
 			Name:                           ss.Name,
@@ -157,8 +158,9 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 	i := installevents.InstallationInstallStatusInput{
 		CliVersion: status.CLIVersion,
 		Error: installevents.InstallationStatusErrorInput{
-			Details: status.Error.Details,
-			Message: status.Error.Message,
+			Details:  status.Error.Details,
+			Message:  status.Error.Message,
+			Metadata: event.Metadata,
 		},
 		HostName:              status.DiscoveryManifest.Hostname,
 		KernelArch:            status.DiscoveryManifest.KernelArch,
@@ -179,6 +181,10 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 	if status.HTTPSProxy != "" {
 		i.EnabledProxy = true
 	}
+
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n INSTALL Status:  %+v \n", i.Error)
+	fmt.Print("\n **************************** \n\n")
 
 	return i
 }
@@ -211,11 +217,16 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.EntityGUID = common.EntityGUID(event.EntityGUID)
 		i.ValidationDurationMilliseconds = event.ValidationDurationMs
 		i.TaskPath = strings.Join(event.TaskPath, ",")
+		i.Error.Metadata = event.Metadata
 	}
 
 	if statusType != nil {
 		i.Status = *statusType
 	}
+
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n RECIPE Status:  %+v \n", i.Error)
+	fmt.Print("\n **************************** \n\n")
 
 	return i
 }
