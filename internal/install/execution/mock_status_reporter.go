@@ -50,7 +50,7 @@ func NewMockStatusReporter() *MockStatusReporter {
 	return &MockStatusReporter{}
 }
 
-func (r *MockStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r *MockStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe, event RecipeStatusEvent) error {
 	r.RecipeDetectedCallCount++
 	return nil
 }
