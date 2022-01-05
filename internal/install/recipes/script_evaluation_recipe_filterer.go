@@ -58,13 +58,12 @@ func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.Op
 
 func (f *ScriptEvaluationRecipeFilterer) CheckCompatibility(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{})
+
 	if err != nil {
 		var metadata map[string]interface{}
 		if e, ok := err.(*types.ShError); ok {
 			metadata = e.ParseMetadata()
 		}
-
-		fmt.Printf("\nScriptEvaluationRecipeFilterer - Unmarshaled Metadata:   %+v \n", metadata)
 
 		if utils.IsExitStatusCode(132, err) {
 			event := execution.RecipeStatusEvent{

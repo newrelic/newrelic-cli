@@ -32,9 +32,15 @@ func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenIn
 
 func (f *ProcessMatchRecipeFilterer) CheckCompatibility(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	matches := f.processMatchFinder.FindMatches(ctx, m.DiscoveredProcesses, *r)
-	isCompatible := len(r.ProcessMatch) > 0 && len(matches) == 0
 
-	if !isCompatible {
+	// If no `processMatch` is configured in recipe, we can ignore.
+	if len(r.ProcessMatch) == 0 {
+		return nil
+	}
+
+	// Recipe contains a `processMatch` list but no matches were found,
+	// the recipe is incompatible with the environment.
+	if len(matches) == 0 {
 		return fmt.Errorf("recipe %s not matching any process", r.Name)
 	}
 

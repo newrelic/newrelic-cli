@@ -64,11 +64,6 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 
 	err = i.Run(ctx, p)
 
-	log.Print("\n****************************\n")
-
-	log.Printf("LastFullLine: %+v \n", stderrCapture.LastFullLine)
-	log.Printf("Error:        %+v \n", err)
-
 	if err != nil {
 		if exitCode, ok := interp.IsExitStatus(err); ok {
 			return &types.ShError{
