@@ -64,16 +64,31 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 
 	err = i.Run(ctx, p)
 
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n stdoutCapture:  %+v \n", stdoutCapture.LastFullLine)
+	fmt.Printf("\n stderrCapture:  %+v \n", stderrCapture.LastFullLine)
+	fmt.Print("\n **************************** \n\n")
+
 	if err != nil {
 		if exitCode, ok := interp.IsExitStatus(err); ok {
-			return &types.ShError{
-				Err:      fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine),
+			return &types.IncomingMessage{
+				// Should we use fmt.Errorf here ever? Should we have another field to cover error?
+				Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
 				ExitCode: int(exitCode),
 				Metadata: stderrCapture.LastFullLine,
 			}
 		}
 
 		return err
+	}
+
+	// Handle scenario when no error occurs, but we still pass
+	// a message back
+	if stderrCapture.LastFullLine != "" {
+		return &types.IncomingMessage{
+			Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
+			Metadata: stderrCapture.LastFullLine,
+		}
 	}
 
 	return nil

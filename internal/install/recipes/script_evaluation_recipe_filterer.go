@@ -32,7 +32,7 @@ func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.Op
 		fmt.Printf("\nScriptEvaluationRecipeFilterer - Incoming:                %+v \n", err)
 
 		var metadata map[string]interface{}
-		if e, ok := err.(*types.ShError); ok {
+		if e, ok := err.(*types.IncomingMessage); ok {
 			metadata = e.ParseMetadata()
 
 			fmt.Printf("\nScriptEvaluationRecipeFilterer - Unmarshaled Metadata:   %+v \n", metadata)
@@ -61,7 +61,7 @@ func (f *ScriptEvaluationRecipeFilterer) CheckCompatibility(ctx context.Context,
 
 	if err != nil {
 		var metadata map[string]interface{}
-		if e, ok := err.(*types.ShError); ok {
+		if e, ok := err.(*types.IncomingMessage); ok {
 			metadata = e.ParseMetadata()
 		}
 

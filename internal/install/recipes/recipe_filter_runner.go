@@ -119,7 +119,7 @@ func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []
 				Recipe: recipe,
 			}
 
-			if e, ok := err.(*types.ShError); ok {
+			if e, ok := err.(*types.IncomingMessage); ok {
 				recipeStatusEvent.Metadata = e.ParseMetadata()
 			}
 
