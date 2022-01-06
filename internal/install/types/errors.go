@@ -114,31 +114,35 @@ func (e *UncaughtError) Error() string {
 	return e.Err.Error()
 }
 
-// ShError represents our standard recipe error object that is returned
-// in caught error scenarios during recipe installations. The standard error
-// is represented as a JSON within the recipe and is then passed to the CLI
-// for interpretation and handling.
-type ShError struct {
-	// The original error message that was redirected to stderr
-	Err error
+// IncomingMessage represents a standardized recipe message object
+// passed back to the CLI via stderr. The standard error is represented as
+// a JSON string within a recipe.
+//
+// Example of:
+//   echo ""{\"message\":\"something happened\",\"metadata\":{\"key\":\"relevant data\"}}"" >&2
+//
+//
+type IncomingMessage struct {
+	// The primary message that was redirected to stderr
+	Message string
 
 	// The exit code used at point of failure in the recipe
 	ExitCode int
 
 	// JSON string that contains additional information if the
-	// recipe provides it via stderr. Use ShError.ParseMetadata()
+	// recipe provides it via stderr. Use IncomingMessage.ParseMetadata()
 	// access the data in Go.
 	Metadata string
 }
 
-func (e ShError) Error() string {
-	return e.Err.Error()
+func (e IncomingMessage) Error() string {
+	return e.Message
 }
 
 // ParseMetadata converts the incoming JSON string to a map[string]interface{}.
 // If the incoming metadata is a simple string, we still return `metadata` as
 // a map to keep data structure consistent.
-func (e ShError) ParseMetadata() map[string]interface{} {
+func (e IncomingMessage) ParseMetadata() map[string]interface{} {
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(e.Metadata), &data); err != nil {
 		log.Debugf("\n Could not unmarshal e.Metadata:  %+v \n", err)

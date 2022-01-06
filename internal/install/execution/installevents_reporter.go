@@ -101,9 +101,8 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			CliVersion: status.CLIVersion,
 			Complete:   status.Complete,
 			Error: installevents.InstallationStatusErrorInput{
-				Details:  ss.Error.Details,
-				Message:  ss.Error.Message,
-				Metadata: event.Metadata,
+				Details: ss.Error.Details,
+				Message: ss.Error.Message,
 			},
 			Status:                         installevents.InstallationRecipeStatusType(ss.Status),
 			Name:                           ss.Name,
@@ -122,6 +121,7 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			TargetedInstall:                status.targetedInstall,
 			InstallId:                      status.InstallID,
 			InstallLibraryVersion:          status.InstallLibraryVersion,
+			Metadata:                       event.Metadata,
 		}
 
 		_, err := r.client.InstallationCreateRecipeEvent(r.accountID, i)
@@ -158,9 +158,8 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 	i := installevents.InstallationInstallStatusInput{
 		CliVersion: status.CLIVersion,
 		Error: installevents.InstallationStatusErrorInput{
-			Details:  status.Error.Details,
-			Message:  status.Error.Message,
-			Metadata: event.Metadata,
+			Details: status.Error.Details,
+			Message: status.Error.Message,
 		},
 		HostName:              status.DiscoveryManifest.Hostname,
 		KernelArch:            status.DiscoveryManifest.KernelArch,
@@ -218,7 +217,7 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.EntityGUID = common.EntityGUID(event.EntityGUID)
 		i.ValidationDurationMilliseconds = event.ValidationDurationMs
 		i.TaskPath = strings.Join(event.TaskPath, ",")
-		i.Error.Metadata = event.Metadata
+		i.Metadata = event.Metadata
 	}
 
 	if statusType != nil {
@@ -227,7 +226,7 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 
 	// REMOVE BEFORE ASKIN FOR A REVIEW ;)
 	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Error)
+	fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Metadata)
 	fmt.Print("\n **************************** \n\n")
 
 	return i

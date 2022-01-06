@@ -370,7 +370,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 		fmt.Print("\n\n **************************** \n")
 		fmt.Printf("\n RecipeInstaller - Recipe:     %T \n", err)
 
-		if e, ok := err.(*types.ShError); ok {
+		if e, ok := err.(*types.IncomingMessage); ok {
 			fmt.Print("\n\n **************************** \n")
 			fmt.Printf("\n RecipeInstaller - Error:      %+v \n", e)
 			fmt.Printf("\n RecipeInstaller - Metadata:    %+v \n", e.Metadata)
@@ -404,7 +404,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			Msg:    msg,
 		}
 
-		// Will this check fail if using types.ShError?
+		// Will this check fail if using types.IncomingMessage?
 		if e, ok := err.(types.GoTaskError); ok {
 			e.SetError(msg)
 			se.TaskPath = e.TaskPath()
