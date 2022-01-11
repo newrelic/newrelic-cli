@@ -81,10 +81,9 @@ var RecipeStatusTypes = struct {
 }
 
 type StatusError struct {
-	Message  string                 `json:"message"`
-	Details  string                 `json:"details"`
-	TaskPath []string               `json:"taskPath"`
-	Metadata map[string]interface{} `json:"metadata"`
+	Message  string   `json:"message"`
+	Details  string   `json:"details"`
+	TaskPath []string `json:"taskPath"`
 }
 
 var StatusIconMap = map[RecipeStatusType]string{
