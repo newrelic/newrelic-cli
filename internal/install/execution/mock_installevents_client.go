@@ -9,6 +9,9 @@ type MockInstalleventsClient struct {
 	CreateInstallEventCallCount  int
 	CreateInstallStatusErr       error
 	CreateInstallStatusCallCount int
+
+	// Mock recipe event calls
+	CreateRecipeEventCallCount int
 }
 
 func NewMockInstallEventsClient() *MockInstalleventsClient {
@@ -16,7 +19,7 @@ func NewMockInstallEventsClient() *MockInstalleventsClient {
 }
 
 func (c *MockInstalleventsClient) InstallationCreateRecipeEvent(int, installevents.InstallationRecipeStatus) (*installevents.InstallationRecipeEvent, error) {
-	c.CreateInstallEventCallCount++
+	c.CreateRecipeEventCallCount++
 	return c.CreateInstallEventVal, c.CreateInstallEventErr
 }
 
