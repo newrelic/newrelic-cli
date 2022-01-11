@@ -368,20 +368,10 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(ctx, *r, vars); err != nil {
 		fmt.Print("\n\n **************************** \n")
-		fmt.Printf("\n RecipeInstaller - Recipe:     %T \n", err)
 
 		if e, ok := err.(*types.IncomingMessage); ok {
-			fmt.Print("\n\n **************************** \n")
-			fmt.Printf("\n RecipeInstaller - Error:      %+v \n", e)
-			fmt.Printf("\n RecipeInstaller - Metadata:    %+v \n", e.Metadata)
-
-			// var data interface{}
-			// if err = json.Unmarshal([]byte(e.Metadata), &data); err != nil {
-			// 	fmt.Printf("\n Could not unmarshal - err:  %+v \n", err)
-			// }
-
-			fmt.Printf("\nRecipeInstaller - Data:        %+v \n", e.ParseMetadata())
-
+			fmt.Printf("\n RecipeInstaller - Error:                %+v \n", e)
+			fmt.Printf("\n RecipeInstaller - ParseMetadata:        %+v \n", e.ParseMetadata())
 			fmt.Print("\n **************************** \n\n")
 		}
 
