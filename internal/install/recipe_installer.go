@@ -153,6 +153,7 @@ func (i *RecipeInstaller) Install() error {
   |_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
 
   Welcome to New Relic. Let's install some instrumentation.
+  Hzhao-testing
 
   Questions? Read more about our installation process at
   https://docs.newrelic.com/
