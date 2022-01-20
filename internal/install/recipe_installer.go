@@ -182,6 +182,10 @@ func (i *RecipeInstaller) Install() error {
 		return err
 	}
 
+	if i.RecipesProvided() {
+		i.status.SetTargetedInstall()
+	}
+
 	i.status.InstallStarted()
 
 	// If not in a dev environemt, check to see if

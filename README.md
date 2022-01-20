@@ -16,7 +16,24 @@
 [![Docker Size](https://img.shields.io/docker/image-size/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 [![Docker Version](https://img.shields.io/docker/v/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 
-The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/)
+The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/).
+
+- [Overview](#overview)
+  - [Getting Started](#getting-started)
+  - [New Relic CLI Documentation](docs/cli/newrelic.md)
+- [Installation](#installation)
+  - [MacOS](#macos)
+  - [Windows](#windows)
+  - [Linux](#linux)
+  - [Pre-built binaries](#pre-built-binaries)
+  - [Docker](#docker)
+- [Example Usage](#example-usage)
+- [Development](#development)
+- [Community Support](#community-support)
+- [Issues / Enhancement Requests](#issues--enhancement-requests)
+- [Contributing](#contributing)
+- [Other Resources](#other-resources)
+- [Open Source License](#open-source-license)
 
 ## Overview
 
@@ -35,20 +52,9 @@ For a quick guide on getting started with the New Relic CLI, see our [Getting
 Started](https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md)
 page.
 
-The latest New Relic CLI documentation is available [here](https://github.com/newrelic/newrelic-cli/blob/main/docs/cli/newrelic.md).
+### New Relic CLI Documentation
 
-### Other Resources
-
-There are a handful of other useful tools that this does not replace. Here are
-some useful links to other tools that you might be interested in using at this
-time.
-
-- [NR1 CLI](https://developer.newrelic.com/build-tools/new-relic-one-applications/cli):
-  Command line interface for managing development workflows for custom Nerdpacks on New Relic One.
-- [New Relic Lambda CLI](https://github.com/newrelic/newrelic-lambda-cli): A
-  CLI to install the New Relic AWS Lambda integration and layers.
-- [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
-  A utility that automatically detects common problems with New Relic agents.
+The latest New Relic CLI documentation is available in the repository's [docs](https://github.com/newrelic/newrelic-cli/blob/main/docs/cli/newrelic.md) directory.
 
 ## Installation
 
@@ -318,7 +324,7 @@ This refers to what part of the code is the focus of the work. For example:
 - `http` - Work related to the `internal/http` package
 - `alerts` - Work related to the `pkg/alerts` package
 
-### Documentation
+### Generating CLI Documentation
 
 **Note:** This requires the repo to be in your GOPATH [(godoc issue)](https://github.com/golang/go/issues/26827)
 
@@ -346,6 +352,19 @@ Issues and enhancement requests can be submitted in the [Issues tab of this repo
 Contributions are welcome (and if you submit a Enhancement Request, expect to be invited to contribute it yourself :grin:). Please review our [Contributors Guide](CONTRIBUTING.md).
 
 Keep in mind that when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
+
+## Other Resources
+
+There are a handful of other useful tools that this does not replace. Here are
+some useful links to other tools that you might be interested in using at this
+time.
+
+- [NR1 CLI](https://developer.newrelic.com/build-tools/new-relic-one-applications/cli):
+  Command line interface for managing development workflows for custom Nerdpacks on New Relic One.
+- [New Relic Lambda CLI](https://github.com/newrelic/newrelic-lambda-cli): A
+  CLI to install the New Relic AWS Lambda integration and layers.
+- [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
+  A utility that automatically detects common problems with New Relic agents.
 
 ## Open Source License
 

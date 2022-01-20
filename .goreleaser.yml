@@ -73,9 +73,9 @@ dockers:
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
 
-# Already using git-chglog
+# Uses git-chglog output from release flow
 changelog:
-  skip: true
+  skip: false
 
 snapcrafts:
   - id: newrelic

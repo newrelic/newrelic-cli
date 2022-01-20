@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -43,6 +44,54 @@ func TestGenerateRedirectURL_InstallSuccess(t *testing.T) {
 	expectedURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
 	result := g.GenerateRedirectURL(installStatus)
 	require.Equal(t, expectedURL, result)
+}
+
+func TestGenerateLoggingURL_InstallSuccess(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+
+	// We set an API key in the unit test so we don't make an real HTTP request
+	// to the New Relic short URL service (see integration test), and so we can test
+	// the query param being added for the fallback installation strategy below.
+	g.apiKey = ""
+	accountID := configAPI.GetActiveProfileAccountID()
+
+	infraEntityGUID := "MXxBUE18QVBQTElDQVRJT058OTE2NzQxNg"
+	infraRecipe := types.OpenInstallationRecipe{
+		Name:        "infrastructure-agent-installer",
+		DisplayName: "Infrastructure Agent",
+	}
+	logsRecipe := types.OpenInstallationRecipe{
+		Name:        "logs-integration",
+		DisplayName: "Logs integration",
+	}
+	agentInstalledStatus := &RecipeStatus{
+		DisplayName: "Infrastructure Agent",
+		Name:        "infrastructure-agent-installer",
+		Status:      RecipeStatusTypes.INSTALLED,
+		EntityGUID:  infraEntityGUID,
+	}
+	logsInstalledStatus := &RecipeStatus{
+		DisplayName: "Logs integration",
+		Name:        "logs-integration",
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+	installStatus := InstallStatus{
+		recipesSelected: []types.OpenInstallationRecipe{infraRecipe, logsRecipe},
+		Installed:       []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
+		EntityGUIDs:     []string{infraEntityGUID},
+		Statuses:        []*RecipeStatus{agentInstalledStatus, logsInstalledStatus},
+	}
+
+	launcherEncodedParams := "eyJxdWVyeSI6IlwiZW50aXR5Lmd1aWQuSU5GUkFcIjpcIk1YeEJVRTE4UVZCUVRFbERRVlJKVDA1OE9URTJOelF4TmdcIiIsInJlZmVycmVyIjoibmV3cmVsaWMtY2xpIn0="
+	expectedRedirectURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), infraEntityGUID)
+	expectedLoggingLink := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%d&launcher=%s", nrPlatformHostname(), accountID, launcherEncodedParams)
+
+	redirectURLResult := g.GenerateRedirectURL(installStatus)
+	loggingLinkResult := g.GenerateLoggingLink(infraEntityGUID)
+	require.Contains(t, redirectURLResult, expectedRedirectURL)
+	require.Contains(t, loggingLinkResult, expectedLoggingLink)
 }
 
 func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {

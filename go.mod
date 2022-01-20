@@ -10,7 +10,6 @@ require (
 	github.com/fatih/color v1.12.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
 	github.com/itchyny/gojq v0.12.5
@@ -30,7 +29,7 @@ require (
 	github.com/splitio/go-client/v6 v6.1.0
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.11.0
-	github.com/tidwall/sjson v1.1.7
+	github.com/tidwall/sjson v1.2.3
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/term v0.0.0-20210916214954-140adaaadfaf
