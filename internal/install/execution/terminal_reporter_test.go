@@ -87,6 +87,28 @@ func Test_ShouldGenerateExplorerLink(t *testing.T) {
 	require.Equal(t, 1, g.GenerateExplorerLinkCallCount)
 }
 
+func Test_ShouldGenerateLoggingLink(t *testing.T) {
+	r := NewTerminalStatusReporter()
+	g := NewMockPlatformLinkGenerator()
+
+	status := &InstallStatus{
+		PlatformLinkGenerator: g,
+	}
+
+	loggingRecipeStatus := &RecipeStatus{
+		DisplayName: "Logs integration",
+		Name:        types.LoggingRecipeName,
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+
+	status.Statuses = append(status.Statuses, loggingRecipeStatus)
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
+	require.Equal(t, 1, g.GenerateLoggingLinkCallCount)
+}
+
 func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockPlatformLinkGenerator()
