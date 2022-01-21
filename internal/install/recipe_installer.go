@@ -248,6 +248,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 
 	var recipesForInstall []types.OpenInstallationRecipe
+
 	if i.RecipesProvided() {
 		recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
 		if err != nil {
@@ -261,30 +262,48 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		}
 
 	} else {
-		var selected, unselected []types.OpenInstallationRecipe
+		// var selected, unselected []types.OpenInstallationRecipe
 
 		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
 		log.Debugf("recipes after filtering:\n")
 		logRecipes(recipesForInstall)
 
-		selected, unselected, err = i.promptUserSelect(recipesForInstall)
-		if err != nil {
-			return err
-		}
-		log.Tracef("recipes selected by user: %v\n", selected)
+		//TODO remove core recipes here, since it's already installed
 
-		for _, r := range unselected {
-			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-		}
+		// selected, unselected, err = i.promptUserSelect(recipesForInstall)
+		// if err != nil {
+		// 	return err
+		// }
+		// log.Tracef("recipes selected by user: %v\n", selected)
 
-		recipesForInstall = selected
+		// for _, r := range unselected {
+		// 	i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+		// }
+
+		// recipesForInstall = selected
 	}
 
+	//TODO
 	i.status.RecipesSelected(recipesForInstall)
 
 	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
 	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
 
+	//TODO Install the core recipes
+	coreRecipesForInstall, err := i.fetchCoreRecipe(recipesForInstall)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("New Relic installing core recipes.....")
+	if err = i.installRecipes(ctx, m, coreRecipesForInstall); err != nil {
+		return err
+	}
+
+	//TODO UI Update on web need to change
+	//logRecipes(recipesForInstall)
+
+	fmt.Printf("New Relic installing other recipes.....")
 	if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
 		return err
 	}
@@ -527,6 +546,34 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 
 	i.executionProgressIndicator.Success(msg)
 	return entityGUID, nil
+}
+
+func (i *RecipeInstaller) fetchCoreRecipe(recipesForInstall []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+
+	coreRecipes := []string{types.InfraAgentRecipeName, types.LoggingRecipeName}
+	var recipes []types.OpenInstallationRecipe
+
+	for _, n := range coreRecipes {
+		found := false
+		log.Debugln(fmt.Sprintf("Attempting to match core recipe by name %s.", n))
+		for i, r := range recipesForInstall {
+			if strings.EqualFold(r.Name, n) {
+				log.WithFields(log.Fields{
+					"name":         r.Name,
+					"display_name": r.DisplayName,
+				}).Debug("found recipe with name")
+				recipes = append(recipes, r)
+				found = true
+				recipesForInstall = append(recipesForInstall[:i], recipesForInstall[i+1:]...)
+				break
+			}
+		}
+		if !found {
+			log.Errorf("Could not find recipe with name %s.", n)
+		}
+	}
+
+	return recipes, nil
 }
 
 func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
