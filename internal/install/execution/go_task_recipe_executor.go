@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -16,6 +17,7 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 // GoTaskRecipeExecutor is an implementation of the recipeExecutor interface that
@@ -64,6 +66,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		Stderr:     stderrCapture,
 		Stdin:      re.Stdin,
 		Stdout:     stdoutCapture,
+		Silent:     true,
 	}
 
 	if err = e.Setup(); err != nil {
@@ -84,6 +87,11 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
+		fmt.Print("\n\n **************************** \n")
+		fmt.Printf("\n GoTaskRecipeExecutor - stderrCapture:  %+v \n", stderrCapture.LastFullLine)
+		fmt.Print("\n **************************** \n\n")
+		time.Sleep(2 * time.Second)
+
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Debug("Task execution returned error")
@@ -97,13 +105,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		}
 
 		// Recipe trigger a canceled event with specific exit code 130 used
-		if isExitStatusCode(130, err) {
+		if utils.IsExitStatusCode(130, err) {
 			return types.ErrInterrupt
 		}
 
 		// We return exit code 131 when a user attempts to
 		// install a recipe on an unsupported operating system.
-		if isExitStatusCode(131, err) {
+		if utils.IsExitStatusCode(131, err) {
 			return &types.UnsupportedOperatingSytemError{
 				Err: errors.New(stderrCapture.LastFullLine),
 			}
@@ -120,9 +128,4 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	return nil
-}
-
-func isExitStatusCode(exitCode int, err error) bool {
-	exitCodeString := fmt.Sprintf("exit status %d", exitCode)
-	return strings.Contains(err.Error(), exitCodeString)
 }

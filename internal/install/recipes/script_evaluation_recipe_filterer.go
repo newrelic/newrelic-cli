@@ -40,8 +40,6 @@ func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.Op
 
 		fmt.Print("\n **************************** \n\n")
 
-		// os.Exit(0)
-
 		if utils.IsExitStatusCode(132, err) {
 			event := execution.RecipeStatusEvent{
 				Recipe:   *r,
@@ -61,13 +59,21 @@ func (f *ScriptEvaluationRecipeFilterer) CheckCompatibility(ctx context.Context,
 
 	if err != nil {
 		var metadata map[string]interface{}
+		var message string
 		if e, ok := err.(*types.IncomingMessage); ok {
 			metadata = e.ParseMetadata()
+
+			if m, ok := metadata["message"].(string); ok {
+				message = m
+			}
+		} else {
+			message = err.Error()
 		}
 
 		if utils.IsExitStatusCode(132, err) {
 			event := execution.RecipeStatusEvent{
 				Recipe:   *r,
+				Msg:      message,
 				Metadata: metadata,
 			}
 			f.installStatus.RecipeDetected(*r, event)

@@ -2,6 +2,7 @@ package execution
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -65,12 +66,23 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	err = i.Run(ctx, p)
 
 	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n stdoutCapture:  %+v \n", stdoutCapture.LastFullLine)
-	fmt.Printf("\n stderrCapture:  %+v \n", stderrCapture.LastFullLine)
+	fmt.Printf("\n ShRecipeExecutor - stderrCapture:  %+v \n", stderrCapture.LastFullLine)
 	fmt.Print("\n **************************** \n\n")
+	// time.Sleep(5 * time.Second)
 
 	if err != nil {
 		if exitCode, ok := interp.IsExitStatus(err); ok {
+			// If the stderr message is a regular string, we return
+			// the original error and last full line of text.
+			// This is the original way recipes send messages via stderr,
+			// hence we need this check for backwards compatibility.
+			if !isJSONString(stderrCapture.LastFullLine) {
+				return fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine)
+			}
+
+			// When the stderr message is a JSON string, we have a standard object
+			// we return a custom error to facilitate capturing additional metadata
+			// for debugging purposes.
 			return &types.IncomingMessage{
 				// Should we use fmt.Errorf here ever? Should we have another field to cover error?
 				Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
@@ -92,4 +104,13 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	}
 
 	return nil
+}
+
+func isJSONString(input string) bool {
+	var x struct{}
+	if err := json.Unmarshal([]byte(input), &x); err != nil {
+		return false
+	}
+
+	return true
 }
