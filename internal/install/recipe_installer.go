@@ -320,6 +320,10 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
 			return err
 		}
+	} else {
+		for _, r := range recipesForInstall {
+			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+		}
 	}
 
 	log.Debugf("Done installing.")
