@@ -295,7 +295,8 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	fmt.Printf("New Relic installing core recipes.....")
+	fmt.Println("New Relic installing core recipes.....")
+
 	if err = i.installRecipes(ctx, m, coreRecipesForInstall); err != nil {
 		return err
 	}
@@ -303,9 +304,22 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	//TODO UI Update on web need to change
 	//logRecipes(recipesForInstall)
 
-	fmt.Printf("New Relic installing other recipes.....")
-	if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-		return err
+	var s string
+
+	fmt.Printf("Would you like to install other recipes Y/N (Default Y): ")
+	_, err = fmt.Scan(&s)
+	if err != nil {
+		panic(err)
+	}
+
+	s = strings.TrimSpace(s)
+	s = strings.ToLower(s)
+
+	if s == "y" || s == "yes" || s == "" {
+		fmt.Printf("New Relic installing other recipes.....")
+		if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
+			return err
+		}
 	}
 
 	log.Debugf("Done installing.")
