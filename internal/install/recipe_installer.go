@@ -290,7 +290,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
 
 	//TODO Install the core recipes
-	coreRecipesForInstall, err := i.fetchCoreRecipe(recipesForInstall)
+	coreRecipesForInstall, recipesForInstall, err := i.fetchCoreRecipe(recipesForInstall)
 	if err != nil {
 		return err
 	}
@@ -548,7 +548,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) fetchCoreRecipe(recipesForInstall []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+func (i *RecipeInstaller) fetchCoreRecipe(recipesForInstall []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
 
 	coreRecipes := []string{types.InfraAgentRecipeName, types.LoggingRecipeName}
 	var recipes []types.OpenInstallationRecipe
@@ -573,7 +573,7 @@ func (i *RecipeInstaller) fetchCoreRecipe(recipesForInstall []types.OpenInstalla
 		}
 	}
 
-	return recipes, nil
+	return recipes, recipesForInstall, nil
 }
 
 func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
