@@ -117,6 +117,7 @@ func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []
 		if err != nil {
 			recipeStatusEvent := execution.RecipeStatusEvent{
 				Recipe: recipe,
+				Msg:    err.Error(), // Set the message to the raw error message
 			}
 
 			if e, ok := err.(*types.IncomingMessage); ok {

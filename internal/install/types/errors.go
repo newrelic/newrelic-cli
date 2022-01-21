@@ -16,6 +16,10 @@ var (
 	maxTaskPathNesting = 5
 )
 
+// When a recipe returns a JSON string via stderr,
+// the primary message should be set on the `message` key.
+const StdErrorJSONMessageKey = "message"
+
 type GoTaskError interface {
 	error
 	TaskPath() []string
@@ -145,23 +149,9 @@ func (e IncomingMessage) Error() string {
 func (e IncomingMessage) ParseMetadata() map[string]interface{} {
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(e.Metadata), &data); err != nil {
-		log.Debugf("\n Could not unmarshal e.Metadata:  %+v \n", err)
+		log.Debugf("Error attempting to unmarshal metadata. Metadata must be a key-value map:  %+v", err)
 
-		fmt.Printf("\b ParseMetadata didnt unmarshal:   %+v \n", e.Metadata)
-
-		return map[string]interface{}{
-			"metadata": map[string]string{
-				"message": e.Metadata,
-			},
-		}
-	}
-
-	if m, ok := data["metadata"].(string); ok {
-		return map[string]interface{}{
-			"metadata": map[string]string{
-				"message": m,
-			},
-		}
+		return data
 	}
 
 	if m, ok := data["metadata"].(map[string]interface{}); ok {
