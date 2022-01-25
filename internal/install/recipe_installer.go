@@ -290,11 +290,8 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	for _, partition := range recipePartitions {
 		recipesForInstall = partition.partition(recipesForInstall)
 
-		if !partition.any() {
-			continue
-		}
 		// handling the other recipes
-		if partition.name == otherRecipePartition.name {
+		if partition.name == otherRecipePartition.name && len(recipesForInstall) > 0 {
 
 			var s string
 			fmt.Printf("Would you like to install other recipes Y/N (Default Y): ")
@@ -317,7 +314,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 					i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 				}
 			}
-		} else {
+		} else if partition.any() {
 			fmt.Println(partition)
 			if err = i.installRecipes(ctx, m, partition.recipes); err != nil {
 				return err
