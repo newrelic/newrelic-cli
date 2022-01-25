@@ -268,8 +268,6 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		log.Debugf("recipes after filtering:\n")
 		logRecipes(recipesForInstall)
 
-		//TODO remove core recipes here, since it's already installed
-
 		// selected, unselected, err = i.promptUserSelect(recipesForInstall)
 		// if err != nil {
 		// 	return err
@@ -289,42 +287,45 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
 	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
 
-	//TODO Install the core recipes
-	coreRecipesForInstall, recipesForInstall, err := i.fetchCoreRecipe(recipesForInstall)
-	if err != nil {
-		return err
+	for _, partition := range recipePartitions {
+		recipesForInstall = partition.partition(recipesForInstall)
+
+		if !partition.any() {
+			continue
+		}
+		// handling the other recipes
+		if partition.name == otherRecipePartition.name {
+
+			var s string
+			fmt.Printf("Would you like to install other recipes Y/N (Default Y): ")
+			_, err = fmt.Scan(&s)
+			if err != nil {
+				panic(err)
+			}
+
+			s = strings.TrimSpace(s)
+			s = strings.ToLower(s)
+
+			if s == "y" || s == "yes" || s == "" {
+				partition.recipes = recipesForInstall
+				fmt.Println(partition)
+				if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
+					return err
+				}
+			} else {
+				for _, r := range recipesForInstall {
+					i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+				}
+			}
+		} else {
+			fmt.Println(partition)
+			if err = i.installRecipes(ctx, m, coreRecipePartition.recipes); err != nil {
+				return err
+			}
+		}
 	}
-
-	fmt.Println("New Relic installing core recipes.....")
-
-	if err = i.installRecipes(ctx, m, coreRecipesForInstall); err != nil {
-		return err
-	}
-
 	//TODO UI Update on web need to change
 	//logRecipes(recipesForInstall)
-
-	var s string
-
-	fmt.Printf("Would you like to install other recipes Y/N (Default Y): ")
-	_, err = fmt.Scan(&s)
-	if err != nil {
-		panic(err)
-	}
-
-	s = strings.TrimSpace(s)
-	s = strings.ToLower(s)
-
-	if s == "y" || s == "yes" || s == "" {
-		fmt.Printf("New Relic installing other recipes.....")
-		if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-			return err
-		}
-	} else {
-		for _, r := range recipesForInstall {
-			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-		}
-	}
 
 	log.Debugf("Done installing.")
 	return nil
@@ -564,34 +565,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 
 	i.executionProgressIndicator.Success(msg)
 	return entityGUID, nil
-}
-
-func (i *RecipeInstaller) fetchCoreRecipe(recipesForInstall []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
-
-	coreRecipes := []string{types.InfraAgentRecipeName, types.LoggingRecipeName}
-	var recipes []types.OpenInstallationRecipe
-
-	for _, n := range coreRecipes {
-		found := false
-		log.Debugln(fmt.Sprintf("Attempting to match core recipe by name %s.", n))
-		for i, r := range recipesForInstall {
-			if strings.EqualFold(r.Name, n) {
-				log.WithFields(log.Fields{
-					"name":         r.Name,
-					"display_name": r.DisplayName,
-				}).Debug("found recipe with name")
-				recipes = append(recipes, r)
-				found = true
-				recipesForInstall = append(recipesForInstall[:i], recipesForInstall[i+1:]...)
-				break
-			}
-		}
-		if !found {
-			log.Errorf("Could not find recipe with name %s.", n)
-		}
-	}
-
-	return recipes, recipesForInstall, nil
 }
 
 func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
