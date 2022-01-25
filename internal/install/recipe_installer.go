@@ -319,7 +319,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 			}
 		} else {
 			fmt.Println(partition)
-			if err = i.installRecipes(ctx, m, coreRecipePartition.recipes); err != nil {
+			if err = i.installRecipes(ctx, m, partition.recipes); err != nil {
 				return err
 			}
 		}

@@ -37,10 +37,10 @@ func (rp recipePartition) String() string {
 
 	var recipeNames string
 	for _, recipe := range rp.recipes {
-		recipeNames += fmt.Sprintf("%s\n", recipe.DisplayName)
+		recipeNames += fmt.Sprintf("\n%s", recipe.DisplayName)
 	}
 
-	return fmt.Sprintf("New Relic installing %s recipes: %s", rp.name, recipeNames)
+	return fmt.Sprintf("\nNew Relic installing %s recipes: %s", rp.name, recipeNames)
 }
 
 var coreRecipePartition = recipePartition{
