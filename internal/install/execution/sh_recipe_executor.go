@@ -65,11 +65,6 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 
 	err = i.Run(ctx, p)
 
-	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n ShRecipeExecutor - stderrCapture:  %+v \n", stderrCapture.LastFullLine)
-	fmt.Print("\n **************************** \n\n")
-	// time.Sleep(5 * time.Second)
-
 	if err != nil {
 		if exitCode, ok := interp.IsExitStatus(err); ok {
 			// If the stderr message is a regular string, we return
