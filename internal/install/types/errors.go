@@ -16,10 +16,6 @@ var (
 	maxTaskPathNesting = 5
 )
 
-// When a recipe returns a JSON string via stderr,
-// the primary message should be set on the `message` key.
-const StdErrorJSONMessageKey = "message"
-
 type GoTaskError interface {
 	error
 	TaskPath() []string

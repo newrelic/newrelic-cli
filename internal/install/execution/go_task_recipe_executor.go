@@ -65,7 +65,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		Stderr:     stderrCapture,
 		Stdin:      re.Stdin,
 		Stdout:     stdoutCapture,
-		Silent:     true,
 	}
 
 	if err = e.Setup(); err != nil {

@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"os"
@@ -181,4 +182,13 @@ func IsAbsoluteURL(rawURL string) bool {
 func IsExitStatusCode(exitCode int, err error) bool {
 	exitCodeString := fmt.Sprintf("exit status %d", exitCode)
 	return strings.Contains(err.Error(), exitCodeString)
+}
+
+func IsJSONString(input string) bool {
+	var x struct{}
+	if err := json.Unmarshal([]byte(input), &x); err != nil {
+		return false
+	}
+
+	return true
 }

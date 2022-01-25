@@ -69,3 +69,15 @@ func TestIsAbsoluteURL(t *testing.T) {
 		require.Equal(t, u.IsAbsolute, result)
 	}
 }
+
+func TestIsJSONString_True(t *testing.T) {
+	str := "{\"message\":\"original message\",\"metadata\":{\"someKey\":\"some value\"}}"
+	result := IsJSONString(str)
+	require.True(t, result)
+}
+
+func TestIsJSONString_False(t *testing.T) {
+	str := "some string"
+	result := IsJSONString(str)
+	require.False(t, result)
+}

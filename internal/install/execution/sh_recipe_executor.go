@@ -2,7 +2,6 @@ package execution
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 type ShRecipeExecutor struct {
@@ -67,19 +67,16 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 
 	if err != nil {
 		if exitCode, ok := interp.IsExitStatus(err); ok {
-			// If the stderr message is a regular string, we return
-			// the original error and last full line of text.
-			// This is the original way recipes send messages via stderr,
-			// hence we need this check for backwards compatibility.
-			if !isJSONString(stderrCapture.LastFullLine) {
+			// If the stderr message is a regular string, we return the original error
+			// and last full line of text. This is the original way recipes send messages
+			// via stderr, hence we need this check for backwards compatibility.
+			if !utils.IsJSONString(stderrCapture.LastFullLine) {
 				return fmt.Errorf("%w: %s", err, stderrCapture.LastFullLine)
 			}
 
-			// When the stderr message is a JSON string, we have a standard object
-			// we return a custom error to facilitate capturing additional metadata
-			// for debugging purposes.
+			// When a recipe returns the stderr message is a JSON string we
+			// capture the additional metadata for informational purposes.
 			return &types.IncomingMessage{
-				// Should we use fmt.Errorf here ever? Should we have another field to cover error?
 				Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
 				ExitCode: int(exitCode),
 				Metadata: stderrCapture.LastFullLine,
@@ -89,9 +86,10 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 		return err
 	}
 
-	// Handle scenario when no error occurs, but we still pass
-	// a message back
-	if stderrCapture.LastFullLine != "" {
+	// Handle when a recipe sends a JSON string via stderr even if no error occurred.
+	// This can occur when a recipe executes a step successfully but still wants to capture
+	// metadata in the recipe event.
+	if stderrCapture.LastFullLine != "" && utils.IsJSONString(stderrCapture.LastFullLine) {
 		return &types.IncomingMessage{
 			Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
 			Metadata: stderrCapture.LastFullLine,
@@ -99,13 +97,4 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	}
 
 	return nil
-}
-
-func isJSONString(input string) bool {
-	var x struct{}
-	if err := json.Unmarshal([]byte(input), &x); err != nil {
-		return false
-	}
-
-	return true
 }
