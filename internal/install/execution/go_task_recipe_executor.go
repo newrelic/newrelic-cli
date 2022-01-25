@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
@@ -87,11 +86,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	if err := e.Run(ctx, calls...); err != nil {
-		fmt.Print("\n\n **************************** \n")
-		fmt.Printf("\n GoTaskRecipeExecutor - stderrCapture:  %+v \n", stderrCapture.LastFullLine)
-		fmt.Print("\n **************************** \n\n")
-		time.Sleep(2 * time.Second)
-
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Debug("Task execution returned error")

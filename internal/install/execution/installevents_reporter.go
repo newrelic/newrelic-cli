@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -181,11 +180,6 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 		i.EnabledProxy = true
 	}
 
-	// REMOVE BEFORE ASKIN FOR A REVIEW ;)
-	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n Event Reporter INSTALL Status:  %+v \n", i.Error)
-	fmt.Print("\n **************************** \n\n")
-
 	return i
 }
 
@@ -224,10 +218,10 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.Status = *statusType
 	}
 
-	// REMOVE BEFORE ASKIN FOR A REVIEW ;)
-	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Metadata)
-	fmt.Print("\n **************************** \n\n")
+	// // REMOVE BEFORE ASKIN FOR A REVIEW ;)
+	// fmt.Print("\n\n **************************** \n")
+	// fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Metadata)
+	// fmt.Print("\n **************************** \n\n")
 
 	return i
 }
