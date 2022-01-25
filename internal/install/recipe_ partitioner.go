@@ -5,13 +5,16 @@ import (
 	"strings"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 )
 
 type recipePartition struct {
-	name        string
-	description string
-	recipeNames []string
-	recipes     []types.OpenInstallationRecipe
+	name           string
+	description    string
+	recipeNames    []string
+	recipes        []types.OpenInstallationRecipe
+	requireConfirm bool
+	prompter       ux.PromptUIPrompter
 }
 
 func (rp *recipePartition) partition(recipesForInstall []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
@@ -50,17 +53,34 @@ var coreRecipePartition = recipePartition{
 		types.InfraAgentRecipeName,
 		types.LoggingRecipeName,
 	},
-	recipes: make([]types.OpenInstallationRecipe, 0),
+	recipes:        make([]types.OpenInstallationRecipe, 0),
+	requireConfirm: false,
 }
 
 var otherRecipePartition = recipePartition{
-	name:        "",
-	description: "This is the non-core partition",
-	recipeNames: make([]string, 0),
-	recipes:     make([]types.OpenInstallationRecipe, 0),
+	name:           "",
+	description:    "This is the non-core partition",
+	recipeNames:    make([]string, 0),
+	recipes:        make([]types.OpenInstallationRecipe, 0),
+	requireConfirm: true,
 }
 
-var recipePartitions = []recipePartition{
-	coreRecipePartition,
-	otherRecipePartition,
+type recipePartitions []recipePartition
+
+func newRecipePartitions(recipesForInstall []types.OpenInstallationRecipe) *recipePartitions {
+	partions := &[]recipePartition{
+		coreRecipePartition,
+		otherRecipePartition,
+	}
+
+	for _, partition := range *partions {
+		if partition.name == otherRecipePartition.name {
+			partition.recipes = recipesForInstall
+		} else {
+			recipesForInstall = partition.partition(recipesForInstall)
+			partition.prompter = *ux.NewPromptUIPrompter()
+		}
+	}
+
+	return (*recipePartitions)(partions)
 }

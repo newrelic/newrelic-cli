@@ -287,36 +287,26 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
 	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
 
-	for _, partition := range recipePartitions {
-		recipesForInstall = partition.partition(recipesForInstall)
+	recipePartitions := newRecipePartitions(recipesForInstall)
 
-		// handling the other recipes
-		if partition.name == otherRecipePartition.name && len(recipesForInstall) > 0 {
+	for _, partition := range *recipePartitions {
 
-			var s string
-			fmt.Printf("Would you like to install other recipes Y/N (Default Y): ")
-			_, err = fmt.Scan(&s)
-			if err != nil {
-				panic(err)
-			}
-
-			s = strings.TrimSpace(s)
-			s = strings.ToLower(s)
-
-			if s == "y" || s == "yes" || s == "" {
-				partition.recipes = recipesForInstall
-				fmt.Println(partition)
-				if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-					return err
+		if partition.any() {
+			if partition.requireConfirm {
+				confirm, err := partition.prompter.PromptYesNo("Do you want to install?")
+				if err != nil {
+					panic(err)
 				}
-			} else {
-				for _, r := range recipesForInstall {
-					i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+
+				if !confirm {
+					for _, r := range recipesForInstall {
+						i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+					}
 				}
 			}
-		} else if partition.any() {
+
 			fmt.Println(partition)
-			if err = i.installRecipes(ctx, m, partition.recipes); err != nil {
+			if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
 				return err
 			}
 		}
