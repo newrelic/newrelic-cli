@@ -12,7 +12,7 @@ type recipePartition struct {
 	name           string
 	description    string
 	recipeNames    []string
-	recipes        []types.OpenInstallationRecipe
+	recipes        []*types.OpenInstallationRecipe
 	requireConfirm bool
 	prompter       ux.PromptUIPrompter
 }
@@ -22,7 +22,7 @@ func (rp *recipePartition) partition(recipesForInstall []types.OpenInstallationR
 	for _, n := range rp.recipeNames {
 		for i, r := range recipesForInstall {
 			if strings.EqualFold(r.Name, n) {
-				rp.recipes = append(rp.recipes, r)
+				rp.recipes = append(rp.recipes, &r)
 				recipesForInstall = append(recipesForInstall[:i], recipesForInstall[i+1:]...)
 				break
 			}
@@ -53,7 +53,7 @@ var coreRecipePartition = recipePartition{
 		types.InfraAgentRecipeName,
 		types.LoggingRecipeName,
 	},
-	recipes:        make([]types.OpenInstallationRecipe, 0),
+	recipes:        make([]*types.OpenInstallationRecipe, 0),
 	requireConfirm: false,
 }
 
@@ -61,7 +61,7 @@ var otherRecipePartition = recipePartition{
 	name:           "",
 	description:    "This is the non-core partition",
 	recipeNames:    make([]string, 0),
-	recipes:        make([]types.OpenInstallationRecipe, 0),
+	recipes:        make([]*types.OpenInstallationRecipe, 0),
 	requireConfirm: true,
 }
 
@@ -75,10 +75,12 @@ func newRecipePartitions(recipesForInstall []types.OpenInstallationRecipe) *reci
 
 	for _, partition := range *partions {
 		if partition.name == otherRecipePartition.name {
-			partition.recipes = recipesForInstall
+			for _, otherRecipe := range recipesForInstall {
+				partition.recipes = append(partition.recipes, &otherRecipe)
+			}
+			partition.prompter = *ux.NewPromptUIPrompter()
 		} else {
 			recipesForInstall = partition.partition(recipesForInstall)
-			partition.prompter = *ux.NewPromptUIPrompter()
 		}
 	}
 
