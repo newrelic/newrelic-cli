@@ -12,7 +12,7 @@ type recipePartition struct {
 	name           string
 	description    string
 	recipeNames    []string
-	recipes        []*types.OpenInstallationRecipe
+	recipes        []types.OpenInstallationRecipe
 	requireConfirm bool
 	prompter       ux.PromptUIPrompter
 }
@@ -22,7 +22,7 @@ func (rp *recipePartition) partition(recipesForInstall []types.OpenInstallationR
 	for _, n := range rp.recipeNames {
 		for i, r := range recipesForInstall {
 			if strings.EqualFold(r.Name, n) {
-				rp.recipes = append(rp.recipes, &r)
+				rp.recipes = append(rp.recipes, r)
 				recipesForInstall = append(recipesForInstall[:i], recipesForInstall[i+1:]...)
 				break
 			}
@@ -53,36 +53,35 @@ var coreRecipePartition = recipePartition{
 		types.InfraAgentRecipeName,
 		types.LoggingRecipeName,
 	},
-	recipes:        make([]*types.OpenInstallationRecipe, 0),
+	recipes:        make([]types.OpenInstallationRecipe, 0),
 	requireConfirm: false,
 }
 
 var otherRecipePartition = recipePartition{
-	name:           "",
+	name:           "Other",
 	description:    "This is the non-core partition",
 	recipeNames:    make([]string, 0),
-	recipes:        make([]*types.OpenInstallationRecipe, 0),
+	recipes:        make([]types.OpenInstallationRecipe, 0),
 	requireConfirm: true,
+	prompter:       *ux.NewPromptUIPrompter(),
 }
 
-type recipePartitions []recipePartition
+type recipePartitions []*recipePartition
 
 func newRecipePartitions(recipesForInstall []types.OpenInstallationRecipe) *recipePartitions {
-	partions := &[]recipePartition{
-		coreRecipePartition,
-		otherRecipePartition,
+	partitions := []*recipePartition{
+		&coreRecipePartition,
+		&otherRecipePartition,
 	}
 
-	for _, partition := range *partions {
+	for _, partition := range partitions {
 		if partition.name == otherRecipePartition.name {
-			for _, otherRecipe := range recipesForInstall {
-				partition.recipes = append(partition.recipes, &otherRecipe)
-			}
-			partition.prompter = *ux.NewPromptUIPrompter()
+			partition.recipes = append(partition.recipes, recipesForInstall...)
 		} else {
 			recipesForInstall = partition.partition(recipesForInstall)
 		}
+		partitions[0] = partition
 	}
 
-	return (*recipePartitions)(partions)
+	return (*recipePartitions)(&partitions)
 }
