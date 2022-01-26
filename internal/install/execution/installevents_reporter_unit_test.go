@@ -67,7 +67,7 @@ func TestInstallEventsReporter_InstallCanceled(t *testing.T) {
 
 	err := r.InstallCanceled(status)
 	require.NoError(t, err)
-	require.Equal(t, 3, c.CreateInstallEventCallCount)
+	require.Equal(t, 3, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_InstallCanceled_ShouldNotReportDetectedEvent(t *testing.T) {
@@ -101,7 +101,7 @@ func TestInstallEventsReporter_InstallCanceled_ShouldNotReportDetectedEvent(t *t
 
 	err := r.InstallCanceled(status)
 	require.NoError(t, err)
-	require.Equal(t, 2, c.CreateInstallEventCallCount)
+	require.Equal(t, 2, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
@@ -117,7 +117,7 @@ func TestInstallEventsReporter_RecipeInstalling(t *testing.T) {
 
 	err := r.RecipeInstalling(status, e)
 	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
+	require.Equal(t, 1, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
@@ -133,7 +133,7 @@ func TestInstallEventsReporter_RecipeFailed(t *testing.T) {
 
 	err := r.RecipeFailed(status, e)
 	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
+	require.Equal(t, 1, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_RecipeInstalled(t *testing.T) {
@@ -149,7 +149,7 @@ func TestInstallEventsReporter_RecipeInstalled(t *testing.T) {
 
 	err := r.RecipeInstalled(status, e)
 	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
+	require.Equal(t, 1, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_RecipeSkipped(t *testing.T) {
@@ -165,7 +165,7 @@ func TestInstallEventsReporter_RecipeSkipped(t *testing.T) {
 
 	err := r.RecipeSkipped(status, e)
 	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
+	require.Equal(t, 1, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_RecipeRecommended(t *testing.T) {
@@ -181,7 +181,7 @@ func TestInstallEventsReporter_RecipeRecommended(t *testing.T) {
 
 	err := r.RecipeRecommended(status, e)
 	require.NoError(t, err)
-	require.Equal(t, 1, c.CreateInstallEventCallCount)
+	require.Equal(t, 1, c.CreateRecipeEventCallCount)
 }
 
 func TestInstallEventsReporter_writeStatus(t *testing.T) {
@@ -212,12 +212,12 @@ func TestInstallEventsReporter_writeStatus(t *testing.T) {
 	err := r.RecipeAvailable(status, recipes[0])
 	createInstallEventCallCount++
 	require.NoError(t, err)
-	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
+	require.Equal(t, createInstallEventCallCount, c.CreateRecipeEventCallCount)
 
 	for _, testRecipe := range recipes {
 		err = r.RecipeAvailable(status, testRecipe)
 		createInstallEventCallCount++
 		require.NoError(t, err)
-		require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
+		require.Equal(t, createInstallEventCallCount, c.CreateRecipeEventCallCount)
 	}
 }

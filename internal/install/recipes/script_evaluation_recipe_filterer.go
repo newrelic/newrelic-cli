@@ -55,13 +55,21 @@ func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.Op
 func (f *ScriptEvaluationRecipeFilterer) CheckCompatibility(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{})
 
+	fmt.Printf("\nScriptEvaluationRecipeFilterer - err:   %+v \n", err)
+
 	if err != nil {
 		var metadata map[string]interface{}
 		var message string
+
 		if e, ok := err.(*types.CustomStdError); ok {
+			fmt.Printf("\nScriptEvaluationRecipeFilterer - a:   %T \n\n", e)
+
 			metadata = e.Metadata
+
 		} else {
 			message = err.Error()
+
+			fmt.Printf("\nScriptEvaluationRecipeFilterer - b:   %T \n", err)
 		}
 
 		fmt.Printf("\nScriptEvaluationRecipeFilterer::CheckCompatibility - Metadata:   %+v \n", metadata)
