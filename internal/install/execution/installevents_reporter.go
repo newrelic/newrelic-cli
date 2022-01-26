@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -184,6 +185,10 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 }
 
 func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.InstallationRecipeStatusType) installevents.InstallationRecipeStatus {
+
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n Event Reporter RECIPE event:  %+v \n", event)
+
 	i := installevents.InstallationRecipeStatus{
 		CliVersion: status.CLIVersion,
 		Complete:   status.Complete,
@@ -219,9 +224,9 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 	}
 
 	// // REMOVE BEFORE ASKIN FOR A REVIEW ;)
-	// fmt.Print("\n\n **************************** \n")
-	// fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Metadata)
-	// fmt.Print("\n **************************** \n\n")
+	fmt.Print("\n\n **************************** \n")
+	fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Metadata)
+	fmt.Print("\n **************************** \n\n")
 
 	return i
 }

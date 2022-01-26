@@ -115,13 +115,18 @@ func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []
 		err := rf.runCompatibilityCheck(ctx, &recipe, m)
 
 		if err != nil {
-			recipeStatusEvent := execution.RecipeStatusEvent{
-				Recipe: recipe,
-				Msg:    err.Error(), // Set the message to the raw error message
+			var metadata map[string]interface{}
+			var message string
+			if e, ok := err.(*types.CustomStdError); ok {
+				metadata = e.Metadata
+			} else {
+				message = err.Error()
 			}
 
-			if e, ok := err.(*types.IncomingMessage); ok {
-				recipeStatusEvent.Metadata = e.ParseMetadata()
+			recipeStatusEvent := execution.RecipeStatusEvent{
+				Recipe:   recipe,
+				Msg:      message,
+				Metadata: metadata,
 			}
 
 			rf.installStatus.RecipeUnsupported(recipeStatusEvent)
