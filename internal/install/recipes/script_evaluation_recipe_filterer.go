@@ -32,10 +32,8 @@ func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.Op
 		fmt.Printf("\nScriptEvaluationRecipeFilterer - Incoming:                %+v \n", err)
 
 		var metadata map[string]interface{}
-		if e, ok := err.(*types.IncomingMessage); ok {
-			metadata = e.ParseMetadata()
-
-			fmt.Printf("\nScriptEvaluationRecipeFilterer - Unmarshaled Metadata:   %+v \n", metadata)
+		if e, ok := err.(*types.CustomStdError); ok {
+			fmt.Printf("\nScriptEvaluationRecipeFilterer - Metadata:   %+v \n", e.Metadata)
 		}
 
 		fmt.Print("\n **************************** \n\n")
@@ -60,15 +58,13 @@ func (f *ScriptEvaluationRecipeFilterer) CheckCompatibility(ctx context.Context,
 	if err != nil {
 		var metadata map[string]interface{}
 		var message string
-		if e, ok := err.(*types.IncomingMessage); ok {
-			metadata = e.ParseMetadata()
-
-			if m, ok := metadata["message"].(string); ok {
-				message = m
-			}
+		if e, ok := err.(*types.CustomStdError); ok {
+			metadata = e.Metadata
 		} else {
 			message = err.Error()
 		}
+
+		fmt.Printf("\nScriptEvaluationRecipeFilterer::CheckCompatibility - Metadata:   %+v \n", metadata)
 
 		if utils.IsExitStatusCode(132, err) {
 			event := execution.RecipeStatusEvent{

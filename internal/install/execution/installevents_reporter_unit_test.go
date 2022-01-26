@@ -48,7 +48,7 @@ func TestInstallEventsReporter_InstallCanceled(t *testing.T) {
 	require.NotNil(t, r)
 
 	slg := NewMockPlatformLinkGenerator()
-	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	status := NewInstallStatus([]StatusSubscriber{r}, slg)
 	status.withEntityGUID("testGuid")
 	status.Statuses = []*RecipeStatus{
 		{

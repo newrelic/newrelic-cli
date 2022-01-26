@@ -365,13 +365,15 @@ func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifes
 func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
+	fmt.Print("\n\n **************************** \n")
+	fmt.Println("RecipeInstaller")
+
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(ctx, *r, vars); err != nil {
-		fmt.Print("\n\n **************************** \n")
 
-		if e, ok := err.(*types.IncomingMessage); ok {
+		if e, ok := err.(*types.CustomStdError); ok {
 			fmt.Printf("\n RecipeInstaller - Error:                %+v \n", e)
-			fmt.Printf("\n RecipeInstaller - ParseMetadata:        %+v \n", e.ParseMetadata())
+			// fmt.Printf("\n RecipeInstaller - ParseMetadata:        %+v \n", e.ParseMetadata())
 			fmt.Print("\n **************************** \n\n")
 		}
 
@@ -394,7 +396,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			Msg:    msg,
 		}
 
-		// Will this check fail if using types.IncomingMessage?
+		// Will this check fail if using types.CustomStdError?
 		if e, ok := err.(types.GoTaskError); ok {
 			e.SetError(msg)
 			se.TaskPath = e.TaskPath()

@@ -5,7 +5,6 @@ package types
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,27 +30,48 @@ func TestGoTaskGeneralError(t *testing.T) {
 	e = NewGoTaskGeneralError(err)
 	require.Equal(t, []string{"default", "subTask", "nestedSubTask"}, e.TaskPath())
 	require.Equal(t, e.Error(), "some error")
-
 }
 
-func TestIncomingMessage_ShouldParseMetadata(t *testing.T) {
-	mockIncomingMessage := IncomingMessage{
-		Metadata: "{\"message\":\"original message\",\"metadata\":{\"someKey\":\"some value\"}}",
+func TestNewCustomStdError(t *testing.T) {
+	expected := map[string]interface{}{
+		"someKey": "value",
 	}
 
-	parsedMetadata := mockIncomingMessage.ParseMetadata()
+	stderr := errors.New("exit status 1")
 
-	require.Equal(t, "some value", parsedMetadata["someKey"].(string))
+	input := "{\"metadata\":{\"someKey\":\"value\"}}"
+	incomingMessage := NewCustomStdError(stderr, input)
+	require.NotNil(t, incomingMessage)
+	require.Equal(t, expected, incomingMessage.Metadata)
 }
 
-func TestIncomingMessage_ShouldReturnRawMetadataWhenNonJSONString(t *testing.T) {
-	mockIncomingMessage := IncomingMessage{
-		Metadata: "This is a regular string",
+func TestNewCustomStdError_ShouldReturnNilIfInvalidJSON(t *testing.T) {
+	stderr := errors.New("exit status 1")
+
+	input := "not a JSON string"
+	incomingMessage := NewCustomStdError(stderr, input)
+	require.Nil(t, incomingMessage)
+
+	input = ""
+	incomingMessage = NewCustomStdError(stderr, input)
+	require.Nil(t, incomingMessage)
+
+	input = "{\"metadata\":\"not a map\"}"
+	incomingMessage = NewCustomStdError(stderr, input)
+	require.Nil(t, incomingMessage)
+}
+
+func TestNewCustomStdError_ShouldSupportNestedJSONObjects(t *testing.T) {
+	expected := map[string]interface{}{
+		"a": map[string]interface{}{
+			"b": "c",
+		},
 	}
 
-	parsedMetadata := mockIncomingMessage.ParseMetadata()
+	stderr := errors.New("exit status 1")
 
-	fmt.Printf("\n\n parsedMetadata: %+v \n\n", parsedMetadata)
-
-	require.Equal(t, "This is a regular string", parsedMetadata["metadata"])
+	input := "{\"metadata\":{\"a\":{\"b\":\"c\"}}}"
+	incomingMessage := NewCustomStdError(stderr, input)
+	require.NotNil(t, incomingMessage)
+	require.Equal(t, expected, incomingMessage.Metadata)
 }

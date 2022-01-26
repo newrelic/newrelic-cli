@@ -114,47 +114,45 @@ func (e *UncaughtError) Error() string {
 	return e.Err.Error()
 }
 
-// IncomingMessage represents a standardized recipe message object
-// passed back to the CLI via stderr. The standard error is represented as
-// a JSON string within a recipe.
+// CustomStdError represents a standardized recipe message object
+// passed back to the CLI via stderr. The stderr output is represented as
+// a JSON string within a recipe. The `metadata` key is REQUIRED. The
+// metadata can be used for informational and debugging purposes.
 //
-// Example of:
-//   echo ""{\"message\":\"something happened\",\"metadata\":{\"key\":\"relevant data\"}}"" >&2
+// Example usage within a recipe task:
+//   echo ""{\"metadata\":{\"someKey\":\"a relevant value\"}}"" >&2
+//   exit 132
 //
-//
-type IncomingMessage struct {
-	// The primary message that was redirected to stderr
-	Message string
+type CustomStdError struct {
+	// Represents the JSON object under the `metadata` key
+	Metadata map[string]interface{}
 
-	// The exit code used at point of failure in the recipe
-	ExitCode int
-
-	// JSON string that contains additional information if the
-	// recipe provides it via stderr. Use IncomingMessage.ParseMetadata()
-	// access the data in Go.
-	Metadata string
+	// The original raw error message sent via stderr
+	stderr error
 }
 
-func (e IncomingMessage) Error() string {
-	return e.Message
+func (e CustomStdError) Error() string {
+	return e.stderr.Error()
 }
 
-// ParseMetadata converts the incoming JSON string to a map[string]interface{}.
-// If the incoming metadata is a simple string, we still return `metadata` as
-// a map to keep data structure consistent.
-func (e IncomingMessage) ParseMetadata() map[string]interface{} {
-	var data map[string]interface{}
-	if err := json.Unmarshal([]byte(e.Metadata), &data); err != nil {
-		log.Debugf("Error attempting to unmarshal metadata. Metadata must be a key-value map:  %+v", err)
+func NewCustomStdError(stderr error, message string) *CustomStdError {
+	var metadata map[string]interface{}
+	if err := json.Unmarshal([]byte(message), &metadata); err != nil {
+		log.Debugf("error unmarshaling incoming metadata: %v - %s \n", err, message)
 
-		return data
+		return nil
 	}
 
-	if m, ok := data["metadata"].(map[string]interface{}); ok {
-		return m
+	m, ok := metadata["metadata"].(map[string]interface{})
+	if !ok {
+		log.Debugf("metadata must be a key:value map, but %v was provided", message)
+		return nil
 	}
 
-	return data
+	return &CustomStdError{
+		Metadata: m,
+		stderr:   stderr,
+	}
 }
 
 // nolint: golint
