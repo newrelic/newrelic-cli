@@ -302,6 +302,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 					for _, r := range partition.recipes {
 						i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 					}
+					continue
 				}
 			}
 
