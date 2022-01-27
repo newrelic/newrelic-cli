@@ -75,28 +75,10 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 			}
 
 			return types.NewCustomStdError(err, stderrCapture.LastFullLine)
-
-			// When a recipe returns the stderr message is a JSON string we
-			// capture the additional metadata for informational purposes.
-			// return &types.CustomStdError{
-			// 	Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
-			// 	ExitCode: int(exitCode),
-			// 	Metadata: stderrCapture.LastFullLine,
-			// }
 		}
 
 		return err
 	}
-
-	// Handle when a recipe sends a JSON string via stderr even if no error occurred.
-	// This can occur when a recipe executes a step successfully but still wants to capture
-	// metadata in the recipe event.
-	// if stderrCapture.LastFullLine != "" && utils.IsJSONString(stderrCapture.LastFullLine) {
-	// 	return &types.CustomStdError{
-	// 		Message:  fmt.Sprintf("%s: %s", err, stderrCapture.LastFullLine),
-	// 		Metadata: stderrCapture.LastFullLine,
-	// 	}
-	// }
 
 	return nil
 }

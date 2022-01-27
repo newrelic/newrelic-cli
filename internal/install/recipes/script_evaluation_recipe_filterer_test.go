@@ -5,7 +5,6 @@ package recipes
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -48,7 +47,7 @@ func TestScriptEvaluationRecipeFilterer_ShouldFailPreInstallWithDetectedEventCap
 		Name:         "test-recipe",
 		ProcessMatch: []string{"apache2"},
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: `echo "{\"aUsefulKey\":\"a useful value\"}" >&2; exit 132`, // simulate failed preinstall check
+			RequireAtDiscovery: `echo '"{\"aUsefulKey\":\"a useful value\"}"' >&2; exit 132`, // simulate failed preinstall check
 		},
 	}
 
@@ -65,8 +64,8 @@ func TestScriptEvaluationRecipeFilterer_ShouldFailPreInstallWithDetectedEventCap
 	mockInstallEventsClient := execution.NewMockInstallEventsClient()
 	installEventsReporter := execution.NewInstallEventsReporter(mockInstallEventsClient)
 
-	// mockReporter := execution.NewMockStatusReporter()
-	statusSubscribers := []execution.StatusSubscriber{installEventsReporter}
+	mockReporter := execution.NewMockStatusReporter()
+	statusSubscribers := []execution.StatusSubscriber{installEventsReporter, mockReporter}
 	platformLinkGenerator := execution.NewPlatformLinkGenerator()
 	installStatus := execution.NewInstallStatus(statusSubscribers, platformLinkGenerator)
 
@@ -75,11 +74,6 @@ func TestScriptEvaluationRecipeFilterer_ShouldFailPreInstallWithDetectedEventCap
 	err := r.CheckCompatibility(context.Background(), &recipe, &m)
 	require.Error(t, err)
 
-	// c := statusSubscribers[0].(*execution.InstallEventsReporter)
-	fmt.Print("\n\n **************************** \n")
-	fmt.Printf("\n TEST - err:  %+v \n", err)
-	fmt.Print("\n **************************** \n\n")
-
-	// TODO: Figure out how to test the value of `metadata` in the event itself
 	require.Equal(t, 1, mockInstallEventsClient.CreateRecipeEventCallCount)
+	require.Equal(t, 1, mockReporter.RecipeDetectedCallCount)
 }
