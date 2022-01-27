@@ -20,6 +20,7 @@ jobs:
       SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
   e2e:
     if: github.ref == 'refs/heads/main'
+    needs: test
     uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
     secrets:
       PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
@@ -29,6 +30,7 @@ jobs:
       GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
   e2e-eu:
     if: github.ref == 'refs/heads/main'
+    needs: test
     uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
     secrets:
       PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
@@ -39,6 +41,7 @@ jobs:
 
   release:
     if: github.ref == 'refs/heads/main'
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -153,7 +156,7 @@ jobs:
 
   release-windows-installer:
     runs-on: windows-latest
-    needs: [test, e2e, e2e-eu, release]
+    needs: release
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -195,7 +198,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: release-windows-installer
+    needs: [release-windows-installer, e2e, e2e-eu]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
