@@ -39,7 +39,7 @@ jobs:
 
   release:
     if: github.ref == 'refs/heads/main'
-    needs: [test, e2e, e2e-eu]
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
