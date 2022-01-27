@@ -36,6 +36,12 @@ func (rp *recipePartition) any() bool {
 	return len(rp.recipes) > 0
 }
 
+func (rp *recipePartition) getPromptMessage() string {
+
+	rn := strings.Join(rp.recipeNames, ",")
+	return "New Relic CLI has detected:  " + rn + ".\n Would you like to go ahead and install?"
+}
+
 func (rp recipePartition) String() string {
 
 	var recipeNames string

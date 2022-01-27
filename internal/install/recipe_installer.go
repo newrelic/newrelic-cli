@@ -293,20 +293,20 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 		if partition.any() {
 			if partition.requireConfirm {
-				confirm, err := partition.prompter.PromptYesNo("Do you want to install?")
+				confirm, err := partition.prompter.PromptYesNo(partition.getPromptMessage())
 				if err != nil {
 					panic(err)
 				}
 
 				if !confirm {
-					for _, r := range recipesForInstall {
+					for _, r := range partition.recipes {
 						i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
 					}
 				}
 			}
 
 			fmt.Println(partition)
-			if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
+			if err = i.installRecipes(ctx, m, partition.recipes); err != nil {
 				return err
 			}
 		}

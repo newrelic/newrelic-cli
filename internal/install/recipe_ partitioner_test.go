@@ -1,6 +1,7 @@
 package install
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -66,7 +67,20 @@ func TestRecipePartition_Partition(t *testing.T) {
 	if otherCount != len(other) {
 		t.Errorf("Partition other actual %d expected %d", len(other), otherCount)
 	}
+}
 
+func TestRecipePartiton_GetPromptMessage(t *testing.T) {
+
+	sut := coreRecipePartition
+	actual := sut.getPromptMessage()
+
+	if !strings.Contains(actual, types.InfraAgentRecipeName) ||
+		!strings.Contains(actual, types.GoldenRecipeName) ||
+		!strings.Contains(actual, types.LoggingRecipeName) {
+
+		t.Errorf("Partition Prompt Message actual %v expected to contain (%v, %v %v)", actual,
+			types.InfraAgentRecipeName, types.GoldenRecipeName, types.LoggingRecipeName)
+	}
 }
 
 func TestRecipePartitions_New(t *testing.T) {
