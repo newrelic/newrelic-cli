@@ -39,6 +39,7 @@ jobs:
 
   release:
     if: github.ref == 'refs/heads/main'
+    needs: [test, e2e, e2e-eu]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -153,7 +154,7 @@ jobs:
 
   release-windows-installer:
     runs-on: windows-latest
-    needs: [test, e2e, e2e-eu, release]
+    needs: release
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
