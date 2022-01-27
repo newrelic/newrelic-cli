@@ -13,7 +13,7 @@ TOOL_CONFIG  ?= $(TOOL_DIR)/tools.go
 
 GOTOOLS ?= $(shell cd $(TOOL_DIR) && go list -f '{{ .Imports }}' -tags tools |tr -d '[]')
 
-tools: check-version
+tools: check-version git-hooks
 	@echo "=== $(PROJECT_NAME) === [ tools            ]: Installing tools required by the project..."
 	@cd $(TOOL_DIR) && $(GO) mod download
 	@cd $(TOOL_DIR) && $(GO) install $(GOTOOLS)
