@@ -154,7 +154,7 @@ jobs:
 
   release-windows-installer:
     runs-on: windows-latest
-    needs: release
+    needs: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -196,7 +196,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: release-windows-installer
+    needs: [release, release-windows-installer]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
