@@ -52,6 +52,7 @@ var coreRecipePartition = recipePartition{
 	recipeNames: []string{
 		types.InfraAgentRecipeName,
 		types.LoggingRecipeName,
+		types.GoldenRecipeName,
 	},
 	recipes:        make([]types.OpenInstallationRecipe, 0),
 	requireConfirm: false,
@@ -80,7 +81,6 @@ func newRecipePartitions(recipesForInstall []types.OpenInstallationRecipe) *reci
 		} else {
 			recipesForInstall = partition.partition(recipesForInstall)
 		}
-		partitions[0] = partition
 	}
 
 	return (*recipePartitions)(&partitions)

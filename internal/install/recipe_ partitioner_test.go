@@ -16,6 +16,12 @@ var withRecipes = []types.OpenInstallationRecipe{
 		Name:           types.InfraAgentRecipeName,
 		ValidationNRQL: "testNrql",
 	},
+	{
+		Name: types.LoggingRecipeName,
+	},
+	{
+		Name: types.GoldenRecipeName,
+	},
 }
 
 var withoutRecipes = []types.OpenInstallationRecipe{}
@@ -51,7 +57,7 @@ func TestRecipePartition_Partition(t *testing.T) {
 	sut := coreRecipePartition
 	other := sut.partition(withRecipes)
 
-	if len(sut.recipes) != 1 {
+	if len(sut.recipes) != 3 {
 		t.Errorf("Partition core actual %d expected %d", len(sut.recipes), 1)
 	}
 
@@ -72,7 +78,7 @@ func TestRecipePartitions_New(t *testing.T) {
 
 	for _, p := range sut {
 		if p.name == coreRecipePartition.name {
-			if len(p.recipes) != 1 {
+			if len(p.recipes) != 3 {
 				t.Errorf("Partition Core Recipe count excepted %d actual %d", 1, len(p.recipes))
 			}
 		} else if p.name == otherRecipePartition.name {
