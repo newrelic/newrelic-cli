@@ -83,6 +83,9 @@ func newRecipePartitions(recipesForInstall []types.OpenInstallationRecipe) *reci
 
 	for _, partition := range partitions {
 		if partition.name == otherRecipePartition.name {
+			for _, r := range recipesForInstall {
+				partition.recipeNames = append(partition.recipeNames, r.Name)
+			}
 			partition.recipes = append(partition.recipes, recipesForInstall...)
 		} else {
 			recipesForInstall = partition.partition(recipesForInstall)
