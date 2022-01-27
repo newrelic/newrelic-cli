@@ -4,7 +4,7 @@ RED="\033[0;31m"
 END_COLOR="\033[0m"
 
 echo
-echo "Begin commit-msg hook..."
+echo "Begin pre-commit hook..."
 
 make lint-commit COMMIT_MSG_FILE=$1
 
