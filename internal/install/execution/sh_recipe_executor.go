@@ -64,9 +64,6 @@ func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.R
 	}
 
 	err = i.Run(ctx, p)
-
-	fmt.Printf("\n ShExecutor - err:   %+v \n", err)
-
 	if err != nil {
 		if _, ok := interp.IsExitStatus(err); ok {
 			// If the stderr message is a regular string, we return the original error

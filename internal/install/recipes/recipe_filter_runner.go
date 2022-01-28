@@ -37,16 +37,24 @@ func NewRecipeFilterRunner(ic types.InstallerContext, s *execution.InstallStatus
 	}
 }
 
+func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
+	results := []types.OpenInstallationRecipe{}
+
+	for _, recipe := range r {
+		err := rf.RunFilter(ctx, &recipe, m)
+
+		if err == nil {
+			results = append(results, recipe)
+		}
+	}
+
+	return results
+}
+
 func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	for _, f := range rf.availablilityFilters {
 		if err := f.CheckCompatibility(ctx, r, m); err != nil {
-
-			if r.Name == "php-agent-installer" {
-				fmt.Printf("\n RecipeFilterRunner - err:   %+v \n", err)
-			}
-
 			log.Tracef("Filtering out unavailable recipe %s", r.Name)
-
 			return err
 		}
 	}
@@ -68,31 +76,9 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 	return nil
 }
 
-func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
-	results := []types.OpenInstallationRecipe{}
-
-	for _, recipe := range r {
-		err := rf.RunFilter(ctx, &recipe, m)
-
-		if err == nil {
-			results = append(results, recipe)
-		}
-	}
-
-	return results
-}
-
-func getRecipeFirstName(r types.OpenInstallationRecipe) string {
-	if len(r.DisplayName) > 0 {
-		parts := strings.Split(r.DisplayName, " ")
-		return parts[0]
-	}
-	return r.DisplayName
-}
-
 func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	for _, recipe := range r {
-		err := rf.runCompatibilityCheck(ctx, &recipe, m)
+		err := rf.RunFilter(ctx, &recipe, m)
 
 		if err != nil {
 			var metadata map[string]interface{}
@@ -119,28 +105,10 @@ func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []
 	return nil
 }
 
-func (rf *RecipeFilterRunner) runCompatibilityCheck(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
-	for _, f := range rf.availablilityFilters {
-		err := f.CheckCompatibility(ctx, r, m)
-		if err != nil {
-			log.Tracef("Filtering out unavailable recipe %s", r.Name)
-			return err
-		}
+func getRecipeFirstName(r types.OpenInstallationRecipe) string {
+	if len(r.DisplayName) > 0 {
+		parts := strings.Split(r.DisplayName, " ")
+		return parts[0]
 	}
-
-	// The DETECTED event must happen before AVAILABLE event
-	event := execution.RecipeStatusEvent{
-		Recipe: *r,
-	}
-	rf.installStatus.RecipeDetected(*r, event)
-
-	if r.HasApplicationTargetType() {
-		if !r.HasKeyword(types.ApmKeyword) {
-			rf.installStatus.RecipeRecommended(execution.RecipeStatusEvent{Recipe: *r})
-		}
-	}
-
-	rf.installStatus.RecipeAvailable(*r)
-
-	return nil
+	return r.DisplayName
 }
