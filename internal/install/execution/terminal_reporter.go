@@ -20,7 +20,7 @@ func NewTerminalStatusReporter() *TerminalStatusReporter {
 	return &r
 }
 
-func (r TerminalStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe, event RecipeStatusEvent) error {
+func (r TerminalStatusReporter) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 

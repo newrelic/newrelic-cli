@@ -27,7 +27,7 @@ func NewInstallEventsReporter(client InstallEventsClient) *InstallEventsReporter
 	return &r
 }
 
-func (r InstallEventsReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe, event RecipeStatusEvent) error {
+func (r InstallEventsReporter) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
 	return r.createRecipeInstallEvent(status, installevents.InstallationRecipeStatusTypeTypes.DETECTED, event)
 }
 

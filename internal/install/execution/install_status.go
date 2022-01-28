@@ -127,7 +127,7 @@ func (s *InstallStatus) RecipeDetected(recipe types.OpenInstallationRecipe, even
 	s.withDetectedRecipe(recipe)
 
 	for _, r := range s.statusSubscriber {
-		if err := r.RecipeDetected(s, recipe, event); err != nil {
+		if err := r.RecipeDetected(s, event); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
