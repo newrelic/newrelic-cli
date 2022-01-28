@@ -366,35 +366,44 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	fmt.Print("\n\n **************************** \n")
-	fmt.Println("RecipeInstaller")
 
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(ctx, *r, vars); err != nil {
-
-		if e, ok := err.(*types.CustomStdError); ok {
-			fmt.Printf("\n RecipeInstaller - Error:                %+v \n", e)
-			// fmt.Printf("\n RecipeInstaller - ParseMetadata:        %+v \n", e.ParseMetadata())
-			fmt.Print("\n **************************** \n\n")
-		}
-
 		if err == types.ErrInterrupt {
 			return "", err
 		}
 
-		if e, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+		var metadata map[string]interface{}
+		var msg string
+		if e, ok := err.(*types.CustomStdError); ok {
+
+			fmt.Printf("\n RecipeInstaller - ERROR:                %+v \n", e)
+
+			metadata = e.Metadata
+		} else {
+			msg = err.Error()
+		}
+
+		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
 			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
-				Recipe: *r,
-				Msg:    e.Error(),
+				Recipe:   *r,
+				Msg:      msg,
+				Metadata: metadata,
 			})
 
 			return "", err
 		}
 
-		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+		msg = fmt.Sprintf("execution failed for %s: %s", r.Name, err)
 		se := execution.RecipeStatusEvent{
-			Recipe: *r,
-			Msg:    msg,
+			Recipe:   *r,
+			Msg:      msg,
+			Metadata: metadata,
 		}
+
+		fmt.Printf("\n RecipeInstaller - EVENT:                %+v \n", se)
+		fmt.Printf("\n RecipeInstaller - ERROR:                %+T - %+v \n", err, se)
+		fmt.Print("\n **************************** \n\n")
 
 		// Will this check fail if using types.CustomStdError?
 		if e, ok := err.(types.GoTaskError); ok {

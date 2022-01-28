@@ -120,7 +120,7 @@ func (e *UncaughtError) Error() string {
 // metadata can be used for informational and debugging purposes.
 //
 // Example usage within a recipe task:
-//   echo ""{\"metadata\":{\"someKey\":\"a relevant value\"}}"" >&2
+//   echo ""{\"metadata\":{\"someKey\":\"relevant value\"}}"" >&2
 //   exit 132
 //
 type CustomStdError struct {

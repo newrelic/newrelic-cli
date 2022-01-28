@@ -33,7 +33,6 @@ type RecipeFileFetcher interface {
 
 type RecipeFilterRunner interface {
 	RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe
-	EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error
 	ConfirmCompatibleRecipes(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error
 }
 

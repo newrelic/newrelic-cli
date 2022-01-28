@@ -22,8 +22,8 @@ func TestRecommend_CustomScript_Success(t *testing.T) {
 
 	r := NewRecipeFilterRunner(types.InstallerContext{}, &execution.InstallStatus{})
 
-	filtered := r.RunFilter(context.Background(), &recipe, m)
-	require.False(t, filtered)
+	result := r.RunFilter(context.Background(), &recipe, m)
+	require.NoError(t, result)
 }
 
 func TestRecommend_CustomScript_Failure(t *testing.T) {
@@ -38,8 +38,8 @@ func TestRecommend_CustomScript_Failure(t *testing.T) {
 
 	r := NewRecipeFilterRunner(types.InstallerContext{}, &execution.InstallStatus{})
 
-	filtered := r.RunFilter(context.Background(), &recipe, m)
-	require.True(t, filtered)
+	result := r.RunFilter(context.Background(), &recipe, m)
+	require.Error(t, result)
 }
 
 func TestShouldGetRecipeFirstNameValid(t *testing.T) {
@@ -96,8 +96,8 @@ func TestRecipeFilterRunner_ShouldMatchRecipe(t *testing.T) {
 
 	r := NewRecipeFilterRunner(types.InstallerContext{}, installStatus)
 
-	filtered := r.RunFilter(context.Background(), &recipe, &m)
-	require.False(t, filtered) // ensure recipe is not filtered out
+	result := r.RunFilter(context.Background(), &recipe, &m)
+	require.NoError(t, result) // ensure recipe is not filtered out
 }
 
 func TestRecipeFilterRunner_ShouldFilterOutRecipeWithPreInstallError(t *testing.T) {
@@ -125,6 +125,6 @@ func TestRecipeFilterRunner_ShouldFilterOutRecipeWithPreInstallError(t *testing.
 
 	r := NewRecipeFilterRunner(types.InstallerContext{}, installStatus)
 
-	filtered := r.RunFilter(context.Background(), &recipe, &m)
-	require.True(t, filtered)
+	result := r.RunFilter(context.Background(), &recipe, &m)
+	require.Error(t, result)
 }

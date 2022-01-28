@@ -184,10 +184,6 @@ func buildInstallStatus(state installevents.InstallationInstallStateType, status
 }
 
 func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusType *installevents.InstallationRecipeStatusType) installevents.InstallationRecipeStatus {
-
-	// fmt.Print("\n\n **************************** \n")
-	// fmt.Printf("\n Event Reporter RECIPE event:  %+v \n", event)
-
 	i := installevents.InstallationRecipeStatus{
 		CliVersion: status.CLIVersion,
 		Complete:   status.Complete,
@@ -221,11 +217,6 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 	if statusType != nil {
 		i.Status = *statusType
 	}
-
-	// // REMOVE BEFORE ASKIN FOR A REVIEW ;)
-	// fmt.Print("\n\n **************************** \n")
-	// fmt.Printf("\n Event Reporter RECIPE Status:  %+v \n", i.Metadata)
-	// fmt.Print("\n **************************** \n\n")
 
 	return i
 }

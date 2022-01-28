@@ -88,6 +88,7 @@ func (f *SkipFilterer) Filter(ctx context.Context, r *types.OpenInstallationReci
 	return false
 }
 
+// This is only here to satisfy the interface
 func (f *SkipFilterer) CheckCompatibility(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	return nil
 }

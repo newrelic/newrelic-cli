@@ -12,7 +12,6 @@ import (
 )
 
 type RecipeFilterer interface {
-	Filter(context.Context, *types.OpenInstallationRecipe, *types.DiscoveryManifest) bool
 	CheckCompatibility(context.Context, *types.OpenInstallationRecipe, *types.DiscoveryManifest) error
 }
 
@@ -38,12 +37,17 @@ func NewRecipeFilterRunner(ic types.InstallerContext, s *execution.InstallStatus
 	}
 }
 
-func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
+func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
 	for _, f := range rf.availablilityFilters {
-		filtered := f.Filter(ctx, r, m)
-		if filtered {
+		if err := f.CheckCompatibility(ctx, r, m); err != nil {
+
+			if r.Name == "php-agent-installer" {
+				fmt.Printf("\n RecipeFilterRunner - err:   %+v \n", err)
+			}
+
 			log.Tracef("Filtering out unavailable recipe %s", r.Name)
-			return true
+
+			return err
 		}
 	}
 
@@ -61,26 +65,16 @@ func (rf *RecipeFilterRunner) RunFilter(ctx context.Context, r *types.OpenInstal
 
 	rf.installStatus.RecipeAvailable(*r)
 
-	for _, f := range rf.userSkippedFilters {
-		filtered := f.Filter(ctx, r, m)
-
-		if filtered {
-			log.Tracef("Filtering out skipped recipe %s", r.Name)
-			rf.installStatus.RecipeSkipped(execution.RecipeStatusEvent{Recipe: *r})
-			return true
-		}
-	}
-
-	return false
+	return nil
 }
 
 func (rf *RecipeFilterRunner) RunFilterAll(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
 	results := []types.OpenInstallationRecipe{}
 
 	for _, recipe := range r {
-		filtered := rf.RunFilter(ctx, &recipe, m)
+		err := rf.RunFilter(ctx, &recipe, m)
 
-		if !filtered {
+		if err == nil {
 			results = append(results, recipe)
 		}
 	}
@@ -94,20 +88,6 @@ func getRecipeFirstName(r types.OpenInstallationRecipe) string {
 		return parts[0]
 	}
 	return r.DisplayName
-}
-
-func (rf *RecipeFilterRunner) EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
-	for _, recipe := range r {
-		filtered := rf.RunFilter(ctx, &recipe, m)
-
-		if filtered {
-			rf.installStatus.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: recipe})
-			recipeFirstName := getRecipeFirstName(recipe)
-			return fmt.Errorf("we couldn't install the %s. Make sure %s is installed and running on this host and rerun the newrelic-cli command", recipe.DisplayName, recipeFirstName)
-		}
-	}
-
-	return nil
 }
 
 func (rf *RecipeFilterRunner) ConfirmCompatibleRecipes(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error {
@@ -161,16 +141,6 @@ func (rf *RecipeFilterRunner) runCompatibilityCheck(ctx context.Context, r *type
 	}
 
 	rf.installStatus.RecipeAvailable(*r)
-
-	for _, f := range rf.userSkippedFilters {
-		filtered := f.Filter(ctx, r, m)
-
-		if filtered {
-			log.Tracef("Filtering out skipped recipe %s", r.Name)
-			rf.installStatus.RecipeSkipped(execution.RecipeStatusEvent{Recipe: *r})
-			return fmt.Errorf("recipe %s skipped", r.Name)
-		}
-	}
 
 	return nil
 }
