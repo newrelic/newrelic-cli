@@ -42,8 +42,6 @@ func (f *ScriptEvaluationRecipeFilterer) CheckCompatibility(ctx context.Context,
 
 		if utils.IsExitStatusCode(132, err) {
 			f.installStatus.RecipeDetected(*r, event)
-		} else {
-			f.installStatus.RecipeUnsupported(event)
 		}
 	}
 

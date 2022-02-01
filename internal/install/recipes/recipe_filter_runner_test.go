@@ -128,3 +128,67 @@ func TestRecipeFilterRunner_ShouldFilterOutRecipeWithPreInstallError(t *testing.
 	result := r.RunFilter(context.Background(), &recipe, &m)
 	require.Error(t, result)
 }
+
+func TestRecipeFilterRunner_ShouldFailPreInstallWithDetected(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name:         "test-recipe",
+		ProcessMatch: []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: "exit 132", // exit 132 should report DETECTED
+		},
+	}
+
+	matchedProcess := mockProcess{
+		cmdline: "apache2",
+		name:    `apache2`,
+		pid:     int32(1234),
+	}
+
+	m := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+	mockReporter := execution.NewMockStatusReporter()
+	statusSubscribers := []execution.StatusSubscriber{mockReporter}
+	platformLinkGenerator := execution.NewPlatformLinkGenerator()
+	installStatus := execution.NewInstallStatus(statusSubscribers, platformLinkGenerator)
+
+	r := NewRecipeFilterRunner(types.InstallerContext{}, installStatus)
+
+	result := r.RunFilter(context.Background(), &recipe, &m)
+	require.Error(t, result)
+
+	require.Equal(t, 1, mockReporter.RecipeDetectedCallCount)
+	require.Equal(t, 0, mockReporter.RecipeUnsupportedCallCount)
+}
+
+func TestRecipeFilterRunner_ShouldFailPreInstallWithUnsupported(t *testing.T) {
+	recipe := types.OpenInstallationRecipe{
+		Name:         "test-recipe",
+		ProcessMatch: []string{"apache2"},
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: "exit 1", // exit 1 should report UNSUPPORTED
+		},
+	}
+
+	matchedProcess := mockProcess{
+		cmdline: "apache2",
+		name:    `apache2`,
+		pid:     int32(1234),
+	}
+
+	m := types.DiscoveryManifest{
+		DiscoveredProcesses: []types.GenericProcess{matchedProcess},
+	}
+	mockReporter := execution.NewMockStatusReporter()
+	statusSubscribers := []execution.StatusSubscriber{mockReporter}
+	platformLinkGenerator := execution.NewPlatformLinkGenerator()
+	installStatus := execution.NewInstallStatus(statusSubscribers, platformLinkGenerator)
+
+	r := NewRecipeFilterRunner(types.InstallerContext{}, installStatus)
+
+	result := r.ConfirmCompatibleRecipes(context.Background(), []types.OpenInstallationRecipe{recipe}, &m)
+	require.Error(t, result)
+
+	require.Equal(t, 0, mockReporter.RecipeDetectedCallCount)
+	require.Equal(t, 1, mockReporter.RecipeUnsupportedCallCount)
+}
