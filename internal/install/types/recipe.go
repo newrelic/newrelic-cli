@@ -11,6 +11,7 @@ import (
 const (
 	InfraAgentRecipeName = "infrastructure-agent-installer"
 	LoggingRecipeName    = "logs-integration"
+	GoldenRecipeName     = "alerts-golden-signal"
 )
 
 var (

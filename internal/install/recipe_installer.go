@@ -236,15 +236,18 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	i.status.DiscoveryComplete(*m)
 
 	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
-		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
-		return recipes, err2
-	})
+			recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
+			return recipes, err2
+		}, *m)
 
 	recipesForPlatform, err := repo.FindAll(*m)
 	if err != nil {
 		log.Debugf("Unable to load any recipes, detail: %s", err)
 		return err
 	}
+
+	// 2-for-1 :-)
+	coreBundle, extrasBundle := createBundles(coreBundleRecipeNames, recipesForPlatform)
 
 	var recipesForInstall []types.OpenInstallationRecipe
 	if i.RecipesProvided() {

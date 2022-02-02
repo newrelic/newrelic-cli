@@ -23,6 +23,7 @@ var (
 type RecipeRepository struct {
 	RecipeLoaderFunc func() ([]types.OpenInstallationRecipe, error)
 	recipes          []types.OpenInstallationRecipe
+	manifest         *types.DiscoveryManifest
 }
 
 type recipeMatch struct {
@@ -31,33 +32,56 @@ type recipeMatch struct {
 }
 
 // NewRecipeRepository returns a new instance of types.RecipeRepository.
-func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error)) *RecipeRepository {
+func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
 	rr := RecipeRepository{
-		RecipeLoaderFunc: loaderFunc,
-		recipes:          nil,
+		RecipeLoaderFunc:  loaderFunc,
+		loadedRecipes:     nil,
+		filteredRecipes:   nil,
+		discoveryManifest: manifest,
 	}
 
 	return &rr
 }
 
-func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
-	results := []types.OpenInstallationRecipe{}
-	matchRecipes := make(map[string][]recipeMatch)
-	hostMap := getHostMap(m)
+func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallationRecipe {
+	recipes := rf.FindAll()
 
-	if rf.recipes == nil {
+	for _, r := range recipes {
+		if strings.EqualFold(r.Name, name) {
+			log.Debugf("Found recipe name %v", r.Name)
+			return &r
+		}
+	}
+	return nil
+}
+
+func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
+	if rf.filteredRecipes != nil {
+		return rf.filteredRecipes
+	}
+
+	if rf.loadedRecipes == nil {
 		recipes, err := rf.RecipeLoaderFunc()
 		if err != nil {
 			return nil, err
 		}
 		log.Debugf("Loaded %d recipes", len(recipes))
-
-		rf.recipes = recipes
+		rf.loadedRecipes = recipes
 	}
 
-	log.Debugf("Find all available out of %d recipes for host %+v", len(rf.recipes), hostMap)
+	rf.filteredRecipes := filterRecipes(rf.loadedRecipes, rf.discoveryManifest)
 
-	for _, recipe := range rf.recipes {
+	return rf.filteredRecipes, nil
+}
+
+func filterRecipes(loadedRecipes []types.OpenInstallationRecipe, m types.DiscoveryManifest) []types.OpenInstallationRecipe {
+	results := []types.OpenInstallationRecipe{}
+	matchRecipes := make(map[string][]recipeMatch)
+	hostMap := getHostMap(m)
+
+	log.Debugf("Find all available out of %d recipes for host %+v", len(loadedRecipes), hostMap)
+
+	for _, recipe := range loadedRecipes {
 		matchTargetCount := []int{}
 
 		for _, rit := range recipe.InstallTargets {
@@ -120,8 +144,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 			results = append(results, recipe)
 		}
 	}
-
-	return results, nil
+	return results
 }
 
 func findMaxMatch(matches []recipeMatch) recipeMatch {

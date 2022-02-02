@@ -19,7 +19,7 @@ var (
 func Setup() {
 	discoveryManifest = types.DiscoveryManifest{}
 	recipeCache = []types.OpenInstallationRecipe{}
-	repository = NewRecipeRepository(recipeLoader)
+	repository = NewRecipeRepository(recipeLoader, &discoveryManifest)
 }
 
 func Test_ShouldFindAll_Empty(t *testing.T) {
