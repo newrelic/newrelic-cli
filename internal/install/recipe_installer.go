@@ -245,49 +245,77 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		log.Debugf("Unable to load any recipes, detail: %s", err)
 		return err
 	}
+	// TODO start here
+	var targetRecipes []types.OpenInstallationRecipe
 
-	var recipesForInstall []types.OpenInstallationRecipe
 	if i.RecipesProvided() {
-		recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
+		targetRecipes, err = i.fetchProvidedRecipe(m, recipesForPlatform)
 		if err != nil {
 			return err
 		}
 		log.Debugf("recipes provided:\n")
-		logRecipes(recipesForInstall)
+		logRecipes(targetRecipes)
 
-		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
+		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, targetRecipes, m); err != nil {
 			return err
 		}
+	}
 
-	} else {
-		var selected, unselected []types.OpenInstallationRecipe
+	bundler := newBundler()
+	bundler.create(recipesForPlatform, targetRecipes)
+	bundleInstaller := newBundleInstaller(ctx, i, m)
 
-		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
-		log.Debugf("recipes after filtering:\n")
-		logRecipes(recipesForInstall)
+	for _, bundle := range bundler.bundles {
+		err := bundleInstaller.installBundle(bundle)
 
-		selected, unselected, err = i.promptUserSelect(recipesForInstall)
 		if err != nil {
 			return err
 		}
-		log.Tracef("recipes selected by user: %v\n", selected)
-
-		for _, r := range unselected {
-			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-		}
-
-		recipesForInstall = selected
 	}
 
-	i.status.RecipesSelected(recipesForInstall)
+	/* old
+			var recipesForInstall []types.OpenInstallationRecipe
+			if i.RecipesProvided() {
+				recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
+				if err != nil {
+					return err
+				}
+				log.Debugf("recipes provided:\n")
+				logRecipes(recipesForInstall)
 
-	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
-	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
+				if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
+					return err
+				}
 
-	if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-		return err
-	}
+			} else {
+				var selected, unselected []types.OpenInstallationRecipe
 
+				recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
+				log.Debugf("recipes after filtering:\n")
+				logRecipes(recipesForInstall)
+
+				selected, unselected, err = i.promptUserSelect(recipesForInstall)
+				if err != nil {
+					return err
+				}
+				log.Tracef("recipes selected by user: %v\n", selected)
+
+				for _, r := range unselected {
+					i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+				}
+
+				recipesForInstall = selected
+			}
+
+			i.status.RecipesSelected(recipesForInstall)
+
+			dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
+			recipesForInstall = addIfMissing(recipesForInstall, dependencies)
+
+			if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
+				return err
+			}
+	end old *******/
 	log.Debugf("Done installing.")
 	return nil
 }
