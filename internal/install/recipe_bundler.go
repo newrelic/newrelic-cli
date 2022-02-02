@@ -22,10 +22,21 @@ func (bl *bundler) create(platformRecipes []types.OpenInstallationRecipe,
 	targetRecipes []types.OpenInstallationRecipe) {
 
 	for _, bundle := range bl.bundles {
-		platformRecipes = bundle.create(platformRecipes)
-		// if there are targeted recipes, we override platform recipes
-		for _, targetRecipe := range targetRecipes {
-			bundle.recipes[targetRecipe.Name] = &targetRecipe
+		if bundle.name == additionalBundle.name {
+			// for additional bundle, we take either platform for guided, or target for targed
+			if len(targetRecipes) == 0 {
+				bundle.create(platformRecipes)
+			} else {
+				bundle.create(targetRecipes)
+			}
+			break // additional should always be last
+		} else {
+			platformRecipes = bundle.create(platformRecipes)
+			// if there are targeted recipes, we override platform recipes
+			for _, targetRecipe := range targetRecipes {
+				bundle.recipes[targetRecipe.Name] = &targetRecipe
+			}
+
 		}
 	}
 }
