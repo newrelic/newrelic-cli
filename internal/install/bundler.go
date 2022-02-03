@@ -1,8 +1,7 @@
 package install
 
 import (
-	"strings"
-
+	recipes "github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -13,10 +12,10 @@ var coreBundleRecipeNames = []string{
 }
 
 type Bundler struct {
-	RecipeRepository *RecipeRepository
+	RecipeRepository *recipes.RecipeRepository
 }
 
-func NewBundler(rr *RecipeRepository) *Bundler {
+func NewBundler(rr *recipes.RecipeRepository) *Bundler {
 	return &Bundler{
 		RecipeRepository: rr,
 	}
@@ -25,7 +24,6 @@ func NewBundler(rr *RecipeRepository) *Bundler {
 func (b *Bundler) createCoreBundle() []types.OpenInstallationRecipe {
 	var core []types.OpenInstallationRecipe
 	for _, recipeName := range coreBundleRecipeNames {
-		// TODO: implement FindRecipeByName
 		if r := b.RecipeRepository.FindRecipeByName(recipeName); r != nil {
 			core = append(core, *r)
 		}
@@ -40,6 +38,3 @@ func (b *Bundler) createCoreBundle() []types.OpenInstallationRecipe {
 // 	_, a := createBundles(coreBundleRecipeNames, recipes)
 // 	return a
 // }
-
-	return nil
-}

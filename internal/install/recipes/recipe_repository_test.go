@@ -24,7 +24,7 @@ func Setup() {
 
 func Test_ShouldFindAll_Empty(t *testing.T) {
 	Setup()
-	recipes, _ := repository.FindAll(discoveryManifest)
+	recipes, _ := repository.FindAll()
 
 	require.Empty(t, recipes)
 }
@@ -33,7 +33,7 @@ func Test_ShouldFindSingleRecipe(t *testing.T) {
 	Setup()
 	givenCachedRecipe("id1", "my-recipe")
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id1")
@@ -44,7 +44,7 @@ func Test_ShouldFindSingleOsRecipe(t *testing.T) {
 	givenCachedRecipeOs("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX)
 	discoveryManifest.OS = "linux"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id1")
@@ -57,7 +57,7 @@ func Test_ShouldFindMatchingByRegex(t *testing.T) {
 	discoveryManifest.PlatformVersion = "10.11"
 	discoveryManifest.KernelArch = "aarch64"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id1")
@@ -70,7 +70,7 @@ func Test_ShouldNotFindRegexWhenMissingParenthesis(t *testing.T) {
 	discoveryManifest.PlatformVersion = "10.11"
 	discoveryManifest.KernelArch = "aarch64"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 0)
 }
@@ -82,7 +82,7 @@ func Test_ShouldFilterOutMatchingByRegex(t *testing.T) {
 	discoveryManifest.PlatformVersion = "7.2"
 	discoveryManifest.KernelArch = "aarch64"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 0)
 }
@@ -92,7 +92,7 @@ func Test_ShouldNotFindSingleOsRecipe(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("id1", "my-recipe3", types.OpenInstallationOperatingSystemTypes.LINUX)
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 0)
 }
@@ -105,7 +105,7 @@ func Test_ShouldFindMostMatchingSingleRecipe(t *testing.T) {
 	discoveryManifest.OS = "linux"
 	discoveryManifest.Platform = "debian"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id2")
@@ -119,7 +119,7 @@ func Test_ShouldFindMostMatchingSingleRecipeWithoutPlatform(t *testing.T) {
 	discoveryManifest.OS = "linux"
 	discoveryManifest.Platform = "centos"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id1")
@@ -135,7 +135,7 @@ func Test_ShouldDiscardMostMatchingWithoutAllFieldsMatching(t *testing.T) {
 	discoveryManifest.PlatformVersion = "10.0"
 	discoveryManifest.KernelArch = "x86_64"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 1)
 	require.Equal(t, results[0].ID, "id1")
@@ -151,7 +151,7 @@ func Test_ShouldFindMultipleNames(t *testing.T) {
 	discoveryManifest.Platform = "debian"
 	discoveryManifest.KernelArch = "x86_64"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 2)
 	require.True(t, containsID(results, "id2"))
@@ -165,7 +165,7 @@ func Test_ShouldOrderInfraLogFirst(t *testing.T) {
 	givenCachedRecipeOs("infra1", types.InfraAgentRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
 	discoveryManifest.OS = "linux"
 
-	results, _ := repository.FindAll(discoveryManifest)
+	results, _ := repository.FindAll()
 
 	require.Len(t, results, 3)
 	require.Equal(t, results[0].Name, types.InfraAgentRecipeName)
@@ -177,14 +177,14 @@ func Test_matchRecipeCriteria_Basic(t *testing.T) {
 	Setup()
 	discoveryManifest.Platform = "linux"
 
-	hostMap := getHostMap(discoveryManifest)
+	hostMap := getHostMap(&discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "Platform", "linux")
 	require.True(t, actual)
 }
 
 func Test_matchRecipeCriteria_EmptyString(t *testing.T) {
 	Setup()
-	hostMap := getHostMap(discoveryManifest)
+	hostMap := getHostMap(&discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "Platform", "")
 	require.True(t, actual)
 }
@@ -192,7 +192,7 @@ func Test_matchRecipeCriteria_EmptyString(t *testing.T) {
 func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
 	Setup()
 
-	hostMap := getHostMap(discoveryManifest)
+	hostMap := getHostMap(&discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "KeyMissing", "xyz")
 	require.False(t, actual)
 }

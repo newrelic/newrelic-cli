@@ -21,9 +21,10 @@ var (
 )
 
 type RecipeRepository struct {
-	RecipeLoaderFunc func() ([]types.OpenInstallationRecipe, error)
-	recipes          []types.OpenInstallationRecipe
-	manifest         *types.DiscoveryManifest
+	RecipeLoaderFunc  func() ([]types.OpenInstallationRecipe, error)
+	loadedRecipes     []types.OpenInstallationRecipe
+	filteredRecipes   []types.OpenInstallationRecipe
+	discoveryManifest *types.DiscoveryManifest
 }
 
 type recipeMatch struct {
@@ -44,7 +45,11 @@ func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, erro
 }
 
 func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallationRecipe {
-	recipes := rf.FindAll()
+	recipes, err := rf.FindAll()
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
 
 	for _, r := range recipes {
 		if strings.EqualFold(r.Name, name) {
@@ -57,7 +62,7 @@ func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallatio
 
 func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
 	if rf.filteredRecipes != nil {
-		return rf.filteredRecipes
+		return rf.filteredRecipes, nil
 	}
 
 	if rf.loadedRecipes == nil {
@@ -69,12 +74,12 @@ func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
 		rf.loadedRecipes = recipes
 	}
 
-	rf.filteredRecipes := filterRecipes(rf.loadedRecipes, rf.discoveryManifest)
+	rf.filteredRecipes = filterRecipes(rf.loadedRecipes, rf.discoveryManifest)
 
 	return rf.filteredRecipes, nil
 }
 
-func filterRecipes(loadedRecipes []types.OpenInstallationRecipe, m types.DiscoveryManifest) []types.OpenInstallationRecipe {
+func filterRecipes(loadedRecipes []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
 	results := []types.OpenInstallationRecipe{}
 	matchRecipes := make(map[string][]recipeMatch)
 	hostMap := getHostMap(m)
@@ -192,7 +197,7 @@ func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) 
 	return false
 }
 
-func getHostMap(m types.DiscoveryManifest) map[string]string {
+func getHostMap(m *types.DiscoveryManifest) map[string]string {
 	hostMap := map[string]string{
 		kernelArch:      m.KernelArch,
 		kernelVersion:   m.KernelVersion,
