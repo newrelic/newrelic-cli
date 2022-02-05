@@ -22,3 +22,14 @@ func TestTerraformDashboard(t *testing.T) {
 
 	testcobra.CheckCobraMetadata(t, cmdTerraformDashboard)
 }
+
+func TestLabelContainingNumbers(t *testing.T) {
+	label = "label_1"
+	assert.NoError(t, cmdTerraformDashboard.Args(nil, nil))
+
+	label = "label-1"
+	assert.Error(t, cmdTerraformDashboard.Args(nil, nil))
+
+	label = "1_label"
+	assert.Error(t, cmdTerraformDashboard.Args(nil, nil))
+}
