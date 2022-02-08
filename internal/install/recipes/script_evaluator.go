@@ -14,8 +14,10 @@ type ScriptEvaluator struct {
 }
 
 func NewScriptEvaluator() *ScriptEvaluator {
-	executor := execution.NewShRecipeExecutor()
+	return newScriptEvaluator(execution.NewShRecipeExecutor())
+}
 
+func newScriptEvaluator(executor execution.RecipeExecutor) *ScriptEvaluator {
 	return &ScriptEvaluator{
 		executor: executor,
 	}
@@ -29,7 +31,7 @@ func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIns
 			return execution.RecipeStatusTypes.DETECTED
 		}
 
-		return ""
+		return execution.RecipeStatusTypes.NULL
 	}
 
 	return execution.RecipeStatusTypes.AVAILABLE

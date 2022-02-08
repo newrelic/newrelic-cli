@@ -19,15 +19,15 @@ type ProcessEvaluator struct {
 	processFetcher     func(context.Context) []types.GenericProcess
 }
 
+func NewProcessEvaluator() *ProcessEvaluator {
+	return newProcessEvaluator(NewRegexProcessMatchFinder(), GetPsUtilCommandLines)
+}
+
 func newProcessEvaluator(processMatchFinder ProcessMatchFinder, processFetcher func(context.Context) []types.GenericProcess) *ProcessEvaluator {
 	return &ProcessEvaluator{
 		processMatchFinder: NewRegexProcessMatchFinder(),
 		processFetcher:     processFetcher,
 	}
-}
-
-func NewProcessEvaluator() *ProcessEvaluator {
-	return newProcessEvaluator(NewRegexProcessMatchFinder(), GetPsUtilCommandLines)
 }
 
 func GetPsUtilCommandLines(ctx context.Context) []types.GenericProcess {
@@ -64,7 +64,7 @@ func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIn
 
 	if filtered {
 		log.Tracef("recipe %s is not matching any process", r.Name)
-		return ""
+		return execution.RecipeStatusTypes.NULL
 	}
 
 	return execution.RecipeStatusTypes.AVAILABLE
