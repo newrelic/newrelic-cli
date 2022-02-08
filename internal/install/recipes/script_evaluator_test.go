@@ -4,50 +4,49 @@
 package recipes
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	executor  *execution.MockRecipeExecutor = execution.NewMockRecipeExecutor()
-	evaluator                               = newScriptEvaluator(executor)
-	recipe    *types.OpenInstallationRecipe = createRecipe("id1", "myrecipe")
-	ctx       context.Context               = nil
+	recipeExecutor  *execution.MockRecipeExecutor = execution.NewMockRecipeExecutor()
+	scriptEvaluator                               = newScriptEvaluator(recipeExecutor)
 )
 
-func TestShouldNotDetect(t *testing.T) {
+func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
 	GivenExecutorError("something went wrong")
+	recipe := createRecipe("id1", "myrecipe")
 
-	status := evaluator.DetectionStatus(ctx, recipe)
+	status := scriptEvaluator.DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
 
-func TestShouldDetect(t *testing.T) {
+func TestScriptEvaluatorShouldDetect(t *testing.T) {
 	GivenExecutorError("This is the specific message with exit status 132 special case")
+	recipe := createRecipe("id1", "myrecipe")
 
-	status := evaluator.DetectionStatus(ctx, recipe)
+	status := scriptEvaluator.DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, status)
 }
 
-func TestShouldGetAvailable(t *testing.T) {
+func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
 	GivenExecutorSuccess()
+	recipe := createRecipe("id1", "myrecipe")
 
-	status := evaluator.DetectionStatus(ctx, recipe)
+	status := scriptEvaluator.DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
 
 func GivenExecutorSuccess() {
-	executor.ExecuteErr = nil
+	recipeExecutor.ExecuteErr = nil
 }
 
 func GivenExecutorError(detail string) {
-	executor.ExecuteErr = fmt.Errorf(detail)
+	recipeExecutor.ExecuteErr = fmt.Errorf(detail)
 }
