@@ -25,7 +25,7 @@ func NewProcessEvaluator() *ProcessEvaluator {
 
 func newProcessEvaluator(processMatchFinder ProcessMatchFinder, processFetcher func(context.Context) []types.GenericProcess) *ProcessEvaluator {
 	return &ProcessEvaluator{
-		processMatchFinder: NewRegexProcessMatchFinder(),
+		processMatchFinder: processMatchFinder,
 		processFetcher:     processFetcher,
 	}
 }
