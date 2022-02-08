@@ -117,8 +117,8 @@ func NewProcessMatchRecipeFilterer() *ProcessMatchRecipeFilterer {
 	}
 }
 
-func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
-	matches := f.processMatchFinder.FindMatches(ctx, m.DiscoveredProcesses, *r)
+func (f *ProcessMatchRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, mani *types.DiscoveryManifest) bool {
+	matches := f.processMatchFinder.FindMatches(ctx, mani.DiscoveredProcesses, *r)
 	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
 
 	if filtered {
@@ -142,7 +142,7 @@ func NewScriptEvaluationRecipeFilterer(installStatus *execution.InstallStatus) *
 	}
 }
 
-func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest) bool {
+func (f *ScriptEvaluationRecipeFilterer) Filter(ctx context.Context, r *types.OpenInstallationRecipe, maniefest *types.DiscoveryManifest) bool {
 	if err := f.recipeExecutor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
 		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
 

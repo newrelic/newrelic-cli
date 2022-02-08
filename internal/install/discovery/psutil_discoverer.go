@@ -2,12 +2,10 @@ package discovery
 
 import (
 	"context"
-	"fmt"
 	"reflect"
 	"strings"
 
 	"github.com/shirou/gopsutil/host"
-	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -40,28 +38,6 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 	m = filterValues(m)
 
 	log.Debugf("filtered manifest %+v", m)
-
-	pids, err := process.PidsWithContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve processes: %s", err)
-	}
-
-	processes := []types.GenericProcess{}
-	for _, pid := range pids {
-		var pp *process.Process
-		pp, err = process.NewProcess(pid)
-		if err != nil {
-			if err != process.ErrorProcessNotRunning {
-				log.Debugf("cannot read pid %d: %s", pid, err)
-			}
-			continue
-		}
-
-		p := NewPSUtilProcess(pp)
-		processes = append(processes, p)
-	}
-
-	m.DiscoveredProcesses = processes
 
 	return &m, nil
 }
