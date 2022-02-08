@@ -31,8 +31,10 @@ func (b *Bundler) createCoreBundle() []types.OpenInstallationRecipe {
 
 	// TODO: continue here
 	return core
-
 }
+
+//Recipe Candidate, recipe + collection of status
+//Recipe context, capturing recipe intall info, timing, status..etc.
 
 // func (b *Bundler) createAdditionalBundle(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
 // 	_, a := createBundles(coreBundleRecipeNames, recipes)

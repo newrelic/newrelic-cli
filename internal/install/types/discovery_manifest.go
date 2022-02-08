@@ -8,15 +8,16 @@ import (
 
 // DiscoveryManifest contains the discovered information about the host.
 type DiscoveryManifest struct {
-	Hostname            string           `json:"hostname"`
-	KernelArch          string           `json:"kernelArch"`
-	KernelVersion       string           `json:"kernelVersion"`
-	OS                  string           `json:"os"`
-	Platform            string           `json:"platform"`
-	PlatformFamily      string           `json:"platformFamily"`
-	PlatformVersion     string           `json:"platformVersion"`
-	IsUnsupported       bool             `json:"isUnsupported"`
-	MatchedProcesses    []MatchedProcess `json:"processes"`
+	Hostname         string           `json:"hostname"`
+	KernelArch       string           `json:"kernelArch"`
+	KernelVersion    string           `json:"kernelVersion"`
+	OS               string           `json:"os"`
+	Platform         string           `json:"platform"`
+	PlatformFamily   string           `json:"platformFamily"`
+	PlatformVersion  string           `json:"platformVersion"`
+	IsUnsupported    bool             `json:"isUnsupported"`
+	MatchedProcesses []MatchedProcess `json:"processes"`
+	//TODO: need to remove
 	DiscoveredProcesses []GenericProcess
 }
 
