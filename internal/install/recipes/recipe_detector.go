@@ -7,6 +7,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+type DetectionStatusProvider interface {
+	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
+}
+
 type RecipeDetector struct {
 	processEvaluator DetectionStatusProvider
 	scriptEvaluator  DetectionStatusProvider
@@ -23,19 +27,19 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
-func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []types.OpenInstallationRecipe) map[*types.OpenInstallationRecipe]execution.RecipeStatusType {
+func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.OpenInstallationRecipe) map[*types.OpenInstallationRecipe]execution.RecipeStatusType {
 
 	results := make(map[*types.OpenInstallationRecipe]execution.RecipeStatusType)
 
 	for _, recipe := range recipes {
 
-		status := dt.processEvaluator.DetectionStatus(ctx, &recipe)
+		status := dt.processEvaluator.DetectionStatus(ctx, recipe)
 
 		if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
-			status = dt.scriptEvaluator.DetectionStatus(ctx, &recipe)
+			status = dt.scriptEvaluator.DetectionStatus(ctx, recipe)
 		}
 
-		results[&recipe] = status
+		results[recipe] = status
 	}
 
 	return results

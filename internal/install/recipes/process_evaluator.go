@@ -10,10 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type DetectionStatusProvider interface {
-	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
-}
-
 type ProcessEvaluator struct {
 	processMatchFinder ProcessMatchFinder
 	processFetcher     func(context.Context) []types.GenericProcess
