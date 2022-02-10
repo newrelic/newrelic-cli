@@ -14,7 +14,7 @@ import (
 
 var (
 	finder           *MockProcessMatchFinder = NewMockProcessMatchFinder()
-	processEvaluator *ProcessEvaluator       = newProcessEvaluator(finder, AnyProcesses)
+	processEvaluator *ProcessEvaluator       = newProcessEvaluator(finder, AnyProcesses, false)
 )
 
 func TestProcessEvaluatorShouldGetAvailable(t *testing.T) {

@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package install
 
 import (
@@ -9,11 +6,18 @@ import (
 	recipes "github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 
-	"github.com/stretchr/testify/require"
 	"strings"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestCreateBundles_ShouldCreateCoreBundle(t *testing.T) {
+var (
+	discoveryManifest types.DiscoveryManifest
+	recipeCache       []types.OpenInstallationRecipe
+	repository        *recipes.RecipeRepository
+)
+
+func TestBundler_ShouldCreateCore(t *testing.T) {
 	Setup()
 	givenRecipe("id1", types.InfraAgentRecipeName)
 	givenRecipe("id2", types.LoggingRecipeName)
@@ -23,37 +27,51 @@ func TestCreateBundles_ShouldCreateCoreBundle(t *testing.T) {
 	bundler := givenBundler()
 	coreBundle := bundler.createCoreBundle()
 
-	require.Equal(t, 3, len(coreBundle))
+	require.Equal(t, 3, len(coreBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
 	require.NotNil(t, findRecipeByName(coreBundle, types.GoldenRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestCreateBundles_ShouldCreateEmptyCoreBundle(t *testing.T) {
+func TestBundler_ShouldIncludeDependencies(t *testing.T) {
+	Setup()
+	givenRecipe("id1", types.InfraAgentRecipeName)
+	givenRecipe("id2", types.LoggingRecipeName)
+	givenRecipe("id3", "dep1")
+	givenRecipe("id4", "dep2")
+
+	bundler := givenBundler()
+	coreBundle := bundler.createCoreBundle()
+
+	t.Log(coreBundle)
+
+	require.Equal(t, 4, len(coreBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
+	require.NotNil(t, findRecipeByName(coreBundle, "dep1"))
+	require.NotNil(t, findRecipeByName(coreBundle, "dep2"))
+	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
+}
+
+func TestBundler_ShouldCreateEmptyCore(t *testing.T) {
 	Setup()
 	givenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
 	coreBundle := bundler.createCoreBundle()
 
-	require.Equal(t, 0, len(coreBundle))
+	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
-func findRecipeByName(recipes []types.OpenInstallationRecipe, name string) *types.OpenInstallationRecipe {
-	for _, r := range recipes {
-		if strings.EqualFold(r.Name, name) {
-			return &r
+func findRecipeByName(bundle *Bundle, name string) *types.OpenInstallationRecipe {
+	for _, r := range bundle.BundleRecipes {
+		if strings.EqualFold(r.recipe.Name, name) {
+			return r.recipe
 		}
 	}
 	return nil
 }
-
-var (
-	discoveryManifest types.DiscoveryManifest
-	recipeCache       []types.OpenInstallationRecipe
-	repository        *recipes.RecipeRepository
-)
 
 func Setup() {
 	discoveryManifest = types.DiscoveryManifest{
@@ -80,6 +98,7 @@ func givenRecipe(id string, name string) *types.OpenInstallationRecipe {
 		Os: "linux",
 	}
 	r.InstallTargets = append(r.InstallTargets, t)
+	r.Dependencies = []string{"dep1", "dep2", "dep3"}
 	recipeCache = append(recipeCache, *r)
 	return r
 }

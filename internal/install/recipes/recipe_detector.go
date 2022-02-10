@@ -32,7 +32,6 @@ func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.Op
 	results := make(map[*types.OpenInstallationRecipe]execution.RecipeStatusType)
 
 	for _, recipe := range recipes {
-
 		status := dt.processEvaluator.DetectionStatus(ctx, recipe)
 
 		if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {

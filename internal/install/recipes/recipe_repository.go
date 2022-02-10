@@ -60,6 +60,33 @@ func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallatio
 	return nil
 }
 
+func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallationRecipe) []*types.OpenInstallationRecipe {
+
+	results := []*types.OpenInstallationRecipe{}
+
+	recipes, err := rf.FindAll()
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	var found bool
+
+	for _, r := range recipes {
+		found = false
+		for _, er := range excludingRecipes {
+			if strings.EqualFold(r.Name, er.Name) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			results = append(results, &r)
+		}
+	}
+	return results
+}
+
 func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
 	if rf.filteredRecipes != nil {
 		return rf.filteredRecipes, nil
