@@ -1,7 +1,6 @@
-package install
+package recipes
 
 import (
-	recipes "github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -12,10 +11,10 @@ var coreBundleRecipeNames = []string{
 }
 
 type Bundler struct {
-	RecipeRepository *recipes.RecipeRepository
+	RecipeRepository *RecipeRepository
 }
 
-func NewBundler(rr *recipes.RecipeRepository) *Bundler {
+func NewBundler(rr *RecipeRepository) *Bundler {
 	return &Bundler{
 		RecipeRepository: rr,
 	}

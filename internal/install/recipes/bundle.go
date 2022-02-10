@@ -1,4 +1,4 @@
-package install
+package recipes
 
 import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"

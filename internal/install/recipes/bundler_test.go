@@ -1,9 +1,8 @@
-package install
+package recipes
 
 import (
 	"testing"
 
-	recipes "github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 
 	"strings"
@@ -12,17 +11,17 @@ import (
 )
 
 var (
-	discoveryManifest types.DiscoveryManifest
-	recipeCache       []types.OpenInstallationRecipe
-	repository        *recipes.RecipeRepository
+	bundler_discoveryManifest types.DiscoveryManifest
+	bundler_recipeCache       []types.OpenInstallationRecipe
+	bundler_repository        *RecipeRepository
 )
 
 func TestBundler_ShouldCreateCore(t *testing.T) {
-	Setup()
-	givenRecipe("id1", types.InfraAgentRecipeName)
-	givenRecipe("id2", types.LoggingRecipeName)
-	givenRecipe("id3", types.GoldenRecipeName)
-	givenRecipe("id4", "mysql")
+	bundler_Setup()
+	bundler_givenRecipe("id1", types.InfraAgentRecipeName)
+	bundler_givenRecipe("id2", types.LoggingRecipeName)
+	bundler_givenRecipe("id3", types.GoldenRecipeName)
+	bundler_givenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
 	coreBundle := bundler.createCoreBundle()
@@ -35,11 +34,11 @@ func TestBundler_ShouldCreateCore(t *testing.T) {
 }
 
 func TestBundler_ShouldIncludeDependencies(t *testing.T) {
-	Setup()
-	givenRecipe("id1", types.InfraAgentRecipeName)
-	givenRecipe("id2", types.LoggingRecipeName)
-	givenRecipe("id3", "dep1")
-	givenRecipe("id4", "dep2")
+	bundler_Setup()
+	bundler_givenRecipe("id1", types.InfraAgentRecipeName)
+	bundler_givenRecipe("id2", types.LoggingRecipeName)
+	bundler_givenRecipe("id3", "dep1")
+	bundler_givenRecipe("id4", "dep2")
 
 	bundler := givenBundler()
 	coreBundle := bundler.createCoreBundle()
@@ -55,8 +54,8 @@ func TestBundler_ShouldIncludeDependencies(t *testing.T) {
 }
 
 func TestBundler_ShouldCreateEmptyCore(t *testing.T) {
-	Setup()
-	givenRecipe("id4", "mysql")
+	bundler_Setup()
+	bundler_givenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
 	coreBundle := bundler.createCoreBundle()
@@ -73,23 +72,24 @@ func findRecipeByName(bundle *Bundle, name string) *types.OpenInstallationRecipe
 	return nil
 }
 
-func Setup() {
-	discoveryManifest = types.DiscoveryManifest{
+func bundler_Setup() {
+	bundler_discoveryManifest = types.DiscoveryManifest{
 		OS: "linux",
 	}
-	recipeCache = []types.OpenInstallationRecipe{}
-	repository = recipes.NewRecipeRepository(recipeLoader, &discoveryManifest)
+	bundler_recipeCache = []types.OpenInstallationRecipe{}
+	bundler_repository = NewRecipeRepository(bundler_recipeLoader, &bundler_discoveryManifest)
+
 }
 
 func givenBundler() *Bundler {
-	return NewBundler(repository)
+	return NewBundler(bundler_repository)
 }
 
-func recipeLoader() ([]types.OpenInstallationRecipe, error) {
-	return recipeCache, nil
+func bundler_recipeLoader() ([]types.OpenInstallationRecipe, error) {
+	return bundler_recipeCache, nil
 }
 
-func givenRecipe(id string, name string) *types.OpenInstallationRecipe {
+func bundler_givenRecipe(id string, name string) *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   id,
 		Name: name,
@@ -99,6 +99,6 @@ func givenRecipe(id string, name string) *types.OpenInstallationRecipe {
 	}
 	r.InstallTargets = append(r.InstallTargets, t)
 	r.Dependencies = []string{"dep1", "dep2", "dep3"}
-	recipeCache = append(recipeCache, *r)
+	bundler_recipeCache = append(bundler_recipeCache, *r)
 	return r
 }
