@@ -68,6 +68,7 @@ var RecipeStatusTypes = struct {
 	RECOMMENDED RecipeStatusType
 	UNSUPPORTED RecipeStatusType
 	DETECTED    RecipeStatusType
+	NULL        RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
 	CANCELED:    "CANCELED",
@@ -78,6 +79,7 @@ var RecipeStatusTypes = struct {
 	RECOMMENDED: "RECOMMENDED",
 	UNSUPPORTED: "UNSUPPORTED",
 	DETECTED:    "DETECTED",
+	NULL:        "",
 }
 
 type StatusError struct {
