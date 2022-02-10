@@ -13,16 +13,20 @@ import (
 type ProcessEvaluator struct {
 	processMatchFinder ProcessMatchFinder
 	processFetcher     func(context.Context) []types.GenericProcess
+	isCached           bool
+	cachedProcess      []types.GenericProcess
 }
 
 func NewProcessEvaluator() *ProcessEvaluator {
-	return newProcessEvaluator(NewRegexProcessMatchFinder(), GetPsUtilCommandLines)
+	return newProcessEvaluator(NewRegexProcessMatchFinder(), GetPsUtilCommandLines, true)
 }
 
-func newProcessEvaluator(processMatchFinder ProcessMatchFinder, processFetcher func(context.Context) []types.GenericProcess) *ProcessEvaluator {
+func newProcessEvaluator(processMatchFinder ProcessMatchFinder, processFetcher func(context.Context) []types.GenericProcess, isCached bool) *ProcessEvaluator {
 	return &ProcessEvaluator{
 		processMatchFinder: processMatchFinder,
 		processFetcher:     processFetcher,
+		isCached:           isCached,
+		cachedProcess:      nil,
 	}
 }
 
@@ -53,12 +57,24 @@ func GetPsUtilCommandLines(ctx context.Context) []types.GenericProcess {
 	return processes
 }
 
-func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType {
-	processes := pe.processFetcher(ctx)
-	matches := pe.processMatchFinder.FindMatches(ctx, processes, *r)
-	filtered := len(r.ProcessMatch) > 0 && len(matches) == 0
+func (pe *ProcessEvaluator) getOrLoadProcesses(ctx context.Context) []types.GenericProcess {
+	if (pe.isCached) {
+		if (pe.cachedProcess == nil) {
+			pe.cachedProcess = pe.processFetcher(ctx)
+		}
+		return pe.cachedProcess
+	}
+	return pe.processFetcher(ctx)
+}
 
-	if filtered {
+func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType {
+	if len(r.ProcessMatch) == 0 {
+		return execution.RecipeStatusTypes.AVAILABLE
+	}
+
+	processes := pe.getOrLoadProcesses(ctx)
+	matches := pe.processMatchFinder.FindMatches(ctx, processes, *r)
+	if len(matches) == 0 {
 		log.Tracef("recipe %s is not matching any process", r.Name)
 		return execution.RecipeStatusTypes.NULL
 	}
