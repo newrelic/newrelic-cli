@@ -217,6 +217,39 @@ func (i *RecipeInstaller) Install() error {
 	}
 }
 
+func (i *RecipeInstaller) intallBundle(ctx context.Context, m *types.DiscoveryManifest, bundle []*types.OpenInstallationRecipe) error {
+
+	detector := recipes.NewRecipeDetector()
+	recipesWithStatusMap := detector.DetectRecipes(ctx, bundle)
+	var recipes []types.OpenInstallationRecipe
+
+	for recipe, status := range recipesWithStatusMap {
+		//TODO: Debugging, remove later
+		log.Printf("***recipe %v with status %v recipes\n", recipe.Name, status)
+		switch status {
+		case execution.RecipeStatusTypes.AVAILABLE:
+			i.status.RecipeDetected(*recipe)
+			i.status.RecipeAvailable(*recipe)
+			//install
+			recipes = append(recipes, *recipe)
+		case execution.RecipeStatusTypes.DETECTED:
+			i.status.RecipeDetected(*recipe)
+		}
+	}
+
+	if len(recipes) > 0 {
+		//TODO: Debugging, remove later
+		log.Printf("***installing bundle with %d recipes\n\n", len(recipes))
+	}
+
+	i.status.RecipesSelected(recipes)
+	if err := i.installRecipes(ctx, m, recipes); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (i *RecipeInstaller) install(ctx context.Context) error {
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
@@ -238,13 +271,34 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
-	})
+	}, m)
 
-	recipesForPlatform, err := repo.FindAll(*m)
+	recipesForPlatform, err := repo.FindAll()
 	if err != nil {
 		log.Debugf("Unable to load any recipes, detail: %s", err)
 		return err
 	}
+
+	//FIXME: need to fix
+
+	// bundler := NewBundler(repo)
+	// coreBundle := bundler.createCoreBundle()
+
+	// err = i.intallBundle(ctx, m, coreBundle)
+	// if err != nil {
+	// 	log.Debugf("Unable to load install core recipes, detail: %s", err)
+	// 	return err
+	// }
+
+	// additionalBundle := bundler.createAdditionalBundle(coreBundle)
+
+	// err = i.intallBundle(ctx, m, additionalBundle)
+	// if err != nil {
+	// 	log.Debugf("Unable to load install core recipes, detail: %s", err)
+	// 	return err
+	// }
+
+	// return nil
 
 	var recipesForInstall []types.OpenInstallationRecipe
 	if i.RecipesProvided() {
@@ -263,7 +317,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		var selected, unselected []types.OpenInstallationRecipe
 
 		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
-		log.Debugf("recipes after filtering:\n")
+		log.Debugf("recipes after filtering:")
 		logRecipes(recipesForInstall)
 
 		selected, unselected, err = i.promptUserSelect(recipesForInstall)
