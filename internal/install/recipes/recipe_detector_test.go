@@ -10,30 +10,29 @@ import (
 )
 
 var (
-	recipe               = createRecipe("0", "recipe1")
 	mockProcessEvaluator = &mockRecipeEvaluator{}
 	mockScriptEvaluator  = &mockRecipeEvaluator{}
-	sut                  = *newRecipeDetector(mockProcessEvaluator, mockScriptEvaluator)
+	recipeDetectorSUT    = *newRecipeDetector(mockProcessEvaluator, mockScriptEvaluator)
 )
 
 func TestRecipeDetector_ShouldGetProcessEvalStatusNull(t *testing.T) {
-	givenRecipeWithNoProcessMatching()
+	recipe := givenRecipeWithNoProcessMatching()
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.NULL)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 
-	statusDetectionResult := sut.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
+	statusDetectionResult := recipeDetectorSUT.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
 	actual := statusDetectionResult[recipe]
 	require.Equal(t, 1, len(statusDetectionResult))
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
 func TestRecipeDetector_ShouldGetProcessEvalStatusAvaliable(t *testing.T) {
-	givenRecipeWithNoProcessMatching()
+	recipe := givenRecipeWithNoProcessMatching()
 	withEmptyPreInstallRequiredAtDiscoverSection()
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.DETECTED)
 
-	statusDetectionResult := sut.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
+	statusDetectionResult := recipeDetectorSUT.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
 	actual := statusDetectionResult[recipe]
 	require.Equal(t, 1, len(statusDetectionResult))
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
@@ -45,7 +44,7 @@ func TestRecipeDetector_ShouldGetScriptEvalStatusNull(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.NULL)
 
-	statusDetectionResult := sut.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
+	statusDetectionResult := recipeDetectorSUT.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
 	actual := statusDetectionResult[recipe]
 	require.Equal(t, 1, len(statusDetectionResult))
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
@@ -57,7 +56,7 @@ func TestRecipeDetector_ShouldGetScriptEvalStatusDetected(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.DETECTED)
 
-	statusDetectionResult := sut.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
+	statusDetectionResult := recipeDetectorSUT.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
 	actual := statusDetectionResult[recipe]
 	require.Equal(t, 1, len(statusDetectionResult))
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual)
@@ -68,22 +67,25 @@ func TestRecipeDetector_ShouldGetScriptEvalStatusAvailable(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 
-	statusDetectionResult := sut.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
+	statusDetectionResult := recipeDetectorSUT.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
 	actual := statusDetectionResult[recipe]
 	require.Equal(t, 1, len(statusDetectionResult))
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
-func givenRecipeWithNoProcessMatching() {
-	recipe = createRecipe("0", "recipe1")
+func givenRecipeWithNoProcessMatching() *types.OpenInstallationRecipe {
+	return createRecipe("0", "recipe1")
 }
 
 func withEmptyPreInstallRequiredAtDiscoverSection() {
 }
 
-func withPreInstallRequiredAtDiscoverSection() {
+func withPreInstallRequiredAtDiscoverSection() *types.OpenInstallationRecipe {
+	recipe = createRecipe("0", "recipe1")
 	recipe.PreInstall = types.OpenInstallationPreInstallConfiguration{
 		RequireAtDiscovery: "pre-install script mock"}
+
+	return recipe
 }
 
 func withProcessEvaluatorReturnStatus(status execution.RecipeStatusType) {
