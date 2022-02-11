@@ -38,7 +38,7 @@ func (b *Bundle) AddRecipes(recipes []*types.OpenInstallationRecipe) {
 }
 
 func (b *Bundle) AddRecipe(recipe *types.OpenInstallationRecipe) {
-	if index, exists := b.ContainName(recipe.Name); exists {
+	if index, exists := b.ContainsName(recipe.Name); exists {
 		b.BundleRecipes[index] = &BundleRecipe{
 			recipe: recipe,
 		}
@@ -63,7 +63,7 @@ func (b *Bundle) Contains(recipe *types.OpenInstallationRecipe) (int, bool) {
 	return -1, false
 }
 
-func (b *Bundle) ContainName(name string) (int, bool) {
+func (b *Bundle) ContainsName(name string) (int, bool) {
 
 	for i, _ := range b.BundleRecipes {
 		if b.BundleRecipes[i].recipe.Name == name {
