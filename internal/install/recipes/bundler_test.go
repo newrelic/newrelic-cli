@@ -14,6 +14,7 @@ var (
 	bundler_discoveryManifest types.DiscoveryManifest
 	bundler_recipeCache       []types.OpenInstallationRecipe
 	bundler_repository        *RecipeRepository
+	bundler_detector          *RecipeDetector
 )
 
 func TestBundler_ShouldCreateCore(t *testing.T) {
@@ -24,7 +25,7 @@ func TestBundler_ShouldCreateCore(t *testing.T) {
 	bundler_givenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
-	coreBundle := bundler.createCoreBundle()
+	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 3, len(coreBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
@@ -41,16 +42,20 @@ func TestBundler_ShouldIncludeDependencies(t *testing.T) {
 	bundler_givenRecipe("id4", "dep2")
 
 	bundler := givenBundler()
-	coreBundle := bundler.createCoreBundle()
+	coreBundle := bundler.CreateCoreBundle()
 
 	t.Log(coreBundle)
 
-	require.Equal(t, 4, len(coreBundle.BundleRecipes))
+	require.Equal(t, 2, len(coreBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
-	require.NotNil(t, findRecipeByName(coreBundle, "dep1"))
-	require.NotNil(t, findRecipeByName(coreBundle, "dep2"))
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
+	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
+	require.Nil(t, findRecipeByName(coreBundle, "dep2"))
+	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep1"))
+	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep2"))
+	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[1], "dep1"))
+	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[1], "dep2"))
 }
 
 func TestBundler_ShouldCreateEmptyCore(t *testing.T) {
@@ -58,16 +63,26 @@ func TestBundler_ShouldCreateEmptyCore(t *testing.T) {
 	bundler_givenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
-	coreBundle := bundler.createCoreBundle()
+	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
 func findRecipeByName(bundle *Bundle, name string) *types.OpenInstallationRecipe {
 	for _, r := range bundle.BundleRecipes {
-		if strings.EqualFold(r.recipe.Name, name) {
-			return r.recipe
+		if strings.EqualFold(r.Recipe.Name, name) {
+			return r.Recipe
 		}
+	}
+	return nil
+}
+
+func findDependencyByName(recipe *BundleRecipe, name string) *types.OpenInstallationRecipe {
+	for _, r := range recipe.Dependencies {
+		if strings.EqualFold(r.Recipe.Name, name) {
+			return r.Recipe
+		}
+		return findDependencyByName(r, name)
 	}
 	return nil
 }
@@ -78,7 +93,7 @@ func bundler_Setup() {
 	}
 	bundler_recipeCache = []types.OpenInstallationRecipe{}
 	bundler_repository = NewRecipeRepository(bundler_recipeLoader, &bundler_discoveryManifest)
-
+	bundler_detector = NewRecipeDetector()
 }
 
 func givenBundler() *Bundler {

@@ -6,70 +6,53 @@ import (
 )
 
 type BundleRecipe struct {
-	recipe   *types.OpenInstallationRecipe
-	statuses []execution.RecipeStatusType
+	Recipe       *types.OpenInstallationRecipe
+	Dependencies []*BundleRecipe
+	//maybe timestamp
+	Statuses []execution.RecipeStatusType
 }
-
-func NewBundleRecipe(recipe *types.OpenInstallationRecipe) *BundleRecipe {
-	return &BundleRecipe{
-		recipe: recipe,
-	}
-}
-
 type Bundle struct {
 	BundleRecipes []*BundleRecipe
 }
 
-func NewBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
+func (b *Bundle) AddRecipe(bundleRecipe *BundleRecipe) {
 
-	bundle := &Bundle{}
-	for i := 0; i < len(recipes); i++ {
-		bundle.BundleRecipes = append(bundle.BundleRecipes,
-			NewBundleRecipe(recipes[i]))
-	}
-
-	return bundle
-}
-
-func (b *Bundle) AddRecipes(recipes []*types.OpenInstallationRecipe) {
-	for i := 0; i < len(recipes); i++ {
-		b.AddRecipe(recipes[i])
-	}
-}
-
-func (b *Bundle) AddRecipe(recipe *types.OpenInstallationRecipe) {
-	if index, exists := b.ContainsName(recipe.Name); exists {
-		b.BundleRecipes[index] = &BundleRecipe{
-			recipe: recipe,
-		}
+	if index := b.IndexOf(bundleRecipe.Recipe.Name); index != -1 {
+		b.BundleRecipes[index] = bundleRecipe
 	} else {
-		newItem := []*BundleRecipe{
-			{
-				recipe: recipe,
-			}}
-
-		b.BundleRecipes = append(newItem, b.BundleRecipes...)
+		b.BundleRecipes = append(b.BundleRecipes, bundleRecipe)
 	}
 }
 
-func (b *Bundle) Contains(recipe *types.OpenInstallationRecipe) (int, bool) {
-
-	for i, _ := range b.BundleRecipes {
-		if b.BundleRecipes[i].recipe == recipe {
-			return i, true
+func (b *Bundle) IndexOf(name string) int {
+	for i := range b.BundleRecipes {
+		if b.BundleRecipes[i].Recipe.Name == name {
+			return i
 		}
 	}
 
-	return -1, false
+	return -1
 }
 
-func (b *Bundle) ContainsName(name string) (int, bool) {
+//TODO: Not sure if ths is needed
+func (b *Bundle) Contains(recipe *types.OpenInstallationRecipe) bool {
 
-	for i, _ := range b.BundleRecipes {
-		if b.BundleRecipes[i].recipe.Name == name {
-			return i, true
+	for i := range b.BundleRecipes {
+		if b.BundleRecipes[i].Recipe == recipe {
+			return true
 		}
 	}
 
-	return -1, false
+	return false
+}
+
+func (b *Bundle) ContainsName(name string) bool {
+
+	for i, _ := range b.BundleRecipes {
+		if b.BundleRecipes[i].Recipe.Name == name {
+			return true
+		}
+	}
+
+	return false
 }
