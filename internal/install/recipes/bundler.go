@@ -12,15 +12,21 @@ var coreBundleRecipeNames = []string{
 
 type Bundler struct {
 	RecipeRepository *RecipeRepository
+	RecipeDetector   *RecipeDetector
 }
 
 func NewBundler(rr *RecipeRepository) *Bundler {
+	return newBundler(rr, NewRecipeDetector())
+}
+
+func newBundler(rr *RecipeRepository, rd *RecipeDetector) *Bundler {
 	return &Bundler{
 		RecipeRepository: rr,
+		RecipeDetector:   rd,
 	}
 }
 
-func (b *Bundler) createCoreBundle() *Bundle {
+func (b *Bundler) CreateCoreBundle() *Bundle {
 	var coreRecipes []*types.OpenInstallationRecipe
 	for _, recipeName := range coreBundleRecipeNames {
 		if r := b.RecipeRepository.FindRecipeByName(recipeName); r != nil {
@@ -28,51 +34,51 @@ func (b *Bundler) createCoreBundle() *Bundle {
 		}
 	}
 
-	return b.createBundle(coreRecipes)
+	return b.CreateBundle(coreRecipes)
 }
 
-func (b *Bundler) createBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
+func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
 
-	coreBundle := NewBundle(recipes)
-	coreBundle = b.addBundleDependencies(coreBundle)
+	bundle := &Bundle{}
+
+	for _, r := range recipes {
+		// recipe shouldn't have itself as dependency
+		visited := map[string]bool{r.Name: true}
+		bundle.AddRecipe(b.getBundleRecipeWithDependencies(r, visited))
+	}
 
 	// TODO: do detection here, and there
-
-	return coreBundle
-}
-
-func (b *Bundler) addBundleDependencies(bundle *Bundle) *Bundle {
-
-	dependencies := b.getBundleDependencies(bundle)
-	bundle.AddRecipes(dependencies)
+	//b.RecipeDetector.DetectRecipes()
 
 	return bundle
 }
 
-// This is a naive implementation that only resolves dependencies one level deep.
-func (b *Bundler) getBundleDependencies(bundle *Bundle) []*types.OpenInstallationRecipe {
-	var results []*types.OpenInstallationRecipe
-	found := make(map[string]bool, 0)
+func (b *Bundler) CreateBundleRecipe(recipe *types.OpenInstallationRecipe) *BundleRecipe {
 
-	for _, br := range bundle.BundleRecipes {
-		if len(br.recipe.Dependencies) > 0 {
-			for _, d := range br.recipe.Dependencies {
-				if r := b.RecipeRepository.FindRecipeByName(d); r != nil {
-					if r != nil && !found[r.Name] {
-						results = append(results, r)
-						found[r.Name] = true
-					}
-				}
+	visited := map[string]bool{recipe.Name: true}
+	return b.getBundleRecipeWithDependencies(recipe, visited)
+}
+
+func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe, visited map[string]bool) *BundleRecipe {
+
+	bundleRecipe := &BundleRecipe{
+		Recipe: recipe,
+	}
+
+	for _, d := range recipe.Dependencies {
+		if !visited[d] {
+			visited[d] = true
+			if r := b.RecipeRepository.FindRecipeByName(d); r != nil {
+				dr := b.getBundleRecipeWithDependencies(r, visited)
+				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
 			}
 		}
 	}
 
-	return results
+	return bundleRecipe
 }
 
 // Control status
-type BundleInstaller struct {
-}
 
 //Recipe Candidate, recipe + collection of status
 //Recipe context, capturing recipe intall info, timing, status..etc.

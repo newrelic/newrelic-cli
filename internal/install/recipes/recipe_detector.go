@@ -27,6 +27,7 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
+// DetectRecipeBundle?
 func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.OpenInstallationRecipe) map[*types.OpenInstallationRecipe]execution.RecipeStatusType {
 
 	results := make(map[*types.OpenInstallationRecipe]execution.RecipeStatusType)
