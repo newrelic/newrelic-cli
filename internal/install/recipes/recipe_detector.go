@@ -27,20 +27,35 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
-// DetectRecipeBundle?
+func (dt *RecipeDetector) DetectBundle(ctx context.Context, bundle *Bundle) *Bundle {
+
+	for _, bundleRecipe := range bundle.BundleRecipes {
+		status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
+		bundleRecipe.Statuses = append(bundleRecipe.Statuses, status)
+	}
+
+	return bundle
+}
+
+//TODO: might not need?
 func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.OpenInstallationRecipe) map[*types.OpenInstallationRecipe]execution.RecipeStatusType {
 
 	results := make(map[*types.OpenInstallationRecipe]execution.RecipeStatusType)
 
 	for _, recipe := range recipes {
-		status := dt.processEvaluator.DetectionStatus(ctx, recipe)
-
-		if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
-			status = dt.scriptEvaluator.DetectionStatus(ctx, recipe)
-		}
-
-		results[recipe] = status
+		results[recipe] = dt.detectRecipe(ctx, recipe)
 	}
 
 	return results
+}
+
+func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {
+
+	status := dt.processEvaluator.DetectionStatus(ctx, recipe)
+
+	if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
+		status = dt.scriptEvaluator.DetectionStatus(ctx, recipe)
+	}
+
+	return status
 }

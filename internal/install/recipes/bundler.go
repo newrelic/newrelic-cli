@@ -1,6 +1,8 @@
 package recipes
 
 import (
+	"context"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -13,14 +15,16 @@ var coreBundleRecipeNames = []string{
 type Bundler struct {
 	RecipeRepository *RecipeRepository
 	RecipeDetector   *RecipeDetector
+	Context          context.Context
 }
 
-func NewBundler(rr *RecipeRepository) *Bundler {
-	return newBundler(rr, NewRecipeDetector())
+func NewBundler(context context.Context, rr *RecipeRepository) *Bundler {
+	return newBundler(context, rr, NewRecipeDetector())
 }
 
-func newBundler(rr *RecipeRepository, rd *RecipeDetector) *Bundler {
+func newBundler(context context.Context, rr *RecipeRepository, rd *RecipeDetector) *Bundler {
 	return &Bundler{
+		Context:          context,
 		RecipeRepository: rr,
 		RecipeDetector:   rd,
 	}
@@ -47,8 +51,7 @@ func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle 
 		bundle.AddRecipe(b.getBundleRecipeWithDependencies(r, visited))
 	}
 
-	// TODO: do detection here, and there
-	//b.RecipeDetector.DetectRecipes()
+	bundle = b.RecipeDetector.DetectBundle(b.Context, bundle)
 
 	return bundle
 }

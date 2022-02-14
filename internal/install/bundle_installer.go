@@ -9,7 +9,7 @@ type BundleInstaller struct {
 	installedRecipes []*types.OpenInstallationRecipe
 }
 
-func (bi *BundleInstaller) InstallBundle(bundle *recipes.Bundle) {
+func (bi *BundleInstaller) InstallNonPromptBundle(bundle *recipes.Bundle) {
 
 	for _, br := range bundle.BundleRecipes {
 		bi.InstallBundleRecipe(br)
