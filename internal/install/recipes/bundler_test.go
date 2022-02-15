@@ -103,11 +103,14 @@ func findRecipeByName(bundle *Bundle, name string) *types.OpenInstallationRecipe
 }
 
 func findDependencyByName(recipe *BundleRecipe, name string) *types.OpenInstallationRecipe {
-	for _, r := range recipe.Dependencies {
-		if strings.EqualFold(r.Recipe.Name, name) {
-			return r.Recipe
+	for _, dep := range recipe.Dependencies {
+		if strings.EqualFold(dep.Recipe.Name, name) {
+			return dep.Recipe
 		}
-		return findDependencyByName(r, name)
+		found := findDependencyByName(dep, name)
+		if found != nil {
+			return found
+		}
 	}
 	return nil
 }
