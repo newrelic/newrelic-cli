@@ -3,8 +3,9 @@ package recipes
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 )
 
 func TestBundleRecipe_ShouldAddStatus(t *testing.T) {

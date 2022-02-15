@@ -7,7 +7,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -20,7 +19,7 @@ var (
 func Setup() {
 	discoveryManifest = types.DiscoveryManifest{}
 	recipeCache = []types.OpenInstallationRecipe{}
-	logMatchFinder := discovery.NewMockLogMatchFinder()
+	logMatchFinder := NewMockLogMatchFinder()
 	repository = newRecipeRepository(recipeLoader, &discoveryManifest, logMatchFinder)
 }
 

@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package discovery
+package recipes
 
 import (
 	"context"
@@ -53,8 +53,8 @@ func TestLogMatchFinder(t *testing.T) {
 		},
 	}
 
-	f := NewLogMatchFinderer()
-	filtered, err := f.Filter(context.Background(), recipes)
+	f := NewLogMatchFinder()
+	filtered := f.GetPaths(context.Background(), recipes)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)

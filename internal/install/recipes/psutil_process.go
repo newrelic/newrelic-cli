@@ -1,4 +1,4 @@
-package discovery
+package recipes
 
 import (
 	"github.com/shirou/gopsutil/process"

@@ -3,9 +3,10 @@ package install
 import (
 	"context"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	log "github.com/sirupsen/logrus"
 )
 
 type BundleInstaller struct {
