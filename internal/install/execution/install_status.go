@@ -240,6 +240,16 @@ func (s *InstallStatus) InstallComplete(err error) {
 	}
 }
 
+func (s *InstallStatus) ReportStatus(status RecipeStatusType, recipe types.OpenInstallationRecipe) {
+
+	switch status {
+	case RecipeStatusTypes.DETECTED:
+		s.RecipeDetected(recipe)
+	case RecipeStatusTypes.AVAILABLE:
+		s.RecipeAvailable(recipe)
+	}
+}
+
 func (s *InstallStatus) InstallCanceled() {
 	s.canceled()
 

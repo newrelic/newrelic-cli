@@ -20,9 +20,8 @@ func TestRecipeDetector_ShouldGetProcessEvalStatusNull(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.NULL)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 
-	statusDetectionResult := recipe_detector.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
-	actual := statusDetectionResult[recipe]
-	require.Equal(t, 1, len(statusDetectionResult))
+	statusDetectionResult := recipe_detector.detectRecipe(nil, recipe)
+	actual := statusDetectionResult
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
@@ -32,9 +31,8 @@ func TestRecipeDetector_ShouldGetProcessEvalStatusAvaliable(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.DETECTED)
 
-	statusDetectionResult := recipe_detector.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
-	actual := statusDetectionResult[recipe]
-	require.Equal(t, 1, len(statusDetectionResult))
+	statusDetectionResult := recipe_detector.detectRecipe(nil, recipe)
+	actual := statusDetectionResult
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
@@ -44,9 +42,8 @@ func TestRecipeDetector_ShouldGetScriptEvalStatusNull(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.NULL)
 
-	statusDetectionResult := recipe_detector.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
-	actual := statusDetectionResult[recipe]
-	require.Equal(t, 1, len(statusDetectionResult))
+	statusDetectionResult := recipe_detector.detectRecipe(nil, recipe)
+	actual := statusDetectionResult
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
@@ -55,9 +52,8 @@ func TestRecipeDetector_ShouldGetScriptEvalStatusDetected(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.DETECTED)
 
-	statusDetectionResult := recipe_detector.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
-	actual := statusDetectionResult[recipe]
-	require.Equal(t, 1, len(statusDetectionResult))
+	statusDetectionResult := recipe_detector.detectRecipe(nil, recipe)
+	actual := statusDetectionResult
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual)
 }
 func TestRecipeDetector_ShouldGetScriptEvalStatusAvailable(t *testing.T) {
@@ -65,9 +61,8 @@ func TestRecipeDetector_ShouldGetScriptEvalStatusAvailable(t *testing.T) {
 	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 
-	statusDetectionResult := recipe_detector.DetectRecipes(ctx, []*types.OpenInstallationRecipe{recipe})
-	actual := statusDetectionResult[recipe]
-	require.Equal(t, 1, len(statusDetectionResult))
+	statusDetectionResult := recipe_detector.detectRecipe(nil, recipe)
+	actual := statusDetectionResult
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
