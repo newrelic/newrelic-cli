@@ -52,7 +52,7 @@ func (bi *BundleInstaller) ReportStatus(bundle *recipes.Bundle) {
 func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle) {
 
 	for _, br := range bundle.BundleRecipes {
-		bi.InstallBundleRecipe(br)
+		_ = bi.InstallBundleRecipe(br)
 	}
 }
 
