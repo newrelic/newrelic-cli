@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	testRecipeName        = "test-recipe"
-	anotherTestRecipeName = "another-test-recipe"
+	//testRecipeName = "test-recipe"
+	//anotherTestRecipeName = "another-test-recipe"
 	// testRecipeFile        = &types.OpenInstallationRecipe{
 	// 	Name: testRecipeName,
 	// }

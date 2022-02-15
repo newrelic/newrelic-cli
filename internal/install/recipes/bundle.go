@@ -13,7 +13,7 @@ func (b *Bundle) AddRecipe(bundleRecipe *BundleRecipe) {
 
 func (b *Bundle) ContainsName(name string) bool {
 
-	for i, _ := range b.BundleRecipes {
+	for i := range b.BundleRecipes {
 		if b.BundleRecipes[i].Recipe.Name == name {
 			return true
 		}

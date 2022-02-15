@@ -8,5 +8,5 @@ import (
 )
 
 var (
-	ctx context.Context = nil
+	ctx context.Context
 )

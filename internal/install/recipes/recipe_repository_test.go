@@ -7,8 +7,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 var (
