@@ -13,21 +13,21 @@ import (
 )
 
 var (
-	bundler_discoveryManifest types.DiscoveryManifest
-	bundler_recipeCache       []types.OpenInstallationRecipe
-	bundler_repository        *RecipeRepository
-	bundler_ctx               context.Context
-	bundler_ProcessEvaluator  = &mockDetector{}
-	bundler_ScriptedEvaluator = &mockDetector{}
-	bundler_recipeDetector    = newRecipeDetector(bundler_ProcessEvaluator, bundler_ScriptedEvaluator)
+	bundlerDiscoveryManifest types.DiscoveryManifest
+	bundlerRecipeCache       []types.OpenInstallationRecipe
+	bundlerRepository        *RecipeRepository
+	bundlerCtx               context.Context
+	bundlerProcessEvaluator  = &mockDetector{}
+	bundlerScriptedEvaluator = &mockDetector{}
+	bundlerRecipeDetector    = newRecipeDetector(bundlerProcessEvaluator, bundlerScriptedEvaluator)
 )
 
-func TestBundler_ShouldCreateCore(t *testing.T) {
-	bundler_Setup()
-	bundler_givenRecipe("id1", types.InfraAgentRecipeName)
-	bundler_givenRecipe("id2", types.LoggingRecipeName)
-	bundler_givenRecipe("id3", types.GoldenRecipeName)
-	bundler_givenRecipe("id4", "mysql")
+func TestBundlerShouldCreateCore(t *testing.T) {
+	bundlerSetup()
+	bundlerGivenRecipe("id1", types.InfraAgentRecipeName)
+	bundlerGivenRecipe("id2", types.LoggingRecipeName)
+	bundlerGivenRecipe("id3", types.GoldenRecipeName)
+	bundlerGivenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
 	coreBundle := bundler.CreateCoreBundle()
@@ -39,15 +39,15 @@ func TestBundler_ShouldCreateCore(t *testing.T) {
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestBundler_CoreShouldDetectAvailableStatus(t *testing.T) {
-	bundler_Setup()
-	bundler_givenRecipe("id1", types.InfraAgentRecipeName)
-	bundler_givenRecipe("id2", types.LoggingRecipeName)
-	bundler_givenRecipe("id3", types.GoldenRecipeName)
-	bundler_givenRecipe("id4", "mysql")
+func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
+	bundlerSetup()
+	bundlerGivenRecipe("id1", types.InfraAgentRecipeName)
+	bundlerGivenRecipe("id2", types.LoggingRecipeName)
+	bundlerGivenRecipe("id3", types.GoldenRecipeName)
+	bundlerGivenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
-	with_bundler_recipeDetector(bundler, execution.RecipeStatusTypes.AVAILABLE)
+	withBundlerRecipeDetector(bundler, execution.RecipeStatusTypes.AVAILABLE)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -60,12 +60,12 @@ func TestBundler_CoreShouldDetectAvailableStatus(t *testing.T) {
 	}
 }
 
-func TestBundler_ShouldIncludeDependencies(t *testing.T) {
-	bundler_Setup()
-	bundler_givenRecipe("id1", types.InfraAgentRecipeName)
-	bundler_givenRecipe("id2", types.LoggingRecipeName)
-	bundler_givenRecipe("id3", "dep1")
-	bundler_givenRecipe("id4", "dep2")
+func TestBundlerShouldIncludeDependencies(t *testing.T) {
+	bundlerSetup()
+	bundlerGivenRecipe("id1", types.InfraAgentRecipeName)
+	bundlerGivenRecipe("id2", types.LoggingRecipeName)
+	bundlerGivenRecipe("id3", "dep1")
+	bundlerGivenRecipe("id4", "dep2")
 
 	bundler := givenBundler()
 
@@ -83,9 +83,9 @@ func TestBundler_ShouldIncludeDependencies(t *testing.T) {
 	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[1], "dep2"))
 }
 
-func TestBundler_ShouldCreateEmptyCore(t *testing.T) {
-	bundler_Setup()
-	bundler_givenRecipe("id4", "mysql")
+func TestBundlerShouldCreateEmptyCore(t *testing.T) {
+	bundlerSetup()
+	bundlerGivenRecipe("id4", "mysql")
 
 	bundler := givenBundler()
 	coreBundle := bundler.CreateCoreBundle()
@@ -115,31 +115,31 @@ func findDependencyByName(recipe *BundleRecipe, name string) *types.OpenInstalla
 	return nil
 }
 
-func bundler_Setup() {
-	bundler_discoveryManifest = types.DiscoveryManifest{
+func bundlerSetup() {
+	bundlerDiscoveryManifest = types.DiscoveryManifest{
 		OS: "linux",
 	}
-	bundler_recipeCache = []types.OpenInstallationRecipe{}
-	bundler_repository = NewRecipeRepository(bundler_recipeLoader, &bundler_discoveryManifest)
+	bundlerRecipeCache = []types.OpenInstallationRecipe{}
+	bundlerRepository = NewRecipeRepository(bundlerRecipeLoader, &bundlerDiscoveryManifest)
 }
 
 func givenBundler() *Bundler {
-	return newBundler(bundler_ctx, bundler_repository, bundler_recipeDetector)
+	return newBundler(bundlerCtx, bundlerRepository, bundlerRecipeDetector)
 }
 
-func with_bundler_recipeDetector(bundler *Bundler, status execution.RecipeStatusType) {
+func withBundlerRecipeDetector(bundler *Bundler, status execution.RecipeStatusType) {
 
-	bundler_ProcessEvaluator = &mockDetector{status}
-	bundler_ScriptedEvaluator = &mockDetector{status}
-	bundler_recipeDetector = newRecipeDetector(bundler_ProcessEvaluator, bundler_ScriptedEvaluator)
-	bundler.RecipeDetector = bundler_recipeDetector
+	bundlerProcessEvaluator = &mockDetector{status}
+	bundlerScriptedEvaluator = &mockDetector{status}
+	bundlerRecipeDetector = newRecipeDetector(bundlerProcessEvaluator, bundlerScriptedEvaluator)
+	bundler.RecipeDetector = bundlerRecipeDetector
 }
 
-func bundler_recipeLoader() ([]types.OpenInstallationRecipe, error) {
-	return bundler_recipeCache, nil
+func bundlerRecipeLoader() ([]types.OpenInstallationRecipe, error) {
+	return bundlerRecipeCache, nil
 }
 
-func bundler_givenRecipe(id string, name string) *types.OpenInstallationRecipe {
+func bundlerGivenRecipe(id string, name string) *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   id,
 		Name: name,
@@ -149,7 +149,7 @@ func bundler_givenRecipe(id string, name string) *types.OpenInstallationRecipe {
 	}
 	r.InstallTargets = append(r.InstallTargets, t)
 	r.Dependencies = []string{"dep1", "dep2", "dep3"}
-	bundler_recipeCache = append(bundler_recipeCache, *r)
+	bundlerRecipeCache = append(bundlerRecipeCache, *r)
 	return r
 }
 

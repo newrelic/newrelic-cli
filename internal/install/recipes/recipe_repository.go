@@ -106,11 +106,11 @@ func (rf *RecipeRepository) enrichLogRecipe() {
 				for _, logMatch := range logMatches {
 					discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
 				}
-	
+
 				log.WithFields(log.Fields{
 					"logMatches": len(logMatches),
 				}).Debug("filtered log matches")
-			
+
 				discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
 				recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
 			}

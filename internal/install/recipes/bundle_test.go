@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	bundle_recipe = &BundleRecipe{
+	bundleRecipe = &BundleRecipe{
 		Recipe: createRecipe("0", "recipe1"),
 	}
-	bundle_recipes = []*BundleRecipe{
-		&BundleRecipe{
+	bundleRecipes = []*BundleRecipe{
+		{
 			Recipe: createRecipe("0", "recipe1"),
 		},
-		&BundleRecipe{
+		{
 			Recipe: createRecipe("1", "recipe2"),
 		},
 	}
@@ -23,42 +23,42 @@ var (
 func TestBundle_ShouldAddRecipes(t *testing.T) {
 
 	bundle := Bundle{
-		BundleRecipes: bundle_recipes,
+		BundleRecipes: bundleRecipes,
 	}
 	newRecipe := &BundleRecipe{
 		Recipe: createRecipe("2", "recipe3"),
 	}
 
 	bundle.AddRecipe(newRecipe)
-	require.Equal(t, len(bundle.BundleRecipes), len(bundle_recipes)+1)
+	require.Equal(t, len(bundle.BundleRecipes), len(bundleRecipes)+1)
 	require.True(t, true, bundle.ContainsName(newRecipe.Recipe.Name))
 }
 
 func TestBundle_ShouldNotUpdateRecipe(t *testing.T) {
 
 	bundle := Bundle{
-		BundleRecipes: bundle_recipes,
+		BundleRecipes: bundleRecipes,
 	}
 
-	bundle.AddRecipe(bundle_recipe)
-	bundle.AddRecipe(bundle_recipe)
-	bundle.AddRecipe(bundle_recipe)
+	bundle.AddRecipe(bundleRecipe)
+	bundle.AddRecipe(bundleRecipe)
+	bundle.AddRecipe(bundleRecipe)
 
-	require.Equal(t, len(bundle.BundleRecipes), len(bundle_recipes))
-	require.Equal(t, true, bundle.ContainsName(bundle_recipe.Recipe.Name))
+	require.Equal(t, len(bundle.BundleRecipes), len(bundleRecipes))
+	require.Equal(t, true, bundle.ContainsName(bundleRecipe.Recipe.Name))
 }
 
 func TestBundle_ShouldContainRecipeName(t *testing.T) {
 	bundle := Bundle{
-		BundleRecipes: bundle_recipes,
+		BundleRecipes: bundleRecipes,
 	}
 
-	require.Equal(t, true, bundle.ContainsName(bundle_recipe.Recipe.Name))
+	require.Equal(t, true, bundle.ContainsName(bundleRecipe.Recipe.Name))
 }
 
 func TestBundle_ShouldNotContainRecipeName(t *testing.T) {
 	bundle := Bundle{
-		BundleRecipes: bundle_recipes,
+		BundleRecipes: bundleRecipes,
 	}
 
 	require.Equal(t, false, bundle.ContainsName("some name"))
