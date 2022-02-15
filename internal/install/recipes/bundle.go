@@ -24,6 +24,14 @@ func (b *Bundle) AddRecipe(bundleRecipe *BundleRecipe) {
 	}
 }
 
+func (br *BundleRecipe) AddStatus(status execution.RecipeStatusType) {
+	if status == execution.RecipeStatusTypes.AVAILABLE {
+		br.Statuses = append(br.Statuses, execution.RecipeStatusTypes.DETECTED)
+	}
+	br.Statuses = append(br.Statuses, status)
+}
+
+//TODO: do we need an IndexOf?
 func (b *Bundle) IndexOf(name string) int {
 	for i := range b.BundleRecipes {
 		if b.BundleRecipes[i].Recipe.Name == name {

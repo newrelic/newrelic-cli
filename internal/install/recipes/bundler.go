@@ -48,10 +48,11 @@ func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle 
 	for _, r := range recipes {
 		// recipe shouldn't have itself as dependency
 		visited := map[string]bool{r.Name: true}
-		bundle.AddRecipe(b.getBundleRecipeWithDependencies(r, visited))
+		bundleRecipe := b.getBundleRecipeWithDependencies(r, visited)
+		bundle.AddRecipe(bundleRecipe)
 	}
 
-	bundle = b.RecipeDetector.DetectBundle(b.Context, bundle)
+	b.RecipeDetector.DetectBundle(b.Context, bundle)
 
 	return bundle
 }

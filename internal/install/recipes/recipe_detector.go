@@ -27,26 +27,11 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
-func (dt *RecipeDetector) DetectBundle(ctx context.Context, bundle *Bundle) *Bundle {
-
+func (dt *RecipeDetector) DetectBundle(ctx context.Context, bundle *Bundle) {
 	for _, bundleRecipe := range bundle.BundleRecipes {
 		status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-		bundleRecipe.Statuses = append(bundleRecipe.Statuses, status)
+		bundleRecipe.AddStatus(status)
 	}
-
-	return bundle
-}
-
-//TODO: might not need?
-func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.OpenInstallationRecipe) map[*types.OpenInstallationRecipe]execution.RecipeStatusType {
-
-	results := make(map[*types.OpenInstallationRecipe]execution.RecipeStatusType)
-
-	for _, recipe := range recipes {
-		results[recipe] = dt.detectRecipe(ctx, recipe)
-	}
-
-	return results
 }
 
 func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {

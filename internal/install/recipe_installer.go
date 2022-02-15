@@ -219,33 +219,33 @@ func (i *RecipeInstaller) Install() error {
 
 func (i *RecipeInstaller) intallBundle(ctx context.Context, m *types.DiscoveryManifest, bundle []*types.OpenInstallationRecipe) error {
 
-	detector := recipes.NewRecipeDetector()
-	recipesWithStatusMap := detector.DetectRecipes(ctx, bundle)
-	var recipes []types.OpenInstallationRecipe
+	// detector := recipes.NewRecipeDetector()
+	// recipesWithStatusMap := detector.DetectRecipes(ctx, bundle)
+	// var recipes []types.OpenInstallationRecipe
 
-	for recipe, status := range recipesWithStatusMap {
-		//TODO: Debugging, remove later
-		log.Printf("***recipe %v with status %v recipes\n", recipe.Name, status)
-		switch status {
-		case execution.RecipeStatusTypes.AVAILABLE:
-			i.status.RecipeDetected(*recipe)
-			i.status.RecipeAvailable(*recipe)
-			//install
-			recipes = append(recipes, *recipe)
-		case execution.RecipeStatusTypes.DETECTED:
-			i.status.RecipeDetected(*recipe)
-		}
-	}
+	// for recipe, status := range recipesWithStatusMap {
+	// 	//TODO: Debugging, remove later
+	// 	log.Printf("***recipe %v with status %v recipes\n", recipe.Name, status)
+	// 	switch status {
+	// 	case execution.RecipeStatusTypes.AVAILABLE:
+	// 		i.status.RecipeDetected(*recipe)
+	// 		i.status.RecipeAvailable(*recipe)
+	// 		//install
+	// 		recipes = append(recipes, *recipe)
+	// 	case execution.RecipeStatusTypes.DETECTED:
+	// 		i.status.RecipeDetected(*recipe)
+	// 	}
+	// }
 
-	if len(recipes) > 0 {
-		//TODO: Debugging, remove later
-		log.Printf("***installing bundle with %d recipes\n\n", len(recipes))
-	}
+	// if len(recipes) > 0 {
+	// 	//TODO: Debugging, remove later
+	// 	log.Printf("***installing bundle with %d recipes\n\n", len(recipes))
+	// }
 
-	i.status.RecipesSelected(recipes)
-	if err := i.installRecipes(ctx, m, recipes); err != nil {
-		return err
-	}
+	// i.status.RecipesSelected(recipes)
+	// if err := i.installRecipes(ctx, m, recipes); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -281,8 +281,11 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	//FIXME: need to fix
 
-	// bundler := NewBundler(repo)
-	// coreBundle := bundler.createCoreBundle()
+	bundler := recipes.NewBundler(ctx, repo)
+	coreBundle := bundler.CreateCoreBundle()
+	bundlerInstaller := NewBundleInstaller(i)
+	bundlerInstaller.InstallStopOnError(coreBundle)
+	fmt.Print(bundlerInstaller)
 
 	// err = i.intallBundle(ctx, m, coreBundle)
 	// if err != nil {
