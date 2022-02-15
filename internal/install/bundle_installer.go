@@ -62,8 +62,6 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle) {
 func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe) error {
 
 	// no dependencies
-	//FIXME: we used to report selected at one time, now we have to do in each or bundles? might need to check if UI Can handle naturally
-	//TODO: a genearl method for reporting status
 	var err error
 
 	if len(bundleRecipe.Dependencies) == 0 {
@@ -75,12 +73,7 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 				"name": recipeName,
 			}).Debug("installing recipe")
 
-			if f, ok := recipeInstallFuncs[recipeName]; ok {
-				//FIXME: nil for recipes, how do we get all the recipe for manifest
-				err = f(bi.ctx, bi.recipeInstaller, bi.manifest, bundleRecipe.Recipe, nil)
-			} else {
-				_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe)
-			}
+			_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe)
 
 			if err != nil {
 				log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
@@ -100,57 +93,6 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 	//TODO: actual install here
 	return nil
 }
-
-// func (bi *BundleInstaller) InstallRecipe() {
-// 	//TODO: we need to report count in piece meal? Not sure how this will work
-// 	// log.WithFields(log.Fields{
-// 	// 	"recipe_count": len(recipes),
-// 	// }).Debug("installing recipes")
-// 	var lastError error
-
-// 	for _, r := range recipes {
-// 		var err error
-
-// 		log.WithFields(log.Fields{
-// 			"name": r.Name,
-// 		}).Debug("installing recipe")
-
-// 		if f, ok := recipeInstallFuncs[r.Name]; ok {
-// 			err = f(ctx, i, m, &r, recipes)
-// 		} else {
-// 			_, err = i.executeAndValidateWithProgress(ctx, m, &r)
-// 		}
-
-// 		if err != nil {
-// 			if err == types.ErrInterrupt {
-// 				return err
-// 			}
-
-// 			if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName || i.RecipesProvided() {
-// 				return err
-// 			}
-
-// 			lastError = err
-
-// 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-// 			log.Debug(err)
-// 		}
-// 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
-// 	}
-
-// 	if lastError != nil {
-// 		// Return last recipe error that was caught if any
-// 		return lastError
-// 	}
-
-// 	if !i.status.WasSuccessful() {
-// 		return &types.UncaughtError{
-// 			Err: fmt.Errorf("no recipes were installed"),
-// 		}
-// 	}
-
-// 	return nil
-// }
 
 // Installer bundle no prompting
 // Error handling with core bundle, addtional

@@ -8,7 +8,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -87,6 +89,31 @@ func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallati
 	return results
 }
 
+// Enriching recipe
+func (rf *RecipeRepository) enrichRecipes() error {
+
+	for _, recipe := range rf.filteredRecipes {
+		if recipe.Name == types.LoggingRecipeName {
+			fileFilter := discovery.NewGlobFileFilterer()
+			logMatches, err := fileFilter.Filter(utils.SignalCtx, rf.filteredRecipes)
+
+			if err != nil {
+				return err
+			}
+
+			discoveredLogFiles := []string{}
+			for _, logMatch := range logMatches {
+				discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
+			}
+
+			discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
+			recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
+		}
+	}
+
+	return nil
+}
+
 func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
 	if rf.filteredRecipes != nil {
 		return rf.filteredRecipes, nil
@@ -102,6 +129,11 @@ func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
 	}
 
 	rf.filteredRecipes = filterRecipes(rf.loadedRecipes, rf.discoveryManifest)
+	err := rf.enrichRecipes()
+
+	if err != nil {
+		return rf.filteredRecipes, err
+	}
 
 	return rf.filteredRecipes, nil
 }
