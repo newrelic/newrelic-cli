@@ -12,7 +12,6 @@ import (
 
 const (
 	APIKey             FieldKey = "apiKey"
-	InsightsInsertKey  FieldKey = "insightsInsertKey"
 	Region             FieldKey = "region"
 	AccountID          FieldKey = "accountID"
 	LicenseKey         FieldKey = "licenseKey"
@@ -61,11 +60,6 @@ func InitializeCredentialsStore() {
 			FieldDefinition{
 				Key:       APIKey,
 				EnvVar:    "NEW_RELIC_API_KEY",
-				Sensitive: true,
-			},
-			FieldDefinition{
-				Key:       InsightsInsertKey,
-				EnvVar:    "NEW_RELIC_INSIGHTS_INSERT_KEY",
 				Sensitive: true,
 			},
 			FieldDefinition{
