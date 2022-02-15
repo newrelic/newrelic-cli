@@ -15,16 +15,13 @@ type BundleInstaller struct {
 	recipeInstaller  *RecipeInstaller
 }
 
-var (
-	customRecipeInstallFuncs = map[string]RecipeInstallFunc{
-		"logs-integration": installLogging,
-	}
-)
-
-func NewBundleInstaller(recipeInstaller *RecipeInstaller) *BundleInstaller {
+func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstaller *RecipeInstaller) *BundleInstaller {
 
 	return &BundleInstaller{
-		recipeInstaller: recipeInstaller,
+		ctx:              ctx,
+		manifest:         manifest,
+		recipeInstaller:  recipeInstaller,
+		installedRecipes: make(map[string]bool),
 	}
 }
 
