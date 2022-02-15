@@ -18,7 +18,7 @@ type Discoverer interface {
 
 // FileFilterer determines the existence of files on the underlying filesystem.
 type FileFilterer interface {
-	Filter(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error)
+	Filter(context.Context, []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch
 }
 
 type Prompter interface {

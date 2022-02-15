@@ -14,10 +14,7 @@ func installLogging(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryM
 	log.WithFields(log.Fields{
 		"recipe_count": len(recipes),
 	}).Debug("filtering log matches")
-	logMatches, err := i.fileFilterer.Filter(utils.SignalCtx, recipes)
-	if err != nil {
-		return err
-	}
+	logMatches := i.fileFilterer.Filter(utils.SignalCtx, recipes)
 
 	log.WithFields(log.Fields{
 		"logMatches": len(logMatches),
@@ -36,6 +33,6 @@ func installLogging(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryM
 		"NR_DISCOVERED_LOG_FILES": discoveredLogFilesString,
 	}).Debug("discovered log files")
 
-	_, err = i.executeAndValidateWithProgress(ctx, m, r)
+	_, err := i.executeAndValidateWithProgress(ctx, m, r)
 	return err
 }

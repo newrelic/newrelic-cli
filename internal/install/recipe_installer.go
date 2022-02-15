@@ -283,7 +283,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	bundler := recipes.NewBundler(ctx, repo)
 	coreBundle := bundler.CreateCoreBundle()
-	bundlerInstaller := NewBundleInstaller(i)
+	bundlerInstaller := NewBundleInstaller(ctx, m, i)
 	err = bundlerInstaller.InstallStopOnError(coreBundle)
 	if err != nil {
 		log.Debugf("error installing core bundle: %s", err)

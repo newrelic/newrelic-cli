@@ -22,7 +22,7 @@ func NewGlobFileFilterer() *GlobFileFilterer {
 
 // Filter uses the patterns provided in the passed recipe to return matches based
 // on which files exist in the underlying file system.
-func (f *GlobFileFilterer) Filter(ctx context.Context, recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error) {
+func (f *GlobFileFilterer) Filter(ctx context.Context, recipes []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
 	fileMatches := []types.OpenInstallationLogMatch{}
 
 	for _, r := range recipes {
@@ -34,7 +34,7 @@ func (f *GlobFileFilterer) Filter(ctx context.Context, recipes []types.OpenInsta
 		}
 	}
 
-	return fileMatches, nil
+	return fileMatches
 }
 
 func matchLogFilesFromRecipe(matcher types.OpenInstallationLogMatch) (bool, []string) {

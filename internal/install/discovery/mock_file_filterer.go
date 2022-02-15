@@ -10,7 +10,6 @@ import (
 // provides method spies for testing scenarios.
 type MockFileFilterer struct {
 	FilterCallCount int
-	FilterErr       error
 	FilterVal       []types.OpenInstallationLogMatch
 }
 
@@ -19,7 +18,7 @@ func NewMockFileFilterer() *MockFileFilterer {
 	return &MockFileFilterer{}
 }
 
-func (m *MockFileFilterer) Filter(ctx context.Context, recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error) {
+func (m *MockFileFilterer) Filter(ctx context.Context, recipes []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
 	m.FilterCallCount++
-	return m.FilterVal, m.FilterErr
+	return m.FilterVal
 }
