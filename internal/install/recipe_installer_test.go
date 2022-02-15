@@ -30,7 +30,6 @@ var (
 	}
 
 	d               = discovery.NewMockDiscoverer()
-	l               = discovery.NewMockFileFilterer()
 	mv              = discovery.NewEmptyManifestValidator()
 	f               = recipes.NewMockRecipeFetcher()
 	e               = execution.NewMockRecipeExecutor()
@@ -54,7 +53,7 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 	}
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 }
@@ -64,7 +63,7 @@ func TestShouldGetRecipeFromURL(t *testing.T) {
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	recipe, err := i.recipeFromPath("http://recipe/URL")
 	require.NoError(t, err)
@@ -77,7 +76,7 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 	rf := recipes.NewRecipeFilterRunner(ic, status)
 	ff = recipes.NewMockRecipeFileFetcher()
 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 	recipe, err := i.recipeFromPath("file.txt")
 	require.NoError(t, err)

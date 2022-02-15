@@ -26,7 +26,6 @@ import (
 type RecipeInstaller struct {
 	types.InstallerContext
 	discoverer                  Discoverer
-	fileFilterer                FileFilterer
 	manifestValidator           *discovery.ManifestValidator
 	recipeFetcher               recipes.RecipeFetcher
 	recipeExecutor              execution.RecipeExecutor
@@ -44,12 +43,6 @@ type RecipeInstaller struct {
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
-
-var (
-	recipeInstallFuncs = map[string]RecipeInstallFunc{
-		"logs-integration": installLogging,
-	}
-)
 
 const (
 	validationTimeout       = 5 * time.Minute
@@ -81,7 +74,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	statusRollup := execution.NewInstallStatus(ers, slg)
 
 	d := discovery.NewPSUtilDiscoverer()
-	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	cv := diagnose.NewConfigValidator(nrClient)
@@ -94,7 +86,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	i := RecipeInstaller{
 		discoverer:                  d,
-		fileFilterer:                gff,
 		manifestValidator:           mv,
 		recipeFetcher:               recipeFetcher,
 		recipeExecutor:              re,
@@ -376,11 +367,7 @@ func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.Discovery
 			"name": r.Name,
 		}).Debug("installing recipe")
 
-		if f, ok := recipeInstallFuncs[r.Name]; ok {
-			err = f(ctx, i, m, &r, recipes)
-		} else {
-			_, err = i.executeAndValidateWithProgress(ctx, m, &r)
-		}
+		_, err = i.executeAndValidateWithProgress(ctx, m, &r)
 
 		if err != nil {
 			if err == types.ErrInterrupt {

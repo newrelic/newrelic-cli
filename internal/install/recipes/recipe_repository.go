@@ -27,6 +27,7 @@ type RecipeRepository struct {
 	loadedRecipes     []types.OpenInstallationRecipe
 	filteredRecipes   []types.OpenInstallationRecipe
 	discoveryManifest *types.DiscoveryManifest
+	logMatchFinder    discovery.LogMatchFinderDefinition
 }
 
 type recipeMatch struct {
@@ -36,11 +37,15 @@ type recipeMatch struct {
 
 // NewRecipeRepository returns a new instance of types.RecipeRepository.
 func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
+	return newRecipeRepository(loaderFunc, manifest, discovery.NewLogMatchFinder())
+}
+func newRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder discovery.LogMatchFinderDefinition) *RecipeRepository {
 	rr := RecipeRepository{
 		RecipeLoaderFunc:  loaderFunc,
 		loadedRecipes:     nil,
 		filteredRecipes:   nil,
 		discoveryManifest: manifest,
+		logMatchFinder:    logMatchFinder,
 	}
 
 	return &rr
@@ -94,16 +99,21 @@ func (rf *RecipeRepository) enrichLogRecipe() {
 
 	for _, recipe := range rf.filteredRecipes {
 		if recipe.Name == types.LoggingRecipeName {
-			fileFilter := discovery.NewGlobFileFilterer()
-			logMatches := fileFilter.Filter(utils.SignalCtx, rf.filteredRecipes)
+			logMatches := rf.logMatchFinder.GetPaths(utils.SignalCtx, rf.filteredRecipes)
 
-			discoveredLogFiles := []string{}
-			for _, logMatch := range logMatches {
-				discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
+			if len(logMatches) > 0 {
+				discoveredLogFiles := []string{}
+				for _, logMatch := range logMatches {
+					discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
+				}
+	
+				log.WithFields(log.Fields{
+					"logMatches": len(logMatches),
+				}).Debug("filtered log matches")
+			
+				discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
+				recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
 			}
-
-			discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
-			recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
 			break
 		}
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 )
 
 var (
@@ -19,7 +20,8 @@ var (
 func Setup() {
 	discoveryManifest = types.DiscoveryManifest{}
 	recipeCache = []types.OpenInstallationRecipe{}
-	repository = NewRecipeRepository(recipeLoader, &discoveryManifest)
+	logMatchFinder := discovery.NewMockLogMatchFinder()
+	repository = newRecipeRepository(recipeLoader, &discoveryManifest, logMatchFinder)
 }
 
 func Test_ShouldFindAll_Empty(t *testing.T) {
