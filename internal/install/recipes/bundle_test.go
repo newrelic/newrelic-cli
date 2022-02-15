@@ -34,12 +34,14 @@ func TestBundle_ShouldAddRecipes(t *testing.T) {
 	require.True(t, true, bundle.ContainsName(newRecipe.Recipe.Name))
 }
 
-func TestBundle_ShouldUpdateRecipe(t *testing.T) {
+func TestBundle_ShouldNotUpdateRecipe(t *testing.T) {
 
 	bundle := Bundle{
 		BundleRecipes: bundle_recipes,
 	}
 
+	bundle.AddRecipe(bundle_recipe)
+	bundle.AddRecipe(bundle_recipe)
 	bundle.AddRecipe(bundle_recipe)
 
 	require.Equal(t, len(bundle.BundleRecipes), len(bundle_recipes))
