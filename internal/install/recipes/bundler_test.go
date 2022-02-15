@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type bundler struct {
+type bundlerTest struct {
 	discoveryManifest types.DiscoveryManifest
 	recipeCache       []types.OpenInstallationRecipe
 	recipeRepository  *RecipeRepository
@@ -27,7 +27,7 @@ type mockDetector struct {
 }
 
 var (
-	bundlerTestImpl = bundler{
+	bundlerTestImpl = bundlerTest{
 		processEvaluator:  &mockDetector{},
 		scriptedEvaluator: &mockDetector{},
 	}
