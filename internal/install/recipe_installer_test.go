@@ -5,7 +5,7 @@ package install
 
 import (
 	// "errors"
-	"net/url"
+	// "net/url"
 	// "os"
 	"reflect"
 	"testing"
@@ -25,9 +25,9 @@ import (
 var (
 	testRecipeName        = "test-recipe"
 	anotherTestRecipeName = "another-test-recipe"
-	testRecipeFile        = &types.OpenInstallationRecipe{
-		Name: testRecipeName,
-	}
+	// testRecipeFile        = &types.OpenInstallationRecipe{
+	// 	Name: testRecipeName,
+	// }
 
 	d               = discovery.NewMockDiscoverer()
 	mv              = discovery.NewEmptyManifestValidator()
@@ -58,31 +58,31 @@ func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 }
 
-func TestShouldGetRecipeFromURL(t *testing.T) {
-	ic := types.InstallerContext{}
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	ff = recipes.NewMockRecipeFileFetcher()
-	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// func TestShouldGetRecipeFromURL(t *testing.T) {
+// 	ic := types.InstallerContext{}
+// 	rf := recipes.NewRecipeFilterRunner(ic, status)
+// 	ff = recipes.NewMockRecipeFileFetcher()
+// 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
+// 	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
-	recipe, err := i.recipeFromPath("http://recipe/URL")
-	require.NoError(t, err)
-	require.NotNil(t, recipe)
-	require.Equal(t, recipe.Name, testRecipeName)
-}
+// 	recipe, err := i.recipeFromPath("http://recipe/URL")
+// 	require.NoError(t, err)
+// 	require.NotNil(t, recipe)
+// 	require.Equal(t, recipe.Name, testRecipeName)
+// }
 
-func TestShouldGetRecipeFromFile(t *testing.T) {
-	ic := types.InstallerContext{}
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	ff = recipes.NewMockRecipeFileFetcher()
-	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// func TestShouldGetRecipeFromFile(t *testing.T) {
+// 	ic := types.InstallerContext{}
+// 	rf := recipes.NewRecipeFilterRunner(ic, status)
+// 	ff = recipes.NewMockRecipeFileFetcher()
+// 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
+// 	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
-	recipe, err := i.recipeFromPath("file.txt")
-	require.NoError(t, err)
-	require.NotNil(t, recipe)
-	require.Equal(t, recipe.Name, testRecipeName)
-}
+// 	recipe, err := i.recipeFromPath("file.txt")
+// 	require.NoError(t, err)
+// 	require.NotNil(t, recipe)
+// 	require.Equal(t, recipe.Name, testRecipeName)
+// }
 
 // func TestInstall_DiscoveryComplete(t *testing.T) {
 // 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
@@ -923,28 +923,28 @@ func TestShouldGetRecipeFromFile(t *testing.T) {
 // 	require.Equal(t, 1, reporters[0].(*execution.MockStatusReporter).RecipeDetectedCallCount)
 // }
 
-func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
-	return testRecipeFile, nil
-}
+// func fetchRecipeFileFunc(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
+// 	return testRecipeFile, nil
+// }
 
-func loadRecipeFileFunc(filename string) (*types.OpenInstallationRecipe, error) {
-	return testRecipeFile, nil
-}
+// func loadRecipeFileFunc(filename string) (*types.OpenInstallationRecipe, error) {
+// 	return testRecipeFile, nil
+// }
 
-type mockProcess struct {
-	cmdline string
-	name    string
-	pid     int32
-}
+// type mockProcess struct {
+// 	cmdline string
+// 	name    string
+// 	pid     int32
+// }
 
-func (p mockProcess) Name() (string, error) {
-	return p.name, nil
-}
+// func (p mockProcess) Name() (string, error) {
+// 	return p.name, nil
+// }
 
-func (p mockProcess) Cmd() (string, error) {
-	return p.cmdline, nil
-}
+// func (p mockProcess) Cmd() (string, error) {
+// 	return p.cmdline, nil
+// }
 
-func (p mockProcess) PID() int32 {
-	return p.pid
-}
+// func (p mockProcess) PID() int32 {
+// 	return p.pid
+// }

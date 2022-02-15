@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -208,39 +206,6 @@ func (i *RecipeInstaller) Install() error {
 	}
 }
 
-func (i *RecipeInstaller) intallBundle(ctx context.Context, m *types.DiscoveryManifest, bundle []*types.OpenInstallationRecipe) error {
-
-	// detector := recipes.NewRecipeDetector()
-	// recipesWithStatusMap := detector.DetectRecipes(ctx, bundle)
-	// var recipes []types.OpenInstallationRecipe
-
-	// for recipe, status := range recipesWithStatusMap {
-	// 	//TODO: Debugging, remove later
-	// 	log.Printf("***recipe %v with status %v recipes\n", recipe.Name, status)
-	// 	switch status {
-	// 	case execution.RecipeStatusTypes.AVAILABLE:
-	// 		i.status.RecipeDetected(*recipe)
-	// 		i.status.RecipeAvailable(*recipe)
-	// 		//install
-	// 		recipes = append(recipes, *recipe)
-	// 	case execution.RecipeStatusTypes.DETECTED:
-	// 		i.status.RecipeDetected(*recipe)
-	// 	}
-	// }
-
-	// if len(recipes) > 0 {
-	// 	//TODO: Debugging, remove later
-	// 	log.Printf("***installing bundle with %d recipes\n\n", len(recipes))
-	// }
-
-	// i.status.RecipesSelected(recipes)
-	// if err := i.installRecipes(ctx, m, recipes); err != nil {
-	// 	return err
-	// }
-
-	return nil
-}
-
 func (i *RecipeInstaller) install(ctx context.Context) error {
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
@@ -264,11 +229,11 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return recipes, err2
 	}, m)
 
-	recipesForPlatform, err := repo.FindAll()
-	if err != nil {
-		log.Debugf("Unable to load any recipes, detail: %s", err)
-		return err
-	}
+	// recipesForPlatform, err := repo.FindAll()
+	// if err != nil {
+	// 	log.Debugf("Unable to load any recipes, detail: %s", err)
+	// 	return err
+	// }
 
 	//FIXME: need to fix
 
@@ -299,50 +264,50 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	// return nil
 
-	var recipesForInstall []types.OpenInstallationRecipe
-	if i.RecipesProvided() {
-		recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
-		if err != nil {
-			return err
-		}
-		log.Debugf("recipes provided:\n")
-		logRecipes(recipesForInstall)
+	// var recipesForInstall []types.OpenInstallationRecipe
+	// if i.RecipesProvided() {
+	// 	recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	log.Debugf("recipes provided:\n")
+	// 	logRecipes(recipesForInstall)
 
-		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
-			return err
-		}
+	// 	if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
+	// 		return err
+	// 	}
 
-	} else {
-		var selected, unselected []types.OpenInstallationRecipe
+	// } else {
+	// 	var selected, unselected []types.OpenInstallationRecipe
 
-		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
-		log.Debugf("recipes after filtering:")
-		logRecipes(recipesForInstall)
+	// 	recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
+	// 	log.Debugf("recipes after filtering:")
+	// 	logRecipes(recipesForInstall)
 
-		selected, unselected, err = i.promptUserSelect(recipesForInstall)
-		if err != nil {
-			return err
-		}
-		log.Tracef("recipes selected by user: %v\n", selected)
+	// 	selected, unselected, err = i.promptUserSelect(recipesForInstall)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	log.Tracef("recipes selected by user: %v\n", selected)
 
-		for _, r := range unselected {
-			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-		}
+	// 	for _, r := range unselected {
+	// 		i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
+	// 	}
 
-		recipesForInstall = selected
-	}
+	// 	recipesForInstall = selected
+	// }
 
-	i.status.RecipesSelected(recipesForInstall)
+	// i.status.RecipesSelected(recipesForInstall)
 
-	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
-	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
+	// dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
+	// recipesForInstall = addIfMissing(recipesForInstall, dependencies)
 
-	if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-		return err
-	}
+	// if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
+	// 	return err
+	// }
 
-	log.Debugf("Done installing.")
-	return nil
+	// log.Debugf("Done installing.")
+	// return nil
 }
 
 func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
@@ -354,51 +319,51 @@ func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.Dis
 	return nil
 }
 
-func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.OpenInstallationRecipe) error {
-	log.WithFields(log.Fields{
-		"recipe_count": len(recipes),
-	}).Debug("installing recipes")
-	var lastError error
+// func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.OpenInstallationRecipe) error {
+// 	log.WithFields(log.Fields{
+// 		"recipe_count": len(recipes),
+// 	}).Debug("installing recipes")
+// 	var lastError error
 
-	for _, r := range recipes {
-		var err error
+// 	for _, r := range recipes {
+// 		var err error
 
-		log.WithFields(log.Fields{
-			"name": r.Name,
-		}).Debug("installing recipe")
+// 		log.WithFields(log.Fields{
+// 			"name": r.Name,
+// 		}).Debug("installing recipe")
 
-		_, err = i.executeAndValidateWithProgress(ctx, m, &r)
+// 		_, err = i.executeAndValidateWithProgress(ctx, m, &r)
 
-		if err != nil {
-			if err == types.ErrInterrupt {
-				return err
-			}
+// 		if err != nil {
+// 			if err == types.ErrInterrupt {
+// 				return err
+// 			}
 
-			if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName || i.RecipesProvided() {
-				return err
-			}
+// 			if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName || i.RecipesProvided() {
+// 				return err
+// 			}
 
-			lastError = err
+// 			lastError = err
 
-			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-			log.Debug(err)
-		}
-		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
-	}
+// 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
+// 			log.Debug(err)
+// 		}
+// 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
+// 	}
 
-	if lastError != nil {
-		// Return last recipe error that was caught if any
-		return lastError
-	}
+// 	if lastError != nil {
+// 		// Return last recipe error that was caught if any
+// 		return lastError
+// 	}
 
-	if !i.status.WasSuccessful() {
-		return &types.UncaughtError{
-			Err: fmt.Errorf("no recipes were installed"),
-		}
-	}
+// 	if !i.status.WasSuccessful() {
+// 		return &types.UncaughtError{
+// 			Err: fmt.Errorf("no recipes were installed"),
+// 		}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
 	log.Debug("discovering system information")
@@ -577,161 +542,161 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 	return entityGUID, nil
 }
 
-func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
-	var recipes []types.OpenInstallationRecipe
+// func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+// 	var recipes []types.OpenInstallationRecipe
 
-	// Load the recipes from the provided file names.
-	for _, n := range i.RecipePaths {
-		log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
-		recipe, err := i.recipeFromPath(n)
-		if err != nil {
-			log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
-			return nil, err
-		}
+// 	// Load the recipes from the provided file names.
+// 	for _, n := range i.RecipePaths {
+// 		log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
+// 		recipe, err := i.recipeFromPath(n)
+// 		if err != nil {
+// 			log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
+// 			return nil, err
+// 		}
 
-		log.WithFields(log.Fields{
-			"name":         recipe.Name,
-			"display_name": recipe.DisplayName,
-			"path":         n,
-		}).Debug("found recipe at path")
+// 		log.WithFields(log.Fields{
+// 			"name":         recipe.Name,
+// 			"display_name": recipe.DisplayName,
+// 			"path":         n,
+// 		}).Debug("found recipe at path")
 
-		recipes = append(recipes, *recipe)
-	}
+// 		recipes = append(recipes, *recipe)
+// 	}
 
-	// Load the recipes from the provided file names.
-	for _, n := range i.RecipeNames {
-		found := false
-		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
-		for _, r := range recipesForPlatform {
-			if strings.EqualFold(r.Name, n) {
-				log.WithFields(log.Fields{
-					"name":         r.Name,
-					"display_name": r.DisplayName,
-				}).Debug("found recipe with name")
-				recipes = append(recipes, r)
-				found = true
-				break
-			}
-		}
-		if !found {
-			log.Errorf("Could not find recipe with name %s.", n)
-		}
-	}
+// 	// Load the recipes from the provided file names.
+// 	for _, n := range i.RecipeNames {
+// 		found := false
+// 		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
+// 		for _, r := range recipesForPlatform {
+// 			if strings.EqualFold(r.Name, n) {
+// 				log.WithFields(log.Fields{
+// 					"name":         r.Name,
+// 					"display_name": r.DisplayName,
+// 				}).Debug("found recipe with name")
+// 				recipes = append(recipes, r)
+// 				found = true
+// 				break
+// 			}
+// 		}
+// 		if !found {
+// 			log.Errorf("Could not find recipe with name %s.", n)
+// 		}
+// 	}
 
-	return recipes, nil
-}
+// 	return recipes, nil
+// }
 
-func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
-	recipeURL, parseErr := url.Parse(recipePath)
-	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
-		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
-		if err != nil {
-			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
-		}
-		return f, nil
-	}
+// func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
+// 	recipeURL, parseErr := url.Parse(recipePath)
+// 	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
+// 		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
+// 		if err != nil {
+// 			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
+// 		}
+// 		return f, nil
+// 	}
 
-	f, err := i.recipeFileFetcher.LoadRecipeFile(recipePath)
-	if err != nil {
-		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
-	}
+// 	f, err := i.recipeFileFetcher.LoadRecipeFile(recipePath)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
+// 	}
 
-	return f, nil
-}
+// 	return f, nil
+// }
 
-func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
-	if len(recipes) == 0 {
-		return []types.OpenInstallationRecipe{}, []types.OpenInstallationRecipe{}, nil
-	}
+// func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
+// 	if len(recipes) == 0 {
+// 		return []types.OpenInstallationRecipe{}, []types.OpenInstallationRecipe{}, nil
+// 	}
 
-	if i.AssumeYes {
-		return recipes, []types.OpenInstallationRecipe{}, nil
-	}
+// 	if i.AssumeYes {
+// 		return recipes, []types.OpenInstallationRecipe{}, nil
+// 	}
 
-	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
+// 	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
 
-	names := []string{}
-	selected := []string{}
-	for _, r := range recipes {
-		if r.Name != types.InfraAgentRecipeName {
-			names = append(names, r.DisplayName)
-		} else {
-			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
-		}
-	}
+// 	names := []string{}
+// 	selected := []string{}
+// 	for _, r := range recipes {
+// 		if r.Name != types.InfraAgentRecipeName {
+// 			names = append(names, r.DisplayName)
+// 		} else {
+// 			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+// 		}
+// 	}
 
-	if len(names) > 0 {
-		var promptErr error
-		selected, promptErr = i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
-		if promptErr != nil {
-			return nil, nil, promptErr
-		}
-		fmt.Println()
-	}
+// 	if len(names) > 0 {
+// 		var promptErr error
+// 		selected, promptErr = i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
+// 		if promptErr != nil {
+// 			return nil, nil, promptErr
+// 		}
+// 		fmt.Println()
+// 	}
 
-	for _, r := range recipes {
-		if utils.StringInSlice(r.DisplayName, selected) || r.Name == types.InfraAgentRecipeName {
-			selectedRecipes = append(selectedRecipes, r)
-		} else {
-			unselectedRecipes = append(unselectedRecipes, r)
-		}
-	}
+// 	for _, r := range recipes {
+// 		if utils.StringInSlice(r.DisplayName, selected) || r.Name == types.InfraAgentRecipeName {
+// 			selectedRecipes = append(selectedRecipes, r)
+// 		} else {
+// 			unselectedRecipes = append(unselectedRecipes, r)
+// 		}
+// 	}
 
-	return selectedRecipes, unselectedRecipes, nil
-}
+// 	return selectedRecipes, unselectedRecipes, nil
+// }
 
-func logRecipes(recipes []types.OpenInstallationRecipe) {
-	for _, r := range recipes {
-		log.Debugf("%s", r.ToShortDisplayString())
-	}
-}
+// func logRecipes(recipes []types.OpenInstallationRecipe) {
+// 	for _, r := range recipes {
+// 		log.Debugf("%s", r.ToShortDisplayString())
+// 	}
+// }
 
-func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
-	for _, r := range recipes {
-		if r.Name == name {
-			return &r
-		}
-	}
+// func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
+// 	for _, r := range recipes {
+// 		if r.Name == name {
+// 			return &r
+// 		}
+// 	}
 
-	return nil
-}
-
-// This is a naive implementation that only resolves dependencies one level deep.
-func resolveDependencies(recipes []types.OpenInstallationRecipe, recipesForPlatform []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	var results []types.OpenInstallationRecipe
-
-	for _, r := range recipes {
-		if len(r.Dependencies) > 0 {
-			for _, n := range r.Dependencies {
-				d := findRecipeInRecipes(n, recipesForPlatform)
-				if d != nil {
-					results = append(results, *d)
-				}
-			}
-		}
-	}
-
-	return results
-}
+// 	return nil
+// }
 
 // This is a naive implementation that only resolves dependencies one level deep.
-func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	var results []types.OpenInstallationRecipe
+// func resolveDependencies(recipes []types.OpenInstallationRecipe, recipesForPlatform []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+// 	var results []types.OpenInstallationRecipe
 
-	for _, d := range dependencies {
-		if found := findRecipeInRecipes(d.Name, results); found == nil {
-			results = append(results, d)
-		}
-	}
+// 	for _, r := range recipes {
+// 		if len(r.Dependencies) > 0 {
+// 			for _, n := range r.Dependencies {
+// 				d := findRecipeInRecipes(n, recipesForPlatform)
+// 				if d != nil {
+// 					results = append(results, *d)
+// 				}
+// 			}
+// 		}
+// 	}
 
-	for _, r := range recipes {
-		if found := findRecipeInRecipes(r.Name, results); found == nil {
-			results = append(results, r)
-		}
-	}
+// 	return results
+// }
 
-	return results
-}
+// This is a naive implementation that only resolves dependencies one level deep.
+// func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
+// 	var results []types.OpenInstallationRecipe
+
+// 	for _, d := range dependencies {
+// 		if found := findRecipeInRecipes(d.Name, results); found == nil {
+// 			results = append(results, d)
+// 		}
+// 	}
+
+// 	for _, r := range recipes {
+// 		if found := findRecipeInRecipes(r.Name, results); found == nil {
+// 			results = append(results, r)
+// 		}
+// 	}
+
+// 	return results
+// }
 
 func checkNetwork(nrClient *newrelic.NewRelic) {
 	err := nrClient.TestEndpoints()
