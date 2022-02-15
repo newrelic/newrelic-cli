@@ -72,6 +72,17 @@ func TestBundleRecipe_ShouldAddStatus(t *testing.T) {
 	require.Equal(t, br.Statuses[0], execution.RecipeStatusTypes.INSTALLING)
 }
 
+func TestBundleRecipe_ShouldAddStatusOnce(t *testing.T) {
+	br := givenBundleRecipe()
+
+	br.AddStatus(execution.RecipeStatusTypes.INSTALLING)
+	br.AddStatus(execution.RecipeStatusTypes.INSTALLING)
+	br.AddStatus(execution.RecipeStatusTypes.INSTALLING)
+
+	require.Equal(t, len(br.Statuses), 1)
+	require.Equal(t, br.Statuses[0], execution.RecipeStatusTypes.INSTALLING)
+}
+
 func TestBundleRecipe_ShouldAddStatusDetectedWhenAvailable(t *testing.T) {
 	br := givenBundleRecipe()
 
