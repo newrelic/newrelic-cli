@@ -15,7 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestGlobFileFilter(t *testing.T) {
+func TestLogMatchFinder(t *testing.T) {
 	// Create a temp directory to work with
 	tmpDir, err := ioutil.TempDir("/tmp", "logfiles")
 	require.NoError(t, err)
@@ -53,7 +53,7 @@ func TestGlobFileFilter(t *testing.T) {
 		},
 	}
 
-	f := NewGlobFileFilterer()
+	f := NewLogMatchFinderer()
 	filtered, err := f.Filter(context.Background(), recipes)
 
 	require.NoError(t, err)
@@ -62,7 +62,7 @@ func TestGlobFileFilter(t *testing.T) {
 	require.Equal(t, 1, len(filtered))
 }
 
-func TestMatchLogFilesFromRecipe(t *testing.T) {
+func TestLogMatchFinderFromRecipe(t *testing.T) {
 
 	// Create a temp directory to work with
 	tmpDir, err := ioutil.TempDir("/tmp", "logfiles")

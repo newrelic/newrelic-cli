@@ -16,11 +16,6 @@ type Discoverer interface {
 	Discover(context.Context) (*types.DiscoveryManifest, error)
 }
 
-// FileFilterer determines the existence of files on the underlying filesystem.
-type FileFilterer interface {
-	Filter(context.Context, []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch
-}
-
 type Prompter interface {
 	PromptYesNo(msg string) (bool, error)
 	MultiSelect(msg string, options []string) ([]string, error)
