@@ -3,11 +3,11 @@ package recipes
 import (
 	"context"
 
-	"github.com/newrelic/newrelic-cli/internal/install/discovery"
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type ProcessEvaluator struct {
@@ -50,7 +50,7 @@ func GetPsUtilCommandLines(ctx context.Context) []types.GenericProcess {
 			continue
 		}
 
-		p := discovery.NewPSUtilProcess(psproc)
+		p := NewPSUtilProcess(psproc)
 		processes = append(processes, p)
 	}
 

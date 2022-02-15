@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 )
 
 var (

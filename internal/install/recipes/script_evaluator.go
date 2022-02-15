@@ -3,10 +3,11 @@ package recipes
 import (
 	"context"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type ScriptEvaluator struct {

@@ -8,7 +8,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -27,7 +26,7 @@ type RecipeRepository struct {
 	loadedRecipes     []types.OpenInstallationRecipe
 	filteredRecipes   []types.OpenInstallationRecipe
 	discoveryManifest *types.DiscoveryManifest
-	logMatchFinder    discovery.LogMatchFinderDefinition
+	logMatchFinder    LogMatchFinderDefinition
 }
 
 type recipeMatch struct {
@@ -37,9 +36,9 @@ type recipeMatch struct {
 
 // NewRecipeRepository returns a new instance of types.RecipeRepository.
 func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
-	return newRecipeRepository(loaderFunc, manifest, discovery.NewLogMatchFinder())
+	return newRecipeRepository(loaderFunc, manifest, NewLogMatchFinder())
 }
-func newRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder discovery.LogMatchFinderDefinition) *RecipeRepository {
+func newRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder LogMatchFinderDefinition) *RecipeRepository {
 	rr := RecipeRepository{
 		RecipeLoaderFunc:  loaderFunc,
 		loadedRecipes:     nil,
