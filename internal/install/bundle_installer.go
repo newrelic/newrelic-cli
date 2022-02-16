@@ -10,19 +10,25 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+type StatusReporter interface {
+	ReportStatus(status execution.RecipeStatusType, recipe types.OpenInstallationRecipe)
+}
+
 type BundleInstaller struct {
 	installedRecipes map[string]bool
 	ctx              context.Context
 	manifest         *types.DiscoveryManifest
+	statusReporter   StatusReporter
 	recipeInstaller  *RecipeInstaller
 }
 
-func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstaller *RecipeInstaller) *BundleInstaller {
+func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstaller *RecipeInstaller, statusReporter StatusReporter) *BundleInstaller {
 
 	return &BundleInstaller{
 		ctx:              ctx,
 		manifest:         manifest,
 		recipeInstaller:  recipeInstaller,
+		statusReporter:   statusReporter,
 		installedRecipes: make(map[string]bool),
 	}
 }
@@ -57,7 +63,8 @@ func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
 
 	for _, recipe := range bundle.BundleRecipes {
 		for _, status := range recipe.Statuses {
-			bi.recipeInstaller.status.ReportStatus(status, *recipe.Recipe)
+			//TODO: should we keep track if status is already reported/saved
+			bi.statusReporter.ReportStatus(status, *recipe.Recipe)
 		}
 	}
 }

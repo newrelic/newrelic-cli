@@ -47,6 +47,8 @@ const (
 	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
 )
 
+var statusRollup *execution.InstallStatus
+
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
 	checkNetwork(nrClient)
 
@@ -69,7 +71,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	}
 	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
 	slg := execution.NewPlatformLinkGenerator()
-	statusRollup := execution.NewInstallStatus(ers, slg)
+	statusRollup = execution.NewInstallStatus(ers, slg)
 
 	d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
@@ -233,7 +235,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	bundler := recipes.NewBundler(ctx, repo)
 	coreBundle := bundler.CreateCoreBundle()
-	bundlerInstaller := NewBundleInstaller(ctx, m, i)
+	bundlerInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
 	err = bundlerInstaller.InstallStopOnError(coreBundle, true)
 	if err != nil {
 		log.Debugf("error installing core bundle: %s", err)

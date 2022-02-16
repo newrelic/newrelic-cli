@@ -21,3 +21,18 @@ func (b *Bundle) ContainsName(name string) bool {
 
 	return false
 }
+
+// Returns all recipes flatten with dependencies
+func (b *Bundle) AllRecipes() map[string]bool {
+
+	results := make(map[string]bool)
+
+	for i := 0; i < len(b.BundleRecipes); i++ {
+		recipeMap := b.BundleRecipes[i].Flatten()
+		for key, _ := range recipeMap {
+			results[key] = true
+		}
+	}
+
+	return results
+}
