@@ -3,28 +3,33 @@ package recipes
 import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"time"
 )
 
 type BundleRecipe struct {
-	Recipe       *types.OpenInstallationRecipe
-	Dependencies []*BundleRecipe
-	//maybe timestamp
-	Statuses []execution.RecipeStatusType
+	Recipe         *types.OpenInstallationRecipe
+	Dependencies   []*BundleRecipe
+	RecipeStatuses []recipeStatus
 }
 
-func (br *BundleRecipe) AddStatus(status execution.RecipeStatusType) {
-	if br.HasStatus(status) {
+type recipeStatus struct {
+	status     execution.RecipeStatusType
+	statusTime time.Time
+}
+
+func (br *BundleRecipe) AddStatus(newStatus execution.RecipeStatusType, statusTime time.Time) {
+	if br.HasStatus(newStatus) {
 		return
 	}
-	if status == execution.RecipeStatusTypes.AVAILABLE {
-		br.Statuses = append(br.Statuses, execution.RecipeStatusTypes.DETECTED)
+	if newStatus == execution.RecipeStatusTypes.AVAILABLE {
+		br.RecipeStatuses = append(br.RecipeStatuses, recipeStatus{status: execution.RecipeStatusTypes.DETECTED, statusTime: statusTime})
 	}
-	br.Statuses = append(br.Statuses, status)
+	br.RecipeStatuses = append(br.RecipeStatuses, recipeStatus{status: newStatus, statusTime: statusTime})
 }
 
 func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
-	for _, value := range br.Statuses {
-		if value == status {
+	for _, value := range br.RecipeStatuses {
+		if value.status == status {
 			return true
 		}
 	}

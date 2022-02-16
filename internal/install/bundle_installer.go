@@ -17,12 +17,13 @@ type BundleInstaller struct {
 	recipeInstaller  *RecipeInstaller
 }
 
-func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstaller *RecipeInstaller) *BundleInstaller {
+func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, statusReporter *execution.InstallStatus, recipeInstaller *RecipeInstaller) *BundleInstaller {
 
 	return &BundleInstaller{
 		ctx:              ctx,
 		manifest:         manifest,
 		recipeInstaller:  recipeInstaller,
+		statusReporter:   statusReporter,
 		installedRecipes: make(map[string]bool),
 	}
 }
@@ -56,7 +57,7 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
 
 	for _, recipe := range bundle.BundleRecipes {
-		for _, status := range recipe.Statuses {
+		for _, status := range recipe.RecipeStatuses {
 			bi.recipeInstaller.status.ReportStatus(status, *recipe.Recipe)
 		}
 	}
