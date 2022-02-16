@@ -8,16 +8,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//type BundleRecipeTest struct {
-//	timeInTheFuture time.Time
-//}
-//
-//var (
-//	bundleRecipeTestImpl = &BundleRecipeTest{
-//		timeInTheFuture: time.Date(3030, time.August, 17, 1, 2, 3, 4, time.UTC),
-//	}
-//)
-
 func TestBundleRecipeAddsStatusWithTime(t *testing.T) {
 	expectedStatusTime := time.Now()
 	expectedStatus := execution.RecipeStatusTypes.INSTALLING
