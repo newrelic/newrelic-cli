@@ -62,9 +62,9 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
 
 	for _, recipe := range bundle.BundleRecipes {
-		for _, status := range recipe.Statuses {
+		for _, status := range recipe.RecipeStatuses {
 			//TODO: should we keep track if status is already reported/saved
-			bi.statusReporter.ReportStatus(status, *recipe.Recipe)
+			bi.statusReporter.ReportStatus(status.Status, *recipe.Recipe)
 		}
 	}
 }

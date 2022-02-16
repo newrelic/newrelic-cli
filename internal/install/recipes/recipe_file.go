@@ -38,7 +38,7 @@ func (f *RecipeFileFetcher) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInst
 	}
 
 	if response.StatusCode < 200 || response.StatusCode > 299 {
-		return nil, fmt.Errorf("received non-2xx status code %d when retrieving recipe", response.StatusCode)
+		return nil, fmt.Errorf("received non-2xx Status code %d when retrieving recipe", response.StatusCode)
 	}
 
 	defer response.Body.Close()
