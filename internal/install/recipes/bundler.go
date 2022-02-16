@@ -82,10 +82,10 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	return bundleRecipe
 }
 
-// Control status
+// Control Status
 
-//Recipe Candidate, recipe + collection of status
-//Recipe context, capturing recipe intall info, timing, status..etc.
+//Recipe Candidate, recipe + collection of Status
+//Recipe context, capturing recipe intall info, timing, Status..etc.
 
 // func (b *Bundler) createAdditionalBundle(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
 // 	_, a := createBundles(coreBundleRecipeNames, recipes)

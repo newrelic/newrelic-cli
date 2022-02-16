@@ -16,8 +16,8 @@ func TestBundleRecipeAddsStatusWithTime(t *testing.T) {
 	br.AddStatus(expectedStatus, expectedStatusTime)
 
 	require.Equal(t, len(br.RecipeStatuses), 1)
-	require.Equal(t, expectedStatus, br.RecipeStatuses[0].status)
-	require.Equal(t, expectedStatusTime, br.RecipeStatuses[0].statusTime)
+	require.Equal(t, expectedStatus, br.RecipeStatuses[0].Status)
+	require.Equal(t, expectedStatusTime, br.RecipeStatuses[0].StatusTime)
 
 }
 
@@ -33,8 +33,8 @@ func TestBundleRecipeShouldAddStatusOnceAtFirstOccurance(t *testing.T) {
 	br.AddStatus(expectedStatus, mostRecentTime)
 
 	require.Equal(t, len(br.RecipeStatuses), 1)
-	require.Equal(t, expectedStatus, br.RecipeStatuses[0].status)
-	require.Equal(t, earliestTime, br.RecipeStatuses[0].statusTime)
+	require.Equal(t, expectedStatus, br.RecipeStatuses[0].Status)
+	require.Equal(t, earliestTime, br.RecipeStatuses[0].StatusTime)
 }
 
 func TestBundleRecipeShouldAddStatusDetectedWhenAvailable(t *testing.T) {
@@ -44,10 +44,10 @@ func TestBundleRecipeShouldAddStatusDetectedWhenAvailable(t *testing.T) {
 	br.AddStatus(execution.RecipeStatusTypes.AVAILABLE, expectedStatusTime)
 
 	require.Equal(t, len(br.RecipeStatuses), 2)
-	require.Equal(t, execution.RecipeStatusTypes.DETECTED, br.RecipeStatuses[0].status)
-	require.Equal(t, expectedStatusTime, br.RecipeStatuses[0].statusTime)
-	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, br.RecipeStatuses[1].status)
-	require.Equal(t, expectedStatusTime, br.RecipeStatuses[1].statusTime)
+	require.Equal(t, execution.RecipeStatusTypes.DETECTED, br.RecipeStatuses[0].Status)
+	require.Equal(t, expectedStatusTime, br.RecipeStatuses[0].StatusTime)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, br.RecipeStatuses[1].Status)
+	require.Equal(t, expectedStatusTime, br.RecipeStatuses[1].StatusTime)
 }
 
 func TestBundleRecipeHasStatusReturnsTrue(t *testing.T) {
@@ -70,9 +70,9 @@ func testBundleRecipe() *BundleRecipe {
 
 func testBundleRecipeWithStatus(status execution.RecipeStatusType, statusTime time.Time) *BundleRecipe {
 	bundleRecipe := testBundleRecipe()
-	bundleRecipe.RecipeStatuses = []recipeStatus{{
-		status:     status,
-		statusTime: statusTime,
+	bundleRecipe.RecipeStatuses = []RecipeStatus{{
+		Status:     status,
+		StatusTime: statusTime,
 	},
 	}
 	return bundleRecipe

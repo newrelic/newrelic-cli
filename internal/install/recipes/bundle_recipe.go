@@ -9,12 +9,12 @@ import (
 type BundleRecipe struct {
 	Recipe         *types.OpenInstallationRecipe
 	Dependencies   []*BundleRecipe
-	RecipeStatuses []recipeStatus
+	RecipeStatuses []RecipeStatus
 }
 
-type recipeStatus struct {
-	status     execution.RecipeStatusType
-	statusTime time.Time
+type RecipeStatus struct {
+	Status     execution.RecipeStatusType
+	StatusTime time.Time
 }
 
 func (br *BundleRecipe) AddStatus(newStatus execution.RecipeStatusType, statusTime time.Time) {
@@ -22,14 +22,14 @@ func (br *BundleRecipe) AddStatus(newStatus execution.RecipeStatusType, statusTi
 		return
 	}
 	if newStatus == execution.RecipeStatusTypes.AVAILABLE {
-		br.RecipeStatuses = append(br.RecipeStatuses, recipeStatus{status: execution.RecipeStatusTypes.DETECTED, statusTime: statusTime})
+		br.RecipeStatuses = append(br.RecipeStatuses, RecipeStatus{Status: execution.RecipeStatusTypes.DETECTED, StatusTime: statusTime})
 	}
-	br.RecipeStatuses = append(br.RecipeStatuses, recipeStatus{status: newStatus, statusTime: statusTime})
+	br.RecipeStatuses = append(br.RecipeStatuses, RecipeStatus{Status: newStatus, StatusTime: statusTime})
 }
 
 func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	for _, value := range br.RecipeStatuses {
-		if value.status == status {
+		if value.Status == status {
 			return true
 		}
 	}
