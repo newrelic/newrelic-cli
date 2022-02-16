@@ -29,10 +29,10 @@ func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, 
 
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
 
-	bi.ReportStatus(bundle)
+	bi.reportStatus(bundle)
 
 	for _, br := range bundle.BundleRecipes {
-		err := bi.InstallBundleRecipe(br, assumeYes)
+		err := bi.installBundleRecipe(br, assumeYes)
 
 		if err != nil {
 			return err
@@ -44,13 +44,16 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 
 func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool) {
 
+	//TODO does this need to `reportStatus` like InstallStopOnError?
+	// bi.reportStatus(bundle)
+
 	for _, br := range bundle.BundleRecipes {
-		err := bi.InstallBundleRecipe(br, assumeYes)
+		err := bi.installBundleRecipe(br, assumeYes)
 		log.Debugf("error installing recipe %v: %v", br.Recipe.Name, err)
 	}
 }
 
-func (bi *BundleInstaller) ReportStatus(bundle *recipes.Bundle) {
+func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
 
 	for _, recipe := range bundle.BundleRecipes {
 		for _, status := range recipe.Statuses {
@@ -59,13 +62,13 @@ func (bi *BundleInstaller) ReportStatus(bundle *recipes.Bundle) {
 	}
 }
 
-func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {
+func (bi *BundleInstaller) installBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {
 
 	// no dependencies
 	var err error
 
 	for _, dr := range bundleRecipe.Dependencies {
-		err = bi.InstallBundleRecipe(dr, assumeYes)
+		err = bi.installBundleRecipe(dr, assumeYes)
 		if err != nil {
 			return err
 		}
