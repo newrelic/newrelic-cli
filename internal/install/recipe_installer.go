@@ -217,30 +217,24 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	if err = i.assertDiscoveryValid(ctx, m); err != nil {
-		i.status.DiscoveryComplete(*m)
+	err = i.assertDiscoveryValid(ctx, m)
+	i.status.DiscoveryComplete(*m)
+
+	if err != nil {
 		return err
 	}
-
-	i.status.DiscoveryComplete(*m)
 
 	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
 	}, m)
 
-	// recipesForPlatform, err := repo.FindAll()
-	// if err != nil {
-	// 	log.Debugf("Unable to load any recipes, detail: %s", err)
-	// 	return err
-	// }
-
 	//FIXME: need to fix
 
 	bundler := recipes.NewBundler(ctx, repo)
 	coreBundle := bundler.CreateCoreBundle()
 	bundlerInstaller := NewBundleInstaller(ctx, m, i)
-	err = bundlerInstaller.InstallStopOnError(coreBundle)
+	err = bundlerInstaller.InstallStopOnError(coreBundle, true)
 	if err != nil {
 		log.Debugf("error installing core bundle: %s", err)
 		return err
@@ -505,7 +499,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	}
 }
 
-func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
+func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
 	i.executionProgressIndicator.Start(msg)
 	defer func() { i.executionProgressIndicator.Stop() }()
@@ -519,7 +513,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		return "", err
 	}
 
-	vars, err := i.recipeVarPreparer.Prepare(*m, *r, i.AssumeYes, licenseKey)
+	vars, err := i.recipeVarPreparer.Prepare(*m, *r, assumeYes, licenseKey)
 	if err != nil {
 		return "", err
 	}

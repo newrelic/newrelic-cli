@@ -5,6 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -26,12 +27,12 @@ func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, 
 	}
 }
 
-func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle) error {
+func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
 
 	bi.ReportStatus(bundle)
 
 	for _, br := range bundle.BundleRecipes {
-		err := bi.InstallBundleRecipe(br)
+		err := bi.InstallBundleRecipe(br, assumeYes)
 
 		if err != nil {
 			return err
@@ -39,6 +40,14 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle) error {
 	}
 
 	return nil
+}
+
+func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool) {
+
+	for _, br := range bundle.BundleRecipes {
+		err := bi.InstallBundleRecipe(br, assumeYes)
+		log.Debugf("error installing recipe %v: %v", br.Recipe.Name, err)
+	}
 }
 
 func (bi *BundleInstaller) ReportStatus(bundle *recipes.Bundle) {
@@ -50,42 +59,35 @@ func (bi *BundleInstaller) ReportStatus(bundle *recipes.Bundle) {
 	}
 }
 
-func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle) {
-
-	for _, br := range bundle.BundleRecipes {
-		_ = bi.InstallBundleRecipe(br)
-	}
-}
-
-func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe) error {
+func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {
 
 	// no dependencies
 	var err error
 
-	if len(bundleRecipe.Dependencies) == 0 {
-		if _, ok := bi.installedRecipes[bundleRecipe.Recipe.Name]; !ok {
-			recipeName := bundleRecipe.Recipe.Name
-			bi.installedRecipes[recipeName] = true
-
-			log.WithFields(log.Fields{
-				"name": recipeName,
-			}).Debug("installing recipe")
-
-			_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe)
-
-			if err != nil {
-				log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
-				return err
-			}
-			log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
-		}
-	}
-
 	for _, dr := range bundleRecipe.Dependencies {
-		err = bi.InstallBundleRecipe(dr)
+		err = bi.InstallBundleRecipe(dr, assumeYes)
 		if err != nil {
 			return err
 		}
+	}
+
+	var withAvailableToInstallStatus = bundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE)
+
+	if _, found := bi.installedRecipes[bundleRecipe.Recipe.Name]; !found && withAvailableToInstallStatus {
+		recipeName := bundleRecipe.Recipe.Name
+		bi.installedRecipes[recipeName] = true
+
+		log.WithFields(log.Fields{
+			"name": recipeName,
+		}).Debug("installing recipe")
+
+		_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe, assumeYes)
+
+		if err != nil {
+			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
+			return err
+		}
+		log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
 	}
 
 	//TODO: actual install here

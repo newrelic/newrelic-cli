@@ -27,6 +27,7 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
+//TODO: Should this also detect recipe dependencies?  Should recipe itself be available to install if one of its dependency is not?
 func (dt *RecipeDetector) DetectBundle(ctx context.Context, bundle *Bundle) {
 	for _, bundleRecipe := range bundle.BundleRecipes {
 		status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
