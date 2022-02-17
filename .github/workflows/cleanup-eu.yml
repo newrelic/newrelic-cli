@@ -25,6 +25,12 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/open-install-library
+          path: open-install-library
+
       - name: Write AWS Certificate to File
         env:
           AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
