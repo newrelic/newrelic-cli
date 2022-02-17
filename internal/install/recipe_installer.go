@@ -243,7 +243,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 
 	additionalBundle := bundler.CreateAdditionalBundle()
-	bundlerInstaller.InstallContinueOnError(additionalBundle, false)
+	bundlerInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	return nil
 
@@ -375,6 +375,7 @@ func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifes
 	return m, nil
 }
 
+// intalling recipe
 func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
@@ -435,6 +436,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 type validationFunc func() (string, error)
 
+// Post install validation
 func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
 	defer cancel()
@@ -504,6 +506,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	}
 }
 
+// Installing recipe
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
 	i.executionProgressIndicator.Start(msg)

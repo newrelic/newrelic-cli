@@ -23,13 +23,14 @@ type bundlerTest struct {
 }
 
 type mockDetector struct {
-	status execution.RecipeStatusType
+	detectionStatus map[string]execution.RecipeStatusType
 }
 
 var (
+	detectionStatus = make(map[string]execution.RecipeStatusType)
 	bundlerTestImpl = bundlerTest{
-		processEvaluator:  &mockDetector{},
-		scriptedEvaluator: &mockDetector{},
+		processEvaluator:  &mockDetector{detectionStatus: detectionStatus},
+		scriptedEvaluator: &mockDetector{detectionStatus: detectionStatus},
 	}
 )
 
@@ -40,7 +41,6 @@ func TestBundlerShouldCreateCoreBundle(t *testing.T) {
 	addRecipeToCache("id3", types.GoldenRecipeName)
 	addRecipeToCache("id4", "mysql")
 	bundler := createTestBundler()
-
 	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 3, len(coreBundle.BundleRecipes))
@@ -56,7 +56,7 @@ func TestBundlerShouldCreateAdditionalBundle(t *testing.T) {
 	addRecipeToCache("id3", types.GoldenRecipeName)
 	addRecipeToCache("id4", "mysql")
 	bundler := createTestBundler()
-
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
 	coreBundle := bundler.CreateAdditionalBundle()
 
 	require.Equal(t, 1, len(coreBundle.BundleRecipes))
@@ -65,12 +65,11 @@ func TestBundlerShouldCreateAdditionalBundle(t *testing.T) {
 
 func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
 	setup()
-	addRecipeToCache("id1", types.InfraAgentRecipeName)
+	addRecipeToCache("id2", types.InfraAgentRecipeName)
 	addRecipeToCache("id2", types.LoggingRecipeName)
 	addRecipeToCache("id3", types.GoldenRecipeName)
 	addRecipeToCache("id4", "mysql")
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, execution.RecipeStatusTypes.AVAILABLE)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -90,6 +89,8 @@ func TestBundlerShouldIncludeDependencies(t *testing.T) {
 	addRecipeToCache("id3", "dep1")
 	addRecipeToCache("id4", "dep2")
 	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -132,6 +133,33 @@ func TestBundlerShouldCreateEmptyCore(t *testing.T) {
 	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
+func TestBundlerShouldNotBundleWhenNotDetected(t *testing.T) {
+	setup()
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.NULL)
+
+	coreBundle := bundler.CreateAdditionalBundle()
+
+	require.Equal(t, 0, len(coreBundle.BundleRecipes))
+	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
+}
+
+func TestBundlerShouldNotBundleDependencyWhenNotDetected(t *testing.T) {
+
+	setup()
+	bundlerTestImpl.addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
+	addRecipeToCache("id3", "dep1")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.NULL)
+
+	coreBundle := bundler.CreateCoreBundle()
+
+	require.Equal(t, 1, len(coreBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
+}
+
 func findRecipeByName(bundle *Bundle, name string) *types.OpenInstallationRecipe {
 	for _, r := range bundle.BundleRecipes {
 		if strings.EqualFold(r.Recipe.Name, name) {
@@ -164,12 +192,20 @@ func setup() {
 }
 
 func createTestBundler() *Bundler {
-	return newBundler(bundlerTestImpl.ctx, bundlerTestImpl.recipeRepository, bundlerTestImpl.recipeDetector)
+	bundler := newBundler(bundlerTestImpl.ctx, bundlerTestImpl.recipeRepository, bundlerTestImpl.recipeDetector)
+
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+
+	return bundler
 }
 
-func withRecipeStatusDetector(bundler *Bundler, status execution.RecipeStatusType) {
-	bundlerTestImpl.processEvaluator = &mockDetector{status}
-	bundlerTestImpl.scriptedEvaluator = &mockDetector{status}
+func withRecipeStatusDetector(bundler *Bundler, recipeName string, status execution.RecipeStatusType) {
+	detectionStatus[recipeName] = status
+
+	bundlerTestImpl.processEvaluator = &mockDetector{detectionStatus: detectionStatus}
+	bundlerTestImpl.scriptedEvaluator = &mockDetector{detectionStatus: detectionStatus}
 	bundlerTestImpl.recipeDetector = newRecipeDetector(bundlerTestImpl.processEvaluator, bundlerTestImpl.scriptedEvaluator)
 	bundler.RecipeDetector = bundlerTestImpl.recipeDetector
 }
@@ -210,5 +246,8 @@ func (br *bundlerTest) addRecipeWithDependenciesToCache(id string, name string, 
 }
 
 func (d mockDetector) DetectionStatus(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {
-	return d.status
+	if v, ok := d.detectionStatus[recipe.Name]; ok {
+		return v
+	}
+	return execution.RecipeStatusTypes.NULL
 }

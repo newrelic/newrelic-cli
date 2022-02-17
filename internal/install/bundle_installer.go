@@ -50,6 +50,7 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 
 func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool) {
 
+	bi.reportStatus(bundle)
 	//TODO does this need to `reportStatus` like InstallStopOnError?
 	// bi.reportStatus(bundle)
 

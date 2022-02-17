@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -66,10 +67,15 @@ func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle 
 		// recipe shouldn't have itself as dependency
 		visited := map[string]bool{r.Name: true}
 		bundleRecipe := b.getBundleRecipeWithDependencies(r, visited)
-		bundle.AddRecipe(bundleRecipe)
+
+		if bundleRecipe != nil {
+			bundle.AddRecipe(bundleRecipe)
+		}
 	}
 
-	b.RecipeDetector.DetectBundle(b.Context, bundle)
+	//TODO: might wire detection during dependency
+	//Log dependency is not installed, but still install parent
+	//b.RecipeDetector.DetectBundle(b.Context, bundle)
 
 	return bundle
 }
@@ -86,12 +92,21 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 		Recipe: recipe,
 	}
 
+	//this is the parent
+	//FIXME: don't like returning nil
+	b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
+	if bundleRecipe.HasStatus(execution.RecipeStatusTypes.NULL) {
+		return nil
+	}
+
 	for _, d := range recipe.Dependencies {
 		if !visited[d] {
 			visited[d] = true
 			if r := b.RecipeRepository.FindRecipeByName(d); r != nil {
 				dr := b.getBundleRecipeWithDependencies(r, visited)
-				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+				if dr != nil {
+					bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+				}
 			}
 		}
 	}

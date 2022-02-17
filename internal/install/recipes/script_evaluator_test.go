@@ -4,6 +4,7 @@
 package recipes
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -20,7 +21,7 @@ func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
 	GivenExecutorError("something went wrong")
 	recipe := createRecipe("id1", "myrecipe")
 
-	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluator().DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
@@ -29,7 +30,7 @@ func TestScriptEvaluatorShouldDetect(t *testing.T) {
 	GivenExecutorError("This is the specific message with exit status 132 special case")
 	recipe := createRecipe("id1", "myrecipe")
 
-	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluator().DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, status)
 }
@@ -38,7 +39,7 @@ func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
 	GivenExecutorSuccess()
 	recipe := createRecipe("id1", "myrecipe")
 
-	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluator().DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
