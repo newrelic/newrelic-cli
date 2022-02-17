@@ -7,94 +7,88 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-var (
-	recipeDetectorProcessEvaluator = &mockRecipeEvaluator{}
-	recipeDetectorScriptEvaluator  = &mockRecipeEvaluator{}
-	recipeDetector                 = *newRecipeDetector(recipeDetectorProcessEvaluator, recipeDetectorScriptEvaluator)
-)
+func TestRecipeDetectorShouldFailBecauseOfProcessEvaluation(t *testing.T) {
+	recipe := NewRecipeBuilder().Build()
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorStatus(execution.RecipeStatusTypes.NULL)
+	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
 
-func TestRecipeDetectorShouldGetProcessEvalStatusNull(t *testing.T) {
-	recipe := givenRecipeWithNoProcessMatching()
-	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.NULL)
-	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
-
-	statusDetectionResult := recipeDetector.detectRecipe(context.Background(), recipe)
-	actual := statusDetectionResult
+	actual := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
-func TestRecipeDetectorShouldGetProcessEvalStatusAvaliable(t *testing.T) {
-	recipe := givenRecipeWithNoProcessMatching()
-	withEmptyPreInstallRequiredAtDiscoverSection()
-	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
-	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.DETECTED)
+func TestRecipeDetectorShouldBeAvailableWhenRecipeScriptDetectionIsMissingScript(t *testing.T) {
+	recipe := NewRecipeBuilder().Build()
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.DETECTED)
+	detector := b.Build()
 
-	statusDetectionResult := recipeDetector.detectRecipe(context.Background(), recipe)
-	actual := statusDetectionResult
+	actual := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
-func TestRecipeDetectorShouldGetScriptEvalStatusNull(t *testing.T) {
-	recipe := withPreInstallRequiredAtDiscoverSection()
-	withPreInstallRequiredAtDiscoverSection()
-	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
-	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.NULL)
+func TestRecipeDetectorShouldFailWhenScriptFails(t *testing.T) {
+	recipe := NewRecipeBuilder().WithPreInstallScript("pre-install script mock").Build()
 
-	statusDetectionResult := recipeDetector.detectRecipe(context.Background(), recipe)
-	actual := statusDetectionResult
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.NULL)
+	detector := b.Build()
+
+	actual := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
-func TestRecipeDetectorShouldGetScriptEvalStatusDetected(t *testing.T) {
-	recipe := withPreInstallRequiredAtDiscoverSection()
-	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
-	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.DETECTED)
+func TestRecipeDetectorShouldDetectBecauseOfScriptEvaluation(t *testing.T) {
+	recipe := NewRecipeBuilder().WithPreInstallScript("pre-install script mock").Build()
 
-	statusDetectionResult := recipeDetector.detectRecipe(context.Background(), recipe)
-	actual := statusDetectionResult
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.DETECTED)
+	detector := b.Build()
+
+	actual := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual)
 }
-func TestRecipeDetectorShouldGetScriptEvalStatusAvailable(t *testing.T) {
-	recipe := withPreInstallRequiredAtDiscoverSection()
-	withProcessEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
-	withScriptEvaluatorReturnStatus(execution.RecipeStatusTypes.AVAILABLE)
 
-	statusDetectionResult := recipeDetector.detectRecipe(context.Background(), recipe)
-	actual := statusDetectionResult
+func TestRecipeDetectorShouldBeAvailableBecauseOfScriptEvaluation(t *testing.T) {
+	recipe := NewRecipeBuilder().WithPreInstallScript("pre-install script mock").Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
+
+	actual := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
-func givenRecipeWithNoProcessMatching() *types.OpenInstallationRecipe {
-	return NewRecipeBuilder().Build()
+type RecipeDetectorTestBuilder struct {
+	processEvaluator *MockRecipeEvaluator
+	scriptEvaluator  *MockRecipeEvaluator
 }
 
-func withEmptyPreInstallRequiredAtDiscoverSection() {
-}
-
-func withPreInstallRequiredAtDiscoverSection() *types.OpenInstallationRecipe {
-	recipe := NewRecipeBuilder().Build()
-	recipe.PreInstall = types.OpenInstallationPreInstallConfiguration{
-		RequireAtDiscovery: "pre-install script mock",
+func NewRecipeDetectorTestBuilder() *RecipeDetectorTestBuilder {
+	return &RecipeDetectorTestBuilder{
+		processEvaluator: &MockRecipeEvaluator{},
+		scriptEvaluator:  &MockRecipeEvaluator{},
 	}
-
-	return recipe
 }
 
-func withProcessEvaluatorReturnStatus(status execution.RecipeStatusType) {
-	recipeDetectorProcessEvaluator.status = status
+func (b *RecipeDetectorTestBuilder) WithProcessEvaluatorStatus(status execution.RecipeStatusType) *RecipeDetectorTestBuilder {
+	b.processEvaluator.status = status
+	return b
 }
 
-func withScriptEvaluatorReturnStatus(status execution.RecipeStatusType) {
-	recipeDetectorScriptEvaluator.status = status
+func (b *RecipeDetectorTestBuilder) WithScriptEvaluatorStatus(status execution.RecipeStatusType) *RecipeDetectorTestBuilder {
+	b.scriptEvaluator.status = status
+	return b
 }
 
-type mockRecipeEvaluator struct {
-	status execution.RecipeStatusType
-}
-
-func (mre *mockRecipeEvaluator) DetectionStatus(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {
-	return mre.status
+func (b *RecipeDetectorTestBuilder) Build() *RecipeDetector {
+	return newRecipeDetector(b.processEvaluator, b.scriptEvaluator)
 }
