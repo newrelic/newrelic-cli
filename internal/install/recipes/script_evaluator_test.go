@@ -13,36 +13,38 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 )
 
-func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
+func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
-	status := GiveScriptEvaluator().DetectionStatus(context.Background(), recipe)
+	status := GivenScriptEvaluator().DetectionStatus(context.Background(), recipe)
 
-	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
 
 func TestScriptEvaluatorShouldDetect(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
-	status := GiveScriptEvaluator().DetectionStatus(context.Background(), recipe)
+	evaluator := GivenScriptEvaluatorError("This is the specific message with exit status 132 special case")
+	status := evaluator.DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, status)
 }
 
-func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
+func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
-	status := GiveScriptEvaluator().DetectionStatus(context.Background(), recipe)
+	evaluator := GivenScriptEvaluatorError("something went wrong")
+	status := evaluator.DetectionStatus(context.Background(), recipe)
 
-	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
+	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
 
-func GiveScriptEvaluatorSuccess() *ScriptEvaluator {
+func GivenScriptEvaluator() *ScriptEvaluator {
 	recipeExecutor := execution.NewMockRecipeExecutor()
 	return newScriptEvaluator(recipeExecutor)
 }
 
-func GiveScriptEvaluatorError(detail string) *ScriptEvaluator {
+func GivenScriptEvaluatorError(detail string) *ScriptEvaluator {
 	recipeExecutor := execution.NewMockRecipeExecutor()
 	recipeExecutor.ExecuteErr = fmt.Errorf(detail)
 	return newScriptEvaluator(recipeExecutor)
