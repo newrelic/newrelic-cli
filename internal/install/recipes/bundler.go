@@ -41,6 +41,23 @@ func (b *Bundler) CreateCoreBundle() *Bundle {
 	return b.CreateBundle(coreRecipes)
 }
 
+func (b *Bundler) CreateAdditionalBundle() *Bundle {
+
+	coreBundle := b.CreateCoreBundle()
+	coreBundleRecipes := coreBundle.Flatten()
+
+	var additionalRecipes []*types.OpenInstallationRecipe
+
+	for i := 0; i < len(b.RecipeRepository.filteredRecipes); i++ {
+
+		if !coreBundleRecipes[b.RecipeRepository.filteredRecipes[i].Name] {
+			additionalRecipes = append(additionalRecipes, &b.RecipeRepository.filteredRecipes[i])
+		}
+	}
+
+	return b.CreateBundle(additionalRecipes)
+}
+
 func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
 
 	bundle := &Bundle{}

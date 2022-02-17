@@ -13,24 +13,23 @@ import (
 )
 
 var (
-	recipeExecutor  *execution.MockRecipeExecutor = execution.NewMockRecipeExecutor()
-	scriptEvaluator                               = newScriptEvaluator(recipeExecutor)
+	recipeExecutor *execution.MockRecipeExecutor = execution.NewMockRecipeExecutor()
 )
 
 func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
 	GivenExecutorError("something went wrong")
 	recipe := createRecipe("id1", "myrecipe")
 
-	status := scriptEvaluator.DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
 
 func TestScriptEvaluatorShouldDetect(t *testing.T) {
-	GivenExecutorError("This is the specific message with exit Status 132 special case")
+	GivenExecutorError("This is the specific message with exit status 132 special case")
 	recipe := createRecipe("id1", "myrecipe")
 
-	status := scriptEvaluator.DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, status)
 }
@@ -39,9 +38,13 @@ func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
 	GivenExecutorSuccess()
 	recipe := createRecipe("id1", "myrecipe")
 
-	status := scriptEvaluator.DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
+}
+
+func GiveScriptEvaluator() *ScriptEvaluator {
+	return newScriptEvaluator(recipeExecutor)
 }
 
 func GivenExecutorSuccess() {
