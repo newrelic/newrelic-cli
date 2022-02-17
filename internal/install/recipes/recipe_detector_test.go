@@ -68,16 +68,17 @@ func TestRecipeDetectorShouldGetScriptEvalStatusAvailable(t *testing.T) {
 }
 
 func givenRecipeWithNoProcessMatching() *types.OpenInstallationRecipe {
-	return createRecipe("0", "recipe1")
+	return NewRecipeBuilder().Build()
 }
 
 func withEmptyPreInstallRequiredAtDiscoverSection() {
 }
 
 func withPreInstallRequiredAtDiscoverSection() *types.OpenInstallationRecipe {
-	recipe := createRecipe("0", "recipe1")
+	recipe := NewRecipeBuilder().Build()
 	recipe.PreInstall = types.OpenInstallationPreInstallConfiguration{
-		RequireAtDiscovery: "pre-install script mock"}
+		RequireAtDiscovery: "pre-install script mock",
+	}
 
 	return recipe
 }
