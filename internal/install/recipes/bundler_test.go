@@ -34,13 +34,14 @@ var (
 	}
 )
 
-func TestBundlerShouldCreateCoreBundle(t *testing.T) {
+func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 	setup()
 	addRecipeToCache("id1", types.InfraAgentRecipeName)
 	addRecipeToCache("id2", types.LoggingRecipeName)
 	addRecipeToCache("id3", types.GoldenRecipeName)
 	addRecipeToCache("id4", "mysql")
 	bundler := createTestBundler()
+
 	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 3, len(coreBundle.BundleRecipes))
@@ -50,20 +51,21 @@ func TestBundlerShouldCreateCoreBundle(t *testing.T) {
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestBundlerShouldCreateAdditionalBundle(t *testing.T) {
+func TestCreateAdditionalBundleShouldCreateAdditionalBundle(t *testing.T) {
 	setup()
 	addRecipeToCache("id2", types.LoggingRecipeName)
 	addRecipeToCache("id3", types.GoldenRecipeName)
 	addRecipeToCache("id4", "mysql")
 	bundler := createTestBundler()
 	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+
 	coreBundle := bundler.CreateAdditionalBundle()
 
 	require.Equal(t, 1, len(coreBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
+func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
 	setup()
 	addRecipeToCache("id2", types.InfraAgentRecipeName)
 	addRecipeToCache("id2", types.LoggingRecipeName)
@@ -74,7 +76,6 @@ func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
 	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 3, len(coreBundle.BundleRecipes))
-
 	for _, r := range coreBundle.BundleRecipes {
 		lastStatusIndex := len(r.RecipeStatuses) - 1
 		require.Equal(t, 2, len(r.RecipeStatuses))
@@ -82,10 +83,10 @@ func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
 	}
 }
 
-func TestBundlerShouldIncludeDependencies(t *testing.T) {
+func TestCreateCoreBundleShouldIncludeDependencies(t *testing.T) {
 	setup()
-	bundlerTestImpl.addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2"})
-	bundlerTestImpl.addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep2"})
+	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2"})
+	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep2"})
 	addRecipeToCache("id3", "dep1")
 	addRecipeToCache("id4", "dep2")
 	bundler := createTestBundler()
@@ -105,9 +106,9 @@ func TestBundlerShouldIncludeDependencies(t *testing.T) {
 	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[1], "dep2"))
 }
 
-func TestBundlerShouldNotIncludeInvalidDependencies(t *testing.T) {
+func TestCreateCoreBundleShouldNotIncludeInvalidDependencies(t *testing.T) {
 	setup()
-	bundlerTestImpl.addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
+	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
 	addRecipeToCache("id2", "dep1")
 	addRecipeToCache("id3", "dep2")
 	bundler := createTestBundler()
@@ -123,9 +124,9 @@ func TestBundlerShouldNotIncludeInvalidDependencies(t *testing.T) {
 	require.Nil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep3"))
 }
 
-func TestBundlerShouldCreateEmptyCore(t *testing.T) {
+func TestCreateCoreBundleShouldCreateEmptyCore(t *testing.T) {
 	setup()
-	addRecipeToCache("id4", "mysql")
+	addRecipeToCache("id1", "mysql")
 	bundler := createTestBundler()
 
 	coreBundle := bundler.CreateCoreBundle()
@@ -133,9 +134,9 @@ func TestBundlerShouldCreateEmptyCore(t *testing.T) {
 	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
-func TestBundlerShouldNotBundleWhenNotDetected(t *testing.T) {
+func TestCreateAdditionalBundleShouldNotBundleRecipesThatHaveNullStatus(t *testing.T) {
 	setup()
-	addRecipeToCache("id4", "mysql")
+	addRecipeToCache("id1", "mysql")
 	bundler := createTestBundler()
 	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.NULL)
 
@@ -145,10 +146,9 @@ func TestBundlerShouldNotBundleWhenNotDetected(t *testing.T) {
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestBundlerShouldNotBundleDependencyWhenNotDetected(t *testing.T) {
-
+func TestCreateCoreBundleShouldNotBundleDependencyWhenNotDetected(t *testing.T) {
 	setup()
-	bundlerTestImpl.addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
+	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
 	addRecipeToCache("id3", "dep1")
 	bundler := createTestBundler()
 	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.NULL)
@@ -215,33 +215,19 @@ func bundlerRecipeLoader() ([]types.OpenInstallationRecipe, error) {
 }
 
 func addRecipeToCache(id string, name string) *types.OpenInstallationRecipe {
-	r := &types.OpenInstallationRecipe{
-		ID:   id,
-		Name: name,
-	}
-	t := types.OpenInstallationRecipeInstallTarget{
-		Os: "linux",
-	}
-	r.InstallTargets = append(r.InstallTargets, t)
+	r := NewRecipeBuilder().ID(id).Name(name).TargetOs(types.OpenInstallationOperatingSystemTypes.LINUX).Build()
 	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, *r)
 	return r
 }
 
-func (br *bundlerTest) addRecipeWithDependenciesToCache(id string, name string, dependencies []string) *types.OpenInstallationRecipe {
-	r := &types.OpenInstallationRecipe{
-		ID:   id,
-		Name: name,
-	}
-	t := types.OpenInstallationRecipeInstallTarget{
-		Os: "linux",
-	}
-	r.InstallTargets = append(r.InstallTargets, t)
+func addRecipeWithDependenciesToCache(id string, name string, dependencies []string) *types.OpenInstallationRecipe {
+	r := NewRecipeBuilder().ID(id).Name(name).TargetOs(types.OpenInstallationOperatingSystemTypes.LINUX).Build()
 
 	if len(dependencies) > 0 {
 		r.Dependencies = dependencies
 	}
 
-	br.recipeCache = append(bundlerTestImpl.recipeCache, *r)
+	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, *r)
 	return r
 }
 
