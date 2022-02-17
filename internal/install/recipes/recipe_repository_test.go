@@ -23,14 +23,14 @@ func Setup() {
 	repository = newRecipeRepository(recipeLoader, &discoveryManifest, logMatchFinder)
 }
 
-func Test_ShouldFindAll_Empty(t *testing.T) {
+func TestRecipeRepository_ShouldFindAll_Empty(t *testing.T) {
 	Setup()
 	recipes, _ := repository.FindAll()
 
 	require.Empty(t, recipes)
 }
 
-func Test_ShouldFindSingleRecipe(t *testing.T) {
+func TestRecipeRepository_ShouldFindSingleRecipe(t *testing.T) {
 	Setup()
 	givenCachedRecipe("id1", "my-recipe")
 
@@ -40,7 +40,7 @@ func Test_ShouldFindSingleRecipe(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_ShouldFindSingleOsRecipe(t *testing.T) {
+func TestRecipeRepository_ShouldFindSingleOsRecipe(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX)
 	discoveryManifest.OS = "linux"
@@ -51,7 +51,7 @@ func Test_ShouldFindSingleOsRecipe(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_ShouldFindMatchingByRegex(t *testing.T) {
+func TestRecipeRepository_ShouldFindMatchingByRegex(t *testing.T) {
 	Setup()
 	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "((8|9|10)\\.?.*)", "aarch64")
 	discoveryManifest.OS = "linux"
@@ -64,7 +64,7 @@ func Test_ShouldFindMatchingByRegex(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_ShouldNotFindRegexWhenMissingParenthesis(t *testing.T) {
+func TestRecipeRepository_ShouldNotFindRegexWhenMissingParenthesis(t *testing.T) {
 	Setup()
 	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "10\\.?.*", "aarch64")
 	discoveryManifest.OS = "linux"
@@ -76,7 +76,7 @@ func Test_ShouldNotFindRegexWhenMissingParenthesis(t *testing.T) {
 	require.Len(t, results, 0)
 }
 
-func Test_ShouldFilterOutMatchingByRegex(t *testing.T) {
+func TestRecipeRepository_ShouldFilterOutMatchingByRegex(t *testing.T) {
 	Setup()
 	givenCachedRecipeOsPlatformVersionArch("id1", "my-recipe", types.OpenInstallationOperatingSystemTypes.LINUX, "((8|9|10)\\.?.*)", "aarch64")
 	discoveryManifest.OS = "linux"
@@ -88,7 +88,7 @@ func Test_ShouldFilterOutMatchingByRegex(t *testing.T) {
 	require.Len(t, results, 0)
 }
 
-func Test_ShouldNotFindSingleOsRecipe(t *testing.T) {
+func TestRecipeRepository_ShouldNotFindSingleOsRecipe(t *testing.T) {
 	// log.SetLevel(log.TraceLevel)
 	Setup()
 	givenCachedRecipeOs("id1", "my-recipe3", types.OpenInstallationOperatingSystemTypes.LINUX)
@@ -98,7 +98,7 @@ func Test_ShouldNotFindSingleOsRecipe(t *testing.T) {
 	require.Len(t, results, 0)
 }
 
-func Test_ShouldFindMostMatchingSingleRecipe(t *testing.T) {
+func TestRecipeRepository_ShouldFindMostMatchingSingleRecipe(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("id1", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX)
 	givenCachedRecipeOsPlatform("id2", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -112,7 +112,7 @@ func Test_ShouldFindMostMatchingSingleRecipe(t *testing.T) {
 	require.Equal(t, results[0].ID, "id2")
 }
 
-func Test_ShouldFindMostMatchingSingleRecipeWithoutPlatform(t *testing.T) {
+func TestRecipeRepository_ShouldFindMostMatchingSingleRecipeWithoutPlatform(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("id1", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX)
 	givenCachedRecipeOsPlatform("id2", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -126,7 +126,7 @@ func Test_ShouldFindMostMatchingSingleRecipeWithoutPlatform(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_ShouldDiscardMostMatchingWithoutAllFieldsMatching(t *testing.T) {
+func TestRecipeRepository_ShouldDiscardMostMatchingWithoutAllFieldsMatching(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("id1", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX)
 	givenCachedRecipeOsPlatform("id2", "my-recipe2", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -142,7 +142,7 @@ func Test_ShouldDiscardMostMatchingWithoutAllFieldsMatching(t *testing.T) {
 	require.Equal(t, results[0].ID, "id1")
 }
 
-func Test_ShouldFindMultipleNames(t *testing.T) {
+func TestRecipeRepository_ShouldFindMultipleNames(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
 	givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -159,7 +159,7 @@ func Test_ShouldFindMultipleNames(t *testing.T) {
 	require.True(t, containsID(results, "id4"))
 }
 
-func Test_ShouldOrderInfraLogFirst(t *testing.T) {
+func TestRecipeRepository_ShouldOrderInfraLogFirst(t *testing.T) {
 	Setup()
 	givenCachedRecipeOs("any1", "a-recipe", types.OpenInstallationOperatingSystemTypes.LINUX)
 	givenCachedRecipeOs("log1", types.LoggingRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
@@ -174,7 +174,7 @@ func Test_ShouldOrderInfraLogFirst(t *testing.T) {
 	require.Equal(t, results[2].Name, "a-recipe")
 }
 
-func Test_matchRecipeCriteria_Basic(t *testing.T) {
+func TestRecipeRepository_matchRecipeCriteria_Basic(t *testing.T) {
 	Setup()
 	discoveryManifest.Platform = "linux"
 
@@ -183,14 +183,14 @@ func Test_matchRecipeCriteria_Basic(t *testing.T) {
 	require.True(t, actual)
 }
 
-func Test_matchRecipeCriteria_EmptyString(t *testing.T) {
+func TestRecipeRepository_matchRecipeCriteria_EmptyString(t *testing.T) {
 	Setup()
 	hostMap := getHostMap(&discoveryManifest)
 	actual := matchRecipeCriteria(hostMap, "Platform", "")
 	require.True(t, actual)
 }
 
-func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
+func TestRecipeRepository_matchRecipeCriteria_KeyMissing(t *testing.T) {
 	Setup()
 
 	hostMap := getHostMap(&discoveryManifest)
@@ -198,7 +198,7 @@ func Test_matchRecipeCriteria_KeyMissing(t *testing.T) {
 	require.False(t, actual)
 }
 
-func Test_shouldFindMaxMatch_First(t *testing.T) {
+func TestRecipeRepository_shouldFindMaxMatch_First(t *testing.T) {
 	matches := []recipeMatch{}
 	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
 	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -215,7 +215,7 @@ func Test_shouldFindMaxMatch_First(t *testing.T) {
 	require.Equal(t, result.recipe.ID, "id1")
 }
 
-func Test_shouldFindMaxMatch_Last(t *testing.T) {
+func TestRecipeRepository_shouldFindMaxMatch_Last(t *testing.T) {
 	matches := []recipeMatch{}
 	recipe1 := givenCachedRecipeOs("id1", "infra", types.OpenInstallationOperatingSystemTypes.LINUX)
 	recipe2 := givenCachedRecipeOsPlatform("id2", "infra", types.OpenInstallationOperatingSystemTypes.LINUX, types.OpenInstallationPlatformTypes.DEBIAN)
@@ -237,60 +237,32 @@ func recipeLoader() ([]types.OpenInstallationRecipe, error) {
 }
 
 func givenCachedRecipeOs(id string, name string, os types.OpenInstallationOperatingSystem) *types.OpenInstallationRecipe {
-	r := createRecipe(id, name)
-	t := types.OpenInstallationRecipeInstallTarget{
-		Os: os,
-	}
-	r.InstallTargets = append(r.InstallTargets, t)
+	r := NewRecipeBuilder().ID(id).Name(name).TargetOs(os).Build()
 	recipeCache = append(recipeCache, *r)
 	return r
 }
 
 func givenCachedRecipeOsPlatform(id string, name string, os types.OpenInstallationOperatingSystem, platform types.OpenInstallationPlatform) *types.OpenInstallationRecipe {
-	r := createRecipe(id, name)
-	t := types.OpenInstallationRecipeInstallTarget{
-		Os:       os,
-		Platform: platform,
-	}
-	r.InstallTargets = append(r.InstallTargets, t)
+	r := NewRecipeBuilder().ID(id).Name(name).TargetOsPlatform(os, platform).Build()
 	recipeCache = append(recipeCache, *r)
 	return r
 }
 
 func givenCachedRecipeOsArch(id string, name string, os types.OpenInstallationOperatingSystem, arch string) *types.OpenInstallationRecipe {
-	r := createRecipe(id, name)
-	t := types.OpenInstallationRecipeInstallTarget{
-		KernelArch: arch,
-		Os:         os,
-	}
-	r.InstallTargets = append(r.InstallTargets, t)
+	r := NewRecipeBuilder().ID(id).Name(name).TargetOsArch(os, arch).Build()
 	recipeCache = append(recipeCache, *r)
 	return r
 }
 
 func givenCachedRecipeOsPlatformVersionArch(id string, name string, os types.OpenInstallationOperatingSystem, platformVersion string, arch string) *types.OpenInstallationRecipe {
-	r := createRecipe(id, name)
-	t := types.OpenInstallationRecipeInstallTarget{
-		KernelArch:      arch,
-		Os:              os,
-		PlatformVersion: platformVersion,
-	}
-	r.InstallTargets = append(r.InstallTargets, t)
+	r := NewRecipeBuilder().ID(id).Name(name).TargetOsPlatformVersionArch(os, platformVersion, arch).Build()
 	recipeCache = append(recipeCache, *r)
 	return r
 }
 
 func givenCachedRecipe(id string, name string) *types.OpenInstallationRecipe {
-	r := createRecipe(id, name)
+	r := NewRecipeBuilder().ID(id).Name(name).Build()
 	recipeCache = append(recipeCache, *r)
-	return r
-}
-
-func createRecipe(id string, name string) *types.OpenInstallationRecipe {
-	r := &types.OpenInstallationRecipe{
-		ID:   id,
-		Name: name,
-	}
 	return r
 }
 
