@@ -16,7 +16,7 @@ import (
 func TestProcessEvaluatorShouldGetAvailable(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
-	status := GivenProcessEvaluator().DetectionStatus(ctx, recipe)
+	status := GivenProcessEvaluator().DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
@@ -25,7 +25,7 @@ func TestProcessEvaluatorShouldGetAvailable_Matching(t *testing.T) {
 	recipe := NewRecipeBuilder().ProcessMatch("abc").Build()
 	processEvaluator := GivenProcessEvaluatorMatchedProcess()
 
-	status := processEvaluator.DetectionStatus(ctx, recipe)
+	status := processEvaluator.DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
@@ -34,7 +34,7 @@ func TestProcessEvaluatorShouldNotDetect_NoMatch(t *testing.T) {
 	recipe := NewRecipeBuilder().ProcessMatch("abc").Build()
 	processEvaluator := GivenProcessEvaluator()
 
-	status := processEvaluator.DetectionStatus(ctx, recipe)
+	status := processEvaluator.DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }

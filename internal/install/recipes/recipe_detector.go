@@ -30,12 +30,6 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
-func (dt *RecipeDetector) DetectBundle(ctx context.Context, bundle *Bundle) {
-	for _, bundleRecipe := range bundle.BundleRecipes {
-		dt.detectBundleRecipe(ctx, bundleRecipe)
-	}
-}
-
 func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {
 
 	// if already evaluated
