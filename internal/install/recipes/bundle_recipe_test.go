@@ -21,7 +21,7 @@ func TestBundleRecipeAddsStatusWithTime(t *testing.T) {
 
 }
 
-func TestBundleRecipeShouldAddStatusOnceAtFirstOccurance(t *testing.T) {
+func TestBundleRecipeShouldAddStatusOnceAtFirstOccurrence(t *testing.T) {
 	br := testBundleRecipe()
 	earliestTime := time.Now()
 	moreRecentTime := earliestTime.Add(5 * time.Minute)
@@ -60,6 +60,43 @@ func TestBundleRecipeHasStatusReturnsFalse(t *testing.T) {
 	br := testBundleRecipeWithStatus(execution.RecipeStatusTypes.AVAILABLE, time.Now())
 
 	require.False(t, br.HasStatus(execution.RecipeStatusTypes.DETECTED))
+}
+
+func TestBundleRecipeFlattenShouldReturnOneDistinct(t *testing.T) {
+	br := testBundleRecipe()
+	dependentRecipeWithSameName := testBundleRecipe()
+	br.Dependencies = append(br.Dependencies, dependentRecipeWithSameName)
+
+	actual := br.Flatten()
+	require.Equal(t, 1, len(actual))
+	require.Equal(t, actual[br.Recipe.Name], true)
+}
+
+func TestBundleRecipeFlattenShouldReturnTwoNonDistinct(t *testing.T) {
+	br := testBundleRecipe()
+	dependentRecipeWithDifferentName := testBundleRecipe()
+	dependentRecipeWithDifferentName.Recipe.Name = "Fake Recipe"
+	br.Dependencies = append(br.Dependencies, dependentRecipeWithDifferentName)
+
+	actual := br.Flatten()
+	require.Equal(t, 2, len(actual))
+	require.Equal(t, actual[br.Recipe.Name], true)
+	require.Equal(t, actual["Fake Recipe"], true)
+}
+func TestBundleRecipeFlattenMultiLevelShouldReturnTwoNonDistinct(t *testing.T) {
+	br := testBundleRecipe()
+	dependentRecipeWithDifferentName := testBundleRecipe()
+	dependentRecipeWithDifferentName.Recipe.Name = "Fake Recipe"
+	br.Dependencies = append(br.Dependencies, dependentRecipeWithDifferentName)
+	layeredDependentRecipeWithDifferentName := testBundleRecipe()
+	layeredDependentRecipeWithDifferentName.Recipe.Name = "Layered Fake Recipe"
+	br.Dependencies[0].Dependencies = append(br.Dependencies[0].Dependencies, layeredDependentRecipeWithDifferentName)
+
+	actual := br.Flatten()
+	require.Equal(t, 3, len(actual))
+	require.Equal(t, actual[br.Recipe.Name], true)
+	require.Equal(t, actual["Fake Recipe"], true)
+	require.Equal(t, actual["Layered Fake Recipe"], true)
 }
 
 func testBundleRecipe() *BundleRecipe {

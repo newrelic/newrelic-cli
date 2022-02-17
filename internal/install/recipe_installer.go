@@ -242,6 +242,9 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
+	additionalBundle := bundler.CreateAdditionalBundle()
+	bundlerInstaller.InstallContinueOnError(additionalBundle, false)
+
 	return nil
 
 	// err = i.intallBundle(ctx, m, coreBundle)
@@ -510,11 +513,14 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		fmt.Println(r.PreInstallMessage())
 	}
 
+	//TODO: 1. This should only be fetched one time per install?  Instead of for each recipe?
+	//		2. Should this be move to earlier, maybe responsibility of
 	licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
 	if err != nil {
 		return "", err
 	}
 
+	//TODO: prepare is really a pure function, it doesn't really need to live on recipeVar prepare object?
 	vars, err := i.recipeVarPreparer.Prepare(*m, *r, assumeYes, licenseKey)
 	if err != nil {
 		return "", err

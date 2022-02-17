@@ -50,6 +50,19 @@ func TestBundlerShouldCreateCoreBundle(t *testing.T) {
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
+func TestBundlerShouldCreateAdditionalBundle(t *testing.T) {
+	setup()
+	addRecipeToCache("id2", types.LoggingRecipeName)
+	addRecipeToCache("id3", types.GoldenRecipeName)
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+
+	coreBundle := bundler.CreateAdditionalBundle()
+
+	require.Equal(t, 1, len(coreBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(coreBundle, "mysql"))
+}
+
 func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
 	setup()
 	addRecipeToCache("id1", types.InfraAgentRecipeName)
@@ -66,14 +79,14 @@ func TestBundlerCoreShouldDetectAvailableStatus(t *testing.T) {
 	for _, r := range coreBundle.BundleRecipes {
 		lastStatusIndex := len(r.RecipeStatuses) - 1
 		require.Equal(t, 2, len(r.RecipeStatuses))
-		require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, r.RecipeStatuses[lastStatusIndex])
+		require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, r.RecipeStatuses[lastStatusIndex].Status)
 	}
 }
 
 func TestBundlerShouldIncludeDependencies(t *testing.T) {
 	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2"})
-	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep2"})
+	bundlerTestImpl.addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2"})
+	bundlerTestImpl.addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep2"})
 	addRecipeToCache("id3", "dep1")
 	addRecipeToCache("id4", "dep2")
 	bundler := createTestBundler()
@@ -93,7 +106,7 @@ func TestBundlerShouldIncludeDependencies(t *testing.T) {
 
 func TestBundlerShouldNotIncludeInvalidDependencies(t *testing.T) {
 	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
+	bundlerTestImpl.addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
 	addRecipeToCache("id2", "dep1")
 	addRecipeToCache("id3", "dep2")
 	bundler := createTestBundler()
@@ -178,7 +191,7 @@ func addRecipeToCache(id string, name string) *types.OpenInstallationRecipe {
 	return r
 }
 
-func addRecipeWithDependenciesToCache(id string, name string, dependencies []string) *types.OpenInstallationRecipe {
+func (br *bundlerTest) addRecipeWithDependenciesToCache(id string, name string, dependencies []string) *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   id,
 		Name: name,
@@ -192,7 +205,7 @@ func addRecipeWithDependenciesToCache(id string, name string, dependencies []str
 		r.Dependencies = dependencies
 	}
 
-	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, *r)
+	br.recipeCache = append(bundlerTestImpl.recipeCache, *r)
 	return r
 }
 

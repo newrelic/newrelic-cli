@@ -15,12 +15,14 @@ type DetectionStatusProvider interface {
 type RecipeDetector struct {
 	processEvaluator DetectionStatusProvider
 	scriptEvaluator  DetectionStatusProvider
+	recipeEvaluated  map[*types.OpenInstallationRecipe]bool // same recipe(ref) should only be evaluated one time
 }
 
 func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator DetectionStatusProvider) *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: processEvaluator,
 		scriptEvaluator:  scriptEvaluator,
+		recipeEvaluated:  make(map[*types.OpenInstallationRecipe]bool),
 	}
 }
 
@@ -28,12 +30,27 @@ func NewRecipeDetector() *RecipeDetector {
 	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
-//TODO: Should this also detect recipe dependencies?  Should recipe itself be available to install if one of its dependency is not?
 func (dt *RecipeDetector) DetectBundle(ctx context.Context, bundle *Bundle) {
 	for _, bundleRecipe := range bundle.BundleRecipes {
-		status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-		bundleRecipe.AddStatus(status, time.Now())
+		dt.detectBundleRecipe(ctx, bundleRecipe)
 	}
+}
+
+func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {
+
+	// if already evaluated
+	if dt.recipeEvaluated[bundleRecipe.Recipe] {
+		return
+	}
+
+	for i := 0; i < len(bundleRecipe.Dependencies); i++ {
+		dependencyBundleRecipe := bundleRecipe.Dependencies[i]
+		dt.detectBundleRecipe(ctx, dependencyBundleRecipe)
+	}
+
+	status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
+	bundleRecipe.AddStatus(status, time.Now())
+	dt.recipeEvaluated[bundleRecipe.Recipe] = true
 }
 
 func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {

@@ -1,9 +1,10 @@
 package recipes
 
 import (
+	"time"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"time"
 )
 
 type BundleRecipe struct {
