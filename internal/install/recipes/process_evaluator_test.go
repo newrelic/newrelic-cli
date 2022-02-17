@@ -13,25 +13,17 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-var (
-	finder           *MockProcessMatchFinder = NewMockProcessMatchFinder()
-	processEvaluator *ProcessEvaluator       = newProcessEvaluator(finder, AnyProcesses, false)
-)
-
 func TestProcessEvaluatorShouldGetAvailable(t *testing.T) {
-	GivenExecutorSuccess()
-	recipe := createRecipe("id1", "myrecipe")
+	recipe := NewRecipeBuilder().Build()
 
-	status := processEvaluator.DetectionStatus(ctx, recipe)
+	status := GivenProcessEvaluator().DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
 
 func TestProcessEvaluatorShouldGetAvailable_Matching(t *testing.T) {
-	GivenExecutorSuccess()
-	recipe := createRecipe("id1", "myrecipe")
-	recipe.ProcessMatch = append(recipe.ProcessMatch, "abc")
-	GivenMatchedProcess()
+	recipe := NewRecipeBuilder().ProcessMatch("abc").Build()
+	processEvaluator := GivenProcessEvaluatorMatchedProcess()
 
 	status := processEvaluator.DetectionStatus(ctx, recipe)
 
@@ -39,10 +31,8 @@ func TestProcessEvaluatorShouldGetAvailable_Matching(t *testing.T) {
 }
 
 func TestProcessEvaluatorShouldNotDetect_NoMatch(t *testing.T) {
-	GivenExecutorSuccess()
-	recipe := createRecipe("id1", "myrecipe")
-	recipe.ProcessMatch = append(recipe.ProcessMatch, "abc")
-	GivenNoMatchedProcess()
+	recipe := NewRecipeBuilder().ProcessMatch("abc").Build()
+	processEvaluator := GivenProcessEvaluator()
 
 	status := processEvaluator.DetectionStatus(ctx, recipe)
 
@@ -53,11 +43,17 @@ func AnyProcesses(ctx context.Context) []types.GenericProcess {
 	return []types.GenericProcess{}
 }
 
-func GivenMatchedProcess() {
+func GivenProcessEvaluatorMatchedProcess() *ProcessEvaluator {
+	finder := NewMockProcessMatchFinder()
 	p := &types.MatchedProcess{}
 	finder.matchedProcesses = append(finder.matchedProcesses, *p)
+	processEvaluator := newProcessEvaluator(finder, AnyProcesses, false)
+	return processEvaluator
 }
 
-func GivenNoMatchedProcess() {
+func GivenProcessEvaluator() *ProcessEvaluator {
+	finder := NewMockProcessMatchFinder()
 	finder.matchedProcesses = []types.MatchedProcess{}
+	processEvaluator := newProcessEvaluator(finder, AnyProcesses, false)
+	return processEvaluator
 }

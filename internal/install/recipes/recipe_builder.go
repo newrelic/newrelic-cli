@@ -5,9 +5,10 @@ import (
 )
 
 type RecipeBuilder struct {
-	id      string
-	name    string
-	targets []types.OpenInstallationRecipeInstallTarget
+	id             string
+	name           string
+	processMatches []string
+	targets        []types.OpenInstallationRecipeInstallTarget
 }
 
 func NewRecipeBuilder() *RecipeBuilder {
@@ -24,6 +25,11 @@ func (b *RecipeBuilder) ID(id string) *RecipeBuilder {
 
 func (b *RecipeBuilder) Name(name string) *RecipeBuilder {
 	b.name = name
+	return b
+}
+
+func (b *RecipeBuilder) ProcessMatch(match string) *RecipeBuilder {
+	b.processMatches = append(b.processMatches, match)
 	return b
 }
 
@@ -63,6 +69,7 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 		ID:   b.id,
 		Name: b.name,
 	}
+	r.ProcessMatch = append(r.ProcessMatch, b.processMatches...)
 	r.InstallTargets = append(r.InstallTargets, b.targets...)
 	return r
 }
