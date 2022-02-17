@@ -12,45 +12,39 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 )
 
-var (
-	recipeExecutor *execution.MockRecipeExecutor = execution.NewMockRecipeExecutor()
-)
-
 func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
-	GivenExecutorError("something went wrong")
-	recipe := createRecipe("id1", "myrecipe")
+	recipe := NewRecipeBuilder().Build()
 
-	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
+	evaluator := GiveScriptEvaluatorError("something went wrong")
+	status := evaluator.DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
 
 func TestScriptEvaluatorShouldDetect(t *testing.T) {
-	GivenExecutorError("This is the specific message with exit status 132 special case")
-	recipe := createRecipe("id1", "myrecipe")
+	recipe := NewRecipeBuilder().Build()
 
-	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
+	evaluator := GiveScriptEvaluatorError("This is the specific message with exit status 132 special case")
+	status := evaluator.DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, status)
 }
 
 func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
-	GivenExecutorSuccess()
-	recipe := createRecipe("id1", "myrecipe")
+	recipe := NewRecipeBuilder().Build()
 
-	status := GiveScriptEvaluator().DetectionStatus(ctx, recipe)
+	status := GiveScriptEvaluatorSuccess().DetectionStatus(ctx, recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
 
-func GiveScriptEvaluator() *ScriptEvaluator {
+func GiveScriptEvaluatorSuccess() *ScriptEvaluator {
+	recipeExecutor := execution.NewMockRecipeExecutor()
 	return newScriptEvaluator(recipeExecutor)
 }
 
-func GivenExecutorSuccess() {
-	recipeExecutor.ExecuteErr = nil
-}
-
-func GivenExecutorError(detail string) {
+func GiveScriptEvaluatorError(detail string) *ScriptEvaluator {
+	recipeExecutor := execution.NewMockRecipeExecutor()
 	recipeExecutor.ExecuteErr = fmt.Errorf(detail)
+	return newScriptEvaluator(recipeExecutor)
 }

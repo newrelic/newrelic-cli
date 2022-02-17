@@ -101,7 +101,7 @@ func TestBundleRecipeFlattenMultiLevelShouldReturnTwoNonDistinct(t *testing.T) {
 
 func testBundleRecipe() *BundleRecipe {
 	return &BundleRecipe{
-		Recipe: createRecipe("id1", "recipe2"),
+		Recipe: NewRecipeBuilder().Build(),
 	}
 }
 
