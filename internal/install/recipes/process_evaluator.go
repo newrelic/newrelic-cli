@@ -3,10 +3,12 @@ package recipes
 import (
 	"context"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
+
 	"github.com/shirou/gopsutil/process"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	//"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
