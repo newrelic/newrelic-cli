@@ -83,14 +83,12 @@ func setup(err error) {
 
 // public functions
 func TestBundleInstallerStopsOnError(t *testing.T) {
-	expectedError := "I am an error"
-	errorPrefix := "execution failed for : "
-	setup(errors.New(expectedError))
+	setup(errors.New("I am an error"))
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().ID("0").Name("recipe1").Build(),
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
 				RecipeStatuses: []recipes.RecipeStatus{
 					{
 						Status:     execution.RecipeStatusTypes.AVAILABLE,
@@ -103,17 +101,16 @@ func TestBundleInstallerStopsOnError(t *testing.T) {
 
 	actualError := bundleInstallerTestImpl.bundleInstaller.InstallStopOnError(&bundle, true)
 
-	require.Equal(t, errorPrefix+expectedError, actualError.Error())
+	require.Equal(t, "execution failed for recipe1: I am an error", actualError.Error())
 }
 
 func TestBundleInstallerContinueOnError(t *testing.T) {
-	expectedError := "I am an error"
-	setup(errors.New(expectedError))
+	setup(errors.New("I am an error"))
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().ID("0").Name("recipe1").Build(),
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
 				RecipeStatuses: []recipes.RecipeStatus{
 					{
 						Status:     execution.RecipeStatusTypes.AVAILABLE,
