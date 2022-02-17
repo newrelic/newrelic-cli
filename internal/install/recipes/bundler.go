@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
+
+	//"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 

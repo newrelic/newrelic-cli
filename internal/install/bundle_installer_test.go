@@ -6,70 +6,36 @@ import (
 	"testing"
 	"time"
 
-	"github.com/newrelic/newrelic-cli/internal/diagnose"
-	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/install/ux"
-	"github.com/newrelic/newrelic-cli/internal/install/validation"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 type bundleInstallerTest struct {
-	installedRecipes map[string]bool
-	ctx              context.Context
-	manifest         *types.DiscoveryManifest
-	recipeInstaller  *RecipeInstaller
-	statusReporter   *mockStatusReporter
-	bundleInstaller  *BundleInstaller
+	// FIXME currently unused...
+	// installedRecipes map[string]bool
+	ctx             context.Context
+	manifest        *types.DiscoveryManifest
+	recipeInstaller *mockRecipeInstaller
+	statusReporter  *mockStatusReporter
+	bundleInstaller *BundleInstaller
 }
 
 var (
 	bundleInstallerTestImpl *bundleInstallerTest
 )
 
-type mockInstallBundleRecipe struct {
-	mock.Mock
-}
-
-func setup(err error) {
-	ic := types.InstallerContext{
-		RecipePaths: []string{"testRecipePath"},
-		RecipeNames: []string{"testRecipeName"},
-	}
-
-	d := discovery.NewMockDiscoverer()
-	mv := discovery.NewEmptyManifestValidator()
-	f := recipes.NewMockRecipeFetcher()
-	e := execution.NewMockRecipeExecutor()
-
-	if err != nil {
-		e.ExecuteErr = err
-	}
-
-	v := validation.NewMockRecipeValidator()
-	ff := recipes.NewMockRecipeFileFetcher()
-	statusReporters := []execution.StatusSubscriber{execution.NewMockStatusReporter()}
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	p := ux.NewMockPrompter()
-	pi := ux.NewMockProgressIndicator()
-	sp := ux.NewMockProgressIndicator()
-	lkf := NewMockLicenseKeyFetcher()
-	cv := diagnose.NewMockConfigValidator()
-	rvp := execution.NewRecipeVarProvider()
-	av := validation.NewAgentValidator()
-	rf := recipes.NewRecipeFilterRunner(ic, status)
-	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
+func setup() {
 	manifest := types.DiscoveryManifest{
 		DiscoveredProcesses: []types.GenericProcess{},
 	}
 
 	bundleInstallerTestImpl = &bundleInstallerTest{
 		statusReporter:  &mockStatusReporter{},
-		recipeInstaller: &i,
+		recipeInstaller: &mockRecipeInstaller{},
 		manifest:        &manifest,
 		ctx:             context.Background(),
 	}
@@ -81,11 +47,12 @@ func setup(err error) {
 		bundleInstallerTestImpl.statusReporter)
 }
 
-// public functions
-func TestBundleInstallerStopsOnError(t *testing.T) {
-	expectedError := "I am an error"
-	errorPrefix := "execution failed for : "
-	setup(errors.New(expectedError))
+func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
+	setup()
+	expectedError := errors.New("Kaboom " + time.Now().String())
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", expectedError)
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -103,12 +70,14 @@ func TestBundleInstallerStopsOnError(t *testing.T) {
 
 	actualError := bundleInstallerTestImpl.bundleInstaller.InstallStopOnError(&bundle, true)
 
-	require.Equal(t, errorPrefix+expectedError, actualError.Error())
+	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
 
-func TestBundleInstallerContinueOnError(t *testing.T) {
-	expectedError := "I am an error"
-	setup(errors.New(expectedError))
+func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
+	setup()
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("great success", nil)
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -128,16 +97,33 @@ func TestBundleInstallerContinueOnError(t *testing.T) {
 	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
 }
 
-func TestBundleInstallerReportsStatus(t *testing.T) {
-	setup(nil)
+func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
+	setup()
+	expectedStatus := execution.RecipeStatusTypes.RECOMMENDED
+	expectedStatusTime := time.Now()
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddStatus(execution.RecipeStatusTypes.AVAILABLE, time.Now())
+	bundle.BundleRecipes[0].AddStatus(expectedStatus, expectedStatusTime)
 
 	bundleInstallerTestImpl.bundleInstaller.reportStatus(bundle)
 
-	actual := bundleInstallerTestImpl.statusReporter.counter
-	expected := len(bundle.BundleRecipes[0].RecipeStatuses)
-	require.Equal(t, expected, actual)
+	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].RecipeStatuses[0].Status)
+	assert.Equal(t, expectedStatusTime, bundle.BundleRecipes[0].RecipeStatuses[0].StatusTime)
+	assert.Equal(t, 1, len(bundle.BundleRecipes[0].RecipeStatuses))
+}
+
+func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T) {
+	setup()
+	statusTime := time.Now()
+	bundle := givenBundle(types.InfraAgentRecipeName)
+	bundle.BundleRecipes[0].AddStatus(execution.RecipeStatusTypes.AVAILABLE, statusTime)
+
+	bundleInstallerTestImpl.bundleInstaller.reportStatus(bundle)
+
+	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.DETECTED))
+	assert.Equal(t, 2, len(bundle.BundleRecipes[0].RecipeStatuses))
+	assert.Equal(t, statusTime, bundle.BundleRecipes[0].RecipeStatuses[0].StatusTime)
+	assert.Equal(t, statusTime, bundle.BundleRecipes[0].RecipeStatuses[1].StatusTime)
 
 }
 
@@ -151,20 +137,4 @@ func givenBundle(recipeName string) *recipes.Bundle {
 	}
 	bundle.AddRecipe(br)
 	return bundle
-}
-
-// func TestBundleInstallerInstallsBundleRecipes(t *testing.T) {
-// 	require.Fail(t, "Implement me")
-// }
-
-// func TestBundleInstallerInstallsBundleRecipesWithDependencies(t *testing.T) {
-// 	require.Fail(t, "Implement me")
-// }
-
-type mockStatusReporter struct {
-	counter int
-}
-
-func (sr *mockStatusReporter) ReportStatus(status execution.RecipeStatusType, recipe types.OpenInstallationRecipe) {
-	sr.counter++
 }
