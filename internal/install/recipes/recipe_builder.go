@@ -5,10 +5,11 @@ import (
 )
 
 type RecipeBuilder struct {
-	id             string
-	name           string
-	processMatches []string
-	targets        []types.OpenInstallationRecipeInstallTarget
+	id                 string
+	name               string
+	requireAtDiscovery string
+	processMatches     []string
+	targets            []types.OpenInstallationRecipeInstallTarget
 }
 
 func NewRecipeBuilder() *RecipeBuilder {
@@ -25,6 +26,11 @@ func (b *RecipeBuilder) ID(id string) *RecipeBuilder {
 
 func (b *RecipeBuilder) Name(name string) *RecipeBuilder {
 	b.name = name
+	return b
+}
+
+func (b *RecipeBuilder) WithPreInstallScript(script string) *RecipeBuilder {
+	b.requireAtDiscovery = script
 	return b
 }
 
@@ -68,6 +74,9 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   b.id,
 		Name: b.name,
+		PreInstall: types.OpenInstallationPreInstallConfiguration{
+			RequireAtDiscovery: b.requireAtDiscovery,
+		},
 	}
 	r.ProcessMatch = append(r.ProcessMatch, b.processMatches...)
 	r.InstallTargets = append(r.InstallTargets, b.targets...)
