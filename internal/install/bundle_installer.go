@@ -22,6 +22,7 @@ type BundleInstaller struct {
 	recipeInstaller  RecipeInstallerInterface
 }
 
+//FIXME proper interface naming convention...
 type RecipeInstallerInterface interface {
 	promptIfNotLatestCLIVersion(ctx context.Context) error
 	Install() error
