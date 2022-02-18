@@ -104,8 +104,3 @@ func (bi *BundleInstaller) installBundleRecipe(bundleRecipe *recipes.BundleRecip
 	//TODO: actual install here
 	return nil
 }
-
-// Installer bundle no prompting
-// Error handling with core bundle, additional
-// TODO: Log Match needs to be reviewed, needs to log match process on the host
-// TODO: maybe log match dont need detection, just look for all logs
