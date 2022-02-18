@@ -78,9 +78,9 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 	e := task.Executor{
 		Entrypoint: file.Name(),
-		Stderr:     re.ErrorCapture,
+		Stderr:     stderrCapture,
 		Stdin:      re.Stdin,
-		Stdout:     re.OutputCapture,
+		Stdout:     stdoutCapture,
 	}
 
 	if err = e.Setup(); err != nil {
