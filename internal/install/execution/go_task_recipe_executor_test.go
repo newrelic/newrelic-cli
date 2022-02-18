@@ -14,7 +14,7 @@ import (
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
-	// r := NewRecipeBuilder().Vars("TEST_VAR", "testValue").InstallShell("echo {{.TEST_VAR}}").Build()
+	//r := NewRecipeBuilder().Vars("TEST_VAR", "testValue").InstallShell("echo {{.TEST_VAR}}").Build()
 	v := types.RecipeVars{
 		"TEST_VAR": "testValue",
 	}
@@ -35,5 +35,5 @@ tasks:
 	e.Stdout = b
 	err := e.Execute(context.Background(), r, v)
 	require.NoError(t, err)
-	require.Equal(t, "testValue", e.OutputCapture.LastFullLine)
+	require.Equal(t, "testValue\n", b.String())
 }
