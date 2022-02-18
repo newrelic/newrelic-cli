@@ -13,7 +13,8 @@ import (
 
 // relies on the Nerdgraph service
 type ServiceLicenseKeyFetcher struct {
-	client recipes.NerdGraphClient
+	client     recipes.NerdGraphClient
+	LicenseKey string
 }
 
 type LicenseKeyFetcher interface {
@@ -29,6 +30,11 @@ func NewServiceLicenseKeyFetcher(client recipes.NerdGraphClient) LicenseKeyFetch
 }
 
 func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string, error) {
+
+	if f.LicenseKey != "" {
+		return f.LicenseKey, nil
+	}
+
 	accountID := configAPI.GetActiveProfileAccountID()
 	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName())
 	if err != nil {
@@ -36,5 +42,6 @@ func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string,
 	}
 
 	log.Debugf("Found license key %s", utils.Obfuscate(licenseKey))
+	f.LicenseKey = licenseKey
 	return licenseKey, nil
 }
