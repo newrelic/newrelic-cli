@@ -57,11 +57,8 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
 				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				RecipeStatuses: []recipes.RecipeStatus{
-					{
-						Status:     execution.RecipeStatusTypes.AVAILABLE,
-						StatusTime: time.Now(),
-					},
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.AVAILABLE,
 				},
 			},
 		},
@@ -81,11 +78,8 @@ func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
 				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				RecipeStatuses: []recipes.RecipeStatus{
-					{
-						Status:     execution.RecipeStatusTypes.AVAILABLE,
-						StatusTime: time.Now(),
-					},
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.AVAILABLE,
 				},
 			},
 		},
@@ -98,31 +92,25 @@ func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
 func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
 	setup()
 	expectedStatus := execution.RecipeStatusTypes.RECOMMENDED
-	expectedStatusTime := time.Now()
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddStatus(expectedStatus, expectedStatusTime)
+	bundle.BundleRecipes[0].AddStatus(expectedStatus)
 
 	bundleInstallerTestImpl.bundleInstaller.reportStatus(bundle)
 
-	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].RecipeStatuses[0].Status)
-	assert.Equal(t, expectedStatusTime, bundle.BundleRecipes[0].RecipeStatuses[0].StatusTime)
-	assert.Equal(t, 1, len(bundle.BundleRecipes[0].RecipeStatuses))
+	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].DetectedStatuses[0])
+	assert.Equal(t, 1, len(bundle.BundleRecipes[0].DetectedStatuses))
 }
 
 func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T) {
 	setup()
-	statusTime := time.Now()
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddStatus(execution.RecipeStatusTypes.AVAILABLE, statusTime)
+	bundle.BundleRecipes[0].AddStatus(execution.RecipeStatusTypes.AVAILABLE)
 
 	bundleInstallerTestImpl.bundleInstaller.reportStatus(bundle)
 
 	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.AVAILABLE))
 	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.DETECTED))
-	assert.Equal(t, 2, len(bundle.BundleRecipes[0].RecipeStatuses))
-	assert.Equal(t, statusTime, bundle.BundleRecipes[0].RecipeStatuses[0].StatusTime)
-	assert.Equal(t, statusTime, bundle.BundleRecipes[0].RecipeStatuses[1].StatusTime)
-
+	assert.Equal(t, 2, len(bundle.BundleRecipes[0].DetectedStatuses))
 }
 
 func givenBundle(recipeName string) *recipes.Bundle {
