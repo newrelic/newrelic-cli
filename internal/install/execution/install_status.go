@@ -456,7 +456,7 @@ func (s *InstallStatus) completed(err error) {
 			statusError.TaskPath = e.TaskPath()
 		}
 
-		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+		if _, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			isUnsupported = true
 		}
 

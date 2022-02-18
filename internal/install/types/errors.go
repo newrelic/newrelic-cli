@@ -84,11 +84,11 @@ func (e ErrNonZeroExitCode) Error() string {
 	return e.GoTaskError.Error()
 }
 
-type UnsupportedOperatingSytemError struct {
+type UnsupportedOperatingSystemError struct {
 	Err error
 }
 
-func (e *UnsupportedOperatingSytemError) Error() string {
+func (e *UnsupportedOperatingSystemError) Error() string {
 	return e.Err.Error()
 }
 

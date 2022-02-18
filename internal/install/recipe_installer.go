@@ -9,7 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
-	"github.com/fatih/color"
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
@@ -161,7 +160,11 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 	errChan := make(chan error)
 	var err error
 
-	i.connectToPlatform()
+	err = i.connectToPlatform()
+
+	if err != nil {
+		return err
+	}
 
 	if i.RecipesProvided() {
 		i.status.SetTargetedInstall()
@@ -402,7 +405,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", err
 		}
 
-		if e, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+		if e, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
 				Recipe: *r,
 				Msg:    e.Error(),
@@ -489,6 +492,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 		return "", nil
 	}
 
+	log.Debug(validationInProgressMsg)
 	//i.validationProgressIndicator.Start(validationInProgressMsg)
 	//defer i.validationProgressIndicator.Stop()
 
@@ -544,6 +548,8 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 			errorChan <- err
 		}
 
+		vars["assumeYes"] = fmt.Sprintf("%v", assumeYes)
+
 		entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 
 		if err != nil {
@@ -552,20 +558,15 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 		successChan <- entityGUID
 	}()
 
-	white := color.New(color.FgWhite)
-	boldWhite := white.Add(color.Bold)
-	background := boldWhite.Add(color.BgGreen)
-
 	installProgressBar := ux.NewSpinnerProgressIndicator()
+	installProgressBar.AssumeYes = assumeYes
 	installProgressBar.Start(msg)
 
 	for {
 		select {
 		case entityGUID := <-successChan:
 			installProgressBar.Success("Installing " + r.DisplayName)
-			fmt.Print("  ")
-			background.Print("Installed")
-			fmt.Println()
+
 			return entityGUID, nil
 		case err := <-errorChan:
 			if errors.Is(err, types.ErrInterrupt) {
@@ -573,10 +574,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 			} else {
 				installProgressBar.Fail("Installing " + r.DisplayName)
 			}
-			fmt.Print("  ")
-			background := boldWhite.Add(color.BgMagenta)
-			background.Print("Install Was Not Successful")
-			fmt.Println()
 			log.Debugf("install error encountered: %s", err)
 			return "", err
 		}

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/go-task/task/v3"
@@ -57,12 +58,20 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return err
 	}
 
-	//TODO: do something with output in buffer
+	//FIXME: do something with output in buffer
 	//TODO: allow silent flag to be pass in here
-	stdoutCapture := NewLineCaptureBuffer(&bytes.Buffer{})
-	stderrCapture := NewLineCaptureBuffer(&bytes.Buffer{})
-	// stdoutCapture := NewLineCaptureBuffer(re.Stdout)
-	// stderrCapture := NewLineCaptureBuffer(re.Stderr)
+	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
+
+	var stdoutCapture *LineCaptureBuffer
+	var stderrCapture *LineCaptureBuffer
+
+	if silentInstall {
+		stdoutCapture = NewLineCaptureBuffer(&bytes.Buffer{})
+		stderrCapture = NewLineCaptureBuffer(&bytes.Buffer{})
+	} else {
+		stdoutCapture = NewLineCaptureBuffer(re.Stdout)
+		stderrCapture = NewLineCaptureBuffer(re.Stderr)
+	}
 
 	e := task.Executor{
 		Entrypoint: file.Name(),
@@ -109,7 +118,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		// We return exit code 131 when a user attempts to
 		// install a recipe on an unsupported operating system.
 		if isExitStatusCode(131, err) {
-			return &types.UnsupportedOperatingSytemError{
+			return &types.UnsupportedOperatingSystemError{
 				Err: errors.New(stderrCapture.LastFullLine),
 			}
 		}

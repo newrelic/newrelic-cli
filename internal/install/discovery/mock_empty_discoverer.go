@@ -36,7 +36,7 @@ func (mv *MockManifestValidator) Validate(m *types.DiscoveryManifest) error {
 	if accumulator != nil {
 		// Flag as unsupported OS
 		m.IsUnsupported = true
-		return &types.UnsupportedOperatingSytemError{
+		return &types.UnsupportedOperatingSystemError{
 			Err: fmt.Errorf(errorPrefixFormat, accumulator),
 		}
 	}
