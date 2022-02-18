@@ -19,15 +19,27 @@ type BundleInstaller struct {
 	ctx              context.Context
 	manifest         *types.DiscoveryManifest
 	statusReporter   StatusReporter
-	recipeInstaller  *RecipeInstaller
+	recipeInstaller  RecipeInstallerInterface
 }
 
-func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstaller *RecipeInstaller, statusReporter StatusReporter) *BundleInstaller {
+//FIXME proper interface naming convention...
+type RecipeInstallerInterface interface {
+	promptIfNotLatestCLIVersion(ctx context.Context) error
+	Install() error
+	install(ctx context.Context) error
+	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
+	discover(ctx context.Context) (*types.DiscoveryManifest, error)
+	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error)
+	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error)
+	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
+}
+
+func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstallerInterface, statusReporter StatusReporter) *BundleInstaller {
 
 	return &BundleInstaller{
 		ctx:              ctx,
 		manifest:         manifest,
-		recipeInstaller:  recipeInstaller,
+		recipeInstaller:  recipeInstallerInterface,
 		statusReporter:   statusReporter,
 		installedRecipes: make(map[string]bool),
 	}
