@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/http/httpproxy"
 
+	"github.com/fatih/color"
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
@@ -137,17 +138,13 @@ func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error
 
 func (i *RecipeInstaller) Install() error {
 	fmt.Printf(`
-   _   _                 ____      _ _
-  | \ | | _____      __ |  _ \ ___| (_) ___
-  |  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
-  | |\  |  __/\ V  V /  |  _ |  __| | | (__
-  |_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
+_   _                 ____      _ _
+| \ | | _____      __ |  _ \ ___| (_) ___
+|  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
+| |\  |  __/\ V  V /  |  _ |  __| | | (__
+|_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
 
-  Welcome to New Relic. Let's install some instrumentation.
-
-  Questions? Read more about our installation process at
-  https://docs.newrelic.com/
-
+Welcome to New Relic. Let's set up full stack observability for your environment. 
 	`)
 	fmt.Println()
 
@@ -164,14 +161,7 @@ func (i *RecipeInstaller) Install() error {
 	errChan := make(chan error)
 	var err error
 
-	// Test split service
-	// treatment := split.Service.Get(split.VirtuosoCLITest)
-	// log.Printf("Got treatment: %s for %s", treatment, split.VirtuosoCLITest)
-
-	log.Printf("Validating connectivity to the New Relic platform...")
-	if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
-		return err
-	}
+	i.connectToPlatform()
 
 	if i.RecipesProvided() {
 		i.status.SetTargetedInstall()
@@ -208,6 +198,30 @@ func (i *RecipeInstaller) Install() error {
 	}
 }
 
+func (i *RecipeInstaller) connectToPlatform() error {
+	loaderChan := make(chan error)
+
+	go func() {
+		err := i.configValidator.Validate(utils.SignalCtx)
+		if err != nil {
+			loaderChan <- err
+		}
+		loaderChan <- nil
+	}()
+
+	welcomeScreenProgressBar := ux.NewSpinnerProgressIndicator()
+	welcomeScreenProgressBar.Start("Connecting to New Relic Platform")
+
+	loaded := <-loaderChan
+
+	if loaded == nil {
+		welcomeScreenProgressBar.Success("Connected to New Relic Platform")
+	} else {
+		welcomeScreenProgressBar.Fail("Fail to Connect to New Relic Platform")
+	}
+	return loaded
+}
+
 func (i *RecipeInstaller) install(ctx context.Context) error {
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
@@ -236,6 +250,9 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	bundler := recipes.NewBundler(ctx, repo)
 	coreBundle := bundler.CreateCoreBundle()
 	bundlerInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
+
+	fmt.Println("\n\nInstalling New Relic")
+
 	err = bundlerInstaller.InstallStopOnError(coreBundle, true)
 	if err != nil {
 		log.Debugf("error installing core bundle: %s", err)
@@ -472,8 +489,8 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 		return "", nil
 	}
 
-	i.validationProgressIndicator.Start(validationInProgressMsg)
-	defer i.validationProgressIndicator.Stop()
+	//i.validationProgressIndicator.Start(validationInProgressMsg)
+	//defer i.validationProgressIndicator.Stop()
 
 	for _, f := range validationFuncs {
 		go func(fn validationFunc) {
@@ -508,43 +525,62 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 
 // Installing recipe
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
+
+	//TODO: WIP, not finished, handle debug, silent, assumeyes flag...
+	fmt.Println()
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
-	i.executionProgressIndicator.Start(msg)
-	defer func() { i.executionProgressIndicator.Stop() }()
 
-	if r.PreInstallMessage() != "" {
-		fmt.Println(r.PreInstallMessage())
-	}
+	errorChan := make(chan error)
+	successChan := make(chan string)
 
-	//TODO: 1. This should only be fetched one time per install?  Instead of for each recipe?
-	//		2. Should this be move to earlier, maybe responsibility of
-	licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	//TODO: prepare is really a pure function, it doesn't really need to live on recipeVar prepare object?
-	vars, err := i.recipeVarPreparer.Prepare(*m, *r, assumeYes, licenseKey)
-	if err != nil {
-		return "", err
-	}
-
-	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
-	if err != nil {
-		if errors.Is(err, types.ErrInterrupt) {
-			i.executionProgressIndicator.Canceled(msg)
-		} else {
-			i.executionProgressIndicator.Fail(msg)
+	go func() {
+		licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
+		if err != nil {
+			errorChan <- err
 		}
-		return "", err
-	}
 
-	if r.PostInstallMessage() != "" {
-		fmt.Println(r.PostInstallMessage())
-	}
+		vars, err := i.recipeVarPreparer.Prepare(*m, *r, assumeYes, licenseKey)
+		if err != nil {
+			errorChan <- err
+		}
 
-	i.executionProgressIndicator.Success(msg)
-	return entityGUID, nil
+		entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
+
+		if err != nil {
+			errorChan <- err
+		}
+		successChan <- entityGUID
+	}()
+
+	white := color.New(color.FgWhite)
+	boldWhite := white.Add(color.Bold)
+	background := boldWhite.Add(color.BgGreen)
+
+	installProgressBar := ux.NewSpinnerProgressIndicator()
+	installProgressBar.Start(msg)
+
+	for {
+		select {
+		case entityGUID := <-successChan:
+			installProgressBar.Success("Installing " + r.DisplayName)
+			fmt.Print("  ")
+			background.Print("Installed")
+			fmt.Println()
+			return entityGUID, nil
+		case err := <-errorChan:
+			if errors.Is(err, types.ErrInterrupt) {
+				installProgressBar.Canceled("Installing " + r.DisplayName)
+			} else {
+				installProgressBar.Fail("Installing " + r.DisplayName)
+			}
+			fmt.Print("  ")
+			background := boldWhite.Add(color.BgMagenta)
+			background.Print("Install Was Not Successful")
+			fmt.Println()
+			log.Debugf("install error encountered: %s", err)
+			return "", err
+		}
+	}
 }
 
 // func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {

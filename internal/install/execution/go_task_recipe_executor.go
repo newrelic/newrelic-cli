@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -56,8 +57,12 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return err
 	}
 
-	stdoutCapture := NewLineCaptureBuffer(re.Stdout)
-	stderrCapture := NewLineCaptureBuffer(re.Stderr)
+	//TODO: do something with output in buffer
+	//TODO: allow silent flag to be pass in here
+	stdoutCapture := NewLineCaptureBuffer(&bytes.Buffer{})
+	stderrCapture := NewLineCaptureBuffer(&bytes.Buffer{})
+	// stdoutCapture := NewLineCaptureBuffer(re.Stdout)
+	// stderrCapture := NewLineCaptureBuffer(re.Stderr)
 
 	e := task.Executor{
 		Entrypoint: file.Name(),
