@@ -5,9 +5,9 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 
-	//"github.com/newrelic/newrelic-cli/internal/install/execution"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 var coreBundleRecipeNames = []string{
