@@ -5,6 +5,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	log "github.com/sirupsen/logrus"
 )
 
 var coreBundleRecipeNames = []string{
@@ -69,6 +70,7 @@ func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle 
 		bundleRecipe := b.getBundleRecipeWithDependencies(r, visited)
 
 		if bundleRecipe != nil {
+			log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.RecipeStatuses, bundleRecipe.Recipe.Dependencies)
 			bundle.AddRecipe(bundleRecipe)
 		}
 	}
