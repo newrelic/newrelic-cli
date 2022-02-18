@@ -174,6 +174,18 @@ func TestRecipeRepository_ShouldOrderInfraLogFirst(t *testing.T) {
 	require.Equal(t, results[2].Name, "a-recipe")
 }
 
+func TestRecipeRepository_ShouldEnrichLogRecipe(t *testing.T) {
+	Setup()
+	givenCachedRecipeOs("log1", types.LoggingRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
+	givenCachedRecipeOs("infra1", types.InfraAgentRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
+	discoveryManifest.OS = "linux"
+
+	repository.FindRecipeByName(types.LoggingRecipeName)
+
+	_, exist := types.RecipeVariables["NR_DISCOVERED_LOG_FILES"]
+	require.Equal(t, exist, true)
+}
+
 func TestRecipeRepository_matchRecipeCriteria_Basic(t *testing.T) {
 	Setup()
 	discoveryManifest.Platform = "linux"

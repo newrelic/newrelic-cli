@@ -100,6 +100,7 @@ func (rf *RecipeRepository) enrichLogRecipe() {
 		if recipe.Name == types.LoggingRecipeName {
 			logMatches := rf.logMatchFinder.GetPaths(utils.SignalCtx, rf.filteredRecipes)
 
+			var discoveredLogFilesString string
 			if len(logMatches) > 0 {
 				discoveredLogFiles := []string{}
 				for _, logMatch := range logMatches {
@@ -110,9 +111,9 @@ func (rf *RecipeRepository) enrichLogRecipe() {
 					"logMatches": len(logMatches),
 				}).Debug("filtered log matches")
 
-				discoveredLogFilesString := strings.Join(discoveredLogFiles, ",")
-				recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
+				discoveredLogFilesString = strings.Join(discoveredLogFiles, ",")
 			}
+			recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
 			break
 		}
 	}
