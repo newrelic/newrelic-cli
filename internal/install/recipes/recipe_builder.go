@@ -1,21 +1,26 @@
 package recipes
 
 import (
+	"fmt"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type RecipeBuilder struct {
-	id                 string
-	name               string
-	requireAtDiscovery string
-	processMatches     []string
-	targets            []types.OpenInstallationRecipeInstallTarget
+	id                  string
+	name                string
+	requireAtDiscovery  string
+	goTaskInstallScript string
+	processMatches      []string
+	targets             []types.OpenInstallationRecipeInstallTarget
+	vars                map[string]string
 }
 
 func NewRecipeBuilder() *RecipeBuilder {
 	return &RecipeBuilder{
 		id:   "id1",
 		name: "recipe1",
+		vars: make(map[string]string),
 	}
 }
 
@@ -70,6 +75,28 @@ func (b *RecipeBuilder) TargetOsArch(os types.OpenInstallationOperatingSystem, a
 	return b.TargetOsPlatformVersionArch(os, "", arch)
 }
 
+func (b *RecipeBuilder) Vars(key string, value string) *RecipeBuilder {
+	b.vars[key] = value
+	return b
+}
+
+func (b *RecipeBuilder) InstallGoTaskScript(script string) *RecipeBuilder {
+	b.goTaskInstallScript = script
+	return b
+}
+
+func (b *RecipeBuilder) InstallShell(script string) *RecipeBuilder {
+	var goTaskWrap = fmt.Sprintf(`
+version: '3'
+tasks:
+  default:
+    cmds:
+      - |
+        %s
+`, script)
+	return b.InstallGoTaskScript(goTaskWrap)
+}
+
 func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   b.id,
@@ -77,6 +104,10 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
 			RequireAtDiscovery: b.requireAtDiscovery,
 		},
+		Install: b.goTaskInstallScript,
+	}
+	for key, value := range b.vars {
+		r.SetRecipeVar(key, value)
 	}
 	r.ProcessMatch = append(r.ProcessMatch, b.processMatches...)
 	r.InstallTargets = append(r.InstallTargets, b.targets...)
