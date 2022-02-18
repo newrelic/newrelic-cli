@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -13,14 +14,14 @@ type DetectionStatusProvider interface {
 type RecipeDetector struct {
 	processEvaluator DetectionStatusProvider
 	scriptEvaluator  DetectionStatusProvider
-	recipeEvaluated  map[*types.OpenInstallationRecipe]bool // same recipe(ref) should only be evaluated one time
+	recipeEvaluated  map[string]bool // same recipe(ref) should only be evaluated one time
 }
 
 func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator DetectionStatusProvider) *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: processEvaluator,
 		scriptEvaluator:  scriptEvaluator,
-		recipeEvaluated:  make(map[*types.OpenInstallationRecipe]bool),
+		recipeEvaluated:  make(map[string]bool),
 	}
 }
 
@@ -31,9 +32,11 @@ func NewRecipeDetector() *RecipeDetector {
 func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {
 
 	// if already evaluated
-	if dt.recipeEvaluated[bundleRecipe.Recipe] {
+	if dt.recipeEvaluated[bundleRecipe.Recipe.Name] {
 		return
 	}
+
+	dt.recipeEvaluated[bundleRecipe.Recipe.Name] = true
 
 	for i := 0; i < len(bundleRecipe.Dependencies); i++ {
 		dependencyBundleRecipe := bundleRecipe.Dependencies[i]
@@ -42,7 +45,6 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 
 	status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
 	bundleRecipe.AddStatus(status)
-	dt.recipeEvaluated[bundleRecipe.Recipe] = true
 }
 
 func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {
