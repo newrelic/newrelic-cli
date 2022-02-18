@@ -218,9 +218,9 @@ func (i *RecipeInstaller) connectToPlatform() error {
 	loaded := <-loaderChan
 
 	if loaded == nil {
-		welcomeScreenProgressBar.Success("Connected to New Relic Platform")
+		welcomeScreenProgressBar.Success("Connecting to New Relic Platform")
 	} else {
-		welcomeScreenProgressBar.Fail("Fail to Connect to New Relic Platform")
+		welcomeScreenProgressBar.Fail("Connecting to New Relic Platform")
 	}
 	return loaded
 }

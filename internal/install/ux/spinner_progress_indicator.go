@@ -69,7 +69,7 @@ func (s *SpinnerProgressIndicator) Fail(msg string) {
 		fmt.Print(msg)
 	}
 
-	printInstallFinalMessage(msg, "Failed", color.BgMagenta)
+	printInstallFinalMessage("Failed", color.BgMagenta)
 }
 
 func (s *SpinnerProgressIndicator) Success(msg string) {
@@ -78,26 +78,27 @@ func (s *SpinnerProgressIndicator) Success(msg string) {
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) && s.AssumeYes {
 		s.Suffix = ""
 		s.FinalMSG = msg
-		// s.FinalMSG = IconSuccess + " Connected to New Relic Platform.\n"
 		s.Spinner.Stop()
 
 	} else {
 		fmt.Print(msg)
 	}
 
-	printInstallFinalMessage(msg, "Installed", color.BgGreen)
+	if strings.Contains(msg, "Installing") {
+		printInstallFinalMessage("Installed", color.BgGreen)
+	} else {
+		printInstallFinalMessage("Connected", color.BgGreen)
+	}
 }
 
-func printInstallFinalMessage(msg string, printText string, bgColor color.Attribute) {
+func printInstallFinalMessage(printText string, bgColor color.Attribute) {
 
-	if strings.Contains(msg, "Installing") {
-		white := color.New(color.FgWhite)
-		boldWhite := white.Add(color.Bold)
-		background := boldWhite.Add(bgColor)
-		fmt.Print("  ")
-		background.Print(printText)
-		fmt.Println()
-	}
+	white := color.New(color.FgWhite)
+	boldWhite := white.Add(color.Bold)
+	background := boldWhite.Add(bgColor)
+	fmt.Print("  ")
+	background.Print(printText)
+	fmt.Println()
 }
 
 func (s *SpinnerProgressIndicator) Canceled(msg string) {
@@ -106,10 +107,9 @@ func (s *SpinnerProgressIndicator) Canceled(msg string) {
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) && s.AssumeYes {
 		s.Suffix = ""
 		s.FinalMSG = msg
-		// s.FinalMSG = IconSuccess + " Connected to New Relic Platform.\n"
 		s.Spinner.Stop()
 	} else {
 		fmt.Print(msg)
 	}
-	printInstallFinalMessage(msg, "Cancelled", color.BgBlue)
+	printInstallFinalMessage("Cancelled", color.BgBlue)
 }
