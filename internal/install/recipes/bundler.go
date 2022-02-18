@@ -72,7 +72,7 @@ func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle 
 		bundleRecipe := b.getBundleRecipeWithDependencies(r, visited)
 
 		if bundleRecipe != nil {
-			log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.RecipeStatuses, bundleRecipe.Recipe.Dependencies)
+			log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 			bundle.AddRecipe(bundleRecipe)
 		}
 	}

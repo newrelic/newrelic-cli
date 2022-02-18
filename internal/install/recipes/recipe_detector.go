@@ -2,8 +2,6 @@ package recipes
 
 import (
 	"context"
-	"time"
-
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -43,7 +41,7 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 	}
 
 	status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-	bundleRecipe.AddStatus(status, time.Now())
+	bundleRecipe.AddStatus(status)
 	dt.recipeEvaluated[bundleRecipe.Recipe] = true
 }
 
