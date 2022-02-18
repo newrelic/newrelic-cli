@@ -5,6 +5,7 @@ import (
 	"time"
 
 	spinnerLib "github.com/briandowns/spinner"
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -37,6 +38,12 @@ func (s *SpinnerProgressIndicator) Start(msg string) {
 		}
 
 		s.Spinner.Start() // Start the spinner
+	} else {
+		c := color.New(color.FgCyan)
+		c.Printf("==>")
+		x := color.New(color.Bold)
+		x.Printf(" %s", msg)
+		fmt.Println()
 	}
 	log.Debug(msg)
 }
@@ -49,33 +56,40 @@ func (s *SpinnerProgressIndicator) Stop() {
 }
 
 func (s *SpinnerProgressIndicator) Fail(msg string) {
-	s.FinalMSG = indentation + crossmark
-	s.Suffix = s.Suffix + "incomplete."
 
+	msg = fmt.Sprintf("%v %s\n", IconError, msg)
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) {
 		s.Suffix = ""
-		s.FinalMSG = fmt.Sprintf("%v %s\n", IconError, msg)
+		s.FinalMSG = msg
 		// s.FinalMSG = IconError + " Connected to New Relic Platform.\n"
 		s.Spinner.Stop()
+	} else {
+		fmt.Print(msg)
 	}
 }
 
 func (s *SpinnerProgressIndicator) Success(msg string) {
 
+	msg = fmt.Sprintf("%v %s\n", IconSuccess, msg)
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) {
 		s.Suffix = ""
-		s.FinalMSG = fmt.Sprintf("%v %s\n", IconSuccess, msg)
+		s.FinalMSG = msg
 		// s.FinalMSG = IconSuccess + " Connected to New Relic Platform.\n"
 		s.Spinner.Stop()
+	} else {
+		fmt.Print(msg)
 	}
 }
 
 func (s *SpinnerProgressIndicator) Canceled(msg string) {
 
+	msg = fmt.Sprintf("%v %s\n", IconExclamation, msg)
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) {
 		s.Suffix = ""
-		s.FinalMSG = fmt.Sprintf("%v %s\n", IconExclamation, msg)
+		s.FinalMSG = msg
 		// s.FinalMSG = IconSuccess + " Connected to New Relic Platform.\n"
 		s.Spinner.Stop()
+	} else {
+		fmt.Print(msg)
 	}
 }
