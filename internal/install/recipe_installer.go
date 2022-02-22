@@ -230,6 +230,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
 
+	fmt.Println("\n\nInstalling New Relic")
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
 	if err != nil {
@@ -249,12 +250,9 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}, m)
 
 	//FIXME: need to fix
-
 	bundler := recipes.NewBundler(ctx, repo)
 	coreBundle := bundler.CreateCoreBundle()
 	bundlerInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
-
-	fmt.Println("\n\nInstalling New Relic")
 
 	err = bundlerInstaller.InstallStopOnError(coreBundle, true)
 	if err != nil {
@@ -263,25 +261,42 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 
 	additionalBundle := bundler.CreateAdditionalBundle()
-	bundlerInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
+
+	if additionalBundle.AvailableRecipeCount() > 0 {
+
+		prompter := ux.NewPromptUIPrompter()
+
+		//TODO: needs to filter out detected recipes
+		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
+		fmt.Println("")
+		// var additionalBundleConfirmed *recipes.Bundle
+
+		for _, additionalRecipe := range additionalBundle.BundleRecipes {
+			//TODO: is this the best place, should this be filtered out earlier?
+			//Only prompt for install
+			if !additionalRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+				continue
+			}
+			msg := fmt.Sprintf("%v.  Continue installing? ", additionalRecipe.Recipe.DisplayName)
+			ans, err := prompter.PromptYesNo(msg)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			if ans {
+				err := bundlerInstaller.InstallBundleRecipe(additionalRecipe, i.AssumeYes)
+				if err != nil {
+					log.Debugf("error installing recipe %v: %v", additionalRecipe.Recipe.Name, err)
+				}
+				// additionalBundleConfirmed.AddRecipe(additionalRecipe)
+			}
+		}
+	}
+
+	//bundlerInstaller.InstallContinueOnError(additionalBundleConfirmed, i.AssumeYes)
 
 	return nil
-
-	// err = i.intallBundle(ctx, m, coreBundle)
-	// if err != nil {
-	// 	log.Debugf("Unable to load install core recipes, detail: %s", err)
-	// 	return err
-	// }
-
-	// additionalBundle := bundler.createAdditionalBundle(coreBundle)
-
-	// err = i.intallBundle(ctx, m, additionalBundle)
-	// if err != nil {
-	// 	log.Debugf("Unable to load install core recipes, detail: %s", err)
-	// 	return err
-	// }
-
-	// return nil
 
 	// var recipesForInstall []types.OpenInstallationRecipe
 	// if i.RecipesProvided() {
