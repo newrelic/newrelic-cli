@@ -15,8 +15,6 @@ import (
 )
 
 type bundleInstallerTest struct {
-	// FIXME currently unused...
-	// installedRecipes map[string]bool
 	ctx             context.Context
 	manifest        *types.DiscoveryManifest
 	recipeInstaller *mockRecipeInstaller
