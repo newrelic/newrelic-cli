@@ -61,11 +61,19 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 					execution.RecipeStatusTypes.AVAILABLE,
 				},
 			},
+			{
+				Recipe: recipes.NewRecipeBuilder().ID("ID2").Name("recipe2").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.AVAILABLE,
+				},
+			},
 		},
 	}
 
 	actualError := bundleInstallerTestImpl.bundleInstaller.InstallStopOnError(&bundle, true)
 
+	//Should stop on first recipe
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
 	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
 
@@ -82,11 +90,19 @@ func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
 					execution.RecipeStatusTypes.AVAILABLE,
 				},
 			},
+			{
+				Recipe: recipes.NewRecipeBuilder().ID("ID2").Name("recipe2").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.AVAILABLE,
+				},
+			},
 		},
 	}
 
-	//TODO: Need to find out how to verify error was thrown
 	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+
+	//Should try both recipes
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 2)
 }
 
 func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
