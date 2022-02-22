@@ -1,6 +1,10 @@
 package recipes
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
+)
 
 type Bundle struct {
 	BundleRecipes []*BundleRecipe
@@ -36,6 +40,18 @@ func (b *Bundle) Flatten() map[string]bool {
 	}
 
 	return results
+}
+
+func (b *Bundle) AvailableRecipeCount() int {
+
+	count := 0
+	for i := 0; i < len(b.BundleRecipes); i++ {
+		if b.BundleRecipes[i].HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+			count++
+		}
+	}
+
+	return count
 }
 
 func (b *Bundle) PrintRecipes() {

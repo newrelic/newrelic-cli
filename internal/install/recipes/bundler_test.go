@@ -12,23 +12,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type bundlerTest struct {
-	discoveryManifest types.DiscoveryManifest
-	recipeCache       []types.OpenInstallationRecipe
-	recipeRepository  *RecipeRepository
-	ctx               context.Context
-	processEvaluator  *mockDetector
-	scriptedEvaluator *mockDetector
-	recipeDetector    *RecipeDetector
-}
-
 type mockDetector struct {
 	detectionStatus map[string]execution.RecipeStatusType
 }
 
 var (
 	detectionStatus = make(map[string]execution.RecipeStatusType)
-	bundlerTestImpl = bundlerTest{
+	bundlerTestImpl = struct {
+		discoveryManifest types.DiscoveryManifest
+		recipeCache       []types.OpenInstallationRecipe
+		recipeRepository  *RecipeRepository
+		ctx               context.Context
+		processEvaluator  *mockDetector
+		scriptedEvaluator *mockDetector
+		recipeDetector    *RecipeDetector
+	}{
 		processEvaluator:  &mockDetector{detectionStatus: detectionStatus},
 		scriptedEvaluator: &mockDetector{detectionStatus: detectionStatus},
 	}

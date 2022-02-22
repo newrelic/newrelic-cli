@@ -50,7 +50,7 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 	bi.reportStatus(bundle)
 
 	for _, br := range bundle.BundleRecipes {
-		err := bi.installBundleRecipe(br, assumeYes)
+		err := bi.InstallBundleRecipe(br, assumeYes)
 
 		if err != nil {
 			return err
@@ -67,8 +67,10 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 	// bi.reportStatus(bundle)
 
 	for _, br := range bundle.BundleRecipes {
-		err := bi.installBundleRecipe(br, assumeYes)
-		log.Debugf("error installing recipe %v: %v", br.Recipe.Name, err)
+		err := bi.InstallBundleRecipe(br, assumeYes)
+		if err != nil {
+			log.Debugf("error installing recipe %v: %v", br.Recipe.Name, err)
+		}
 	}
 }
 
@@ -82,13 +84,13 @@ func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
 	}
 }
 
-func (bi *BundleInstaller) installBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {
+func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {
 
 	// no dependencies
 	var err error
 
 	for _, dr := range bundleRecipe.Dependencies {
-		err = bi.installBundleRecipe(dr, assumeYes)
+		err = bi.InstallBundleRecipe(dr, assumeYes)
 		if err != nil {
 			return err
 		}
