@@ -27,9 +27,7 @@ var (
 )
 
 func setup() {
-	manifest := types.DiscoveryManifest{
-		DiscoveredProcesses: []types.GenericProcess{},
-	}
+	manifest := types.DiscoveryManifest{}
 
 	bundleInstallerTestImpl = &bundleInstallerTest{
 		statusReporter:  &mockStatusReporter{},

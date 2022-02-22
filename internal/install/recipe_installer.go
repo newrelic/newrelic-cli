@@ -36,7 +36,6 @@ type RecipeInstaller struct {
 	licenseKeyFetcher           LicenseKeyFetcher
 	configValidator             ConfigValidator
 	recipeVarPreparer           RecipeVarPreparer
-	recipeFilterer              RecipeFilterRunner
 	agentValidator              *validation.AgentValidator
 }
 
@@ -81,7 +80,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	pi := ux.NewPlainProgress()
 	sp := ux.NewSpinner()
 	rvp := execution.NewRecipeVarProvider()
-	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstaller{
@@ -98,7 +96,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		licenseKeyFetcher:           lkf,
 		configValidator:             cv,
 		recipeVarPreparer:           rvp,
-		recipeFilterer:              rf,
 		agentValidator:              av,
 	}
 
