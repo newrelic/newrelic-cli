@@ -31,8 +31,19 @@ func defaultReadFileFunc(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
 }
 
+func NewRecipeFile(recipeFileString string) (*types.OpenInstallationRecipe, error) {
+	var f types.OpenInstallationRecipe
+	err := yaml.Unmarshal([]byte(recipeFileString), &f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &f, nil
+}
+
 func (f *RecipeFileFetcher) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
 	response, err := f.HTTPGetFunc(recipeURL.String())
+
 	if err != nil {
 		return nil, err
 	}
@@ -58,14 +69,4 @@ func (f *RecipeFileFetcher) LoadRecipeFile(filename string) (*types.OpenInstalla
 	}
 
 	return NewRecipeFile(string(out))
-}
-
-func NewRecipeFile(recipeFileString string) (*types.OpenInstallationRecipe, error) {
-	var f types.OpenInstallationRecipe
-	err := yaml.Unmarshal([]byte(recipeFileString), &f)
-	if err != nil {
-		return nil, err
-	}
-
-	return &f, nil
 }

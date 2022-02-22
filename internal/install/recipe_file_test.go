@@ -1,9 +1,7 @@
-//go:build unit
-// +build unit
-
 package install
 
 import (
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -11,11 +9,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v2"
-
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -68,9 +65,12 @@ func TestLoadRecipeFile(t *testing.T) {
 }
 
 func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
-	ff := recipes.RecipeFileFetcher{}
+	type testCase struct {
+		statusCode  int
+		shouldError bool
+	}
 
-	makeHTTPGetFunc := func(statusCode int) func(string) (*http.Response, error) {
+	stubbedHttpGetFunction := func(statusCode int) func(string) (*http.Response, error) {
 		return func(recipeURL string) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: statusCode,
@@ -79,28 +79,31 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 		}
 	}
 
-	u, err := url.Parse("https://localhost/404")
-	require.NoError(t, err)
+	ff := recipes.RecipeFileFetcher{}
+	u, err := url.Parse("https://localhost/valid-url")
+	assert.NoError(t, err)
 
-	ff.HTTPGetFunc = makeHTTPGetFunc(404)
-	f, err := ff.FetchRecipeFile(u)
-	require.Error(t, err)
-	require.Nil(t, f)
+	tests := []testCase{
+		{statusCode: 404, shouldError: true},
+		{statusCode: 199, shouldError: true},
+		{statusCode: 200, shouldError: false},
+		{statusCode: 299, shouldError: false},
+	}
 
-	ff.HTTPGetFunc = makeHTTPGetFunc(199)
-	f, err = ff.FetchRecipeFile(u)
-	require.Error(t, err)
-	require.Nil(t, f)
+	for _, testCondition := range tests {
+		ff.HTTPGetFunc = stubbedHttpGetFunction(testCondition.statusCode)
+		f, err := ff.FetchRecipeFile(u)
 
-	ff.HTTPGetFunc = makeHTTPGetFunc(200)
-	f, err = ff.FetchRecipeFile(u)
-	require.NoError(t, err)
-	require.NotNil(t, f)
-
-	ff.HTTPGetFunc = makeHTTPGetFunc(299)
-	f, err = ff.FetchRecipeFile(u)
-	require.NoError(t, err)
-	require.NotNil(t, f)
+		switch testCondition.shouldError {
+		case true:
+			assert.Error(t, err)
+			assert.Nil(t, f)
+			break
+		case false:
+			assert.NoError(t, err)
+			assert.NotNil(t, f)
+		}
+	}
 }
 
 func TestNewRecipeFile(t *testing.T) {
