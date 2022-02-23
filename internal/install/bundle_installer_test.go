@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"errors"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"testing"
 	"time"
 
@@ -49,8 +50,111 @@ func setup() {
 	2. InstallContinueOnError
 		a. Test no installable recipes returns immediately
 		b. Test prompt of no returns immediately (how can we mocka  prompt?)
-		c. Test if a mix of installable and not installable recipes, only installable trigger
+		c  Test prompt of yes calls install
+        d. make sure ux/prompt doesnt get called if bundle is Additional/Targeted
+		e. Test if a mix of installable and not installable recipes, only installable trigger
 */
+
+func TestInstallContinueOnErrorReturnsImmediately(t *testing.T) {
+	setup()
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+
+	bundle := recipes.Bundle{
+		BundleRecipes: []*recipes.BundleRecipe{
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.UNSUPPORTED,
+				},
+			},
+		},
+	}
+
+	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+}
+
+func TestInstallContinueOnErrorReturnsImmediatelyWhenNoIsEntered(t *testing.T) {
+	setup()
+	mockPrompter := ux.NewMockPrompter()
+	mockPrompter.PromptYesNoVal = false
+	bundleInstallerTestImpl.bundleInstaller.prompter = mockPrompter
+
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+
+	bundle := recipes.Bundle{
+		BundleRecipes: []*recipes.BundleRecipe{
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.UNSUPPORTED,
+				},
+			},
+		},
+	}
+
+	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, false)
+
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	assert.Equal(t, 1, bundleInstallerTestImpl.statusReporter.counter)
+}
+
+func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *testing.T) {
+	setup()
+	mockPrompter := ux.NewMockPrompter()
+	bundleInstallerTestImpl.bundleInstaller.prompter = mockPrompter
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+
+	bundle := recipes.Bundle{
+		BundleRecipes: []*recipes.BundleRecipe{
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.UNSUPPORTED,
+				},
+			},
+		},
+		Type: recipes.BundleTypes.ADDITIONAL_TARGETED,
+	}
+
+	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+
+	assert.Equal(t, 0, mockPrompter.PromptMultiSelectCallCount)
+}
+
+// TODO come back to this, not sure if the test makes sense
+func TestInstallContinueOnErrorReturnsInstallsWhenYesIsEntered(t *testing.T) {
+	setup()
+	mockPrompter := ux.NewMockPrompter()
+	mockPrompter.PromptYesNoVal = true
+	bundleInstallerTestImpl.bundleInstaller.prompter = mockPrompter
+
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+
+	bundle := recipes.Bundle{
+		BundleRecipes: []*recipes.BundleRecipe{
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.UNSUPPORTED,
+				},
+			},
+		},
+	}
+
+	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, false)
+
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+}
 
 func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	setup()
@@ -80,6 +184,43 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	//Should stop on first recipe
 	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
 	assert.Equal(t, expectedError.Error(), actualError.Error())
+}
+
+func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T) {
+	setup()
+	mockedRecipeInstaller := new(mockRecipeInstaller)
+	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("great success", nil)
+	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+
+	bundle := recipes.Bundle{
+		BundleRecipes: []*recipes.BundleRecipe{
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.AVAILABLE,
+				},
+			},
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe2").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.UNSUPPORTED,
+				},
+			},
+			{
+				Recipe: recipes.NewRecipeBuilder().Name("recipe3").Build(),
+				DetectedStatuses: []execution.RecipeStatusType{
+					execution.RecipeStatusTypes.AVAILABLE,
+				},
+			},
+		},
+	}
+
+	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 2)
+	assert.True(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe1"])
+	assert.False(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe2"])
+	assert.True(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe3"])
 }
 
 func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
