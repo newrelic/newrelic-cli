@@ -8,6 +8,26 @@ import (
 
 type Bundle struct {
 	BundleRecipes []*BundleRecipe
+	Type          BundleType
+}
+
+// OpenInstallationOperatingSystem - Operating System of target environment
+type BundleType string
+
+var BundleTypes = struct {
+	// MacOS operating system
+	CORE BundleType
+	// Linux-based operating system
+	ADDITIONAL_GUIDED BundleType
+	// Windows operating system
+	ADDITIONAL_TARGETED BundleType
+}{
+	// MacOS operating system
+	CORE: "CORE",
+	// Linux-based operating system
+	ADDITIONAL_GUIDED: "ADDITIONAL_GUIDED",
+	// Windows operating system
+	ADDITIONAL_TARGETED: "ADDITIONAL_TARGETED",
 }
 
 func (b *Bundle) AddRecipe(bundleRecipe *BundleRecipe) {

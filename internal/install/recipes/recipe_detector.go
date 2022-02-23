@@ -44,7 +44,7 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 	}
 
 	status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-	bundleRecipe.AddStatus(status)
+	bundleRecipe.AddDetectionStatus(status)
 }
 
 func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {

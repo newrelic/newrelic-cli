@@ -43,6 +43,15 @@ func setup() {
 		bundleInstallerTestImpl.statusReporter)
 }
 
+/*
+	New tests needed:
+	1. getInstallabeBundleRecipes
+	2. InstallContinueOnError
+		a. Test no installable recipes returns immediately
+		b. Test prompt of no returns immediately (how can we mocka  prompt?)
+		c. Test if a mix of installable and not installable recipes, only installable trigger
+*/
+
 func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	setup()
 	expectedError := errors.New("Kaboom " + time.Now().String())
@@ -105,7 +114,7 @@ func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
 	setup()
 	expectedStatus := execution.RecipeStatusTypes.RECOMMENDED
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddStatus(expectedStatus)
+	bundle.BundleRecipes[0].AddDetectionStatus(expectedStatus)
 
 	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
 
@@ -116,7 +125,7 @@ func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
 func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T) {
 	setup()
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddStatus(execution.RecipeStatusTypes.AVAILABLE)
+	bundle.BundleRecipes[0].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE)
 
 	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
 

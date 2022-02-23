@@ -10,10 +10,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-var coreBundleRecipeNames = []string{
-	types.InfraAgentRecipeName,
-	types.LoggingRecipeName,
-	types.GoldenRecipeName,
+var coreRecipeMap = map[string]bool{
+	types.InfraAgentRecipeName: true,
+	types.LoggingRecipeName:    true,
+	types.GoldenRecipeName:     true,
 }
 
 type Bundler struct {
@@ -35,40 +35,55 @@ func newBundler(context context.Context, rr *RecipeRepository, rd *RecipeDetecto
 }
 
 func (b *Bundler) CreateCoreBundle() *Bundle {
-	var coreRecipes []*types.OpenInstallationRecipe
-	for _, recipeName := range coreBundleRecipeNames {
+	var recipes []*types.OpenInstallationRecipe
+
+	for _, recipeName := range b.getCoreRecipeNames() {
 		if r := b.RecipeRepository.FindRecipeByName(recipeName); r != nil {
-			coreRecipes = append(coreRecipes, r)
+			recipes = append(recipes, r)
 		}
 	}
 
-	return b.CreateBundle(coreRecipes)
+	return b.createBundle(recipes, BundleTypes.CORE)
 }
 
-func (b *Bundler) CreateAdditionalBundle() *Bundle {
+func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
+	var recipes []*types.OpenInstallationRecipe
 
-	coreRecipeNameMap := make(map[string]bool)
-	for _, recipeName := range coreBundleRecipeNames {
-		coreRecipeNameMap[recipeName] = true
-	}
-
-	//TODO: check dependency graph at install? Not counting dependency here could cause it to prompt during additional install
-	//TODO: Target-install logic here
-	var additionalRecipes []*types.OpenInstallationRecipe
-	recipes, _ := b.RecipeRepository.FindAll()
-
-	for _, recipe := range recipes {
-		if !coreRecipeNameMap[recipe.Name] {
-			additionalRecipes = append(additionalRecipes, recipe)
+	allRecipes, _ := b.RecipeRepository.FindAll()
+	for _, recipe := range allRecipes {
+		if !coreRecipeMap[recipe.Name] {
+			recipes = append(recipes, recipe)
 		}
 	}
 
-	return b.CreateBundle(additionalRecipes)
+	return b.createBundle(recipes, BundleTypes.ADDITIONAL_GUIDED)
 }
 
-func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
+func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
+	var recipes []*types.OpenInstallationRecipe
 
-	bundle := &Bundle{}
+	for _, recipeName := range recipeNames {
+		if coreRecipeMap[recipeName] {
+			continue
+		}
+		if r := b.RecipeRepository.FindRecipeByName(recipeName); r != nil {
+			recipes = append(recipes, r)
+		}
+	}
+
+	return b.createBundle(recipes, BundleTypes.ADDITIONAL_TARGETED)
+}
+
+func (b *Bundler) getCoreRecipeNames() []string {
+	coreRecipeNames := make([]string, 0, len(coreRecipeMap))
+	for k := range coreRecipeMap {
+		coreRecipeNames = append(coreRecipeNames, k)
+	}
+	return coreRecipeNames
+}
+
+func (b *Bundler) createBundle(recipes []*types.OpenInstallationRecipe, bType BundleType) *Bundle {
+	bundle := &Bundle{Type: bType}
 
 	for _, r := range recipes {
 		// recipe shouldn't have itself as dependency

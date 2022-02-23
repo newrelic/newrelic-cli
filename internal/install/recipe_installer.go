@@ -258,45 +258,13 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	}
 
 	//FIXME: additional install mock, just hack together code for install to check flow, needs to be refactor
-	additionalBundle := bundler.CreateAdditionalBundle()
 
-	if additionalBundle.AvailableRecipeCount() > 0 {
-		prompter := ux.NewPromptUIPrompter()
-
-		//TODO: needs to filter out detected recipes
-		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
-
-		// var additionalBundleConfirmed *recipes.Bundle
-
-		for _, additionalRecipe := range additionalBundle.BundleRecipes {
-			//TODO: is this the best place, should this be filtered out earlier?
-			//Only prompt for install
-			if !additionalRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
-				continue
-			}
-
-			ans := true
-
-			// Only ask if not assume yes
-			if !i.AssumeYes {
-				msg := fmt.Sprintf("%v.  Continue installing? ", additionalRecipe.Recipe.DisplayName)
-				ans, err = prompter.PromptYesNo(msg)
-
-				if err != nil {
-					fmt.Println(err)
-				}
-			}
-
-			if ans {
-				err := bundleInstaller.InstallBundleRecipe(additionalRecipe, i.AssumeYes)
-				if err != nil {
-					log.Debugf("error installing recipe %v: %v", additionalRecipe.Recipe.Name, err)
-				}
-				// additionalBundleConfirmed.AddRecipe(additionalRecipe)
-			} else {
-				i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: *additionalRecipe.Recipe})
-			}
-		}
+	if i.RecipeNamesProvided() {
+		targetedBundle := bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		bundleInstaller.InstallContinueOnError(targetedBundle, i.AssumeYes)
+	} else {
+		additionalBundle := bundler.CreateAdditionalGuidedBundle()
+		bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 	}
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
