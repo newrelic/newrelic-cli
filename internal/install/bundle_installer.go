@@ -22,6 +22,7 @@ type BundleInstaller struct {
 	manifest         *types.DiscoveryManifest
 	statusReporter   StatusReporter
 	recipeInstaller  RecipeInstallerInterface
+	prompter         Prompter
 }
 
 //TODO should we revert this interface extraction? Was changed in order to mock via testify...
@@ -44,7 +45,18 @@ func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, 
 		recipeInstaller:  recipeInstallerInterface,
 		statusReporter:   statusReporter,
 		installedRecipes: make(map[string]bool),
+		prompter:         NewPrompter(),
 	}
+}
+
+func NewPrompter() *ux.PromptUIPrompter {
+	return ux.NewPromptUIPrompter()
+}
+
+func newBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstallerInterface, statusReporter StatusReporter, prompter Prompter) *BundleInstaller {
+	bi := NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
+	bi.prompter = prompter
+	return bi
 }
 
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
