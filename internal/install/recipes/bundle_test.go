@@ -3,6 +3,7 @@ package recipes
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -61,4 +62,25 @@ func TestBundle_ShouldNotContainRecipeName(t *testing.T) {
 	}
 
 	require.Equal(t, false, bundle.ContainsName("some other name"))
+}
+
+func TestBundle_ShouldBeGuided(t *testing.T) {
+	bundle := Bundle{
+		Type: BundleTypes.ADDITIONALGUIDED,
+	}
+	assert.True(t, bundle.IsAdditionalGuided())
+}
+
+func TestBundle_ShouldNotBeGuidedWhenCore(t *testing.T) {
+	bundle := Bundle{
+		Type: BundleTypes.CORE,
+	}
+	assert.False(t, bundle.IsAdditionalGuided())
+}
+
+func TestBundle_ShouldNotBeGuidedWhenTargeted(t *testing.T) {
+	bundle := Bundle{
+		Type: BundleTypes.ADDITIONALTARGETED,
+	}
+	assert.False(t, bundle.IsAdditionalGuided())
 }

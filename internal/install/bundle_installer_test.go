@@ -216,7 +216,7 @@ func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T
 			{
 				Recipe: recipes.NewRecipeBuilder().Name("recipe3").Build(),
 				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.AVAILABLE,
+					execution.RecipeStatusTypes.DETECTED,
 				},
 			},
 		},
@@ -224,10 +224,10 @@ func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T
 
 	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
 
-	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 2)
+	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
 	assert.True(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe1"])
 	assert.False(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe2"])
-	assert.True(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe3"])
+	assert.False(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe3"])
 }
 
 func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
