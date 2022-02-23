@@ -22,7 +22,7 @@ type BundleInstaller struct {
 	recipeInstaller  RecipeInstallerInterface
 }
 
-//FIXME proper interface naming convention...
+//TODO should we revert this interface extraction? Was changed in order to mock via testify...
 type RecipeInstallerInterface interface {
 	promptIfNotLatestCLIVersion(ctx context.Context) error
 	Install() error

@@ -15,8 +15,6 @@ import (
 )
 
 type bundleInstallerTest struct {
-	// FIXME currently unused...
-	// installedRecipes map[string]bool
 	ctx             context.Context
 	manifest        *types.DiscoveryManifest
 	recipeInstaller *mockRecipeInstaller
@@ -29,9 +27,7 @@ var (
 )
 
 func setup() {
-	manifest := types.DiscoveryManifest{
-		DiscoveredProcesses: []types.GenericProcess{},
-	}
+	manifest := types.DiscoveryManifest{}
 
 	bundleInstallerTestImpl = &bundleInstallerTest{
 		statusReporter:  &mockStatusReporter{},

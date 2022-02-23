@@ -1,7 +1,6 @@
 package install
 
 import (
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -9,10 +8,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"gopkg.in/yaml.v2"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 var (
@@ -70,7 +72,7 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 		shouldError bool
 	}
 
-	stubbedHttpGetFunction := func(statusCode int) func(string) (*http.Response, error) {
+	stubbedHTTPGetFunction := func(statusCode int) func(string) (*http.Response, error) {
 		return func(recipeURL string) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: statusCode,
@@ -91,14 +93,14 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 	}
 
 	for _, testCondition := range tests {
-		ff.HTTPGetFunc = stubbedHttpGetFunction(testCondition.statusCode)
+		ff.HTTPGetFunc = stubbedHTTPGetFunction(testCondition.statusCode)
 		f, err := ff.FetchRecipeFile(u)
 
 		switch testCondition.shouldError {
 		case true:
 			assert.Error(t, err)
 			assert.Nil(t, f)
-			break
+
 		case false:
 			assert.NoError(t, err)
 			assert.NotNil(t, f)

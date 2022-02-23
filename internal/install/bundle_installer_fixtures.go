@@ -31,7 +31,6 @@ func (mri *mockRecipeInstaller) assertDiscoveryValid(ctx context.Context, m *typ
 
 func (mri *mockRecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
 	args := mri.Called(ctx)
-	// FIXME figure out how to return the object
 	return nil, args.Error(1)
 }
 
@@ -46,7 +45,6 @@ func (mri *mockRecipeInstaller) validateRecipeViaAllMethods(ctx context.Context,
 }
 
 func (mri *mockRecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
-	//FIXME I never get overridden, even though my interaction is mocked
 	args := mri.Called(ctx, m, r, assumeYes)
 	return args.String(0), args.Error(1)
 }
