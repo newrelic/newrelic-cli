@@ -53,12 +53,6 @@ func NewPrompter() *ux.PromptUIPrompter {
 	return ux.NewPromptUIPrompter()
 }
 
-func newBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstallerInterface, statusReporter StatusReporter, prompter Prompter) *BundleInstaller {
-	bi := NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
-	bi.prompter = prompter
-	return bi
-}
-
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
 
 	bi.reportBundleStatus(bundle)
@@ -82,7 +76,7 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 		return
 	}
 
-	if !assumeYes && bundle.Type == recipes.BundleTypes.ADDITIONAL_GUIDED {
+	if !assumeYes && bundle.Type == recipes.BundleTypes.ADDITIONALGUIDED {
 		//TODO: needs to filter out detected recipes
 		//TODO: Should this be log instead of fmt?
 		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
