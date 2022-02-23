@@ -78,10 +78,13 @@ func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
 
 	for _, recipe := range bundle.BundleRecipes {
 		for _, status := range recipe.DetectedStatuses {
-			//TODO: should we keep track if status is already reported/saved
 			bi.statusReporter.ReportStatus(status, *recipe.Recipe)
 		}
 	}
+}
+
+func (bi *BundleInstaller) InstalledRecipesCount() int {
+	return len(bi.installedRecipes)
 }
 
 func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {

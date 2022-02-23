@@ -249,9 +249,9 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	//FIXME: need to fix
 	bundler := recipes.NewBundler(ctx, repo)
 	coreBundle := bundler.CreateCoreBundle()
-	bundlerInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
+	bundleInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
 
-	err = bundlerInstaller.InstallStopOnError(coreBundle, true)
+	err = bundleInstaller.InstallStopOnError(coreBundle, true)
 	if err != nil {
 		log.Debugf("error installing core bundle: %s", err)
 		return err
@@ -288,7 +288,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 			}
 
 			if ans {
-				err := bundlerInstaller.InstallBundleRecipe(additionalRecipe, i.AssumeYes)
+				err := bundleInstaller.InstallBundleRecipe(additionalRecipe, i.AssumeYes)
 				if err != nil {
 					log.Debugf("error installing recipe %v: %v", additionalRecipe.Recipe.Name, err)
 				}
@@ -299,7 +299,13 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		}
 	}
 
-	//bundlerInstaller.InstallContinueOnError(additionalBundleConfirmed, i.AssumeYes)
+	if bundleInstaller.InstalledRecipesCount() == 0 {
+		return &types.UncaughtError{
+			Err: fmt.Errorf("no recipes were installed"),
+		}
+	}
+
+	log.Debugf("Done installing.")
 
 	return nil
 
@@ -357,52 +363,6 @@ func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.Dis
 	log.Debugf("Done asserting valid operating system for OS:%s and PlatformVersion:%s", m.OS, m.PlatformVersion)
 	return nil
 }
-
-// func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.OpenInstallationRecipe) error {
-// 	log.WithFields(log.Fields{
-// 		"recipe_count": len(recipes),
-// 	}).Debug("installing recipes")
-// 	var lastError error
-
-// 	for _, r := range recipes {
-// 		var err error
-
-// 		log.WithFields(log.Fields{
-// 			"name": r.Name,
-// 		}).Debug("installing recipe")
-
-// 		_, err = i.executeAndValidateWithProgress(ctx, m, &r)
-
-// 		if err != nil {
-// 			if err == types.ErrInterrupt {
-// 				return err
-// 			}
-
-// 			if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName || i.RecipesProvided() {
-// 				return err
-// 			}
-
-// 			lastError = err
-
-// 			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-// 			log.Debug(err)
-// 		}
-// 		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
-// 	}
-
-// 	if lastError != nil {
-// 		// Return last recipe error that was caught if any
-// 		return lastError
-// 	}
-
-// 	if !i.status.WasSuccessful() {
-// 		return &types.UncaughtError{
-// 			Err: fmt.Errorf("no recipes were installed"),
-// 		}
-// 	}
-
-// 	return nil
-// }
 
 func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
 	log.Debug("discovering system information")
@@ -550,7 +510,6 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 // Installing recipe
 func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
 
-	//TODO: WIP, not finished, handle debug, silent, assumeyes flag...
 	fmt.Println()
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
 
@@ -717,43 +676,6 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 // 	}
 
 // 	return nil
-// }
-
-// This is a naive implementation that only resolves dependencies one level deep.
-// func resolveDependencies(recipes []types.OpenInstallationRecipe, recipesForPlatform []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-// 	var results []types.OpenInstallationRecipe
-
-// 	for _, r := range recipes {
-// 		if len(r.Dependencies) > 0 {
-// 			for _, n := range r.Dependencies {
-// 				d := findRecipeInRecipes(n, recipesForPlatform)
-// 				if d != nil {
-// 					results = append(results, *d)
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return results
-// }
-
-// This is a naive implementation that only resolves dependencies one level deep.
-// func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-// 	var results []types.OpenInstallationRecipe
-
-// 	for _, d := range dependencies {
-// 		if found := findRecipeInRecipes(d.Name, results); found == nil {
-// 			results = append(results, d)
-// 		}
-// 	}
-
-// 	for _, r := range recipes {
-// 		if found := findRecipeInRecipes(r.Name, results); found == nil {
-// 			results = append(results, r)
-// 		}
-// 	}
-
-// 	return results
 // }
 
 func checkNetwork(nrClient *newrelic.NewRelic) {

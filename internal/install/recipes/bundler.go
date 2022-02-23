@@ -52,10 +52,8 @@ func (b *Bundler) CreateAdditionalBundle() *Bundle {
 		coreRecipeNameMap[recipeName] = true
 	}
 
-	//TODO: check dependency graph at install
+	//TODO: check dependency graph at install? Not counting dependency here could cause it to prompt during additional install
 	//TODO: Target-install logic here
-	//TODO: Flatten maybe renamed
-
 	var additionalRecipes []*types.OpenInstallationRecipe
 	recipes, _ := b.RecipeRepository.FindAll()
 
@@ -82,10 +80,6 @@ func (b *Bundler) CreateBundle(recipes []*types.OpenInstallationRecipe) *Bundle 
 			bundle.AddRecipe(bundleRecipe)
 		}
 	}
-
-	//TODO: might wire detection during dependency
-	//Log dependency is not installed, but still install parent
-	//b.RecipeDetector.DetectBundle(b.Context, bundle)
 
 	return bundle
 }
@@ -123,13 +117,3 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 
 	return bundleRecipe
 }
-
-// Control Status
-
-//Recipe Candidate, recipe + collection of Status
-//Recipe context, capturing recipe intall info, timing, Status..etc.
-
-// func (b *Bundler) createAdditionalBundle(recipes []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-// 	_, a := createBundles(coreBundleRecipeNames, recipes)
-// 	return a
-// }
