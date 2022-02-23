@@ -15,6 +15,6 @@ func NewMockLogMatchFinder() LogMatchFinderDefinition {
 	return &MockLogMatchFinder{}
 }
 
-func (m *MockLogMatchFinder) GetPaths(ctx context.Context, recipes []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
+func (m *MockLogMatchFinder) GetPaths(ctx context.Context, recipes []*types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
 	return m.Matches
 }

@@ -244,7 +244,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
+	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
 	}, m)

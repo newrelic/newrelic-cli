@@ -47,15 +47,21 @@ func (b *Bundler) CreateCoreBundle() *Bundle {
 
 func (b *Bundler) CreateAdditionalBundle() *Bundle {
 
-	coreBundle := b.CreateCoreBundle()
-	coreBundleRecipes := coreBundle.Flatten()
+	coreRecipeNameMap := make(map[string]bool)
+	for _, recipeName := range coreBundleRecipeNames {
+		coreRecipeNameMap[recipeName] = true
+	}
+
+	//TODO: check dependency graph at install
+	//TODO: Target-install logic here
+	//TODO: Flatten maybe renamed
 
 	var additionalRecipes []*types.OpenInstallationRecipe
+	recipes, _ := b.RecipeRepository.FindAll()
 
-	for i := 0; i < len(b.RecipeRepository.filteredRecipes); i++ {
-
-		if !coreBundleRecipes[b.RecipeRepository.filteredRecipes[i].Name] {
-			additionalRecipes = append(additionalRecipes, &b.RecipeRepository.filteredRecipes[i])
+	for _, recipe := range recipes {
+		if !coreRecipeNameMap[recipe.Name] {
+			additionalRecipes = append(additionalRecipes, recipe)
 		}
 	}
 

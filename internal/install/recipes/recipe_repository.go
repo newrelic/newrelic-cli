@@ -22,23 +22,23 @@ var (
 )
 
 type RecipeRepository struct {
-	RecipeLoaderFunc  func() ([]types.OpenInstallationRecipe, error)
-	loadedRecipes     []types.OpenInstallationRecipe
-	filteredRecipes   []types.OpenInstallationRecipe
+	RecipeLoaderFunc  func() ([]*types.OpenInstallationRecipe, error)
+	loadedRecipes     []*types.OpenInstallationRecipe
+	filteredRecipes   []*types.OpenInstallationRecipe
 	discoveryManifest *types.DiscoveryManifest
 	logMatchFinder    LogMatchFinderDefinition
 }
 
 type recipeMatch struct {
 	matchCount int
-	recipe     types.OpenInstallationRecipe
+	recipe     *types.OpenInstallationRecipe
 }
 
 // NewRecipeRepository returns a new instance of types.RecipeRepository.
-func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
+func NewRecipeRepository(loaderFunc func() ([]*types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
 	return newRecipeRepository(loaderFunc, manifest, NewLogMatchFinder())
 }
-func newRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder LogMatchFinderDefinition) *RecipeRepository {
+func newRecipeRepository(loaderFunc func() ([]*types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder LogMatchFinderDefinition) *RecipeRepository {
 	rr := RecipeRepository{
 		RecipeLoaderFunc:  loaderFunc,
 		loadedRecipes:     nil,
@@ -60,7 +60,7 @@ func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallatio
 	for _, r := range recipes {
 		if strings.EqualFold(r.Name, name) {
 			log.Debugf("Found recipe name %v", r.Name)
-			return &r
+			return r
 		}
 	}
 	return nil
@@ -87,7 +87,7 @@ func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallati
 			}
 		}
 		if !found {
-			results = append(results, &r)
+			results = append(results, r)
 		}
 	}
 	return results
@@ -119,7 +119,7 @@ func (rf *RecipeRepository) enrichLogRecipe() {
 	}
 }
 
-func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
+func (rf *RecipeRepository) FindAll() ([]*types.OpenInstallationRecipe, error) {
 	if rf.filteredRecipes != nil {
 		return rf.filteredRecipes, nil
 	}
@@ -139,8 +139,8 @@ func (rf *RecipeRepository) FindAll() ([]types.OpenInstallationRecipe, error) {
 	return rf.filteredRecipes, nil
 }
 
-func filterRecipes(loadedRecipes []types.OpenInstallationRecipe, m *types.DiscoveryManifest) []types.OpenInstallationRecipe {
-	results := []types.OpenInstallationRecipe{}
+func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.DiscoveryManifest) []*types.OpenInstallationRecipe {
+	results := []*types.OpenInstallationRecipe{}
 	matchRecipes := make(map[string][]recipeMatch)
 	hostMap := getHostMap(m)
 
@@ -192,7 +192,7 @@ func filterRecipes(loadedRecipes []types.OpenInstallationRecipe, m *types.Discov
 
 	if len(matchRecipes) > 0 {
 		keys := []string{}
-		unorderedResults := map[string]types.OpenInstallationRecipe{}
+		unorderedResults := map[string]*types.OpenInstallationRecipe{}
 		for _, matches := range matchRecipes {
 			if len(matches) > 0 {
 				match := findMaxMatch(matches)

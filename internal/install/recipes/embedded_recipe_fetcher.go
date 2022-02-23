@@ -29,7 +29,7 @@ func NewEmbeddedRecipeFetcher() *EmbeddedRecipeFetcher {
 	return &EmbeddedRecipeFetcher{}
 }
 
-func (f *EmbeddedRecipeFetcher) FetchRecipes(context.Context) (out []types.OpenInstallationRecipe, err error) {
+func (f *EmbeddedRecipeFetcher) FetchRecipes(context.Context) (out []*types.OpenInstallationRecipe, err error) {
 	files, err := f.getYAMLFiles(embeddedRecipesPath)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (f *EmbeddedRecipeFetcher) FetchRecipes(context.Context) (out []types.OpenI
 			return nil, fmt.Errorf("could not unmarshal embedded file %s: %w", f, err)
 		}
 
-		out = append(out, r)
+		out = append(out, &r)
 	}
 
 	return out, nil

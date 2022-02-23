@@ -240,7 +240,7 @@ func (s *InstallStatus) InstallComplete(err error) {
 	}
 }
 
-//TODO: show we error if report status that's not part
+//TODO: What should we do here if report status is not part of enum/supported?
 func (s *InstallStatus) ReportStatus(status RecipeStatusType, recipe types.OpenInstallationRecipe) {
 
 	switch status {
