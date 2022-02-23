@@ -50,9 +50,15 @@ func setup() {
 	2. InstallContinueOnError
 		a. Test no installable recipes returns immediately
 		b. Test prompt of no returns immediately (how can we mocka  prompt?)
-		c  Test prompt of yes calls install
+		c  Test prompt of yes calls install (didn't seem to pass/fail as expected)
         d. make sure ux/prompt doesnt get called if bundle is Additional/Targeted
 		e. Test if a mix of installable and not installable recipes, only installable trigger
+
+
+	for os-specific unsupported, consider these cases
+
+	3. When no recipe for CoreBundle
+	4. No recipe for AdditionalBundle
 */
 
 func TestInstallContinueOnErrorReturnsImmediately(t *testing.T) {
