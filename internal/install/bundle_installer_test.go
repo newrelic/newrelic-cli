@@ -107,7 +107,7 @@ func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
 	bundle := givenBundle(types.InfraAgentRecipeName)
 	bundle.BundleRecipes[0].AddStatus(expectedStatus)
 
-	bundleInstallerTestImpl.bundleInstaller.reportStatus(bundle)
+	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
 
 	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].DetectedStatuses[0])
 	assert.Equal(t, 1, len(bundle.BundleRecipes[0].DetectedStatuses))
@@ -118,7 +118,7 @@ func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T)
 	bundle := givenBundle(types.InfraAgentRecipeName)
 	bundle.BundleRecipes[0].AddStatus(execution.RecipeStatusTypes.AVAILABLE)
 
-	bundleInstallerTestImpl.bundleInstaller.reportStatus(bundle)
+	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
 
 	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.AVAILABLE))
 	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.DETECTED))

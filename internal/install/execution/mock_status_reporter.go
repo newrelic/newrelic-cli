@@ -32,6 +32,7 @@ type MockStatusReporter struct {
 	DiscoveryCompleteCallCount int
 	RecipeUnsupportedCallCount int
 	RecipeDetectedCallCount    int
+	RecipeCanceledCallCount    int
 
 	ReportSkipped     map[string]int
 	ReportInstalled   map[string]int
@@ -50,8 +51,13 @@ func NewMockStatusReporter() *MockStatusReporter {
 	return &MockStatusReporter{}
 }
 
-func (r *MockStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r *MockStatusReporter) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeDetectedCallCount++
+	return nil
+}
+
+func (r *MockStatusReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
+	r.RecipeCanceledCallCount++
 	return nil
 }
 
@@ -119,12 +125,12 @@ func (r *MockStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeSt
 	return r.RecipeSkippedErr
 }
 
-func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeAvailableCallCount++
 	if len(r.ReportAvailable) == 0 {
 		r.ReportAvailable = make(map[string]int)
 	}
-	r.ReportAvailable[recipe.Name]++
+	r.ReportAvailable[event.Recipe.Name]++
 	return r.RecipeAvailableErr
 }
 

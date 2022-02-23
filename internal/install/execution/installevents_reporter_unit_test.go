@@ -209,13 +209,13 @@ func TestInstallEventsReporter_writeStatus(t *testing.T) {
 
 	createInstallEventCallCount := 0
 
-	err := r.RecipeAvailable(status, recipes[0])
+	err := r.RecipeAvailable(status, NewRecipeStatusEvent(&recipes[0]))
 	createInstallEventCallCount++
 	require.NoError(t, err)
 	require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
 
 	for _, testRecipe := range recipes {
-		err = r.RecipeAvailable(status, testRecipe)
+		err = r.RecipeAvailable(status, NewRecipeStatusEvent(&testRecipe))
 		createInstallEventCallCount++
 		require.NoError(t, err)
 		require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)

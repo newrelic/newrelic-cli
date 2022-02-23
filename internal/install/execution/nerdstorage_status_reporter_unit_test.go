@@ -18,7 +18,7 @@ func TestRecipeAvailable_Basic(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
 	status := NewInstallStatus([]StatusSubscriber{}, slg)
 
-	err := r.RecipeAvailable(status, types.OpenInstallationRecipe{})
+	err := r.RecipeAvailable(status, NewRecipeStatusEvent(&types.OpenInstallationRecipe{}))
 	require.NoError(t, err)
 }
 
@@ -30,7 +30,7 @@ func TestRecipeAvailable_UserScopeError(t *testing.T) {
 
 	c.WriteDocumentWithUserScopeErr = errors.New("error")
 
-	err := r.RecipeAvailable(status, types.OpenInstallationRecipe{})
+	err := r.RecipeAvailable(status, NewRecipeStatusEvent(&types.OpenInstallationRecipe{}))
 	require.Error(t, err)
 }
 

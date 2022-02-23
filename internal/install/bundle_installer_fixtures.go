@@ -53,7 +53,7 @@ type mockRecipeInstaller struct {
 	mock.Mock
 }
 
-func (sr *mockStatusReporter) ReportStatus(status execution.RecipeStatusType, recipe types.OpenInstallationRecipe) {
+func (sr *mockStatusReporter) ReportStatus(status execution.RecipeStatusType, event execution.RecipeStatusEvent) {
 	sr.counter++
 }
 
