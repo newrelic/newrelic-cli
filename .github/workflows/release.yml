@@ -155,16 +155,14 @@ jobs:
           rm -rf /home/runner/.aws/config
 
   release-windows-installer:
-    runs-on: windows-latest
+    runs-on: windows-2019
     needs: release
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
-        with:
-          msbuild-architecture: x64
+        uses: microsoft/setup-msbuild@v1.0.3
 
       - uses: actions/download-artifact@v2
         with:
