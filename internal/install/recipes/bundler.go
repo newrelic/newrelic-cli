@@ -56,7 +56,7 @@ func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 		}
 	}
 
-	return b.createBundle(recipes, BundleTypes.ADDITIONAL_GUIDED)
+	return b.createBundle(recipes, BundleTypes.ADDITIONALGUIDED)
 }
 
 func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
@@ -71,7 +71,7 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 		}
 	}
 
-	return b.createBundle(recipes, BundleTypes.ADDITIONAL_TARGETED)
+	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
 }
 
 func (b *Bundler) getCoreRecipeNames() []string {
