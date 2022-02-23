@@ -34,7 +34,7 @@ func TestLogMatchFinder(t *testing.T) {
 	require.NoError(t, err)
 	defer f3.Close()
 
-	recipes := []types.OpenInstallationRecipe{
+	recipes := []*types.OpenInstallationRecipe{
 		{
 			ID: "test",
 			LogMatch: []types.OpenInstallationLogMatch{
