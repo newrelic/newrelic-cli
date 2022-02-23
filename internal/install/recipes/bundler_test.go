@@ -32,6 +32,31 @@ var (
 	}
 )
 
+func TestCreateAdditionalTargetedBundleShouldSkipCoreRecipes(t *testing.T) {
+	setup()
+	addRecipeToCache("id1", types.InfraAgentRecipeName)
+	addRecipeToCache("id2", types.LoggingRecipeName)
+	addRecipeToCache("id3", types.GoldenRecipeName)
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+
+	recipeNames := []string{
+		"mysql",
+		types.LoggingRecipeName,
+		types.InfraAgentRecipeName,
+		types.GoldenRecipeName,
+	}
+	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
+
+	require.Equal(t, 1, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
+	require.Nil(t, findRecipeByName(addBundle, types.InfraAgentRecipeName))
+}
+
 func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 	setup()
 	addRecipeToCache("id1", types.InfraAgentRecipeName)
@@ -49,7 +74,7 @@ func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestCreateAdditionalBundleShouldSkipCoreRecipes(t *testing.T) {
+func TestCreateAdditionalGuidedBundleShouldSkipCoreRecipes(t *testing.T) {
 	setup()
 	addRecipeToCache("id1", types.InfraAgentRecipeName)
 	addRecipeToCache("id2", types.LoggingRecipeName)
@@ -61,7 +86,7 @@ func TestCreateAdditionalBundleShouldSkipCoreRecipes(t *testing.T) {
 	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
 	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
 
-	addBundle := bundler.CreateAdditionalBundle()
+	addBundle := bundler.CreateAdditionalGuidedBundle()
 
 	require.Equal(t, 1, len(addBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
@@ -136,13 +161,13 @@ func TestCreateCoreBundleShouldCreateEmptyCore(t *testing.T) {
 	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
-func TestCreateAdditionalBundleShouldNotBundleRecipesThatHaveNullStatus(t *testing.T) {
+func TestCreateAdditionalGuidedBundleShouldNotBundleRecipesThatHaveNullStatus(t *testing.T) {
 	setup()
 	addRecipeToCache("id1", "mysql")
 	bundler := createTestBundler()
 	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.NULL)
 
-	coreBundle := bundler.CreateAdditionalBundle()
+	coreBundle := bundler.CreateAdditionalGuidedBundle()
 
 	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))

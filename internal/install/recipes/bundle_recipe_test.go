@@ -13,7 +13,7 @@ func TestBundleRecipeAddsStatusWithTime(t *testing.T) {
 	expectedStatus := execution.RecipeStatusTypes.INSTALLING
 	br := testBundleRecipe()
 
-	br.AddStatus(expectedStatus)
+	br.AddDetectionStatus(expectedStatus)
 
 	require.Equal(t, len(br.DetectedStatuses), 1)
 	require.Equal(t, expectedStatus, br.DetectedStatuses[0])
@@ -23,9 +23,9 @@ func TestBundleRecipeShouldAddStatusOnceAtFirstOccurrence(t *testing.T) {
 	br := testBundleRecipe()
 	expectedStatus := execution.RecipeStatusTypes.INSTALLING
 
-	br.AddStatus(expectedStatus)
-	br.AddStatus(expectedStatus)
-	br.AddStatus(expectedStatus)
+	br.AddDetectionStatus(expectedStatus)
+	br.AddDetectionStatus(expectedStatus)
+	br.AddDetectionStatus(expectedStatus)
 
 	require.Equal(t, len(br.DetectedStatuses), 1)
 	require.Equal(t, expectedStatus, br.DetectedStatuses[0])
@@ -34,7 +34,7 @@ func TestBundleRecipeShouldAddStatusOnceAtFirstOccurrence(t *testing.T) {
 func TestBundleRecipeShouldAddStatusDetectedWhenAvailable(t *testing.T) {
 	br := testBundleRecipe()
 
-	br.AddStatus(execution.RecipeStatusTypes.AVAILABLE)
+	br.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE)
 
 	require.Equal(t, len(br.DetectedStatuses), 2)
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, br.DetectedStatuses[0])

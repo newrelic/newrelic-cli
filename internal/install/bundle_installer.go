@@ -2,12 +2,14 @@ package install
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 )
 
 type StatusReporter interface {
@@ -61,21 +63,49 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 }
 
 func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool) {
-
 	bi.reportBundleStatus(bundle)
-	//TODO does this need to `reportStatus` like InstallStopOnError?
-	// bi.reportBundleStatus(bundle)
 
-	for _, br := range bundle.BundleRecipes {
-		err := bi.InstallBundleRecipe(br, assumeYes)
+	installableBundleRecipes := bi.getInstallableBundleRecipes(bundle)
+	if len(installableBundleRecipes) == 0 {
+		return
+	}
+
+	if !assumeYes && bundle.Type == recipes.BundleTypes.ADDITIONAL_GUIDED {
+		//TODO: needs to filter out detected recipes
+		//TODO: Should this be log instead of fmt?
+		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
+
+		for _, bundleRecipe := range installableBundleRecipes {
+			fmt.Println(bundleRecipe.Recipe.DisplayName)
+		}
+
+		prompter := ux.NewPromptUIPrompter()
+		msg := "Continue installing? "
+		ans, err := prompter.PromptYesNo(msg)
+
 		if err != nil {
-			log.Debugf("error installing recipe %v: %v", br.Recipe.Name, err)
+			log.Debug(err)
+			ans = false
+		}
+
+		if !ans {
+			for _, additionalRecipe := range installableBundleRecipes {
+				skippedEvent := execution.NewRecipeStatusEvent(additionalRecipe.Recipe)
+				bi.statusReporter.ReportStatus(execution.RecipeStatusTypes.SKIPPED, skippedEvent)
+			}
+			return
+		}
+	}
+
+	for _, additionalRecipe := range installableBundleRecipes {
+		err := bi.InstallBundleRecipe(additionalRecipe, assumeYes)
+		if err != nil {
+			log.Debugf("error installing recipe %v: %v", additionalRecipe.Recipe.Name, err)
 		}
 	}
 }
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
-
 	for _, recipe := range bundle.BundleRecipes {
 		for _, status := range recipe.DetectedStatuses {
 			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe}
@@ -121,4 +151,20 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 
 	//TODO: actual install here
 	return nil
+}
+
+func (bi *BundleInstaller) getInstallableBundleRecipes(bundle *recipes.Bundle) []*recipes.BundleRecipe {
+	var bundleRecipes []*recipes.BundleRecipe
+
+	for _, bundleRecipe := range bundle.BundleRecipes {
+		if !bundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+			//Skip if not available
+			continue
+		}
+		if !bi.installedRecipes[bundleRecipe.Recipe.Name] {
+			bundleRecipes = append(bundleRecipes, bundleRecipe)
+		}
+	}
+
+	return bundleRecipes
 }

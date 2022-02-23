@@ -11,7 +11,7 @@ type BundleRecipe struct {
 	DetectedStatuses []execution.RecipeStatusType
 }
 
-func (br *BundleRecipe) AddStatus(newStatus execution.RecipeStatusType) {
+func (br *BundleRecipe) AddDetectionStatus(newStatus execution.RecipeStatusType) {
 	if br.HasStatus(newStatus) {
 		return
 	}
