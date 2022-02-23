@@ -161,7 +161,7 @@ func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *te
 //	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, false)
 //
 //	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
-}
+//}
 
 func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	setup()
