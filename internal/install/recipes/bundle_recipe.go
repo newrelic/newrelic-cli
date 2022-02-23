@@ -30,6 +30,7 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
+//TODO: might not need!
 func (br *BundleRecipe) Flatten() map[string]bool {
 
 	results := make(map[string]bool)

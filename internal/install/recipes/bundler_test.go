@@ -20,7 +20,7 @@ var (
 	detectionStatus = make(map[string]execution.RecipeStatusType)
 	bundlerTestImpl = struct {
 		discoveryManifest types.DiscoveryManifest
-		recipeCache       []types.OpenInstallationRecipe
+		recipeCache       []*types.OpenInstallationRecipe
 		recipeRepository  *RecipeRepository
 		ctx               context.Context
 		processEvaluator  *mockDetector
@@ -49,18 +49,22 @@ func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestCreateAdditionalBundleShouldCreateAdditionalBundle(t *testing.T) {
+func TestCreateAdditionalBundleShouldSkipCoreRecipes(t *testing.T) {
 	setup()
+	addRecipeToCache("id1", types.InfraAgentRecipeName)
 	addRecipeToCache("id2", types.LoggingRecipeName)
 	addRecipeToCache("id3", types.GoldenRecipeName)
 	addRecipeToCache("id4", "mysql")
 	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
 	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
 
-	coreBundle := bundler.CreateAdditionalBundle()
+	addBundle := bundler.CreateAdditionalBundle()
 
-	require.Equal(t, 1, len(coreBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(coreBundle, "mysql"))
+	require.Equal(t, 1, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
 }
 
 func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
@@ -185,7 +189,7 @@ func setup() {
 	bundlerTestImpl.discoveryManifest = types.DiscoveryManifest{
 		OS: "linux",
 	}
-	bundlerTestImpl.recipeCache = []types.OpenInstallationRecipe{}
+	bundlerTestImpl.recipeCache = []*types.OpenInstallationRecipe{}
 	bundlerTestImpl.recipeRepository = NewRecipeRepository(bundlerRecipeLoader, &bundlerTestImpl.discoveryManifest)
 }
 
@@ -208,13 +212,13 @@ func withRecipeStatusDetector(bundler *Bundler, recipeName string, status execut
 	bundler.RecipeDetector = bundlerTestImpl.recipeDetector
 }
 
-func bundlerRecipeLoader() ([]types.OpenInstallationRecipe, error) {
+func bundlerRecipeLoader() ([]*types.OpenInstallationRecipe, error) {
 	return bundlerTestImpl.recipeCache, nil
 }
 
 func addRecipeToCache(id string, name string) *types.OpenInstallationRecipe {
 	r := NewRecipeBuilder().ID(id).Name(name).TargetOs(types.OpenInstallationOperatingSystemTypes.LINUX).Build()
-	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, *r)
+	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, r)
 	return r
 }
 
@@ -225,7 +229,7 @@ func addRecipeWithDependenciesToCache(id string, name string, dependencies []str
 		r.Dependencies = dependencies
 	}
 
-	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, *r)
+	bundlerTestImpl.recipeCache = append(bundlerTestImpl.recipeCache, r)
 	return r
 }
 

@@ -12,7 +12,7 @@ import (
 type LogMatchFinder struct{}
 
 type LogMatchFinderDefinition interface {
-	GetPaths(context.Context, []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch
+	GetPaths(context.Context, []*types.OpenInstallationRecipe) []types.OpenInstallationLogMatch
 }
 
 func NewLogMatchFinder() LogMatchFinderDefinition {
@@ -21,7 +21,7 @@ func NewLogMatchFinder() LogMatchFinderDefinition {
 	return &f
 }
 
-func (f *LogMatchFinder) GetPaths(ctx context.Context, recipes []types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
+func (f *LogMatchFinder) GetPaths(ctx context.Context, recipes []*types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
 	fileMatches := []types.OpenInstallationLogMatch{}
 
 	for _, r := range recipes {

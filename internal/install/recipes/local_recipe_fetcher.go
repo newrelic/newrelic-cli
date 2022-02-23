@@ -17,8 +17,8 @@ type LocalRecipeFetcher struct {
 	Path string
 }
 
-func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context) ([]types.OpenInstallationRecipe, error) {
-	var recipes []types.OpenInstallationRecipe
+func (f *LocalRecipeFetcher) FetchRecipes(ctx context.Context) ([]*types.OpenInstallationRecipe, error) {
+	var recipes []*types.OpenInstallationRecipe
 	var err error
 
 	if f.Path == "" {
@@ -37,7 +37,7 @@ func (f *LocalRecipeFetcher) FetchLibraryVersion(ctx context.Context) string {
 	return ""
 }
 
-func loadRecipesFromDir(ctx context.Context, path string) ([]types.OpenInstallationRecipe, error) {
+func loadRecipesFromDir(ctx context.Context, path string) ([]*types.OpenInstallationRecipe, error) {
 	recipePaths := []string{}
 
 	log.WithFields(log.Fields{
@@ -60,7 +60,7 @@ func loadRecipesFromDir(ctx context.Context, path string) ([]types.OpenInstallat
 		return nil, err
 	}
 
-	recipes := []types.OpenInstallationRecipe{}
+	recipes := []*types.OpenInstallationRecipe{}
 
 	for _, path := range recipePaths {
 		var r types.OpenInstallationRecipe
@@ -77,7 +77,7 @@ func loadRecipesFromDir(ctx context.Context, path string) ([]types.OpenInstallat
 			continue
 		}
 
-		recipes = append(recipes, r)
+		recipes = append(recipes, &r)
 	}
 
 	return recipes, nil

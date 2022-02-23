@@ -12,13 +12,13 @@ import (
 
 var (
 	discoveryManifest types.DiscoveryManifest
-	recipeCache       []types.OpenInstallationRecipe
+	recipeCache       []*types.OpenInstallationRecipe
 	repository        *RecipeRepository
 )
 
 func Setup() {
 	discoveryManifest = types.DiscoveryManifest{}
-	recipeCache = []types.OpenInstallationRecipe{}
+	recipeCache = []*types.OpenInstallationRecipe{}
 	logMatchFinder := NewMockLogMatchFinder()
 	repository = newRecipeRepository(recipeLoader, &discoveryManifest, logMatchFinder)
 }
@@ -217,11 +217,11 @@ func TestRecipeRepository_shouldFindMaxMatch_First(t *testing.T) {
 
 	matches = append(matches, recipeMatch{
 		matchCount: 3,
-		recipe:     *recipe1,
+		recipe:     recipe1,
 	})
 	matches = append(matches, recipeMatch{
 		matchCount: 2,
-		recipe:     *recipe2,
+		recipe:     recipe2,
 	})
 	result := findMaxMatch(matches)
 	require.Equal(t, result.recipe.ID, "id1")
@@ -234,51 +234,51 @@ func TestRecipeRepository_shouldFindMaxMatch_Last(t *testing.T) {
 
 	matches = append(matches, recipeMatch{
 		matchCount: 2,
-		recipe:     *recipe1,
+		recipe:     recipe1,
 	})
 	matches = append(matches, recipeMatch{
 		matchCount: 3,
-		recipe:     *recipe2,
+		recipe:     recipe2,
 	})
 	result := findMaxMatch(matches)
 	require.Equal(t, result.recipe.ID, "id2")
 }
 
-func recipeLoader() ([]types.OpenInstallationRecipe, error) {
+func recipeLoader() ([]*types.OpenInstallationRecipe, error) {
 	return recipeCache, nil
 }
 
 func givenCachedRecipeOs(id string, name string, os types.OpenInstallationOperatingSystem) *types.OpenInstallationRecipe {
 	r := NewRecipeBuilder().ID(id).Name(name).TargetOs(os).Build()
-	recipeCache = append(recipeCache, *r)
+	recipeCache = append(recipeCache, r)
 	return r
 }
 
 func givenCachedRecipeOsPlatform(id string, name string, os types.OpenInstallationOperatingSystem, platform types.OpenInstallationPlatform) *types.OpenInstallationRecipe {
 	r := NewRecipeBuilder().ID(id).Name(name).TargetOsPlatform(os, platform).Build()
-	recipeCache = append(recipeCache, *r)
+	recipeCache = append(recipeCache, r)
 	return r
 }
 
 func givenCachedRecipeOsArch(id string, name string, os types.OpenInstallationOperatingSystem, arch string) *types.OpenInstallationRecipe {
 	r := NewRecipeBuilder().ID(id).Name(name).TargetOsArch(os, arch).Build()
-	recipeCache = append(recipeCache, *r)
+	recipeCache = append(recipeCache, r)
 	return r
 }
 
 func givenCachedRecipeOsPlatformVersionArch(id string, name string, os types.OpenInstallationOperatingSystem, platformVersion string, arch string) *types.OpenInstallationRecipe {
 	r := NewRecipeBuilder().ID(id).Name(name).TargetOsPlatformVersionArch(os, platformVersion, arch).Build()
-	recipeCache = append(recipeCache, *r)
+	recipeCache = append(recipeCache, r)
 	return r
 }
 
 func givenCachedRecipe(id string, name string) *types.OpenInstallationRecipe {
 	r := NewRecipeBuilder().ID(id).Name(name).Build()
-	recipeCache = append(recipeCache, *r)
+	recipeCache = append(recipeCache, r)
 	return r
 }
 
-func containsID(recipes []types.OpenInstallationRecipe, id string) bool {
+func containsID(recipes []*types.OpenInstallationRecipe, id string) bool {
 	for _, recipe := range recipes {
 		if recipe.ID == id {
 			return true
