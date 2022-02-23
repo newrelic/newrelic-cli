@@ -76,8 +76,7 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 		return
 	}
 
-	if !assumeYes && bundle.Type == recipes.BundleTypes.ADDITIONALGUIDED {
-		//TODO: needs to filter out detected recipes
+	if !assumeYes && bundle.IsAdditionalGuided() {
 		//TODO: Should this be log instead of fmt?
 		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
 
@@ -87,14 +86,14 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 		prompter := ux.NewPromptUIPrompter()
 		msg := "Continue installing? "
-		ans, err := prompter.PromptYesNo(msg)
+		isConfirmed, err := prompter.PromptYesNo(msg)
 
 		if err != nil {
 			log.Debug(err)
-			ans = false
+			isConfirmed = false
 		}
 
-		if !ans {
+		if !isConfirmed {
 			for _, additionalRecipe := range installableBundleRecipes {
 				skippedEvent := execution.NewRecipeStatusEvent(additionalRecipe.Recipe)
 				bi.statusReporter.ReportStatus(execution.RecipeStatusTypes.SKIPPED, skippedEvent)
@@ -125,8 +124,6 @@ func (bi *BundleInstaller) InstalledRecipesCount() int {
 }
 
 func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecipe, assumeYes bool) error {
-
-	// no dependencies
 	var err error
 
 	for _, dr := range bundleRecipe.Dependencies {
@@ -136,26 +133,23 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 		}
 	}
 
-	var withAvailableToInstallStatus = bundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE)
-
-	if _, found := bi.installedRecipes[bundleRecipe.Recipe.Name]; !found && withAvailableToInstallStatus {
-		recipeName := bundleRecipe.Recipe.Name
-		bi.installedRecipes[recipeName] = true
-
-		log.WithFields(log.Fields{
-			"name": recipeName,
-		}).Debug("installing recipe")
-
-		_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe, assumeYes)
-
-		if err != nil {
-			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
-			return err
-		}
-		log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
+	recipeName := bundleRecipe.Recipe.Name
+	if bi.installedRecipes[bundleRecipe.Recipe.Name] {
+		return nil
 	}
 
-	//TODO: actual install here
+	bi.installedRecipes[recipeName] = true
+	log.WithFields(log.Fields{
+		"name": recipeName,
+	}).Debug("installing recipe")
+
+	_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe, assumeYes)
+	if err != nil {
+		log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
+		return err
+	}
+	log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
+
 	return nil
 }
 

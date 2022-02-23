@@ -37,6 +37,10 @@ func (b *Bundle) AddRecipe(bundleRecipe *BundleRecipe) {
 	b.BundleRecipes = append(b.BundleRecipes, bundleRecipe)
 }
 
+func (b *Bundle) IsAdditionalGuided() bool {
+	return b.Type == BundleTypes.ADDITIONALGUIDED
+}
+
 func (b *Bundle) ContainsName(name string) bool {
 
 	for i := range b.BundleRecipes {
