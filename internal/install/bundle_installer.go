@@ -11,7 +11,7 @@ import (
 )
 
 type StatusReporter interface {
-	ReportStatus(status execution.RecipeStatusType, recipe types.OpenInstallationRecipe)
+	ReportStatus(status execution.RecipeStatusType, event execution.RecipeStatusEvent)
 }
 
 type BundleInstaller struct {
@@ -47,7 +47,7 @@ func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, 
 
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
 
-	bi.reportStatus(bundle)
+	bi.reportBundleStatus(bundle)
 
 	for _, br := range bundle.BundleRecipes {
 		err := bi.InstallBundleRecipe(br, assumeYes)
@@ -62,9 +62,9 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 
 func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool) {
 
-	bi.reportStatus(bundle)
+	bi.reportBundleStatus(bundle)
 	//TODO does this need to `reportStatus` like InstallStopOnError?
-	// bi.reportStatus(bundle)
+	// bi.reportBundleStatus(bundle)
 
 	for _, br := range bundle.BundleRecipes {
 		err := bi.InstallBundleRecipe(br, assumeYes)
@@ -74,11 +74,12 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 	}
 }
 
-func (bi *BundleInstaller) reportStatus(bundle *recipes.Bundle) {
+func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 
 	for _, recipe := range bundle.BundleRecipes {
 		for _, status := range recipe.DetectedStatuses {
-			bi.statusReporter.ReportStatus(status, *recipe.Recipe)
+			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe}
+			bi.statusReporter.ReportStatus(status, e)
 		}
 	}
 }

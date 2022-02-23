@@ -20,7 +20,7 @@ func NewTerminalStatusReporter() *TerminalStatusReporter {
 	return &r
 }
 
-func (r TerminalStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r TerminalStatusReporter) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
@@ -66,7 +66,11 @@ func (r TerminalStatusReporter) RecipesSelected(status *InstallStatus, recipes [
 	return nil
 }
 
-func (r TerminalStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r TerminalStatusReporter) RecipeAvailable(status *InstallStatus, event RecipeStatusEvent) error {
+	return nil
+}
+
+func (r TerminalStatusReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 

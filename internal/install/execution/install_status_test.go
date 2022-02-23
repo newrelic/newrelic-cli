@@ -19,24 +19,6 @@ func TestNewInstallStatus(t *testing.T) {
 	require.NotEmpty(t, s.DocumentID)
 }
 
-func TestStatusWithAvailableRecipes_Basic(t *testing.T) {
-	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
-	r := []types.OpenInstallationRecipe{{
-		Name: "testRecipe1",
-	}, {
-		Name: "testRecipe2",
-	}}
-
-	s.withAvailableRecipes(r)
-
-	require.NotEmpty(t, s.Statuses)
-	require.Equal(t, len(r), len(s.Statuses))
-	for _, recipeStatus := range s.Statuses {
-		require.Equal(t, RecipeStatusTypes.AVAILABLE, recipeStatus.Status)
-	}
-}
-
 func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
@@ -134,7 +116,7 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	require.False(t, s.Complete)
 	require.NotNil(t, s.Timestamp)
 
-	s.RecipeAvailable(r)
+	s.RecipeAvailable(NewRecipeStatusEvent(&r))
 
 	result := s.getStatus(r)
 	require.NotNil(t, result)
@@ -172,7 +154,7 @@ func TestInstallStatus_shouldNotFailAvailableOnComplete(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 
-	s.RecipeAvailable(r)
+	s.RecipeAvailable(NewRecipeStatusEvent(&r))
 
 	s.InstallComplete(nil)
 	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
@@ -183,7 +165,7 @@ func TestInstallStatus_shouldFailAvailableOnCancel(t *testing.T) {
 	s := NewInstallStatus([]StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 
-	s.RecipeAvailable(r)
+	s.RecipeAvailable(NewRecipeStatusEvent(&r))
 
 	s.InstallCanceled()
 	require.Equal(t, RecipeStatusTypes.CANCELED, s.Statuses[0].Status)
@@ -204,7 +186,7 @@ func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	recipeCanceled := types.OpenInstallationRecipe{Name: "installing"}
 	canceledRecipeEvent := RecipeStatusEvent{Recipe: recipeCanceled, EntityGUID: "erroredGUID"}
 
-	s.RecipeAvailable(recipeInstalled)
+	s.RecipeAvailable(NewRecipeStatusEvent(&recipeInstalled))
 	s.RecipeInstalling(canceledRecipeEvent)
 	s.RecipeInstalled(installedRecipeEvent)
 	s.RecipeSkipped(skippedRecipeEvent)
