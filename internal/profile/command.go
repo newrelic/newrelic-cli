@@ -23,13 +23,12 @@ const (
 )
 
 var (
-	showKeys          bool
-	flagRegion        string
-	apiKey            string
-	insightsInsertKey string
-	accountID         int
-	licenseKey        string
-	acceptDefaults    bool
+	showKeys       bool
+	flagRegion     string
+	apiKey         string
+	accountID      int
+	licenseKey     string
+	acceptDefaults bool
 )
 
 // Command is the base command for managing profiles
@@ -47,19 +46,18 @@ var cmdAdd = &cobra.Command{
 	Long: `Add a new profile
 
 The add command creates a new profile for use with the New Relic CLI.
-API key and region are required. An Insights insert key is optional, but required
+API key and region are required. A License key is optional, but required
 for posting custom events with the ` + "`newrelic events`" + `command.
 `,
 	Aliases: []string{
 		"configure",
 	},
-	Example: "newrelic profile add --profile <profile> --region <region> --apiKey <apiKey> --insightsInsertKey <insightsInsertKey> --accountId <accountId> --licenseKey <licenseKey>",
+	Example: "newrelic profile add --profile <profile> --region <region> --apiKey <apiKey> --accountId <accountId> --licenseKey <licenseKey>",
 	PreRun:  requireProfileName,
 	Run: func(cmd *cobra.Command, args []string) {
 		addStringValueToProfile(config.FlagProfileName, apiKey, config.APIKey, "User API Key", nil, nil)
 		addStringValueToProfile(config.FlagProfileName, flagRegion, config.Region, "Region", nil, []string{"US", "EU"})
 		addIntValueToProfile(config.FlagProfileName, accountID, config.AccountID, "Account ID", fetchAccountIDs)
-		addStringValueToProfile(config.FlagProfileName, insightsInsertKey, config.InsightsInsertKey, "Insights Insert Key", fetchInsightsInsertKey(), nil)
 		addStringValueToProfile(config.FlagProfileName, licenseKey, config.LicenseKey, "License Key", fetchLicenseKey(), nil)
 
 		profile, err := configAPI.GetDefaultProfileName()
@@ -279,7 +277,6 @@ func init() {
 	Command.AddCommand(cmdAdd)
 	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
-	cmdAdd.Flags().StringVarP(&insightsInsertKey, "insightsInsertKey", "", "", "your Insights insert key")
 	cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
 	cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
 	cmdAdd.Flags().BoolVarP(&acceptDefaults, "acceptDefaults", "y", false, "suppress prompts and accept default values")
@@ -299,12 +296,5 @@ func fetchLicenseKey() func() (string, error) {
 	accountID := configAPI.GetProfileInt(config.FlagProfileName, config.AccountID)
 	return func() (string, error) {
 		return client.FetchLicenseKey(accountID, config.FlagProfileName)
-	}
-}
-
-func fetchInsightsInsertKey() func() (string, error) {
-	accountID := configAPI.GetProfileInt(config.FlagProfileName, config.AccountID)
-	return func() (string, error) {
-		return client.FetchInsightsInsertKey(accountID, config.FlagProfileName)
 	}
 }

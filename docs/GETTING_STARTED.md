@@ -41,12 +41,10 @@ environment variable.
 export NEW_RELIC_REGION="EU"
 ```
 
-Creating custom events with the `newrelic events` sub-command requires an Insights
-insert key, which can be configured in a profile or with the following environment
-variable:
+Creating custom events with the `newrelic events` sub-command requires a License key, which can be configured in a profile or with the following environment variable:
 
 ```sh
-export NEW_RELIC_INSIGHTS_INSERT_KEY=<your_insights_insert_key>
+export NEW_RELIC_LICENSE_KEY=<your_license_key>
 ```
 
 ### Shell Completion
