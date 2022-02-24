@@ -21,23 +21,11 @@ type BundleInstaller struct {
 	ctx              context.Context
 	manifest         *types.DiscoveryManifest
 	statusReporter   StatusReporter
-	recipeInstaller  RecipeInstallerInterface
+	recipeInstaller  RecipeInstaller
 	prompter         Prompter
 }
 
-//TODO should we revert this interface extraction? Was changed in order to mock via testify...
-type RecipeInstallerInterface interface {
-	promptIfNotLatestCLIVersion(ctx context.Context) error
-	Install() error
-	install(ctx context.Context) error
-	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
-	discover(ctx context.Context) (*types.DiscoveryManifest, error)
-	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error)
-	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error)
-	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
-}
-
-func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstallerInterface, statusReporter StatusReporter) *BundleInstaller {
+func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) *BundleInstaller {
 
 	return &BundleInstaller{
 		ctx:              ctx,

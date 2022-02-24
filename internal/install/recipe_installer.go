@@ -23,7 +23,18 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
-type RecipeInstaller struct {
+type RecipeInstaller interface {
+	promptIfNotLatestCLIVersion(ctx context.Context) error
+	Install() error
+	install(ctx context.Context) error
+	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
+	discover(ctx context.Context) (*types.DiscoveryManifest, error)
+	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error)
+	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error)
+	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
+}
+
+type RecipeInstall struct {
 	types.InstallerContext
 	discoverer                  Discoverer
 	manifestValidator           *discovery.ManifestValidator
@@ -41,7 +52,7 @@ type RecipeInstaller struct {
 	agentValidator              *validation.AgentValidator
 }
 
-type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
+type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
 const (
 	validationTimeout       = 5 * time.Minute
@@ -50,7 +61,7 @@ const (
 
 var statusRollup *execution.InstallStatus
 
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
+func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
 	checkNetwork(nrClient)
 
 	var recipeFetcher recipes.RecipeFetcher
@@ -84,7 +95,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	rvp := execution.NewRecipeVarProvider()
 	av := validation.NewAgentValidator()
 
-	i := RecipeInstaller{
+	i := RecipeInstall{
 		discoverer:                  d,
 		manifestValidator:           mv,
 		recipeFetcher:               recipeFetcher,
@@ -106,7 +117,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	return &i
 }
 
-func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error {
+func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 	latestReleaseVersion, err := cli.GetLatestReleaseVersion(ctx)
 	if err != nil {
 		log.Debug(err)
@@ -134,7 +145,7 @@ func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error
 	return nil
 }
 
-func (i *RecipeInstaller) Install() error {
+func (i *RecipeInstall) Install() error {
 	fmt.Printf(`
 _   _                 ____      _ _
 | \ | | _____      __ |  _ \ ___| (_) ___
@@ -200,7 +211,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 	}
 }
 
-func (i *RecipeInstaller) connectToPlatform() error {
+func (i *RecipeInstall) connectToPlatform() error {
 	loaderChan := make(chan error)
 
 	go func() {
@@ -224,7 +235,7 @@ func (i *RecipeInstaller) connectToPlatform() error {
 	return loaded
 }
 
-func (i *RecipeInstaller) install(ctx context.Context) error {
+func (i *RecipeInstall) install(ctx context.Context) error {
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
@@ -346,7 +357,7 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 	// return nil
 }
 
-func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
+func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
 	err := i.manifestValidator.Validate(m)
 	if err != nil {
 		return err
@@ -355,7 +366,7 @@ func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.Dis
 	return nil
 }
 
-func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
+func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
 	log.Debug("discovering system information")
 
 	m, err := i.discoverer.Discover(ctx)
@@ -367,7 +378,7 @@ func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifes
 }
 
 // intalling recipe
-func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	// Execute the recipe steps.
@@ -428,7 +439,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 type validationFunc func() (string, error)
 
 // Post install validation
-func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
 	defer cancel()
 
@@ -499,7 +510,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 }
 
 // Installing recipe
-func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
+func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
 
 	fmt.Println()
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
@@ -550,7 +561,7 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 	}
 }
 
-// func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
+// func (i *RecipeInstall) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
 // 	var recipes []types.OpenInstallationRecipe
 
 // 	// Load the recipes from the provided file names.
