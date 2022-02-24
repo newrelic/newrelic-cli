@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -259,13 +261,34 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 
 	//FIXME: additional install mock, just hack together code for install to check flow, needs to be refactor
 
+	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
-		targetedBundle := bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
-		bundleInstaller.InstallContinueOnError(targetedBundle, i.AssumeYes)
+		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+	} else if i.RecipePathsProvided() { //FIXME: temp hack to demo existing behavior needs to confirm and add test
+		pathRecipes, err := loadRecipeFromPath(i.RecipePaths)
+		if err != nil {
+			return err
+		}
+		additionalBundle = bundler.CreateAdditionalTargetedPathBundle(pathRecipes)
+
+		for _, pathRecipe := range pathRecipes {
+			found := false
+			for _, bundleRecipe := range additionalBundle.BundleRecipes {
+				if strings.EqualFold(pathRecipe.Name, bundleRecipe.Recipe.Name) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				i.status.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: *pathRecipe})
+				return fmt.Errorf("Path recipe is unsupported on your host for recipe %v?", pathRecipe.Name)
+			}
+		}
+
 	} else {
-		additionalBundle := bundler.CreateAdditionalGuidedBundle()
-		bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
+		additionalBundle = bundler.CreateAdditionalGuidedBundle()
 	}
+	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
 		return &types.UncaughtError{
@@ -571,80 +594,33 @@ func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m 
 // 	return recipes, nil
 // }
 
-// func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
-// 	recipeURL, parseErr := url.Parse(recipePath)
-// 	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
-// 		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
-// 		}
-// 		return f, nil
-// 	}
+func loadRecipeFromPath(recipePaths []string) ([]*types.OpenInstallationRecipe, error) {
 
-// 	f, err := i.recipeFileFetcher.LoadRecipeFile(recipePath)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
-// 	}
+	var recipesFromPath []*types.OpenInstallationRecipe
+	recipeFileFetcher := recipes.NewRecipeFileFetcher()
 
-// 	return f, nil
-// }
+	for _, recipePath := range recipePaths {
+		recipeURL, parseErr := url.Parse(recipePath)
+		isURL := parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http")
+		var recipe *types.OpenInstallationRecipe
+		var err error
 
-// func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
-// 	if len(recipes) == 0 {
-// 		return []types.OpenInstallationRecipe{}, []types.OpenInstallationRecipe{}, nil
-// 	}
+		if isURL {
+			recipe, err = recipeFileFetcher.FetchRecipeFile(recipeURL)
+			if err != nil {
+				return recipesFromPath, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
+			}
+		} else {
+			recipe, err = recipeFileFetcher.LoadRecipeFile(recipePath)
+			if err != nil {
+				return recipesFromPath, fmt.Errorf("could not load file %s: %s", recipePath, err)
+			}
+		}
+		recipesFromPath = append(recipesFromPath, recipe)
+	}
 
-// 	if i.AssumeYes {
-// 		return recipes, []types.OpenInstallationRecipe{}, nil
-// 	}
-
-// 	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
-
-// 	names := []string{}
-// 	selected := []string{}
-// 	for _, r := range recipes {
-// 		if r.Name != types.InfraAgentRecipeName {
-// 			names = append(names, r.DisplayName)
-// 		} else {
-// 			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
-// 		}
-// 	}
-
-// 	if len(names) > 0 {
-// 		var promptErr error
-// 		selected, promptErr = i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
-// 		if promptErr != nil {
-// 			return nil, nil, promptErr
-// 		}
-// 		fmt.Println()
-// 	}
-
-// 	for _, r := range recipes {
-// 		if utils.StringInSlice(r.DisplayName, selected) || r.Name == types.InfraAgentRecipeName {
-// 			selectedRecipes = append(selectedRecipes, r)
-// 		} else {
-// 			unselectedRecipes = append(unselectedRecipes, r)
-// 		}
-// 	}
-
-// 	return selectedRecipes, unselectedRecipes, nil
-// }
-
-// func logRecipes(recipes []types.OpenInstallationRecipe) {
-// 	for _, r := range recipes {
-// 		log.Debugf("%s", r.ToShortDisplayString())
-// 	}
-// }
-
-// func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
-// 	for _, r := range recipes {
-// 		if r.Name == name {
-// 			return &r
-// 		}
-// 	}
-
-// 	return nil
-// }
+	return recipesFromPath, nil
+}
 
 func checkNetwork(nrClient *newrelic.NewRelic) {
 	err := nrClient.TestEndpoints()
