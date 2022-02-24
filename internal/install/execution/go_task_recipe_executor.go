@@ -62,7 +62,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 	//FIXME: do something with output in buffer
 	//TODO: allow silent flag to be pass in here
-
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 
 	var stdoutCapture *LineCaptureBuffer
@@ -121,7 +120,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		// We return exit code 131 when a user attempts to
 		// install a recipe on an unsupported operating system.
 		if isExitStatusCode(131, err) {
-
 			return &types.UnsupportedOperatingSystemError{
 				Err: errors.New(stderrCapture.LastFullLine),
 			}
