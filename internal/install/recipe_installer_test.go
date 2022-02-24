@@ -53,7 +53,7 @@ package install
 // // 	}
 // // 	rf := recipes.NewRecipeFilterRunner(ic, status)
 
-// // 	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
 // // }
@@ -63,7 +63,7 @@ package install
 // // 	rf := recipes.NewRecipeFilterRunner(ic, status)
 // // 	ff = recipes.NewMockRecipeFileFetcher()
 // // 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-// // 	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	recipe, err := i.recipeFromPath("http://recipe/URL")
 // // 	require.NoError(t, err)
@@ -76,7 +76,7 @@ package install
 // // 	rf := recipes.NewRecipeFilterRunner(ic, status)
 // // 	ff = recipes.NewMockRecipeFileFetcher()
 // // 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-// // 	i := RecipeInstaller{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	recipe, err := i.recipeFromPath("file.txt")
 // // 	require.NoError(t, err)
@@ -99,7 +99,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
@@ -139,7 +139,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.Error(t, err)
@@ -169,7 +169,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeAvailableCallCount)
@@ -204,7 +204,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 3, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -235,7 +235,7 @@ package install
 // // 	rv := validation.NewMockRecipeValidator()
 // // 	rv.ValidateErr = errors.New("validationErr")
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.Error(t, err)
 // // 	require.Equal(t, 1, rv.ValidateCallCount)
@@ -268,7 +268,7 @@ package install
 // // 	rv := validation.NewMockRecipeValidator()
 // // 	rv.ValidateErrs = []error{nil, errors.New("validationErr")}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.Error(t, err)
 // // 	require.Equal(t, 2, rv.ValidateCallCount)
@@ -300,7 +300,7 @@ package install
 // // 	rv := validation.NewMockRecipeValidator()
 // // 	rv.ValidateErr = errors.New("validationErr")
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.Error(t, err)
 // // 	require.Equal(t, 2, rv.ValidateCallCount)
@@ -315,7 +315,7 @@ package install
 // // 	rf := recipes.NewRecipeFilterRunner(ic, status)
 // // 	f = recipes.NewMockRecipeFetcher()
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	_ = i.Install()
 // // 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallStartedCallCount)
 // // }
@@ -337,7 +337,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -353,7 +353,7 @@ package install
 // // 	f = recipes.NewMockRecipeFetcher()
 // // 	f.FetchRecipesErr = types.ErrInterrupt
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.Error(t, err)
 // // 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -376,7 +376,7 @@ package install
 // // 	rv := validation.NewMockRecipeValidator()
 // // 	rv.ValidateErr = errors.New("test error")
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.Error(t, err)
 // // 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -406,7 +406,7 @@ package install
 // // 		errors.New("testing error"),
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.Error(t, err)
 // // 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).InstallCompleteCallCount)
@@ -436,7 +436,7 @@ package install
 // // 		PromptMultiSelectVal: []string{testRecipeName},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, mp, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, mp, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -469,7 +469,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 0, statusReporters[0].(*execution.MockStatusReporter).RecipeSkippedCallCount)
@@ -492,7 +492,7 @@ package install
 
 // // 	v = validation.NewMockRecipeValidator()
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 1, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -521,7 +521,7 @@ package install
 
 // // 	v = validation.NewMockRecipeValidator()
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.True(t, status.IsTargetedInstall())
@@ -550,7 +550,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.True(t, status.IsTargetedInstall())
@@ -574,7 +574,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.True(t, status.IsTargetedInstall())
@@ -601,7 +601,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 2, statusReporters[0].(*execution.MockStatusReporter).RecipeInstalledCallCount)
@@ -636,7 +636,7 @@ package install
 // // 	rv := validation.NewMockRecipeValidator()
 // // 	rv.ValidateVal = "GUID"
 
-// // 	i := RecipeInstaller{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, d, l, mv, f, e, rv, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 3, rv.ValidateCallCount)
@@ -698,7 +698,7 @@ package install
 // // 	}
 
 // // 	mrv := validation.NewMockRecipeValidator()
-// // 	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
@@ -756,7 +756,7 @@ package install
 // // 	}
 
 // // 	mrv := validation.NewMockRecipeValidator()
-// // 	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
@@ -808,7 +808,7 @@ package install
 // // 	}
 
 // // 	mrv := validation.NewMockRecipeValidator()
-// // 	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
@@ -860,7 +860,7 @@ package install
 // // 	}
 
 // // 	mrv := validation.NewMockRecipeValidator()
-// // 	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
@@ -915,7 +915,7 @@ package install
 // // 	}
 
 // // 	mrv := validation.NewMockRecipeValidator()
-// // 	i := RecipeInstaller{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, mockDiscoverer, l, mValidator, rFetcher, e, mrv, ff, installStatus, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
