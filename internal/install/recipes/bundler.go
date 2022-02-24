@@ -74,6 +74,10 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
 }
 
+func (b *Bundler) CreateAdditionalTargetedPathBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
+	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
+}
+
 func (b *Bundler) getCoreRecipeNames() []string {
 	coreRecipeNames := make([]string, 0, len(coreRecipeMap))
 	for k := range coreRecipeMap {
