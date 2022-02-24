@@ -20,16 +20,12 @@ type RecipeDetector struct {
 	recipeEvaluated  map[string]bool // same recipe(ref) should only be evaluated one time
 }
 
-func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator DetectionStatusProvider) *RecipeDetector {
+func NewRecipeDetector() *RecipeDetector {
 	return &RecipeDetector{
-		processEvaluator: processEvaluator,
-		scriptEvaluator:  scriptEvaluator,
+		processEvaluator: NewProcessEvaluator(),
+		scriptEvaluator:  NewScriptEvaluator(),
 		recipeEvaluated:  make(map[string]bool),
 	}
-}
-
-func NewRecipeDetector() *RecipeDetector {
-	return newRecipeDetector(NewProcessEvaluator(), NewScriptEvaluator())
 }
 
 func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {

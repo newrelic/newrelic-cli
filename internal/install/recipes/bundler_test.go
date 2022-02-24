@@ -218,6 +218,14 @@ func setup() {
 	bundlerTestImpl.recipeRepository = NewRecipeRepository(bundlerRecipeLoader, &bundlerTestImpl.discoveryManifest)
 }
 
+func newBundler(context context.Context, rr *RecipeRepository, rd *RecipeDetector) *Bundler {
+	return &Bundler{
+		Context:          context,
+		RecipeRepository: rr,
+		RecipeDetector:   rd,
+	}
+}
+
 func createTestBundler() *Bundler {
 	bundler := newBundler(bundlerTestImpl.ctx, bundlerTestImpl.recipeRepository, bundlerTestImpl.recipeDetector)
 

@@ -23,14 +23,10 @@ type Bundler struct {
 }
 
 func NewBundler(context context.Context, rr *RecipeRepository) *Bundler {
-	return newBundler(context, rr, NewRecipeDetector())
-}
-
-func newBundler(context context.Context, rr *RecipeRepository, rd *RecipeDetector) *Bundler {
 	return &Bundler{
 		Context:          context,
 		RecipeRepository: rr,
-		RecipeDetector:   rd,
+		RecipeDetector:   NewRecipeDetector(),
 	}
 }
 
