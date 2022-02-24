@@ -1,0 +1,59 @@
+name: Cleanup
+
+on:
+  workflow_run:
+    workflows: [End to end testing]
+    types: [completed]
+
+env:
+  workflow_run_id: ${{ github.event.workflow_run.id }}
+  config_name: gitusdkrnrcli${{ github.event.workflow_run.id }}.json
+  path: test/definitions/smoke/
+
+jobs:
+  clean-all:
+    name: Cleaner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug run_id
+        run: |
+          echo "Debugging env vars here"
+          echo "workflow_run_id:"$workflow_run_id
+          echo "config_name:"$config_name
+          echo "path":$path
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          repository: newrelic/open-install-library
+          path: open-install-library
+
+      - name: Write AWS Certificate to File
+        env:
+          AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+        run: |
+          mkdir -p configs
+          rm -f configs/gitdeployerCanada.pem
+          echo "$AWS_PEM" > configs/gitdeployerCanada.pem
+          sudo chmod 400 configs/gitdeployerCanada.pem
+
+      - name: Write Test Definition File JSON to file
+        env:
+          USER_JSON: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+        run: |
+          echo "$USER_JSON" > configs/$config_name
+
+      - name: Pull Deployer image
+        run: |
+          docker pull ghcr.io/newrelic/deployer:latest
+          docker images ghcr.io/newrelic/deployer:latest
+
+      - name: Teardown all resources
+        run: |
+          docker run -i\
+            -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/$config_name -d $path -s 20 -m teardown
