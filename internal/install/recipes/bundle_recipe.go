@@ -8,22 +8,31 @@ import (
 type BundleRecipe struct {
 	Recipe           *types.OpenInstallationRecipe
 	Dependencies     []*BundleRecipe
-	DetectedStatuses []execution.RecipeStatusType
+	DetectedStatuses []*DetectedStatusType
 }
 
-func (br *BundleRecipe) AddDetectionStatus(newStatus execution.RecipeStatusType) {
+type DetectedStatusType struct {
+	Status     execution.RecipeStatusType
+	DurationMs int64
+}
+
+func (br *BundleRecipe) AddDetectionStatus(newStatus execution.RecipeStatusType, durationMs int64) {
 	if br.HasStatus(newStatus) {
 		return
 	}
 	if newStatus == execution.RecipeStatusTypes.AVAILABLE {
-		br.DetectedStatuses = append(br.DetectedStatuses, execution.RecipeStatusTypes.DETECTED)
+		ds := &DetectedStatusType{
+			Status:     execution.RecipeStatusTypes.DETECTED,
+			DurationMs: durationMs,
+		}
+		br.DetectedStatuses = append(br.DetectedStatuses, ds)
 	}
-	br.DetectedStatuses = append(br.DetectedStatuses, newStatus)
+	br.DetectedStatuses = append(br.DetectedStatuses, &DetectedStatusType{Status: newStatus, DurationMs: durationMs})
 }
 
 func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	for _, detectedStatus := range br.DetectedStatuses {
-		if detectedStatus == status {
+		if detectedStatus.Status == status {
 			return true
 		}
 	}

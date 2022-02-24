@@ -112,9 +112,10 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
-		for _, status := range recipe.DetectedStatuses {
-			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe}
-			bi.statusReporter.ReportStatus(status, e)
+		// TODO: should we also save dependencies status? Not sure
+		for _, ds := range recipe.DetectedStatuses {
+			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe, ValidationDurationMs: ds.DurationMs}
+			bi.statusReporter.ReportStatus(ds.Status, e)
 		}
 	}
 }
