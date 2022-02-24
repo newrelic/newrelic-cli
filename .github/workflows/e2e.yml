@@ -177,30 +177,12 @@ jobs:
           docker pull ghcr.io/newrelic/deployer:latest
           docker images ghcr.io/newrelic/deployer:latest
 
-      - name: Run deployer and cleanup
-        id: deployerRun
-        continue-on-error: true
+      - name: Run deployer
         run: |
-          set +e
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
             --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m deploy -l debug
-          echo ::set-output name=exit_status::$?
 
-      - name: Cleanup all resources
-        if: always()
-        id: cleanupResources
-        run: |
-          docker run -i\
-            -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
-            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
-            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
-            -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m teardown -i
-
-      - name: Report any error
-        if: steps.deployerRun.outputs.exit_status != 0
-        run: exit 1
