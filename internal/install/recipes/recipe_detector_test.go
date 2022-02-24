@@ -92,3 +92,11 @@ func (b *RecipeDetectorTestBuilder) WithScriptEvaluatorStatus(status execution.R
 func (b *RecipeDetectorTestBuilder) Build() *RecipeDetector {
 	return newRecipeDetector(b.processEvaluator, b.scriptEvaluator)
 }
+
+func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator DetectionStatusProvider) *RecipeDetector {
+	return &RecipeDetector{
+		processEvaluator: processEvaluator,
+		scriptEvaluator:  scriptEvaluator,
+		recipeEvaluated:  make(map[string]bool),
+	}
+}
