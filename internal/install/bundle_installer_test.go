@@ -16,33 +16,37 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type bundleInstallerTest struct {
-	ctx             context.Context
-	manifest        *types.DiscoveryManifest
-	recipeInstaller *mockRecipeInstaller
-	statusReporter  *mockStatusReporter
-	bundleInstaller *BundleInstaller
+func newBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) *BundleInstaller {
+	return &BundleInstaller{
+		ctx:              ctx,
+		manifest:         manifest,
+		recipeInstaller:  recipeInstallerInterface,
+		statusReporter:   statusReporter,
+		installedRecipes: make(map[string]bool),
+		prompter:         NewPrompter(),
+	}
 }
 
-var (
-	bundleInstallerTestImpl *bundleInstallerTest
-)
+func createBundleInstaller() *BundleInstaller {
+	mockStatusReporter := new(mockStatusReporter)
+	mockRecipeInstaller := new(mockRecipeInstaller)
 
-func setup() {
-	manifest := types.DiscoveryManifest{}
+	return newBundleInstaller(context.Background(), &types.DiscoveryManifest{}, mockRecipeInstaller, mockStatusReporter)
+}
 
-	bundleInstallerTestImpl = &bundleInstallerTest{
-		statusReporter:  &mockStatusReporter{},
-		recipeInstaller: &mockRecipeInstaller{},
-		manifest:        &manifest,
-		ctx:             context.Background(),
-	}
+func (bi *BundleInstaller) withStatusReporter(sr StatusReporter) *BundleInstaller {
+	bi.statusReporter = sr
+	return bi
+}
 
-	bundleInstallerTestImpl.bundleInstaller = NewBundleInstaller(
-		bundleInstallerTestImpl.ctx,
-		bundleInstallerTestImpl.manifest,
-		bundleInstallerTestImpl.recipeInstaller,
-		bundleInstallerTestImpl.statusReporter)
+func (bi *BundleInstaller) withRecipeInstaller(ri RecipeInstaller) *BundleInstaller {
+	bi.recipeInstaller = ri
+	return bi
+}
+
+func (bi *BundleInstaller) withPrompter(p Prompter) *BundleInstaller {
+	bi.prompter = p
+	return bi
 }
 
 /*
@@ -63,10 +67,13 @@ func setup() {
 */
 
 func TestInstallContinueOnErrorReturnsImmediately(t *testing.T) {
-	setup()
-	mockedRecipeInstaller := new(mockRecipeInstaller)
-	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
-	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+	mockRecipeInstaller := new(mockRecipeInstaller)
+	mockRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+
+	bundleInstaller := createBundleInstaller().withStatusReporter(mockStatusReporter).withRecipeInstaller(mockRecipeInstaller)
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -77,20 +84,18 @@ func TestInstallContinueOnErrorReturnsImmediately(t *testing.T) {
 		},
 	}
 
-	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
-
-	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	bundleInstaller.InstallContinueOnError(&bundle, true)
+	mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
 }
 
 func TestInstallContinueOnErrorReturnsImmediatelyWhenNoIsEntered(t *testing.T) {
-	setup()
 	mockPrompter := ux.NewMockPrompter()
 	mockPrompter.PromptYesNoVal = false
-	bundleInstallerTestImpl.bundleInstaller.prompter = mockPrompter
-
-	mockedRecipeInstaller := new(mockRecipeInstaller)
-	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
-	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+	mockRecipeInstaller := new(mockRecipeInstaller)
+	mockRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+	bundleInstaller := createBundleInstaller().withPrompter(mockPrompter).withRecipeInstaller(mockRecipeInstaller).withStatusReporter(mockStatusReporter)
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -101,19 +106,19 @@ func TestInstallContinueOnErrorReturnsImmediatelyWhenNoIsEntered(t *testing.T) {
 		},
 	}
 
-	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, false)
+	bundleInstaller.InstallContinueOnError(&bundle, false)
 
-	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
-	assert.Equal(t, 1, bundleInstallerTestImpl.statusReporter.counter)
+	mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	mockStatusReporter.AssertNumberOfCalls(t, "ReportStatus", 1)
 }
 
 func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *testing.T) {
-	setup()
 	mockPrompter := ux.NewMockPrompter()
-	bundleInstallerTestImpl.bundleInstaller.prompter = mockPrompter
-	mockedRecipeInstaller := new(mockRecipeInstaller)
-	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
-	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+	mockRecipeInstaller := new(mockRecipeInstaller)
+	mockRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(mock.AnythingOfType("String"), mock.AnythingOfType("error"))
+	bundleInstaller := createBundleInstaller().withPrompter(mockPrompter).withRecipeInstaller(mockRecipeInstaller).withStatusReporter(mockStatusReporter)
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -125,14 +130,14 @@ func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *te
 		Type: recipes.BundleTypes.ADDITIONALTARGETED,
 	}
 
-	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+	bundleInstaller.InstallContinueOnError(&bundle, true)
 
 	assert.Equal(t, 0, mockPrompter.PromptMultiSelectCallCount)
 }
 
 // TODO come back to this, not sure if the test makes sense
 //func TestInstallContinueOnErrorReturnsInstallsWhenYesIsEntered(t *testing.T) {
-//	setup()
+//	createBundleInstaller()
 //	mockPrompter := ux.NewMockPrompter()
 //	mockPrompter.PromptYesNoVal = true
 //	bundleInstallerTestImpl.bundleInstaller.prompter = mockPrompter
@@ -158,11 +163,13 @@ func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *te
 //}
 
 func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
-	setup()
 	expectedError := errors.New("Kaboom " + time.Now().String())
-	mockedRecipeInstaller := new(mockRecipeInstaller)
-	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", expectedError)
-	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+	mockRecipeInstaller := new(mockRecipeInstaller)
+	mockRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("", expectedError)
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+	bundleInstaller := createBundleInstaller().withRecipeInstaller(mockRecipeInstaller).withStatusReporter(mockStatusReporter)
+
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
@@ -176,18 +183,20 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 		},
 	}
 
-	actualError := bundleInstallerTestImpl.bundleInstaller.InstallStopOnError(&bundle, true)
+	actualError := bundleInstaller.InstallStopOnError(&bundle, true)
 
 	//Should stop on first recipe
-	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+	mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
 	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
 
 func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T) {
-	setup()
-	mockedRecipeInstaller := new(mockRecipeInstaller)
-	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("great success", nil)
-	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+	mockRecipeInstaller := new(mockRecipeInstaller)
+	mockRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("great success", nil)
+
+	bundleInstaller := createBundleInstaller().withRecipeInstaller(mockRecipeInstaller).withStatusReporter(mockStatusReporter)
 
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -206,19 +215,21 @@ func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T
 		},
 	}
 
-	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+	bundleInstaller.InstallContinueOnError(&bundle, true)
 
-	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
-	assert.True(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe1"])
-	assert.False(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe2"])
-	assert.False(t, bundleInstallerTestImpl.bundleInstaller.installedRecipes["recipe3"])
+	mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+	assert.True(t, bundleInstaller.installedRecipes["recipe1"])
+	assert.False(t, bundleInstaller.installedRecipes["recipe2"])
+	assert.False(t, bundleInstaller.installedRecipes["recipe3"])
 }
 
 func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
-	setup()
 	mockedRecipeInstaller := new(mockRecipeInstaller)
 	mockedRecipeInstaller.On("executeAndValidateWithProgress", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("great success", nil)
-	bundleInstallerTestImpl.bundleInstaller.recipeInstaller = mockedRecipeInstaller
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+
+	bundleInstaller := createBundleInstaller().withRecipeInstaller(mockedRecipeInstaller).withStatusReporter(mockStatusReporter)
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
@@ -232,30 +243,34 @@ func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
 		},
 	}
 
-	bundleInstallerTestImpl.bundleInstaller.InstallContinueOnError(&bundle, true)
+	bundleInstaller.InstallContinueOnError(&bundle, true)
 
 	//Should try both recipes
 	mockedRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 2)
 }
 
 func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
-	setup()
-	expectedStatus := execution.RecipeStatusTypes.RECOMMENDED
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+	bundleInstaller := createBundleInstaller().withStatusReporter(mockStatusReporter)
 	bundle := givenBundle(types.InfraAgentRecipeName)
+	expectedStatus := execution.RecipeStatusTypes.RECOMMENDED
 	bundle.BundleRecipes[0].AddDetectionStatus(expectedStatus, 0)
 
-	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
+	bundleInstaller.reportBundleStatus(bundle)
 
 	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].DetectedStatuses[0].Status)
 	assert.Equal(t, 1, len(bundle.BundleRecipes[0].DetectedStatuses))
 }
 
 func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T) {
-	setup()
+	mockStatusReporter := new(mockStatusReporter)
+	mockStatusReporter.On("ReportStatus", mock.Anything, mock.Anything).Return()
+	bundleInstaller := createBundleInstaller().withStatusReporter(mockStatusReporter)
 	bundle := givenBundle(types.InfraAgentRecipeName)
 	bundle.BundleRecipes[0].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
 
-	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
+	bundleInstaller.reportBundleStatus(bundle)
 
 	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.AVAILABLE))
 	assert.True(t, bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.DETECTED))
