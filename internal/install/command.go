@@ -98,15 +98,6 @@ func assertProfileIsValid() error {
 		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
 	}
 
-	insightsInsertKey, err := client.FetchInsightsInsertKey(accountID, config.FlagProfileName)
-	if err != nil {
-		return fmt.Errorf("could not fetch Insights insert key key for account %d: %s", accountID, err)
-	}
-	if insightsInsertKey != configAPI.GetActiveProfileString(config.InsightsInsertKey) {
-		os.Setenv("NEW_RELIC_INSIGHTS_INSERT_KEY", insightsInsertKey)
-		log.Debugf("using Insights insert key %s", utils.Obfuscate(insightsInsertKey))
-	}
-
 	// Reinitialize client, overriding fetched values
 	c, err := client.NewClient(configAPI.GetActiveProfileName())
 	if err != nil {

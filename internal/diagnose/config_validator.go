@@ -102,11 +102,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 
 func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	validateKeyFunc := func() error {
-		if err := c.validateLicenseKey(ctx); err != nil {
-			return err
-		}
-
-		return c.validateInsightsInsertKey(ctx)
+		return c.validateLicenseKey(ctx)
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, validateKeyFunc)
@@ -117,23 +113,6 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (c *ConfigValidator) validateInsightsInsertKey(ctx context.Context) error {
-	accountID := configAPI.GetActiveProfileAccountID()
-	insightsInsertKey := configAPI.GetActiveProfileString(config.InsightsInsertKey)
-	insightsInsertKeys, err := c.client.APIAccess.ListInsightsInsertKeysWithContext(ctx, accountID)
-	if err != nil {
-		return fmt.Errorf(ErrConnectionStringFormat, err)
-	}
-
-	for _, k := range insightsInsertKeys {
-		if k.Key == insightsInsertKey {
-			return nil
-		}
-	}
-
-	return ErrInsightsInsertKey
 }
 
 func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {

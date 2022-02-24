@@ -29,14 +29,12 @@ var (
 	testCredentials = `{
 		"default": {
 			"apiKey": "testApiKey",
-			"insightsInsertKey": "testInsightsInsertKey",
 			"region": "testRegion",
 			"accountID": 12345,
 			"licenseKey": "testLicenseKey"
 		},
 		"another": {
 			"apiKey": "anotherTestApiKey",
-			"insightsInsertKey": "anotherTestInsightsInsertKey",
 			"region": "anotherTestRegion",
 			"accountID": 67890,
 			"licenseKey": "anotherTestLicenseKey"
@@ -56,12 +54,10 @@ func TestGetActiveProfileValues(t *testing.T) {
 
 	os.Unsetenv("NEW_RELIC_API_KEY")
 	os.Unsetenv("NEW_RELIC_LICENSE_KEY")
-	os.Unsetenv("NEW_RELIC_INSIGHTS_INSERT_KEY")
 	os.Unsetenv("NEW_RELIC_REGION")
 	os.Unsetenv("NEW_RELIC_ACCOUNT_ID")
 
 	require.Equal(t, "testApiKey", GetActiveProfileString("apiKey"))
-	require.Equal(t, "testInsightsInsertKey", GetActiveProfileString("insightsInsertKey"))
 	require.Equal(t, "testRegion", GetActiveProfileString("region"))
 	require.Equal(t, "testLicenseKey", GetActiveProfileString("licenseKey"))
 	require.Equal(t, 12345, GetActiveProfileAccountID())
@@ -79,12 +75,10 @@ func TestGetActiveProfileValues_EnvVarOverride(t *testing.T) {
 
 	os.Setenv("NEW_RELIC_API_KEY", "apiKeyOverride")
 	os.Setenv("NEW_RELIC_LICENSE_KEY", "licenseKeyOverride")
-	os.Setenv("NEW_RELIC_INSIGHTS_INSERT_KEY", "insightsInsertKeyOverride")
 	os.Setenv("NEW_RELIC_REGION", "regionOverride")
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "67890")
 
 	require.Equal(t, "apiKeyOverride", GetActiveProfileString("apiKey"))
-	require.Equal(t, "insightsInsertKeyOverride", GetActiveProfileString("insightsInsertKey"))
 	require.Equal(t, "regionOverride", GetActiveProfileString("region"))
 	require.Equal(t, "licenseKeyOverride", GetActiveProfileString("licenseKey"))
 	require.Equal(t, 67890, GetActiveProfileAccountID())
@@ -499,7 +493,7 @@ func TestForEachProfileFieldDefinition(t *testing.T) {
 	}
 
 	ForEachProfileFieldDefinition("default", fn)
-	require.Equal(t, 5, count)
+	require.Equal(t, 4, count)
 }
 
 func TestGetValidConfigFieldKeys(t *testing.T) {
