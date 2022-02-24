@@ -54,9 +54,9 @@ type mockRecipeInstaller struct {
 }
 
 func (sr *mockStatusReporter) ReportStatus(status execution.RecipeStatusType, event execution.RecipeStatusEvent) {
-	sr.counter++
+	sr.Called(status, event)
 }
 
 type mockStatusReporter struct {
-	counter int
+	mock.Mock
 }
