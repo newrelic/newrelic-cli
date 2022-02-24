@@ -16,7 +16,7 @@ func TestRecipeDetectorShouldFailBecauseOfProcessEvaluation(t *testing.T) {
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
 	detector := b.Build()
 
-	actual := detector.detectRecipe(context.Background(), recipe)
+	actual, _ := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
@@ -27,7 +27,7 @@ func TestRecipeDetectorShouldBeAvailableWhenRecipeScriptDetectionIsMissingScript
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.DETECTED)
 	detector := b.Build()
 
-	actual := detector.detectRecipe(context.Background(), recipe)
+	actual, _ := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
@@ -39,7 +39,7 @@ func TestRecipeDetectorShouldFailWhenScriptFails(t *testing.T) {
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.NULL)
 	detector := b.Build()
 
-	actual := detector.detectRecipe(context.Background(), recipe)
+	actual, _ := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
 }
 
@@ -51,7 +51,7 @@ func TestRecipeDetectorShouldDetectBecauseOfScriptEvaluation(t *testing.T) {
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.DETECTED)
 	detector := b.Build()
 
-	actual := detector.detectRecipe(context.Background(), recipe)
+	actual, _ := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual)
 }
 
@@ -63,7 +63,7 @@ func TestRecipeDetectorShouldBeAvailableBecauseOfScriptEvaluation(t *testing.T) 
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
 	detector := b.Build()
 
-	actual := detector.detectRecipe(context.Background(), recipe)
+	actual, _ := detector.detectRecipe(context.Background(), recipe)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 

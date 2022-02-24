@@ -10,35 +10,40 @@ import (
 )
 
 func TestBundleRecipeAddsStatusWithTime(t *testing.T) {
-	expectedStatus := execution.RecipeStatusTypes.INSTALLING
+	var durationMs int64 = 48
+	expectedStatus := execution.RecipeStatusTypes.DETECTED
 	br := testBundleRecipe()
 
-	br.AddDetectionStatus(expectedStatus)
+	br.AddDetectionStatus(expectedStatus, durationMs)
 
 	require.Equal(t, len(br.DetectedStatuses), 1)
-	require.Equal(t, expectedStatus, br.DetectedStatuses[0])
+	require.Equal(t, expectedStatus, br.DetectedStatuses[0].Status)
+	require.Equal(t, durationMs, br.DetectedStatuses[0].DurationMs)
 }
 
 func TestBundleRecipeShouldAddStatusOnceAtFirstOccurrence(t *testing.T) {
 	br := testBundleRecipe()
 	expectedStatus := execution.RecipeStatusTypes.INSTALLING
 
-	br.AddDetectionStatus(expectedStatus)
-	br.AddDetectionStatus(expectedStatus)
-	br.AddDetectionStatus(expectedStatus)
+	br.AddDetectionStatus(expectedStatus, 0)
+	br.AddDetectionStatus(expectedStatus, 0)
+	br.AddDetectionStatus(expectedStatus, 0)
 
 	require.Equal(t, len(br.DetectedStatuses), 1)
-	require.Equal(t, expectedStatus, br.DetectedStatuses[0])
+	require.Equal(t, expectedStatus, br.DetectedStatuses[0].Status)
 }
 
 func TestBundleRecipeShouldAddStatusDetectedWhenAvailable(t *testing.T) {
+	var durationMs int64 = 67
 	br := testBundleRecipe()
 
-	br.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE)
+	br.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, durationMs)
 
 	require.Equal(t, len(br.DetectedStatuses), 2)
-	require.Equal(t, execution.RecipeStatusTypes.DETECTED, br.DetectedStatuses[0])
-	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, br.DetectedStatuses[1])
+	require.Equal(t, execution.RecipeStatusTypes.DETECTED, br.DetectedStatuses[0].Status)
+	require.Equal(t, durationMs, br.DetectedStatuses[1].DurationMs)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, br.DetectedStatuses[1].Status)
+	require.Equal(t, durationMs, br.DetectedStatuses[1].DurationMs)
 
 }
 
@@ -99,8 +104,6 @@ func testBundleRecipe() *BundleRecipe {
 
 func testBundleRecipeWithStatus(status execution.RecipeStatusType, statusTime time.Time) *BundleRecipe {
 	bundleRecipe := testBundleRecipe()
-	bundleRecipe.DetectedStatuses = []execution.RecipeStatusType{
-		status,
-	}
+	bundleRecipe.DetectedStatuses = []*DetectedStatusType{{Status: status}}
 	return bundleRecipe
 }

@@ -2,6 +2,9 @@ package recipes
 
 import (
 	"context"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -43,17 +46,19 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 		dt.detectBundleRecipe(ctx, dependencyBundleRecipe)
 	}
 
-	status := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-	bundleRecipe.AddDetectionStatus(status)
+	status, durationMs := dt.detectRecipe(ctx, bundleRecipe.Recipe)
+	bundleRecipe.AddDetectionStatus(status, durationMs)
 }
 
-func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {
-
+func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) (execution.RecipeStatusType, int64) {
+	start := time.Now()
 	status := dt.processEvaluator.DetectionStatus(ctx, recipe)
+	durationMs := time.Since(start).Milliseconds()
 
 	if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
 		status = dt.scriptEvaluator.DetectionStatus(ctx, recipe)
+		durationMs = time.Since(start).Milliseconds()
+		log.Debugf("ScriptEvaluation for recipe:%s completed in %dms with status:%s", recipe.Name, durationMs, status)
 	}
-
-	return status
+	return status, durationMs
 }

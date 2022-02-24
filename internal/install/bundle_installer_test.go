@@ -71,10 +71,8 @@ func TestInstallContinueOnErrorReturnsImmediately(t *testing.T) {
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.UNSUPPORTED,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.UNSUPPORTED}},
 			},
 		},
 	}
@@ -97,10 +95,8 @@ func TestInstallContinueOnErrorReturnsImmediatelyWhenNoIsEntered(t *testing.T) {
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.UNSUPPORTED,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.UNSUPPORTED}},
 			},
 		},
 	}
@@ -122,10 +118,8 @@ func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *te
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.UNSUPPORTED,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.UNSUPPORTED}},
 			},
 		},
 		Type: recipes.BundleTypes.ADDITIONALTARGETED,
@@ -172,16 +166,12 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.AVAILABLE,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.AVAILABLE}},
 			},
 			{
-				Recipe: recipes.NewRecipeBuilder().ID("ID2").Name("recipe2").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.AVAILABLE,
-				},
+				Recipe:           recipes.NewRecipeBuilder().ID("ID2").Name("recipe2").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.AVAILABLE}},
 			},
 		},
 	}
@@ -202,22 +192,16 @@ func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.AVAILABLE,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.AVAILABLE}},
 			},
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe2").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.UNSUPPORTED,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe2").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.UNSUPPORTED}},
 			},
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe3").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.DETECTED,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe3").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.DETECTED}},
 			},
 		},
 	}
@@ -238,16 +222,12 @@ func TestInstallContinueOnErrorKeepsInstalling(t *testing.T) {
 	bundle := recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
 			{
-				Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.AVAILABLE,
-				},
+				Recipe:           recipes.NewRecipeBuilder().Name("recipe1").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.AVAILABLE}},
 			},
 			{
-				Recipe: recipes.NewRecipeBuilder().ID("ID2").Name("recipe2").Build(),
-				DetectedStatuses: []execution.RecipeStatusType{
-					execution.RecipeStatusTypes.AVAILABLE,
-				},
+				Recipe:           recipes.NewRecipeBuilder().ID("ID2").Name("recipe2").Build(),
+				DetectedStatuses: []*recipes.DetectedStatusType{{Status: execution.RecipeStatusTypes.AVAILABLE}},
 			},
 		},
 	}
@@ -262,18 +242,18 @@ func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
 	setup()
 	expectedStatus := execution.RecipeStatusTypes.RECOMMENDED
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddDetectionStatus(expectedStatus)
+	bundle.BundleRecipes[0].AddDetectionStatus(expectedStatus, 0)
 
 	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
 
-	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].DetectedStatuses[0])
+	assert.Equal(t, expectedStatus, bundle.BundleRecipes[0].DetectedStatuses[0].Status)
 	assert.Equal(t, 1, len(bundle.BundleRecipes[0].DetectedStatuses))
 }
 
 func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T) {
 	setup()
 	bundle := givenBundle(types.InfraAgentRecipeName)
-	bundle.BundleRecipes[0].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE)
+	bundle.BundleRecipes[0].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
 
 	bundleInstallerTestImpl.bundleInstaller.reportBundleStatus(bundle)
 

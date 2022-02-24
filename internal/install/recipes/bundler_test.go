@@ -106,7 +106,7 @@ func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
 	for _, r := range coreBundle.BundleRecipes {
 		lastStatusIndex := len(r.DetectedStatuses) - 1
 		require.Equal(t, 2, len(r.DetectedStatuses))
-		require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, r.DetectedStatuses[lastStatusIndex])
+		require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, r.DetectedStatuses[lastStatusIndex].Status)
 	}
 }
 
