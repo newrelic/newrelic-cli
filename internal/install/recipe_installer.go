@@ -69,10 +69,10 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = &recipes.LocalRecipeFetcher{
 			Path: ic.LocalRecipes,
 		}
-	} else if len(ic.RecipePaths) > 0 {
-		recipeFetcher = &recipes.RecipeFileFetcher{
-			Paths: ic.RecipePaths,
-		}
+		// } else if len(ic.RecipePaths) > 0 {
+		// 	recipeFetcher = &recipes.RecipeFileFetcher{
+		// 		Paths: ic.RecipePaths,
+		// 	}
 	} else {
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
