@@ -173,7 +173,7 @@ func TestInstallStatus_shouldFailAvailableOnCancel(t *testing.T) {
 
 func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{NewMockStatusReporter()}, slg)
+	s := NewInstallStatus([]StatusSubscriber{}, slg)
 	recipeInstalled := types.OpenInstallationRecipe{Name: "installed"}
 	installedRecipeEvent := RecipeStatusEvent{Recipe: recipeInstalled, EntityGUID: "installedGUID"}
 

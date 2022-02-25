@@ -123,14 +123,17 @@ func TestCreateCoreBundleShouldIncludeDependencies(t *testing.T) {
 	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 2, len(coreBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
-	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
+	infraRecipe := findRecipeByName(coreBundle, types.InfraAgentRecipeName)
+	loggingRecipe := findRecipeByName(coreBundle, types.LoggingRecipeName)
+	require.NotNil(t, infraRecipe)
+	require.NotNil(t, loggingRecipe)
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 	require.Nil(t, findRecipeByName(coreBundle, "dep2"))
-	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep1"))
-	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep2"))
-	require.Nil(t, findDependencyByName(coreBundle.BundleRecipes[1], "dep1"))
-	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[1], "dep2"))
+	require.NotNil(t, findDependencyByName(infraRecipe, "dep1"))
+	require.NotNil(t, findDependencyByName(infraRecipe, "dep2"))
+	require.Nil(t, findDependencyByName(loggingRecipe, "dep1"))
+	require.NotNil(t, findDependencyByName(loggingRecipe, "dep2"))
+
 }
 
 func TestCreateCoreBundleShouldNotIncludeInvalidDependencies(t *testing.T) {
@@ -187,10 +190,10 @@ func TestCreateCoreBundleShouldNotBundleDependencyWhenNotDetected(t *testing.T) 
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 }
 
-func findRecipeByName(bundle *Bundle, name string) *types.OpenInstallationRecipe {
+func findRecipeByName(bundle *Bundle, name string) *BundleRecipe {
 	for _, r := range bundle.BundleRecipes {
 		if strings.EqualFold(r.Recipe.Name, name) {
-			return r.Recipe
+			return r
 		}
 	}
 	return nil

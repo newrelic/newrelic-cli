@@ -27,10 +27,10 @@ var (
 // NewClient initializes the New Relic client.
 func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	apiKey := configAPI.GetProfileString(profileName, config.APIKey)
-	insightsInsertKey := configAPI.GetProfileString(profileName, config.InsightsInsertKey)
+	licenseKey := configAPI.GetProfileString(profileName, config.LicenseKey)
 
-	if apiKey == "" && insightsInsertKey == "" {
-		return nil, errors.New("a User API key or Ingest API key is required, set a default profile or use the NEW_RELIC_API_KEY or NEW_RELIC_INSIGHTS_INSERT_KEY environment variables")
+	if apiKey == "" && licenseKey == "" {
+		return nil, errors.New("a User API key or License key is required, set a default profile or use the NEW_RELIC_API_KEY or NEW_RELIC_LICENSE_KEY environment variables")
 	}
 
 	region := configAPI.GetProfileString(profileName, config.Region)
@@ -41,7 +41,7 @@ func NewClient(profileName string) (*newrelic.NewRelic, error) {
 
 	cfgOpts := []newrelic.ConfigOption{
 		newrelic.ConfigPersonalAPIKey(apiKey),
-		newrelic.ConfigInsightsInsertKey(insightsInsertKey),
+		newrelic.ConfigInsightsInsertKey(licenseKey),
 		newrelic.ConfigLogger(logger),
 		newrelic.ConfigRegion(region),
 		newrelic.ConfigUserAgent(userAgent),
@@ -107,30 +107,4 @@ func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accou
 	}
 
 	return "", types.ErrorFetchingLicenseKey
-}
-
-func FetchInsightsInsertKey(accountID int, profileName string) (string, error) {
-	client, err := NewClient(profileName)
-	if err != nil {
-		return "", err
-	}
-
-	// Check for an existing key first
-	keys, err := client.APIAccess.ListInsightsInsertKeys(accountID)
-	if err != nil {
-		return "", types.ErrorFetchingInsightsInsertKey
-	}
-
-	// We already have a key, return it
-	if len(keys) > 0 {
-		return keys[0].Key, nil
-	}
-
-	// Create a new key if one doesn't exist
-	key, err := client.APIAccess.CreateInsightsInsertKey(accountID)
-	if err != nil {
-		return "", types.ErrorFetchingInsightsInsertKey
-	}
-
-	return key.Key, nil
 }

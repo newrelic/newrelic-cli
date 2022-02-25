@@ -34,8 +34,8 @@ var cmdJUnit = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		accountID := configAPI.RequireActiveProfileAccountID()
 
-		if configAPI.GetActiveProfileString(config.InsightsInsertKey) == "" {
-			log.Fatal("an Insights insert key is required, set one in your default profile or use the NEW_RELIC_INSIGHTS_INSERT_KEY environment variable")
+		if configAPI.GetActiveProfileString(config.LicenseKey) == "" {
+			log.Fatal("a License key is required, set one in your default profile or use the NEW_RELIC_LICENSE_KEY environment variable")
 		}
 
 		id, err := uuid.NewRandom()
