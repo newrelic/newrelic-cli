@@ -43,3 +43,15 @@ type RecipeVarPreparer interface {
 type RecipeRepository interface {
 	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
 }
+
+// RecipeInstaller wrapper responsible for performing recipe validation, installation, and reporting install status
+type RecipeInstaller interface {
+	promptIfNotLatestCLIVersion(ctx context.Context) error
+	Install() error
+	install(ctx context.Context) error
+	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
+	discover(ctx context.Context) (*types.DiscoveryManifest, error)
+	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error)
+	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error)
+	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
+}
