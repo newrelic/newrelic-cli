@@ -74,8 +74,8 @@ func NewRecipeFile(recipeFileString string) (*types.OpenInstallationRecipe, erro
 	return &f, nil
 }
 
-func (f *RecipeFileFetcher) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
-	response, err := f.HTTPGetFunc(recipeURL.String())
+func (rff *RecipeFileFetcher) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInstallationRecipe, error) {
+	response, err := rff.HTTPGetFunc(recipeURL.String())
 
 	if err != nil {
 		return nil, err
@@ -95,8 +95,8 @@ func (f *RecipeFileFetcher) FetchRecipeFile(recipeURL *url.URL) (*types.OpenInst
 	return NewRecipeFile(string(body))
 }
 
-func (f *RecipeFileFetcher) LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error) {
-	out, err := f.readFileFunc(filename)
+func (rff *RecipeFileFetcher) LoadRecipeFile(filename string) (*types.OpenInstallationRecipe, error) {
+	out, err := rff.readFileFunc(filename)
 	if err != nil {
 		return nil, err
 	}

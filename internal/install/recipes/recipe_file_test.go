@@ -1,4 +1,4 @@
-package install
+package recipes
 
 import (
 	"io/ioutil"
@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -59,7 +58,7 @@ func TestLoadRecipeFile(t *testing.T) {
 
 	defer os.Remove(tmpFile.Name())
 
-	ff := recipes.NewRecipeFileFetcher()
+	ff := NewRecipeFileFetcher()
 
 	f, err := ff.LoadRecipeFile(tmpFile.Name())
 	require.NoError(t, err)
@@ -81,7 +80,7 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 		}
 	}
 
-	ff := recipes.RecipeFileFetcher{}
+	ff := RecipeFileFetcher{}
 	u, err := url.Parse("https://localhost/valid-url")
 	assert.NoError(t, err)
 
@@ -113,7 +112,7 @@ func TestNewRecipeFile(t *testing.T) {
 	err := yaml.Unmarshal([]byte(testRecipeFileString), &expected)
 	require.NoError(t, err)
 
-	actual, err := recipes.NewRecipeFile(testRecipeFileString)
+	actual, err := NewRecipeFile(testRecipeFileString)
 	require.NoError(t, err)
 	require.True(t, reflect.DeepEqual(&expected, actual))
 }
