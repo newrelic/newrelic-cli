@@ -241,13 +241,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	fmt.Println("\n\nInstalling New Relic")
 	// Execute the discovery process, exiting on failure.
-	m, err := i.discover(ctx)
-	if err != nil {
-		return err
-	}
-
-	err = i.assertDiscoveryValid(ctx, m)
-	i.status.DiscoveryComplete(*m)
+	m, err := i.performDiscovery(ctx)
 
 	if err != nil {
 		return err
@@ -338,7 +332,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	// return nil
 }
 
-func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
+func (i *RecipeInstall) validateDiscovery(m *types.DiscoveryManifest) error {
 	err := i.manifestValidator.Validate(m)
 	if err != nil {
 		return err
@@ -347,7 +341,7 @@ func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.Disco
 	return nil
 }
 
-func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
+func (i *RecipeInstall) performDiscovery(ctx context.Context) (*types.DiscoveryManifest, error) {
 	log.Debug("discovering system information")
 
 	m, err := i.discoverer.Discover(ctx)
@@ -355,10 +349,17 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
 	}
 
+	err = i.validateDiscovery(m)
+	i.status.DiscoveryComplete(*m)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }
 
-// intalling recipe
+// installing recipe
 func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 

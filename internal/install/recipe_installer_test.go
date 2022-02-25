@@ -108,9 +108,9 @@ package install
 
 // // func TestInstall_UnsupportedKernelArch(t *testing.T) {
 // // 	ic := types.InstallerContext{}
-// // 	discover := discovery.NewMockDiscoverer()
-// // 	discover.SetOs("linux")
-// // 	discover.SetKernelArch("aarch64") // unsupported for logs
+// // 	performDiscovery := discovery.NewMockDiscoverer()
+// // 	performDiscovery.SetOs("linux")
+// // 	performDiscovery.SetKernelArch("aarch64") // unsupported for logs
 // // 	mv = discovery.NewManifestValidator()
 // // 	mockExec := execution.NewMockRecipeExecutor()
 // // 	mockExec.ExecuteErr = &types.UnsupportedOperatingSytemError{
@@ -139,7 +139,7 @@ package install
 // // 		},
 // // 	}
 
-// // 	i := RecipeInstall{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
+// // 	i := RecipeInstall{ic, performDiscovery, l, mv, f, mockExec, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
 
 // // 	err := i.Install()
 // // 	require.Error(t, err)
