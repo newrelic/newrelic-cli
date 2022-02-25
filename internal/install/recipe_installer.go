@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
-	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -70,6 +68,10 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	if ic.LocalRecipes != "" {
 		recipeFetcher = &recipes.LocalRecipeFetcher{
 			Path: ic.LocalRecipes,
+		}
+	} else if len(ic.RecipePaths) > 0 {
+		recipeFetcher = &recipes.RecipeFileFetcher{
+			Paths: ic.RecipePaths,
 		}
 	} else {
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
@@ -286,28 +288,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
-	} else if i.RecipePathsProvided() { //FIXME: temp hack to demo existing behavior needs to confirm and add test
-		pathRecipes, err := loadRecipeFromPath(i.RecipePaths)
-		if err != nil {
-			return err
-		}
-
-		additionalBundle = bundler.CreateAdditionalTargetedPathBundle(pathRecipes)
-
-		for _, pathRecipe := range pathRecipes {
-			found := false
-			for _, bundleRecipe := range additionalBundle.BundleRecipes {
-				if strings.EqualFold(pathRecipe.Name, bundleRecipe.Recipe.Name) {
-					found = true
-					break
-				}
-			}
-			if !found {
-				i.status.RecipeUnsupported(execution.RecipeStatusEvent{Recipe: *pathRecipe})
-				return fmt.Errorf("Path recipe is unsupported on your host for recipe %v?", pathRecipe.Name)
-			}
-		}
-
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
 	}
@@ -616,34 +596,6 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 
 // 	return recipes, nil
 // }
-
-func loadRecipeFromPath(recipePaths []string) ([]*types.OpenInstallationRecipe, error) {
-
-	var recipesFromPath []*types.OpenInstallationRecipe
-	recipeFileFetcher := recipes.NewRecipeFileFetcher()
-
-	for _, recipePath := range recipePaths {
-		recipeURL, parseErr := url.Parse(recipePath)
-		isURL := parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http")
-		var recipe *types.OpenInstallationRecipe
-		var err error
-
-		if isURL {
-			recipe, err = recipeFileFetcher.FetchRecipeFile(recipeURL)
-			if err != nil {
-				return recipesFromPath, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
-			}
-		} else {
-			recipe, err = recipeFileFetcher.LoadRecipeFile(recipePath)
-			if err != nil {
-				return recipesFromPath, fmt.Errorf("could not load file %s: %s", recipePath, err)
-			}
-		}
-		recipesFromPath = append(recipesFromPath, recipe)
-	}
-
-	return recipesFromPath, nil
-}
 
 func checkNetwork(nrClient *newrelic.NewRelic) {
 	err := nrClient.TestEndpoints()

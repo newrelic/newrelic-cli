@@ -1,10 +1,12 @@
 package recipes
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 
@@ -14,6 +16,37 @@ import (
 type RecipeFileFetcher struct {
 	HTTPGetFunc  func(string) (*http.Response, error)
 	readFileFunc func(string) ([]byte, error)
+	Paths        []string
+}
+
+func (rff *RecipeFileFetcher) FetchLibraryVersion(ctx context.Context) string {
+	return ""
+}
+func (rff *RecipeFileFetcher) FetchRecipes(ctx context.Context) ([]*types.OpenInstallationRecipe, error) {
+
+	var recipesFromPath []*types.OpenInstallationRecipe
+
+	for _, recipePath := range rff.Paths {
+		recipeURL, parseErr := url.Parse(recipePath)
+		isURL := parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http")
+		var recipe *types.OpenInstallationRecipe
+		var err error
+
+		if isURL {
+			recipe, err = rff.FetchRecipeFile(recipeURL)
+			if err != nil {
+				return recipesFromPath, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
+			}
+		} else {
+			recipe, err = rff.LoadRecipeFile(recipePath)
+			if err != nil {
+				return recipesFromPath, fmt.Errorf("could not load file %s: %s", recipePath, err)
+			}
+		}
+		recipesFromPath = append(recipesFromPath, recipe)
+	}
+
+	return recipesFromPath, nil
 }
 
 func NewRecipeFileFetcher() *RecipeFileFetcher {
