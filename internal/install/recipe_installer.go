@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -235,6 +236,13 @@ func (i *RecipeInstall) connectToPlatform() error {
 	return loaded
 }
 
+func OSEnvVariableGetter(name string) string {
+	return os.Getenv(name)
+}
+
+//TODO: needs to skipcore, skipcore with assume yes, not skipping core
+var EnvVariableGetter = OSEnvVariableGetter
+
 func (i *RecipeInstall) install(ctx context.Context) error {
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
@@ -261,17 +269,20 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	//FIXME: need to fix
 	bundler := recipes.NewBundler(ctx, repo)
-	coreBundle := bundler.CreateCoreBundle()
 	bundleInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
 
-	err = bundleInstaller.InstallStopOnError(coreBundle, true)
-	if err != nil {
-		log.Debugf("error installing core bundle: %s", err)
-		return err
+	installCoreBundle := EnvVariableGetter("NEW_RELIC_CLI_SKIP_CORE") != "1"
+
+	if installCoreBundle {
+		coreBundle := bundler.CreateCoreBundle()
+		err = bundleInstaller.InstallStopOnError(coreBundle, true)
+		if err != nil {
+			log.Debugf("error installing core bundle: %s", err)
+			return err
+		}
 	}
 
 	//FIXME: additional install mock, just hack together code for install to check flow, needs to be refactor
-
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
@@ -280,6 +291,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+
 		additionalBundle = bundler.CreateAdditionalTargetedPathBundle(pathRecipes)
 
 		for _, pathRecipe := range pathRecipes {
