@@ -19,10 +19,10 @@ type RecipeFileFetcher struct {
 	Paths        []string
 }
 
-func (rff *RecipeFileFetcher) FetchLibraryVersion(ctx context.Context) string {
+func (rff *RecipeFileFetcher) FetchLibraryVersion(context.Context) string {
 	return ""
 }
-func (rff *RecipeFileFetcher) FetchRecipes(ctx context.Context) ([]*types.OpenInstallationRecipe, error) {
+func (rff *RecipeFileFetcher) FetchRecipes(context.Context) ([]*types.OpenInstallationRecipe, error) {
 
 	var recipesFromPath []*types.OpenInstallationRecipe
 

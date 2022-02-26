@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -54,4 +55,15 @@ type RecipeInstaller interface {
 	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error)
 	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error)
 	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
+}
+
+type RecipeBundler interface {
+	CreateCoreBundle() *recipes.Bundle
+	CreateAdditionalTargetedBundle(names []string) *recipes.Bundle
+	CreateAdditionalGuidedBundle() *recipes.Bundle
+}
+type RecipeBundleInstaller interface {
+	InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error
+	InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool)
+	InstalledRecipesCount() int
 }

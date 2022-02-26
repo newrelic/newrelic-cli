@@ -10,6 +10,7 @@ type MockRecipeFetcher struct {
 	FetchRecipesErr       error
 	FetchRecipesCallCount int
 	FetchRecipesVal       []*types.OpenInstallationRecipe
+	LibraryVersion        string
 }
 
 func NewMockRecipeFetcher() *MockRecipeFetcher {
@@ -24,5 +25,5 @@ func (f *MockRecipeFetcher) FetchRecipes(ctx context.Context) ([]*types.OpenInst
 }
 
 func (f *MockRecipeFetcher) FetchLibraryVersion(ctx context.Context) string {
-	return ""
+	return f.LibraryVersion
 }

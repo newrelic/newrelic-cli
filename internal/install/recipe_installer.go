@@ -47,8 +47,6 @@ const (
 	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
 )
 
-var statusRollup *execution.InstallStatus
-
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
 	checkNetwork(nrClient)
 
@@ -75,7 +73,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	}
 	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
 	slg := execution.NewPlatformLinkGenerator()
-	statusRollup = execution.NewInstallStatus(ers, slg)
+	statusRollup := execution.NewInstallStatus(ers, slg)
 
 	d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
@@ -227,14 +225,21 @@ func (i *RecipeInstall) connectToPlatform() error {
 	return loaded
 }
 
-func OSEnvVariableGetter(name string) string {
+//TODO: maybe these can be in a factory class
+var getEnvVariable = func(name string) string {
 	return os.Getenv(name)
 }
 
-//TODO: needs to skipcore, skipcore with assume yes, not skipping core
-var EnvVariableGetter = OSEnvVariableGetter
+var getBundler = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
+	return recipes.NewBundler(ctx, repo)
+}
+
+var getBundleInstaller = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
+	return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
+}
 
 func (i *RecipeInstall) install(ctx context.Context) error {
+
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
@@ -246,25 +251,18 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return err
 	}
 
-	err = i.assertDiscoveryValid(ctx, m)
-	i.status.DiscoveryComplete(*m)
-
-	if err != nil {
-		return err
-	}
-
 	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
 	}, m)
 
 	//FIXME: need to fix
-	bundler := recipes.NewBundler(ctx, repo)
-	bundleInstaller := NewBundleInstaller(ctx, m, i, statusRollup)
+	bundler := getBundler(ctx, repo)
+	bundleInstaller := getBundleInstaller(ctx, m, i, i.status)
 
-	installCoreBundle := EnvVariableGetter("NEW_RELIC_CLI_SKIP_CORE") != "1"
+	shouldInstallCoreBundle := getEnvVariable("NEW_RELIC_CLI_SKIP_CORE") != "1"
 
-	if installCoreBundle {
+	if shouldInstallCoreBundle {
 		coreBundle := bundler.CreateCoreBundle()
 		err = bundleInstaller.InstallStopOnError(coreBundle, true)
 		if err != nil {
@@ -351,6 +349,13 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 	log.Debug("discovering system information")
 
 	m, err := i.discoverer.Discover(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
+	}
+
+	err = i.assertDiscoveryValid(ctx, m)
+	i.status.DiscoveryComplete(*m)
+
 	if err != nil {
 		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
 	}
