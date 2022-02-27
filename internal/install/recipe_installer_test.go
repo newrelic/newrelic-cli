@@ -8,57 +8,45 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/newrelic/newrelic-cli/internal/diagnose"
-	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
-	test := createRecipeInstallTest()
 	var expected error
-	configValidator := diagnose.NewMockConfigValidator(expected)
-	test.withConfigValidator(configValidator)
 
-	assert.Equal(t, expected, test.recipeInstall.connectToPlatform())
+	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).Build()
+
+	assert.NoError(t, recipeInstall.connectToPlatform())
 }
-func TestConnectToPlatformShouldRetrunNoError(t *testing.T) {
-	test := createRecipeInstallTest()
+func TestConnectToPlatformShouldRetrunError(t *testing.T) {
 	expected := errors.New("Failing to connect to platform")
-	configValidator := diagnose.NewMockConfigValidator(expected)
-	test.withConfigValidator(configValidator)
 
-	assert.Equal(t, expected, test.recipeInstall.connectToPlatform())
+	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).Build()
+
+	actual := recipeInstall.connectToPlatform()
+
+	assert.Error(t, actual)
+	assert.Equal(t, expected.Error(), actual.Error())
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
-	test := createRecipeInstallTest()
-	ctx := context.Background()
 
-	discover := discovery.NewMockDiscoverer()
 	expected := errors.New("Some Discover error")
-	discover.Error = expected
-	test.withDiscoverer(discover)
+	recipeInstall := NewRecipeInstallBuilder().WithDiscovererError(expected).Build()
 
-	actual := test.recipeInstall.install(ctx)
+	actual := recipeInstall.install(context.TODO())
 
 	assert.Error(t, actual)
 	assert.True(t, strings.Contains(actual.Error(), expected.Error()))
 }
 
 func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
-	test := createRecipeInstallTest()
-	ctx := context.Background()
 
 	expected := errors.New("some discovery validation error")
-	mockOsValidator := discovery.NewMockOsValidator(expected)
-	mockManifest := discovery.NewMockManifestValidator(mockOsValidator)
-	test.withManifestValidator(mockManifest)
-	statusReporter := execution.NewMockStatusReporter()
-	test.withStatusReporter(statusReporter)
 
-	actual := test.recipeInstall.install(ctx)
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithDiscovererValidatorError(expected).Build()
+	actual := recipeInstall.install(context.TODO())
 
 	assert.Error(t, actual)
 	assert.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
@@ -67,179 +55,33 @@ func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
 
 func TestInstallShouldSkipCoreInstall(t *testing.T) {
 
-	test := createRecipeInstallTest()
-	ctx := context.Background()
-	bundler, bundleInstaller := test.withBundleInstall()
-
+	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
 	coreBundle := bundler.CreateCoreBundle()
 
 	getEnvVariable = func(name string) string {
 		return "1"
 	}
+	_ = recipeInstall.install(context.TODO())
 
 	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
-	_ = test.recipeInstall.install(ctx)
-
 	assert.False(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
 }
+
 func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
-	test := createRecipeInstallTest()
-	ctx := context.Background()
-	bundler, bundleInstaller := test.withBundleInstall()
 
-	// bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
+	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
 	coreBundle := bundler.CreateCoreBundle()
-
-	_ = test.recipeInstall.install(ctx)
+	_ = recipeInstall.install(context.TODO())
 
 	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
 	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
 }
-
-func createRecipeInstallTest() *RecipeInstallTest {
-	test := &RecipeInstallTest{
-		recipeInstall: &RecipeInstall{},
-	}
-	libraryVersion := "8.8.8.8"
-	recipeFetcher := recipes.NewMockRecipeFetcher()
-	recipeFetcher.LibraryVersion = libraryVersion
-	test.withRecipeFetcher(recipeFetcher)
-	statusReporters := execution.NewMockStatusReporter()
-	test.withStatusReporter(statusReporters)
-
-	return test
-}
-
-// Always return 1 in bundle for all the bundling methods
-type MockBundler struct {
-}
-
-func (mb *MockBundler) CreateCoreBundle() *recipes.Bundle {
-	bundle := &recipes.Bundle{
-		BundleRecipes: []*recipes.BundleRecipe{
-			{
-				Recipe: recipes.NewRecipeBuilder().ID("0").Name("Core_Recipe_1").Build(),
-			},
-		},
-	}
-	return bundle
-}
-func (mb *MockBundler) CreateAdditionalTargetedBundle(name []string) *recipes.Bundle {
-
-	bundle := &recipes.Bundle{
-		BundleRecipes: []*recipes.BundleRecipe{
-			{
-				Recipe: recipes.NewRecipeBuilder().ID("1").Name("Additional_Target_Recipe_1").Build(),
-			},
-		},
-	}
-	return bundle
-}
-
-func (mb *MockBundler) CreateAdditionalGuidedBundle() *recipes.Bundle {
-
-	bundle := &recipes.Bundle{
-		BundleRecipes: []*recipes.BundleRecipe{
-			{
-				Recipe: recipes.NewRecipeBuilder().ID("2").Name("Additional_Guided_Recipe_1").Build(),
-			},
-		},
-	}
-	return bundle
-}
-
-type MockBundleInstaller struct {
-	installedRecipes map[string]bool
-	Error            error
-}
-
-func NewMockBundleInstaller() *MockBundleInstaller {
-	return &MockBundleInstaller{
-		installedRecipes: make(map[string]bool),
-	}
-}
-
-func (mbi *MockBundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
-	for _, recipe := range bundle.BundleRecipes {
-		mbi.installedRecipes[recipe.Recipe.Name] = true
-	}
-
-	return mbi.Error
-}
-func (mbi *MockBundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool) {
-	for _, recipe := range bundle.BundleRecipes {
-		mbi.installedRecipes[recipe.Recipe.Name] = true
-	}
-}
-func (mbi *MockBundleInstaller) InstalledRecipesCount() int {
-	return len(mbi.installedRecipes)
-}
-
-type RecipeInstallTest struct {
-	recipeInstall *RecipeInstall
-}
-
-func (rit *RecipeInstallTest) withConfigValidator(cv ConfigValidator) {
-	rit.recipeInstall.configValidator = cv
-}
-
-func (rit *RecipeInstallTest) withRecipeFetcher(rf recipes.RecipeFetcher) {
-	rit.recipeInstall.recipeFetcher = rf
-}
-
-func (rit *RecipeInstallTest) withStatusReporter(reporter execution.StatusSubscriber) {
-	statusReporters := []execution.StatusSubscriber{reporter}
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	rit.recipeInstall.status = status
-}
-
-func (rit *RecipeInstallTest) withDiscoverer(discoverer Discoverer) {
-	rit.recipeInstall.discoverer = discoverer
-}
-
-func (rit *RecipeInstallTest) withManifestValidator(manifestValidator *discovery.ManifestValidator) {
-	discover := discovery.NewMockDiscoverer()
-	rit.withDiscoverer(discover)
-	rit.recipeInstall.manifestValidator = manifestValidator
-}
-
-func (rit *RecipeInstallTest) withBundleInstall() (*MockBundler, *MockBundleInstaller) {
-	mockManifest := discovery.NewEmptyManifestValidator()
-	rit.withManifestValidator(mockManifest)
-	statusReporter := execution.NewMockStatusReporter()
-	rit.withStatusReporter(statusReporter)
-
-	bundler := &MockBundler{}
-	getBundler = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
-		return bundler
-	}
-	bundleInstaller := NewMockBundleInstaller()
-	getBundleInstaller = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
-		return bundleInstaller
-	}
-
-	getEnvVariable = func(name string) string {
-		return "0"
-	}
-
-	return bundler, bundleInstaller
-}
-
-// func (rit *RecipeInstallTest) getMockBundler(names ...string) *MockBundler {
-
-// 	mockBundler := &MockBundler{}
-
-// 	mockRecipeFetcher := rit.recipeInstall.recipeFetcher.(*recipes.MockRecipeFetcher)
-
-// 	for _, rName := range names {
-// 		recipe := types.OpenInstallationRecipe{
-// 			Name: rName,
-// 		}
-// 		mockRecipeFetcher.FetchRecipesVal = append(mockRecipeFetcher.FetchRecipesVal, &recipe)
-// 	}
-// 	mockBundler.repoRecipes = mockRecipeFetcher.FetchRecipesVal
-// 	return mockBundler
-// }
 
 type InstallStatus interface {
 	SetVersions(string)

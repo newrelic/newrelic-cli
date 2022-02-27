@@ -6,10 +6,8 @@ type MockOsValidator struct {
 	Error error
 }
 
-func NewMockOsValidator(err error) *MockOsValidator {
-	validator := MockOsValidator{
-		Error: err,
-	}
+func NewMockOsValidator() *MockOsValidator {
+	validator := MockOsValidator{}
 	return &validator
 }
 

@@ -3,15 +3,13 @@ package diagnose
 import "context"
 
 type MockConfigValidator struct {
-	result error
+	Error error
 }
 
-func NewMockConfigValidator(result error) *MockConfigValidator {
-	return &MockConfigValidator{
-		result: result,
-	}
+func NewMockConfigValidator() *MockConfigValidator {
+	return &MockConfigValidator{}
 }
 
 func (v *MockConfigValidator) Validate(ctx context.Context) error {
-	return v.result
+	return v.Error
 }
