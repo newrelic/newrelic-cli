@@ -271,7 +271,11 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	//FIXME: additional install mock, just hack together code for install to check flow, needs to be refactor
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
-		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		additionalBundle, err = bundler.CreateAdditionalTargetedBundle(i.RecipeNames, i.RecipePaths)
+		if err != nil {
+			log.Debugf("error creating targeted bundle: %s", err)
+			return err
+		}
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
 	}

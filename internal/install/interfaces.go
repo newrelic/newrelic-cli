@@ -59,7 +59,7 @@ type RecipeInstaller interface {
 
 type RecipeBundler interface {
 	CreateCoreBundle() *recipes.Bundle
-	CreateAdditionalTargetedBundle(names []string) *recipes.Bundle
+	CreateAdditionalTargetedBundle(names []string, recipePaths []string) (*recipes.Bundle, error)
 	CreateAdditionalGuidedBundle() *recipes.Bundle
 }
 type RecipeBundleInstaller interface {

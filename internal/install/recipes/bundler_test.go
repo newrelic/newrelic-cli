@@ -50,11 +50,70 @@ func TestCreateAdditionalTargetedBundleShouldSkipCoreRecipes(t *testing.T) {
 		types.InfraAgentRecipeName,
 		types.GoldenRecipeName,
 	}
-	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
+	addBundle, err := bundler.CreateAdditionalTargetedBundle(recipeNames, nil)
 
+	require.NoError(t, err)
 	require.Equal(t, 1, len(addBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
 	require.Nil(t, findRecipeByName(addBundle, types.InfraAgentRecipeName))
+}
+
+func TestCreateAdditionalTargetedBundleShouldReadPaths(t *testing.T) {
+	setup()
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, "test-preinstall-info", execution.RecipeStatusTypes.AVAILABLE)
+
+	recipeNames := []string{
+		"mysql",
+	}
+
+	recipePaths := []string{
+		"../../../test/recipes/testPreInstallInfo.yaml",
+	}
+
+	addBundle, err := bundler.CreateAdditionalTargetedBundle(recipeNames, recipePaths)
+
+	require.NoError(t, err)
+	require.Equal(t, 2, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
+	require.NotNil(t, findRecipeByName(addBundle, "test-preinstall-info"))
+}
+
+func TestCreateAdditionalTargetedBundleShouldReadPathsOnly(t *testing.T) {
+	setup()
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, "test-preinstall-info", execution.RecipeStatusTypes.AVAILABLE)
+
+	recipePaths := []string{
+		"../../../test/recipes/testPreInstallInfo.yaml",
+	}
+
+	addBundle, err := bundler.CreateAdditionalTargetedBundle(nil, recipePaths)
+
+	require.NoError(t, err)
+	require.Equal(t, 1, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, "test-preinstall-info"))
+}
+
+func TestCreateAdditionalTargetedBundleShouldErrorOnInvalidPath(t *testing.T) {
+	setup()
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+
+	recipeNames := []string{
+		"mysql",
+	}
+
+	recipePaths := []string{
+		"./test/recipes/fake.yaml",
+	}
+	addBundle, err := bundler.CreateAdditionalTargetedBundle(recipeNames, recipePaths)
+
+	require.Error(t, err)
+	require.Nil(t, addBundle)
 }
 
 func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
@@ -223,9 +282,10 @@ func setup() {
 
 func newBundler(context context.Context, rr *RecipeRepository, rd *RecipeDetector) *Bundler {
 	return &Bundler{
-		Context:          context,
-		RecipeRepository: rr,
-		RecipeDetector:   rd,
+		Context:           context,
+		RecipeRepository:  rr,
+		RecipeDetector:    rd,
+		recipeFileFetcher: *NewRecipeFileFetcher(),
 	}
 }
 

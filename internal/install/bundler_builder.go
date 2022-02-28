@@ -46,7 +46,7 @@ func (mb *MockBundler) CreateCoreBundle() *recipes.Bundle {
 	}
 	return bundle
 }
-func (mb *MockBundler) CreateAdditionalTargetedBundle(name []string) *recipes.Bundle {
+func (mb *MockBundler) CreateAdditionalTargetedBundle(name []string, recipePaths []string) (*recipes.Bundle, error) {
 
 	bundle := &recipes.Bundle{
 		BundleRecipes: []*recipes.BundleRecipe{
@@ -55,7 +55,7 @@ func (mb *MockBundler) CreateAdditionalTargetedBundle(name []string) *recipes.Bu
 			},
 		},
 	}
-	return bundle
+	return bundle, nil
 }
 
 func (mb *MockBundler) CreateAdditionalGuidedBundle() *recipes.Bundle {

@@ -2,6 +2,9 @@ package recipes
 
 import (
 	"context"
+	"fmt"
+	"net/url"
+	"strings"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 
@@ -17,16 +20,18 @@ var coreRecipeMap = map[string]bool{
 }
 
 type Bundler struct {
-	RecipeRepository *RecipeRepository
-	RecipeDetector   *RecipeDetector
-	Context          context.Context
+	RecipeRepository  *RecipeRepository
+	RecipeDetector    *RecipeDetector
+	Context           context.Context
+	recipeFileFetcher RecipeFileFetcher
 }
 
 func NewBundler(context context.Context, rr *RecipeRepository) *Bundler {
 	return &Bundler{
-		Context:          context,
-		RecipeRepository: rr,
-		RecipeDetector:   NewRecipeDetector(),
+		Context:           context,
+		RecipeRepository:  rr,
+		RecipeDetector:    NewRecipeDetector(),
+		recipeFileFetcher: *NewRecipeFileFetcher(),
 	}
 }
 
@@ -55,8 +60,25 @@ func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 	return b.createBundle(recipes, BundleTypes.ADDITIONALGUIDED)
 }
 
-func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
+func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string, recipePaths []string) (*Bundle, error) {
 	var recipes []*types.OpenInstallationRecipe
+
+	for _, n := range recipePaths {
+		log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
+		recipe, err := b.recipeFromPath(n)
+		if err != nil {
+			log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
+			return nil, err
+		}
+
+		log.WithFields(log.Fields{
+			"name":         recipe.Name,
+			"display_name": recipe.DisplayName,
+			"path":         n,
+		}).Debug("found recipe at path")
+
+		recipes = append(recipes, recipe)
+	}
 
 	for _, recipeName := range recipeNames {
 		if coreRecipeMap[recipeName] {
@@ -67,7 +89,7 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 		}
 	}
 
-	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
+	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED), nil
 }
 
 func (b *Bundler) CreateAdditionalTargetedPathBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
@@ -131,4 +153,22 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	return bundleRecipe
+}
+
+func (b *Bundler) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
+	recipeURL, parseErr := url.Parse(recipePath)
+	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
+		f, err := b.recipeFileFetcher.FetchRecipeFile(recipeURL)
+		if err != nil {
+			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
+		}
+		return f, nil
+	}
+
+	f, err := b.recipeFileFetcher.LoadRecipeFile(recipePath)
+	if err != nil {
+		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
+	}
+
+	return f, nil
 }
