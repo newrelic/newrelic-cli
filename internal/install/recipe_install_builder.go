@@ -17,6 +17,7 @@ type RecipeInstallBuilder struct {
 	status            *execution.InstallStatus
 	mockOsValidator   *discovery.MockOsValidator
 	manifestValidator *discovery.ManifestValidator
+	shouldInstallCore func() bool
 	bundler           RecipeBundler
 	bundleInstaller   RecipeBundleInstaller
 }
@@ -36,10 +37,8 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 
 	rib.mockOsValidator = discovery.NewMockOsValidator()
 	rib.manifestValidator = discovery.NewMockManifestValidator(rib.mockOsValidator)
-
-	getEnvVariable = func(name string) string {
-		return ""
-	}
+	// Default to not skip core
+	rib.shouldInstallCore = func() bool { return true }
 
 	return rib
 }
@@ -72,6 +71,11 @@ func (rib *RecipeInstallBuilder) WithDiscovererValidatorError(err error) *Recipe
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) withShouldInstallCore(shouldSkipCore func() bool) *RecipeInstallBuilder {
+	rib.shouldInstallCore = shouldSkipCore
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) WithBundler(bundler RecipeBundler) *RecipeInstallBuilder {
 	rib.bundler = bundler
 	return rib
@@ -89,12 +93,13 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.recipeFetcher = rib.recipeFetcher
 	recipeInstall.status = rib.status
 	recipeInstall.manifestValidator = rib.manifestValidator
-	getBundler = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
+	recipeInstall.bundlerFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
 		return rib.bundler
 	}
-	getBundleInstaller = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
+	recipeInstall.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
 		return rib.bundleInstaller
 	}
+	recipeInstall.shouldInstallCore = rib.shouldInstallCore
 
 	return recipeInstall
 }

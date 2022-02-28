@@ -38,6 +38,9 @@ type RecipeInstall struct {
 	configValidator             ConfigValidator
 	recipeVarPreparer           RecipeVarPreparer
 	agentValidator              *validation.AgentValidator
+	shouldInstallCore           func() bool
+	bundlerFactory              func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
+	bundleInstallerFactory      func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -56,10 +59,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = &recipes.LocalRecipeFetcher{
 			Path: ic.LocalRecipes,
 		}
-		// } else if len(ic.RecipePaths) > 0 {
-		// 	recipeFetcher = &recipes.RecipeFileFetcher{
-		// 		Paths: ic.RecipePaths,
-		// 	}
 	} else {
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
@@ -104,6 +103,17 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	i.InstallerContext = ic
 
+	i.shouldInstallCore = func() bool {
+		return os.Getenv("NEW_RELIC_CLI_SKIP_CORE") != "1"
+	}
+
+	i.bundlerFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
+		return recipes.NewBundler(ctx, repo)
+	}
+
+	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
+		return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
+	}
 	return &i
 }
 
@@ -225,19 +235,6 @@ func (i *RecipeInstall) connectToPlatform() error {
 	return loaded
 }
 
-//TODO: maybe these can be in a factory class
-var getEnvVariable = func(name string) string {
-	return os.Getenv(name)
-}
-
-var getBundler = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
-	return recipes.NewBundler(ctx, repo)
-}
-
-var getBundleInstaller = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
-	return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
-}
-
 func (i *RecipeInstall) install(ctx context.Context) error {
 
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
@@ -257,10 +254,10 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}, m)
 
 	//FIXME: need to fix
-	bundler := getBundler(ctx, repo)
-	bundleInstaller := getBundleInstaller(ctx, m, i, i.status)
+	bundler := i.bundlerFactory(ctx, repo)
+	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
-	shouldInstallCoreBundle := getEnvVariable("NEW_RELIC_CLI_SKIP_CORE") != "1"
+	shouldInstallCoreBundle := i.shouldInstallCore()
 
 	if shouldInstallCoreBundle {
 		coreBundle := bundler.CreateCoreBundle()

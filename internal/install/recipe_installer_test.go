@@ -57,13 +57,10 @@ func TestInstallShouldSkipCoreInstall(t *testing.T) {
 
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).withShouldInstallCore(func() bool { return false }).WithBundleInstaller(bundleInstaller).Build()
 	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
 	coreBundle := bundler.CreateCoreBundle()
 
-	getEnvVariable = func(name string) string {
-		return "1"
-	}
 	_ = recipeInstall.install(context.TODO())
 
 	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
