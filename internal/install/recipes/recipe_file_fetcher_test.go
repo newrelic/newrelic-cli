@@ -64,7 +64,7 @@ func TestLoadRecipeFile(t *testing.T) {
 
 	defer os.Remove(tmpFile.Name())
 
-	ff := NewRecipeFileFetcher()
+	ff := NewRecipeFileFetcher([]string{tmpFile.Name()})
 
 	f, err := ff.LoadRecipeFile(tmpFile.Name())
 
@@ -116,9 +116,8 @@ func TestFetchRecipeFile_FailedStatusCode(t *testing.T) {
 }
 
 func TestUrlFetchRecipesShouldSuccess(t *testing.T) {
-
-	ff := NewRecipeFileFetcher()
-	ff.Paths = []string{"https://localhost/valid-ur"}
+	url := "https://localhost/valid-url"
+	ff := NewRecipeFileFetcher([]string{url})
 
 	ff.HTTPGetFunc = func(statusCode int) func(string) (*http.Response, error) {
 		return func(recipeURL string) (*http.Response, error) {
@@ -138,9 +137,8 @@ func TestUrlFetchRecipesShouldSuccess(t *testing.T) {
 }
 
 func TestUrlFetchRecipesShouldFail(t *testing.T) {
-
-	ff := NewRecipeFileFetcher()
-	ff.Paths = []string{"https://localhost/valid-ur"}
+	url := "https://localhost/valid-url"
+	ff := NewRecipeFileFetcher([]string{url})
 
 	ff.HTTPGetFunc = func(statusCode int) func(string) (*http.Response, error) {
 		return func(recipeURL string) (*http.Response, error) {
@@ -161,8 +159,7 @@ func TestUrlFetchRecipesShouldFail(t *testing.T) {
 func TestFileFetchRecipesShouldFailOnNonPath(t *testing.T) {
 
 	noneExistPath := "testPath12345"
-
-	ff := NewRecipeFileFetcher()
+	ff := NewRecipeFileFetcher([]string{noneExistPath})
 	ff.Paths = []string{noneExistPath}
 
 	f, err := ff.FetchRecipes(context.TODO())
@@ -180,7 +177,7 @@ func TestFileFetchRecipesShouldFetchSuccessfully(t *testing.T) {
 
 	defer os.Remove(tmpFile.Name())
 
-	ff := NewRecipeFileFetcher()
+	ff := NewRecipeFileFetcher([]string{tmpFile.Name()})
 	ff.Paths = []string{tmpFile.Name()}
 
 	f, err := ff.FetchRecipes(context.TODO())

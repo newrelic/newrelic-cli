@@ -59,12 +59,14 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = &recipes.LocalRecipeFetcher{
 			Path: ic.LocalRecipes,
 		}
+	} else if len(ic.RecipePaths) > 0 {
+		recipeFetcher = recipes.NewRecipeFileFetcher(ic.RecipePaths)
 	} else {
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
 
 	mv := discovery.NewManifestValidator()
-	ff := recipes.NewRecipeFileFetcher()
+	ff := recipes.NewRecipeFileFetcher([]string{})
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),

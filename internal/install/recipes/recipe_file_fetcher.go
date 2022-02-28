@@ -1,12 +1,16 @@
 package recipes
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"gopkg.in/yaml.v2"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -17,11 +21,44 @@ type RecipeFileFetcher struct {
 	Paths        []string
 }
 
-func NewRecipeFileFetcher() *RecipeFileFetcher {
+func NewRecipeFileFetcher(paths []string) *RecipeFileFetcher {
 	f := RecipeFileFetcher{}
 	f.HTTPGetFunc = defaultHTTPGetFunc
 	f.readFileFunc = defaultReadFileFunc
+	f.Paths = paths
 	return &f
+}
+
+func (rff *RecipeFileFetcher) FetchLibraryVersion(ctx context.Context) string {
+	return ""
+}
+func (rff *RecipeFileFetcher) FetchRecipes(ctx context.Context) ([]*types.OpenInstallationRecipe, error) {
+
+	var recipesFromPath []*types.OpenInstallationRecipe
+
+	for _, recipePath := range rff.Paths {
+		recipeURL, parseErr := url.Parse(recipePath)
+		isURL := parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http")
+		var recipe *types.OpenInstallationRecipe
+		var err error
+
+		if isURL {
+			log.Debugf("Loading recipe from URL:%s", recipeURL)
+			recipe, err = rff.FetchRecipeFile(recipeURL)
+			if err != nil {
+				return recipesFromPath, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
+			}
+		} else {
+			log.Debugf("Loading recipe from path:%s", recipePath)
+			recipe, err = rff.LoadRecipeFile(recipePath)
+			if err != nil {
+				return recipesFromPath, fmt.Errorf("could not load file %s: %s", recipePath, err)
+			}
+		}
+		recipesFromPath = append(recipesFromPath, recipe)
+	}
+
+	return recipesFromPath, nil
 }
 
 func defaultHTTPGetFunc(recipeURL string) (*http.Response, error) {
