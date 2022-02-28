@@ -1,11 +1,16 @@
 package install
 
 import (
+	"bytes"
 	"context"
 	"errors"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
+
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -78,6 +83,83 @@ func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
 
 	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
 	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
+}
+
+func TestPromptIfNotLatestCliVersionDoesntLogMessagesOrErrorWhenVersionsMatch(t *testing.T) {
+	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
+		return "latest-version", nil
+	}
+
+	isLatestCliVersionInstalled = func(ctx context.Context, latestCliVersion string) (bool, error) {
+		return true, nil
+	}
+
+	stdOut := captureLoggingOutput(func() {
+		error := NewRecipeInstallBuilder().Build().promptIfNotLatestCLIVersion(MockContext{})
+		assert.Nil(t, error)
+	})
+
+	assert.True(t, stdOut == "")
+}
+
+func TestPromptIfNotLatestCliVersionDisplaysErrorWhenLatestCliReleaseCannotBeDetermined(t *testing.T) {
+
+	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
+		return "", errors.New("couldn't fetch latest cli release")
+	}
+
+	stdOut := captureLoggingOutput(func() {
+		error := NewRecipeInstallBuilder().Build().promptIfNotLatestCLIVersion(MockContext{})
+		assert.Nil(t, error)
+	})
+
+	assert.True(t, strings.Contains(stdOut, "couldn't fetch latest cli release"))
+}
+
+func TestPromptIfNotLatestCliVersionDisplaysErrorWhenMostRecentInstalledCliCannotBeDetermined(t *testing.T) {
+
+	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
+		return "some-version", nil
+	}
+
+	isLatestCliVersionInstalled = func(ctx context.Context, latestCliVersion string) (bool, error) {
+		return false, errors.New("something bad happened when comparing local to latest cli version")
+	}
+
+	stdOut := captureLoggingOutput(func() {
+		error := NewRecipeInstallBuilder().Build().promptIfNotLatestCLIVersion(MockContext{})
+		assert.Nil(t, error)
+	})
+
+	assert.True(t, strings.Contains(stdOut, "something bad happened when comparing local to latest cli version"))
+}
+
+func TestPromptIfNotLatestCliVersionErrorsIfNotLatestVersion(t *testing.T) {
+	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
+		return "some-version", nil
+	}
+
+	isLatestCliVersionInstalled = func(ctx context.Context, latestCliVersion string) (bool, error) {
+		return false, nil
+	}
+
+	ri := NewRecipeInstallBuilder().Build()
+	error := ri.promptIfNotLatestCLIVersion(MockContext{})
+
+	assert.NotNil(t, error)
+	assert.True(t, strings.Contains(error.Error(), "We need to update your New Relic CLI version to continue."))
+	assert.True(t, ri.status.UpdateRequired)
+
+}
+
+func captureLoggingOutput(f func()) string {
+	var buf bytes.Buffer
+	existingLogger := config.Logger
+	existingLogger.SetOutput(&buf)
+	existingLogger.SetLevel(logrus.DebugLevel)
+	f()
+	existingLogger.SetOutput(os.Stderr)
+	return buf.String()
 }
 
 type InstallStatus interface {
