@@ -20,7 +20,3 @@ func (i *InstallerContext) RecipePathsProvided() bool {
 func (i *InstallerContext) RecipeNamesProvided() bool {
 	return len(i.RecipeNames) > 0
 }
-
-func (i *InstallerContext) RecipesProvided() bool {
-	return i.RecipePathsProvided() || i.RecipeNamesProvided()
-}

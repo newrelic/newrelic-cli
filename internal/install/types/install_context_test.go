@@ -21,15 +21,3 @@ func TestRecipePathsProvided(t *testing.T) {
 	ic.RecipePaths = []string{"testPath"}
 	require.True(t, ic.RecipePathsProvided())
 }
-
-func TestRecipesProvided(t *testing.T) {
-	ic := InstallerContext{}
-	require.False(t, ic.RecipesProvided())
-
-	ic.RecipePaths = []string{"testPath"}
-	require.True(t, ic.RecipesProvided())
-
-	ic.RecipePaths = []string{}
-	ic.RecipeNames = []string{"testName"}
-	require.True(t, ic.RecipesProvided())
-}

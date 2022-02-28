@@ -161,7 +161,6 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
 	log.WithFields(log.Fields{
-		"RecipesProvided":     i.RecipesProvided(),
 		"RecipePathsProvided": i.RecipePathsProvided(),
 		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
@@ -178,7 +177,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		return err
 	}
 
-	if i.RecipesProvided() {
+	if i.RecipeNamesProvided() {
 		i.status.SetTargetedInstall()
 	}
 
