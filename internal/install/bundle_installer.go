@@ -127,7 +127,6 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 		return nil
 	}
 
-	bi.installedRecipes[recipeName] = true
 	log.WithFields(log.Fields{
 		"name": recipeName,
 	}).Debug("installing recipe")
@@ -137,6 +136,8 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 		log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
 		return err
 	}
+
+	bi.installedRecipes[recipeName] = true
 	log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
 
 	return nil
