@@ -8,6 +8,7 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+
 	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
@@ -20,6 +21,11 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+)
+
+const (
+	validationTimeout       = 5 * time.Minute
+	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
 )
 
 type RecipeInstall struct {
@@ -44,11 +50,6 @@ type RecipeInstall struct {
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
-
-const (
-	validationTimeout       = 5 * time.Minute
-	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
-)
 
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
 	checkNetwork(nrClient)
@@ -119,26 +120,34 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	return &i
 }
 
+var getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
+	return cli.GetLatestReleaseVersion(ctx)
+}
+
+var isLatestCliVersionInstalled = func(ctx context.Context, version string) (bool, error) {
+	return cli.IsLatestVersion(ctx, version)
+}
+
 func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
-	latestReleaseVersion, err := cli.GetLatestReleaseVersion(ctx)
+	latestCliVersion, err := getLatestCliVersionReleased(ctx)
 	if err != nil {
 		log.Debug(err)
 		return nil
 	}
 
-	isLatestCLIVersion, err := cli.IsLatestVersion(ctx, latestReleaseVersion)
+	isMostRecentCliVersion, err := isLatestCliVersionInstalled(ctx, latestCliVersion)
 	if err != nil {
 		log.Debug(err)
 		return nil
 	}
 
-	if !isLatestCLIVersion {
+	if !isMostRecentCliVersion {
 		i.status.UpdateRequired = true
 
-		cli.PrintUpdateCLIMessage(latestReleaseVersion)
+		cli.PrintUpdateCLIMessage(latestCliVersion)
 
 		err := &types.UpdateRequiredError{
-			Err:     fmt.Errorf(`%s`, cli.FormatUpdateVersionMessage(latestReleaseVersion)),
+			Err:     fmt.Errorf(`%s`, cli.FormatUpdateVersionMessage(latestCliVersion)),
 			Details: "UpdateRequiredError",
 		}
 		return err
