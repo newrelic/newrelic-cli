@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
@@ -85,7 +87,47 @@ func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
 	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
 }
 
-func TestPromptIfNotLatestCliVersionDoesntLogMessagesOrErrorWhenVersionsMatch(t *testing.T) {
+func TestInstallTargetInstallShouldInstall(t *testing.T) {
+
+	additionRecipeName := "additional"
+	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
+	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
+	_ = recipeInstall.install(context.TODO())
+
+	assert.Equal(t, 1, len(additionalBundle.BundleRecipes))
+	assert.True(t, bundleInstaller.installedRecipes[additionalBundle.BundleRecipes[0].Recipe.Name])
+}
+
+func TestInstallTargetInstallWithoutRecipeShouldNotInstall(t *testing.T) {
+
+	additionRecipeName := "additional"
+	bundler := NewBundlerBuilder().Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
+	_ = recipeInstall.install(context.TODO())
+
+	assert.Equal(t, 0, len(additionalBundle.BundleRecipes))
+	assert.Equal(t, 0, len(bundleInstaller.installedRecipes))
+}
+
+func TestInstallGuidedInstallAdditionalShouldInstall(t *testing.T) {
+
+	additionRecipeName := "additional"
+	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	additionalBundle := bundler.CreateAdditionalGuidedBundle()
+	_ = recipeInstall.install(context.TODO())
+
+	assert.Equal(t, 1, len(additionalBundle.BundleRecipes))
+	assert.Equal(t, 1, len(bundleInstaller.installedRecipes))
+}
+
+func TestPromptIfNotLatestCliVersionDoesNotLogMessagesOrErrorWhenVersionsMatch(t *testing.T) {
 	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
 		return "latest-version", nil
 	}
@@ -149,7 +191,40 @@ func TestPromptIfNotLatestCliVersionErrorsIfNotLatestVersion(t *testing.T) {
 	assert.NotNil(t, error)
 	assert.True(t, strings.Contains(error.Error(), "We need to update your New Relic CLI version to continue."))
 	assert.True(t, ri.status.UpdateRequired)
+}
 
+func TestExecuteAndValidateWithProgressWhenKeyFetchError(t *testing.T) {
+
+	expected := errors.New("Some error")
+	recipeInstall := NewRecipeInstallBuilder().WithLicenseKeyFetchResult(expected).Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), nil, recipes.NewRecipeBuilder().Name("").Build(), false)
+
+	assert.Error(t, err)
+	assert.Equal(t, expected, err)
+}
+
+func TestExecuteAndValidateWithProgressWhenRecipeVarProviderError(t *testing.T) {
+
+	expected := errors.New("Some error")
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeVarValues(nil, expected).Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), false)
+
+	assert.Error(t, err)
+	assert.Equal(t, expected, err)
+}
+func TestExecuteAndValidateWithProgress1(t *testing.T) {
+
+	expected := errors.New("Some error")
+	vars := map[string]string{}
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeVarValues(vars, nil).WithRecipeExecutionResult(expected).Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+
+	assert.Error(t, err)
+	assert.True(t, vars["assumeYes"] == "true")
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
 }
 
 func captureLoggingOutput(f func()) string {
@@ -209,44 +284,6 @@ type InstallStatus interface {
 // 	av              = validation.NewAgentValidator()
 // )
 
-// // func TestNewRecipeInstaller_InstallerContextFields(t *testing.T) {
-// // 	ic := types.InstallerContext{
-// // 		RecipePaths: []string{"testRecipePath"},
-// // 		RecipeNames: []string{"testRecipeName"},
-// // 	}
-// // 	rf := recipes.NewRecipeFilterRunner(ic, status)
-
-// // 	i := RecipeInstall{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
-// // 	require.True(t, reflect.DeepEqual(ic, i.InstallerContext))
-// // }
-
-// // func TestShouldGetRecipeFromURL(t *testing.T) {
-// // 	ic := types.InstallerContext{}
-// // 	rf := recipes.NewRecipeFilterRunner(ic, status)
-// // 	ff = recipes.NewMockRecipeFileFetcher()
-// // 	ff.FetchRecipeFileFunc = fetchRecipeFileFunc
-// // 	i := RecipeInstall{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
-// // 	recipe, err := i.recipeFromPath("http://recipe/URL")
-// // 	require.NoError(t, err)
-// // 	require.NotNil(t, recipe)
-// // 	require.Equal(t, recipe.Name, testRecipeName)
-// // }
-
-// // func TestShouldGetRecipeFromFile(t *testing.T) {
-// // 	ic := types.InstallerContext{}
-// // 	rf := recipes.NewRecipeFilterRunner(ic, status)
-// // 	ff = recipes.NewMockRecipeFileFetcher()
-// // 	ff.LoadRecipeFileFunc = loadRecipeFileFunc
-// // 	i := RecipeInstall{ic, d, mv, f, e, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
-// // 	recipe, err := i.recipeFromPath("file.txt")
-// // 	require.NoError(t, err)
-// // 	require.NotNil(t, recipe)
-// // 	require.Equal(t, recipe.Name, testRecipeName)
-// // }
-
 // // func TestInstall_DiscoveryComplete(t *testing.T) {
 // // 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
 // // 	ic := types.InstallerContext{}
@@ -267,46 +304,6 @@ type InstallStatus interface {
 // // 	err := i.Install()
 // // 	require.NoError(t, err)
 // // 	require.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
-// // }
-
-// // func TestInstall_UnsupportedKernelArch(t *testing.T) {
-// // 	ic := types.InstallerContext{}
-// // 	discover := discovery.NewMockDiscoverer()
-// // 	discover.SetOs("linux")
-// // 	discover.SetKernelArch("aarch64") // unsupported for logs
-// // 	mv = discovery.NewManifestValidator()
-// // 	mockExec := execution.NewMockRecipeExecutor()
-// // 	mockExec.ExecuteErr = &types.UnsupportedOperatingSytemError{
-// // 		Err: errors.New("logging is unsupported on aarch64"),
-// // 	}
-// // 	statusReporter := execution.NewMockStatusReporter()
-// // 	statusReporters = []execution.StatusSubscriber{statusReporter}
-// // 	status = execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-// // 	rf := recipes.NewRecipeFilterRunner(ic, status)
-// // 	f.FetchRecipesVal = []types.OpenInstallationRecipe{
-// // 		{
-// // 			Name:           types.InfraAgentRecipeName,
-// // 			DisplayName:    types.InfraAgentRecipeName,
-// // 			ValidationNRQL: "testNrql",
-// // 		},
-// // 		{
-// // 			Name:           types.LoggingRecipeName,
-// // 			DisplayName:    types.LoggingRecipeName,
-// // 			ValidationNRQL: "testNrql",
-// // 			InstallTargets: []types.OpenInstallationRecipeInstallTarget{
-// // 				{
-// // 					KernelArch: "aarch64",
-// // 					Os:         "linux",
-// // 				},
-// // 			},
-// // 		},
-// // 	}
-
-// // 	i := RecipeInstall{ic, discover, l, mv, f, mockExec, v, ff, status, p, pi, sp, lkf, cv, rvp, rf, av}
-
-// // 	err := i.Install()
-// // 	require.Error(t, err)
-// // 	require.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
 // // }
 
 // // func TestInstall_RecipeAvailable(t *testing.T) {

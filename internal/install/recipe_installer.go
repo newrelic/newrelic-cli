@@ -228,6 +228,7 @@ func (i *RecipeInstall) connectToPlatform() error {
 		err := i.configValidator.Validate(utils.SignalCtx)
 		if err != nil {
 			loaderChan <- err
+			return
 		}
 		loaderChan <- nil
 	}()
@@ -296,51 +297,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	log.Debugf("Done installing.")
 
 	return nil
-
-	// var recipesForInstall []types.OpenInstallationRecipe
-	// if i.RecipesProvided() {
-	// 	recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	log.Debugf("recipes provided:\n")
-	// 	logRecipes(recipesForInstall)
-
-	// 	if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
-	// 		return err
-	// 	}
-
-	// } else {
-	// 	var selected, unselected []types.OpenInstallationRecipe
-
-	// 	recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
-	// 	log.Debugf("recipes after filtering:")
-	// 	logRecipes(recipesForInstall)
-
-	// 	selected, unselected, err = i.promptUserSelect(recipesForInstall)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	log.Tracef("recipes selected by user: %v\n", selected)
-
-	// 	for _, r := range unselected {
-	// 		i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-	// 	}
-
-	// 	recipesForInstall = selected
-	// }
-
-	// i.status.RecipesSelected(recipesForInstall)
-
-	// dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
-	// recipesForInstall = addIfMissing(recipesForInstall, dependencies)
-
-	// if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-	// 	return err
-	// }
-
-	// log.Debugf("Done installing.")
-	// return nil
 }
 
 func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
@@ -515,11 +471,13 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
 		if err != nil {
 			errorChan <- err
+			return
 		}
 
 		vars, err := i.recipeVarPreparer.Prepare(*m, *r, assumeYes, licenseKey)
 		if err != nil {
 			errorChan <- err
+			return
 		}
 
 		vars["assumeYes"] = fmt.Sprintf("%v", assumeYes)
@@ -528,6 +486,7 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 
 		if err != nil {
 			errorChan <- err
+			return
 		}
 		successChan <- entityGUID
 	}()
@@ -553,50 +512,6 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		}
 	}
 }
-
-// func (i *RecipeInstall) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
-// 	var recipes []types.OpenInstallationRecipe
-
-// 	// Load the recipes from the provided file names.
-// 	for _, n := range i.RecipePaths {
-// 		log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
-// 		recipe, err := i.recipeFromPath(n)
-// 		if err != nil {
-// 			log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
-// 			return nil, err
-// 		}
-
-// 		log.WithFields(log.Fields{
-// 			"name":         recipe.Name,
-// 			"display_name": recipe.DisplayName,
-// 			"path":         n,
-// 		}).Debug("found recipe at path")
-
-// 		recipes = append(recipes, *recipe)
-// 	}
-
-// 	// Load the recipes from the provided file names.
-// 	for _, n := range i.RecipeNames {
-// 		found := false
-// 		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
-// 		for _, r := range recipesForPlatform {
-// 			if strings.EqualFold(r.Name, n) {
-// 				log.WithFields(log.Fields{
-// 					"name":         r.Name,
-// 					"display_name": r.DisplayName,
-// 				}).Debug("found recipe with name")
-// 				recipes = append(recipes, r)
-// 				found = true
-// 				break
-// 			}
-// 		}
-// 		if !found {
-// 			log.Errorf("Could not find recipe with name %s.", n)
-// 		}
-// 	}
-
-// 	return recipes, nil
-// }
 
 func checkNetwork(nrClient *newrelic.NewRelic) {
 	err := nrClient.TestEndpoints()

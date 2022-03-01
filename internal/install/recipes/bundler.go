@@ -70,10 +70,6 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
 }
 
-func (b *Bundler) CreateAdditionalTargetedPathBundle(recipes []*types.OpenInstallationRecipe) *Bundle {
-	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
-}
-
 func (b *Bundler) getCoreRecipeNames() []string {
 	coreRecipeNames := make([]string, 0, len(coreRecipeMap))
 	for k := range coreRecipeMap {
@@ -97,12 +93,6 @@ func (b *Bundler) createBundle(recipes []*types.OpenInstallationRecipe, bType Bu
 	}
 
 	return bundle
-}
-
-func (b *Bundler) CreateBundleRecipe(recipe *types.OpenInstallationRecipe) *BundleRecipe {
-
-	visited := map[string]bool{recipe.Name: true}
-	return b.getBundleRecipeWithDependencies(recipe, visited)
 }
 
 func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe, visited map[string]bool) *BundleRecipe {

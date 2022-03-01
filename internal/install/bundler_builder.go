@@ -3,7 +3,8 @@ package install
 import "github.com/newrelic/newrelic-cli/internal/install/recipes"
 
 type BundlerBuilder struct {
-	coreRecipes []*recipes.BundleRecipe
+	coreRecipes       []*recipes.BundleRecipe
+	additionalRecipes []*recipes.BundleRecipe
 }
 
 func NewBundlerBuilder() *BundlerBuilder {
@@ -21,23 +22,25 @@ func (bb *BundlerBuilder) WithCoreRecipe(name string) *BundlerBuilder {
 }
 
 func (bb *BundlerBuilder) WithAdditionalRecipe(name string) *BundlerBuilder {
-	coreRecipes := []*recipes.BundleRecipe{
+	additionalRecipes := []*recipes.BundleRecipe{
 		{
 			Recipe: recipes.NewRecipeBuilder().Name(name).Build(),
 		},
 	}
-	bb.coreRecipes = coreRecipes
+	bb.additionalRecipes = additionalRecipes
 	return bb
 }
 
 func (bb *BundlerBuilder) Build() RecipeBundler {
 	return &MockBundler{
-		coreRecipes: bb.coreRecipes,
+		coreRecipes:       bb.coreRecipes,
+		additionalRecipes: bb.additionalRecipes,
 	}
 }
 
 type MockBundler struct {
-	coreRecipes []*recipes.BundleRecipe
+	coreRecipes       []*recipes.BundleRecipe
+	additionalRecipes []*recipes.BundleRecipe
 }
 
 func (mb *MockBundler) CreateCoreBundle() *recipes.Bundle {
@@ -46,26 +49,27 @@ func (mb *MockBundler) CreateCoreBundle() *recipes.Bundle {
 	}
 	return bundle
 }
-func (mb *MockBundler) CreateAdditionalTargetedBundle(name []string) *recipes.Bundle {
+func (mb *MockBundler) CreateAdditionalTargetedBundle(names []string) *recipes.Bundle {
 
 	bundle := &recipes.Bundle{
-		BundleRecipes: []*recipes.BundleRecipe{
-			{
-				Recipe: recipes.NewRecipeBuilder().ID("1").Name("Additional_Target_Recipe_1").Build(),
-			},
-		},
+		//		BundleRecipes: mb.additionalRecipes,
 	}
+
+	for _, r := range mb.additionalRecipes {
+		for _, n := range names {
+			if r.Recipe.Name == n {
+				bundle.AddRecipe(r)
+			}
+		}
+	}
+
 	return bundle
 }
 
 func (mb *MockBundler) CreateAdditionalGuidedBundle() *recipes.Bundle {
 
 	bundle := &recipes.Bundle{
-		BundleRecipes: []*recipes.BundleRecipe{
-			{
-				Recipe: recipes.NewRecipeBuilder().ID("2").Name("Additional_Guided_Recipe_1").Build(),
-			},
-		},
+		BundleRecipes: mb.additionalRecipes,
 	}
 	return bundle
 }

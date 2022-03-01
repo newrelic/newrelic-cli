@@ -189,6 +189,15 @@ func TestCreateCoreBundleShouldNotBundleDependencyWhenNotDetected(t *testing.T) 
 	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 }
+func TestNewBundlerShouldCreate(t *testing.T) {
+	setup()
+	bundler := NewBundler(bundlerTestImpl.ctx, bundlerTestImpl.recipeRepository)
+
+	require.NotNil(t, bundler)
+	require.Equal(t, bundlerTestImpl.ctx, bundler.Context)
+	require.Equal(t, bundlerTestImpl.recipeRepository, bundler.RecipeRepository)
+	require.NotNil(t, bundler.RecipeDetector)
+}
 
 func findRecipeByName(bundle *Bundle, name string) *BundleRecipe {
 	for _, r := range bundle.BundleRecipes {
