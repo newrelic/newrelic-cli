@@ -41,6 +41,10 @@ func (b *Bundle) IsAdditionalGuided() bool {
 	return b.Type == BundleTypes.ADDITIONALGUIDED
 }
 
+func (b *Bundle) IsAdditionalTargeted() bool {
+	return b.Type == BundleTypes.ADDITIONALTARGETED
+}
+
 func (b *Bundle) ContainsName(name string) bool {
 
 	for i := range b.BundleRecipes {

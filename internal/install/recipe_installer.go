@@ -286,6 +286,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
@@ -329,6 +330,19 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 	}
 
 	return m, nil
+}
+
+func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
+	for _, recipeName := range i.RecipeNames {
+		if !bundle.ContainsName(recipeName) {
+			recipe := repo.FindRecipeByName(recipeName)
+			if recipe == nil {
+				recipe = &types.OpenInstallationRecipe{Name: recipeName, DisplayName: recipeName}
+			}
+			unsupportedEvent := execution.NewRecipeStatusEvent(recipe)
+			i.status.RecipeUnsupported(unsupportedEvent)
+		}
+	}
 }
 
 // intalling recipe
