@@ -272,19 +272,24 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	if shouldInstallCoreBundle {
 		coreBundle := bundler.CreateCoreBundle()
+		log.Debugf("Core bundle recipes:%s", coreBundle)
 		err = bundleInstaller.InstallStopOnError(coreBundle, true)
 		if err != nil {
-			log.Debugf("error installing core bundle: %s", err)
+			log.Debugf("error installing core bundle:%s", err)
 			return err
 		}
+	} else {
+		log.Debugf("Skipping core bundle")
 	}
 
 	//FIXME: additional install mock, just hack together code for install to check flow, needs to be refactor
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
+		log.Debugf("Additional Guided bundle recipes:%s", additionalBundle)
 	}
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 

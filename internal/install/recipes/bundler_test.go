@@ -32,7 +32,7 @@ var (
 	}
 )
 
-func TestCreateAdditionalTargetedBundleShouldSkipCoreRecipes(t *testing.T) {
+func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	setup()
 	addRecipeToCache("id1", types.InfraAgentRecipeName)
 	addRecipeToCache("id2", types.LoggingRecipeName)
@@ -52,9 +52,11 @@ func TestCreateAdditionalTargetedBundleShouldSkipCoreRecipes(t *testing.T) {
 	}
 	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
 
-	require.Equal(t, 1, len(addBundle.BundleRecipes))
+	require.Equal(t, 4, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, types.InfraAgentRecipeName))
+	require.NotNil(t, findRecipeByName(addBundle, types.LoggingRecipeName))
+	require.NotNil(t, findRecipeByName(addBundle, types.GoldenRecipeName))
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
-	require.Nil(t, findRecipeByName(addBundle, types.InfraAgentRecipeName))
 }
 
 func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {

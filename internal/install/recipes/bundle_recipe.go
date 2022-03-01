@@ -1,6 +1,8 @@
 package recipes
 
 import (
+	"fmt"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -39,22 +41,15 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
-//TODO: might not need!
-func (br *BundleRecipe) Flatten() map[string]bool {
-
-	results := make(map[string]bool)
-	br.flatten(results)
-
-	return results
+func (ds *DetectedStatusType) String() string {
+	result := string(ds.Status)
+	if ds.DurationMs > 0 {
+		result = fmt.Sprintf("%s %dms", result, ds.DurationMs)
+	}
+	return fmt.Sprintf("{%s}", result)
 }
 
-func (br *BundleRecipe) flatten(recipeMap map[string]bool) {
-
-	if _, ok := recipeMap[br.Recipe.Name]; !ok {
-		recipeMap[br.Recipe.Name] = true
-	}
-
-	for _, d := range br.Dependencies {
-		d.flatten(recipeMap)
-	}
+func (br *BundleRecipe) String() string {
+	result := fmt.Sprintf("%s %s", br.Recipe.Name, br.DetectedStatuses)
+	return fmt.Sprintf("{%s}", result)
 }

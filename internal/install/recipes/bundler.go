@@ -59,9 +59,6 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 	var recipes []*types.OpenInstallationRecipe
 
 	for _, recipeName := range recipeNames {
-		if coreRecipeMap[recipeName] {
-			continue
-		}
 		if r := b.RecipeRepository.FindRecipeByName(recipeName); r != nil {
 			recipes = append(recipes, r)
 		}
