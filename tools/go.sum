@@ -272,8 +272,8 @@ github.com/caarlos0/env/v6 v6.7.0 h1:OftrMgQyETinUI4YU3WxhHeKtCRonDMtnUO14+ZRXdY
 github.com/caarlos0/env/v6 v6.7.0/go.mod h1:FE0jGiAnQqtv2TenJ4KTa8+/T2Ss8kdS5s1VEjasoN0=
 github.com/caarlos0/go-shellwords v1.0.12 h1:HWrUnu6lGbWfrDcFiHcZiwOLzHWjjrPVehULaTFgPp8=
 github.com/caarlos0/go-shellwords v1.0.12/go.mod h1:bYeeX1GrTLPl5cAMYEzdm272qdsQAZiaHgeF0KTk1Gw=
-github.com/caarlos0/svu v1.7.0 h1:Aqk2q+qPGRoigQWgWkMeFlsjM0cZin7QL4oCPL++xUI=
-github.com/caarlos0/svu v1.7.0/go.mod h1:x4iUUt1lKyYx8o8uKfiaRZjJSt/PHaYTSUgR13e6Zy0=
+github.com/caarlos0/svu v1.9.0 h1:DXDDrRZmBYei8ceRodmc3sFHptWiz6+PWv1eDjR0NKM=
+github.com/caarlos0/svu v1.9.0/go.mod h1:NOJ1yLaSwMJmkt8qjPoMfClERLc2r2wj2ozyZSW9Xdc=
 github.com/caarlos0/testfs v0.4.3 h1:q1zEM5hgsssqWanAfevJYYa0So60DdK6wlJeTc/yfUE=
 github.com/caarlos0/testfs v0.4.3/go.mod h1:bRN55zgG4XCUVVHZCeU+/Tz1Q6AxEJOEJTliBy+1DMk=
 github.com/cavaliercoder/go-cpio v0.0.0-20180626203310-925f9528c45e h1:hHg27A0RSSp2Om9lubZpiMgVbvn39bsUmW9U5h0twqc=
