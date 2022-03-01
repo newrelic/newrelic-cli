@@ -26,8 +26,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/splitio/go-client/v6 v6.1.0
 	github.com/stretchr/testify v1.7.0
-	github.com/tidwall/gjson v1.11.0
-	github.com/tidwall/sjson v1.2.3
+	github.com/tidwall/gjson v1.12.1
+	github.com/tidwall/sjson v1.2.4
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
 	golang.org/x/term v0.0.0-20210916214954-140adaaadfaf
