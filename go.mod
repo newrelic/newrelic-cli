@@ -11,7 +11,7 @@ require (
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
 	github.com/google/uuid v1.3.0
-	github.com/hokaccha/go-prettyjson v0.0.0-20210113012101-fb4e108d2519
+	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/itchyny/gojq v0.12.6
 	github.com/jedib0t/go-pretty/v6 v6.2.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
