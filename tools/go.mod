@@ -3,7 +3,7 @@ module github.com/newrelic/newrelic-cli/tools
 go 1.16
 
 require (
-	github.com/caarlos0/svu v1.7.0
+	github.com/caarlos0/svu v1.9.0
 	github.com/client9/misspell v0.3.4
 	github.com/git-chglog/git-chglog v0.15.0
 	github.com/golangci/golangci-lint v1.43.0
