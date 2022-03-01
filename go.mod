@@ -12,7 +12,7 @@ require (
 	github.com/go-task/task/v3 v3.7.0
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
-	github.com/itchyny/gojq v0.12.6
+	github.com/itchyny/gojq v0.12.7
 	github.com/jedib0t/go-pretty/v6 v6.2.7
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
