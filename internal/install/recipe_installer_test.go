@@ -16,24 +16,36 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
 	var expected error
+	pi := ux.NewSpinnerProgressIndicator()
 
-	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
 
-	assert.NoError(t, recipeInstall.connectToPlatform())
+	stdOut := captureLoggingOutput(func() {
+		err := recipeInstall.connectToPlatform()
+		assert.NoError(t, err)
+	})
+	assert.True(t, strings.Contains(stdOut, "Connecting"))
+	assert.True(t, strings.Contains(stdOut, "Connected"))
 }
 func TestConnectToPlatformShouldRetrunError(t *testing.T) {
 	expected := errors.New("Failing to connect to platform")
+	pi := ux.NewSpinnerProgressIndicator()
 
-	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
 
-	actual := recipeInstall.connectToPlatform()
+	stdOut := captureLoggingOutput(func() {
+		actual := recipeInstall.connectToPlatform()
+		assert.Error(t, actual)
+		assert.Equal(t, expected.Error(), actual.Error())
+	})
 
-	assert.Error(t, actual)
-	assert.Equal(t, expected.Error(), actual.Error())
+	assert.True(t, strings.Contains(stdOut, "Connecting"))
+	assert.True(t, strings.Contains(stdOut, "Fail"))
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
@@ -65,7 +77,6 @@ func TestInstallShouldSkipCoreInstall(t *testing.T) {
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).withShouldInstallCore(func() bool { return false }).WithBundleInstaller(bundleInstaller).Build()
-	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
 	coreBundle := bundler.CreateCoreBundle()
 
 	_ = recipeInstall.install(context.TODO())
@@ -79,12 +90,25 @@ func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
 	coreBundle := bundler.CreateCoreBundle()
 	_ = recipeInstall.install(context.TODO())
 
 	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
 	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
+}
+func TestInstallCoreShouldStopOnError(t *testing.T) {
+
+	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	coreBundle := bundler.CreateCoreBundle()
+	bundleInstaller.Error = errors.New("Install Error")
+	err := recipeInstall.install(context.TODO())
+
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "Install Error")
+	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
+	assert.True(t, len(bundleInstaller.installedRecipes) == 0)
 }
 
 func TestInstallTargetInstallShouldInstall(t *testing.T) {
@@ -93,7 +117,6 @@ func TestInstallTargetInstallShouldInstall(t *testing.T) {
 	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	//bundleInstaller := &MockBundleInstaller{Error: fmt.Errorf("Some Bundle Installer Error")}
 	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
 	_ = recipeInstall.install(context.TODO())
 
@@ -214,7 +237,7 @@ func TestExecuteAndValidateWithProgressWhenRecipeVarProviderError(t *testing.T) 
 	assert.Error(t, err)
 	assert.Equal(t, expected, err)
 }
-func TestExecuteAndValidateWithProgress1(t *testing.T) {
+func TestExecuteAndValidateWithProgressWhenInstallFails(t *testing.T) {
 
 	expected := errors.New("Some error")
 	vars := map[string]string{}
@@ -227,6 +250,63 @@ func TestExecuteAndValidateWithProgress1(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
 }
 
+func TestReportUnSupportTargetRecipeWithBadRecipeName(t *testing.T) {
+
+	targetRecipe := "target"
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).WithStatusReporter(statusReporter).Build()
+	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
+		return []*types.OpenInstallationRecipe{}, nil
+	}, &types.DiscoveryManifest{})
+	bundle := &recipes.Bundle{}
+
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
+}
+func TestReportUnSupportTargetRecipeWithoutTarget(t *testing.T) {
+
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
+	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
+		return []*types.OpenInstallationRecipe{}, nil
+	}, &types.DiscoveryManifest{})
+	bundle := &recipes.Bundle{}
+
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount)
+}
+func TestReportUnSupportTargetRecipeWithBundleContainRecipe(t *testing.T) {
+
+	targetRecipe := "target"
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).WithStatusReporter(statusReporter).Build()
+	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
+		return []*types.OpenInstallationRecipe{}, nil
+	}, &types.DiscoveryManifest{})
+	bundle := &recipes.Bundle{}
+	recipe := &recipes.BundleRecipe{Recipe: recipes.NewRecipeBuilder().Name(targetRecipe).Build()}
+	bundle.AddRecipe(recipe)
+
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount)
+}
+
+func TestReportUnSupportTargetRecipeWithUnsupportForPlatform(t *testing.T) {
+
+	targetRecipe := "target"
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).WithStatusReporter(statusReporter).Build()
+	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
+		return []*types.OpenInstallationRecipe{
+			recipes.NewRecipeBuilder().Name(targetRecipe).Build(),
+		}, nil
+	}, &types.DiscoveryManifest{})
+	bundle := &recipes.Bundle{}
+
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
+}
+
 func captureLoggingOutput(f func()) string {
 	var buf bytes.Buffer
 	existingLogger := config.Logger
@@ -235,10 +315,6 @@ func captureLoggingOutput(f func()) string {
 	f()
 	existingLogger.SetOutput(os.Stderr)
 	return buf.String()
-}
-
-type InstallStatus interface {
-	SetVersions(string)
 }
 
 // import (

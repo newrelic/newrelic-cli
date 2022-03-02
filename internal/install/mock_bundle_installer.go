@@ -14,8 +14,10 @@ func NewMockBundleInstaller() *MockBundleInstaller {
 }
 
 func (mbi *MockBundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
-	for _, recipe := range bundle.BundleRecipes {
-		mbi.installedRecipes[recipe.Recipe.Name] = true
+	if mbi.Error == nil {
+		for _, recipe := range bundle.BundleRecipes {
+			mbi.installedRecipes[recipe.Recipe.Name] = true
+		}
 	}
 
 	return mbi.Error

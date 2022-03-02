@@ -30,23 +30,22 @@ const (
 
 type RecipeInstall struct {
 	types.InstallerContext
-	discoverer                  Discoverer
-	manifestValidator           *discovery.ManifestValidator
-	recipeFetcher               recipes.RecipeFetcher
-	recipeExecutor              execution.RecipeExecutor
-	recipeValidator             RecipeValidator
-	recipeFileFetcher           RecipeFileFetcher
-	status                      *execution.InstallStatus
-	prompter                    Prompter
-	executionProgressIndicator  ux.ProgressIndicator
-	validationProgressIndicator ux.ProgressIndicator
-	licenseKeyFetcher           LicenseKeyFetcher
-	configValidator             ConfigValidator
-	recipeVarPreparer           RecipeVarPreparer
-	agentValidator              *validation.AgentValidator
-	shouldInstallCore           func() bool
-	bundlerFactory              func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
-	bundleInstallerFactory      func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
+	discoverer             Discoverer
+	manifestValidator      *discovery.ManifestValidator
+	recipeFetcher          recipes.RecipeFetcher
+	recipeExecutor         execution.RecipeExecutor
+	recipeValidator        RecipeValidator
+	recipeFileFetcher      RecipeFileFetcher
+	status                 *execution.InstallStatus
+	prompter               Prompter
+	licenseKeyFetcher      LicenseKeyFetcher
+	configValidator        ConfigValidator
+	recipeVarPreparer      RecipeVarPreparer
+	agentValidator         *validation.AgentValidator
+	shouldInstallCore      func() bool
+	bundlerFactory         func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
+	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
+	progressIndicator      ux.ProgressIndicator
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -82,26 +81,23 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	cv := diagnose.NewConfigValidator(nrClient)
 	p := ux.NewPromptUIPrompter()
-	pi := ux.NewPlainProgress()
-	sp := ux.NewSpinner()
 	rvp := execution.NewRecipeVarProvider()
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstall{
-		discoverer:                  d,
-		manifestValidator:           mv,
-		recipeFetcher:               recipeFetcher,
-		recipeExecutor:              re,
-		recipeValidator:             v,
-		recipeFileFetcher:           ff,
-		status:                      statusRollup,
-		prompter:                    p,
-		executionProgressIndicator:  pi,
-		validationProgressIndicator: sp,
-		licenseKeyFetcher:           lkf,
-		configValidator:             cv,
-		recipeVarPreparer:           rvp,
-		agentValidator:              av,
+		discoverer:        d,
+		manifestValidator: mv,
+		recipeFetcher:     recipeFetcher,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		licenseKeyFetcher: lkf,
+		configValidator:   cv,
+		recipeVarPreparer: rvp,
+		agentValidator:    av,
+		progressIndicator: ux.NewSpinnerProgressIndicator(),
 	}
 
 	i.InstallerContext = ic
@@ -158,7 +154,7 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 
 func (i *RecipeInstall) Install() error {
 	fmt.Printf(`
-_   _                 ____      _ _
+ _   _                 ____      _ _
 | \ | | _____      __ |  _ \ ___| (_) ___
 |  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
 | |\  |  __/\ V  V /  |  _ |  __| | | (__
@@ -233,15 +229,14 @@ func (i *RecipeInstall) connectToPlatform() error {
 		loaderChan <- nil
 	}()
 
-	welcomeScreenProgressBar := ux.NewSpinnerProgressIndicator()
-	welcomeScreenProgressBar.Start("Connecting to New Relic Platform")
+	i.progressIndicator.Start("Connecting to New Relic Platform")
 
 	loaded := <-loaderChan
 
 	if loaded == nil {
-		welcomeScreenProgressBar.Success("Connecting to New Relic Platform")
+		i.progressIndicator.Success("Connecting to New Relic Platform")
 	} else {
-		welcomeScreenProgressBar.Fail("Connecting to New Relic Platform")
+		i.progressIndicator.Fail("Connecting to New Relic Platform")
 	}
 	return loaded
 }
@@ -443,8 +438,6 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 	}
 
 	log.Debug(validationInProgressMsg)
-	//i.validationProgressIndicator.Start(validationInProgressMsg)
-	//defer i.validationProgressIndicator.Stop()
 
 	for _, f := range validationFuncs {
 		go func(fn validationFunc) {
@@ -461,14 +454,12 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 	for {
 		select {
 		case entityGUID := <-entityGUIDChan:
-			i.validationProgressIndicator.Success("")
 			return entityGUID, nil
 		case err := <-validationErrorChan:
 			validationErrors = append(validationErrors, err)
 			log.Debugf("validation error encountered: %s", err)
 
 			if len(validationErrors) == len(validationFuncs) {
-				i.validationProgressIndicator.Fail("")
 				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
 			}
 		case <-timeoutCtx.Done():
@@ -510,21 +501,20 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		successChan <- entityGUID
 	}()
 
-	installProgressBar := ux.NewSpinnerProgressIndicator()
-	installProgressBar.AssumeYes = assumeYes
-	installProgressBar.Start(msg)
+	i.progressIndicator.ShowSpinner(assumeYes)
+	i.progressIndicator.Start(msg)
 
 	for {
 		select {
 		case entityGUID := <-successChan:
-			installProgressBar.Success("Installing " + r.DisplayName)
+			i.progressIndicator.Success("Installing " + r.DisplayName)
 
 			return entityGUID, nil
 		case err := <-errorChan:
 			if errors.Is(err, types.ErrInterrupt) {
-				installProgressBar.Canceled("Installing " + r.DisplayName)
+				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
-				installProgressBar.Fail("Installing " + r.DisplayName)
+				i.progressIndicator.Fail("Installing " + r.DisplayName)
 			}
 			log.Debugf("install error encountered: %s", err)
 			return "", err

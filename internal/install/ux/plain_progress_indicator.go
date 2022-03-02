@@ -54,3 +54,6 @@ func (p *PlainProgress) Canceled(msg string) {
 }
 
 func (p *PlainProgress) Stop() {}
+
+func (p *PlainProgress) ShowSpinner(ss bool) {
+}
