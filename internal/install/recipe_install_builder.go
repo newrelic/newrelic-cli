@@ -9,6 +9,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
+	"github.com/newrelic/newrelic-cli/internal/install/validation"
 )
 
 type RecipeInstallBuilder struct {
@@ -26,6 +27,8 @@ type RecipeInstallBuilder struct {
 	recipeVarProvider *execution.MockRecipeVarProvider
 	recipeExecutor    *execution.MockRecipeExecutor
 	progressIndicator *ux.SpinnerProgressIndicator
+	agentValidator    *validation.MockAgentValidator
+	recipeValidator   *validation.MockRecipeValidator
 }
 
 func NewRecipeInstallBuilder() *RecipeInstallBuilder {
@@ -50,8 +53,9 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
 	rib.recipeVarProvider.Vars = map[string]string{}
 	rib.recipeExecutor = execution.NewMockRecipeExecutor()
-	//TODO: progress indicator declartion here
 	rib.progressIndicator = ux.NewSpinnerProgressIndicator()
+	rib.agentValidator = &validation.MockAgentValidator{}
+	rib.recipeValidator = &validation.MockRecipeValidator{}
 
 	return rib
 }
@@ -127,6 +131,16 @@ func (rib *RecipeInstallBuilder) WithProgressIndicator(i *ux.SpinnerProgressIndi
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) WithAgentValidationError(e error) *RecipeInstallBuilder {
+	rib.agentValidator.Error = e
+	return rib
+}
+
+func (rib *RecipeInstallBuilder) WithRecipeValidationError(e error) *RecipeInstallBuilder {
+	rib.recipeValidator.Error = e
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall := &RecipeInstall{}
 	recipeInstall.discoverer = rib.discoverer
@@ -146,6 +160,8 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.recipeVarPreparer = rib.recipeVarProvider
 	recipeInstall.recipeExecutor = rib.recipeExecutor
 	recipeInstall.progressIndicator = rib.progressIndicator
+	recipeInstall.agentValidator = rib.agentValidator
+	recipeInstall.recipeValidator = rib.recipeValidator
 
 	return recipeInstall
 }

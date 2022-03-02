@@ -41,7 +41,7 @@ type RecipeInstall struct {
 	licenseKeyFetcher      LicenseKeyFetcher
 	configValidator        ConfigValidator
 	recipeVarPreparer      RecipeVarPreparer
-	agentValidator         *validation.AgentValidator
+	agentValidator         AgentValidator
 	shouldInstallCore      func() bool
 	bundlerFactory         func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller

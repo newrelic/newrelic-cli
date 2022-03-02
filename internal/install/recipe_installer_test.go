@@ -241,13 +241,127 @@ func TestExecuteAndValidateWithProgressWhenInstallFails(t *testing.T) {
 
 	expected := errors.New("Some error")
 	vars := map[string]string{}
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeVarValues(vars, nil).WithRecipeExecutionResult(expected).Build()
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeVarValues(vars, nil).WithRecipeExecutionResult(expected).Build()
 
 	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
 
 	assert.Error(t, err)
 	assert.True(t, vars["assumeYes"] == "true")
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
+}
+func TestExecuteAndValidateWithProgressWhenInstallGoTaskFails(t *testing.T) {
+
+	expected := types.NewGoTaskGeneralError(errors.New("Some error"))
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeExecutionResult(expected).Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
+}
+
+func TestExecuteAndValidateWithProgressWhenInstallCancelled(t *testing.T) {
+
+	expected := types.ErrInterrupt
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeExecutionResult(expected).Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+}
+
+func TestExecuteAndValidateWithProgressWhenInstallUnsupported(t *testing.T) {
+
+	expected := &types.UnsupportedOperatingSystemError{Err: errors.New("Unsupported")}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeExecutionResult(expected).Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
+}
+
+func TestExecuteAndValidateWithProgressWhenInstallWithNoValidationMethod(t *testing.T) {
+
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
+
+	entityGUID, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "", entityGUID)
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount)
+}
+
+func TestExecuteAndValidateRecipeWithAllMethodWithNoValidationMethods(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().Build()
+
+	entityGUID, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipes.NewRecipeBuilder().Name("").Build(), &types.DiscoveryManifest{}, nil)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "", entityGUID)
+}
+
+func TestExecuteAndValidateRecipeWithAllMethodWithAgentValidatorError(t *testing.T) {
+	expected := errors.New("Some error")
+	recipeInstall := NewRecipeInstallBuilder().WithAgentValidationError(expected).Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+	recipe.ValidationURL = "http://url.com"
+
+	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.True(t, strings.Contains(err.Error(), "no validation was successful.  most recent validation error"))
+}
+
+func TestExecuteAndValidateRecipeWithAllMethodWithRecipeValidationError(t *testing.T) {
+	expected := errors.New("Some error")
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeValidationError(expected).Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+	recipe.ValidationNRQL = "FROM SOMETHING"
+
+	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.True(t, strings.Contains(err.Error(), "no validation was successful.  most recent validation error"))
+}
+
+func TestExecuteAndValidateWithProgressWhenPostValidationFailed(t *testing.T) {
+
+	expected := errors.New("Some error")
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeValidationError(expected).Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+	recipe.ValidationNRQL = "FROM SOMETHING"
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipe, false)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.True(t, strings.Contains(err.Error(), "encountered an error while validating receipt of data for"))
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
+	assert.Equal(t, 0, statusReporter.InstallCanceledCallCount)
+}
+func TestExecuteAndValidateWithProgressWhenSucceed(t *testing.T) {
+
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipe, false)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount)
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount)
 }
 
 func TestReportUnSupportTargetRecipeWithBadRecipeName(t *testing.T) {

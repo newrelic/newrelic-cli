@@ -37,6 +37,10 @@ type RecipeValidator interface {
 	ValidateRecipe(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, types.RecipeVars) (entityGUID string, err error)
 }
 
+type AgentValidator interface {
+	Validate(ctx context.Context, url string) (string, error)
+}
+
 type RecipeVarPreparer interface {
 	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
 }
