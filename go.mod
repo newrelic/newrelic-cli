@@ -10,15 +10,15 @@ require (
 	github.com/caarlos0/svu v1.9.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fatih/color v1.13.0
+	github.com/fzipp/gocyclo v0.3.1 // indirect
 	github.com/git-chglog/git-chglog v0.15.1 // indirect
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/itchyny/gojq v0.12.7
-	github.com/jedib0t/go-pretty/v6 v6.2.4
+	github.com/jedib0t/go-pretty/v6 v6.2.7
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
-	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.73.0
 	github.com/onsi/ginkgo v1.16.4 // indirect
