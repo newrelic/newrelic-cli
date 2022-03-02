@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
-	github.com/fatih/color v1.13.0
+	github.com/fatih/color v1.12.0
 	github.com/go-ole/go-ole v1.2.6-0.20210321163835-bac9a21098b9 // indirect
 	github.com/go-task/task/v3 v3.7.0
 	github.com/google/uuid v1.3.0
@@ -15,7 +15,6 @@ require (
 	github.com/itchyny/gojq v0.12.7
 	github.com/jedib0t/go-pretty/v6 v6.2.7
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
-	github.com/mattn/go-colorable v0.1.11 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.73.0
 	github.com/pkg/errors v0.9.1
