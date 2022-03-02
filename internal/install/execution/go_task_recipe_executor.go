@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-task/task/v3"
@@ -46,6 +47,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 	// Create a temporary task file.
 	file, err := ioutil.TempFile("", r.Name)
+	fmt.Printf("temp file:%s", file.Name())
 	defer os.Remove(file.Name())
 	if err != nil {
 		return err
@@ -59,12 +61,19 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	stdoutCapture := NewLineCaptureBuffer(re.Stdout)
 	stderrCapture := NewLineCaptureBuffer(re.Stderr)
 
+	// ioutil.TempDir()
+	// dir := filepath.Dir(file.Name())
+	dir := os.TempDir()
+	fileBase := filepath.Base(file.Name())
 	e := task.Executor{
-		Entrypoint: file.Name(),
+		Dir:        dir,
+		Entrypoint: fileBase,
 		Stderr:     stderrCapture,
 		Stdin:      re.Stdin,
 		Stdout:     stdoutCapture,
 	}
+
+	fmt.Printf("Executor directory:%s", e.Dir)
 
 	if err = e.Setup(); err != nil {
 		return fmt.Errorf("could not set up task executor: %s", err)
