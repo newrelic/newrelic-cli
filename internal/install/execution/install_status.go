@@ -247,7 +247,6 @@ func (s *InstallStatus) InstallComplete(err error) {
 	}
 }
 
-//TODO: What should we do here if report status is not part of enum/supported?
 func (s *InstallStatus) ReportStatus(status RecipeStatusType, event RecipeStatusEvent) {
 
 	switch status {

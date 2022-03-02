@@ -65,7 +65,6 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 	}
 
 	if !assumeYes && bundle.IsAdditionalGuided() {
-		//TODO: Should this be log instead of fmt?
 		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
 
 		for _, bundleRecipe := range installableBundleRecipes {
@@ -100,7 +99,6 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
-		// TODO: should we also save dependencies status? Not sure
 		for _, ds := range recipe.DetectedStatuses {
 			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe, ValidationDurationMs: ds.DurationMs}
 			bi.statusReporter.ReportStatus(ds.Status, e)

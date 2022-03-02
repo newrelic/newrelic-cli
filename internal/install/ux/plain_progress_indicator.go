@@ -6,7 +6,6 @@ import (
 	"github.com/fatih/color"
 )
 
-//TODO: just reporting on console, maybe can be removed
 type PlainProgress struct {
 }
 

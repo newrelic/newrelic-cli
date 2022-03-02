@@ -259,7 +259,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return recipes, err2
 	}, m)
 
-	//FIXME: need to fix
 	bundler := i.bundlerFactory(ctx, repo)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
@@ -277,7 +276,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		log.Debugf("Skipping core bundle")
 	}
 
-	//FIXME: additional install mock, just hack together code for install to check flow, needs to be refactor
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)

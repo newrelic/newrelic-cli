@@ -99,7 +99,6 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	//this is the parent
-	//FIXME: don't like returning nil
 	b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
 	if bundleRecipe.HasStatus(execution.RecipeStatusTypes.NULL) {
 		return nil

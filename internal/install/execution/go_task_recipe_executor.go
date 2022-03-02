@@ -60,8 +60,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return err
 	}
 
-	//FIXME: do something with output in buffer
-	//TODO: allow silent flag to be pass in here
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 
 	var stdoutCapture *LineCaptureBuffer
