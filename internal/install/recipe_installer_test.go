@@ -25,12 +25,8 @@ func TestConnectToPlatformShouldSuccess(t *testing.T) {
 
 	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
 
-	stdOut := captureLoggingOutput(func() {
-		err := recipeInstall.connectToPlatform()
-		assert.NoError(t, err)
-	})
-	assert.True(t, strings.Contains(stdOut, "Connecting"))
-	assert.True(t, strings.Contains(stdOut, "Connected"))
+	err := recipeInstall.connectToPlatform()
+	assert.NoError(t, err)
 }
 func TestConnectToPlatformShouldRetrunError(t *testing.T) {
 	expected := errors.New("Failing to connect to platform")
@@ -38,14 +34,9 @@ func TestConnectToPlatformShouldRetrunError(t *testing.T) {
 
 	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
 
-	stdOut := captureLoggingOutput(func() {
-		actual := recipeInstall.connectToPlatform()
-		assert.Error(t, actual)
-		assert.Equal(t, expected.Error(), actual.Error())
-	})
-
-	assert.True(t, strings.Contains(stdOut, "Connecting"))
-	assert.True(t, strings.Contains(stdOut, "Fail"))
+	actual := recipeInstall.connectToPlatform()
+	assert.Error(t, actual)
+	assert.Equal(t, expected.Error(), actual.Error())
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
