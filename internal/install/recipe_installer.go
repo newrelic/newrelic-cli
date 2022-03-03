@@ -24,8 +24,7 @@ import (
 )
 
 const (
-	validationTimeout       = 5 * time.Minute
-	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
+	validationTimeout = 5 * time.Minute
 )
 
 type RecipeInstall struct {
@@ -434,8 +433,6 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 		log.Debugf("skipping recipe validation since no validation targets were configured")
 		return "", nil
 	}
-
-	log.Debug(validationInProgressMsg)
 
 	for _, f := range validationFuncs {
 		go func(fn validationFunc) {
