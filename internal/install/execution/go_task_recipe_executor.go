@@ -44,7 +44,21 @@ func (re *GoTaskRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.O
 	return errors.New("not implemented")
 }
 
-func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
+func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) (retErr error) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				retErr = errors.New(x)
+			case error:
+				retErr = x
+			default:
+				retErr = errors.New("unknown panic")
+			}
+		}
+	}()
+
 	log.Debugf("executing recipe %s", r.Name)
 
 	out := []byte(r.Install)

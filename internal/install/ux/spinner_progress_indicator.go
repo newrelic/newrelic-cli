@@ -52,7 +52,6 @@ func (s *SpinnerProgressIndicator) Start(msg string) {
 		x.Printf(" %s", msg)
 		fmt.Println()
 	}
-	log.Debug(msg)
 }
 
 func (s *SpinnerProgressIndicator) Stop() {

@@ -68,9 +68,10 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 		fmt.Println("\nWe've detected additional monitoring that can be configured by installing the following:")
 
 		for _, bundleRecipe := range installableBundleRecipes {
-			fmt.Println(bundleRecipe.Recipe.DisplayName)
+			fmt.Printf("  %s\n", bundleRecipe.Recipe.DisplayName)
 		}
 
+		fmt.Println()
 		prompter := ux.NewPromptUIPrompter()
 		msg := "Continue installing? "
 		isConfirmed, err := prompter.PromptYesNo(msg)
