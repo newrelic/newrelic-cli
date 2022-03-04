@@ -246,7 +246,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
 
-	fmt.Println("\n\nInstalling New Relic")
 	// Execute the discovery process, exiting on failure.
 	m, err := i.discover(ctx)
 	if err != nil {
@@ -257,6 +256,15 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
 	}, m)
+
+	message := "\n\nInstalling New Relic"
+	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
+		r := repo.FindRecipeByName(i.RecipeNames[0])
+		if r != nil {
+			message = fmt.Sprintf("%s %s", message, r.DisplayName)
+		}
+	}
+	fmt.Println(message)
 
 	bundler := i.bundlerFactory(ctx, repo)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
