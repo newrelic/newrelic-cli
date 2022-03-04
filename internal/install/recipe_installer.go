@@ -425,7 +425,7 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 			return i.agentValidator.Validate(timeoutCtx, r.ValidationURL)
 		})
 	} else {
-		log.Debugf("skipping agent validation due to lack of validationUrl")
+		log.Debugf("no validationUrl defined, skipping")
 	}
 
 	// Add NRQL validation if configured
@@ -434,11 +434,10 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r, vars)
 		})
 	} else {
-		log.Debugf("skipping NRQL validation due to lack of validationNRQL")
+		log.Debugf("no validationNRQL defined, skipping")
 	}
 
 	if len(validationFuncs) == 0 {
-		log.Debugf("skipping recipe validation since no validation targets were configured")
 		return "", nil
 	}
 
