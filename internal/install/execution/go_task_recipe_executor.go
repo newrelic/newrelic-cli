@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/go-task/task/v3"
@@ -59,8 +60,11 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	stdoutCapture := NewLineCaptureBuffer(re.Stdout)
 	stderrCapture := NewLineCaptureBuffer(re.Stderr)
 
+	dir := os.TempDir()
+	fileBase := filepath.Base(file.Name())
 	e := task.Executor{
-		Entrypoint: file.Name(),
+		Dir:        dir,
+		Entrypoint: fileBase,
 		Stderr:     stderrCapture,
 		Stdin:      re.Stdin,
 		Stdout:     stdoutCapture,
