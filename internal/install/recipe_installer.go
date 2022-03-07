@@ -269,19 +269,22 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	bundler := i.bundlerFactory(ctx, repo)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
-	shouldInstallCoreBundle := i.shouldInstallCore()
-
-	if shouldInstallCoreBundle {
-		coreBundle := bundler.CreateCoreBundle()
-		log.Debugf("Core bundle recipes:%s", coreBundle)
-		err = bundleInstaller.InstallStopOnError(coreBundle, true)
-		if err != nil {
-			log.Debugf("error installing core bundle:%s", err)
-			return err
-		}
-	} else {
-		log.Debugf("Skipping core bundle")
+	cbErr := i.installCoreBundle(bundler, bundleInstaller)
+	if cbErr != nil {
+		return cbErr
 	}
+
+	abErr := i.installAdditionalBundle(bundler, bundleInstaller, repo)
+	if abErr != nil {
+		return abErr
+	}
+
+	log.Debugf("Done installing.")
+
+	return nil
+}
+
+func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
@@ -292,6 +295,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
 		log.Debugf("Additional Guided bundle recipes:%s", additionalBundle)
 	}
+
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
@@ -300,7 +304,22 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		}
 	}
 
-	log.Debugf("Done installing.")
+	return nil
+}
+
+func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller) error {
+
+	if i.shouldInstallCore() {
+		coreBundle := bundler.CreateCoreBundle()
+		log.Debugf("Core bundle recipes:%s", coreBundle)
+		err := bundleInstaller.InstallStopOnError(coreBundle, true)
+		if err != nil {
+			log.Debugf("error installing core bundle:%s", err)
+			return err
+		}
+	} else {
+		log.Debugf("Skipping core bundle")
+	}
 
 	return nil
 }
@@ -345,7 +364,7 @@ func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle,
 	}
 }
 
-// intalling recipe
+// installing recipe
 func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
