@@ -122,10 +122,29 @@ func TestInstallTargetInstallWithoutRecipeShouldNotInstall(t *testing.T) {
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
 	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
-	_ = recipeInstall.install(context.TODO())
+	err := recipeInstall.install(context.TODO())
 
+	assert.Error(t, err)
+	assert.Equal(t, "no recipes were installed", err.Error())
 	assert.Equal(t, 0, len(additionalBundle.BundleRecipes))
 	assert.Equal(t, 0, len(bundleInstaller.installedRecipes))
+}
+
+func TestInstallTargetInstallWithOneUnsupportedOneInstalledShouldError(t *testing.T) {
+
+	additionRecipeName := "additional"
+	bundler := NewBundlerBuilder().Build()
+	bundleInstaller := NewMockBundleInstaller()
+	bundleInstaller.installedRecipes["test"] = true
+
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
+	err := recipeInstall.install(context.TODO())
+
+	assert.Error(t, err)
+	assert.Equal(t, "one or more selected recipes could not be installed", err.Error())
+	assert.Equal(t, 0, len(additionalBundle.BundleRecipes))
+	assert.Equal(t, 1, len(bundleInstaller.installedRecipes))
 }
 
 func TestInstallGuidedInstallAdditionalShouldInstall(t *testing.T) {

@@ -302,6 +302,10 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
+	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
+		return &types.UncaughtError{
+			Err: fmt.Errorf("one or more selected recipes could not be installed"),
+		}
 	}
 
 	return nil
