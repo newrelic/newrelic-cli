@@ -69,10 +69,10 @@ func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 
 	coreBundle := bundler.CreateCoreBundle()
 
-	require.Equal(t, 3, len(coreBundle.BundleRecipes))
+	require.Equal(t, 2, len(coreBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
-	require.NotNil(t, findRecipeByName(coreBundle, types.GoldenRecipeName))
+	require.Nil(t, findRecipeByName(coreBundle, types.GoldenRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
@@ -90,7 +90,7 @@ func TestCreateAdditionalGuidedBundleShouldSkipCoreRecipes(t *testing.T) {
 
 	addBundle := bundler.CreateAdditionalGuidedBundle()
 
-	require.Equal(t, 1, len(addBundle.BundleRecipes))
+	require.Equal(t, 2, len(addBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
 }
 
@@ -104,7 +104,7 @@ func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
 
 	coreBundle := bundler.CreateCoreBundle()
 
-	require.Equal(t, 3, len(coreBundle.BundleRecipes))
+	require.Equal(t, 2, len(coreBundle.BundleRecipes))
 	for _, r := range coreBundle.BundleRecipes {
 		lastStatusIndex := len(r.DetectedStatuses) - 1
 		require.Equal(t, 2, len(r.DetectedStatuses))

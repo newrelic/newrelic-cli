@@ -13,7 +13,6 @@ import (
 var coreRecipeMap = map[string]bool{
 	types.InfraAgentRecipeName: true,
 	types.LoggingRecipeName:    true,
-	types.GoldenRecipeName:     true,
 }
 
 type Bundler struct {
