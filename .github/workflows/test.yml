@@ -37,7 +37,7 @@ jobs:
         shell: bash
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -65,7 +65,7 @@ jobs:
         shell: bash
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache deps
         uses: actions/cache@v2
@@ -91,7 +91,7 @@ jobs:
         shell: bash
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache deps
         uses: actions/cache@v2

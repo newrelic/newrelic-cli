@@ -34,10 +34,10 @@ jobs:
         shell: bash
 
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Checkout Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: newrelic/open-install-library
           path: open-install-library
