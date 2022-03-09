@@ -68,6 +68,7 @@ var RecipeStatusTypes = struct {
 	RECOMMENDED RecipeStatusType
 	UNSUPPORTED RecipeStatusType
 	DETECTED    RecipeStatusType
+	NULL        RecipeStatusType
 }{
 	AVAILABLE:   "AVAILABLE",
 	CANCELED:    "CANCELED",
@@ -78,6 +79,7 @@ var RecipeStatusTypes = struct {
 	RECOMMENDED: "RECOMMENDED",
 	UNSUPPORTED: "UNSUPPORTED",
 	DETECTED:    "DETECTED",
+	NULL:        "",
 }
 
 type StatusError struct {
@@ -123,21 +125,28 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 // recipe as well sending out the DETECTED status event to the install events service.
 // RecipeDetected is called when a recipe is available and passes the checks in both
 // the process match and the pre-install steps of recipe execution.
-func (s *InstallStatus) RecipeDetected(recipe types.OpenInstallationRecipe) {
-	s.withDetectedRecipe(recipe)
-
+func (s *InstallStatus) RecipeDetected(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.DETECTED)
 	for _, r := range s.statusSubscriber {
-		if err := r.RecipeDetected(s, recipe); err != nil {
+		if err := r.RecipeDetected(s, event); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
 }
 
-func (s *InstallStatus) RecipeAvailable(recipe types.OpenInstallationRecipe) {
-	s.withAvailableRecipe(recipe)
-
+func (s *InstallStatus) RecipeCanceled(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.CANCELED)
 	for _, r := range s.statusSubscriber {
-		if err := r.RecipeAvailable(s, recipe); err != nil {
+		if err := r.RecipeCanceled(s, event); err != nil {
+			log.Debugf("Could not report recipe execution status: %s", err)
+		}
+	}
+}
+
+func (s *InstallStatus) RecipeAvailable(event RecipeStatusEvent) {
+	s.withRecipeEvent(event, RecipeStatusTypes.AVAILABLE)
+	for _, ss := range s.statusSubscriber {
+		if err := ss.RecipeAvailable(s, event); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
@@ -238,6 +247,34 @@ func (s *InstallStatus) InstallComplete(err error) {
 	}
 }
 
+func (s *InstallStatus) ReportStatus(status RecipeStatusType, event RecipeStatusEvent) {
+
+	switch status {
+	case RecipeStatusTypes.AVAILABLE:
+		s.RecipeAvailable(event)
+	case RecipeStatusTypes.CANCELED:
+		s.RecipeCanceled(event)
+	case RecipeStatusTypes.DETECTED:
+		s.RecipeDetected(event)
+	case RecipeStatusTypes.FAILED:
+		s.RecipeFailed(event)
+	case RecipeStatusTypes.INSTALLED:
+		s.RecipeInstalled(event)
+	case RecipeStatusTypes.INSTALLING:
+		s.RecipeInstalling(event)
+	case RecipeStatusTypes.SKIPPED:
+		s.RecipeSkipped(event)
+	case RecipeStatusTypes.UNSUPPORTED:
+		s.RecipeUnsupported(event)
+
+	case RecipeStatusTypes.NULL:
+	case RecipeStatusTypes.RECOMMENDED:
+		// Not used
+	default:
+		log.Warnf("Unknown status to report: %s, ignoring", status)
+	}
+}
+
 func (s *InstallStatus) InstallCanceled() {
 	s.canceled()
 
@@ -308,22 +345,6 @@ func (s *InstallStatus) HostEntityGUID() string {
 
 func (s *InstallStatus) setRedirectURL() {
 	s.RedirectURL = s.PlatformLinkGenerator.GenerateRedirectURL(*s)
-}
-
-func (s *InstallStatus) withAvailableRecipes(recipes []types.OpenInstallationRecipe) {
-	for _, r := range recipes {
-		s.withAvailableRecipe(r)
-	}
-}
-
-func (s *InstallStatus) withAvailableRecipe(r types.OpenInstallationRecipe) {
-	e := RecipeStatusEvent{Recipe: r}
-	s.withRecipeEvent(e, RecipeStatusTypes.AVAILABLE)
-}
-
-func (s *InstallStatus) withDetectedRecipe(r types.OpenInstallationRecipe) {
-	e := RecipeStatusEvent{Recipe: r}
-	s.withRecipeEvent(e, RecipeStatusTypes.DETECTED)
 }
 
 func (s *InstallStatus) withSuccessLinkConfig(l types.OpenInstallationSuccessLinkConfig) {
@@ -443,7 +464,7 @@ func (s *InstallStatus) completed(err error) {
 			statusError.TaskPath = e.TaskPath()
 		}
 
-		if _, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+		if _, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			isUnsupported = true
 		}
 
@@ -470,9 +491,9 @@ func (s *InstallStatus) canceled() {
 }
 
 func (s *InstallStatus) getStatus(r types.OpenInstallationRecipe) *RecipeStatus {
-	for _, recipe := range s.Statuses {
-		if recipe.Name == r.Name {
-			return recipe
+	for _, rs := range s.Statuses {
+		if rs.Name == r.Name {
+			return rs
 		}
 	}
 

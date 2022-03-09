@@ -8,6 +8,7 @@ import (
 
 type MockDiscoverer struct {
 	DiscoveryManifest *types.DiscoveryManifest
+	Error             error
 }
 
 func NewMockDiscoverer() *MockDiscoverer {
@@ -44,5 +45,5 @@ func (d *MockDiscoverer) GetManifest() *types.DiscoveryManifest {
 }
 
 func (d *MockDiscoverer) Discover(context.Context) (*types.DiscoveryManifest, error) {
-	return d.DiscoveryManifest, nil
+	return d.DiscoveryManifest, d.Error
 }

@@ -14,6 +14,7 @@ import (
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
+	//r := NewRecipeBuilder().Vars("TEST_VAR", "testValue").InstallShell("echo {{.TEST_VAR}}").Build()
 	v := types.RecipeVars{
 		"TEST_VAR": "testValue",
 	}

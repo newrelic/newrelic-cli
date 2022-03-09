@@ -4,9 +4,9 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-// MockStatusReporter is a mock implementation of the ExecutionStatusReporter
+// MockStatusSubscriber is a mock implementation of the ExecutionStatusReporter
 // interface that provides method spies for testing scenarios.
-type MockStatusReporter struct {
+type MockStatusSubscriber struct {
 	RecipeAvailableErr         error
 	RecipesSelectedErr         error
 	RecipeFailedErr            error
@@ -32,6 +32,7 @@ type MockStatusReporter struct {
 	DiscoveryCompleteCallCount int
 	RecipeUnsupportedCallCount int
 	RecipeDetectedCallCount    int
+	RecipeCanceledCallCount    int
 
 	ReportSkipped     map[string]int
 	ReportInstalled   map[string]int
@@ -46,20 +47,25 @@ type MockStatusReporter struct {
 }
 
 // NewMockStatusReporter returns a new instance of MockExecutionStatusReporter.
-func NewMockStatusReporter() *MockStatusReporter {
-	return &MockStatusReporter{}
+func NewMockStatusReporter() *MockStatusSubscriber {
+	return &MockStatusSubscriber{}
 }
 
-func (r *MockStatusReporter) RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r *MockStatusSubscriber) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeDetectedCallCount++
 	return nil
 }
 
-func (r *MockStatusReporter) UpdateRequired(status *InstallStatus) error {
+func (r *MockStatusSubscriber) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
+	r.RecipeCanceledCallCount++
 	return nil
 }
 
-func (r *MockStatusReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *MockStatusSubscriber) UpdateRequired(status *InstallStatus) error {
+	return nil
+}
+
+func (r *MockStatusSubscriber) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeFailedCallCount++
 	if len(r.ReportFailed) == 0 {
 		r.ReportFailed = make(map[string]int)
@@ -68,7 +74,7 @@ func (r *MockStatusReporter) RecipeFailed(status *InstallStatus, event RecipeSta
 	return r.RecipeFailedErr
 }
 
-func (r *MockStatusReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *MockStatusSubscriber) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeInstalledCallCount++
 	if len(r.ReportInstalled) == 0 {
 		r.ReportInstalled = make(map[string]int)
@@ -92,7 +98,7 @@ func (r *MockStatusReporter) RecipeInstalled(status *InstallStatus, event Recipe
 	return r.RecipeInstalledErr
 }
 
-func (r *MockStatusReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *MockStatusSubscriber) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeInstallingCallCount++
 	if len(r.ReportInstalling) == 0 {
 		r.ReportInstalling = make(map[string]int)
@@ -101,7 +107,7 @@ func (r *MockStatusReporter) RecipeInstalling(status *InstallStatus, event Recip
 	return r.RecipeInstallingErr
 }
 
-func (r *MockStatusReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *MockStatusSubscriber) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeRecommendedCallCount++
 	if len(r.ReportRecommended) == 0 {
 		r.ReportRecommended = make(map[string]int)
@@ -110,7 +116,7 @@ func (r *MockStatusReporter) RecipeRecommended(status *InstallStatus, event Reci
 	return r.RecipeRecommendedErr
 }
 
-func (r *MockStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *MockStatusSubscriber) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeSkippedCallCount++
 	if len(r.ReportSkipped) == 0 {
 		r.ReportSkipped = make(map[string]int)
@@ -119,41 +125,41 @@ func (r *MockStatusReporter) RecipeSkipped(status *InstallStatus, event RecipeSt
 	return r.RecipeSkippedErr
 }
 
-func (r *MockStatusReporter) RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error {
+func (r *MockStatusSubscriber) RecipeAvailable(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeAvailableCallCount++
 	if len(r.ReportAvailable) == 0 {
 		r.ReportAvailable = make(map[string]int)
 	}
-	r.ReportAvailable[recipe.Name]++
+	r.ReportAvailable[event.Recipe.Name]++
 	return r.RecipeAvailableErr
 }
 
-func (r *MockStatusReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
+func (r *MockStatusSubscriber) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	r.RecipesSelectedCallCount++
 	return r.RecipesSelectedErr
 }
 
-func (r *MockStatusReporter) InstallStarted(status *InstallStatus) error {
+func (r *MockStatusSubscriber) InstallStarted(status *InstallStatus) error {
 	r.InstallStartedCallCount++
 	return r.InstallStartedErr
 }
 
-func (r *MockStatusReporter) InstallComplete(status *InstallStatus) error {
+func (r *MockStatusSubscriber) InstallComplete(status *InstallStatus) error {
 	r.InstallCompleteCallCount++
 	return r.InstallCompleteErr
 }
 
-func (r *MockStatusReporter) InstallCanceled(status *InstallStatus) error {
+func (r *MockStatusSubscriber) InstallCanceled(status *InstallStatus) error {
 	r.InstallCanceledCallCount++
 	return r.InstallCanceledErr
 }
 
-func (r *MockStatusReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
+func (r *MockStatusSubscriber) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	r.DiscoveryCompleteCallCount++
 	return r.DiscoveryCompleteErr
 }
 
-func (r *MockStatusReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *MockStatusSubscriber) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	r.RecipeUnsupportedCallCount++
 	return r.RecipeUnsupportedErr
 }

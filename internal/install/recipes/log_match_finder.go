@@ -1,4 +1,4 @@
-package discovery
+package recipes
 
 import (
 	"context"
@@ -9,20 +9,19 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-// GlobFileFilterer is an implementation of the FileFilterer interface that uses
-// glob-based filesystem searches to locate the existence of files.
-type GlobFileFilterer struct{}
+type LogMatchFinder struct{}
 
-// NewGlobFileFilterer returns a new instance of GlobFileFilterer.
-func NewGlobFileFilterer() *GlobFileFilterer {
-	f := GlobFileFilterer{}
+type LogMatchFinderDefinition interface {
+	GetPaths(context.Context, []*types.OpenInstallationRecipe) []types.OpenInstallationLogMatch
+}
+
+func NewLogMatchFinder() LogMatchFinderDefinition {
+	f := LogMatchFinder{}
 
 	return &f
 }
 
-// Filter uses the patterns provided in the passed recipe to return matches based
-// on which files exist in the underlying file system.
-func (f *GlobFileFilterer) Filter(ctx context.Context, recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error) {
+func (f *LogMatchFinder) GetPaths(ctx context.Context, recipes []*types.OpenInstallationRecipe) []types.OpenInstallationLogMatch {
 	fileMatches := []types.OpenInstallationLogMatch{}
 
 	for _, r := range recipes {
@@ -34,7 +33,7 @@ func (f *GlobFileFilterer) Filter(ctx context.Context, recipes []types.OpenInsta
 		}
 	}
 
-	return fileMatches, nil
+	return fileMatches
 }
 
 func matchLogFilesFromRecipe(matcher types.OpenInstallationLogMatch) (bool, []string) {

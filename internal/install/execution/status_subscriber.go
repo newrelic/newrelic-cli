@@ -9,8 +9,9 @@ type StatusSubscriber interface {
 	InstallCanceled(status *InstallStatus) error
 	InstallComplete(status *InstallStatus) error
 	DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error
-	RecipeDetected(status *InstallStatus, recipe types.OpenInstallationRecipe) error
-	RecipeAvailable(status *InstallStatus, recipe types.OpenInstallationRecipe) error
+	RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error
+	RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error
+	RecipeAvailable(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error
 	RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error
@@ -27,4 +28,8 @@ type RecipeStatusEvent struct {
 	TaskPath             []string
 	EntityGUID           string
 	ValidationDurationMs int64
+}
+
+func NewRecipeStatusEvent(recipe *types.OpenInstallationRecipe) RecipeStatusEvent {
+	return RecipeStatusEvent{Recipe: *recipe}
 }
