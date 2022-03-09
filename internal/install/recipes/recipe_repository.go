@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var (
@@ -21,43 +22,141 @@ var (
 )
 
 type RecipeRepository struct {
-	RecipeLoaderFunc func() ([]types.OpenInstallationRecipe, error)
-	recipes          []types.OpenInstallationRecipe
+	RecipeLoaderFunc  func() ([]*types.OpenInstallationRecipe, error)
+	loadedRecipes     []*types.OpenInstallationRecipe
+	filteredRecipes   []*types.OpenInstallationRecipe
+	discoveryManifest *types.DiscoveryManifest
+	logMatchFinder    LogMatchFinderDefinition
 }
 
 type recipeMatch struct {
 	matchCount int
-	recipe     types.OpenInstallationRecipe
+	recipe     *types.OpenInstallationRecipe
 }
 
 // NewRecipeRepository returns a new instance of types.RecipeRepository.
-func NewRecipeRepository(loaderFunc func() ([]types.OpenInstallationRecipe, error)) *RecipeRepository {
+func NewRecipeRepository(loaderFunc func() ([]*types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
+	return newRecipeRepository(loaderFunc, manifest, NewLogMatchFinder())
+}
+func newRecipeRepository(loaderFunc func() ([]*types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder LogMatchFinderDefinition) *RecipeRepository {
 	rr := RecipeRepository{
-		RecipeLoaderFunc: loaderFunc,
-		recipes:          nil,
+		RecipeLoaderFunc:  loaderFunc,
+		loadedRecipes:     nil,
+		filteredRecipes:   nil,
+		discoveryManifest: manifest,
+		logMatchFinder:    logMatchFinder,
 	}
 
 	return &rr
 }
 
-func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInstallationRecipe, error) {
-	results := []types.OpenInstallationRecipe{}
-	matchRecipes := make(map[string][]recipeMatch)
-	hostMap := getHostMap(m)
+func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallationRecipe {
+	recipes, err := rf.FindAll()
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
 
-	if rf.recipes == nil {
+	for _, r := range recipes {
+		if strings.EqualFold(r.Name, name) {
+			log.Debugf("Found recipe name %v", r.Name)
+			return r
+		}
+	}
+	return nil
+}
+
+func (rf *RecipeRepository) FindUnfilteredRecipeByName(name string) *types.OpenInstallationRecipe {
+	for _, r := range rf.loadedRecipes {
+		if strings.EqualFold(r.Name, name) {
+			log.Debugf("Found recipe name %v", r.Name)
+			return r
+		}
+	}
+	return nil
+}
+
+func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallationRecipe) []*types.OpenInstallationRecipe {
+
+	results := []*types.OpenInstallationRecipe{}
+
+	recipes, err := rf.FindAll()
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	var found bool
+
+	for _, r := range recipes {
+		found = false
+		for _, er := range excludingRecipes {
+			if strings.EqualFold(r.Name, er.Name) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			results = append(results, r)
+		}
+	}
+	return results
+}
+
+// Enriching recipe
+func (rf *RecipeRepository) enrichLogRecipe() {
+
+	for _, recipe := range rf.filteredRecipes {
+		if recipe.Name == types.LoggingRecipeName {
+			logMatches := rf.logMatchFinder.GetPaths(utils.SignalCtx, rf.filteredRecipes)
+
+			var discoveredLogFilesString string
+			if len(logMatches) > 0 {
+				discoveredLogFiles := []string{}
+				for _, logMatch := range logMatches {
+					discoveredLogFiles = append(discoveredLogFiles, logMatch.File)
+				}
+
+				log.WithFields(log.Fields{
+					"logMatches": len(logMatches),
+				}).Debug("filtered log matches")
+
+				discoveredLogFilesString = strings.Join(discoveredLogFiles, ",")
+			}
+			recipe.SetRecipeVar("NR_DISCOVERED_LOG_FILES", discoveredLogFilesString)
+			break
+		}
+	}
+}
+
+func (rf *RecipeRepository) FindAll() ([]*types.OpenInstallationRecipe, error) {
+	if rf.filteredRecipes != nil {
+		return rf.filteredRecipes, nil
+	}
+
+	if rf.loadedRecipes == nil {
 		recipes, err := rf.RecipeLoaderFunc()
 		if err != nil {
 			return nil, err
 		}
 		log.Debugf("Loaded %d recipes", len(recipes))
-
-		rf.recipes = recipes
+		rf.loadedRecipes = recipes
 	}
 
-	log.Debugf("Find all available out of %d recipes for host %+v", len(rf.recipes), hostMap)
+	rf.filteredRecipes = filterRecipes(rf.loadedRecipes, rf.discoveryManifest)
+	rf.enrichLogRecipe()
 
-	for _, recipe := range rf.recipes {
+	return rf.filteredRecipes, nil
+}
+
+func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.DiscoveryManifest) []*types.OpenInstallationRecipe {
+	results := []*types.OpenInstallationRecipe{}
+	matchRecipes := make(map[string][]recipeMatch)
+	hostMap := getHostMap(m)
+
+	log.Debugf("Find all available out of %d recipes for host %+v", len(loadedRecipes), hostMap)
+
+	for _, recipe := range loadedRecipes {
 		matchTargetCount := []int{}
 
 		for _, rit := range recipe.InstallTargets {
@@ -103,7 +202,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 
 	if len(matchRecipes) > 0 {
 		keys := []string{}
-		unorderedResults := map[string]types.OpenInstallationRecipe{}
+		unorderedResults := map[string]*types.OpenInstallationRecipe{}
 		for _, matches := range matchRecipes {
 			if len(matches) > 0 {
 				match := findMaxMatch(matches)
@@ -120,8 +219,7 @@ func (rf *RecipeRepository) FindAll(m types.DiscoveryManifest) ([]types.OpenInst
 			results = append(results, recipe)
 		}
 	}
-
-	return results, nil
+	return results
 }
 
 func findMaxMatch(matches []recipeMatch) recipeMatch {
@@ -169,7 +267,7 @@ func matchRecipeCriteria(hostMap map[string]string, rkey string, rvalue string) 
 	return false
 }
 
-func getHostMap(m types.DiscoveryManifest) map[string]string {
+func getHostMap(m *types.DiscoveryManifest) map[string]string {
 	hostMap := map[string]string{
 		kernelArch:      m.KernelArch,
 		kernelVersion:   m.KernelVersion,

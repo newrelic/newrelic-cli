@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/go-task/task/v3"
@@ -22,9 +24,11 @@ import (
 // GoTaskRecipeExecutor is an implementation of the recipeExecutor interface that
 // uses the go-task module to execute the steps defined in each recipe.
 type GoTaskRecipeExecutor struct {
-	Stderr io.Writer
-	Stdin  io.Reader
-	Stdout io.Writer
+	Stderr        io.Writer
+	Stdin         io.Reader
+	Stdout        io.Writer
+	OutputCapture *LineCaptureBuffer
+	ErrorCapture  *LineCaptureBuffer
 }
 
 // NewGoTaskRecipeExecutor returns a new instance of GoTaskRecipeExecutor.
@@ -40,7 +44,21 @@ func (re *GoTaskRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.O
 	return errors.New("not implemented")
 }
 
-func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
+func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) (retErr error) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			switch x := r.(type) {
+			case string:
+				retErr = errors.New(x)
+			case error:
+				retErr = x
+			default:
+				retErr = errors.New("unknown panic")
+			}
+		}
+	}()
+
 	log.Debugf("executing recipe %s", r.Name)
 
 	out := []byte(r.Install)
@@ -57,8 +75,18 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return err
 	}
 
-	stdoutCapture := NewLineCaptureBuffer(re.Stdout)
-	stderrCapture := NewLineCaptureBuffer(re.Stderr)
+	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
+
+	var stdoutCapture *LineCaptureBuffer
+	var stderrCapture *LineCaptureBuffer
+
+	if silentInstall {
+		stdoutCapture = NewLineCaptureBuffer(&bytes.Buffer{})
+		stderrCapture = NewLineCaptureBuffer(&bytes.Buffer{})
+	} else {
+		stdoutCapture = NewLineCaptureBuffer(re.Stdout)
+		stderrCapture = NewLineCaptureBuffer(re.Stderr)
+	}
 
 	dir := os.TempDir()
 	fileBase := filepath.Base(file.Name())
@@ -108,14 +136,14 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		// We return exit code 131 when a user attempts to
 		// install a recipe on an unsupported operating system.
 		if isExitStatusCode(131, err) {
-			return &types.UnsupportedOperatingSytemError{
+			return &types.UnsupportedOperatingSystemError{
 				Err: errors.New(stderrCapture.LastFullLine),
 			}
 		}
 
 		// Catchall error formatting for child process errors
 		if strings.Contains(err.Error(), "exit status") {
-			lastStderr := stderrCapture.LastFullLine
+			lastStderr := re.ErrorCapture.LastFullLine
 
 			return types.NewNonZeroExitCode(goTaskError, lastStderr)
 		}

@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
-	"strings"
+	"os"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+
 	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
@@ -23,40 +23,33 @@ import (
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
 
-type RecipeInstaller struct {
+const (
+	validationTimeout = 5 * time.Minute
+)
+
+type RecipeInstall struct {
 	types.InstallerContext
-	discoverer                  Discoverer
-	fileFilterer                FileFilterer
-	manifestValidator           *discovery.ManifestValidator
-	recipeFetcher               recipes.RecipeFetcher
-	recipeExecutor              execution.RecipeExecutor
-	recipeValidator             RecipeValidator
-	recipeFileFetcher           RecipeFileFetcher
-	status                      *execution.InstallStatus
-	prompter                    Prompter
-	executionProgressIndicator  ux.ProgressIndicator
-	validationProgressIndicator ux.ProgressIndicator
-	licenseKeyFetcher           LicenseKeyFetcher
-	configValidator             ConfigValidator
-	recipeVarPreparer           RecipeVarPreparer
-	recipeFilterer              RecipeFilterRunner
-	agentValidator              *validation.AgentValidator
+	discoverer             Discoverer
+	manifestValidator      *discovery.ManifestValidator
+	recipeFetcher          recipes.RecipeFetcher
+	recipeExecutor         execution.RecipeExecutor
+	recipeValidator        RecipeValidator
+	recipeFileFetcher      RecipeFileFetcher
+	status                 *execution.InstallStatus
+	prompter               Prompter
+	licenseKeyFetcher      LicenseKeyFetcher
+	configValidator        ConfigValidator
+	recipeVarPreparer      RecipeVarPreparer
+	agentValidator         AgentValidator
+	shouldInstallCore      func() bool
+	bundlerFactory         func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
+	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
+	progressIndicator      ux.ProgressIndicator
 }
 
-type RecipeInstallFunc func(ctx context.Context, i *RecipeInstaller, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
+type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
-var (
-	recipeInstallFuncs = map[string]RecipeInstallFunc{
-		"logs-integration": installLogging,
-	}
-)
-
-const (
-	validationTimeout       = 5 * time.Minute
-	validationInProgressMsg = "Checking for data in New Relic (this may take a few minutes)..."
-)
-
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstaller {
+func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
 	checkNetwork(nrClient)
 
 	var recipeFetcher recipes.RecipeFetcher
@@ -65,12 +58,14 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = &recipes.LocalRecipeFetcher{
 			Path: ic.LocalRecipes,
 		}
+	} else if len(ic.RecipePaths) > 0 {
+		recipeFetcher = recipes.NewRecipeFileFetcher(ic.RecipePaths)
 	} else {
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
 
 	mv := discovery.NewManifestValidator()
-	ff := recipes.NewRecipeFileFetcher()
+	ff := recipes.NewRecipeFileFetcher([]string{})
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
@@ -81,61 +76,73 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	statusRollup := execution.NewInstallStatus(ers, slg)
 
 	d := discovery.NewPSUtilDiscoverer()
-	gff := discovery.NewGlobFileFilterer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	cv := diagnose.NewConfigValidator(nrClient)
 	p := ux.NewPromptUIPrompter()
-	pi := ux.NewPlainProgress()
-	sp := ux.NewSpinner()
 	rvp := execution.NewRecipeVarProvider()
-	rf := recipes.NewRecipeFilterRunner(ic, statusRollup)
 	av := validation.NewAgentValidator()
 
-	i := RecipeInstaller{
-		discoverer:                  d,
-		fileFilterer:                gff,
-		manifestValidator:           mv,
-		recipeFetcher:               recipeFetcher,
-		recipeExecutor:              re,
-		recipeValidator:             v,
-		recipeFileFetcher:           ff,
-		status:                      statusRollup,
-		prompter:                    p,
-		executionProgressIndicator:  pi,
-		validationProgressIndicator: sp,
-		licenseKeyFetcher:           lkf,
-		configValidator:             cv,
-		recipeVarPreparer:           rvp,
-		recipeFilterer:              rf,
-		agentValidator:              av,
+	i := RecipeInstall{
+		discoverer:        d,
+		manifestValidator: mv,
+		recipeFetcher:     recipeFetcher,
+		recipeExecutor:    re,
+		recipeValidator:   v,
+		recipeFileFetcher: ff,
+		status:            statusRollup,
+		prompter:          p,
+		licenseKeyFetcher: lkf,
+		configValidator:   cv,
+		recipeVarPreparer: rvp,
+		agentValidator:    av,
+		progressIndicator: ux.NewSpinnerProgressIndicator(),
 	}
 
 	i.InstallerContext = ic
 
+	i.shouldInstallCore = func() bool {
+		return os.Getenv("NEW_RELIC_CLI_SKIP_CORE") != "1"
+	}
+
+	i.bundlerFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
+		return recipes.NewBundler(ctx, repo)
+	}
+
+	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
+		return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
+	}
 	return &i
 }
 
-func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error {
-	latestReleaseVersion, err := cli.GetLatestReleaseVersion(ctx)
+var getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
+	return cli.GetLatestReleaseVersion(ctx)
+}
+
+var isLatestCliVersionInstalled = func(ctx context.Context, version string) (bool, error) {
+	return cli.IsLatestVersion(ctx, version)
+}
+
+func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
+	latestCliVersion, err := getLatestCliVersionReleased(ctx)
 	if err != nil {
 		log.Debug(err)
 		return nil
 	}
 
-	isLatestCLIVersion, err := cli.IsLatestVersion(ctx, latestReleaseVersion)
+	isMostRecentCliVersion, err := isLatestCliVersionInstalled(ctx, latestCliVersion)
 	if err != nil {
 		log.Debug(err)
 		return nil
 	}
 
-	if !isLatestCLIVersion {
+	if !isMostRecentCliVersion {
 		i.status.UpdateRequired = true
 
-		cli.PrintUpdateCLIMessage(latestReleaseVersion)
+		cli.PrintUpdateCLIMessage(latestCliVersion)
 
 		err := &types.UpdateRequiredError{
-			Err:     fmt.Errorf(`%s`, cli.FormatUpdateVersionMessage(latestReleaseVersion)),
+			Err:     fmt.Errorf(`%s`, cli.FormatUpdateVersionMessage(latestCliVersion)),
 			Details: "UpdateRequiredError",
 		}
 		return err
@@ -144,25 +151,20 @@ func (i *RecipeInstaller) promptIfNotLatestCLIVersion(ctx context.Context) error
 	return nil
 }
 
-func (i *RecipeInstaller) Install() error {
+func (i *RecipeInstall) Install() error {
 	fmt.Printf(`
-   _   _                 ____      _ _
-  | \ | | _____      __ |  _ \ ___| (_) ___
-  |  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
-  | |\  |  __/\ V  V /  |  _ |  __| | | (__
-  |_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
+ _   _                 ____      _ _
+| \ | | _____      __ |  _ \ ___| (_) ___
+|  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
+| |\  |  __/\ V  V /  |  _ |  __| | | (__
+|_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
 
-  Welcome to New Relic. Let's install some instrumentation.
-
-  Questions? Read more about our installation process at
-  https://docs.newrelic.com/
-
+Welcome to New Relic. Let's set up full stack observability for your environment. 
 	`)
 	fmt.Println()
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
 	log.WithFields(log.Fields{
-		"RecipesProvided":     i.RecipesProvided(),
 		"RecipePathsProvided": i.RecipePathsProvided(),
 		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
@@ -173,16 +175,13 @@ func (i *RecipeInstaller) Install() error {
 	errChan := make(chan error)
 	var err error
 
-	// Test split service
-	// treatment := split.Service.Get(split.VirtuosoCLITest)
-	// log.Printf("Got treatment: %s for %s", treatment, split.VirtuosoCLITest)
+	err = i.connectToPlatform()
 
-	log.Printf("Validating connectivity to the New Relic platform...")
-	if err = i.configValidator.Validate(utils.SignalCtx); err != nil {
+	if err != nil {
 		return err
 	}
 
-	if i.RecipesProvided() {
+	if i.RecipeNamesProvided() {
 		i.status.SetTargetedInstall()
 	}
 
@@ -217,7 +216,32 @@ func (i *RecipeInstaller) Install() error {
 	}
 }
 
-func (i *RecipeInstaller) install(ctx context.Context) error {
+func (i *RecipeInstall) connectToPlatform() error {
+	loaderChan := make(chan error)
+
+	go func() {
+		err := i.configValidator.Validate(utils.SignalCtx)
+		if err != nil {
+			loaderChan <- err
+			return
+		}
+		loaderChan <- nil
+	}()
+
+	i.progressIndicator.Start("Connecting to New Relic Platform")
+
+	loaded := <-loaderChan
+
+	if loaded == nil {
+		i.progressIndicator.Success("Connecting to New Relic Platform")
+	} else {
+		i.progressIndicator.Fail("Connecting to New Relic Platform")
+	}
+	return loaded
+}
+
+func (i *RecipeInstall) install(ctx context.Context) error {
+
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
@@ -228,71 +252,83 @@ func (i *RecipeInstaller) install(ctx context.Context) error {
 		return err
 	}
 
-	if err = i.assertDiscoveryValid(ctx, m); err != nil {
-		i.status.DiscoveryComplete(*m)
-		return err
-	}
-
-	i.status.DiscoveryComplete(*m)
-
-	repo := recipes.NewRecipeRepository(func() ([]types.OpenInstallationRecipe, error) {
+	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
-	})
+	}, m)
 
-	recipesForPlatform, err := repo.FindAll(*m)
-	if err != nil {
-		log.Debugf("Unable to load any recipes, detail: %s", err)
-		return err
+	message := "\n\nInstalling New Relic"
+	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
+		r := repo.FindRecipeByName(i.RecipeNames[0])
+		if r != nil {
+			message = fmt.Sprintf("%s %s", message, r.DisplayName)
+		}
+	}
+	fmt.Println(message)
+
+	bundler := i.bundlerFactory(ctx, repo)
+	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
+
+	cbErr := i.installCoreBundle(bundler, bundleInstaller)
+	if cbErr != nil {
+		return cbErr
 	}
 
-	var recipesForInstall []types.OpenInstallationRecipe
-	if i.RecipesProvided() {
-		recipesForInstall, err = i.fetchProvidedRecipe(m, recipesForPlatform)
-		if err != nil {
-			return err
-		}
-		log.Debugf("recipes provided:\n")
-		logRecipes(recipesForInstall)
-
-		if err = i.recipeFilterer.EnsureDoesNotFilter(ctx, recipesForInstall, m); err != nil {
-			return err
-		}
-
-	} else {
-		var selected, unselected []types.OpenInstallationRecipe
-
-		recipesForInstall = i.recipeFilterer.RunFilterAll(ctx, recipesForPlatform, m)
-		log.Debugf("recipes after filtering:\n")
-		logRecipes(recipesForInstall)
-
-		selected, unselected, err = i.promptUserSelect(recipesForInstall)
-		if err != nil {
-			return err
-		}
-		log.Tracef("recipes selected by user: %v\n", selected)
-
-		for _, r := range unselected {
-			i.status.RecipeSkipped(execution.RecipeStatusEvent{Recipe: r})
-		}
-
-		recipesForInstall = selected
-	}
-
-	i.status.RecipesSelected(recipesForInstall)
-
-	dependencies := resolveDependencies(recipesForInstall, recipesForPlatform)
-	recipesForInstall = addIfMissing(recipesForInstall, dependencies)
-
-	if err = i.installRecipes(ctx, m, recipesForInstall); err != nil {
-		return err
+	abErr := i.installAdditionalBundle(bundler, bundleInstaller, repo)
+	if abErr != nil {
+		return abErr
 	}
 
 	log.Debugf("Done installing.")
+
 	return nil
 }
 
-func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
+func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
+
+	var additionalBundle *recipes.Bundle
+	if i.RecipeNamesProvided() {
+		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
+		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
+	} else {
+		additionalBundle = bundler.CreateAdditionalGuidedBundle()
+		log.Debugf("Additional Guided bundle recipes:%s", additionalBundle)
+	}
+
+	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
+
+	if bundleInstaller.InstalledRecipesCount() == 0 {
+		return &types.UncaughtError{
+			Err: fmt.Errorf("no recipes were installed"),
+		}
+	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
+		return &types.UncaughtError{
+			Err: fmt.Errorf("one or more selected recipes could not be installed"),
+		}
+	}
+
+	return nil
+}
+
+func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller) error {
+
+	if i.shouldInstallCore() {
+		coreBundle := bundler.CreateCoreBundle()
+		log.Debugf("Core bundle recipes:%s", coreBundle)
+		err := bundleInstaller.InstallStopOnError(coreBundle, true)
+		if err != nil {
+			log.Debugf("error installing core bundle:%s", err)
+			return err
+		}
+	} else {
+		log.Debugf("Skipping core bundle")
+	}
+
+	return nil
+}
+
+func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
 	err := i.manifestValidator.Validate(m)
 	if err != nil {
 		return err
@@ -301,57 +337,7 @@ func (i *RecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.Dis
 	return nil
 }
 
-func (i *RecipeInstaller) installRecipes(ctx context.Context, m *types.DiscoveryManifest, recipes []types.OpenInstallationRecipe) error {
-	log.WithFields(log.Fields{
-		"recipe_count": len(recipes),
-	}).Debug("installing recipes")
-	var lastError error
-
-	for _, r := range recipes {
-		var err error
-
-		log.WithFields(log.Fields{
-			"name": r.Name,
-		}).Debug("installing recipe")
-
-		if f, ok := recipeInstallFuncs[r.Name]; ok {
-			err = f(ctx, i, m, &r, recipes)
-		} else {
-			_, err = i.executeAndValidateWithProgress(ctx, m, &r)
-		}
-
-		if err != nil {
-			if err == types.ErrInterrupt {
-				return err
-			}
-
-			if r.Name == types.InfraAgentRecipeName || r.Name == types.LoggingRecipeName || i.RecipesProvided() {
-				return err
-			}
-
-			lastError = err
-
-			log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", r.Name, err)
-			log.Debug(err)
-		}
-		log.Debugf("Done executing and validating with progress for recipe name %s.", r.Name)
-	}
-
-	if lastError != nil {
-		// Return last recipe error that was caught if any
-		return lastError
-	}
-
-	if !i.status.WasSuccessful() {
-		return &types.UncaughtError{
-			Err: fmt.Errorf("no recipes were installed"),
-		}
-	}
-
-	return nil
-}
-
-func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
+func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
 	log.Debug("discovering system information")
 
 	m, err := i.discoverer.Discover(ctx)
@@ -359,10 +345,31 @@ func (i *RecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifes
 		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
 	}
 
+	err = i.assertDiscoveryValid(ctx, m)
+	i.status.DiscoveryComplete(*m)
+
+	if err != nil {
+		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
+	}
+
 	return m, nil
 }
 
-func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
+	for _, recipeName := range i.RecipeNames {
+		if !bundle.ContainsName(recipeName) {
+			recipe := repo.FindRecipeByName(recipeName)
+			if recipe == nil {
+				recipe = &types.OpenInstallationRecipe{Name: recipeName, DisplayName: recipeName}
+			}
+			unsupportedEvent := execution.NewRecipeStatusEvent(recipe)
+			i.status.RecipeUnsupported(unsupportedEvent)
+		}
+	}
+}
+
+// installing recipe
+func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	// Execute the recipe steps.
@@ -371,7 +378,7 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 			return "", err
 		}
 
-		if e, ok := err.(*types.UnsupportedOperatingSytemError); ok {
+		if e, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
 				Recipe: *r,
 				Msg:    e.Error(),
@@ -422,7 +429,8 @@ func (i *RecipeInstaller) executeAndValidate(ctx context.Context, m *types.Disco
 
 type validationFunc func() (string, error)
 
-func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
+// Post install validation
+func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
 	defer cancel()
 
@@ -440,7 +448,7 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 			return i.agentValidator.Validate(timeoutCtx, r.ValidationURL)
 		})
 	} else {
-		log.Debugf("skipping agent validation due to lack of validationUrl")
+		log.Debugf("no validationUrl defined, skipping")
 	}
 
 	// Add NRQL validation if configured
@@ -449,16 +457,12 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r, vars)
 		})
 	} else {
-		log.Debugf("skipping NRQL validation due to lack of validationNRQL")
+		log.Debugf("no validationNRQL defined, skipping")
 	}
 
 	if len(validationFuncs) == 0 {
-		log.Debugf("skipping recipe validation since no validation targets were configured")
 		return "", nil
 	}
-
-	i.validationProgressIndicator.Start(validationInProgressMsg)
-	defer i.validationProgressIndicator.Stop()
 
 	for _, f := range validationFuncs {
 		go func(fn validationFunc) {
@@ -475,14 +479,12 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	for {
 		select {
 		case entityGUID := <-entityGUIDChan:
-			i.validationProgressIndicator.Success("")
 			return entityGUID, nil
 		case err := <-validationErrorChan:
 			validationErrors = append(validationErrors, err)
 			log.Debugf("validation error encountered: %s", err)
 
 			if len(validationErrors) == len(validationFuncs) {
-				i.validationProgressIndicator.Fail("")
 				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
 			}
 		case <-timeoutCtx.Done():
@@ -491,197 +493,58 @@ func (i *RecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *ty
 	}
 }
 
-func (i *RecipeInstaller) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe) (string, error) {
+// Installing recipe
+func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
+
+	fmt.Println()
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
-	i.executionProgressIndicator.Start(msg)
-	defer func() { i.executionProgressIndicator.Stop() }()
 
-	if r.PreInstallMessage() != "" {
-		fmt.Println(r.PreInstallMessage())
-	}
+	errorChan := make(chan error)
+	successChan := make(chan string)
 
-	licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	vars, err := i.recipeVarPreparer.Prepare(*m, *r, i.AssumeYes, licenseKey)
-	if err != nil {
-		return "", err
-	}
-
-	entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
-	if err != nil {
-		if errors.Is(err, types.ErrInterrupt) {
-			i.executionProgressIndicator.Canceled(msg)
-		} else {
-			i.executionProgressIndicator.Fail(msg)
-		}
-		return "", err
-	}
-
-	if r.PostInstallMessage() != "" {
-		fmt.Println(r.PostInstallMessage())
-	}
-
-	i.executionProgressIndicator.Success(msg)
-	return entityGUID, nil
-}
-
-func (i *RecipeInstaller) fetchProvidedRecipe(m *types.DiscoveryManifest, recipesForPlatform []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, error) {
-	var recipes []types.OpenInstallationRecipe
-
-	// Load the recipes from the provided file names.
-	for _, n := range i.RecipePaths {
-		log.Debugln(fmt.Sprintf("Attempting to match recipePath %s.", n))
-		recipe, err := i.recipeFromPath(n)
+	go func() {
+		licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
 		if err != nil {
-			log.Debugln(fmt.Sprintf("Error while building recipe from path, detail:%s.", err))
-			return nil, err
+			errorChan <- err
+			return
 		}
 
-		log.WithFields(log.Fields{
-			"name":         recipe.Name,
-			"display_name": recipe.DisplayName,
-			"path":         n,
-		}).Debug("found recipe at path")
-
-		recipes = append(recipes, *recipe)
-	}
-
-	// Load the recipes from the provided file names.
-	for _, n := range i.RecipeNames {
-		found := false
-		log.Debugln(fmt.Sprintf("Attempting to match recipe name %s.", n))
-		for _, r := range recipesForPlatform {
-			if strings.EqualFold(r.Name, n) {
-				log.WithFields(log.Fields{
-					"name":         r.Name,
-					"display_name": r.DisplayName,
-				}).Debug("found recipe with name")
-				recipes = append(recipes, r)
-				found = true
-				break
-			}
-		}
-		if !found {
-			log.Errorf("Could not find recipe with name %s.", n)
-		}
-	}
-
-	return recipes, nil
-}
-
-func (i *RecipeInstaller) recipeFromPath(recipePath string) (*types.OpenInstallationRecipe, error) {
-	recipeURL, parseErr := url.Parse(recipePath)
-	if parseErr == nil && recipeURL.Scheme != "" && strings.HasPrefix(strings.ToLower(recipeURL.Scheme), "http") {
-		f, err := i.recipeFileFetcher.FetchRecipeFile(recipeURL)
+		vars, err := i.recipeVarPreparer.Prepare(*m, *r, assumeYes, licenseKey)
 		if err != nil {
-			return nil, fmt.Errorf("could not fetch file %s: %s", recipePath, err)
+			errorChan <- err
+			return
 		}
-		return f, nil
-	}
 
-	f, err := i.recipeFileFetcher.LoadRecipeFile(recipePath)
-	if err != nil {
-		return nil, fmt.Errorf("could not load file %s: %s", recipePath, err)
-	}
+		vars["assumeYes"] = fmt.Sprintf("%v", assumeYes)
 
-	return f, nil
-}
+		entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
 
-func (i *RecipeInstaller) promptUserSelect(recipes []types.OpenInstallationRecipe) ([]types.OpenInstallationRecipe, []types.OpenInstallationRecipe, error) {
-	if len(recipes) == 0 {
-		return []types.OpenInstallationRecipe{}, []types.OpenInstallationRecipe{}, nil
-	}
-
-	if i.AssumeYes {
-		return recipes, []types.OpenInstallationRecipe{}, nil
-	}
-
-	var selectedRecipes, unselectedRecipes []types.OpenInstallationRecipe
-
-	names := []string{}
-	selected := []string{}
-	for _, r := range recipes {
-		if r.Name != types.InfraAgentRecipeName {
-			names = append(names, r.DisplayName)
-		} else {
-			fmt.Printf("The guided installation will begin by installing the latest version of the New Relic Infrastructure agent, which is required for additional instrumentation.\n\n")
+		if err != nil {
+			errorChan <- err
+			return
 		}
-	}
+		successChan <- entityGUID
+	}()
 
-	if len(names) > 0 {
-		var promptErr error
-		selected, promptErr = i.prompter.MultiSelect("Please choose from the following instrumentation to be installed:", names)
-		if promptErr != nil {
-			return nil, nil, promptErr
-		}
-		fmt.Println()
-	}
+	i.progressIndicator.ShowSpinner(assumeYes)
+	i.progressIndicator.Start(msg)
 
-	for _, r := range recipes {
-		if utils.StringInSlice(r.DisplayName, selected) || r.Name == types.InfraAgentRecipeName {
-			selectedRecipes = append(selectedRecipes, r)
-		} else {
-			unselectedRecipes = append(unselectedRecipes, r)
-		}
-	}
+	for {
+		select {
+		case entityGUID := <-successChan:
+			i.progressIndicator.Success("Installing " + r.DisplayName)
 
-	return selectedRecipes, unselectedRecipes, nil
-}
-
-func logRecipes(recipes []types.OpenInstallationRecipe) {
-	for _, r := range recipes {
-		log.Debugf("%s", r.ToShortDisplayString())
-	}
-}
-
-func findRecipeInRecipes(name string, recipes []types.OpenInstallationRecipe) *types.OpenInstallationRecipe {
-	for _, r := range recipes {
-		if r.Name == name {
-			return &r
-		}
-	}
-
-	return nil
-}
-
-// This is a naive implementation that only resolves dependencies one level deep.
-func resolveDependencies(recipes []types.OpenInstallationRecipe, recipesForPlatform []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	var results []types.OpenInstallationRecipe
-
-	for _, r := range recipes {
-		if len(r.Dependencies) > 0 {
-			for _, n := range r.Dependencies {
-				d := findRecipeInRecipes(n, recipesForPlatform)
-				if d != nil {
-					results = append(results, *d)
-				}
+			return entityGUID, nil
+		case err := <-errorChan:
+			if errors.Is(err, types.ErrInterrupt) {
+				i.progressIndicator.Canceled("Installing " + r.DisplayName)
+			} else {
+				i.progressIndicator.Fail("Installing " + r.DisplayName)
 			}
+			log.Debugf("install error encountered: %s", err)
+			return "", err
 		}
 	}
-
-	return results
-}
-
-// This is a naive implementation that only resolves dependencies one level deep.
-func addIfMissing(recipes []types.OpenInstallationRecipe, dependencies []types.OpenInstallationRecipe) []types.OpenInstallationRecipe {
-	var results []types.OpenInstallationRecipe
-
-	for _, d := range dependencies {
-		if found := findRecipeInRecipes(d.Name, results); found == nil {
-			results = append(results, d)
-		}
-	}
-
-	for _, r := range recipes {
-		if found := findRecipeInRecipes(r.Name, results); found == nil {
-			results = append(results, r)
-		}
-	}
-
-	return results
 }
 
 func checkNetwork(nrClient *newrelic.NewRelic) {

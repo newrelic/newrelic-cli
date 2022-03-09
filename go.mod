@@ -3,7 +3,7 @@ module github.com/newrelic/newrelic-cli
 go 1.16
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.2.14
+	github.com/AlecAivazis/survey/v2 v2.3.2
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/briandowns/spinner v1.15.0
@@ -27,8 +27,9 @@ require (
 	github.com/tidwall/gjson v1.12.1
 	github.com/tidwall/sjson v1.2.4
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
-	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
 	golang.org/x/term v0.0.0-20210916214954-140adaaadfaf
+	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.4.3

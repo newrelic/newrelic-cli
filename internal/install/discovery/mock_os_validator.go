@@ -2,7 +2,9 @@ package discovery
 
 import "github.com/newrelic/newrelic-cli/internal/install/types"
 
-type MockOsValidator struct{}
+type MockOsValidator struct {
+	Error error
+}
 
 func NewMockOsValidator() *MockOsValidator {
 	validator := MockOsValidator{}
@@ -10,5 +12,5 @@ func NewMockOsValidator() *MockOsValidator {
 }
 
 func (v *MockOsValidator) Validate(m *types.DiscoveryManifest) error {
-	return nil
+	return v.Error
 }

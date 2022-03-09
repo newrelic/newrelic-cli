@@ -19,5 +19,5 @@ func (m *MockRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallati
 }
 
 func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
-	return nil
+	return m.ExecuteErr
 }

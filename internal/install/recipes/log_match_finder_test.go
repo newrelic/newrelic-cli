@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package discovery
+package recipes
 
 import (
 	"context"
@@ -15,7 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestGlobFileFilter(t *testing.T) {
+func TestLogMatchFinder(t *testing.T) {
 	// Create a temp directory to work with
 	tmpDir, err := ioutil.TempDir("/tmp", "logfiles")
 	require.NoError(t, err)
@@ -34,7 +34,7 @@ func TestGlobFileFilter(t *testing.T) {
 	require.NoError(t, err)
 	defer f3.Close()
 
-	recipes := []types.OpenInstallationRecipe{
+	recipes := []*types.OpenInstallationRecipe{
 		{
 			ID: "test",
 			LogMatch: []types.OpenInstallationLogMatch{
@@ -53,8 +53,8 @@ func TestGlobFileFilter(t *testing.T) {
 		},
 	}
 
-	f := NewGlobFileFilterer()
-	filtered, err := f.Filter(context.Background(), recipes)
+	f := NewLogMatchFinder()
+	filtered := f.GetPaths(context.Background(), recipes)
 
 	require.NoError(t, err)
 	require.NotNil(t, filtered)
@@ -62,7 +62,7 @@ func TestGlobFileFilter(t *testing.T) {
 	require.Equal(t, 1, len(filtered))
 }
 
-func TestMatchLogFilesFromRecipe(t *testing.T) {
+func TestLogMatchFinderFromRecipe(t *testing.T) {
 
 	// Create a temp directory to work with
 	tmpDir, err := ioutil.TempDir("/tmp", "logfiles")

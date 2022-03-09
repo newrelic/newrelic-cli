@@ -6,4 +6,5 @@ type ProgressIndicator interface {
 	Success(string)
 	Start(string)
 	Stop()
+	ShowSpinner(bool)
 }
