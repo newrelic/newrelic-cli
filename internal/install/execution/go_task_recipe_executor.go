@@ -24,11 +24,9 @@ import (
 // GoTaskRecipeExecutor is an implementation of the recipeExecutor interface that
 // uses the go-task module to execute the steps defined in each recipe.
 type GoTaskRecipeExecutor struct {
-	Stderr        io.Writer
-	Stdin         io.Reader
-	Stdout        io.Writer
-	OutputCapture *LineCaptureBuffer
-	ErrorCapture  *LineCaptureBuffer
+	Stderr io.Writer
+	Stdin  io.Reader
+	Stdout io.Writer
 }
 
 // NewGoTaskRecipeExecutor returns a new instance of GoTaskRecipeExecutor.
@@ -143,7 +141,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 		// Catchall error formatting for child process errors
 		if strings.Contains(err.Error(), "exit status") {
-			lastStderr := re.ErrorCapture.LastFullLine
+			lastStderr := stderrCapture.LastFullLine
 
 			return types.NewNonZeroExitCode(goTaskError, lastStderr)
 		}
