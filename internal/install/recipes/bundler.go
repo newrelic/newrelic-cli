@@ -110,7 +110,13 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 				dr := b.getBundleRecipeWithDependencies(r, visited)
 				if dr != nil {
 					bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+				} else {
+					log.Debugf("Could not bundle recipe: %s, bundling failed for dependency: %s", recipe.Name, d)
+					return nil
 				}
+			} else {
+				log.Debugf("Could not bundle recipe: %s, dependency not available: %s", recipe.Name, d)
+				return nil
 			}
 		}
 	}
