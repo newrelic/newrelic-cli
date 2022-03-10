@@ -66,16 +66,6 @@ func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallatio
 	return nil
 }
 
-func (rf *RecipeRepository) FindUnfilteredRecipeByName(name string) *types.OpenInstallationRecipe {
-	for _, r := range rf.loadedRecipes {
-		if strings.EqualFold(r.Name, name) {
-			log.Debugf("Found recipe name %v", r.Name)
-			return r
-		}
-	}
-	return nil
-}
-
 func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallationRecipe) []*types.OpenInstallationRecipe {
 
 	results := []*types.OpenInstallationRecipe{}
