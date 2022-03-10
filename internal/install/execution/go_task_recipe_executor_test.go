@@ -32,7 +32,7 @@ tasks:
 	e.Stdout = b
 	err := e.Execute(context.Background(), r, v)
 	require.NoError(t, err)
-	// require.Equal(t, "testValue\n", b.String())
+	require.Equal(t, "testValue\n", b.String())
 }
 
 func TestExecute_HandleRecipeLastError(t *testing.T) {
