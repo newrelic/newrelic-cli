@@ -60,17 +60,11 @@ var Command = &cobra.Command{
 
 			// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
 			// we need to output something to user to sinc we probably haven't displayed anything yet.
-			if _, ok := err.(*types.UncaughtError); ok {
-				fmt.Print(fallbackErrorMsg)
-				fmt.Printf("\nFor more information about about what happened, rerun the command using the --debug flag.\n")
-				fmt.Print("\n  newrelic install --debug \n\n")
-				fmt.Print(fallbackHelpMsg)
-			} else {
-				log.Debug(fallbackErrorMsg)
-				log.Debug(fallbackHelpMsg)
-			}
-
+			fmt.Println(fallbackErrorMsg)
+			fmt.Println(fallbackHelpMsg)
 			fmt.Print("\n\n")
+
+			log.Debug(fallbackErrorMsg)
 		}
 	},
 }

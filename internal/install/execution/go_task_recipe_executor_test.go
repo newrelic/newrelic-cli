@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package execution
 
 import (
@@ -36,4 +33,27 @@ tasks:
 	err := e.Execute(context.Background(), r, v)
 	require.NoError(t, err)
 	require.Equal(t, "testValue\n", b.String())
+}
+
+func TestExecute_HandleRecipeLastError(t *testing.T) {
+	v := types.RecipeVars{
+		"TEST_VAR": "testValue",
+	}
+	r := types.OpenInstallationRecipe{
+		Name: "test-recipe",
+		Install: `
+version: '3'
+tasks:
+  default:
+     cmds:
+       - |
+         echo {{.TEST_VAR}} >&2
+         exit 1
+`,
+	}
+
+	e := NewGoTaskRecipeExecutor()
+	err := e.Execute(context.Background(), r, v)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "testValue")
 }
