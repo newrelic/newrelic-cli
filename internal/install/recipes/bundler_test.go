@@ -138,17 +138,22 @@ func TestCreateCoreBundleShouldIncludeDependencies(t *testing.T) {
 
 }
 
-func TestCreateCoreBundleShouldNotIncludeInvalidDependencies(t *testing.T) {
+func TestCreateCoreBundleShouldNotIncludeRecipeWithInvalidDependencies(t *testing.T) {
 	setup()
 	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
-	addRecipeToCache("id2", "dep1")
-	addRecipeToCache("id3", "dep2")
+	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep1", "dep2"})
+	addRecipeToCache("id3", "dep1")
+	addRecipeToCache("id4", "dep2")
 	bundler := createTestBundler()
+
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE)
 
 	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 1, len(coreBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.Nil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 	require.Nil(t, findRecipeByName(coreBundle, "dep2"))
 	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep1"))
@@ -178,7 +183,7 @@ func TestCreateAdditionalGuidedBundleShouldNotBundleRecipesThatHaveNullStatus(t 
 	require.Nil(t, findRecipeByName(coreBundle, "mysql"))
 }
 
-func TestCreateCoreBundleShouldNotBundleDependencyWhenNotDetected(t *testing.T) {
+func TestCreateCoreBundleShouldNotBundleDependencyOrRecipeWhenNotDetected(t *testing.T) {
 	setup()
 	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
 	addRecipeToCache("id3", "dep1")
@@ -187,8 +192,8 @@ func TestCreateCoreBundleShouldNotBundleDependencyWhenNotDetected(t *testing.T) 
 
 	coreBundle := bundler.CreateCoreBundle()
 
-	require.Equal(t, 1, len(coreBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.Equal(t, 0, len(coreBundle.BundleRecipes))
+	require.Nil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 }
 func TestNewBundlerShouldCreate(t *testing.T) {
