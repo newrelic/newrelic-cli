@@ -60,33 +60,24 @@ func TestBundleRecipeHasStatusReturnsFalse(t *testing.T) {
 }
 
 func TestAllDependenciesAvailable_Happy(t *testing.T) {
-	depRecipe1 := testBundleRecipe()
-	depRecipe1.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
-	depRecipe2 := testBundleRecipe()
-	depRecipe2.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
-	recipe := testBundleRecipe()
-	recipe.Dependencies = append(recipe.Dependencies, depRecipe1, depRecipe2)
+	recipe := NewRecipeBuilder().DependencyBuilder(NewRecipeBuilder().Name("dep1")).DependencyBuilder(NewRecipeBuilder().Name("dep2")).BuildBundleRecipe()
+	recipe.Dependencies[0].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	recipe.Dependencies[1].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
 
 	require.True(t, recipe.AreAllDependenciesAvailable())
 }
 
 func TestAllDependenciesAvailable_OneDepNotAvailable(t *testing.T) {
-	depRecipe1 := testBundleRecipe()
-	depRecipe1.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
-	depRecipe2 := testBundleRecipe()
-	recipe := testBundleRecipe()
-	recipe.Dependencies = append(recipe.Dependencies, depRecipe1, depRecipe2)
+	recipe := NewRecipeBuilder().DependencyBuilder(NewRecipeBuilder().Name("dep1")).DependencyBuilder(NewRecipeBuilder().Name("dep2")).BuildBundleRecipe()
+	recipe.Dependencies[0].AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
 
 	require.False(t, recipe.AreAllDependenciesAvailable())
 }
 
 func TestAllDependenciesAvailable_AllDepNotAvailable(t *testing.T) {
-	depRecipe1 := testBundleRecipe()
-	depRecipe1.AddDetectionStatus(execution.RecipeStatusTypes.UNSUPPORTED, 0)
-	depRecipe2 := testBundleRecipe()
-	depRecipe2.AddDetectionStatus(execution.RecipeStatusTypes.DETECTED, 0)
-	recipe := testBundleRecipe()
-	recipe.Dependencies = append(recipe.Dependencies, depRecipe1, depRecipe2)
+	recipe := NewRecipeBuilder().DependencyBuilder(NewRecipeBuilder().Name("dep1")).DependencyBuilder(NewRecipeBuilder().Name("dep2")).BuildBundleRecipe()
+	recipe.Dependencies[0].AddDetectionStatus(execution.RecipeStatusTypes.UNSUPPORTED, 0)
+	recipe.Dependencies[1].AddDetectionStatus(execution.RecipeStatusTypes.DETECTED, 0)
 
 	require.False(t, recipe.AreAllDependenciesAvailable())
 }

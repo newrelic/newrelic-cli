@@ -14,6 +14,7 @@ type RecipeBuilder struct {
 	processMatches      []string
 	targets             []types.OpenInstallationRecipeInstallTarget
 	vars                map[string]string
+	dependencyBuilders  []*RecipeBuilder
 }
 
 func NewRecipeBuilder() *RecipeBuilder {
@@ -97,6 +98,11 @@ tasks:
 	return b.InstallGoTaskScript(goTaskWrap)
 }
 
+func (b *RecipeBuilder) DependencyBuilder(dependencyBuilder *RecipeBuilder) *RecipeBuilder {
+	b.dependencyBuilders = append(b.dependencyBuilders, dependencyBuilder)
+	return b
+}
+
 func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   b.id,
@@ -111,5 +117,21 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 	}
 	r.ProcessMatch = append(r.ProcessMatch, b.processMatches...)
 	r.InstallTargets = append(r.InstallTargets, b.targets...)
+	for _, dependencyBuilder := range b.dependencyBuilders {
+		dep := dependencyBuilder.Build()
+		r.Dependencies = append(r.Dependencies, dep.Name)
+	}
 	return r
+}
+
+func (b *RecipeBuilder) BuildBundleRecipe() *BundleRecipe {
+	r := b.Build()
+	br := &BundleRecipe{
+		Recipe: r,
+	}
+	for _, dependencyBuilder := range b.dependencyBuilders {
+		dep := dependencyBuilder.BuildBundleRecipe()
+		br.Dependencies = append(br.Dependencies, dep)
+	}
+	return br
 }
