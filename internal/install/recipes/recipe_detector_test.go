@@ -163,6 +163,6 @@ func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator
 	return &RecipeDetector{
 		processEvaluator: processEvaluator,
 		scriptEvaluator:  scriptEvaluator,
-		recipeEvaluated:  make(map[string]bool),
+		recipeEvaluated:  make(map[string][]*DetectedStatusType),
 	}
 }
