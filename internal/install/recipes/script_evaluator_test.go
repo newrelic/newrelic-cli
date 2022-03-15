@@ -49,3 +49,12 @@ func GivenScriptEvaluatorError(detail string) *ScriptEvaluator {
 	recipeExecutor.ExecuteErr = fmt.Errorf(detail)
 	return newScriptEvaluator(recipeExecutor)
 }
+
+func TestScriptEvaluatorShouldBeUnSupported(t *testing.T) {
+	recipe := NewRecipeBuilder().Build()
+
+	evaluator := GivenScriptEvaluatorError("This is the specific message with exit status 131 un-support case")
+	status := evaluator.DetectionStatus(context.Background(), recipe)
+
+	require.Equal(t, execution.RecipeStatusTypes.UNSUPPORTED, status)
+}

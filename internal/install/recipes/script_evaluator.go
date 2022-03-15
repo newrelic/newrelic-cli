@@ -32,6 +32,10 @@ func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIns
 			return execution.RecipeStatusTypes.DETECTED
 		}
 
+		if utils.IsExitStatusCode(131, err) {
+			return execution.RecipeStatusTypes.UNSUPPORTED
+		}
+
 		return execution.RecipeStatusTypes.NULL
 	}
 
