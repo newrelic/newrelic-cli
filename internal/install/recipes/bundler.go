@@ -99,7 +99,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 
 	//this is the parent
 	b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
-	if bundleRecipe.HasStatus(execution.RecipeStatusTypes.NULL) {
+	if !bundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
 		return nil
 	}
 
