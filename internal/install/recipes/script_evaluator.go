@@ -26,7 +26,7 @@ func newScriptEvaluator(executor execution.RecipeExecutor) *ScriptEvaluator {
 
 func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType {
 	if err := se.executor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
-		log.Tracef("recipe %s failed script evaluation %s", r.Name, err)
+		log.Debugf("recipe %s failed script evaluation %s", r.Name, err)
 
 		if utils.IsExitStatusCode(132, err) {
 			return execution.RecipeStatusTypes.DETECTED
