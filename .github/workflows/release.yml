@@ -86,7 +86,7 @@ jobs:
 
           make release-publish
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: windows-binary
           path: dist/newrelic_windows_amd64/newrelic.exe
