@@ -41,6 +41,15 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
+func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
+	for _, ds := range br.Dependencies {
+		if !ds.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+			return false
+		}
+	}
+	return true
+}
+
 func (ds *DetectedStatusType) String() string {
 	result := string(ds.Status)
 	if ds.DurationMs > 0 {

@@ -42,8 +42,12 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 		dt.detectBundleRecipe(ctx, dependencyBundleRecipe)
 	}
 
-	status, durationMs := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-	bundleRecipe.AddDetectionStatus(status, durationMs)
+	if bundleRecipe.AreAllDependenciesAvailable() {
+		status, durationMs := dt.detectRecipe(ctx, bundleRecipe.Recipe)
+		bundleRecipe.AddDetectionStatus(status, durationMs)
+	} else {
+		log.Debugf("Dependency not available for recipe %v", bundleRecipe.Recipe.Name)
+	}
 }
 
 func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) (execution.RecipeStatusType, int64) {
