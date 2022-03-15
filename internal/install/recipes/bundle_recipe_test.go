@@ -59,6 +59,44 @@ func TestBundleRecipeHasStatusReturnsFalse(t *testing.T) {
 	require.False(t, br.HasStatus(execution.RecipeStatusTypes.DETECTED))
 }
 
+func TestAllDependenciesAvailable_Happy(t *testing.T) {
+	depRecipe1 := testBundleRecipe()
+	depRecipe1.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	depRecipe2 := testBundleRecipe()
+	depRecipe2.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	recipe := testBundleRecipe()
+	recipe.Dependencies = append(recipe.Dependencies, depRecipe1, depRecipe2)
+
+	require.True(t, recipe.AreAllDependenciesAvailable())
+}
+
+func TestAllDependenciesAvailable_OneDepNotAvailable(t *testing.T) {
+	depRecipe1 := testBundleRecipe()
+	depRecipe1.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	depRecipe2 := testBundleRecipe()
+	recipe := testBundleRecipe()
+	recipe.Dependencies = append(recipe.Dependencies, depRecipe1, depRecipe2)
+
+	require.False(t, recipe.AreAllDependenciesAvailable())
+}
+
+func TestAllDependenciesAvailable_AllDepNotAvailable(t *testing.T) {
+	depRecipe1 := testBundleRecipe()
+	depRecipe1.AddDetectionStatus(execution.RecipeStatusTypes.UNSUPPORTED, 0)
+	depRecipe2 := testBundleRecipe()
+	depRecipe2.AddDetectionStatus(execution.RecipeStatusTypes.DETECTED, 0)
+	recipe := testBundleRecipe()
+	recipe.Dependencies = append(recipe.Dependencies, depRecipe1, depRecipe2)
+
+	require.False(t, recipe.AreAllDependenciesAvailable())
+}
+
+func TestAllDependenciesAvailable_NoDep(t *testing.T) {
+	recipe := testBundleRecipe()
+
+	require.True(t, recipe.AreAllDependenciesAvailable())
+}
+
 func testBundleRecipe() *BundleRecipe {
 	return &BundleRecipe{
 		Recipe: NewRecipeBuilder().Build(),
