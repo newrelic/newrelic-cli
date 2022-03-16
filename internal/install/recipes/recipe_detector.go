@@ -17,24 +17,24 @@ type DetectionStatusProvider interface {
 type RecipeDetector struct {
 	processEvaluator DetectionStatusProvider
 	scriptEvaluator  DetectionStatusProvider
-	recipeEvaluated  map[string][]*DetectedStatusType // same recipe(ref) should only be evaluated one time
+	recipeEvaluated  map[string]bool // same recipe(ref) should only be evaluated one time
 }
 
 func NewRecipeDetector() *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: NewProcessEvaluator(),
 		scriptEvaluator:  NewScriptEvaluator(),
-		recipeEvaluated:  make(map[string][]*DetectedStatusType),
+		recipeEvaluated:  make(map[string]bool),
 	}
 }
 
 func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {
-
 	// if already evaluated
-	if s, exists := dt.recipeEvaluated[bundleRecipe.Recipe.Name]; exists {
-		bundleRecipe.DetectedStatuses = s
+	if _, exists := dt.recipeEvaluated[bundleRecipe.Recipe.Name]; exists {
 		return
 	}
+	dt.recipeEvaluated[bundleRecipe.Recipe.Name] = true
+
 	for i := 0; i < len(bundleRecipe.Dependencies); i++ {
 		dependencyBundleRecipe := bundleRecipe.Dependencies[i]
 		dt.detectBundleRecipe(ctx, dependencyBundleRecipe)
@@ -46,7 +46,6 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 	} else {
 		log.Debugf("Dependency not available for recipe %v", bundleRecipe.Recipe.Name)
 	}
-	dt.recipeEvaluated[bundleRecipe.Recipe.Name] = bundleRecipe.DetectedStatuses
 }
 
 func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) (execution.RecipeStatusType, int64) {

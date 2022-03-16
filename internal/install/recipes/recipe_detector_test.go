@@ -80,7 +80,8 @@ func TestDetectBundleRecipe_NoDependency_Available(t *testing.T) {
 
 func TestDetectBundleRecipe_SingleDependencyNotAvailable(t *testing.T) {
 	b := NewRecipeDetectorTestBuilder()
-	br := NewRecipeBuilder().Name("r1").DependencyBuilder(NewRecipeBuilder().Name("dep1")).BuildBundleRecipe()
+	dep1 := NewRecipeBuilder().Name("dep1").BuildBundleRecipe()
+	br := NewRecipeBuilder().Name("r1").Dependency(dep1).BuildBundleRecipe()
 	b.WithProcessEvaluatorRecipeStatus(br.Recipe, execution.RecipeStatusTypes.AVAILABLE)
 	b.WithProcessEvaluatorRecipeStatus(br.Dependencies[0].Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
 	detector := b.Build()
@@ -92,10 +93,8 @@ func TestDetectBundleRecipe_SingleDependencyNotAvailable(t *testing.T) {
 
 func TestDetectBundleRecipe_TwoDependencyAndDepUnsupported(t *testing.T) {
 	b := NewRecipeDetectorTestBuilder()
-	infra := NewRecipeBuilder().Name("infra")
-	log := NewRecipeBuilder().Name("log").DependencyBuilder(infra)
-	infraBundleRecipe := infra.BuildBundleRecipe()
-	logBundleRecipe := log.BuildBundleRecipe()
+	infraBundleRecipe := NewRecipeBuilder().Name("infra").BuildBundleRecipe()
+	logBundleRecipe := NewRecipeBuilder().Name("log").Dependency(infraBundleRecipe).BuildBundleRecipe()
 	b.WithProcessEvaluatorRecipeStatus(logBundleRecipe.Recipe, execution.RecipeStatusTypes.AVAILABLE)
 	b.WithProcessEvaluatorRecipeStatus(infraBundleRecipe.Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
 	detector := b.Build()
@@ -109,10 +108,8 @@ func TestDetectBundleRecipe_TwoDependencyAndDepUnsupported(t *testing.T) {
 
 func TestDetectBundleRecipe_ParentShouldEvaluateDependency_Unsupported(t *testing.T) {
 	b := NewRecipeDetectorTestBuilder()
-	infra := NewRecipeBuilder().Name("infra")
-	log := NewRecipeBuilder().Name("log").DependencyBuilder(infra)
-	infraBundleRecipe := infra.BuildBundleRecipe()
-	logBundleRecipe := log.BuildBundleRecipe()
+	infraBundleRecipe := NewRecipeBuilder().Name("infra").BuildBundleRecipe()
+	logBundleRecipe := NewRecipeBuilder().Name("log").Dependency(infraBundleRecipe).BuildBundleRecipe()
 	b.WithProcessEvaluatorRecipeStatus(logBundleRecipe.Recipe, execution.RecipeStatusTypes.AVAILABLE)
 	b.WithProcessEvaluatorRecipeStatus(infraBundleRecipe.Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
 	detector := b.Build()
@@ -163,6 +160,6 @@ func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator
 	return &RecipeDetector{
 		processEvaluator: processEvaluator,
 		scriptEvaluator:  scriptEvaluator,
-		recipeEvaluated:  make(map[string][]*DetectedStatusType),
+		recipeEvaluated:  make(map[string]bool),
 	}
 }

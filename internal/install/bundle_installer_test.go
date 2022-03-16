@@ -84,6 +84,20 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
 
+func TestInstallStopsOnError_OnlyInstallAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+
+	test.addRecipeToBundle("recipe1", execution.RecipeStatusTypes.AVAILABLE)
+	test.addRecipeToBundle("recipe2", execution.RecipeStatusTypes.DETECTED)
+
+	err := test.BundleInstaller.InstallStopOnError(test.bundle, true)
+	assert.NoError(t, err)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+	assert.True(t, test.BundleInstaller.installedRecipes["recipe1"])
+	assert.False(t, test.BundleInstaller.installedRecipes["recipe2"])
+}
+
 func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T) {
 	test := createBundleInstallerTest().withRecipeInstallerSuccess()
 
