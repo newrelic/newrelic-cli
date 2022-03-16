@@ -41,6 +41,17 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
+func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
+	for _, ds := range br.Dependencies {
+		if !ds.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+			return false
+		}
+	}
+
+	// if len is less here, we know some dependency we were not able to find in repo, hence fail
+	return len(br.Dependencies) >= len(br.Recipe.Dependencies)
+}
+
 func (ds *DetectedStatusType) String() string {
 	result := string(ds.Status)
 	if ds.DurationMs > 0 {
