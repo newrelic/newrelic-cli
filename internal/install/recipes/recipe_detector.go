@@ -35,9 +35,8 @@ func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *
 	}
 	dt.recipeEvaluated[bundleRecipe.Recipe.Name] = true
 
-	for i := 0; i < len(bundleRecipe.Dependencies); i++ {
-		dependencyBundleRecipe := bundleRecipe.Dependencies[i]
-		dt.detectBundleRecipe(ctx, dependencyBundleRecipe)
+	for _, dep := range bundleRecipe.Dependencies {
+		dt.detectBundleRecipe(ctx, dep)
 	}
 
 	if bundleRecipe.AreAllDependenciesAvailable() {
