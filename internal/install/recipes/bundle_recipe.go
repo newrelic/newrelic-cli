@@ -47,7 +47,9 @@ func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
 			return false
 		}
 	}
-	return true
+
+	// if len is less here, we know some dependency we were not able to find in repo, hence fail
+	return len(br.Dependencies) >= len(br.Recipe.Dependencies)
 }
 
 func (ds *DetectedStatusType) String() string {
