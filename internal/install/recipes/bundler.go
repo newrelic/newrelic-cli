@@ -3,8 +3,6 @@ package recipes
 import (
 	"context"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -16,16 +14,18 @@ var coreRecipeMap = map[string]bool{
 }
 
 type Bundler struct {
-	RecipeRepository *RecipeRepository
-	RecipeDetector   *RecipeDetector
-	Context          context.Context
+	RecipeRepository    *RecipeRepository
+	RecipeDetector      *RecipeDetector
+	Context             context.Context
+	cachedBundleRecipes map[string]*BundleRecipe
 }
 
 func NewBundler(context context.Context, rr *RecipeRepository) *Bundler {
 	return &Bundler{
-		Context:          context,
-		RecipeRepository: rr,
-		RecipeDetector:   NewRecipeDetector(),
+		Context:             context,
+		RecipeRepository:    rr,
+		RecipeDetector:      NewRecipeDetector(),
+		cachedBundleRecipes: make(map[string]*BundleRecipe),
 	}
 }
 
@@ -79,10 +79,9 @@ func (b *Bundler) createBundle(recipes []*types.OpenInstallationRecipe, bType Bu
 
 	for _, r := range recipes {
 		// recipe shouldn't have itself as dependency
-		visited := map[string]bool{r.Name: true}
-		bundleRecipe := b.getBundleRecipeWithDependencies(r, visited)
-
+		bundleRecipe := b.getBundleRecipeWithDependencies(r)
 		if bundleRecipe != nil {
+			b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
 			log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 			bundle.AddRecipe(bundleRecipe)
 		}
@@ -91,34 +90,31 @@ func (b *Bundler) createBundle(recipes []*types.OpenInstallationRecipe, bType Bu
 	return bundle
 }
 
-func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe, visited map[string]bool) *BundleRecipe {
+func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe) *BundleRecipe {
+	if br, ok := b.cachedBundleRecipes[recipe.Name]; ok {
+		return br
+	}
 
 	bundleRecipe := &BundleRecipe{
 		Recipe: recipe,
 	}
-
-	//this is the parent
-	b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
-	if bundleRecipe.HasStatus(execution.RecipeStatusTypes.NULL) {
-		return nil
-	}
+	b.cachedBundleRecipes[recipe.Name] = bundleRecipe
 
 	for _, d := range recipe.Dependencies {
-		if !visited[d] {
-			visited[d] = true
-			if r := b.RecipeRepository.FindRecipeByName(d); r != nil {
-				dr := b.getBundleRecipeWithDependencies(r, visited)
-				if dr != nil {
-					bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
-				} else {
-					log.Debugf("Could not bundle recipe: %s, bundling failed for dependency: %s", recipe.Name, d)
-					return nil
-				}
+		if r := b.RecipeRepository.FindRecipeByName(d); r != nil {
+			dr := b.getBundleRecipeWithDependencies(r)
+			if dr != nil {
+				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+				continue
 			} else {
-				log.Debugf("Could not bundle recipe: %s, dependency not available: %s", recipe.Name, d)
-				return nil
+				log.Debugf("dependent bundle recipe %s not found, skipping recipe %s", d, recipe.Name)
 			}
+		} else {
+			log.Debugf("dependent recipe %s not found, skipping recipe %s", d, recipe.Name)
 		}
+		// A dependency is missing, invalidating the bundle recipe
+		b.cachedBundleRecipes[recipe.Name] = nil
+		return nil
 	}
 
 	return bundleRecipe

@@ -45,7 +45,12 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 
 	bi.reportBundleStatus(bundle)
 
-	for _, br := range bundle.BundleRecipes {
+	installableBundleRecipes := bi.getInstallableBundleRecipes(bundle)
+	if len(installableBundleRecipes) == 0 {
+		return nil
+	}
+
+	for _, br := range installableBundleRecipes {
 		err := bi.InstallBundleRecipe(br, assumeYes)
 
 		if err != nil {

@@ -84,6 +84,20 @@ func TestInstallStopsOnErrorActuallyErrors(t *testing.T) {
 	assert.Equal(t, expectedError.Error(), actualError.Error())
 }
 
+func TestInstallStopsOnError_OnlyInstallAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+
+	test.addRecipeToBundle("recipe1", execution.RecipeStatusTypes.AVAILABLE)
+	test.addRecipeToBundle("recipe2", execution.RecipeStatusTypes.DETECTED)
+
+	err := test.BundleInstaller.InstallStopOnError(test.bundle, true)
+	assert.NoError(t, err)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+	assert.True(t, test.BundleInstaller.installedRecipes["recipe1"])
+	assert.False(t, test.BundleInstaller.installedRecipes["recipe2"])
+}
+
 func TestInstallContinueOnErrorOnlyInstallsAvailableRecipesInBundle(t *testing.T) {
 	test := createBundleInstallerTest().withRecipeInstallerSuccess()
 
@@ -130,6 +144,82 @@ func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T)
 	assert.True(t, test.bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.AVAILABLE))
 	assert.True(t, test.bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.DETECTED))
 	assert.Equal(t, 2, len(test.bundle.BundleRecipes[0].DetectedStatuses))
+}
+
+func TestInstallShouldnotInstallAnyWhenParentRecipeNotAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+
+	d := &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name("x").Build(),
+	}
+	d.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	bt := test.addRecipeToBundle("recipe2", "")
+	bt.bundle.BundleRecipes[0].Dependencies = append(bt.bundle.BundleRecipes[0].Dependencies, d)
+
+	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	assert.False(t, test.BundleInstaller.installedRecipes["recipe2"])
+	assert.False(t, test.BundleInstaller.installedRecipes["x"])
+}
+
+func TestInstallShouldInstallWithDependencyWhenAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+
+	d := &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name("x").Build(),
+	}
+	d.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	bt := test.addRecipeToBundle("recipe2", execution.RecipeStatusTypes.AVAILABLE)
+	bt.bundle.BundleRecipes[0].Dependencies = append(bt.bundle.BundleRecipes[0].Dependencies, d)
+
+	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 2)
+	assert.True(t, test.BundleInstaller.installedRecipes["recipe2"])
+	assert.True(t, test.BundleInstaller.installedRecipes["x"])
+}
+
+func TestInstallShouldnotInstallAnyWhenAlleNotAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+
+	d := &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name("x").Build(),
+	}
+	d.AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
+	bt := test.addRecipeToBundle("recipe2", "")
+	bt.bundle.BundleRecipes[0].Dependencies = append(bt.bundle.BundleRecipes[0].Dependencies, d)
+
+	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	assert.False(t, test.BundleInstaller.installedRecipes["recipe2"])
+	assert.False(t, test.BundleInstaller.installedRecipes["x"])
+}
+
+func TestInstallShouldnotInstallAnyWhenDependenciesNotAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+
+	d := &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name("d").Build(),
+	}
+	d.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	d2 := &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name("d2").Build(),
+	}
+	d2.AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
+
+	bt := test.addRecipeToBundle("recipe2", "")
+	bt.bundle.BundleRecipes[0].Dependencies = append(bt.bundle.BundleRecipes[0].Dependencies, d)
+	bt.bundle.BundleRecipes[0].Dependencies = append(bt.bundle.BundleRecipes[0].Dependencies, d2)
+
+	err := test.BundleInstaller.InstallStopOnError(test.bundle, true)
+
+	assert.NoError(t, err)
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	assert.False(t, test.BundleInstaller.installedRecipes["recipe2"])
+	assert.False(t, test.BundleInstaller.installedRecipes["d"])
+	assert.False(t, test.BundleInstaller.installedRecipes["d2"])
 }
 
 type BundleInstallerTest struct {

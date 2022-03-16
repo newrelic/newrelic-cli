@@ -357,13 +357,23 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 
 func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
 	for _, recipeName := range i.RecipeNames {
-		if !bundle.ContainsName(recipeName) {
+
+		br := bundle.GetBundleRecipe(recipeName)
+		if br == nil {
 			recipe := repo.FindRecipeByName(recipeName)
 			if recipe == nil {
 				recipe = &types.OpenInstallationRecipe{Name: recipeName, DisplayName: recipeName}
 			}
 			unsupportedEvent := execution.NewRecipeStatusEvent(recipe)
 			i.status.RecipeUnsupported(unsupportedEvent)
+		} else {
+			if !br.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+				ds := &recipes.DetectedStatusType{
+					Status:     execution.RecipeStatusTypes.UNSUPPORTED,
+					DurationMs: 0,
+				}
+				br.DetectedStatuses = append(br.DetectedStatuses, ds)
+			}
 		}
 	}
 }
