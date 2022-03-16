@@ -6,10 +6,9 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/stretchr/testify/require"
 
 	"strings"
-
-	"github.com/stretchr/testify/require"
 )
 
 type mockDetector struct {
