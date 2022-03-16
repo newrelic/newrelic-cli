@@ -80,10 +80,11 @@ func (b *Bundler) createBundle(recipes []*types.OpenInstallationRecipe, bType Bu
 	for _, r := range recipes {
 		// recipe shouldn't have itself as dependency
 		bundleRecipe := b.getBundleRecipeWithDependencies(r)
-		b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
-
-		log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
-		bundle.AddRecipe(bundleRecipe)
+		if bundleRecipe != nil {
+			b.RecipeDetector.detectBundleRecipe(b.Context, bundleRecipe)
+			log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
+			bundle.AddRecipe(bundleRecipe)
+		}
 	}
 
 	return bundle
@@ -102,10 +103,18 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	for _, d := range recipe.Dependencies {
 		if r := b.RecipeRepository.FindRecipeByName(d); r != nil {
 			dr := b.getBundleRecipeWithDependencies(r)
-			bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+			if dr != nil {
+				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+				continue
+			} else {
+				log.Debugf("dependent bundle recipe %s not found, skipping recipe %s", d, recipe.Name)
+			}
 		} else {
-			log.Warnf("dependent recipe %s not found", d)
+			log.Debugf("dependent recipe %s not found, skipping recipe %s", d, recipe.Name)
 		}
+		// A dependency is missing, invalidating the bundle recipe
+		b.cachedBundleRecipes[recipe.Name] = nil
+		return nil
 	}
 
 	return bundleRecipe

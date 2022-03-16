@@ -3,6 +3,8 @@ package recipes
 import (
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -42,14 +44,28 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 }
 
 func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
+	for _, depName := range br.Recipe.Dependencies {
+		if br.IsNameInDependencies(depName) {
+			continue
+		}
+		log.Debugf("recipe %s is missing a dependency for %s", br.Recipe.Name, depName)
+		return false
+	}
 	for _, ds := range br.Dependencies {
 		if !ds.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
 			return false
 		}
 	}
+	return true
+}
 
-	// if len is less here, we know some dependency we were not able to find in repo, hence fail
-	return len(br.Dependencies) >= len(br.Recipe.Dependencies)
+func (br *BundleRecipe) IsNameInDependencies(depName string) bool {
+	for _, ds := range br.Dependencies {
+		if ds.Recipe.Name == depName {
+			return true
+		}
+	}
+	return false
 }
 
 func (ds *DetectedStatusType) String() string {

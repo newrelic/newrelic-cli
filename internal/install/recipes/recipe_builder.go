@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 type RecipeBuilder struct {
@@ -15,6 +16,7 @@ type RecipeBuilder struct {
 	targets             []types.OpenInstallationRecipeInstallTarget
 	vars                map[string]string
 	dependencies        []*BundleRecipe
+	dependencyNames     []string
 }
 
 func NewRecipeBuilder() *RecipeBuilder {
@@ -103,6 +105,11 @@ func (b *RecipeBuilder) Dependency(dependency *BundleRecipe) *RecipeBuilder {
 	return b
 }
 
+func (b *RecipeBuilder) DependencyName(depName string) *RecipeBuilder {
+	b.dependencyNames = append(b.dependencyNames, depName)
+	return b
+}
+
 func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 	r := &types.OpenInstallationRecipe{
 		ID:   b.id,
@@ -118,7 +125,14 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 	r.ProcessMatch = append(r.ProcessMatch, b.processMatches...)
 	r.InstallTargets = append(r.InstallTargets, b.targets...)
 	for _, dependency := range b.dependencies {
-		r.Dependencies = append(r.Dependencies, dependency.Recipe.Name)
+		if !utils.StringInSlice(dependency.Recipe.Name, r.Dependencies) {
+			r.Dependencies = append(r.Dependencies, dependency.Recipe.Name)
+		}
+	}
+	for _, depName := range b.dependencyNames {
+		if !utils.StringInSlice(depName, r.Dependencies) {
+			r.Dependencies = append(r.Dependencies, depName)
+		}
 	}
 	return r
 }

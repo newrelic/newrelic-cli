@@ -6,9 +6,10 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/stretchr/testify/require"
 
 	"strings"
+
+	"github.com/stretchr/testify/require"
 )
 
 type mockDetector struct {
@@ -120,8 +121,6 @@ func TestCreateCoreBundleShouldIncludeDependencies(t *testing.T) {
 	bundler := createTestBundler()
 	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
 	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -136,14 +135,15 @@ func TestCreateCoreBundleShouldIncludeDependencies(t *testing.T) {
 	require.NotNil(t, findDependencyByName(infraRecipe, "dep2"))
 	require.Nil(t, findDependencyByName(loggingRecipe, "dep1"))
 	require.NotNil(t, findDependencyByName(loggingRecipe, "dep2"))
+
 }
 
 func TestCreateCoreBundleShouldNotIncludeRecipeWithInvalidDependencies(t *testing.T) {
 	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
-	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep1", "dep2"})
 	addRecipeToCache("id3", "dep1")
 	addRecipeToCache("id4", "dep2")
+	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
+	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep1", "dep2"})
 	bundler := createTestBundler()
 
 	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
@@ -151,8 +151,8 @@ func TestCreateCoreBundleShouldNotIncludeRecipeWithInvalidDependencies(t *testin
 
 	coreBundle := bundler.CreateCoreBundle()
 
-	require.Equal(t, 2, len(coreBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.Equal(t, 1, len(coreBundle.BundleRecipes))
+	require.Nil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.NotNil(t, findRecipeByName(coreBundle, types.LoggingRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 	require.Nil(t, findRecipeByName(coreBundle, "dep2"))
@@ -216,10 +216,7 @@ func TestBundleRecipeShouldNotBeAvailableWhenDependencyMissingInRepo(t *testing.
 
 	coreBundle := bundler.CreateCoreBundle()
 
-	bundledRecipe := findRecipeByName(coreBundle, types.InfraAgentRecipeName)
-	require.Equal(t, 1, len(coreBundle.BundleRecipes))
-	require.NotNil(t, bundledRecipe)
-	require.False(t, bundledRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
 func TestBundleRecipeShouldNotBeAvailableWhenRecipeNotAvailable(t *testing.T) {
