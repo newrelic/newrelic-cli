@@ -287,7 +287,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 
 	var additionalBundle *recipes.Bundle
-	fmt.Println("/n/n Install additional bundle")
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
 		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
