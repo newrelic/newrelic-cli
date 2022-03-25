@@ -33,12 +33,12 @@ func (mri *mockRecipeInstaller) discover(ctx context.Context) (*types.DiscoveryM
 	return nil, args.Error(1)
 }
 
-func (mri *mockRecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
+func (mri *mockRecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars, assumeYes bool) (string, error) {
 	args := mri.Called(ctx, m, r, vars)
 	return args.String(0), args.Error(1)
 }
 
-func (mri *mockRecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
+func (mri *mockRecipeInstaller) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars, assumeYes bool) (string, error) {
 	args := mri.Called(ctx, r, m, vars)
 	return args.String(0), args.Error(1)
 }
