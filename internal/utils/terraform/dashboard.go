@@ -12,29 +12,36 @@ import (
 var (
 	dashboardResourceName = "newrelic_one_dashboard"
 	widgetTypes           = map[string]string{
-		"viz.area":      "widget_area",
-		"viz.bar":       "widget_bar",
-		"viz.billboard": "widget_billboard",
-		"viz.bullet":    "widget_bullet",
-		"viz.funnel":    "widget_funnel",
-		"viz.heatmap":   "widget_heatmap",
-		"viz.histogram": "widget_histogram",
-		"viz.json":      "widget_json",
-		"viz.line":      "widget_line",
-		"viz.markdown":  "widget_markdown",
-		"viz.pie":       "widget_pie",
-		"viz.table":     "widget_table",
+		"viz.area":        "widget_area",
+		"viz.bar":         "widget_bar",
+		"viz.billboard":   "widget_billboard",
+		"viz.bullet":      "widget_bullet",
+		"viz.funnel":      "widget_funnel",
+		"viz.heatmap":     "widget_heatmap",
+		"viz.histogram":   "widget_histogram",
+		"viz.json":        "widget_json",
+		"viz.line":        "widget_line",
+		"viz.markdown":    "widget_markdown",
+		"viz.pie":         "widget_pie",
+		"viz.table":       "widget_table",
+		"viz.stacked-bar": "widget_stacked_bar",
 	}
 )
 
 type DashboardWidgetRawConfiguration struct {
-	DataFormatters    []string                   `json:"dataFormatters"`
+	DataFormatters    []DataFormatter            `json:"dataFormatters"`
 	NRQLQueries       []DashboardWidgetNRQLQuery `json:"nrqlQueries"`
 	LinkedEntityGUIDs []string                   `json:"linkedEntityGuids"`
 	Text              string                     `json:"text"`
 	Facet             DashboardWidgetFacet       `json:"facet"`
 	Legend            DashboardWidgetLegend      `json:"legend"`
 	YAxisLeft         DashboardWidgetYAxisLeft   `json:"yAxisLeft"`
+}
+
+type DataFormatter struct {
+	Name      string      `json:"name"`
+	Precision interface{} `json:"precision"`
+	Type      string      `json:"type"`
 }
 
 type DashboardWidgetFacet struct {
