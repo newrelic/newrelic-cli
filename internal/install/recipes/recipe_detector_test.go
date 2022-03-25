@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestRecipeDetectorShouldFailBecauseOfProcessEvaluation(t *testing.T) {
@@ -67,6 +68,58 @@ func TestRecipeDetectorShouldBeAvailableBecauseOfScriptEvaluation(t *testing.T) 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
 }
 
+func TestDetectBundleRecipe_NoDependency_Available(t *testing.T) {
+	b := NewRecipeDetectorTestBuilder()
+	br := NewRecipeBuilder().Name("r1").BuildBundleRecipe()
+	b.WithProcessEvaluatorRecipeStatus(br.Recipe, execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
+
+	detector.detectBundleRecipe(context.Background(), br)
+	require.True(t, br.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+}
+
+func TestDetectBundleRecipe_SingleDependencyNotAvailable(t *testing.T) {
+	b := NewRecipeDetectorTestBuilder()
+	dep1 := NewRecipeBuilder().Name("dep1").BuildBundleRecipe()
+	br := NewRecipeBuilder().Name("r1").Dependency(dep1).BuildBundleRecipe()
+	b.WithProcessEvaluatorRecipeStatus(br.Recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithProcessEvaluatorRecipeStatus(br.Dependencies[0].Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
+	detector := b.Build()
+
+	detector.detectBundleRecipe(context.Background(), br)
+	require.False(t, br.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	require.True(t, br.Dependencies[0].HasStatus(execution.RecipeStatusTypes.UNSUPPORTED))
+}
+
+func TestDetectBundleRecipe_TwoDependencyAndDepUnsupported(t *testing.T) {
+	b := NewRecipeDetectorTestBuilder()
+	infraBundleRecipe := NewRecipeBuilder().Name("infra").BuildBundleRecipe()
+	logBundleRecipe := NewRecipeBuilder().Name("log").Dependency(infraBundleRecipe).BuildBundleRecipe()
+	b.WithProcessEvaluatorRecipeStatus(logBundleRecipe.Recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithProcessEvaluatorRecipeStatus(infraBundleRecipe.Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
+	detector := b.Build()
+
+	detector.detectBundleRecipe(context.Background(), infraBundleRecipe)
+	detector.detectBundleRecipe(context.Background(), logBundleRecipe)
+
+	require.False(t, logBundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	require.True(t, infraBundleRecipe.HasStatus(execution.RecipeStatusTypes.UNSUPPORTED))
+}
+
+func TestDetectBundleRecipe_ParentShouldEvaluateDependency_Unsupported(t *testing.T) {
+	b := NewRecipeDetectorTestBuilder()
+	infraBundleRecipe := NewRecipeBuilder().Name("infra").BuildBundleRecipe()
+	logBundleRecipe := NewRecipeBuilder().Name("log").Dependency(infraBundleRecipe).BuildBundleRecipe()
+	b.WithProcessEvaluatorRecipeStatus(logBundleRecipe.Recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithProcessEvaluatorRecipeStatus(infraBundleRecipe.Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
+	detector := b.Build()
+
+	detector.detectBundleRecipe(context.Background(), logBundleRecipe)
+
+	require.False(t, logBundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	require.True(t, infraBundleRecipe.HasStatus(execution.RecipeStatusTypes.UNSUPPORTED))
+}
+
 type RecipeDetectorTestBuilder struct {
 	processEvaluator *MockRecipeEvaluator
 	scriptEvaluator  *MockRecipeEvaluator
@@ -74,8 +127,8 @@ type RecipeDetectorTestBuilder struct {
 
 func NewRecipeDetectorTestBuilder() *RecipeDetectorTestBuilder {
 	return &RecipeDetectorTestBuilder{
-		processEvaluator: &MockRecipeEvaluator{},
-		scriptEvaluator:  &MockRecipeEvaluator{},
+		processEvaluator: NewMockRecipeEvaluator(),
+		scriptEvaluator:  NewMockRecipeEvaluator(),
 	}
 }
 
@@ -84,8 +137,18 @@ func (b *RecipeDetectorTestBuilder) WithProcessEvaluatorStatus(status execution.
 	return b
 }
 
+func (b *RecipeDetectorTestBuilder) WithProcessEvaluatorRecipeStatus(recipe *types.OpenInstallationRecipe, status execution.RecipeStatusType) *RecipeDetectorTestBuilder {
+	b.processEvaluator.WithRecipeStatus(recipe, status)
+	return b
+}
+
 func (b *RecipeDetectorTestBuilder) WithScriptEvaluatorStatus(status execution.RecipeStatusType) *RecipeDetectorTestBuilder {
 	b.scriptEvaluator.status = status
+	return b
+}
+
+func (b *RecipeDetectorTestBuilder) WithScriptEvaluatorRecipeStatus(recipe *types.OpenInstallationRecipe, status execution.RecipeStatusType) *RecipeDetectorTestBuilder {
+	b.scriptEvaluator.WithRecipeStatus(recipe, status)
 	return b
 }
 

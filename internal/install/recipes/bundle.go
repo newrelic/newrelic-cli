@@ -56,6 +56,17 @@ func (b *Bundle) ContainsName(name string) bool {
 	return false
 }
 
+func (b *Bundle) GetBundleRecipe(name string) *BundleRecipe {
+
+	for _, r := range b.BundleRecipes {
+		if r.Recipe.Name == name {
+			return r
+		}
+	}
+
+	return nil
+}
+
 func (b *Bundle) AvailableRecipeCount() int {
 
 	count := 0

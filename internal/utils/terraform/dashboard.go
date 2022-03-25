@@ -29,13 +29,19 @@ var (
 )
 
 type DashboardWidgetRawConfiguration struct {
-	DataFormatters    []string                   `json:"dataFormatters"`
+	DataFormatters    []DataFormatter            `json:"dataFormatters"`
 	NRQLQueries       []DashboardWidgetNRQLQuery `json:"nrqlQueries"`
 	LinkedEntityGUIDs []string                   `json:"linkedEntityGuids"`
 	Text              string                     `json:"text"`
 	Facet             DashboardWidgetFacet       `json:"facet"`
 	Legend            DashboardWidgetLegend      `json:"legend"`
 	YAxisLeft         DashboardWidgetYAxisLeft   `json:"yAxisLeft"`
+}
+
+type DataFormatter struct {
+	Name      string      `json:"name"`
+	Precision interface{} `json:"precision"`
+	Type      string      `json:"type"`
 }
 
 type DashboardWidgetFacet struct {

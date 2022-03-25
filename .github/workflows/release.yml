@@ -42,7 +42,7 @@ jobs:
   release:
     if: github.ref == 'refs/heads/main'
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -54,7 +54,7 @@ jobs:
         shell: bash
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # Needed for release notes
           fetch-depth: 0
@@ -92,7 +92,7 @@ jobs:
           path: dist/newrelic_windows_amd64/newrelic.exe
 
       - name: Checkout newrelic-forks/homebrew-core
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: newrelic-forks/homebrew-core
           path: homebrew-core
@@ -159,7 +159,7 @@ jobs:
     needs: release
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.0.3
@@ -197,11 +197,11 @@ jobs:
           asset_content_type: application/octet-stream
 
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: [release-windows-installer, e2e, e2e-eu]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: main
           fetch-depth: 0
