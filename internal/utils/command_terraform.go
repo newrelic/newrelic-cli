@@ -17,7 +17,7 @@ var (
 	file        string
 	outFile     string
 	shiftWidth  int
-	snakeCaseRE = regexp.MustCompile("^[a-z]+(_[a-z]+)*$")
+	snakeCaseRE = regexp.MustCompile("^[a-z][a-z0-9]+(_[a-z0-9]+)*$")
 )
 
 var cmdTerraform = &cobra.Command{

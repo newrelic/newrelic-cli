@@ -1,3 +1,46 @@
+<a name="v0.44.2"></a>
+## [v0.44.2] - 2022-03-17
+<a name="v0.44.1"></a>
+## [v0.44.1] - 2022-03-17
+<a name="v0.44.0"></a>
+## [v0.44.0] - 2022-03-16
+### Bug Fixes
+- **install:** fix dependency on not available ([#1264](https://github.com/newrelic/newrelic-client-go/issues/1264))
+
+<a name="v0.43.5"></a>
+## [v0.43.5] - 2022-03-15
+### Bug Fixes
+- **install:** fix release publish because of ubuntu latest focal having issue
+
+<a name="v0.43.4"></a>
+## [v0.43.4] - 2022-03-15
+<a name="v0.43.3"></a>
+## [v0.43.3] - 2022-03-10
+### Bug Fixes
+- **bundler:** do not bundle recipe if dependencies are not installable ([#1248](https://github.com/newrelic/newrelic-client-go/issues/1248))
+- **install:** nil pointer error when executing recipe ([#1249](https://github.com/newrelic/newrelic-client-go/issues/1249))
+
+<a name="v0.43.2"></a>
+## [v0.43.2] - 2022-03-10
+<a name="v0.43.1"></a>
+## [v0.43.1] - 2022-03-10
+<a name="v0.43.0"></a>
+## [v0.43.0] - 2022-03-10
+### Bug Fixes
+- Avoid error if a label contains numbers
+
+### Features
+- **install:** Simplified CLI installation flow
+
+<a name="v0.42.2"></a>
+## [v0.42.2] - 2022-03-03
+<a name="v0.42.1"></a>
+## [v0.42.1] - 2022-03-03
+<a name="v0.42.0"></a>
+## [v0.42.0] - 2022-03-01
+### Features
+- **install:** specific go version requirement
+
 <a name="v0.41.31"></a>
 ## [v0.41.31] - 2022-02-24
 <a name="v0.41.30"></a>
@@ -1513,7 +1556,19 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.31...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.2...HEAD
+[v0.44.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.1...v0.44.2
+[v0.44.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.0...v0.44.1
+[v0.44.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.5...v0.44.0
+[v0.43.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.4...v0.43.5
+[v0.43.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.3...v0.43.4
+[v0.43.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.2...v0.43.3
+[v0.43.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.1...v0.43.2
+[v0.43.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.0...v0.43.1
+[v0.43.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.2...v0.43.0
+[v0.42.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.1...v0.42.2
+[v0.42.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.0...v0.42.1
+[v0.42.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.31...v0.42.0
 [v0.41.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.30...v0.41.31
 [v0.41.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.29...v0.41.30
 [v0.41.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.28...v0.41.29

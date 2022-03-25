@@ -22,7 +22,7 @@ func TestDiscovery(t *testing.T) {
 	}
 
 	mockRecipeFetcher := recipes.NewMockRecipeFetcher()
-	mockRecipeFetcher.FetchRecipesVal = []types.OpenInstallationRecipe{
+	mockRecipeFetcher.FetchRecipesVal = []*types.OpenInstallationRecipe{
 		{
 			ID:           "test",
 			Name:         "java",
@@ -36,7 +36,6 @@ func TestDiscovery(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, manifest)
-	require.GreaterOrEqual(t, len(manifest.DiscoveredProcesses), 1)
 
 	err = cmd.Process.Signal(os.Interrupt)
 	if err != nil {

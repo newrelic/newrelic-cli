@@ -42,13 +42,13 @@ func TestPosixShellExecution_Error(t *testing.T) {
 	r := types.OpenInstallationRecipe{
 		Name: "test-recipe",
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: "asdf",
+			RequireAtDiscovery: "asdfakenotreal",
 		},
 	}
 
 	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.Error(t, err)
-	require.Equal(t, "exit status 127: asdf: command not found", err.Error())
+	require.Equal(t, "exit status 127: asdfakenotreal: command not found", err.Error())
 }
 
 func TestPosixShellExecution_AllVars(t *testing.T) {

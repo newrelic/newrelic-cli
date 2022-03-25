@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -14,11 +15,6 @@ type ConfigValidator interface {
 // Discoverer is responsible for discovering information about the host system.
 type Discoverer interface {
 	Discover(context.Context) (*types.DiscoveryManifest, error)
-}
-
-// FileFilterer determines the existence of files on the underlying filesystem.
-type FileFilterer interface {
-	Filter(context.Context, []types.OpenInstallationRecipe) ([]types.OpenInstallationLogMatch, error)
 }
 
 type Prompter interface {
@@ -41,10 +37,37 @@ type RecipeValidator interface {
 	ValidateRecipe(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, types.RecipeVars) (entityGUID string, err error)
 }
 
+type AgentValidator interface {
+	Validate(ctx context.Context, url string) (string, error)
+}
+
 type RecipeVarPreparer interface {
 	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
 }
 
 type RecipeRepository interface {
 	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
+}
+
+// RecipeInstaller wrapper responsible for performing recipe validation, installation, and reporting install status
+type RecipeInstaller interface {
+	promptIfNotLatestCLIVersion(ctx context.Context) error
+	Install() error
+	install(ctx context.Context) error
+	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
+	discover(ctx context.Context) (*types.DiscoveryManifest, error)
+	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error)
+	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error)
+	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
+}
+
+type RecipeBundler interface {
+	CreateCoreBundle() *recipes.Bundle
+	CreateAdditionalTargetedBundle(names []string) *recipes.Bundle
+	CreateAdditionalGuidedBundle() *recipes.Bundle
+}
+type RecipeBundleInstaller interface {
+	InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error
+	InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool)
+	InstalledRecipesCount() int
 }

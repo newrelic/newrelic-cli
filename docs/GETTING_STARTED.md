@@ -234,6 +234,15 @@ newrelic nrql query accountId 12345 --query 'SELECT * from Payment'
 
 Custom events may take a moment to appear in query results while they are being ingested.
 
+### Environment Variable References
+
+| <small>Environment Variable</small>    | <small>Description</small>                                     |
+| -------------------------------------- | -------------------------------------------------------------- |
+| `NEW_RELIC_ACCOUNT_ID`                 | Your New Relic [account ID].                                   |
+| `NEW_RELIC_API_KEY`                    | Your New Relic [User API key] \(prefixed with `NRAK`).         |
+| `NEW_RELIC_REGION`                     | Your New Relic account's [data center region] \(`US` or `EU`). |
+| `NEW_RELIC_CLI_SKIP_CORE`              | Skipping core recipes during installation \(`1` or `0`).       |
+
 ### Want more?
 
 If you'd like to engage with other community members, visit our
