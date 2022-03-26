@@ -101,7 +101,6 @@ func printInstallFinalMessage(printText string, bgColor color.Attribute) {
 	background := boldWhite.Add(bgColor)
 	fmt.Print("  ")
 	background.Print(printText)
-	log.Debugln(printText)
 	fmt.Println()
 }
 

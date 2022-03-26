@@ -54,7 +54,6 @@ func (g *PlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
 func (g *PlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string {
 	installedCount := len(status.Installed)
 	haveFailure := status.HasUnsupportedRecipes && status.HasFailedRecipes
-	fmt.Printf("install = %+v\n", installedCount)
 
 	// if don't have failure and only one installed, and we have entity GUID, also generate  entity link
 	if !haveFailure && installedCount == 1 && len(status.EntityGUIDs) == 1 {
