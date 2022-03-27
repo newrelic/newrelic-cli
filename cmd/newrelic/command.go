@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -11,7 +13,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/split"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 )
@@ -37,12 +38,45 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 	config.InitLogger(log.StandardLogger(), logLevel)
 
 	// Initialize feature flag service
-	split.Init()
+	// split.Init()
 
 	// Initialize client
 	if client.NRClient == nil {
 		client.NRClient = createClient()
 	}
+
+	trackCommand(cmd, client.NRClient)
+}
+
+const cliEventType = "NewRelicCLIEvent"
+
+type NewRelicCLIEvent struct {
+	// EventType is required for custom insights events
+	EventType  string `json:"eventType"`
+	Command    string `json:"command"`
+	CLIVersion string `json:"cliVersion"`
+}
+
+func NewCLIEvent(cmdName string) *NewRelicCLIEvent {
+	event := NewRelicCLIEvent{
+		Command:    cmdName,
+		CLIVersion: cli.Version(),
+		EventType:  cliEventType,
+	}
+
+	return &event
+}
+
+func trackCommand(cmd *cobra.Command, client *newrelic.NewRelic) {
+	event := NewCLIEvent(cmd.Use)
+	eventBytes, _ := json.Marshal(event)
+
+	fmt.Printf("\n\n trackCommand: %+v \n\n", string(eventBytes))
+
+	// Note: We could be potentially send this to a dedicated service.
+	err := client.Events.CreateEvent(configAPI.GetActiveProfileAccountID(), string(eventBytes))
+
+	fmt.Printf("\n\n trackCommand err: %+v \n\n", err)
 }
 
 func createClient() *newrelic.NewRelic {
