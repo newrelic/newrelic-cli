@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="SignMSI.cmd" />
+    <Content Include="SignPS1.cmd" />
     <Content Include="ui-banner.bmp" />
     <Content Include="ui-dialog.bmp" />
   </ItemGroup>
