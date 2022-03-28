@@ -136,11 +136,6 @@ jobs:
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
 
-      - name: Upload install script (Windows)
-        id: upload-install-script-windows
-        run: |
-          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
-
       - id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
 
@@ -178,12 +173,23 @@ jobs:
         working-directory: .\build\package\msi\NewRelicCLIInstaller
         run: .\SignMSI.cmd
 
+      - name: Sign install script
+        env:
+          PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+        working-directory: .\build\package\msi\NewRelicCLIInstaller
+        run: .\SignPS1.cmd
+
       - name: Get latest release upload URL
         id: get-latest-release-upload-url
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+
+      - name: Upload install script (Windows)
+        id: upload-install-script-windows
+        run: |
+          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
 
       - name: Upload Windows installer
         id: upload-windows-installer
