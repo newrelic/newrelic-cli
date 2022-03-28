@@ -43,7 +43,6 @@ type InstallStatus struct {
 	statusSubscriber      []StatusSubscriber
 	successLinkConfig     types.OpenInstallationSuccessLinkConfig
 	PlatformLinkGenerator LinkGenerator
-	recipesSelected       []types.OpenInstallationRecipe
 }
 
 type RecipeStatus struct {
@@ -147,16 +146,6 @@ func (s *InstallStatus) RecipeAvailable(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.AVAILABLE)
 	for _, ss := range s.statusSubscriber {
 		if err := ss.RecipeAvailable(s, event); err != nil {
-			log.Debugf("Could not report recipe execution status: %s", err)
-		}
-	}
-}
-
-func (s *InstallStatus) RecipesSelected(recipes []types.OpenInstallationRecipe) {
-	s.recipesSelected = recipes
-
-	for _, r := range s.statusSubscriber {
-		if err := r.RecipesSelected(s, recipes); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
 		}
 	}
@@ -309,15 +298,6 @@ func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
 	}
 
 	return false
-}
-
-func (s *InstallStatus) AllSelectedRecipesInstalled() bool {
-	installedCount := len(s.Installed)
-	if installedCount == 0 {
-		return false
-	}
-
-	return installedCount == len(s.recipesSelected)
 }
 
 func (s *InstallStatus) SetTargetedInstall() {

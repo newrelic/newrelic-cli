@@ -206,6 +206,7 @@ func varFromEnv() types.RecipeVars {
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
 
 	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
+	vars["NR_CLI_CLUSTERNAME"] = os.Getenv("NR_CLI_CLUSTERNAME")
 
 	return vars
 }

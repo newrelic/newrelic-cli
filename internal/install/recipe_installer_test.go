@@ -313,7 +313,7 @@ func TestExecuteAndValidateWithProgressWhenInstallWithNoValidationMethod(t *test
 func TestExecuteAndValidateRecipeWithAllMethodWithNoValidationMethods(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().Build()
 
-	entityGUID, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipes.NewRecipeBuilder().Name("").Build(), &types.DiscoveryManifest{}, nil)
+	entityGUID, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipes.NewRecipeBuilder().Name("").Build(), &types.DiscoveryManifest{}, nil, false)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "", entityGUID)
@@ -325,7 +325,7 @@ func TestExecuteAndValidateRecipeWithAllMethodWithAgentValidatorError(t *testing
 	recipe := recipes.NewRecipeBuilder().Name("").Build()
 	recipe.ValidationURL = "http://url.com"
 
-	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil)
+	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil, false)
 
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
@@ -338,7 +338,7 @@ func TestExecuteAndValidateRecipeWithAllMethodWithRecipeValidationError(t *testi
 	recipe := recipes.NewRecipeBuilder().Name("").Build()
 	recipe.ValidationNRQL = "FROM SOMETHING"
 
-	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil)
+	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil, false)
 
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))

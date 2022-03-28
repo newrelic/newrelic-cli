@@ -52,7 +52,11 @@ func (g *PlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
 // also provided in the nerdstorage document. This provides the user two options
 // to see their data - click from the CLI output or from the frontend.
 func (g *PlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string {
-	if status.AllSelectedRecipesInstalled() {
+	installedCount := len(status.Installed)
+	haveFailure := status.HasUnsupportedRecipes || status.HasFailedRecipes
+
+	// if don't have failure and only one installed, and we have entity GUID, also generate  entity link
+	if !haveFailure && installedCount == 1 && len(status.EntityGUIDs) == 1 {
 		return g.GenerateEntityLink(status.HostEntityGUID())
 	}
 

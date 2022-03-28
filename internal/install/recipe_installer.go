@@ -379,7 +379,7 @@ func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle,
 }
 
 // installing recipe
-func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars, assumeYes bool) (string, error) {
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	// Execute the recipe steps.
@@ -414,8 +414,15 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		return "", err
 	}
 
+	// show validation spinner if we need to validate and has no other spinner (Spinner is show when assume yes)
+	if !assumeYes {
+		msg := fmt.Sprintf("Validating %s", r.DisplayName)
+		i.progressIndicator.ShowSpinner(!assumeYes)
+		i.progressIndicator.Start(msg)
+	}
+
 	validationStart := time.Now()
-	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m, vars)
+	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m, vars, assumeYes)
 	validationDurationMs := time.Since(validationStart).Milliseconds()
 	if err != nil {
 		validationErr := fmt.Errorf("encountered an error while validating receipt of data for %s: %w", r.Name, err)
@@ -440,7 +447,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 type validationFunc func() (string, error)
 
 // Post install validation
-func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars) (string, error) {
+func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars, assumeYes bool) (string, error) {
 	timeoutCtx, cancel := context.WithTimeout(ctx, validationTimeout)
 	defer cancel()
 
@@ -527,7 +534,7 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 
 		vars["assumeYes"] = fmt.Sprintf("%v", assumeYes)
 
-		entityGUID, err := i.executeAndValidate(ctx, m, r, vars)
+		entityGUID, err := i.executeAndValidate(ctx, m, r, vars, assumeYes)
 
 		if err != nil {
 			errorChan <- err
