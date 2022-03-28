@@ -75,12 +75,15 @@ func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {
 
 	b := newPlatformLinkGeneratorBuilder()
 	b.recipeStatusUpdate(infraName, "Installed")
-	b.recipeStatusUpdate(loggingName, "Installed")
+	b.recipeStatusUpdate(loggingName, "Failed")
 	g, s := b.build()
 
 	result := g.GenerateRedirectURL(*s)
 	expectedEncodedQueryParamSubstring := utils.Base64Encode(g.generateReferrerParam(infraName))
 
+	require.Equal(t, 1, len(s.EntityGUIDs))
+	require.Equal(t, 1, len(s.Installed))
+	require.Equal(t, 1, len(s.Failed))
 	require.Contains(t, result, expectedEncodedQueryParamSubstring)
 }
 
@@ -131,16 +134,17 @@ func (p *platformLinkGeneratorBuilder) recipeStatusUpdate(rn, status string) *pl
 		Name: rn,
 	}
 
-	infraInstallEvent := RecipeStatusEvent{
-		EntityGUID: rn,
-		Recipe:     r,
+	rs := RecipeStatusEvent{
+		Recipe: r,
 	}
 
 	switch status {
 	case "Failed":
-		p.installStatus.RecipeFailed(infraInstallEvent)
+		p.installStatus.RecipeFailed(rs)
 	case "Installed":
-		p.installStatus.RecipeInstalled(infraInstallEvent)
+		// just for testing, assume name is the same as entity id
+		rs.EntityGUID = rn
+		p.installStatus.RecipeInstalled(rs)
 	}
 
 	return p
