@@ -136,11 +136,6 @@ jobs:
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
 
-      - name: Upload install script (Windows)
-        id: upload-install-script-windows
-        run: |
-          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
-
       - id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
 
@@ -178,6 +173,12 @@ jobs:
         working-directory: .\build\package\msi\NewRelicCLIInstaller
         run: .\SignMSI.cmd
 
+      - name: Sign install script
+        env:
+          PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+        working-directory: .\build\package\msi\NewRelicCLIInstaller
+        run: .\SignPS1.cmd
+
       - name: Get latest release upload URL
         id: get-latest-release-upload-url
         shell: bash
@@ -194,6 +195,17 @@ jobs:
           upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
           asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
           asset_name: NewRelicCLIInstaller.msi
+          asset_content_type: application/octet-stream
+
+      - name: Upload windows install script
+        id: upload-windows-install-script
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+          asset_path: .\scripts\install.ps1
+          asset_name: install.ps1
           asset_content_type: application/octet-stream
 
   publish:
@@ -256,7 +268,7 @@ jobs:
       - id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
 
-      - name: Fetch Github Release Asset
+      - name: Fetch Github Release Asset - NewRelicCLIInstaller.msi
         uses: dsaltares/fetch-gh-release-asset@0.06
         with:
           repo: "newrelic/newrelic-cli"
@@ -264,6 +276,20 @@ jobs:
           file: "NewRelicCLIInstaller.msi"
           target: "NewRelicCLIInstaller.msi"
           token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Fetch Github Release Asset - install.ps1
+        uses: dsaltares/fetch-gh-release-asset@0.06
+        with:
+          repo: "newrelic/newrelic-cli"
+          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
+          file: "install.ps1"
+          target: "./scripts/install.ps1"
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Upload install script to AWS S3
+        id: upload-install-script-windows
+        run: |
+          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
 
       - name: Upload Windows MSI
         id: upload-windows-msi
