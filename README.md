@@ -108,7 +108,7 @@ sudo snap install newrelic-cli
 
 ### Pre-built binaries
 
-Pre-built binaries are available for all of the above platforms. You can download the latest releases [here](https://download.newrelic.com/install/newrelic-cli). The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
+Pre-built binaries are available for all of the above platforms. You can download the latest releases [here](https://github.com/newrelic/newrelic-cli/releases/latest). The binaries and their checksums are signed and can be verified against the Developer Toolkit team's [public PGP key](https://newrelic.github.io/developer-toolkit/developer-toolkit.asc).
 
 Verify that the fingerprint for the downloaded key matches the following:
 
