@@ -1,5 +1,11 @@
+<a name="v0.44.9"></a>
+## [v0.44.9] - 2022-04-04
+### Bug Fixes
+- **install:** allow CLI installation on new Macs w/ M1 chip
+- **readme:** use GitHub URL for downloading latest release binaries
+
 <a name="v0.44.8"></a>
-## [v0.44.8] - 0001-01-01
+## [v0.44.8] - 2022-03-30
 <a name="v0.44.7"></a>
 ## [v0.44.7] - 2022-03-29
 <a name="v0.44.6"></a>
@@ -1580,7 +1586,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.9...HEAD
+[v0.44.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.8...v0.44.9
 [v0.44.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.7...v0.44.8
 [v0.44.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.6...v0.44.7
 [v0.44.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.5...v0.44.6
