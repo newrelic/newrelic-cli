@@ -28,7 +28,8 @@ func TestConnectToPlatformShouldSuccess(t *testing.T) {
 	err := recipeInstall.connectToPlatform()
 	assert.NoError(t, err)
 }
-func TestConnectToPlatformShouldRetrunError(t *testing.T) {
+
+func TestConnectToPlatformShouldReturnError(t *testing.T) {
 	expected := errors.New("Failing to connect to platform")
 	pi := ux.NewSpinnerProgressIndicator()
 
@@ -40,7 +41,6 @@ func TestConnectToPlatformShouldRetrunError(t *testing.T) {
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
-
 	expected := errors.New("Some Discover error")
 	recipeInstall := NewRecipeInstallBuilder().WithDiscovererError(expected).Build()
 
@@ -51,7 +51,6 @@ func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
 }
 
 func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
-
 	expected := errors.New("some discovery validation error")
 
 	statusReporter := execution.NewMockStatusReporter()
@@ -64,7 +63,6 @@ func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
 }
 
 func TestInstallShouldSkipCoreInstall(t *testing.T) {
-
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).withShouldInstallCore(func() bool { return false }).WithBundleInstaller(bundleInstaller).Build()
@@ -77,7 +75,6 @@ func TestInstallShouldSkipCoreInstall(t *testing.T) {
 }
 
 func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
-
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
@@ -87,8 +84,8 @@ func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
 	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
 	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
 }
-func TestInstallCoreShouldStopOnError(t *testing.T) {
 
+func TestInstallCoreShouldStopOnError(t *testing.T) {
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
@@ -103,7 +100,6 @@ func TestInstallCoreShouldStopOnError(t *testing.T) {
 }
 
 func TestInstallTargetInstallShouldInstall(t *testing.T) {
-
 	additionRecipeName := "additional"
 	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
@@ -116,7 +112,6 @@ func TestInstallTargetInstallShouldInstall(t *testing.T) {
 }
 
 func TestInstallTargetInstallWithoutRecipeShouldNotInstall(t *testing.T) {
-
 	additionRecipeName := "additional"
 	bundler := NewBundlerBuilder().Build()
 	bundleInstaller := NewMockBundleInstaller()
@@ -131,7 +126,6 @@ func TestInstallTargetInstallWithoutRecipeShouldNotInstall(t *testing.T) {
 }
 
 func TestInstallTargetInstallWithOneUnsupportedOneInstalledShouldError(t *testing.T) {
-
 	additionRecipeName := "additional"
 	bundler := NewBundlerBuilder().Build()
 	bundleInstaller := NewMockBundleInstaller()
@@ -148,7 +142,6 @@ func TestInstallTargetInstallWithOneUnsupportedOneInstalledShouldError(t *testin
 }
 
 func TestInstallGuidedInstallAdditionalShouldInstall(t *testing.T) {
-
 	additionRecipeName := "additional"
 	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
@@ -178,7 +171,6 @@ func TestPromptIfNotLatestCliVersionDoesNotLogMessagesOrErrorWhenVersionsMatch(t
 }
 
 func TestPromptIfNotLatestCliVersionDisplaysErrorWhenLatestCliReleaseCannotBeDetermined(t *testing.T) {
-
 	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
 		return "", errors.New("couldn't fetch latest cli release")
 	}
@@ -192,7 +184,6 @@ func TestPromptIfNotLatestCliVersionDisplaysErrorWhenLatestCliReleaseCannotBeDet
 }
 
 func TestPromptIfNotLatestCliVersionDisplaysErrorWhenMostRecentInstalledCliCannotBeDetermined(t *testing.T) {
-
 	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
 		return "some-version", nil
 	}
@@ -227,7 +218,6 @@ func TestPromptIfNotLatestCliVersionErrorsIfNotLatestVersion(t *testing.T) {
 }
 
 func TestExecuteAndValidateWithProgressWhenKeyFetchError(t *testing.T) {
-
 	expected := errors.New("Some error")
 	recipeInstall := NewRecipeInstallBuilder().WithLicenseKeyFetchResult(expected).Build()
 
@@ -238,7 +228,6 @@ func TestExecuteAndValidateWithProgressWhenKeyFetchError(t *testing.T) {
 }
 
 func TestExecuteAndValidateWithProgressWhenRecipeVarProviderError(t *testing.T) {
-
 	expected := errors.New("Some error")
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeVarValues(nil, expected).Build()
 
@@ -247,8 +236,8 @@ func TestExecuteAndValidateWithProgressWhenRecipeVarProviderError(t *testing.T) 
 	assert.Error(t, err)
 	assert.Equal(t, expected, err)
 }
-func TestExecuteAndValidateWithProgressWhenInstallFails(t *testing.T) {
 
+func TestExecuteAndValidateWithProgressWhenInstallFails(t *testing.T) {
 	expected := errors.New("Some error")
 	vars := map[string]string{}
 	statusReporter := execution.NewMockStatusReporter()
@@ -261,8 +250,8 @@ func TestExecuteAndValidateWithProgressWhenInstallFails(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
 	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
 }
-func TestExecuteAndValidateWithProgressWhenInstallGoTaskFails(t *testing.T) {
 
+func TestExecuteAndValidateWithProgressWhenInstallGoTaskFails(t *testing.T) {
 	expected := types.NewGoTaskGeneralError(errors.New("Some error"))
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeExecutionResult(expected).Build()
@@ -275,7 +264,6 @@ func TestExecuteAndValidateWithProgressWhenInstallGoTaskFails(t *testing.T) {
 }
 
 func TestExecuteAndValidateWithProgressWhenInstallCancelled(t *testing.T) {
-
 	expected := types.ErrInterrupt
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeExecutionResult(expected).Build()
 
@@ -286,7 +274,6 @@ func TestExecuteAndValidateWithProgressWhenInstallCancelled(t *testing.T) {
 }
 
 func TestExecuteAndValidateWithProgressWhenInstallUnsupported(t *testing.T) {
-
 	expected := &types.UnsupportedOperatingSystemError{Err: errors.New("Unsupported")}
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeExecutionResult(expected).Build()
@@ -299,7 +286,6 @@ func TestExecuteAndValidateWithProgressWhenInstallUnsupported(t *testing.T) {
 }
 
 func TestExecuteAndValidateWithProgressWhenInstallWithNoValidationMethod(t *testing.T) {
-
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
 
@@ -346,7 +332,6 @@ func TestExecuteAndValidateRecipeWithAllMethodWithRecipeValidationError(t *testi
 }
 
 func TestExecuteAndValidateWithProgressWhenPostValidationFailed(t *testing.T) {
-
 	expected := errors.New("Some error")
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeValidationError(expected).Build()
@@ -361,8 +346,8 @@ func TestExecuteAndValidateWithProgressWhenPostValidationFailed(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
 	assert.Equal(t, 0, statusReporter.InstallCanceledCallCount)
 }
-func TestExecuteAndValidateWithProgressWhenSucceed(t *testing.T) {
 
+func TestExecuteAndValidateWithProgressWhenSucceed(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
 	recipe := recipes.NewRecipeBuilder().Name("").Build()
@@ -375,7 +360,6 @@ func TestExecuteAndValidateWithProgressWhenSucceed(t *testing.T) {
 }
 
 func TestReportUnSupportTargetRecipeWithBadRecipeName(t *testing.T) {
-
 	targetRecipe := "target"
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).WithStatusReporter(statusReporter).Build()
@@ -387,8 +371,8 @@ func TestReportUnSupportTargetRecipeWithBadRecipeName(t *testing.T) {
 	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
 	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
 }
-func TestReportUnSupportTargetRecipeWithoutTarget(t *testing.T) {
 
+func TestReportUnSupportTargetRecipeWithoutTarget(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
 	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
@@ -399,8 +383,8 @@ func TestReportUnSupportTargetRecipeWithoutTarget(t *testing.T) {
 	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
 	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount)
 }
-func TestReportUnSupportTargetRecipeWithBundleContainRecipe(t *testing.T) {
 
+func TestReportUnSupportTargetRecipeWithBundleContainRecipe(t *testing.T) {
 	targetRecipe := "target"
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).WithStatusReporter(statusReporter).Build()
@@ -416,7 +400,6 @@ func TestReportUnSupportTargetRecipeWithBundleContainRecipe(t *testing.T) {
 }
 
 func TestReportUnSupportTargetRecipeWithUnsupportForPlatform(t *testing.T) {
-
 	targetRecipe := "target"
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).WithStatusReporter(statusReporter).Build()
