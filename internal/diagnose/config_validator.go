@@ -14,7 +14,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 const (
@@ -71,6 +71,11 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	postEvent := func() error {
 		if err = c.client.Events.CreateEventWithContext(ctx, accountID, evt); err != nil {
 			log.Debug(err)
+
+			if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
+				return err
+			}
+
 			return ErrPostEvent
 		}
 
@@ -116,27 +121,28 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
-	accountID := configAPI.GetActiveProfileAccountID()
-	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
-	params := apiaccess.APIAccessKeySearchQuery{
-		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs: []int{accountID},
-		},
-		Types: []apiaccess.APIAccessKeyType{
-			apiaccess.APIAccessKeyTypeTypes.INGEST,
-		},
-	}
+	return nil
+	// accountID := configAPI.GetActiveProfileAccountID()
+	// licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
+	// params := apiaccess.APIAccessKeySearchQuery{
+	// 	Scope: apiaccess.APIAccessKeySearchScope{
+	// 		AccountIDs: []int{accountID},
+	// 	},
+	// 	Types: []apiaccess.APIAccessKeyType{
+	// 		apiaccess.APIAccessKeyTypeTypes.INGEST,
+	// 	},
+	// }
 
-	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
-	if err != nil {
-		return fmt.Errorf(ErrConnectionStringFormat, err)
-	}
+	// licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
+	// if err != nil {
+	// 	return fmt.Errorf(ErrConnectionStringFormat, err)
+	// }
 
-	for _, k := range licenseKeys {
-		if k.Key == licenseKey {
-			return nil
-		}
-	}
+	// for _, k := range licenseKeys {
+	// 	if k.Key == licenseKey {
+	// 		return nil
+	// 	}
+	// }
 
-	return ErrLicenseKey
+	// return ErrLicenseKey
 }
