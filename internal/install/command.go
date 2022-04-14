@@ -2,16 +2,18 @@ package install
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 var (
@@ -21,6 +23,15 @@ var (
 	recipePaths  []string
 	testMode     bool
 )
+
+var paymentMsgFormat = `
+  Please add a credit card to unlock access beyond your current usage limits.
+  Manage your plan and payment options at the URL below.
+`
+
+func nrURL() string {
+	return fmt.Sprintf("https://%s/nr1-core/plan-management/home", execution.NewRelicPlatformHostname())
+}
 
 // Command represents the install command.
 var Command = &cobra.Command{
@@ -55,7 +66,20 @@ var Command = &cobra.Command{
 				return
 			}
 
-			fallbackErrorMsg := fmt.Sprintf("We encountered an issue during the installation: %s.", err)
+			// TODO: Handle this at the top-level command execution level since it could
+			//       happen with other commands as well.
+			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
+				fmt.Println()
+				fmt.Println(color.YellowString("  Payment required"))
+				fmt.Println(paymentMsgFormat)
+				fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), nrURL())
+				fmt.Print("\n\n")
+
+				log.Debug(e)
+				return
+			}
+
+			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
 			fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://one.newrelic.com/-/06vjAeZLKjP."
 
 			// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
@@ -83,14 +107,14 @@ func assertProfileIsValid() error {
 		return fmt.Errorf("region is required")
 	}
 
-	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName)
-	if err != nil {
-		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
-	}
-	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
-		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
-		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
-	}
+	// licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName)
+	// if err != nil {
+	// 	return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
+	// }
+	// if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
+	// 	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
+	// 	log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
+	// }
 
 	// Reinitialize client, overriding fetched values
 	c, err := client.NewClient(configAPI.GetActiveProfileName())

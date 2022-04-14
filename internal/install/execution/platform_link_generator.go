@@ -99,7 +99,7 @@ func (g *PlatformLinkGenerator) generateReferrerParam(entityGUID string) string 
 
 func (g *PlatformLinkGenerator) generateExplorerLink(status InstallStatus) string {
 	longURL := fmt.Sprintf("https://%s/launcher/nr1-core.explorer?platform[filters]=%s&platform[accountId]=%d&cards[0]=%s",
-		nrPlatformHostname(),
+		NewRelicPlatformHostname(),
 		utils.Base64Encode(status.successLinkConfig.Filter),
 		configAPI.GetActiveProfileAccountID(),
 		utils.Base64Encode(g.generateReferrerParam(status.HostEntityGUID())),
@@ -114,7 +114,7 @@ func (g *PlatformLinkGenerator) generateExplorerLink(status InstallStatus) strin
 }
 
 func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
-	longURL := fmt.Sprintf("https://%s/redirect/entity/%s", nrPlatformHostname(), entityGUID)
+	longURL := fmt.Sprintf("https://%s/redirect/entity/%s", NewRelicPlatformHostname(), entityGUID)
 	shortURL, err := g.generateShortNewRelicURL(longURL)
 	if err != nil {
 		return longURL
@@ -126,7 +126,7 @@ func (g *PlatformLinkGenerator) generateEntityLink(entityGUID string) string {
 func (g *PlatformLinkGenerator) generateLoggingLink(entityGUID string) string {
 
 	longURL := fmt.Sprintf("https://%s/launcher/logger.log-launcher?platform[accountId]=%d&launcher=%s",
-		nrPlatformHostname(),
+		NewRelicPlatformHostname(),
 		configAPI.GetActiveProfileAccountID(),
 		utils.Base64Encode(g.generateLoggingLauncherParams(entityGUID)),
 	)
@@ -194,8 +194,8 @@ func (g *PlatformLinkGenerator) generateShortNewRelicURL(longURL string) (string
 	return resp.URL, nil
 }
 
-// nrPlatformHostname returns the host for the platform based on the region set.
-func nrPlatformHostname() string {
+// NewRelicPlatformHostname returns the host for the platform based on the region set.
+func NewRelicPlatformHostname() string {
 	r := configAPI.GetActiveProfileString(config.Region)
 	if strings.EqualFold(r, region.Staging.String()) {
 		return nrPlatformHostnames.Staging

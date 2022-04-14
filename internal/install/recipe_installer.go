@@ -21,6 +21,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 const (
@@ -159,7 +160,7 @@ func (i *RecipeInstall) Install() error {
 | |\  |  __/\ V  V /  |  _ |  __| | | (__
 |_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
 
-Welcome to New Relic. Let's set up full stack observability for your environment. 
+Welcome to New Relic. Let's set up full stack observability for your environment.
 	`)
 	fmt.Println()
 
@@ -169,6 +170,10 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
 
+	if i.RecipeNamesProvided() {
+		i.status.SetTargetedInstall()
+	}
+
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
 	defer cancel()
 
@@ -176,13 +181,12 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 	var err error
 
 	err = i.connectToPlatform()
-
 	if err != nil {
-		return err
-	}
+		if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
+			i.status.InstallComplete(err)
+		}
 
-	if i.RecipeNamesProvided() {
-		i.status.SetTargetedInstall()
+		return err
 	}
 
 	i.status.InstallStarted()
