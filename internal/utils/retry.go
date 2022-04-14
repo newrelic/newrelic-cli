@@ -3,6 +3,8 @@ package utils
 import (
 	"context"
 	"time"
+
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 type RetryContext struct {
@@ -39,6 +41,12 @@ func (r *Retry) ExecWithRetries(ctx context.Context) *RetryContext {
 	for !retryCtx.Success {
 		retryCtx.RetryCount++
 		if err := r.RetryFunc(); err != nil {
+			if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
+				retryCtx.Success = false
+				retryCtx.Errors = append(retryCtx.Errors, err)
+				return &retryCtx
+			}
+
 			retryCtx.Errors = append(retryCtx.Errors, err)
 
 			if retryCtx.RetryCount == r.MaxRetries {

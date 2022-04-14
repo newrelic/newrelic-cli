@@ -72,8 +72,8 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 		if err = c.client.Events.CreateEventWithContext(ctx, accountID, evt); err != nil {
 			log.Debug(err)
 
-			if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
-				return err
+			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
+				return e
 			}
 
 			return ErrPostEvent

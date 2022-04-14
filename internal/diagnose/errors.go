@@ -1,6 +1,8 @@
 package diagnose
 
-import "errors"
+import (
+	"errors"
+)
 
 //nolint:golint
 var (
@@ -9,5 +11,4 @@ var (
 	ErrDiscovery              = errors.New("failed to detect your system's hostname. Please contact New Relic support")
 	ErrPostEvent              = errors.New("there was a failure posting data to New Relic. Please try again later or contact New Relic support. For real-time platform status info visit https://status.newrelic.com/")
 	ErrLicenseKey             = errors.New("the configured license key is invalid for the configured account. Please set a valid license key with the `newrelic profile` command. For more details visit https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key")
-	ErrPaymentRequired        = errors.New("payment is required. Put a helpful message here for the user.")
 )
