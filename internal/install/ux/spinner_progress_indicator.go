@@ -100,7 +100,7 @@ func printInstallFinalMessage(printText string, bgColor color.Attribute) {
 	boldWhite := white.Add(color.Bold)
 	background := boldWhite.Add(bgColor)
 	fmt.Print("  ")
-	background.Print(printText)
+	background.Print(fmt.Sprintf(" %s ", printText))
 	fmt.Println()
 }
 
