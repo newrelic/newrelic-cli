@@ -25,8 +25,9 @@ var (
 )
 
 var paymentMsgFormat = `
-  Please add a credit card to unlock access beyond your current usage limits.
-  Manage your plan and payment options at the URL below.
+  Your account has exceeded your plan's data limit.
+  Take full advantage of New Relic's platform by managing
+  your account's plan and payment options at the URL below.
 `
 
 func nrURL() string {
@@ -70,7 +71,7 @@ var Command = &cobra.Command{
 			//       happen with other commands as well.
 			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
 				fmt.Println()
-				fmt.Println(color.YellowString("  Payment required"))
+				fmt.Println(color.YellowString("! Data limit exceeded"))
 				fmt.Println(paymentMsgFormat)
 				fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), nrURL())
 				fmt.Print("\n\n")
