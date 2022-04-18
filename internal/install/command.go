@@ -2,17 +2,16 @@ package install
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/install/ux"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
@@ -24,22 +23,12 @@ var (
 	testMode     bool
 )
 
-var paymentMsgFormat = `
-  Your account has exceeded your plan's data limit.
-  Take full advantage of New Relic's platform by managing
-  your account's plan and payment options at the URL below.
-`
-
-func nrURL() string {
-	return fmt.Sprintf("https://%s/nr1-core/plan-management/home", execution.NewRelicPlatformHostname())
-}
-
 // Command represents the install command.
 var Command = &cobra.Command{
 	Use:    "install",
 	Short:  "Install New Relic.",
 	PreRun: client.RequireClient,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ic := types.InstallerContext{
 			AssumeYes:    assumeYes,
 			LocalRecipes: localRecipes,
@@ -53,6 +42,7 @@ var Command = &cobra.Command{
 		err := assertProfileIsValid()
 		if err != nil {
 			log.Fatal(err)
+			return nil
 		}
 
 		i := NewRecipeInstaller(ic, client.NRClient)
@@ -60,24 +50,15 @@ var Command = &cobra.Command{
 		// Run the install.
 		if err := i.Install(); err != nil {
 			if err == types.ErrInterrupt {
-				return
+				return nil
 			}
 
 			if _, ok := err.(*types.UpdateRequiredError); ok {
-				return
+				return nil
 			}
 
-			// TODO: Handle this at the top-level command execution level since it could
-			//       happen with other commands as well.
 			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
-				fmt.Println()
-				fmt.Println(color.YellowString("! Data limit exceeded"))
-				fmt.Println(paymentMsgFormat)
-				fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), nrURL())
-				fmt.Print("\n\n")
-
-				log.Debug(e)
-				return
+				return e
 			}
 
 			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
@@ -91,6 +72,8 @@ var Command = &cobra.Command{
 
 			log.Debug(fallbackErrorMsg)
 		}
+
+		return nil
 	},
 }
 
@@ -108,14 +91,14 @@ func assertProfileIsValid() error {
 		return fmt.Errorf("region is required")
 	}
 
-	// licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName)
-	// if err != nil {
-	// 	return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
-	// }
-	// if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
-	// 	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
-	// 	log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
-	// }
+	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName)
+	if err != nil {
+		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
+	}
+	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
+		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
+		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
+	}
 
 	// Reinitialize client, overriding fetched values
 	c, err := client.NewClient(configAPI.GetActiveProfileName())
