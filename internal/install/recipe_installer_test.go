@@ -17,6 +17,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
@@ -38,6 +39,17 @@ func TestConnectToPlatformShouldReturnError(t *testing.T) {
 	actual := recipeInstall.connectToPlatform()
 	assert.Error(t, actual)
 	assert.Equal(t, expected.Error(), actual.Error())
+}
+
+func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
+	expected := nrErrors.NewPaymentRequiredError()
+	pi := ux.NewSpinnerProgressIndicator()
+
+	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
+
+	actual := recipeInstall.connectToPlatform()
+	assert.Error(t, actual)
+	assert.IsType(t, &nrErrors.PaymentRequiredError{}, actual)
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
