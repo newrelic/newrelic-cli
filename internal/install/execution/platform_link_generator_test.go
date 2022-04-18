@@ -110,6 +110,13 @@ func TestGenerateRedirectURL_NoRecipesInstalled(t *testing.T) {
 	require.Contains(t, result, "explorer")
 }
 
+func TestGetAccountPlanManagementURL(t *testing.T) {
+	t.Parallel()
+
+	result := GetAccountPlanManagementURL()
+	require.Contains(t, result, "plan-management/home?account=")
+}
+
 type platformLinkGeneratorBuilder struct {
 	platformLinkGenerator *PlatformLinkGenerator
 	installStatus         *InstallStatus
