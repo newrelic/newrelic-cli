@@ -29,7 +29,7 @@ represents the custom event's type.
 `,
 	Example: `newrelic events post --accountId 12345 --event '{ "eventType": "Payment", "amount": 123.45 }'`,
 	PreRun:  client.RequireClient,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		accountID := configAPI.RequireActiveProfileAccountID()
 
 		if configAPI.GetActiveProfileString(config.LicenseKey) == "" {
@@ -44,10 +44,11 @@ represents the custom event's type.
 		}
 
 		if err := client.NRClient.Events.CreateEventWithContext(utils.SignalCtx, accountID, event); err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		log.Info("success")
+		return nil
 	},
 }
 
