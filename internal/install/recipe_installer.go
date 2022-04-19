@@ -170,11 +170,11 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
 
-	i.status.InstallStarted()
-
 	if i.RecipeNamesProvided() {
 		i.status.SetTargetedInstall()
 	}
+
+	i.status.InstallStarted()
 
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
 	defer cancel()
