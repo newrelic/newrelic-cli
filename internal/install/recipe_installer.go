@@ -170,6 +170,8 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
 
+	i.status.InstallStarted()
+
 	if i.RecipeNamesProvided() {
 		i.status.SetTargetedInstall()
 	}
@@ -188,8 +190,6 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 		return err
 	}
-
-	i.status.InstallStarted()
 
 	// If not in a dev environemt, check to see if
 	// the installed CLI is up to date.
