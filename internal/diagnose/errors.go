@@ -12,6 +12,6 @@ var (
 )
 
 const PaymentRequiredExceptionMessage = `
-  Your account has exceeded your plan's data limit.
+  Your account has exceeded its plan data limit.
   Take full advantage of New Relic's platform by managing
-  the account's plan and payment options at the URL below.`
+  your account's plan and payment options at the URL below.`
