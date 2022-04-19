@@ -8,6 +8,7 @@ import (
 	"errors"
 	"testing"
 
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -52,6 +53,19 @@ func TestShouldNotRetry(t *testing.T) {
 	require.Equal(t, 0, len(ctx.Errors))
 }
 
+func TestShouldNotRetryPaymentRequiredError(t *testing.T) {
+	m := MockFunc{
+		CallsBeforeSuccess: 0,
+	}
+	r := NewRetry(3, 0, m.testPaymentRequiredErrorNotRetryableFunc)
+	ctx := r.ExecWithRetries(context.Background())
+	require.Equal(t, 1, m.CallCount)
+	require.Error(t, ctx.MostRecentError())
+	require.False(t, ctx.Success)
+	require.Equal(t, 1, ctx.RetryCount)
+	require.Equal(t, 1, len(ctx.Errors))
+}
+
 type MockFunc struct {
 	CallCount          int
 	CallsBeforeSuccess int
@@ -65,6 +79,12 @@ func (m *MockFunc) testErrorUntilFunc() error {
 	}
 
 	return nil
+}
+
+func (m *MockFunc) testPaymentRequiredErrorNotRetryableFunc() error {
+	m.CallCount++
+
+	return nrErrors.NewPaymentRequiredError()
 }
 
 func (m *MockFunc) testErrorFunc() error {
