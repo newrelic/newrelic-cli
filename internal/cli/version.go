@@ -23,7 +23,7 @@ var (
 )
 
 const installCLISnippetLinux = `curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash`
-const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile(\"https://download.newrelic.com/install/newrelic-cli/scripts/install.ps1\", \"$env:TEMP\\install.ps1\"); &$env:TEMP\\install.ps1;`
+const installCLISnippetWindows = `[Net.ServicePointManager]::SecurityProtocol = 'tls13, tls12, tls'; (New-Object System.Net.WebClient).DownloadFile(\"https://download.newrelic.com/install/newrelic-cli/scripts/install.ps1\", \"$env:TEMP\\install.ps1\"); &$env:TEMP\\install.ps1;`
 
 // NewRelicCLILatestReleaseURL is the URL used to fetch the latest release data utilizing GitHub's API.
 const NewRelicCLILatestReleaseURL string = "https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
