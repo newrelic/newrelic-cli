@@ -207,3 +207,9 @@ func nrPlatformHostname() string {
 
 	return nrPlatformHostnames.US
 }
+
+// GeneratePlanManagementURL returns the URL where a customer
+// can manage their plan and payment options.
+func GetAccountPlanManagementURL() string {
+	return fmt.Sprintf("https://%s/nr1-core/plan-management/home?account=%s", nrPlatformHostname(), configAPI.GetActiveProfileString(config.AccountID))
+}

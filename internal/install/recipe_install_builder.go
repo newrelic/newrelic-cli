@@ -32,7 +32,6 @@ type RecipeInstallBuilder struct {
 }
 
 func NewRecipeInstallBuilder() *RecipeInstallBuilder {
-
 	rib := &RecipeInstallBuilder{
 		configValidator: diagnose.NewMockConfigValidator(),
 		recipeFetcher:   recipes.NewMockRecipeFetcher(),
@@ -83,7 +82,6 @@ func (rib *RecipeInstallBuilder) WithDiscovererError(err error) *RecipeInstallBu
 }
 
 func (rib *RecipeInstallBuilder) WithStatusReporter(statusReporter *execution.MockStatusSubscriber) *RecipeInstallBuilder {
-
 	statusReporters := []execution.StatusSubscriber{statusReporter}
 	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
 	rib.status = status

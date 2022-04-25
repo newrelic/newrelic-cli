@@ -15,6 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/newrelic"
 	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 const (
@@ -71,6 +72,11 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	postEvent := func() error {
 		if err = c.client.Events.CreateEventWithContext(ctx, accountID, evt); err != nil {
 			log.Debug(err)
+
+			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
+				return e
+			}
+
 			return ErrPostEvent
 		}
 

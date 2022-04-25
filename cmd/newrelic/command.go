@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -10,10 +8,12 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/split"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 var (
@@ -61,13 +61,24 @@ func createClient() *newrelic.NewRelic {
 func Execute() error {
 	Command.Use = appName
 	Command.Version = cli.Version()
-	Command.SilenceUsage = os.Getenv("CI") != ""
+
+	// Silence Cobra's internal handling of command usage help text.
+	// Note, the help text is still displayed if any command arg or
+	// flag validation fails.
+	Command.SilenceUsage = true
 
 	// Silence Cobra's internal handling of error messaging
 	// since we have a custom error handler in main.go
 	Command.SilenceErrors = true
 
-	return Command.Execute()
+	err := Command.Execute()
+	if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
+		diagnose.PrintPaymentRequiredErrorMessage()
+		log.Debug(err)
+		return nil
+	}
+
+	return err
 }
 
 func init() {

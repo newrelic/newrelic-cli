@@ -12,6 +12,7 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 var (
@@ -27,7 +28,7 @@ var Command = &cobra.Command{
 	Use:    "install",
 	Short:  "Install New Relic.",
 	PreRun: client.RequireClient,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		ic := types.InstallerContext{
 			AssumeYes:    assumeYes,
 			LocalRecipes: localRecipes,
@@ -41,6 +42,7 @@ var Command = &cobra.Command{
 		err := assertProfileIsValid()
 		if err != nil {
 			log.Fatal(err)
+			return nil
 		}
 
 		i := NewRecipeInstaller(ic, client.NRClient)
@@ -48,14 +50,18 @@ var Command = &cobra.Command{
 		// Run the install.
 		if err := i.Install(); err != nil {
 			if err == types.ErrInterrupt {
-				return
+				return nil
 			}
 
 			if _, ok := err.(*types.UpdateRequiredError); ok {
-				return
+				return nil
 			}
 
-			fallbackErrorMsg := fmt.Sprintf("We encountered an issue during the installation: %s.", err)
+			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
+				return e
+			}
+
+			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
 			fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://one.newrelic.com/-/06vjAeZLKjP."
 
 			// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
@@ -66,6 +72,8 @@ var Command = &cobra.Command{
 
 			log.Debug(fallbackErrorMsg)
 		}
+
+		return nil
 	},
 }
 
