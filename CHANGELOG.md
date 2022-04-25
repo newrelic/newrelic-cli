@@ -1,3 +1,9 @@
+<a name="v0.46.0"></a>
+## [v0.46.0] - 2022-04-25
+### Features
+- **events:** handle data usage exceeded scenario
+- **install:** handle data usage exceeded scenario
+
 <a name="v0.45.2"></a>
 ## [v0.45.2] - 2022-04-21
 ### Bug Fixes
@@ -1600,7 +1606,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.0...HEAD
+[v0.46.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.2...v0.46.0
 [v0.45.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.1...v0.45.2
 [v0.45.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.0...v0.45.1
 [v0.45.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.10...v0.45.0
