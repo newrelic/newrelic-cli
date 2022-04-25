@@ -1,5 +1,12 @@
+<a name="v0.45.2"></a>
+## [v0.45.2] - 2022-04-21
+### Bug Fixes
+- **install:** tls13 not supported on older windows ([#1286](https://github.com/newrelic/newrelic-client-go/issues/1286))
+
+<a name="v0.45.1"></a>
+## [v0.45.1] - 2022-04-20
 <a name="v0.45.0"></a>
-## [v0.45.0] - 2022-04-15
+## [v0.45.0] - 2022-04-18
 ### Features
 - **install:** add padding to highlighted text for better legibility
 
@@ -1593,7 +1600,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.2...HEAD
+[v0.45.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.1...v0.45.2
+[v0.45.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.0...v0.45.1
 [v0.45.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.10...v0.45.0
 [v0.44.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.9...v0.44.10
 [v0.44.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.8...v0.44.9
