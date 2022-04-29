@@ -28,7 +28,7 @@ type GoTaskRecipeExecutor struct {
 	Stderr io.Writer
 	Stdin  io.Reader
 	Stdout io.Writer
-	Output map[string]interface{}
+	Output *OutputParser
 }
 
 // NewGoTaskRecipeExecutor returns a new instance of GoTaskRecipeExecutor.
@@ -37,7 +37,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 		Stderr: os.Stderr,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
-		Output: map[string]interface{}{},
+		Output: NewOutputParser(map[string]interface{}{}),
 	}
 }
 
@@ -160,17 +160,21 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	outputBytes, err := ioutil.ReadAll(outputFile)
-	if err == nil {
+	if err == nil && len(outputBytes) > 0 {
 		var result map[string]interface{}
 		if err := json.Unmarshal([]byte(outputBytes), &result); err == nil {
-			re.Output = result
+			re.Output = NewOutputParser(result)
+		} else {
+			log.Debugf("error while unmarshaling json output from recipe %s details:%s", r.Name, err.Error())
 		}
+	} else {
+		log.Debugf("error while reading json output from recipe %s details:%s", r.Name, err.Error())
 	}
 
 	return nil
 }
 
-func (re *GoTaskRecipeExecutor) GetOutput() map[string]interface{} {
+func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {
 	return re.Output
 }
 
