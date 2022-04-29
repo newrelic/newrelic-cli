@@ -418,6 +418,14 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		return "", err
 	}
 
+	var entityGUID string
+	output := i.recipeExecutor.GetOutput()
+	val := output["EntityGuid"]
+	if val != nil {
+		entityGUID = fmt.Sprintf("%s", val)
+		log.Debugf("Found entityGuid from recipe execution:%s", entityGUID)
+	}
+
 	// show validation spinner if we need to validate and has no other spinner (Spinner is show when assume yes)
 	if !assumeYes {
 		msg := fmt.Sprintf("Validating %s", r.DisplayName)

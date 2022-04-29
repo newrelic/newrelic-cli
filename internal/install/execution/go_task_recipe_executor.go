@@ -3,6 +3,7 @@ package execution
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,6 +28,7 @@ type GoTaskRecipeExecutor struct {
 	Stderr io.Writer
 	Stdin  io.Reader
 	Stdout io.Writer
+	Output map[string]interface{}
 }
 
 // NewGoTaskRecipeExecutor returns a new instance of GoTaskRecipeExecutor.
@@ -35,6 +37,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 		Stderr: os.Stderr,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
+		Output: map[string]interface{}{},
 	}
 }
 
@@ -61,17 +64,24 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 	out := []byte(r.Install)
 
-	// Create a temporary task file.
-	file, err := ioutil.TempFile("", r.Name)
-	defer os.Remove(file.Name())
+	// Create a temporary task taskFile.
+	taskFile, err := ioutil.TempFile("", r.Name)
+	defer os.Remove(taskFile.Name())
 	if err != nil {
 		return err
 	}
 
-	_, err = file.Write(out)
+	_, err = taskFile.Write(out)
 	if err != nil {
 		return err
 	}
+
+	outputFile, err := ioutil.TempFile("", fmt.Sprintf("%s_out", r.Name))
+	defer os.Remove(outputFile.Name())
+	if err != nil {
+		return err
+	}
+	recipeVars["NR_CLI_OUTPUT"] = outputFile.Name()
 
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 
@@ -87,7 +97,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	dir := os.TempDir()
-	fileBase := filepath.Base(file.Name())
+	fileBase := filepath.Base(taskFile.Name())
 	e := task.Executor{
 		Dir:        dir,
 		Entrypoint: fileBase,
@@ -149,7 +159,19 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return goTaskError
 	}
 
+	outputBytes, err := ioutil.ReadAll(outputFile)
+	if err == nil {
+		var result map[string]interface{}
+		if err := json.Unmarshal([]byte(outputBytes), &result); err == nil {
+			re.Output = result
+		}
+	}
+
 	return nil
+}
+
+func (re *GoTaskRecipeExecutor) GetOutput() map[string]interface{} {
+	return re.Output
 }
 
 func isExitStatusCode(exitCode int, err error) bool {

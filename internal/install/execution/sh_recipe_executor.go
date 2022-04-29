@@ -42,6 +42,10 @@ func (e *ShRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenIn
 	return e.execute(ctx, r.PreInstall.RequireAtDiscovery, v)
 }
 
+func (e *ShRecipeExecutor) GetOutput() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
 func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {
 	p, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
