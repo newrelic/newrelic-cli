@@ -291,9 +291,11 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 
 	var additionalBundle *recipes.Bundle
+	filteredRecipeNames := []string{}
 	if i.RecipeNamesProvided() {
-		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
-		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
+		filteredRecipeNames = i.fiterAdditonalRecipeNames()
+		additionalBundle = bundler.CreateAdditionalTargetedBundle(filteredRecipeNames)
+		i.reportUnsupportedTargetedRecipes(additionalBundle, repo, filteredRecipeNames)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
@@ -306,7 +308,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
-	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
+	} else if len(filteredRecipeNames) > len(additionalBundle.BundleRecipes) {
 		return &types.UncaughtError{
 			Err: fmt.Errorf("one or more selected recipes could not be installed"),
 		}
@@ -330,6 +332,21 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	}
 
 	return nil
+}
+
+func (i *RecipeInstall) fiterAdditonalRecipeNames() []string {
+	filteredRecipeNames := []string{}
+	if i.shouldInstallCore() {
+		//We already attemtped to install these - no need to do it again
+		for _, recipeName := range i.RecipeNames {
+			if !recipes.CoreRecipeMap[recipeName] {
+				filteredRecipeNames = append(filteredRecipeNames, recipeName)
+			}
+		}
+	} else {
+		filteredRecipeNames = i.RecipeNames
+	}
+	return filteredRecipeNames
 }
 
 func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
@@ -359,8 +376,8 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 	return m, nil
 }
 
-func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
-	for _, recipeName := range i.RecipeNames {
+func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository, recipeNames []string) {
+	for _, recipeName := range recipeNames {
 
 		br := bundle.GetBundleRecipe(recipeName)
 		if br == nil {
