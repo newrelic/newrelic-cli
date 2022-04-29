@@ -167,8 +167,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		} else {
 			log.Debugf("error while unmarshaling json output from recipe %s details:%s", r.Name, err.Error())
 		}
-	} else {
-		log.Debugf("error while reading json output from recipe %s details:%s", r.Name, err.Error())
 	}
 
 	return nil
