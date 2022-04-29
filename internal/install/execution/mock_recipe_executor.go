@@ -22,6 +22,6 @@ func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.Open
 	return m.ExecuteErr
 }
 
-func (e *MockRecipeExecutor) GetOutput() *OutputParser {
+func (m *MockRecipeExecutor) GetOutput() *OutputParser {
 	return NewOutputParser(map[string]interface{}{})
 }

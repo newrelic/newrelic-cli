@@ -437,7 +437,6 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 	entityGUID := i.recipeExecutor.GetOutput().EntityGUID()
 	if entityGUID != "" {
-		entityGUID = fmt.Sprintf("%s", entityGUID)
 		log.Debugf("Found entityGuid from recipe execution:%s", entityGUID)
 
 		i.status.RecipeInstalled(execution.RecipeStatusEvent{

@@ -64,13 +64,14 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 	out := []byte(r.Install)
 
+	var err error
+
 	// Create a temporary task taskFile.
 	taskFile, err := ioutil.TempFile("", r.Name)
 	defer os.Remove(taskFile.Name())
 	if err != nil {
 		return err
 	}
-
 	_, err = taskFile.Write(out)
 	if err != nil {
 		return err
@@ -123,7 +124,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		e.Taskfile.Vars.Set(k, taskfile.Var{Static: val})
 	}
 
-	if err := e.Run(ctx, calls...); err != nil {
+	if err = e.Run(ctx, calls...); err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Debug("Task execution returned error")
@@ -162,7 +163,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	outputBytes, err := ioutil.ReadAll(outputFile)
 	if err == nil && len(outputBytes) > 0 {
 		var result map[string]interface{}
-		if err := json.Unmarshal([]byte(outputBytes), &result); err == nil {
+		if err := json.Unmarshal(outputBytes, &result); err == nil {
 			re.Output = NewOutputParser(result)
 		} else {
 			log.Debugf("error while unmarshaling json output from recipe %s details:%s", r.Name, err.Error())
