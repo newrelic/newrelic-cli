@@ -337,7 +337,7 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 func (i *RecipeInstall) fiterAdditonalRecipeNames() []string {
 	filteredRecipeNames := []string{}
 	if i.shouldInstallCore() {
-		//We already attemtped to install these - no need to do it again
+		//We already attempted to install these - no need to do it again
 		for _, recipeName := range i.RecipeNames {
 			if !recipes.CoreRecipeMap[recipeName] {
 				filteredRecipeNames = append(filteredRecipeNames, recipeName)
