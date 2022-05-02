@@ -5,6 +5,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -57,13 +58,29 @@ func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 	var recipes []*types.OpenInstallationRecipe
 
-	for _, recipeName := range recipeNames {
-		if r := b.RecipeRepository.FindRecipeByName(recipeName); r != nil {
-			recipes = append(recipes, r)
+	allRecipes, _ := b.RecipeRepository.FindAll()
+	for _, recipe := range allRecipes {
+		recipes = append(recipes, recipe)
+	}
+
+	bundle := b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
+
+	for _, br := range bundle.BundleRecipes {
+		if !Find(recipeNames, br.Recipe.Name) {
+			br.DetectedStatuses = br.RemoveStatus(execution.RecipeStatusTypes.AVAILABLE)
 		}
 	}
 
-	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
+	return bundle
+}
+
+func Find(recipeNames []string, recipeSearchingFor string) bool {
+	for _, i := range recipeNames {
+		if i == recipeSearchingFor {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *Bundler) getCoreRecipeNames() []string {

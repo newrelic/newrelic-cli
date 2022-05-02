@@ -79,6 +79,16 @@ func (b *Bundle) AvailableRecipeCount() int {
 	return count
 }
 
+func (b *Bundle) RemoveBundleRecipe(name string) {
+
+	for i, r := range b.BundleRecipes {
+		if r.Recipe.Name == name {
+			b.BundleRecipes = append(b.BundleRecipes[0:i], b.BundleRecipes[i+1:]...)
+			return
+		}
+	}
+}
+
 func (b *Bundle) String() string {
 	result := fmt.Sprintf("%s %s", b.Type, b.BundleRecipes)
 	return fmt.Sprintf("{%s}", result)

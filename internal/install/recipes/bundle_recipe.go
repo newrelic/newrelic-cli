@@ -43,6 +43,18 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
+func (br *BundleRecipe) RemoveStatus(status execution.RecipeStatusType) []*DetectedStatusType {
+
+	var detectedStatuses []*DetectedStatusType
+
+	for _, detectedStatus := range br.DetectedStatuses {
+		if detectedStatus.Status != status {
+			detectedStatuses = append(detectedStatuses, detectedStatus)
+		}
+	}
+	return detectedStatuses
+}
+
 func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
 	for _, depName := range br.Recipe.Dependencies {
 		if br.IsNameInDependencies(depName) {

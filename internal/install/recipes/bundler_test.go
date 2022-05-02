@@ -46,8 +46,8 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 
 	recipeNames := []string{
 		"mysql",
-		types.LoggingRecipeName,
 		types.InfraAgentRecipeName,
+		types.LoggingRecipeName,
 		types.GoldenRecipeName,
 	}
 	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
@@ -57,6 +57,52 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	require.NotNil(t, findRecipeByName(addBundle, types.LoggingRecipeName))
 	require.NotNil(t, findRecipeByName(addBundle, types.GoldenRecipeName))
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
+}
+
+func TestCreateAdditionalTargetedBundleShouldDetectOtherRecipes(t *testing.T) {
+	setup()
+	anotherRecipe := "x"
+	addRecipeToCache("id1", anotherRecipe)
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, anotherRecipe, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+
+	recipeNames := []string{
+		"mysql",
+	}
+	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
+
+	require.Equal(t, 2, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
+	ar := findRecipeByName(addBundle, anotherRecipe)
+	require.NotNil(t, ar)
+	require.True(t, ar.HasStatus(execution.RecipeStatusTypes.DETECTED))
+	require.False(t, ar.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	require.NotNil(t, findRecipeByName(addBundle, anotherRecipe))
+}
+
+func TestCreateAdditionalTargetedBundleShouldDetectOtherRecipesEvenWhenUnsupported(t *testing.T) {
+	setup()
+	anotherRecipe := "x"
+	addRecipeToCache("id1", anotherRecipe)
+	addRecipeToCache("id4", "mysql")
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, anotherRecipe, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.UNSUPPORTED)
+
+	recipeNames := []string{
+		"mysql",
+	}
+	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
+
+	require.Equal(t, 2, len(addBundle.BundleRecipes))
+	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
+	ar := findRecipeByName(addBundle, anotherRecipe)
+	require.NotNil(t, ar)
+	require.True(t, ar.HasStatus(execution.RecipeStatusTypes.DETECTED))
+	require.False(t, ar.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
+	require.NotNil(t, findRecipeByName(addBundle, anotherRecipe))
 }
 
 func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {

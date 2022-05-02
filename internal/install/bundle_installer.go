@@ -43,6 +43,7 @@ func NewPrompter() *ux.PromptUIPrompter {
 
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
 
+	bi.removedInstalledRecipesFromBundle(bundle)
 	bi.reportBundleStatus(bundle)
 
 	installableBundleRecipes := bi.getInstallableBundleRecipes(bundle)
@@ -105,6 +106,9 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
+		if bi.installedRecipes[recipe.Recipe.Name] {
+			continue
+		}
 		for _, ds := range recipe.DetectedStatuses {
 			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe, ValidationDurationMs: ds.DurationMs}
 			bi.statusReporter.ReportStatus(ds.Status, e)
@@ -145,6 +149,15 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 	log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
 
 	return nil
+}
+
+func (bi *BundleInstaller) removedInstalledRecipesFromBundle(bundle *recipes.Bundle) {
+
+	for _, bundleRecipe := range bundle.BundleRecipes {
+		if _, ok := bi.installedRecipes[bundleRecipe.Recipe.Name]; ok {
+			bundle.RemoveBundleRecipe(bundleRecipe.Recipe.Name)
+		}
+	}
 }
 
 func (bi *BundleInstaller) getInstallableBundleRecipes(bundle *recipes.Bundle) []*recipes.BundleRecipe {
