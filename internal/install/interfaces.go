@@ -69,5 +69,6 @@ type RecipeBundler interface {
 type RecipeBundleInstaller interface {
 	InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error
 	InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool)
+	IsRecipeInstalled(name string) bool
 	InstalledRecipesCount() int
 }

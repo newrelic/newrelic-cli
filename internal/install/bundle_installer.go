@@ -175,3 +175,8 @@ func (bi *BundleInstaller) getInstallableBundleRecipes(bundle *recipes.Bundle) [
 
 	return bundleRecipes
 }
+
+func (bi *BundleInstaller) IsRecipeInstalled(recipeName string) bool {
+	_, ok := bi.installedRecipes[recipeName]
+	return ok
+}

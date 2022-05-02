@@ -154,7 +154,7 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 
 func (i *RecipeInstall) Install() error {
 	fmt.Printf(`
- _   _                 ____      _ _
+_   _                 ____      _ _
 | \ | | _____      __ |  _ \ ___| (_) ___
 |  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
 | |\  |  __/\ V  V /  |  _ |  __| | | (__
@@ -293,7 +293,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	var additionalBundle *recipes.Bundle
 	filteredRecipeNames := []string{}
 	if i.RecipeNamesProvided() {
-		filteredRecipeNames = i.fiterAdditonalRecipeNames()
+		filteredRecipeNames = i.fiterAdditonalRecipeNames(bundleInstaller)
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(filteredRecipeNames)
 		i.reportUnsupportedTargetedRecipes(additionalBundle, repo, filteredRecipeNames)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
@@ -334,17 +334,13 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	return nil
 }
 
-func (i *RecipeInstall) fiterAdditonalRecipeNames() []string {
+func (i *RecipeInstall) fiterAdditonalRecipeNames(bundleInstaller RecipeBundleInstaller) []string {
 	filteredRecipeNames := []string{}
-	if i.shouldInstallCore() {
-		//We already attempted to install these - no need to do it again
-		for _, recipeName := range i.RecipeNames {
-			if !recipes.CoreRecipeMap[recipeName] {
-				filteredRecipeNames = append(filteredRecipeNames, recipeName)
-			}
+	for _, recipeName := range i.RecipeNames {
+		// Skip recipes that already installed
+		if !bundleInstaller.IsRecipeInstalled(recipeName) {
+			filteredRecipeNames = append(filteredRecipeNames, recipeName)
 		}
-	} else {
-		filteredRecipeNames = i.RecipeNames
 	}
 	return filteredRecipeNames
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-var CoreRecipeMap = map[string]bool{
+var coreRecipeMap = map[string]bool{
 	types.InfraAgentRecipeName: true,
 	types.LoggingRecipeName:    true,
 }
@@ -47,7 +47,7 @@ func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 
 	allRecipes, _ := b.RecipeRepository.FindAll()
 	for _, recipe := range allRecipes {
-		if !CoreRecipeMap[recipe.Name] {
+		if !coreRecipeMap[recipe.Name] {
 			recipes = append(recipes, recipe)
 		}
 	}
@@ -82,8 +82,8 @@ func Find(recipeNames []string, recipeSearchingFor string) bool {
 }
 
 func (b *Bundler) getCoreRecipeNames() []string {
-	coreRecipeNames := make([]string, 0, len(CoreRecipeMap))
-	for k := range CoreRecipeMap {
+	coreRecipeNames := make([]string, 0, len(coreRecipeMap))
+	for k := range coreRecipeMap {
 		coreRecipeNames = append(coreRecipeNames, k)
 	}
 	return coreRecipeNames
