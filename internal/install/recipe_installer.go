@@ -154,7 +154,7 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 
 func (i *RecipeInstall) Install() error {
 	fmt.Printf(`
-_   _                 ____      _ _
+ _   _                 ____      _ _
 | \ | | _____      __ |  _ \ ___| (_) ___
 |  \| |/ _ \ \ /\ / / | |_) / _ | | |/ __|
 | |\  |  __/\ V  V /  |  _ |  __| | | (__

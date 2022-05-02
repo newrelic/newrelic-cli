@@ -43,7 +43,6 @@ func NewPrompter() *ux.PromptUIPrompter {
 
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
 
-	bi.removedInstalledRecipesFromBundle(bundle)
 	bi.reportBundleStatus(bundle)
 
 	installableBundleRecipes := bi.getInstallableBundleRecipes(bundle)
@@ -149,15 +148,6 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 	log.Debugf("Done executing and validating with progress for recipe name %s.", recipeName)
 
 	return nil
-}
-
-func (bi *BundleInstaller) removedInstalledRecipesFromBundle(bundle *recipes.Bundle) {
-
-	for _, bundleRecipe := range bundle.BundleRecipes {
-		if _, ok := bi.installedRecipes[bundleRecipe.Recipe.Name]; ok {
-			bundle.RemoveBundleRecipe(bundleRecipe.Recipe.Name)
-		}
-	}
 }
 
 func (bi *BundleInstaller) getInstallableBundleRecipes(bundle *recipes.Bundle) []*recipes.BundleRecipe {
