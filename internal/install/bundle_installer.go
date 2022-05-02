@@ -105,9 +105,11 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
-		for _, ds := range recipe.DetectedStatuses {
-			e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe, ValidationDurationMs: ds.DurationMs}
-			bi.statusReporter.ReportStatus(ds.Status, e)
+		if !bi.IsRecipeInstalled(recipe.Recipe.Name) {
+			for _, ds := range recipe.DetectedStatuses {
+				e := execution.RecipeStatusEvent{Recipe: *recipe.Recipe, ValidationDurationMs: ds.DurationMs}
+				bi.statusReporter.ReportStatus(ds.Status, e)
+			}
 		}
 	}
 }
