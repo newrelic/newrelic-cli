@@ -1,5 +1,13 @@
+<a name="v0.46.4"></a>
+## [v0.46.4] - 2022-05-02
+### Bug Fixes
+- **spelling:** Fix a typo on 'attempted'
+- **targeted:** Fix targeted install of core recipe reporting status incorrectly
+
+<a name="v0.46.3"></a>
+## [v0.46.3] - 2022-04-27
 <a name="v0.46.2"></a>
-## [v0.46.2] - 0001-01-01
+## [v0.46.2] - 2022-04-25
 <a name="v0.46.1"></a>
 ## [v0.46.1] - 2022-04-25
 <a name="v0.46.0"></a>
@@ -1610,7 +1618,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.4...HEAD
+[v0.46.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.3...v0.46.4
+[v0.46.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.2...v0.46.3
 [v0.46.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.1...v0.46.2
 [v0.46.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.0...v0.46.1
 [v0.46.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.2...v0.46.0
