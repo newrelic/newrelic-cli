@@ -8,8 +8,9 @@ import (
 	"errors"
 	"testing"
 
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 	"github.com/stretchr/testify/require"
+
+	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 var (

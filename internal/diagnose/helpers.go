@@ -13,6 +13,7 @@ import (
 	"runtime"
 
 	"github.com/fatih/color"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"

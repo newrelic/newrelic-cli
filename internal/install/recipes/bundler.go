@@ -59,9 +59,7 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipeNames []string) *Bundle {
 	var recipes []*types.OpenInstallationRecipe
 
 	allRecipes, _ := b.RecipeRepository.FindAll()
-	for _, recipe := range allRecipes {
-		recipes = append(recipes, recipe)
-	}
+	recipes = append(recipes, allRecipes...)
 
 	bundle := b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
 
