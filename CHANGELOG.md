@@ -1,5 +1,5 @@
 <a name="v0.46.4"></a>
-## [v0.46.4] - 2022-05-02
+## [v0.46.4] - 2022-04-29
 ### Bug Fixes
 - **spelling:** Fix a typo on 'attempted'
 - **targeted:** Fix targeted install of core recipe reporting status incorrectly
