@@ -448,6 +448,18 @@ func TestReportUnSupportTargetRecipeWithUnsupportForPlatform(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
 }
 
+func TestRecipeInstallerShouldGetEntityGuidFromRecipeExecution(t *testing.T) {
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithOutput("{\"EntityGuid\":\"abcd\"}").Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipe, false)
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount)
+	assert.Equal(t, "abcd", statusReporter.GUIDs[0])
+}
+
 func captureLoggingOutput(f func()) string {
 	var buf bytes.Buffer
 	existingLogger := config.Logger

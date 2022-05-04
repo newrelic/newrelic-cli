@@ -118,6 +118,11 @@ func (rib *RecipeInstallBuilder) WithRecipeExecutionResult(err error) *RecipeIns
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) WithOutput(value string) *RecipeInstallBuilder {
+	rib.recipeExecutor.SetOutput(value)
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) WithRecipeVarValues(vars map[string]string, err error) *RecipeInstallBuilder {
 	rib.recipeVarProvider.Vars = vars
 	rib.recipeVarProvider.Error = err
