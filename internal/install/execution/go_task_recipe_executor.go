@@ -3,6 +3,7 @@ package execution
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,6 +28,7 @@ type GoTaskRecipeExecutor struct {
 	Stderr io.Writer
 	Stdin  io.Reader
 	Stdout io.Writer
+	Output *OutputParser
 }
 
 // NewGoTaskRecipeExecutor returns a new instance of GoTaskRecipeExecutor.
@@ -35,6 +37,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 		Stderr: os.Stderr,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
+		Output: NewOutputParser(map[string]interface{}{}),
 	}
 }
 
@@ -61,17 +64,25 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 	out := []byte(r.Install)
 
-	// Create a temporary task file.
-	file, err := ioutil.TempFile("", r.Name)
-	defer os.Remove(file.Name())
+	var err error
+
+	// Create a temporary task taskFile.
+	taskFile, err := ioutil.TempFile("", r.Name)
+	defer os.Remove(taskFile.Name())
+	if err != nil {
+		return err
+	}
+	_, err = taskFile.Write(out)
 	if err != nil {
 		return err
 	}
 
-	_, err = file.Write(out)
+	outputFile, err := ioutil.TempFile("", fmt.Sprintf("%s_out", r.Name))
+	defer os.Remove(outputFile.Name())
 	if err != nil {
 		return err
 	}
+	recipeVars["NR_CLI_OUTPUT"] = outputFile.Name()
 
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 
@@ -87,7 +98,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	dir := os.TempDir()
-	fileBase := filepath.Base(file.Name())
+	fileBase := filepath.Base(taskFile.Name())
 	e := task.Executor{
 		Dir:        dir,
 		Entrypoint: fileBase,
@@ -113,7 +124,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		e.Taskfile.Vars.Set(k, taskfile.Var{Static: val})
 	}
 
-	if err := e.Run(ctx, calls...); err != nil {
+	if err = e.Run(ctx, calls...); err != nil {
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Debug("Task execution returned error")
@@ -149,7 +160,21 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return goTaskError
 	}
 
+	outputBytes, err := ioutil.ReadAll(outputFile)
+	if err == nil && len(outputBytes) > 0 {
+		var result map[string]interface{}
+		if err := json.Unmarshal(outputBytes, &result); err == nil {
+			re.Output = NewOutputParser(result)
+		} else {
+			log.Debugf("error while unmarshaling json output from recipe %s details:%s", r.Name, err.Error())
+		}
+	}
+
 	return nil
+}
+
+func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {
+	return re.Output
 }
 
 func isExitStatusCode(exitCode int, err error) bool {
