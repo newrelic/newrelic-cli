@@ -190,7 +190,7 @@ are used to construct or destroy an item, respectively.
 
 ### Requirements
 
-- Go 1.18.0
+- Go 1.18+
 - GNU Make
 - git
 
