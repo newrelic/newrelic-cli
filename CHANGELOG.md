@@ -1,3 +1,5 @@
+<a name="v0.47.1"></a>
+## [v0.47.1] - 2022-05-04
 <a name="v0.47.0"></a>
 ## [v0.47.0] - 2022-05-04
 ### Features
@@ -1623,7 +1625,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.1...HEAD
+[v0.47.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.0...v0.47.1
 [v0.47.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.4...v0.47.0
 [v0.46.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.3...v0.46.4
 [v0.46.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.2...v0.46.3
