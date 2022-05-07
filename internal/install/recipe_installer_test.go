@@ -457,7 +457,7 @@ func TestRecipeInstallerShouldGetEntityGuidFromRecipeExecution(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount)
-	//assert.Equal(t, "abcd", statusReporter.GUIDs[0])
+	assert.Equal(t, "abcd", statusReporter.GUIDs[0])
 }
 
 func captureLoggingOutput(f func()) string {
