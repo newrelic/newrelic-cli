@@ -10,6 +10,12 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+type RecipeDetection struct {
+	Recipe     *types.OpenInstallationRecipe
+	Status     execution.RecipeStatusType
+	DurationMs int64
+}
+
 type DetectionStatusProvider interface {
 	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
 }
@@ -17,37 +23,26 @@ type DetectionStatusProvider interface {
 type RecipeDetector struct {
 	processEvaluator DetectionStatusProvider
 	scriptEvaluator  DetectionStatusProvider
-	recipeEvaluated  map[string]bool // same recipe(ref) should only be evaluated one time
 }
 
 func NewRecipeDetector() *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: NewProcessEvaluator(),
 		scriptEvaluator:  NewScriptEvaluator(),
-		recipeEvaluated:  make(map[string]bool),
 	}
 }
 
-func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {
-	// if already evaluated
-	if _, exists := dt.recipeEvaluated[bundleRecipe.Recipe.Name]; exists {
-		return
-	}
-	dt.recipeEvaluated[bundleRecipe.Recipe.Name] = true
+func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.OpenInstallationRecipe) map[string]*RecipeDetection {
+	ds := make(map[string]*RecipeDetection)
 
-	for _, dep := range bundleRecipe.Dependencies {
-		dt.detectBundleRecipe(ctx, dep)
+	for _, r := range recipes {
+		ds[r.Name] = dt.detectRecipe(ctx, r)
 	}
 
-	if bundleRecipe.AreAllDependenciesAvailable() {
-		status, durationMs := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-		bundleRecipe.AddDetectionStatus(status, durationMs)
-	} else {
-		log.Debugf("Dependency not available for recipe %v", bundleRecipe.Recipe.Name)
-	}
+	return ds
 }
 
-func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) (execution.RecipeStatusType, int64) {
+func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) *RecipeDetection {
 	start := time.Now()
 	status := dt.processEvaluator.DetectionStatus(ctx, recipe)
 	durationMs := time.Since(start).Milliseconds()
@@ -57,5 +52,10 @@ func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenIn
 		durationMs = time.Since(start).Milliseconds()
 		log.Debugf("ScriptEvaluation for recipe:%s completed in %dms with status:%s", recipe.Name, durationMs, status)
 	}
-	return status, durationMs
+
+	return &RecipeDetection{
+		recipe,
+		status,
+		durationMs,
+	}
 }

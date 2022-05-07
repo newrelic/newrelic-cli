@@ -17,8 +17,8 @@ func TestRecipeDetectorShouldFailBecauseOfProcessEvaluation(t *testing.T) {
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
 	detector := b.Build()
 
-	actual, _ := detector.detectRecipe(context.Background(), recipe)
-	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
+	actual := detector.detectRecipe(context.Background(), recipe)
+	require.Equal(t, execution.RecipeStatusTypes.NULL, actual.Status)
 }
 
 func TestRecipeDetectorShouldBeAvailableWhenRecipeScriptDetectionIsMissingScript(t *testing.T) {
@@ -28,8 +28,8 @@ func TestRecipeDetectorShouldBeAvailableWhenRecipeScriptDetectionIsMissingScript
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.DETECTED)
 	detector := b.Build()
 
-	actual, _ := detector.detectRecipe(context.Background(), recipe)
-	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
+	actual := detector.detectRecipe(context.Background(), recipe)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual.Status)
 }
 
 func TestRecipeDetectorShouldFailWhenScriptFails(t *testing.T) {
@@ -40,8 +40,8 @@ func TestRecipeDetectorShouldFailWhenScriptFails(t *testing.T) {
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.NULL)
 	detector := b.Build()
 
-	actual, _ := detector.detectRecipe(context.Background(), recipe)
-	require.Equal(t, execution.RecipeStatusTypes.NULL, actual)
+	actual := detector.detectRecipe(context.Background(), recipe)
+	require.Equal(t, execution.RecipeStatusTypes.NULL, actual.Status)
 }
 
 func TestRecipeDetectorShouldDetectBecauseOfScriptEvaluation(t *testing.T) {
@@ -52,8 +52,8 @@ func TestRecipeDetectorShouldDetectBecauseOfScriptEvaluation(t *testing.T) {
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.DETECTED)
 	detector := b.Build()
 
-	actual, _ := detector.detectRecipe(context.Background(), recipe)
-	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual)
+	actual := detector.detectRecipe(context.Background(), recipe)
+	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual.Status)
 }
 
 func TestRecipeDetectorShouldBeAvailableBecauseOfScriptEvaluation(t *testing.T) {
@@ -64,60 +64,8 @@ func TestRecipeDetectorShouldBeAvailableBecauseOfScriptEvaluation(t *testing.T) 
 	b.WithScriptEvaluatorStatus(execution.RecipeStatusTypes.AVAILABLE)
 	detector := b.Build()
 
-	actual, _ := detector.detectRecipe(context.Background(), recipe)
-	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual)
-}
-
-func TestDetectBundleRecipe_NoDependency_Available(t *testing.T) {
-	b := NewRecipeDetectorTestBuilder()
-	br := NewRecipeBuilder().Name("r1").BuildBundleRecipe()
-	b.WithProcessEvaluatorRecipeStatus(br.Recipe, execution.RecipeStatusTypes.AVAILABLE)
-	detector := b.Build()
-
-	detector.detectBundleRecipe(context.Background(), br)
-	require.True(t, br.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-}
-
-func TestDetectBundleRecipe_SingleDependencyNotAvailable(t *testing.T) {
-	b := NewRecipeDetectorTestBuilder()
-	dep1 := NewRecipeBuilder().Name("dep1").BuildBundleRecipe()
-	br := NewRecipeBuilder().Name("r1").Dependency(dep1).BuildBundleRecipe()
-	b.WithProcessEvaluatorRecipeStatus(br.Recipe, execution.RecipeStatusTypes.AVAILABLE)
-	b.WithProcessEvaluatorRecipeStatus(br.Dependencies[0].Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
-	detector := b.Build()
-
-	detector.detectBundleRecipe(context.Background(), br)
-	require.False(t, br.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	require.True(t, br.Dependencies[0].HasStatus(execution.RecipeStatusTypes.UNSUPPORTED))
-}
-
-func TestDetectBundleRecipe_TwoDependencyAndDepUnsupported(t *testing.T) {
-	b := NewRecipeDetectorTestBuilder()
-	infraBundleRecipe := NewRecipeBuilder().Name("infra").BuildBundleRecipe()
-	logBundleRecipe := NewRecipeBuilder().Name("log").Dependency(infraBundleRecipe).BuildBundleRecipe()
-	b.WithProcessEvaluatorRecipeStatus(logBundleRecipe.Recipe, execution.RecipeStatusTypes.AVAILABLE)
-	b.WithProcessEvaluatorRecipeStatus(infraBundleRecipe.Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
-	detector := b.Build()
-
-	detector.detectBundleRecipe(context.Background(), infraBundleRecipe)
-	detector.detectBundleRecipe(context.Background(), logBundleRecipe)
-
-	require.False(t, logBundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	require.True(t, infraBundleRecipe.HasStatus(execution.RecipeStatusTypes.UNSUPPORTED))
-}
-
-func TestDetectBundleRecipe_ParentShouldEvaluateDependency_Unsupported(t *testing.T) {
-	b := NewRecipeDetectorTestBuilder()
-	infraBundleRecipe := NewRecipeBuilder().Name("infra").BuildBundleRecipe()
-	logBundleRecipe := NewRecipeBuilder().Name("log").Dependency(infraBundleRecipe).BuildBundleRecipe()
-	b.WithProcessEvaluatorRecipeStatus(logBundleRecipe.Recipe, execution.RecipeStatusTypes.AVAILABLE)
-	b.WithProcessEvaluatorRecipeStatus(infraBundleRecipe.Recipe, execution.RecipeStatusTypes.UNSUPPORTED)
-	detector := b.Build()
-
-	detector.detectBundleRecipe(context.Background(), logBundleRecipe)
-
-	require.False(t, logBundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	require.True(t, infraBundleRecipe.HasStatus(execution.RecipeStatusTypes.UNSUPPORTED))
+	actual := detector.detectRecipe(context.Background(), recipe)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual.Status)
 }
 
 type RecipeDetectorTestBuilder struct {
@@ -160,6 +108,5 @@ func newRecipeDetector(processEvaluator DetectionStatusProvider, scriptEvaluator
 	return &RecipeDetector{
 		processEvaluator: processEvaluator,
 		scriptEvaluator:  scriptEvaluator,
-		recipeEvaluated:  make(map[string]bool),
 	}
 }

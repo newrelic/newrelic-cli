@@ -43,7 +43,7 @@ type RecipeInstall struct {
 	recipeVarPreparer      RecipeVarPreparer
 	agentValidator         AgentValidator
 	shouldInstallCore      func() bool
-	bundlerFactory         func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
+	bundlerFactory         func(ctx context.Context, detections map[string]*recipes.RecipeDetection) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
 }
@@ -106,8 +106,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return os.Getenv("NEW_RELIC_CLI_SKIP_CORE") != "1"
 	}
 
-	i.bundlerFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
-		return recipes.NewBundler(ctx, repo)
+	i.bundlerFactory = func(ctx context.Context, detections map[string]*recipes.RecipeDetection) RecipeBundler {
+		return recipes.NewBundler(ctx, detections)
 	}
 
 	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
@@ -270,7 +270,12 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}
 	fmt.Println(message)
 
-	bundler := i.bundlerFactory(ctx, repo)
+	detections, err := i.detectRecipes(ctx, repo)
+	if err != nil {
+		return err
+	}
+
+	bundler := i.bundlerFactory(ctx, detections)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
 	cbErr := i.installCoreBundle(bundler, bundleInstaller)
@@ -286,6 +291,26 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	log.Debugf("Done installing.")
 
 	return nil
+}
+
+// Detect Recipes and remove them if they are not available for installation
+func (i *RecipeInstall) detectRecipes(ctx context.Context, repo *recipes.RecipeRepository) (map[string]*recipes.RecipeDetection, error) {
+	recipeDetector := recipes.NewRecipeDetector()
+	recipes, err := repo.FindAll()
+	if err != nil {
+		return nil, err
+	}
+
+	detections := recipeDetector.DetectRecipes(ctx, recipes)
+
+	for k, d := range detections {
+		if d.Status != execution.RecipeStatusTypes.AVAILABLE {
+			e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
+			i.status.ReportStatus(d.Status, e)
+			delete(detections, k)
+		}
+	}
+	return detections, nil
 }
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {

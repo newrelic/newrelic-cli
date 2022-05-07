@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -34,15 +35,15 @@ var (
 
 func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	setup()
-	addRecipeToCache("id1", types.InfraAgentRecipeName)
-	addRecipeToCache("id2", types.LoggingRecipeName)
-	addRecipeToCache("id3", types.GoldenRecipeName)
-	addRecipeToCache("id4", "mysql")
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
+	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
+	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE, goldenRecipe)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE, mysqlRecipe)
 
 	recipeNames := []string{
 		"mysql",
@@ -59,59 +60,37 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
 }
 
-func TestCreateAdditionalTargetedBundleShouldDetectOtherRecipes(t *testing.T) {
+func TestCreateAdditionalTargetedBundleShouldNotDetectOtherRecipes(t *testing.T) {
 	setup()
 	anotherRecipe := "x"
-	addRecipeToCache("id1", anotherRecipe)
-	addRecipeToCache("id4", "mysql")
+	xRecipe := NewRecipeBuilder().Name(anotherRecipe).Build()
+	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, anotherRecipe, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, anotherRecipe, execution.RecipeStatusTypes.AVAILABLE, xRecipe)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE, mysqlRecipe)
 
 	recipeNames := []string{
 		"mysql",
 	}
 	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
 
-	require.Equal(t, 2, len(addBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
-	ar := findRecipeByName(addBundle, anotherRecipe)
-	require.NotNil(t, ar)
-	require.True(t, ar.HasStatus(execution.RecipeStatusTypes.DETECTED))
-	require.False(t, ar.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	require.NotNil(t, findRecipeByName(addBundle, anotherRecipe))
-}
-
-func TestCreateAdditionalTargetedBundleShouldDetectOtherRecipesEvenWhenUnsupported(t *testing.T) {
-	setup()
-	anotherRecipe := "x"
-	addRecipeToCache("id1", anotherRecipe)
-	addRecipeToCache("id4", "mysql")
-	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, anotherRecipe, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.UNSUPPORTED)
-
-	recipeNames := []string{
-		"mysql",
-	}
-	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
-
-	require.Equal(t, 2, len(addBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
-	ar := findRecipeByName(addBundle, anotherRecipe)
-	require.NotNil(t, ar)
-	require.True(t, ar.HasStatus(execution.RecipeStatusTypes.DETECTED))
-	require.False(t, ar.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	require.NotNil(t, findRecipeByName(addBundle, anotherRecipe))
+	r := findRecipeByName(addBundle, "mysql")
+	require.Equal(t, 1, len(addBundle.BundleRecipes))
+	require.NotNil(t, r)
+	require.True(t, r.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
 }
 
 func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 	setup()
-	addRecipeToCache("id1", types.InfraAgentRecipeName)
-	addRecipeToCache("id2", types.LoggingRecipeName)
-	addRecipeToCache("id3", types.GoldenRecipeName)
-	addRecipeToCache("id4", "mysql")
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
+	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
+	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE, goldenRecipe)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE, mysqlRecipe)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -124,15 +103,15 @@ func TestCreateCoreBundleShouldContainOnlyCoreBundleRecipes(t *testing.T) {
 
 func TestCreateAdditionalGuidedBundleShouldSkipCoreRecipes(t *testing.T) {
 	setup()
-	addRecipeToCache("id1", types.InfraAgentRecipeName)
-	addRecipeToCache("id2", types.LoggingRecipeName)
-	addRecipeToCache("id3", types.GoldenRecipeName)
-	addRecipeToCache("id4", "mysql")
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
+	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
+	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE, goldenRecipe)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE, mysqlRecipe)
 
 	addBundle := bundler.CreateAdditionalGuidedBundle()
 
@@ -142,11 +121,15 @@ func TestCreateAdditionalGuidedBundleShouldSkipCoreRecipes(t *testing.T) {
 
 func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
 	setup()
-	addRecipeToCache("id2", types.InfraAgentRecipeName)
-	addRecipeToCache("id2", types.LoggingRecipeName)
-	addRecipeToCache("id3", types.GoldenRecipeName)
-	addRecipeToCache("id4", "mysql")
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
+	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
+	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
+	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE, goldenRecipe)
+	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE, mysqlRecipe)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -159,41 +142,52 @@ func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
 }
 
 func TestCreateCoreBundleShouldIncludeDependencies(t *testing.T) {
+
 	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2"})
-	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep2"})
-	addRecipeToCache("id3", "dep1")
-	addRecipeToCache("id4", "dep2")
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	infraRecipe.Dependencies = []string{"dep1", "dep2"}
+	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
+	loggingRecipe.Dependencies = []string{"dep2"}
+	dep1Recipe := NewRecipeBuilder().Name("dep1").Build()
+	dep2Recipe := NewRecipeBuilder().Name("dep2").Build()
+
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE, dep1Recipe)
+	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE, dep2Recipe)
 
 	coreBundle := bundler.CreateCoreBundle()
 
 	require.Equal(t, 2, len(coreBundle.BundleRecipes))
-	infraRecipe := findRecipeByName(coreBundle, types.InfraAgentRecipeName)
-	loggingRecipe := findRecipeByName(coreBundle, types.LoggingRecipeName)
-	require.NotNil(t, infraRecipe)
-	require.NotNil(t, loggingRecipe)
+	infraBundleRecipe := findRecipeByName(coreBundle, types.InfraAgentRecipeName)
+	loggingBundleRecipe := findRecipeByName(coreBundle, types.LoggingRecipeName)
+	require.NotNil(t, infraBundleRecipe)
+	require.NotNil(t, loggingBundleRecipe)
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 	require.Nil(t, findRecipeByName(coreBundle, "dep2"))
-	require.NotNil(t, findDependencyByName(infraRecipe, "dep1"))
-	require.NotNil(t, findDependencyByName(infraRecipe, "dep2"))
-	require.Nil(t, findDependencyByName(loggingRecipe, "dep1"))
-	require.NotNil(t, findDependencyByName(loggingRecipe, "dep2"))
+	require.NotNil(t, findDependencyByName(infraBundleRecipe, "dep1"))
+	require.NotNil(t, findDependencyByName(infraBundleRecipe, "dep2"))
+	require.Nil(t, findDependencyByName(loggingBundleRecipe, "dep1"))
+	require.NotNil(t, findDependencyByName(loggingBundleRecipe, "dep2"))
 
 }
 
 func TestCreateCoreBundleShouldNotIncludeRecipeWithInvalidDependencies(t *testing.T) {
-	setup()
-	addRecipeToCache("id3", "dep1")
-	addRecipeToCache("id4", "dep2")
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1", "dep2", "dep3"})
-	addRecipeWithDependenciesToCache("id2", types.LoggingRecipeName, []string{"dep1", "dep2"})
-	bundler := createTestBundler()
 
-	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE)
+	setup()
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	infraRecipe.Dependencies = []string{"dep1", "dep2", "dep3"}
+	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
+	loggingRecipe.Dependencies = []string{"dep1", "dep2"}
+	dep1Recipe := NewRecipeBuilder().Name("dep1").Build()
+	dep2Recipe := NewRecipeBuilder().Name("dep2").Build()
+
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
+	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE, dep1Recipe)
+	withRecipeStatusDetector(bundler, "dep2", execution.RecipeStatusTypes.AVAILABLE, dep2Recipe)
 
 	coreBundle := bundler.CreateCoreBundle()
 
@@ -218,68 +212,70 @@ func TestCreateCoreBundleShouldCreateEmptyCore(t *testing.T) {
 }
 
 func TestCreateAdditionalGuidedBundleShouldBundleRecipesThatHaveNullStatus(t *testing.T) {
+
 	setup()
-	addRecipeToCache("id1", "mysql")
+	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
+
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, "mysql", execution.RecipeStatusTypes.NULL)
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.NULL, mysqlRecipe)
 
 	bundle := bundler.CreateAdditionalGuidedBundle()
 
-	require.Equal(t, 1, len(bundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(bundle, "mysql"))
+	require.Equal(t, 0, len(bundle.BundleRecipes))
+	require.Nil(t, findRecipeByName(bundle, "mysql"))
 }
 
 func TestCreateCoreBundleShouldBundleDependencyOrRecipeWhenNotDetected(t *testing.T) {
+
 	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
-	addRecipeToCache("id3", "dep1")
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	infraRecipe.Dependencies = []string{"dep1"}
+	dep1Recipe := NewRecipeBuilder().Name("dep1").Build()
+
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.NULL)
-
 	coreBundle := bundler.CreateCoreBundle()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, dep1Recipe)
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.NULL, dep1Recipe)
 
-	require.Equal(t, 1, len(coreBundle.BundleRecipes))
-	require.NotNil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
+	require.Equal(t, 0, len(coreBundle.BundleRecipes))
+	require.Nil(t, findRecipeByName(coreBundle, types.InfraAgentRecipeName))
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
-	require.NotNil(t, findDependencyByName(coreBundle.BundleRecipes[0], "dep1"))
 }
 
 func TestNewBundlerShouldCreate(t *testing.T) {
 	setup()
-	bundler := NewBundler(bundlerTestImpl.ctx, bundlerTestImpl.recipeRepository)
+	d := make(map[string]*RecipeDetection)
+	bundler := NewBundler(bundlerTestImpl.ctx, d)
 
 	require.NotNil(t, bundler)
 	require.Equal(t, bundlerTestImpl.ctx, bundler.Context)
-	require.Equal(t, bundlerTestImpl.recipeRepository, bundler.RecipeRepository)
-	require.NotNil(t, bundler.RecipeDetector)
+	require.Equal(t, d, bundler.Detections)
 }
 
 func TestBundleRecipeShouldNotBeAvailableWhenDependencyMissingInRepo(t *testing.T) {
 	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
+	r := addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
 	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, r)
 
 	coreBundle := bundler.CreateCoreBundle()
-
+	fmt.Printf("coreBundle.BundleRecipes = %+v\n", coreBundle.BundleRecipes)
 	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
 func TestBundleRecipeShouldNotBeAvailableWhenRecipeNotAvailable(t *testing.T) {
-	setup()
-	addRecipeWithDependenciesToCache("id1", types.InfraAgentRecipeName, []string{"dep1"})
-	addRecipeToCache("id3", "dep1")
-	bundler := createTestBundler()
-	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.NULL)
-	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE)
 
+	setup()
+	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
+	infraRecipe.Dependencies = []string{"dep1"}
+	dep1Recipe := NewRecipeBuilder().Name("dep1").Build()
+
+	bundler := createTestBundler()
+	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.NULL, infraRecipe)
+	withRecipeStatusDetector(bundler, "dep1", execution.RecipeStatusTypes.AVAILABLE, dep1Recipe)
 	coreBundle := bundler.CreateCoreBundle()
 
-	bundledRecipe := findRecipeByName(coreBundle, types.InfraAgentRecipeName)
-	require.Equal(t, 1, len(coreBundle.BundleRecipes))
-	require.NotNil(t, bundledRecipe)
-	require.False(t, bundledRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	require.True(t, bundledRecipe.HasStatus(execution.RecipeStatusTypes.NULL))
+	require.Equal(t, 0, len(coreBundle.BundleRecipes))
 }
 
 func findRecipeByName(bundle *Bundle, name string) *BundleRecipe {
@@ -313,32 +309,28 @@ func setup() {
 	bundlerTestImpl.recipeRepository = NewRecipeRepository(bundlerRecipeLoader, &bundlerTestImpl.discoveryManifest)
 }
 
-func newBundler(context context.Context, rr *RecipeRepository, rd *RecipeDetector) *Bundler {
+func newBundler(context context.Context, detections map[string]*RecipeDetection) *Bundler {
 	return &Bundler{
 		Context:             context,
-		RecipeRepository:    rr,
-		RecipeDetector:      rd,
+		Detections:          detections,
 		cachedBundleRecipes: make(map[string]*BundleRecipe),
 	}
 }
 
 func createTestBundler() *Bundler {
-	bundler := newBundler(bundlerTestImpl.ctx, bundlerTestImpl.recipeRepository, bundlerTestImpl.recipeDetector)
 
-	withRecipeStatusDetector(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE)
-	withRecipeStatusDetector(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE)
+	d := make(map[string]*RecipeDetection)
+	bundler := newBundler(bundlerTestImpl.ctx, d)
 
 	return bundler
 }
 
-func withRecipeStatusDetector(bundler *Bundler, recipeName string, status execution.RecipeStatusType) {
-	detectionStatus[recipeName] = status
+func withRecipeStatusDetector(bundler *Bundler, recipeName string, status execution.RecipeStatusType, recipe *types.OpenInstallationRecipe) {
 
-	bundlerTestImpl.processEvaluator = &mockDetector{detectionStatus: detectionStatus}
-	bundlerTestImpl.scriptedEvaluator = &mockDetector{detectionStatus: detectionStatus}
-	bundlerTestImpl.recipeDetector = newRecipeDetector(bundlerTestImpl.processEvaluator, bundlerTestImpl.scriptedEvaluator)
-	bundler.RecipeDetector = bundlerTestImpl.recipeDetector
+	bundler.Detections[recipeName] = &RecipeDetection{
+		Status: status,
+		Recipe: recipe,
+	}
 }
 
 func bundlerRecipeLoader() ([]*types.OpenInstallationRecipe, error) {
