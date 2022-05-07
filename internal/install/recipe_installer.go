@@ -316,11 +316,9 @@ func (i *RecipeInstall) detectRecipes(ctx context.Context, repo *recipes.RecipeR
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 
 	var additionalBundle *recipes.Bundle
-	filteredRecipeNames := []string{}
 	if i.RecipeNamesProvided() {
-		filteredRecipeNames = i.fiterAdditonalRecipeNames(bundleInstaller)
-		additionalBundle = bundler.CreateAdditionalTargetedBundle(filteredRecipeNames)
-		i.reportUnsupportedTargetedRecipes(additionalBundle, repo, filteredRecipeNames)
+		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
@@ -333,7 +331,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
-	} else if len(filteredRecipeNames) > len(additionalBundle.BundleRecipes) {
+	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
 		return &types.UncaughtError{
 			Err: fmt.Errorf("one or more selected recipes could not be installed"),
 		}
@@ -357,17 +355,6 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	}
 
 	return nil
-}
-
-func (i *RecipeInstall) fiterAdditonalRecipeNames(bundleInstaller RecipeBundleInstaller) []string {
-	filteredRecipeNames := []string{}
-	for _, recipeName := range i.RecipeNames {
-		// Skip recipes that already installed
-		if !bundleInstaller.IsRecipeInstalled(recipeName) {
-			filteredRecipeNames = append(filteredRecipeNames, recipeName)
-		}
-	}
-	return filteredRecipeNames
 }
 
 func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
@@ -397,9 +384,8 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 	return m, nil
 }
 
-func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository, recipeNames []string) {
-	for _, recipeName := range recipeNames {
-
+func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
+	for _, recipeName := range i.RecipeNames {
 		br := bundle.GetBundleRecipe(recipeName)
 		if br == nil {
 			recipe := repo.FindRecipeByName(recipeName)
@@ -454,18 +440,6 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 		i.status.RecipeFailed(se)
 		return "", err
-	}
-
-	entityGUID := i.recipeExecutor.GetOutput().EntityGUID()
-	if entityGUID != "" {
-		log.Debugf("Found entityGuid from recipe execution:%s", entityGUID)
-
-		i.status.RecipeInstalled(execution.RecipeStatusEvent{
-			Recipe:     *r,
-			EntityGUID: entityGUID,
-		})
-
-		return entityGUID, nil
 	}
 
 	// show validation spinner if we need to validate and has no other spinner (Spinner is show when assume yes)

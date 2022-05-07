@@ -30,8 +30,3 @@ func (mbi *MockBundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, a
 func (mbi *MockBundleInstaller) InstalledRecipesCount() int {
 	return len(mbi.installedRecipes)
 }
-
-func (mbi *MockBundleInstaller) IsRecipeInstalled(recipeName string) bool {
-	_, ok := mbi.installedRecipes[recipeName]
-	return ok
-}
