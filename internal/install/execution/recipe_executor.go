@@ -10,4 +10,5 @@ import (
 type RecipeExecutor interface {
 	Execute(context.Context, types.OpenInstallationRecipe, types.RecipeVars) error
 	ExecutePreInstall(context.Context, types.OpenInstallationRecipe, types.RecipeVars) error
+	GetOutput() *OutputParser
 }
