@@ -83,6 +83,17 @@ jobs:
             const newrelic_cli_linux_amd64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_amd64/newrelic`;
             const newrelic_cli_linux_amd64_docker_path = `/mnt/deployer/dist/newrelic_linux_amd64/newrelic`;
             console.log(`Using cli linux source path ${newrelic_cli_linux_amd64_source_path}`);
+
+            fs.readdir(`${process.env.GITHUB_WORKSPACE}/dist`, (err, files) => {
+              console.log('');
+              console.log('');
+              files.forEach(file => {
+                console.log(`FILE:`, file);
+              });
+              console.log('');
+              console.log('');
+            });
+
             if (!fs.existsSync(newrelic_cli_linux_amd64_source_path)) {
               throw new Error(`The newrelic cli amd64 source does NOT exist ${newrelic_cli_linux_amd64_source_path}`);
             }
