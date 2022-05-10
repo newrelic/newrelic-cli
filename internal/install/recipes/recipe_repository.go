@@ -21,6 +21,10 @@ var (
 	platformVersion = "PlatformVersion"
 )
 
+type Finder interface {
+	FindAll() ([]*types.OpenInstallationRecipe, error)
+}
+
 type RecipeRepository struct {
 	RecipeLoaderFunc  func() ([]*types.OpenInstallationRecipe, error)
 	loadedRecipes     []*types.OpenInstallationRecipe

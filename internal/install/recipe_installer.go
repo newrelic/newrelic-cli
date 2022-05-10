@@ -43,7 +43,7 @@ type RecipeInstall struct {
 	recipeVarPreparer      RecipeVarPreparer
 	agentValidator         AgentValidator
 	shouldInstallCore      func() bool
-	bundlerFactory         func(ctx context.Context, detections map[string]*recipes.RecipeDetection) RecipeBundler
+	bundlerFactory         func(ctx context.Context, availableRecipes map[string]*recipes.RecipeDetectionResult) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
 }
@@ -106,8 +106,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return os.Getenv("NEW_RELIC_CLI_SKIP_CORE") != "1"
 	}
 
-	i.bundlerFactory = func(ctx context.Context, detections map[string]*recipes.RecipeDetection) RecipeBundler {
-		return recipes.NewBundler(ctx, detections)
+	i.bundlerFactory = func(ctx context.Context, availableRecipes map[string]*recipes.RecipeDetectionResult) RecipeBundler {
+		return recipes.NewBundler(ctx, availableRecipes)
 	}
 
 	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
@@ -261,21 +261,20 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return recipes, err2
 	}, m)
 
-	message := "\n\nInstalling New Relic"
-	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
-		r := repo.FindRecipeByName(i.RecipeNames[0])
-		if r != nil {
-			message = fmt.Sprintf("%s %s", message, r.DisplayName)
-		}
-	}
-	fmt.Println(message)
+	i.printStartInstallingMessage(repo)
 
-	detections, err := i.detectRecipes(ctx, repo)
+	recipeDetector := recipes.NewRecipeDetector(ctx, repo)
+	err = i.reportUnavailableRecipes(recipeDetector)
 	if err != nil {
 		return err
 	}
 
-	bundler := i.bundlerFactory(ctx, detections)
+	availableRecipes, err := recipeDetector.GetAvaliableRecipes()
+	if err != nil {
+		return err
+	}
+
+	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
 	cbErr := i.installCoreBundle(bundler, bundleInstaller)
@@ -293,24 +292,28 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	return nil
 }
 
-// Detect Recipes and remove them if they are not available for installation
-func (i *RecipeInstall) detectRecipes(ctx context.Context, repo *recipes.RecipeRepository) (map[string]*recipes.RecipeDetection, error) {
-	recipeDetector := recipes.NewRecipeDetector()
-	recipes, err := repo.FindAll()
-	if err != nil {
-		return nil, err
-	}
-
-	detections := recipeDetector.DetectRecipes(ctx, recipes)
-
-	for k, d := range detections {
-		if d.Status != execution.RecipeStatusTypes.AVAILABLE {
-			e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
-			i.status.ReportStatus(d.Status, e)
-			delete(detections, k)
+func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeRepository) {
+	message := "\n\nInstalling New Relic"
+	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
+		r := repo.FindRecipeByName(i.RecipeNames[0])
+		if r != nil {
+			message = fmt.Sprintf("%s %s", message, r.DisplayName)
 		}
 	}
-	return detections, nil
+	fmt.Println(message)
+}
+
+func (i *RecipeInstall) reportUnavailableRecipes(recipeDetector *recipes.RecipeDetector) error {
+	unavailableRecipes, err := recipeDetector.GetUnavaliableRecipes()
+	if err != nil {
+		return err
+	}
+
+	for _, d := range unavailableRecipes {
+		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
+		i.status.ReportStatus(d.Status, e)
+	}
+	return nil
 }
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {

@@ -10,7 +10,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type RecipeDetection struct {
+type RecipeDetectionResult struct {
 	Recipe     *types.OpenInstallationRecipe
 	Status     execution.RecipeStatusType
 	DurationMs int64
@@ -21,39 +21,81 @@ type DetectionStatusProvider interface {
 }
 
 type RecipeDetector struct {
-	processEvaluator DetectionStatusProvider
-	scriptEvaluator  DetectionStatusProvider
+	processEvaluator      DetectionStatusProvider
+	scriptEvaluator       DetectionStatusProvider
+	context               context.Context
+	repo                  Finder
+	recipeDetectionResult map[string]*RecipeDetectionResult
+	availableRecipes      map[string]*RecipeDetectionResult
+	unavaliableRecipes    map[string]*RecipeDetectionResult
+	isDetectionRunned     bool
 }
 
-func NewRecipeDetector() *RecipeDetector {
+func NewRecipeDetector(contex context.Context, repo *RecipeRepository) *RecipeDetector {
 	return &RecipeDetector{
-		processEvaluator: NewProcessEvaluator(),
-		scriptEvaluator:  NewScriptEvaluator(),
+		processEvaluator:      NewProcessEvaluator(),
+		scriptEvaluator:       NewScriptEvaluator(),
+		context:               contex,
+		repo:                  repo,
+		recipeDetectionResult: make(map[string]*RecipeDetectionResult),
+		availableRecipes:      make(map[string]*RecipeDetectionResult),
+		unavaliableRecipes:    make(map[string]*RecipeDetectionResult),
 	}
 }
 
-func (dt *RecipeDetector) DetectRecipes(ctx context.Context, recipes []*types.OpenInstallationRecipe) map[string]*RecipeDetection {
-	ds := make(map[string]*RecipeDetection)
+func (dt *RecipeDetector) detectRecipes() error {
+	if dt.isDetectionRunned {
+		return nil
+	}
+
+	dt.isDetectionRunned = true
+
+	recipes, err := dt.repo.FindAll()
+	if err != nil {
+		return err
+	}
 
 	for _, r := range recipes {
-		ds[r.Name] = dt.detectRecipe(ctx, r)
-	}
+		dr := dt.detectRecipe(r)
+		dt.recipeDetectionResult[dr.Recipe.Name] = dr
 
-	return ds
+		if dr.Status == execution.RecipeStatusTypes.AVAILABLE {
+			dt.availableRecipes[dr.Recipe.Name] = dr
+		} else {
+			dt.unavaliableRecipes[dr.Recipe.Name] = dr
+		}
+	}
+	return nil
 }
 
-func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) *RecipeDetection {
+func (dt *RecipeDetector) GetAvaliableRecipes() (map[string]*RecipeDetectionResult, error) {
+	err := dt.detectRecipes()
+	if err != nil {
+		return nil, err
+	}
+	return dt.availableRecipes, nil
+}
+
+func (dt *RecipeDetector) GetUnavaliableRecipes() (map[string]*RecipeDetectionResult, error) {
+	err := dt.detectRecipes()
+	if err != nil {
+		return nil, err
+	}
+	return dt.unavaliableRecipes, nil
+}
+
+func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *RecipeDetectionResult {
 	start := time.Now()
-	status := dt.processEvaluator.DetectionStatus(ctx, recipe)
+	status := dt.processEvaluator.DetectionStatus(dt.context, recipe)
 	durationMs := time.Since(start).Milliseconds()
 
 	if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
-		status = dt.scriptEvaluator.DetectionStatus(ctx, recipe)
+		status = dt.scriptEvaluator.DetectionStatus(dt.context, recipe)
 		durationMs = time.Since(start).Milliseconds()
 		log.Debugf("ScriptEvaluation for recipe:%s completed in %dms with status:%s", recipe.Name, durationMs, status)
 	}
 
-	return &RecipeDetection{
+	return &RecipeDetectionResult{
 		recipe,
 		status,
 		durationMs,

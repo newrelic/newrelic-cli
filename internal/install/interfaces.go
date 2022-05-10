@@ -45,10 +45,6 @@ type RecipeVarPreparer interface {
 	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
 }
 
-type RecipeRepository interface {
-	FindAll(m types.DiscoveryManifest) []types.OpenInstallationRecipe
-}
-
 // RecipeInstaller wrapper responsible for performing recipe validation, installation, and reporting install status
 type RecipeInstaller interface {
 	promptIfNotLatestCLIVersion(ctx context.Context) error

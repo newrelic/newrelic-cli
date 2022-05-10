@@ -151,7 +151,7 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.recipeFetcher = rib.recipeFetcher
 	recipeInstall.status = rib.status
 	recipeInstall.manifestValidator = rib.manifestValidator
-	recipeInstall.bundlerFactory = func(ctx context.Context, detections map[string]*recipes.RecipeDetection) RecipeBundler {
+	recipeInstall.bundlerFactory = func(ctx context.Context, detections map[string]*recipes.RecipeDetectionResult) RecipeBundler {
 		return rib.bundler
 	}
 	recipeInstall.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {

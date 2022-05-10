@@ -5,7 +5,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -15,15 +14,15 @@ var coreRecipeMap = map[string]bool{
 }
 
 type Bundler struct {
-	Detections          map[string]*RecipeDetection
+	AvailableRecipes    map[string]*RecipeDetectionResult
 	Context             context.Context
 	cachedBundleRecipes map[string]*BundleRecipe
 }
 
-func NewBundler(context context.Context, detections map[string]*RecipeDetection) *Bundler {
+func NewBundler(context context.Context, availableRecipes map[string]*RecipeDetectionResult) *Bundler {
 	return &Bundler{
 		Context:             context,
-		Detections:          detections,
+		AvailableRecipes:    availableRecipes,
 		cachedBundleRecipes: make(map[string]*BundleRecipe),
 	}
 }
@@ -35,7 +34,7 @@ func (b *Bundler) CreateCoreBundle() *Bundle {
 func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 	var recipes []string
 
-	for _, d := range b.Detections {
+	for _, d := range b.AvailableRecipes {
 		if !coreRecipeMap[d.Recipe.Name] {
 			recipes = append(recipes, d.Recipe.Name)
 		}
@@ -60,7 +59,7 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	bundle := &Bundle{Type: bType}
 
 	for _, r := range recipes {
-		if d, ok := b.Detections[r]; ok {
+		if d, ok := b.AvailableRecipes[r]; ok {
 			bundleRecipe := b.getBundleRecipeWithDependencies(d.Recipe)
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
@@ -82,7 +81,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	for _, d := range recipe.Dependencies {
-		if dt, ok := b.Detections[d]; ok {
+		if dt, ok := b.AvailableRecipes[d]; ok {
 			dr := b.getBundleRecipeWithDependencies(dt.Recipe)
 			if dr != nil {
 				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
@@ -99,12 +98,10 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	if bundleRecipe.AreAllDependenciesAvailable() {
-		if dt, ok := b.Detections[recipe.Name]; ok {
-			if dt.Status == execution.RecipeStatusTypes.AVAILABLE {
-				bundleRecipe.AddDetectionStatus(dt.Status, dt.DurationMs)
-				b.cachedBundleRecipes[recipe.Name] = bundleRecipe
-				return bundleRecipe
-			}
+		if dt, ok := b.AvailableRecipes[recipe.Name]; ok {
+			bundleRecipe.AddDetectionStatus(dt.Status, dt.DurationMs)
+			b.cachedBundleRecipes[recipe.Name] = bundleRecipe
+			return bundleRecipe
 		}
 	}
 
