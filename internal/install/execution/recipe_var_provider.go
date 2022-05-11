@@ -204,9 +204,10 @@ func varFromEnv() types.RecipeVars {
 		}
 	}
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
-
 	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
 	vars["NR_CLI_CLUSTERNAME"] = os.Getenv("NR_CLI_CLUSTERNAME")
+	vars["NRIA_CUSTOM_ATTRIBUTES"] = os.Getenv("NRIA_CUSTOM_ATTRIBUTES")
+	vars["NRIA_PASSTHROUGH_ENVIRONMENT"] = os.Getenv("NRIA_PASSTHROUGH_ENVIRONMENT")
 
 	return vars
 }
