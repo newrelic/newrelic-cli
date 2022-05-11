@@ -125,7 +125,5 @@ func (b *RecipeDetectorTestBuilder) Build() *RecipeDetector {
 		processEvaluator:      b.processEvaluator,
 		scriptEvaluator:       b.scriptEvaluator,
 		recipeDetectionResult: make(map[string]*RecipeDetectionResult),
-		availableRecipes:      make(map[string]*RecipeDetectionResult),
-		unavaliableRecipes:    make(map[string]*RecipeDetectionResult),
 	}
 }

@@ -26,8 +26,6 @@ type RecipeDetector struct {
 	context               context.Context
 	repo                  Finder
 	recipeDetectionResult map[string]*RecipeDetectionResult
-	availableRecipes      map[string]*RecipeDetectionResult
-	unavaliableRecipes    map[string]*RecipeDetectionResult
 }
 
 func NewRecipeDetector(contex context.Context, repo *RecipeRepository) *RecipeDetector {
@@ -37,8 +35,6 @@ func NewRecipeDetector(contex context.Context, repo *RecipeRepository) *RecipeDe
 		context:               contex,
 		repo:                  repo,
 		recipeDetectionResult: make(map[string]*RecipeDetectionResult),
-		availableRecipes:      make(map[string]*RecipeDetectionResult),
-		unavaliableRecipes:    make(map[string]*RecipeDetectionResult),
 	}
 }
 
@@ -46,10 +42,8 @@ func (dt *RecipeDetector) GetDetectedRecipes() (map[string]*RecipeDetectionResul
 	map[string]*RecipeDetectionResult,
 	error) {
 
-	if len(dt.availableRecipes) != 0 || len(dt.unavaliableRecipes) != 0 {
-		return dt.availableRecipes, dt.unavaliableRecipes, nil
-	}
-
+	availableRecipes := make(map[string]*RecipeDetectionResult)
+	unavailableRecipes := make(map[string]*RecipeDetectionResult)
 	recipes, err := dt.repo.FindAll()
 	if err != nil {
 		return nil, nil, err
@@ -60,12 +54,12 @@ func (dt *RecipeDetector) GetDetectedRecipes() (map[string]*RecipeDetectionResul
 		dt.recipeDetectionResult[dr.Recipe.Name] = dr
 
 		if dr.Status == execution.RecipeStatusTypes.AVAILABLE {
-			dt.availableRecipes[dr.Recipe.Name] = dr
+			availableRecipes[dr.Recipe.Name] = dr
 		} else {
-			dt.unavaliableRecipes[dr.Recipe.Name] = dr
+			unavailableRecipes[dr.Recipe.Name] = dr
 		}
 	}
-	return dt.availableRecipes, dt.unavaliableRecipes, nil
+	return availableRecipes, unavailableRecipes, nil
 }
 
 func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *RecipeDetectionResult {
