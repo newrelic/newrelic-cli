@@ -24,6 +24,9 @@ builds:
       - goos: windows
         goarch: arm
         goarm: 7
+      - goos: windows
+        goarch: arm64
+
     ldflags:
       - -s -w -X main.version={{.Version}} -X main.appName={{.Binary}}
         -X github.com/newrelic/newrelic-cli/internal/cli.version={{.Version}}
