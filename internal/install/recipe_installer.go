@@ -265,8 +265,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	i.printStartInstallingMessage(repo)
 
 	recipeDetector := recipes.NewRecipeDetector(ctx, repo)
-	unavailableRecipes, err := recipeDetector.GetUnavaliableRecipes()
-	availableRecipes, _ := recipeDetector.GetAvaliableRecipes()
+	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
 	if err != nil {
 		return err
 	}
