@@ -89,7 +89,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: windows-binary
-          path: dist/newrelic_windows_amd64/newrelic.exe
+          path: dist/newrelic_windows_amd64_v1/newrelic.exe
 
       - name: Checkout newrelic-forks/homebrew-core
         uses: actions/checkout@v3
@@ -162,7 +162,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: windows-binary
-          path: .\dist\newrelic_windows_amd64
+          path: .\dist\newrelic_windows_amd64_v1
 
       - name: Compile installer
         run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
