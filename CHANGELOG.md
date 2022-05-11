@@ -85,20 +85,7 @@
 ### Bug Fixes
 - **install:** fix dependency on not available ([#1264](https://github.com/newrelic/newrelic-client-go/issues/1264))
 
-<a name="v0.43.5"></a>
-## [v0.43.5] - 2022-03-15
-### Bug Fixes
-- **install:** fix release publish because of ubuntu latest focal having issue
-
-<a name="v0.43.4"></a>
-## [v0.43.4] - 2022-03-15
-<a name="v0.43.3"></a>
-## [v0.43.3] - 2022-03-10
-### Bug Fixes
-- **bundler:** do not bundle recipe if dependencies are not installable ([#1248](https://github.com/newrelic/newrelic-client-go/issues/1248))
-- **install:** nil pointer error when executing recipe ([#1249](https://github.com/newrelic/newrelic-client-go/issues/1249))
-
-<a name="v0.43.2"></a>
+<a name="v0.43.5""v0.43.2"></a>
 ## [v0.43.2] - 2022-03-10
 <a name="v0.43.1"></a>
 ## [v0.43.1] - 2022-03-10
