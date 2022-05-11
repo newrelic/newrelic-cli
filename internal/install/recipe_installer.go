@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -264,15 +265,13 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	i.printStartInstallingMessage(repo)
 
 	recipeDetector := recipes.NewRecipeDetector(ctx, repo)
-	err = i.reportUnavailableRecipes(recipeDetector)
+	unavailableRecipes, err := recipeDetector.GetUnavaliableRecipes()
+	availableRecipes, _ := recipeDetector.GetAvaliableRecipes()
 	if err != nil {
 		return err
 	}
 
-	availableRecipes, err := recipeDetector.GetAvaliableRecipes()
-	if err != nil {
-		return err
-	}
+	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
 
 	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
@@ -303,17 +302,26 @@ func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeReposito
 	fmt.Println(message)
 }
 
-func (i *RecipeInstall) reportUnavailableRecipes(recipeDetector *recipes.RecipeDetector) error {
-	unavailableRecipes, err := recipeDetector.GetUnavaliableRecipes()
-	if err != nil {
-		return err
-	}
+func (i *RecipeInstall) reportRecipeStatuses(availableRecipes map[string]*recipes.RecipeDetectionResult,
+	unavailableRecipes map[string]*recipes.RecipeDetectionResult) {
 
 	for _, d := range unavailableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(d.Status, e)
 	}
-	return nil
+
+	// Sort the key, so we can get consistent ordering
+	keys := make([]string, 0)
+	for k, _ := range availableRecipes {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		d := availableRecipes[k]
+		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
+		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
+	}
 }
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
