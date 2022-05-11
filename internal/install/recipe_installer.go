@@ -312,7 +312,7 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes map[string]*recipe
 
 	// Sort the key, so we can get consistent ordering
 	keys := make([]string, 0)
-	for k, _ := range availableRecipes {
+	for k := range availableRecipes {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
