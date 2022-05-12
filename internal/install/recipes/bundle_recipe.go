@@ -24,13 +24,6 @@ func (br *BundleRecipe) AddDetectionStatus(newStatus execution.RecipeStatusType,
 	if br.HasStatus(newStatus) {
 		return
 	}
-	if newStatus == execution.RecipeStatusTypes.AVAILABLE {
-		ds := &DetectedStatusType{
-			Status:     execution.RecipeStatusTypes.DETECTED,
-			DurationMs: durationMs,
-		}
-		br.DetectedStatuses = append(br.DetectedStatuses, ds)
-	}
 	br.DetectedStatuses = append(br.DetectedStatuses, &DetectedStatusType{Status: newStatus, DurationMs: durationMs})
 }
 

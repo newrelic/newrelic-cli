@@ -8,7 +8,6 @@ import (
 )
 
 type MockRecipeEvaluator struct {
-	status       execution.RecipeStatusType
 	recipeStatus map[string]execution.RecipeStatusType
 }
 
@@ -16,10 +15,6 @@ func NewMockRecipeEvaluator() *MockRecipeEvaluator {
 	return &MockRecipeEvaluator{
 		recipeStatus: make(map[string]execution.RecipeStatusType),
 	}
-}
-
-func (mre *MockRecipeEvaluator) WithStatus(status execution.RecipeStatusType) {
-	mre.status = status
 }
 
 func (mre *MockRecipeEvaluator) WithRecipeStatus(recipe *types.OpenInstallationRecipe, status execution.RecipeStatusType) {
@@ -30,5 +25,5 @@ func (mre *MockRecipeEvaluator) DetectionStatus(ctx context.Context, recipe *typ
 	if status, ok := mre.recipeStatus[recipe.Name]; ok {
 		return status
 	}
-	return mre.status
+	return execution.RecipeStatusTypes.NULL
 }

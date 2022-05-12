@@ -124,9 +124,10 @@ func TestInstallTargetInstallShouldInstall(t *testing.T) {
 }
 func TestInstallTargetInstallShouldNotInstallCoreIfCoreWasNotSkipped(t *testing.T) {
 	additionRecipeName := types.InfraAgentRecipeName
-	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
+	bundler := NewBundlerBuilder().WithCoreRecipe(additionRecipeName).WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	bundleInstaller.Error = errors.New("Install Error")
 	_ = recipeInstall.install(context.TODO())
 
 	assert.Equal(t, 0, len(bundleInstaller.installedRecipes))
@@ -149,7 +150,7 @@ func TestInstallTargetInstallWithoutRecipeShouldNotInstall(t *testing.T) {
 	bundler := NewBundlerBuilder().Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
+	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{})
 	err := recipeInstall.install(context.TODO())
 
 	assert.Error(t, err)
@@ -401,7 +402,7 @@ func TestReportUnSupportTargetRecipeWithBadRecipeName(t *testing.T) {
 	}, &types.DiscoveryManifest{})
 	bundle := &recipes.Bundle{}
 
-	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo, recipeInstall.RecipeNames)
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
 	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
 }
 
@@ -413,7 +414,7 @@ func TestReportUnSupportTargetRecipeWithoutTarget(t *testing.T) {
 	}, &types.DiscoveryManifest{})
 	bundle := &recipes.Bundle{}
 
-	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo, recipeInstall.RecipeNames)
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
 	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount)
 }
 
@@ -428,7 +429,7 @@ func TestReportUnSupportTargetRecipeWithBundleContainRecipe(t *testing.T) {
 	recipe := &recipes.BundleRecipe{Recipe: recipes.NewRecipeBuilder().Name(targetRecipe).Build()}
 	bundle.AddRecipe(recipe)
 
-	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo, recipeInstall.RecipeNames)
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
 	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount)
 }
 
@@ -443,7 +444,7 @@ func TestReportUnSupportTargetRecipeWithUnsupportForPlatform(t *testing.T) {
 	}, &types.DiscoveryManifest{})
 	bundle := &recipes.Bundle{}
 
-	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo, recipeInstall.RecipeNames)
+	recipeInstall.reportUnsupportedTargetedRecipes(bundle, repo)
 	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
 }
 

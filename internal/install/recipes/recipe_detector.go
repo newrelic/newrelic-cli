@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,48 +15,88 @@ type DetectionStatusProvider interface {
 	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
 }
 
+type RecipeDetectionResult struct {
+	Recipe     *types.OpenInstallationRecipe
+	Status     execution.RecipeStatusType
+	DurationMs int64
+}
+
+type RecipeDetectionResults []*RecipeDetectionResult
+
+func (rd *RecipeDetectionResults) GetRecipeDetection(name string) (*RecipeDetectionResult, bool) {
+	for _, d := range *rd {
+		if d.Recipe.Name == name {
+			return d, true
+		}
+	}
+	return nil, false
+}
+
+func (rd RecipeDetectionResults) Len() int {
+	return len(rd)
+}
+
+func (rd RecipeDetectionResults) Swap(i, j int) {
+	rd[i], rd[j] = rd[j], rd[i]
+}
+
+func (rd RecipeDetectionResults) Less(i, j int) bool {
+	return rd[i].Recipe.Name < rd[j].Recipe.Name
+}
+
 type RecipeDetector struct {
 	processEvaluator DetectionStatusProvider
 	scriptEvaluator  DetectionStatusProvider
-	recipeEvaluated  map[string]bool // same recipe(ref) should only be evaluated one time
+	context          context.Context
+	repo             Finder
 }
 
-func NewRecipeDetector() *RecipeDetector {
+func NewRecipeDetector(contex context.Context, repo *RecipeRepository) *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: NewProcessEvaluator(),
 		scriptEvaluator:  NewScriptEvaluator(),
-		recipeEvaluated:  make(map[string]bool),
+		context:          contex,
+		repo:             repo,
 	}
 }
 
-func (dt *RecipeDetector) detectBundleRecipe(ctx context.Context, bundleRecipe *BundleRecipe) {
-	// if already evaluated
-	if _, exists := dt.recipeEvaluated[bundleRecipe.Recipe.Name]; exists {
-		return
-	}
-	dt.recipeEvaluated[bundleRecipe.Recipe.Name] = true
+func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDetectionResults, error) {
 
-	for _, dep := range bundleRecipe.Dependencies {
-		dt.detectBundleRecipe(ctx, dep)
+	availableRecipes := RecipeDetectionResults{}
+	unavailableRecipes := RecipeDetectionResults{}
+	recipes, err := dt.repo.FindAll()
+	if err != nil {
+		return nil, nil, err
 	}
 
-	if bundleRecipe.AreAllDependenciesAvailable() {
-		status, durationMs := dt.detectRecipe(ctx, bundleRecipe.Recipe)
-		bundleRecipe.AddDetectionStatus(status, durationMs)
-	} else {
-		log.Debugf("Dependency not available for recipe %v", bundleRecipe.Recipe.Name)
+	for _, r := range recipes {
+		dr := dt.detectRecipe(r)
+
+		if dr.Status == execution.RecipeStatusTypes.AVAILABLE {
+			availableRecipes = append(availableRecipes, dr)
+		} else {
+			unavailableRecipes = append(unavailableRecipes, dr)
+		}
 	}
+	sort.Sort(availableRecipes)
+
+	return availableRecipes, unavailableRecipes, nil
 }
 
-func (dt *RecipeDetector) detectRecipe(ctx context.Context, recipe *types.OpenInstallationRecipe) (execution.RecipeStatusType, int64) {
+func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *RecipeDetectionResult {
 	start := time.Now()
-	status := dt.processEvaluator.DetectionStatus(ctx, recipe)
+	status := dt.processEvaluator.DetectionStatus(dt.context, recipe)
 	durationMs := time.Since(start).Milliseconds()
 
 	if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
-		status = dt.scriptEvaluator.DetectionStatus(ctx, recipe)
+		status = dt.scriptEvaluator.DetectionStatus(dt.context, recipe)
 		durationMs = time.Since(start).Milliseconds()
 		log.Debugf("ScriptEvaluation for recipe:%s completed in %dms with status:%s", recipe.Name, durationMs, status)
 	}
-	return status, durationMs
+
+	return &RecipeDetectionResult{
+		recipe,
+		status,
+		durationMs,
+	}
 }

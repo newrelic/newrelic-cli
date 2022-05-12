@@ -43,7 +43,7 @@ type RecipeInstall struct {
 	recipeVarPreparer      RecipeVarPreparer
 	agentValidator         AgentValidator
 	shouldInstallCore      func() bool
-	bundlerFactory         func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler
+	bundlerFactory         func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
 }
@@ -106,8 +106,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return os.Getenv("NEW_RELIC_CLI_SKIP_CORE") != "1"
 	}
 
-	i.bundlerFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeBundler {
-		return recipes.NewBundler(ctx, repo)
+	i.bundlerFactory = func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler {
+		return recipes.NewBundler(ctx, availableRecipes)
 	}
 
 	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
@@ -261,16 +261,17 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return recipes, err2
 	}, m)
 
-	message := "\n\nInstalling New Relic"
-	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
-		r := repo.FindRecipeByName(i.RecipeNames[0])
-		if r != nil {
-			message = fmt.Sprintf("%s %s", message, r.DisplayName)
-		}
-	}
-	fmt.Println(message)
+	i.printStartInstallingMessage(repo)
 
-	bundler := i.bundlerFactory(ctx, repo)
+	recipeDetector := recipes.NewRecipeDetector(ctx, repo)
+	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
+	if err != nil {
+		return err
+	}
+
+	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
+
+	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
 	cbErr := i.installCoreBundle(bundler, bundleInstaller)
@@ -288,14 +289,36 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	return nil
 }
 
+func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeRepository) {
+	message := "\n\nInstalling New Relic"
+	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
+		r := repo.FindRecipeByName(i.RecipeNames[0])
+		if r != nil {
+			message = fmt.Sprintf("%s %s", message, r.DisplayName)
+		}
+	}
+	fmt.Println(message)
+}
+
+func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDetectionResults,
+	unavailableRecipes recipes.RecipeDetectionResults) {
+
+	for _, d := range unavailableRecipes {
+		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
+		i.status.ReportStatus(d.Status, e)
+	}
+	for _, d := range availableRecipes {
+		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
+		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
+	}
+}
+
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 
 	var additionalBundle *recipes.Bundle
-	filteredRecipeNames := []string{}
 	if i.RecipeNamesProvided() {
-		filteredRecipeNames = i.fiterAdditonalRecipeNames()
-		additionalBundle = bundler.CreateAdditionalTargetedBundle(filteredRecipeNames)
-		i.reportUnsupportedTargetedRecipes(additionalBundle, repo, filteredRecipeNames)
+		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
 		additionalBundle = bundler.CreateAdditionalGuidedBundle()
@@ -308,7 +331,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
-	} else if len(filteredRecipeNames) > len(additionalBundle.BundleRecipes) {
+	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
 		return &types.UncaughtError{
 			Err: fmt.Errorf("one or more selected recipes could not be installed"),
 		}
@@ -332,21 +355,6 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	}
 
 	return nil
-}
-
-func (i *RecipeInstall) fiterAdditonalRecipeNames() []string {
-	filteredRecipeNames := []string{}
-	if i.shouldInstallCore() {
-		//We already attempted to install these - no need to do it again
-		for _, recipeName := range i.RecipeNames {
-			if !recipes.CoreRecipeMap[recipeName] {
-				filteredRecipeNames = append(filteredRecipeNames, recipeName)
-			}
-		}
-	} else {
-		filteredRecipeNames = i.RecipeNames
-	}
-	return filteredRecipeNames
 }
 
 func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
@@ -376,9 +384,8 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 	return m, nil
 }
 
-func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository, recipeNames []string) {
-	for _, recipeName := range recipeNames {
-
+func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
+	for _, recipeName := range i.RecipeNames {
 		br := bundle.GetBundleRecipe(recipeName)
 		if br == nil {
 			recipe := repo.FindRecipeByName(recipeName)

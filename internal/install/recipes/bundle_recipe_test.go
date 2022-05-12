@@ -39,12 +39,9 @@ func TestBundleRecipeShouldAddStatusDetectedWhenAvailable(t *testing.T) {
 
 	br.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, durationMs)
 
-	require.Equal(t, len(br.DetectedStatuses), 2)
-	require.Equal(t, execution.RecipeStatusTypes.DETECTED, br.DetectedStatuses[0].Status)
-	require.Equal(t, durationMs, br.DetectedStatuses[1].DurationMs)
-	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, br.DetectedStatuses[1].Status)
-	require.Equal(t, durationMs, br.DetectedStatuses[1].DurationMs)
-
+	require.Equal(t, len(br.DetectedStatuses), 1)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, br.DetectedStatuses[0].Status)
+	require.Equal(t, durationMs, br.DetectedStatuses[0].DurationMs)
 }
 
 func TestBundleRecipeHasStatusReturnsTrue(t *testing.T) {
