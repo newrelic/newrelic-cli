@@ -119,9 +119,8 @@ func TestCreateCoreBundleShouldDetectAvailableStatus(t *testing.T) {
 
 	require.Equal(t, 2, len(coreBundle.BundleRecipes))
 	for _, r := range coreBundle.BundleRecipes {
-		lastStatusIndex := len(r.DetectedStatuses) - 1
-		require.Equal(t, 2, len(r.DetectedStatuses))
-		require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, r.DetectedStatuses[lastStatusIndex].Status)
+		require.Equal(t, 1, len(r.DetectedStatuses))
+		require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, r.DetectedStatuses[0].Status)
 	}
 }
 
@@ -210,15 +209,6 @@ func TestCreateCoreBundleShouldBundleDependencyOrRecipeWhenNotDetected(t *testin
 	require.Nil(t, findRecipeByName(coreBundle, "dep1"))
 }
 
-func TestNewBundlerShouldCreate(t *testing.T) {
-	d := make(map[string]*RecipeDetectionResult)
-	bundler := NewBundler(bundlerTestImpl.ctx, d)
-
-	require.NotNil(t, bundler)
-	require.Equal(t, bundlerTestImpl.ctx, bundler.Context)
-	require.Equal(t, d, bundler.AvailableRecipes)
-}
-
 func TestBundleRecipeShouldNotBeAvailableWhenDependencyMissingInRepo(t *testing.T) {
 	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
 	infraRecipe.Dependencies = []string{"dep1", "dep2"}
@@ -264,7 +254,7 @@ func findDependencyByName(recipe *BundleRecipe, name string) *types.OpenInstalla
 	return nil
 }
 
-func newBundler(context context.Context, availableRecipes map[string]*RecipeDetectionResult) *Bundler {
+func newBundler(context context.Context, availableRecipes RecipeDetectionResults) *Bundler {
 	return &Bundler{
 		Context:             context,
 		AvailableRecipes:    availableRecipes,
@@ -274,7 +264,7 @@ func newBundler(context context.Context, availableRecipes map[string]*RecipeDete
 
 func createTestBundler() *Bundler {
 
-	d := make(map[string]*RecipeDetectionResult)
+	d := RecipeDetectionResults{}
 	bundler := newBundler(bundlerTestImpl.ctx, d)
 
 	return bundler
@@ -282,8 +272,8 @@ func createTestBundler() *Bundler {
 
 func withAvailableRecipe(bundler *Bundler, recipeName string, status execution.RecipeStatusType, recipe *types.OpenInstallationRecipe) {
 
-	bundler.AvailableRecipes[recipeName] = &RecipeDetectionResult{
+	bundler.AvailableRecipes = append(bundler.AvailableRecipes, &RecipeDetectionResult{
 		Status: status,
 		Recipe: recipe,
-	}
+	})
 }

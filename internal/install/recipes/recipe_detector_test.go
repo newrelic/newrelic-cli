@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,8 +19,9 @@ func TestRecipeDetectorShouldFailBecauseOfProcessEvaluation(t *testing.T) {
 	detector := b.Build()
 
 	_, ua, _ := detector.GetDetectedRecipes()
-	actual := ua[recipe.Name]
+	actual, ok := ua.GetRecipeDetection(recipe.Name)
 
+	require.True(t, ok)
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual.Status)
 }
 
@@ -31,7 +33,8 @@ func TestRecipeDetectorShouldBeAvailableWhenRecipeScriptDetectionIsMissingScript
 	detector := b.Build()
 
 	a, _, _ := detector.GetDetectedRecipes()
-	actual := a[recipe.Name]
+	actual, ok := a.GetRecipeDetection(recipe.Name)
+	require.True(t, ok)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual.Status)
 }
 
@@ -44,8 +47,9 @@ func TestRecipeDetectorShouldFailWhenScriptFails(t *testing.T) {
 	detector := b.Build()
 
 	_, ua, _ := detector.GetDetectedRecipes()
-	actual := ua[recipe.Name]
+	actual, ok := ua.GetRecipeDetection(recipe.Name)
 
+	require.True(t, ok)
 	require.Equal(t, execution.RecipeStatusTypes.NULL, actual.Status)
 }
 
@@ -58,7 +62,9 @@ func TestRecipeDetectorShouldDetectBecauseOfScriptEvaluation(t *testing.T) {
 	detector := b.Build()
 
 	_, ua, _ := detector.GetDetectedRecipes()
-	actual := ua[recipe.Name]
+	actual, ok := ua.GetRecipeDetection(recipe.Name)
+
+	require.True(t, ok)
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, actual.Status)
 }
 
@@ -71,8 +77,26 @@ func TestRecipeDetectorShouldBeAvailableBecauseOfScriptEvaluation(t *testing.T) 
 	detector := b.Build()
 
 	a, _, _ := detector.GetDetectedRecipes()
-	actual := a[recipe.Name]
+	actual, ok := a.GetRecipeDetection(recipe.Name)
+
+	require.True(t, ok)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual.Status)
+}
+
+func TestDetectionResultsShouldSortByRecipeName(t *testing.T) {
+	detections := []*RecipeDetectionResult{}
+	r1 := &types.OpenInstallationRecipe{
+		Name: "b",
+	}
+	r2 := &types.OpenInstallationRecipe{
+		Name: "a",
+	}
+	detections = append(detections, &RecipeDetectionResult{Recipe: r1})
+	detections = append(detections, &RecipeDetectionResult{Recipe: r2})
+	sort.Sort(RecipeDetectionResults(detections))
+
+	require.Equal(t, detections[0].Recipe.Name, "a")
+	require.Equal(t, detections[1].Recipe.Name, "b")
 }
 
 type MockRecipesFinder struct {
@@ -120,10 +144,9 @@ func (b *RecipeDetectorTestBuilder) WithScriptEvaluatorRecipeStatus(recipe *type
 
 func (b *RecipeDetectorTestBuilder) Build() *RecipeDetector {
 	return &RecipeDetector{
-		context:               context.Background(),
-		repo:                  b.recipesFinder,
-		processEvaluator:      b.processEvaluator,
-		scriptEvaluator:       b.scriptEvaluator,
-		recipeDetectionResult: make(map[string]*RecipeDetectionResult),
+		context:          context.Background(),
+		repo:             b.recipesFinder,
+		processEvaluator: b.processEvaluator,
+		scriptEvaluator:  b.scriptEvaluator,
 	}
 }

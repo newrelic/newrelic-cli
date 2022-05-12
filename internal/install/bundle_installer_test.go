@@ -135,15 +135,14 @@ func TestReportsStatusHasSingleStatusWhenStatusNotAvailable(t *testing.T) {
 	assert.Equal(t, 1, len(test.bundle.BundleRecipes[0].DetectedStatuses))
 }
 
-func TestReportsStatusHasDetectedAndAvailableWhenStatusIsAvailable(t *testing.T) {
+func TestReportsStatusAvailableWheIsAvailable(t *testing.T) {
 	test := createBundleInstallerTest()
 	test.addRecipeToBundle(types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE)
 
 	test.BundleInstaller.reportBundleStatus(test.bundle)
 
 	assert.True(t, test.bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.AVAILABLE))
-	assert.True(t, test.bundle.BundleRecipes[0].HasStatus(execution.RecipeStatusTypes.DETECTED))
-	assert.Equal(t, 2, len(test.bundle.BundleRecipes[0].DetectedStatuses))
+	assert.Equal(t, 1, len(test.bundle.BundleRecipes[0].DetectedStatuses))
 }
 
 func TestInstallShouldnotInstallAnyWhenParentRecipeNotAvailable(t *testing.T) {

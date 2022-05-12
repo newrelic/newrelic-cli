@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -10,40 +11,59 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+type DetectionStatusProvider interface {
+	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
+}
+
 type RecipeDetectionResult struct {
 	Recipe     *types.OpenInstallationRecipe
 	Status     execution.RecipeStatusType
 	DurationMs int64
 }
 
-type DetectionStatusProvider interface {
-	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
+type RecipeDetectionResults []*RecipeDetectionResult
+
+func (rd *RecipeDetectionResults) GetRecipeDetection(name string) (*RecipeDetectionResult, bool) {
+	for _, d := range *rd {
+		if d.Recipe.Name == name {
+			return d, true
+		}
+	}
+	return nil, false
+}
+
+func (rd RecipeDetectionResults) Len() int {
+	return len(rd)
+}
+
+func (rd RecipeDetectionResults) Swap(i, j int) {
+	rd[i], rd[j] = rd[j], rd[i]
+}
+
+func (rd RecipeDetectionResults) Less(i, j int) bool {
+	return rd[i].Recipe.Name < rd[j].Recipe.Name
 }
 
 type RecipeDetector struct {
-	processEvaluator      DetectionStatusProvider
-	scriptEvaluator       DetectionStatusProvider
-	context               context.Context
-	repo                  Finder
-	recipeDetectionResult map[string]*RecipeDetectionResult
+	processEvaluator DetectionStatusProvider
+	scriptEvaluator  DetectionStatusProvider
+	context          context.Context
+	repo             Finder
 }
 
 func NewRecipeDetector(contex context.Context, repo *RecipeRepository) *RecipeDetector {
 	return &RecipeDetector{
-		processEvaluator:      NewProcessEvaluator(),
-		scriptEvaluator:       NewScriptEvaluator(),
-		context:               contex,
-		repo:                  repo,
-		recipeDetectionResult: make(map[string]*RecipeDetectionResult),
+		processEvaluator: NewProcessEvaluator(),
+		scriptEvaluator:  NewScriptEvaluator(),
+		context:          contex,
+		repo:             repo,
 	}
 }
 
-func (dt *RecipeDetector) GetDetectedRecipes() (map[string]*RecipeDetectionResult,
-	map[string]*RecipeDetectionResult,
-	error) {
+func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDetectionResults, error) {
 
-	availableRecipes := make(map[string]*RecipeDetectionResult)
-	unavailableRecipes := make(map[string]*RecipeDetectionResult)
+	availableRecipes := RecipeDetectionResults{}
+	unavailableRecipes := RecipeDetectionResults{}
 	recipes, err := dt.repo.FindAll()
 	if err != nil {
 		return nil, nil, err
@@ -51,14 +71,15 @@ func (dt *RecipeDetector) GetDetectedRecipes() (map[string]*RecipeDetectionResul
 
 	for _, r := range recipes {
 		dr := dt.detectRecipe(r)
-		dt.recipeDetectionResult[dr.Recipe.Name] = dr
 
 		if dr.Status == execution.RecipeStatusTypes.AVAILABLE {
-			availableRecipes[dr.Recipe.Name] = dr
+			availableRecipes = append(availableRecipes, dr)
 		} else {
-			unavailableRecipes[dr.Recipe.Name] = dr
+			unavailableRecipes = append(unavailableRecipes, dr)
 		}
 	}
+	sort.Sort(availableRecipes)
+
 	return availableRecipes, unavailableRecipes, nil
 }
 

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sort"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -44,7 +43,7 @@ type RecipeInstall struct {
 	recipeVarPreparer      RecipeVarPreparer
 	agentValidator         AgentValidator
 	shouldInstallCore      func() bool
-	bundlerFactory         func(ctx context.Context, availableRecipes map[string]*recipes.RecipeDetectionResult) RecipeBundler
+	bundlerFactory         func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
 }
@@ -107,7 +106,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return os.Getenv("NEW_RELIC_CLI_SKIP_CORE") != "1"
 	}
 
-	i.bundlerFactory = func(ctx context.Context, availableRecipes map[string]*recipes.RecipeDetectionResult) RecipeBundler {
+	i.bundlerFactory = func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler {
 		return recipes.NewBundler(ctx, availableRecipes)
 	}
 
@@ -301,23 +300,14 @@ func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeReposito
 	fmt.Println(message)
 }
 
-func (i *RecipeInstall) reportRecipeStatuses(availableRecipes map[string]*recipes.RecipeDetectionResult,
-	unavailableRecipes map[string]*recipes.RecipeDetectionResult) {
+func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDetectionResults,
+	unavailableRecipes recipes.RecipeDetectionResults) {
 
 	for _, d := range unavailableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(d.Status, e)
 	}
-
-	// Sort the key, so we can get consistent ordering
-	keys := make([]string, 0)
-	for k := range availableRecipes {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		d := availableRecipes[k]
+	for _, d := range availableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
 	}

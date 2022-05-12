@@ -14,12 +14,12 @@ var coreRecipeMap = map[string]bool{
 }
 
 type Bundler struct {
-	AvailableRecipes    map[string]*RecipeDetectionResult
+	AvailableRecipes    RecipeDetectionResults
 	Context             context.Context
 	cachedBundleRecipes map[string]*BundleRecipe
 }
 
-func NewBundler(context context.Context, availableRecipes map[string]*RecipeDetectionResult) *Bundler {
+func NewBundler(context context.Context, availableRecipes RecipeDetectionResults) *Bundler {
 	return &Bundler{
 		Context:             context,
 		AvailableRecipes:    availableRecipes,
@@ -59,7 +59,7 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	bundle := &Bundle{Type: bType}
 
 	for _, r := range recipes {
-		if d, ok := b.AvailableRecipes[r]; ok {
+		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
 			bundleRecipe := b.getBundleRecipeWithDependencies(d.Recipe)
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
@@ -81,7 +81,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	for _, d := range recipe.Dependencies {
-		if dt, ok := b.AvailableRecipes[d]; ok {
+		if dt, ok := b.AvailableRecipes.GetRecipeDetection(d); ok {
 			dr := b.getBundleRecipeWithDependencies(dt.Recipe)
 			if dr != nil {
 				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
@@ -98,7 +98,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	if bundleRecipe.AreAllDependenciesAvailable() {
-		if dt, ok := b.AvailableRecipes[recipe.Name]; ok {
+		if dt, ok := b.AvailableRecipes.GetRecipeDetection(recipe.Name); ok {
 			bundleRecipe.AddDetectionStatus(dt.Status, dt.DurationMs)
 			b.cachedBundleRecipes[recipe.Name] = bundleRecipe
 			return bundleRecipe
