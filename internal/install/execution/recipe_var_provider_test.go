@@ -1,6 +1,3 @@
-//go:build integration
-// +build integration
-
 package execution
 
 import (
@@ -9,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"gopkg.in/yaml.v2"
 
@@ -20,16 +19,6 @@ import (
 
 func TestRecipeVarProvider_Basic(t *testing.T) {
 	e := NewRecipeVarProvider()
-
-	m := types.DiscoveryManifest{
-		Hostname:        "testHostname",
-		OS:              "testOS",
-		Platform:        "testPlatform",
-		PlatformFamily:  "testPlatformFamily",
-		PlatformVersion: "testPlatformVersion",
-		KernelArch:      "testKernelArch",
-		KernelVersion:   "testKernelVersion",
-	}
 
 	tmpFile, err := ioutil.TempFile(os.TempDir(), t.Name())
 	if err != nil {
@@ -68,10 +57,18 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	installYamlBytes, err := yaml.Marshal(recipeInstallToYaml)
 	require.NoError(t, err)
 
-	installYaml := string(installYamlBytes)
+	m := types.DiscoveryManifest{
+		Hostname:        "testHostname",
+		OS:              "testOS",
+		Platform:        "testPlatform",
+		PlatformFamily:  "testPlatformFamily",
+		PlatformVersion: "testPlatformVersion",
+		KernelArch:      "testKernelArch",
+		KernelVersion:   "testKernelVersion",
+	}
 
 	r := types.OpenInstallationRecipe{
-		Install: installYaml,
+		Install: string(installYamlBytes),
 	}
 
 	v, err := e.Prepare(m, r, false, "testLicenseKey")
@@ -83,6 +80,90 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	require.Contains(t, m.KernelArch, v["KernelArch"])
 	require.Contains(t, m.KernelVersion, v["KernelVersion"])
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
+}
+
+func TestRecipeVarProvider_CommandLineEnvars(t *testing.T) {
+	e := NewRecipeVarProvider()
+
+	tmpFile, err := ioutil.TempFile(os.TempDir(), t.Name())
+	if err != nil {
+		t.Fatal("error creating temp file")
+	}
+
+	defer os.Remove(tmpFile.Name())
+
+	output := `
+  {
+    \"hostname\": \"{{.HOSTNAME}}\",
+    \"os\": \"{{.OS}}\",
+    \"platform\": \"{{.PLATFORM}}\",
+    \"platformFamily\": \"{{.PLATFORM_FAMILY}}\",
+    \"platformVersion\": \"{{.PLATFORM_VERSION}}\",
+    \"kernelArch\": \"{{.KERNEL_ARCH}}\",
+    \"kernelVersion\": \"{{.KERNEL_VERSION}}\"
+  }`
+
+	// We convert the `install` section of the recipe to a YAML string,
+	// which is then used to create a Taskfile for go-task.
+	recipeInstallToYaml := map[string]interface{}{
+		"version": "3",
+		"tasks": taskfile.Tasks{
+			"default": &taskfile.Task{
+				Cmds: []*taskfile.Cmd{
+					{
+						Cmd: fmt.Sprintf("echo %s > %s", strings.ReplaceAll(output, "\n", ""), tmpFile.Name()),
+					},
+				},
+				Silent: true,
+			},
+		},
+	}
+
+	installYamlBytes, err := yaml.Marshal(recipeInstallToYaml)
+	require.NoError(t, err)
+
+	m := types.DiscoveryManifest{
+		Hostname:        "testHostname",
+		OS:              "testOS",
+		Platform:        "testPlatform",
+		PlatformFamily:  "testPlatformFamily",
+		PlatformVersion: "testPlatformVersion",
+		KernelArch:      "testKernelArch",
+		KernelVersion:   "testKernelVersion",
+	}
+
+	r := types.OpenInstallationRecipe{
+		Install: string(installYamlBytes),
+	}
+
+	anotherDownloadURL := "https://another.download.newrelic.com/"
+	os.Setenv("NEW_RELIC_DOWNLOAD_URL", anotherDownloadURL)
+
+	logFilePath := ".newrelic/newrelic-cli.log"
+	os.Setenv("NEW_RELIC_CLI_LOG_FILE_PATH", logFilePath)
+
+	clusterName := "sweet-cluster-name"
+	os.Setenv("NR_CLI_CLUSTERNAME", clusterName)
+
+	customAttrs := "should-be-json but just verifying it is passed"
+	os.Setenv("NRIA_CUSTOM_ATTRIBUTES", customAttrs)
+
+	passthroughEnv := "SOME,PASSTHROUGH,ENVARS"
+	os.Setenv("NRIA_PASSTHROUGH_ENVIRONMENT", passthroughEnv)
+
+	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	require.NoError(t, err)
+	require.Contains(t, v["OS"], m.OS)
+	assert.Contains(t, m.Platform, v["Platform"])
+	assert.Contains(t, m.PlatformVersion, v["PlatformVersion"])
+	assert.Contains(t, m.PlatformFamily, v["PlatformFamily"])
+	assert.Contains(t, m.KernelArch, v["KernelArch"])
+	assert.Contains(t, m.KernelVersion, v["KernelVersion"])
+	assert.Equal(t, v["NEW_RELIC_DOWNLOAD_URL"], anotherDownloadURL)
+	assert.Contains(t, v["NEW_RELIC_CLI_LOG_FILE_PATH"], logFilePath)
+	assert.Equal(t, v["NR_CLI_CLUSTERNAME"], clusterName)
+	assert.Equal(t, v["NRIA_CUSTOM_ATTRIBUTES"], customAttrs)
+	assert.Equal(t, v["NRIA_PASSTHROUGH_ENVIRONMENT"], passthroughEnv)
 }
 
 func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {
