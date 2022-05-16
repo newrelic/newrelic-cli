@@ -58,7 +58,7 @@ The latest New Relic CLI documentation is available in the repository's [docs](h
 
 ## Installation
 
-Installation options are available for various platforms.
+Installation options are available for various platforms. If you're running an older version of the CLI you can use these commands to update to the latest version.
 
 ### MacOS
 
