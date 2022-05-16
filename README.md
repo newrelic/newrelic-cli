@@ -56,9 +56,9 @@ page.
 
 The latest New Relic CLI documentation is available in the repository's [docs](https://github.com/newrelic/newrelic-cli/blob/main/docs/cli/newrelic.md) directory.
 
-## Installation
+## Installation & Updates
 
-Installation options are available for various platforms.
+Installation options are available for various platforms. If you want to upgrade the local version of the CLI to the latest version you can use the same commands.
 
 ### MacOS
 
