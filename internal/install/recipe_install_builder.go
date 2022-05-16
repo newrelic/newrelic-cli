@@ -64,6 +64,11 @@ func (rib *RecipeInstallBuilder) WithLibraryVersion(libraryVersion string) *Reci
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) WithFetchRecipesVal(fetchRecipesVal []*types.OpenInstallationRecipe) *RecipeInstallBuilder {
+	rib.recipeFetcher.FetchRecipesVal = fetchRecipesVal
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) WithLicenseKeyFetchResult(result error) *RecipeInstallBuilder {
 	rib.licenseKeyFetcher.FetchLicenseKeyFunc = func(ctx context.Context) (string, error) {
 		return "", result

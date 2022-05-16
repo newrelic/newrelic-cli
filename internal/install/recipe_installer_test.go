@@ -87,9 +87,11 @@ func TestInstallShouldSkipCoreInstall(t *testing.T) {
 }
 
 func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
+	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
+	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
 	coreBundle := bundler.CreateCoreBundle()
 	_ = recipeInstall.install(context.TODO())
 
@@ -98,9 +100,11 @@ func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
 }
 
 func TestInstallCoreShouldStopOnError(t *testing.T) {
+	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
+	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
 	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
 	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
 	coreBundle := bundler.CreateCoreBundle()
 	bundleInstaller.Error = errors.New("Install Error")
 	err := recipeInstall.install(context.TODO())
@@ -112,16 +116,32 @@ func TestInstallCoreShouldStopOnError(t *testing.T) {
 }
 
 func TestInstallTargetInstallShouldInstall(t *testing.T) {
+	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
+	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
 	additionRecipeName := "additional"
 	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
 	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
 	_ = recipeInstall.install(context.TODO())
 
 	assert.Equal(t, 1, len(additionalBundle.BundleRecipes))
 	assert.True(t, bundleInstaller.installedRecipes[additionalBundle.BundleRecipes[0].Recipe.Name])
 }
+
+func TestUnsupportedOsError(t *testing.T) {
+	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{KernelArch: "NOPE"}}
+	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
+	bundler := NewBundlerBuilder().Build()
+	bundleInstaller := NewMockBundleInstaller()
+	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	err := recipeInstall.install(context.TODO())
+
+	assert.Error(t, err)
+	assert.Equal(t, err.Error(), "no supported recipes found")
+	assert.True(t, len(bundleInstaller.installedRecipes) == 0)
+}
+
 func TestInstallTargetInstallShouldNotInstallCoreIfCoreWasNotSkipped(t *testing.T) {
 	additionRecipeName := types.InfraAgentRecipeName
 	bundler := NewBundlerBuilder().WithCoreRecipe(additionRecipeName).WithAdditionalRecipe(additionRecipeName).Build()
@@ -176,10 +196,12 @@ func TestInstallTargetInstallWithOneUnsupportedOneInstalledShouldError(t *testin
 }
 
 func TestInstallGuidedInstallAdditionalShouldInstall(t *testing.T) {
+	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
+	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
 	additionRecipeName := "additional"
 	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
 	additionalBundle := bundler.CreateAdditionalGuidedBundle()
 	_ = recipeInstall.install(context.TODO())
 
