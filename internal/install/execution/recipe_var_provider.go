@@ -1,11 +1,14 @@
 package execution
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"os"
 	"regexp"
+
+	"github.com/ghodss/yaml"
 
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
@@ -206,8 +209,39 @@ func varFromEnv() types.RecipeVars {
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
 	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
 	vars["NR_CLI_CLUSTERNAME"] = os.Getenv("NR_CLI_CLUSTERNAME")
-	vars["NRIA_CUSTOM_ATTRIBUTES"] = os.Getenv("NRIA_CUSTOM_ATTRIBUTES")
-	vars["NRIA_PASSTHROUGH_ENVIRONMENT"] = os.Getenv("NRIA_PASSTHROUGH_ENVIRONMENT")
+	vars["NRIA_CUSTOM_ATTRIBUTES"] = yamlFromJSON(os.Getenv("NRIA_CUSTOM_ATTRIBUTES"))
+	vars["NRIA_PASSTHROUGH_ENVIRONMENT"] = yamlFromCommaDelimitedString(os.Getenv("NRIA_PASSTHROUGH_ENVIRONMENT"))
 
 	return vars
+}
+
+func yamlFromJSON(jsonVal string) string {
+	if !json.Valid([]byte(jsonVal)) || len(jsonVal) == 0 {
+		log.Warnf("invalid json passed in envar: %s", jsonVal)
+		return ""
+	}
+
+	customAttributesJSON := fmt.Sprintf("{\"custom_attributes\": %s }", jsonVal)
+	yaml, err := yaml.JSONToYAML([]byte(customAttributesJSON))
+	if err != nil {
+		log.Warnf("could not transform to yaml: %e", err)
+		return ""
+	}
+
+	return string(yaml)
+}
+
+func yamlFromCommaDelimitedString(commaDelimited string) string {
+	if len(commaDelimited) == 0 {
+		return ""
+	}
+
+	passthroughEnvironmentJSON := fmt.Sprintf("{\"passthrough_environment\": [%s] }", commaDelimited)
+	yaml, err := yaml.JSONToYAML([]byte(passthroughEnvironmentJSON))
+	if err != nil {
+		log.Warnf("could not transform to yaml: %e", err)
+		return ""
+	}
+
+	return string(yaml)
 }

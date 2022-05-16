@@ -82,7 +82,7 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
-func TestRecipeVarProvider_CommandLineEnvars(t *testing.T) {
+func TestRecipeVarProvider_CommandLineEnvarsDirectlyPassedToRecipeContext(t *testing.T) {
 	e := NewRecipeVarProvider()
 
 	tmpFile, err := ioutil.TempFile(os.TempDir(), t.Name())
@@ -145,12 +145,6 @@ func TestRecipeVarProvider_CommandLineEnvars(t *testing.T) {
 	clusterName := "sweet-cluster-name"
 	os.Setenv("NR_CLI_CLUSTERNAME", clusterName)
 
-	customAttrs := "should-be-json but just verifying it is passed"
-	os.Setenv("NRIA_CUSTOM_ATTRIBUTES", customAttrs)
-
-	passthroughEnv := "SOME,PASSTHROUGH,ENVARS"
-	os.Setenv("NRIA_PASSTHROUGH_ENVIRONMENT", passthroughEnv)
-
 	v, err := e.Prepare(m, r, false, "testLicenseKey")
 	require.NoError(t, err)
 	require.Contains(t, v["OS"], m.OS)
@@ -162,8 +156,44 @@ func TestRecipeVarProvider_CommandLineEnvars(t *testing.T) {
 	assert.Equal(t, v["NEW_RELIC_DOWNLOAD_URL"], anotherDownloadURL)
 	assert.Contains(t, v["NEW_RELIC_CLI_LOG_FILE_PATH"], logFilePath)
 	assert.Equal(t, v["NR_CLI_CLUSTERNAME"], clusterName)
-	assert.Equal(t, v["NRIA_CUSTOM_ATTRIBUTES"], customAttrs)
-	assert.Equal(t, v["NRIA_PASSTHROUGH_ENVIRONMENT"], passthroughEnv)
+}
+
+func Test_yamlFromJSON_convertsValidJsonToYaml(t *testing.T) {
+	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
+
+	yaml := yamlFromJSON(json)
+
+	assert.Contains(t, yaml, "custom_attributes:\n")
+	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
+	assert.Contains(t, yaml, " customAttribute_2: SOME_ATTRIBUTE_2\n")
+}
+
+func Test_yamlFromJSON_ConvertsInvalidJsonToEmpty(t *testing.T) {
+	assert.Equal(t, "", yamlFromJSON("totally-not-valid; json"))
+}
+
+func Test_yamlFromJSON_ConvertsEmptyStringToEmptyYaml(t *testing.T) {
+	assert.Equal(t, "", yamlFromJSON(""))
+}
+
+func Test_yamlFromCommaDelimitedString_convertsStringToYaml(t *testing.T) {
+	yaml := yamlFromCommaDelimitedString("value1,value2, value3")
+
+	assert.Contains(t, yaml, "passthrough_environment:\n")
+	assert.Contains(t, yaml, "- value1\n")
+	assert.Contains(t, yaml, "- value2\n")
+	assert.Contains(t, yaml, "- value3\n")
+}
+
+func Test_yamlFromCommaDelimitedString_convertsNonCSVStringToYaml(t *testing.T) {
+	yaml := yamlFromCommaDelimitedString("value1")
+
+	assert.Contains(t, yaml, "passthrough_environment:\n")
+	assert.Contains(t, yaml, "- value1\n")
+}
+
+func Test_yamlFromCommaDelimitedString_ConvertsEmptyStringToEmptyYaml(t *testing.T) {
+	assert.Equal(t, "", yamlFromCommaDelimitedString(""))
 }
 
 func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {
