@@ -271,6 +271,15 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
 
+	supportedRecipes, _ := repo.FindAll()
+
+	if len(supportedRecipes) == 0 && !i.RecipeNamesProvided() {
+		fmt.Println("This system is not supported by any available recipes")
+		return &types.UncaughtError{
+			Err: fmt.Errorf("no supported recipes found"),
+		}
+	}
+
 	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
