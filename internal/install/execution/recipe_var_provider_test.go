@@ -79,6 +79,8 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	require.Contains(t, m.PlatformFamily, v["PlatformFamily"])
 	require.Contains(t, m.KernelArch, v["KernelArch"])
 	require.Contains(t, m.KernelVersion, v["KernelVersion"])
+	require.Equal(t, "", v["NRIA_CUSTOM_ATTRIBUTES"])
+	require.Equal(t, "", v["NRIA_PASSTHROUGH_ENVIRONMENT"])
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
 
@@ -153,7 +155,7 @@ func TestRecipeVarProvider_CommandLineEnvarsDirectlyPassedToRecipeContext(t *tes
 	assert.Contains(t, m.PlatformFamily, v["PlatformFamily"])
 	assert.Contains(t, m.KernelArch, v["KernelArch"])
 	assert.Contains(t, m.KernelVersion, v["KernelVersion"])
-	assert.Equal(t, v["NEW_RELIC_DOWNLOAD_URL"], anotherDownloadURL)
+	assert.Equal(t, anotherDownloadURL, v["NEW_RELIC_DOWNLOAD_URL"])
 	assert.Contains(t, v["NEW_RELIC_CLI_LOG_FILE_PATH"], logFilePath)
 	assert.Equal(t, v["NR_CLI_CLUSTERNAME"], clusterName)
 }
