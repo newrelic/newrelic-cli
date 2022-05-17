@@ -209,8 +209,16 @@ func varFromEnv() types.RecipeVars {
 	vars["NEW_RELIC_DOWNLOAD_URL"] = downloadURL
 	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
 	vars["NR_CLI_CLUSTERNAME"] = os.Getenv("NR_CLI_CLUSTERNAME")
-	vars["NRIA_CUSTOM_ATTRIBUTES"] = yamlFromJSON(os.Getenv("NRIA_CUSTOM_ATTRIBUTES"))
-	vars["NRIA_PASSTHROUGH_ENVIRONMENT"] = yamlFromCommaDelimitedString(os.Getenv("NRIA_PASSTHROUGH_ENVIRONMENT"))
+
+	customAttributes := os.Getenv("NRIA_CUSTOM_ATTRIBUTES")
+	if len(customAttributes) > 0 {
+		vars["NRIA_CUSTOM_ATTRIBUTES"] = yamlFromJSON(customAttributes)
+	}
+
+	passthroughEnvironment := os.Getenv("NRIA_PASSTHROUGH_ENVIRONMENT")
+	if len(passthroughEnvironment) > 0 {
+		vars["NRIA_PASSTHROUGH_ENVIRONMENT"] = yamlFromCommaDelimitedString(passthroughEnvironment)
+	}
 
 	return vars
 }
