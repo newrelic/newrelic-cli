@@ -255,9 +255,9 @@ func (s *InstallStatus) ReportStatus(status RecipeStatusType, event RecipeStatus
 		s.RecipeSkipped(event)
 	case RecipeStatusTypes.UNSUPPORTED:
 		s.RecipeUnsupported(event)
-
-	case RecipeStatusTypes.NULL:
 	case RecipeStatusTypes.RECOMMENDED:
+		s.RecipeRecommended(event)
+	case RecipeStatusTypes.NULL:
 		// Not used
 	default:
 		log.Warnf("Unknown status to report: %s, ignoring", status)

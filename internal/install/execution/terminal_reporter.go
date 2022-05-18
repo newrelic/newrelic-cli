@@ -207,7 +207,7 @@ func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) 
 func (r TerminalStatusReporter) getRecipesStatusesForInstallationSummary(status *InstallStatus) []*RecipeStatus {
 	statusesToDisplay := []*RecipeStatus{}
 	for _, s := range status.Statuses {
-		if s.Status != RecipeStatusTypes.DETECTED {
+		if s.Status != RecipeStatusTypes.DETECTED && s.Status != RecipeStatusTypes.RECOMMENDED {
 			statusesToDisplay = append(statusesToDisplay, s)
 		}
 	}

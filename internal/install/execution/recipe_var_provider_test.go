@@ -163,7 +163,7 @@ func TestRecipeVarProvider_CommandLineEnvarsDirectlyPassedToRecipeContext(t *tes
 func Test_yamlFromJSON_convertsValidJsonToYaml(t *testing.T) {
 	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
 
-	yaml := yamlFromJSON(json)
+	yaml := yamlFromJSON("key", json)
 
 	assert.Contains(t, yaml, "custom_attributes:\n")
 	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
@@ -171,15 +171,15 @@ func Test_yamlFromJSON_convertsValidJsonToYaml(t *testing.T) {
 }
 
 func Test_yamlFromJSON_ConvertsInvalidJsonToEmpty(t *testing.T) {
-	assert.Equal(t, "", yamlFromJSON("totally-not-valid; json"))
+	assert.Equal(t, "", yamlFromJSON("key", "totally-not-valid; json"))
 }
 
 func Test_yamlFromJSON_ConvertsEmptyStringToEmptyYaml(t *testing.T) {
-	assert.Equal(t, "", yamlFromJSON(""))
+	assert.Equal(t, "", yamlFromJSON("key", ""))
 }
 
 func Test_yamlFromCommaDelimitedString_convertsStringToYaml(t *testing.T) {
-	yaml := yamlFromCommaDelimitedString("value1,value2, value3")
+	yaml := yamlFromCommaDelimitedString("key", "value1,value2, value3")
 
 	assert.Contains(t, yaml, "passthrough_environment:\n")
 	assert.Contains(t, yaml, "- value1\n")
@@ -188,14 +188,14 @@ func Test_yamlFromCommaDelimitedString_convertsStringToYaml(t *testing.T) {
 }
 
 func Test_yamlFromCommaDelimitedString_convertsNonCSVStringToYaml(t *testing.T) {
-	yaml := yamlFromCommaDelimitedString("value1")
+	yaml := yamlFromCommaDelimitedString("key", "value1")
 
 	assert.Contains(t, yaml, "passthrough_environment:\n")
 	assert.Contains(t, yaml, "- value1\n")
 }
 
 func Test_yamlFromCommaDelimitedString_ConvertsEmptyStringToEmptyYaml(t *testing.T) {
-	assert.Equal(t, "", yamlFromCommaDelimitedString(""))
+	assert.Equal(t, "", yamlFromCommaDelimitedString("key", ""))
 }
 
 func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {

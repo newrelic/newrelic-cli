@@ -292,7 +292,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	if abErr != nil {
 		return abErr
 	}
-
 	log.Debugf("Done installing.")
 
 	return nil
@@ -319,7 +318,21 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 	for _, d := range availableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
+		if !i.isTargetInstallRecipe(d.Recipe.Name) {
+			i.status.ReportStatus(execution.RecipeStatusTypes.RECOMMENDED, e)
+		}
 	}
+}
+
+func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
+	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
+		for _, r := range i.RecipeNames {
+			if r == recipeName {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
@@ -335,16 +348,6 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	}
 
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
-
-	if bundleInstaller.InstalledRecipesCount() == 0 {
-		return &types.UncaughtError{
-			Err: fmt.Errorf("no recipes were installed"),
-		}
-	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
-		return &types.UncaughtError{
-			Err: fmt.Errorf("one or more selected recipes could not be installed"),
-		}
-	}
 
 	return nil
 }
