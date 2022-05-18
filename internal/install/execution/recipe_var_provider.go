@@ -26,6 +26,11 @@ var (
 	}
 )
 
+const (
+	EnvNriaCustomAttributes       = "NRIA_CUSTOM_ATTRIBUTES"
+	EnvNriaPassthroughEnvironment = "NRIA_PASSTHROUGH_ENVIRONMENT"
+)
+
 type RecipeVarProvider struct{}
 
 func NewRecipeVarProvider() *RecipeVarProvider {
@@ -210,36 +215,36 @@ func varFromEnv() types.RecipeVars {
 	vars["NEW_RELIC_CLI_LOG_FILE_PATH"] = config.GetDefaultLogFilePath()
 	vars["NR_CLI_CLUSTERNAME"] = os.Getenv("NR_CLI_CLUSTERNAME")
 
-	customAttributes := os.Getenv("NRIA_CUSTOM_ATTRIBUTES")
+	customAttributes := os.Getenv(EnvNriaCustomAttributes)
 	if len(customAttributes) > 0 {
-		vars["NRIA_CUSTOM_ATTRIBUTES"] = yamlFromJSON(customAttributes)
+		vars[EnvNriaCustomAttributes] = yamlFromJSON(EnvNriaCustomAttributes, customAttributes)
 	}
 
-	passthroughEnvironment := os.Getenv("NRIA_PASSTHROUGH_ENVIRONMENT")
+	passthroughEnvironment := os.Getenv(EnvNriaPassthroughEnvironment)
 	if len(passthroughEnvironment) > 0 {
-		vars["NRIA_PASSTHROUGH_ENVIRONMENT"] = yamlFromCommaDelimitedString(passthroughEnvironment)
+		vars[EnvNriaPassthroughEnvironment] = yamlFromCommaDelimitedString(EnvNriaPassthroughEnvironment, passthroughEnvironment)
 	}
 
 	return vars
 }
 
-func yamlFromJSON(jsonVal string) string {
+func yamlFromJSON(key string, jsonVal string) string {
 	if !json.Valid([]byte(jsonVal)) || len(jsonVal) == 0 {
-		log.Warnf("invalid json passed in envar: %s", jsonVal)
+		log.Debugf("Invalid json passed in %s: %s", key, jsonVal)
 		return ""
 	}
 
 	customAttributesJSON := fmt.Sprintf("{\"custom_attributes\": %s }", jsonVal)
 	yaml, err := yaml.JSONToYAML([]byte(customAttributesJSON))
 	if err != nil {
-		log.Warnf("could not transform to yaml: %e", err)
+		log.Debugf("Could not transform %s json value to yaml: %e", key, err)
 		return ""
 	}
 
 	return string(yaml)
 }
 
-func yamlFromCommaDelimitedString(commaDelimited string) string {
+func yamlFromCommaDelimitedString(key string, commaDelimited string) string {
 	if len(commaDelimited) == 0 {
 		return ""
 	}
@@ -247,7 +252,7 @@ func yamlFromCommaDelimitedString(commaDelimited string) string {
 	passthroughEnvironmentJSON := fmt.Sprintf("{\"passthrough_environment\": [%s] }", commaDelimited)
 	yaml, err := yaml.JSONToYAML([]byte(passthroughEnvironmentJSON))
 	if err != nil {
-		log.Warnf("could not transform to yaml: %e", err)
+		log.Debugf("Could not transform %s comma-delimited value to yaml: %e", key, err)
 		return ""
 	}
 
