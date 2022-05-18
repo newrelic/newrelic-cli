@@ -83,21 +83,6 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		return nil
 	}
 
-	recs := status.recommendations()
-
-	if len(recs) > 0 {
-		fmt.Println("  ---")
-		fmt.Println("  Instrumentation recommendations")
-		fmt.Println("  We discovered some additional instrumentation opportunities:")
-
-		for _, recommendation := range recs {
-			fmt.Printf("  - %s\n", recommendation.DisplayName)
-		}
-
-		fmt.Println("Please refer to the \"Data gaps\" section in the link to your data.")
-		fmt.Println("  ---")
-	}
-
 	linkToData := ""
 	if status.PlatformLinkGenerator != nil {
 		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
@@ -207,7 +192,7 @@ func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) 
 func (r TerminalStatusReporter) getRecipesStatusesForInstallationSummary(status *InstallStatus) []*RecipeStatus {
 	statusesToDisplay := []*RecipeStatus{}
 	for _, s := range status.Statuses {
-		if s.Status != RecipeStatusTypes.DETECTED {
+		if s.Status != RecipeStatusTypes.DETECTED && s.Status != RecipeStatusTypes.RECOMMENDED {
 			statusesToDisplay = append(statusesToDisplay, s)
 		}
 	}
