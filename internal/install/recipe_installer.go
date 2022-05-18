@@ -326,11 +326,9 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 }
 
 func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
-	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {
-		for _, r := range i.RecipeNames {
-			if r == recipeName {
-				return true
-			}
+	for _, r := range i.RecipeNames {
+		if r == recipeName {
+			return true
 		}
 	}
 	return false
