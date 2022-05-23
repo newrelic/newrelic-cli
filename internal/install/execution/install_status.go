@@ -255,9 +255,9 @@ func (s *InstallStatus) ReportStatus(status RecipeStatusType, event RecipeStatus
 		s.RecipeSkipped(event)
 	case RecipeStatusTypes.UNSUPPORTED:
 		s.RecipeUnsupported(event)
-
-	case RecipeStatusTypes.NULL:
 	case RecipeStatusTypes.RECOMMENDED:
+		s.RecipeRecommended(event)
+	case RecipeStatusTypes.NULL:
 		// Not used
 	default:
 		log.Warnf("Unknown status to report: %s, ignoring", status)
@@ -276,18 +276,6 @@ func (s *InstallStatus) InstallCanceled() {
 
 func (s *InstallStatus) WasSuccessful() bool {
 	return s.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
-}
-
-func (s *InstallStatus) recommendations() []*RecipeStatus {
-	var statuses []*RecipeStatus
-
-	for _, st := range s.Statuses {
-		if st.Status == RecipeStatusTypes.RECOMMENDED {
-			statuses = append(statuses, st)
-		}
-	}
-
-	return statuses
 }
 
 func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
