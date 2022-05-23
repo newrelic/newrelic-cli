@@ -354,11 +354,7 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	if i.shouldInstallCore() {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)
-		err := bundleInstaller.InstallStopOnError(coreBundle, true)
-		if err != nil {
-			log.Debugf("error installing core bundle:%s", err)
-			return err
-		}
+		bundleInstaller.InstallContinueOnError(coreBundle, true)
 	} else {
 		log.Debugf("Skipping core bundle")
 	}

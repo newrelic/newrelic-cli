@@ -17,23 +17,25 @@ type StatusReporter interface {
 }
 
 type BundleInstaller struct {
-	installedRecipes map[string]bool
-	ctx              context.Context
-	manifest         *types.DiscoveryManifest
-	statusReporter   StatusReporter
-	recipeInstaller  RecipeInstaller
-	prompter         Prompter
+	installedRecipes     map[string]bool
+	installFailedRecipes map[string]error
+	ctx                  context.Context
+	manifest             *types.DiscoveryManifest
+	statusReporter       StatusReporter
+	recipeInstaller      RecipeInstaller
+	prompter             Prompter
 }
 
 func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) *BundleInstaller {
 
 	return &BundleInstaller{
-		ctx:              ctx,
-		manifest:         manifest,
-		recipeInstaller:  recipeInstallerInterface,
-		statusReporter:   statusReporter,
-		installedRecipes: make(map[string]bool),
-		prompter:         NewPrompter(),
+		ctx:                  ctx,
+		manifest:             manifest,
+		recipeInstaller:      recipeInstallerInterface,
+		statusReporter:       statusReporter,
+		installedRecipes:     make(map[string]bool),
+		installFailedRecipes: make(map[string]error),
+		prompter:             NewPrompter(),
 	}
 }
 
@@ -98,7 +100,8 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 	for _, additionalRecipe := range installableBundleRecipes {
 		err := bi.InstallBundleRecipe(additionalRecipe, assumeYes)
 		if err != nil {
-			log.Debugf("error installing recipe %v: %v", additionalRecipe.Recipe.Name, err)
+			msg := fmt.Sprintf("execution failed for %s: %s", additionalRecipe.Recipe.Name, err)
+			log.Debugf(msg)
 		}
 	}
 }
@@ -125,6 +128,16 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 	for _, dr := range bundleRecipe.Dependencies {
 		err = bi.InstallBundleRecipe(dr, assumeYes)
 		if err != nil {
+			// When dependency fail, mark parent fail as well
+			bi.installFailedRecipes[bundleRecipe.Recipe.Name] = err
+			// For dependency failure, it's not handle with normal flow of error reporting, we will manuall report error
+			msg := fmt.Sprintf("execution failed for %s: %s", bundleRecipe.Recipe.Name, err)
+			e := execution.RecipeStatusEvent{
+				Recipe: *bundleRecipe.Recipe,
+				Msg:    msg,
+			}
+			bi.statusReporter.ReportStatus(execution.RecipeStatusTypes.FAILED, e)
+			log.Debugf(msg)
 			return err
 		}
 	}
@@ -134,12 +147,18 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 		return nil
 	}
 
+	var ok bool
+	if err, ok = bi.installFailedRecipes[bundleRecipe.Recipe.Name]; ok {
+		return err
+	}
+
 	log.WithFields(log.Fields{
 		"name": recipeName,
 	}).Debug("installing recipe")
 
 	_, err = bi.recipeInstaller.executeAndValidateWithProgress(bi.ctx, bi.manifest, bundleRecipe.Recipe, assumeYes)
 	if err != nil {
+		bi.installFailedRecipes[recipeName] = err
 		log.Debugf("Failed while executing and validating with progress for recipe name %s, detail:%s", recipeName, err)
 		return err
 	}

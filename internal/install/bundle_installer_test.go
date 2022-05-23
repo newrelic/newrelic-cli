@@ -221,6 +221,34 @@ func TestInstallShouldnotInstallAnyWhenDependenciesNotAvailable(t *testing.T) {
 	assert.False(t, test.BundleInstaller.installedRecipes["d2"])
 }
 
+func TestInstallFailedInstallingShouldBeStored(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerError()
+	test.addRecipeToBundle("recipe1", execution.RecipeStatusTypes.AVAILABLE)
+
+	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
+
+	assert.NotNil(t, test.BundleInstaller.installFailedRecipes["recipe1"])
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+}
+
+func TestInstallFailedInstallingDependencyShouldPreventOtherAttempts(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerError()
+
+	test.addRecipeToBundle("recipe1", execution.RecipeStatusTypes.AVAILABLE)
+	d := &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+	}
+	d.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	bt := test.addRecipeToBundle("recipe2", execution.RecipeStatusTypes.AVAILABLE)
+	bt.bundle.BundleRecipes[1].Dependencies = append(bt.bundle.BundleRecipes[1].Dependencies, d)
+
+	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
+
+	assert.NotNil(t, test.BundleInstaller.installFailedRecipes["recipe1"])
+	assert.NotNil(t, test.BundleInstaller.installFailedRecipes["recipe2"])
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
+}
+
 type BundleInstallerTest struct {
 	BundleInstaller     *BundleInstaller
 	mockStatusReporter  *mockStatusReporter
@@ -237,12 +265,13 @@ func createBundleInstallerTest() *BundleInstallerTest {
 		bundle:              &recipes.Bundle{},
 	}
 	i.BundleInstaller = &BundleInstaller{
-		ctx:              context.Background(),
-		manifest:         &types.DiscoveryManifest{},
-		recipeInstaller:  i.mockRecipeInstaller,
-		statusReporter:   i.mockStatusReporter,
-		installedRecipes: make(map[string]bool),
-		prompter:         i.mockPrompter,
+		ctx:                  context.Background(),
+		manifest:             &types.DiscoveryManifest{},
+		recipeInstaller:      i.mockRecipeInstaller,
+		statusReporter:       i.mockStatusReporter,
+		installedRecipes:     make(map[string]bool),
+		installFailedRecipes: make(map[string]error),
+		prompter:             i.mockPrompter,
 	}
 	// Always stub status reporter usages
 	i.withStatusReporter()

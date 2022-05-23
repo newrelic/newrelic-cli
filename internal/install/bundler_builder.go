@@ -12,22 +12,18 @@ func NewBundlerBuilder() *BundlerBuilder {
 }
 
 func (bb *BundlerBuilder) WithCoreRecipe(name string) *BundlerBuilder {
-	coreRecipes := []*recipes.BundleRecipe{
-		{
-			Recipe: recipes.NewRecipeBuilder().Name(name).Build(),
-		},
-	}
-	bb.coreRecipes = coreRecipes
+	bb.coreRecipes = append(bb.coreRecipes, &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name(name).Build(),
+	})
+
 	return bb
 }
 
 func (bb *BundlerBuilder) WithAdditionalRecipe(name string) *BundlerBuilder {
-	additionalRecipes := []*recipes.BundleRecipe{
-		{
-			Recipe: recipes.NewRecipeBuilder().Name(name).Build(),
-		},
-	}
-	bb.additionalRecipes = additionalRecipes
+	bb.additionalRecipes = append(bb.additionalRecipes, &recipes.BundleRecipe{
+		Recipe: recipes.NewRecipeBuilder().Name(name).Build(),
+	})
+
 	return bb
 }
 

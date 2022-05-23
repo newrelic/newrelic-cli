@@ -99,20 +99,19 @@ func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
 	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
 }
 
-func TestInstallCoreShouldStopOnError(t *testing.T) {
+func TestInstallCoreShouldInstallEvenWhenOneFailed(t *testing.T) {
 	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
 	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
-	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
+	bundler := NewBundlerBuilder().WithCoreRecipe("Core").WithCoreRecipe("Log").Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
 	coreBundle := bundler.CreateCoreBundle()
-	bundleInstaller.Error = errors.New("Install Error")
-	err := recipeInstall.install(context.TODO())
+	bundleInstaller.WithInstallError("Core", errors.New("install core error"))
+	_ = recipeInstall.install(context.TODO())
 
-	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "Install Error")
-	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
-	assert.True(t, len(bundleInstaller.installedRecipes) == 0)
+	assert.Equal(t, 2, len(coreBundle.BundleRecipes))
+	assert.True(t, len(bundleInstaller.installedRecipes) == 1)
+	assert.True(t, bundleInstaller.installedRecipes["Log"])
 }
 
 func TestInstallTargetInstallShouldInstall(t *testing.T) {
@@ -142,15 +141,17 @@ func TestUnsupportedOsError(t *testing.T) {
 	assert.True(t, len(bundleInstaller.installedRecipes) == 0)
 }
 
-func TestInstallTargetInstallShouldNotInstallCoreIfCoreWasNotSkipped(t *testing.T) {
+func TestInstallTargetInstallSInstallCoreIfCoreRecipeFailed(t *testing.T) {
 	additionRecipeName := types.InfraAgentRecipeName
-	bundler := NewBundlerBuilder().WithCoreRecipe(additionRecipeName).WithAdditionalRecipe(additionRecipeName).Build()
+	bundler := NewBundlerBuilder().WithCoreRecipe("core").WithAdditionalRecipe(additionRecipeName).Build()
 	bundleInstaller := NewMockBundleInstaller()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	bundleInstaller.Error = errors.New("Install Error")
-	_ = recipeInstall.install(context.TODO())
+	bundleInstaller.WithInstallError("core", errors.New("Install Error"))
+	err := recipeInstall.install(context.TODO())
 
-	assert.Equal(t, 0, len(bundleInstaller.installedRecipes))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(bundleInstaller.installedRecipes))
+	assert.Equal(t, true, bundleInstaller.installedRecipes[additionRecipeName])
 }
 
 func TestInstallTargetInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
