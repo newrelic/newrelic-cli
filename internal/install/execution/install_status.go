@@ -278,18 +278,6 @@ func (s *InstallStatus) WasSuccessful() bool {
 	return s.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
 }
 
-func (s *InstallStatus) recommendations() []*RecipeStatus {
-	var statuses []*RecipeStatus
-
-	for _, st := range s.Statuses {
-		if st.Status == RecipeStatusTypes.RECOMMENDED {
-			statuses = append(statuses, st)
-		}
-	}
-
-	return statuses
-}
-
 func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
 	for _, ss := range s.Statuses {
 		if ss.Status == status {
