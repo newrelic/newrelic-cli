@@ -319,7 +319,19 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 	for _, d := range availableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
+		if !i.isTargetInstallRecipe(d.Recipe.Name) {
+			i.status.ReportStatus(execution.RecipeStatusTypes.RECOMMENDED, e)
+		}
 	}
+}
+
+func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
+	for _, r := range i.RecipeNames {
+		if r == recipeName {
+			return true
+		}
+	}
+	return false
 }
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {

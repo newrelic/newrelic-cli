@@ -483,6 +483,23 @@ func TestRecipeInstallerShouldGetEntityGuidFromRecipeExecution(t *testing.T) {
 	assert.Equal(t, "abcd", statusReporter.GUIDs[0])
 }
 
+func TestIsTargetInstallRecipeShouldFindTarget(t *testing.T) {
+	targetRecipe := "target"
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(targetRecipe).Build()
+
+	actual := recipeInstall.isTargetInstallRecipe(targetRecipe)
+
+	assert.True(t, actual)
+}
+
+func TestIsTargetInstallRecipeShouldNotFindTarget(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().Build()
+
+	actual := recipeInstall.isTargetInstallRecipe("target")
+
+	assert.False(t, actual)
+}
+
 func captureLoggingOutput(f func()) string {
 	var buf bytes.Buffer
 	existingLogger := config.Logger
