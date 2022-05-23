@@ -1,5 +1,7 @@
+<a name="v0.49.1"></a>
+## [v0.49.1] - 2022-05-23
 <a name="v0.49.0"></a>
-## [v0.49.0] - 2022-05-18
+## [v0.49.0] - 2022-05-19
 ### Features
 - **envars:** Pass NRIA_CUSTOM_ATTRIBUTES and NRIA_PASSTHROUGH_ENVIRONMENT cli args to recipe context
 - **envars-to-recipe:**  Parsing/passing envars as yaml to recipe context
@@ -1642,7 +1644,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.1...HEAD
+[v0.49.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.0...v0.49.1
 [v0.49.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.2...v0.49.0
 [v0.48.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.1...v0.48.2
 [v0.48.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.0...v0.48.1
