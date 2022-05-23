@@ -1,3 +1,5 @@
+<a name="v0.49.3"></a>
+## [v0.49.3] - 2022-05-23
 <a name="v0.49.2"></a>
 ## [v0.49.2] - 2022-05-23
 <a name="v0.49.1"></a>
@@ -1646,7 +1648,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.3...HEAD
+[v0.49.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.2...v0.49.3
 [v0.49.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.1...v0.49.2
 [v0.49.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.0...v0.49.1
 [v0.49.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.2...v0.49.0
