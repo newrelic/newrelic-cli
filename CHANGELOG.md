@@ -1,3 +1,11 @@
+<a name="v0.49.0"></a>
+## [v0.49.0] - 2022-05-18
+### Features
+- **envars:** Pass NRIA_CUSTOM_ATTRIBUTES and NRIA_PASSTHROUGH_ENVIRONMENT cli args to recipe context
+- **envars-to-recipe:**  Parsing/passing envars as yaml to recipe context
+- **install:** add detection during targeted install ([#1291](https://github.com/newrelic/newrelic-client-go/issues/1291))
+- **unsupported:** create better messaging for unsupported recipes
+
 <a name="v0.48.2"></a>
 ## [v0.48.2] - 2022-05-11
 ### Bug Fixes
@@ -57,7 +65,27 @@
 <a name="v0.44.7"></a>
 ## [v0.44.7] - 2022-03-29
 <a name="v0.44.6"></a>
-## [v0.44.6] - -03-17
+## [v0.44.6] - 2022-03-28
+### Bug Fixes
+- **release:** fix path to .pfx file in SignPS1.cmd file
+
+<a name="v0.44.5"></a>
+## [v0.44.5] - 2022-03-28
+### Bug Fixes
+- **release:** fix issue locating windows install.ps1 script
+
+<a name="v0.44.4"></a>
+## [v0.44.4] - 2022-03-28
+### Bug Fixes
+- **release:** digitally sign install.ps1 script to fix windows installations
+
+<a name="v0.44.3"></a>
+## [v0.44.3] - 2022-03-28
+### Bug Fixes
+- failed unmarshaling rawConfiguration for dataFormatters
+
+<a name="v0.44.2"></a>
+## [v0.44.2] - 2022-03-17
 <a name="v0.44.1"></a>
 ## [v0.44.1] - 2022-03-17
 <a name="v0.44.0"></a>
@@ -1172,9 +1200,39 @@
 ## [v0.18.9] - 2020-12-29
 ### Bug Fixes
 - **install:** avoid duplicate installs for logging and infra
-- **install:** include displayName in request and recipe construxes
+- **install:** include displayName in request and recipe constructor
+- **install:** avoid prompting when user has specified a named recipe
+- **install:** capture task output and print only when debug logging
+- **install:** avoid nil pointer and extra matches for service results
+- **install:** update recipe spec to support displayName
+
+<a name="v0.18.8"></a>
+## [v0.18.8] - 2020-12-23
+### Bug Fixes
 - **install:** ensure secret input is hidden
-- **install:**r empty NRQL validation
+- **install:** skip account-based link if default profile does not exist
+
+<a name="v0.18.7"></a>
+## [v0.18.7] - 2020-12-18
+### Bug Fixes
+- **install:** fixes for end to end flow
+- **install:** tidy up the permissions on new files
+
+<a name="v0.18.6"></a>
+## [v0.18.6] - 2020-12-18
+<a name="v0.18.5"></a>
+## [v0.18.5] - 2020-12-17
+### Bug Fixes
+- **install:** replace package ID with default value
+- **install:** create default log folder if not exists
+
+<a name="v0.18.4"></a>
+## [v0.18.4] - 2020-12-17
+### Bug Fixes
+- **build:** skip go generate as part of build process
+- **install:** ignore region string case when checking profile
+- **install:** reduce sudo requirement of install.sh
+- **install:** detect and warn for empty NRQL validation
 - **install:** let dead processes stay dead
 - **install:** use string type for ID returned from the API
 
@@ -1193,7 +1251,19 @@
 
 <a name="v0.18.0"></a>
 ## [v0.18.0] - 2020-12-08
-### Features- **install:** fix meltMatch struct to match spec
+### Features
+- **install:** sketching out recipe validation
+- **install:** fetch recipes from recipe service
+
+<a name="v0.17.1"></a>
+## [v0.17.1] - 2020-11-24
+### Bug Fixes
+- **diagnostics:** update download URL
+
+<a name="v0.17.0"></a>
+## [v0.17.0] - 2020-11-23
+### Bug Fixes
+- **install:** fix meltMatch struct to match spec
 
 ### Features
 - **apiaccess:** add generated apiAccess commands (prerelease)
@@ -1211,7 +1281,13 @@
 - **internal/diagnose:** add minimal command line options
 - **newrelic:** integrate with nrdiag (prototype)
 
-<a.15.1"></a>
+<a name="v0.15.2"></a>
+## [v0.15.2] - 2020-10-29
+### Bug Fixes
+- duplicitous task running
+- **linting:** remove unused function
+
+<a name="v0.15.1"></a>
 ## [v0.15.1] - 2020-10-28
 <a name="v0.15.0"></a>
 ## [v0.15.0] - 2020-10-28
@@ -1233,7 +1309,12 @@
 - **release:** [#45](https://github.com/newrelic/newrelic-client-go/issues/45) add support for command chaining
 
 <a name="v0.13.0"></a>
-## [v0.13.0] - 2020-07-24
+## [v0.13.0] - 2020-08-27
+### Documentation Updates
+- **readme:** include installation notes for Chocolatey users
+
+<a name="v0.12.0"></a>
+## [v0.12.0] - 2020-07-24
 ### Features
 - **reporting:** add junit reporting
 
@@ -1258,7 +1339,7 @@
 
 ### Features
 - **release:** attempt to automate syncing our homebrew-core fork with upstream
-- **release:** add step to update newrelic-forks/howith latest from upstream homebrew-code
+- **release:** add step to update newrelic-forks/homebrew-core with latest from upstream homebrew-code
 - **release:** update master branch with latest code from upstream
 
 <a name="v0.9.0"></a>
@@ -1273,7 +1354,13 @@
 ### Bug Fixes
 - duplicitous task running
 - **build:** update changelog action for improved standards
-- **build:** skip go gened recipe
+- **build:** skip go generate as part of build process
+- **config:** ensure compatible case with nr1
+- **config:** remove extra comment
+- **config:** compatible case with any loglevel value
+- **diagnostics:** update download URL
+- **install:** avoid duplicate installs for logging and infra
+- **install:** avoid prompting when user has specified a named recipe
 - **install:** capture task output and print only when debug logging
 - **install:** avoid nil pointer and extra matches for service results
 - **install:** update recipe spec to support displayName
@@ -1285,7 +1372,9 @@
 - **install:** print newline after banner
 - **install:** ignore region string case when checking profile
 - **install:** reduce sudo requirement of install.sh
-- ead processes stay dead
+- **install:** detect and warn for empty NRQL validation
+- **install:** set better default value when running automatic
+- **install:** let dead processes stay dead
 - **install:** use string type for ID returned from the API
 - **install:** update logMatch type to list
 - **install:** update logMatch type to list
@@ -1317,7 +1406,7 @@
 - **edge:** add infinite tracing support
 - **edge:** mark as pre-release
 - **install:** implement a mock server for process-based task selection
-- **install:** wire up process discocess-discovery code
+- **install:** wire up process discovery with cloned nri-process-discovery code
 - **install:** sketching out recipe validation
 - **install:** fetch recipes from recipe service
 - **install:** prompt for variable input
@@ -1330,7 +1419,7 @@
 - **output:** Add text output formatter to general package
 - **profiles:** create a profile automatically if it's possible
 - **release:** [#45](https://github.com/newrelic/newrelic-client-go/issues/45) add support for command chaining
-- **release:** update master braest code from upstream
+- **release:** update master branch with latest code from upstream
 - **release:** attempt to automate syncing our homebrew-core fork with upstream
 - **release:** add step to update newrelic-forks/homebrew-core with latest from upstream homebrew-code
 - **reporting:** add junit reporting
@@ -1350,7 +1439,10 @@
 ### Documentation Updates
 - update community support information
 - add the OSS category header
-- **extensions:** add4
+- **extensions:** add cli extension documentation
+
+<a name="v0.8.3"></a>
+## [v0.8.3] - 2020-04-24
 ### Bug Fixes
 - **build:** Ignore scoop commit messages
 - **release:** fix relative path in WiX project
@@ -1400,7 +1492,19 @@
 - **ci:** wire snapcraft token into publish step
 - **ci:** wire docker creds into publish step
 - **ci:** fix yaml indentation
-- **ci:** update the snap name to match the biling
+- **ci:** update the snap name to match the binary
+
+### Features
+- **ci:** automate updating of homebrew formula
+- **docs:** Custom release notes for goreleaser
+- **install:** include install script
+- **installer:** add code signing for Win installer
+- **installers:** add a WiX-based MSI
+- **newrelic-cli:** create a PS1 installer for Windows
+- **newrelic-cli:** create a PS1 installer for Windows
+- **output:** Enable format selection globally, also plain/pretty printing
+- **output:** Support YAML output
+- **output:** Output package for central output handling
 - **snapcraft:** include goreleaser config for snaps
 
 <a name="v0.6.2"></a>
@@ -1414,7 +1518,18 @@
 ## [v0.6.1] - 2020-04-07
 ### Bug Fixes
 - **newrelic:** Fix command name replacement on build
-- **region:** Region parsing from config did not allow ltion generation command
+- **region:** Region parsing from config did not allow lowercase which is required for backwards compat
+
+<a name="v0.6.0"></a>
+## [v0.6.0] - 2020-04-03
+### Features
+- **nerdstorage:** add command for managing nerdstorage documents
+
+<a name="v0.5.0"></a>
+## [v0.5.0] - 2020-03-27
+### Bug Fixes
+- **credentials:** Change profiles => profile, remove => delete (with aliases)
+- **documentation:** Unhide documentation generation command
 
 ### Features
 - **docs:** Add auto-generated CLI documentation
@@ -1424,7 +1539,17 @@
 - **workloads:** add a command to delete workloads
 - **workloads:** add a command to create workloads
 - **workloads:** add a command to list workloads
-- **workloads:** add a command to g3-10
+- **workloads:** add a command to get a workload
+
+<a name="v0.4.1"></a>
+## [v0.4.1] - 2020-03-11
+### Bug Fixes
+- **apm:** Fix apm command flag parsing for accountId, applicationId
+- **apm/application:** Fix search params to accept accountId
+- **credentials:** Lowercase region on storage for compatibility with nr1 cli
+
+<a name="v0.4.0"></a>
+## [v0.4.0] - 2020-03-10
 ### Bug Fixes
 - **apm:** required params should result in help display
 - **build:** Force tag fetch on CI checkout
@@ -1433,7 +1558,20 @@
 
 ### Features
 - **apm/deployment:** Add all user defined fields to the deployment creation
-- **entities/search:** Return single object insteadity to map entity search result fields via flag
+- **entities/search:** Return single object instead of array on single value result
+
+<a name="v0.3.0"></a>
+## [v0.3.0] - 2020-03-06
+### Bug Fixes
+- **newrelic:** Do not log fatal error if Cobra is printing out the help screen
+- **newrelic:** avoid duplicate error message output
+
+### Documentation Updates
+- include information on getting started
+- **newrelic:** update the help screens for consistency
+
+### Features
+- **entities:** add ability to map entity search result fields via flag
 - **nerdgraph:** add nerdgraph command with query subcommand
 
 <a name="v0.2.3"></a>
@@ -1457,7 +1595,7 @@
 ## [v0.2.0] - 2020-03-03
 ### Bug Fixes
 - **client:** Fix ENV var prefix to be consistent with NR standards
-- **config:** set user agent and serdd version package
+- **config:** set user agent and service name, add version package
 - **credentials:** proper handling when removing default profile
 - **docs:** Fix release badge link
 
@@ -1474,7 +1612,13 @@
 - load additional API key from environment
 - Set correct module in go.mod
 - **client:** resolve api key env var collision
-- **confiexamples and longer help
+- **config:** set defaults before validating config
+- **config:** invert conditional for determining default fields
+- **credentials:** allow setting profile if directory doesn't exist
+
+### Documentation Updates
+- Include overview documentation
+- **entities:** include some examples and longer help
 
 ### Features
 - **apm:** implement apm deployment marker retrieval
@@ -1487,7 +1631,10 @@
 - **config:** add remaining config methods
 - **config:** add list method
 - **config:** Add log level configuration
-- **credentials:** implement initial credential manageme, tag, alert severity, domain, and reporting
+- **credentials:** implement initial credential management
+- **credentials:** set default profile if adding one for the first time
+- **credentials:** allow overriding api keys via env vars
+- **entities:** add ability to filter entities search by entity type, tag, alert severity, domain, and reporting
 - **entities:** add entity tag retrieval
 - **entities:** implement entities tag and tag value deletion
 - **entities:** implement add/replace tags
@@ -1495,10 +1642,12 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.0...HEAD
+[v0.49.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.2...v0.49.0
 [v0.48.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.1...v0.48.2
 [v0.48.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.0...v0.48.1
-[v0.48.0]: https7.0...v0.47.1
+[v0.48.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.1...v0.48.0
+[v0.47.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.0...v0.47.1
 [v0.47.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.4...v0.47.0
 [v0.46.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.3...v0.46.4
 [v0.46.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.2...v0.46.3
@@ -1507,39 +1656,52 @@
 [v0.46.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.2...v0.46.0
 [v0.45.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.1...v0.45.2
 [v0.45.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.0...v0.45.1
-[v0.45.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0
+[v0.45.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.10...v0.45.0
 [v0.44.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.9...v0.44.10
 [v0.44.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.8...v0.44.9
 [v0.44.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.7...v0.44.8
 [v0.44.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.6...v0.44.7
 [v0.44.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.5...v0.44.6
-[v0.44.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.4...v0.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.0...v0.44.1
+[v0.44.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.4...v0.44.5
+[v0.44.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.3...v0.44.4
+[v0.44.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.2...v0.44.3
+[v0.44.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.1...v0.44.2
+[v0.44.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.0...v0.44.1
 [v0.44.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.5...v0.44.0
 [v0.43.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.4...v0.43.5
 [v0.43.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.3...v0.43.4
 [v0.43.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.2...v0.43.3
 [v0.43.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.1...v0.43.2
-[v0.43.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.4github.com/newrelic/newrelic-client-go/compare/v0.42.0...v0.42.1
+[v0.43.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.0...v0.43.1
+[v0.43.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.2...v0.43.0
+[v0.42.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.1...v0.42.2
+[v0.42.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.0...v0.42.1
 [v0.42.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.31...v0.42.0
 [v0.41.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.30...v0.41.31
 [v0.41.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.29...v0.41.30
 [v0.41.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.28...v0.41.29
 [v0.41.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.27...v0.41.28
-[v0.41]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.23...v0.41.24
+[v0.41.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.26...v0.41.27
+[v0.41.26]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.25...v0.41.26
+[v0.41.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.24...v0.41.25
+[v0.41.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.23...v0.41.24
 [v0.41.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.22...v0.41.23
 [v0.41.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.21...v0.41.22
 [v0.41.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.20...v0.41.21
 [v0.41.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.19...v0.41.20
 [v0.41.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.18...v0.41.19
 [v0.41.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.17...v0.41.18
-[v0.41.17]: https://github.com41.16
+[v0.41.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.16...v0.41.17
+[v0.41.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.15...v0.41.16
 [v0.41.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.14...v0.41.15
 [v0.41.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.13...v0.41.14
 [v0.41.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.12...v0.41.13
 [v0.41.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.11...v0.41.12
 [v0.41.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.10...v0.41.11
 [v0.41.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.9...v0.41.10
-[v0.41.9]: https://github.com/newrelic/n...v0.41.7
+[v0.41.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.8...v0.41.9
+[v0.41.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.7...v0.41.8
+[v0.41.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.6...v0.41.7
 [v0.41.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.5...v0.41.6
 [v0.41.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.4...v0.41.5
 [v0.41.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.3...v0.41.4
@@ -1547,7 +1709,9 @@
 [v0.41.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.1...v0.41.2
 [v0.41.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.0...v0.41.1
 [v0.41.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.4...v0.41.0
-[v0.40.4]: https://github.com/nv0.40.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.1...v0.40.2
+[v0.40.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.3...v0.40.4
+[v0.40.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.2...v0.40.3
+[v0.40.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.1...v0.40.2
 [v0.40.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.0...v0.40.1
 [v0.40.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.2...v0.40.0
 [v0.39.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.1...v0.39.2
@@ -1555,7 +1719,8 @@
 [v0.39.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.38.0...v0.39.0
 [v0.38.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.19...v0.38.0
 [v0.37.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.18...v0.37.19
-[v0.37.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...v0..17]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.16...v0.37.17
+[v0.37.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...v0.37.18
+[v0.37.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.16...v0.37.17
 [v0.37.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.15...v0.37.16
 [v0.37.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.14...v0.37.15
 [v0.37.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.13...v0.37.14
