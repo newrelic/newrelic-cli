@@ -311,6 +311,7 @@ func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeReposito
 
 func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDetectionResults,
 	unavailableRecipes recipes.RecipeDetectionResults) {
+	isTargetInstall := i.RecipeNamesProvided() && len(i.RecipeNames) > 0
 
 	for _, d := range unavailableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
@@ -319,7 +320,7 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 	for _, d := range availableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
-		if !i.isTargetInstallRecipe(d.Recipe.Name) {
+		if isTargetInstall && !i.isTargetInstallRecipe(d.Recipe.Name) {
 			i.status.ReportStatus(execution.RecipeStatusTypes.RECOMMENDED, e)
 		}
 	}
