@@ -1,5 +1,10 @@
+<a name="v0.49.6"></a>
+## [v0.49.6] - 2022-05-25
+### Bug Fixes
+- **publish:** temporarily disabled e2e deps to allow cli publish
+
 <a name="v0.49.5"></a>
-## [v0.49.5] - 2022-05-24
+## [v0.49.5] - 2022-05-25
 <a name="v0.49.4"></a>
 ## [v0.49.4] - 2022-05-24
 <a name="v0.49.3"></a>
@@ -1652,7 +1657,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.6...HEAD
+[v0.49.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.5...v0.49.6
 [v0.49.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.4...v0.49.5
 [v0.49.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.3...v0.49.4
 [v0.49.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.2...v0.49.3
