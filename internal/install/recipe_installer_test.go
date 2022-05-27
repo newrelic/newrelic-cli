@@ -56,7 +56,7 @@ func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
 	expected := errors.New("Some Discover error")
 	recipeInstall := NewRecipeInstallBuilder().WithDiscovererError(expected).Build()
 
-	actual := recipeInstall.install(context.TODO())
+	actual := recipeInstall.Install()
 
 	assert.Error(t, actual)
 	assert.True(t, strings.Contains(actual.Error(), expected.Error()))
@@ -67,146 +67,241 @@ func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
 
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithDiscovererValidatorError(expected).Build()
-	actual := recipeInstall.install(context.TODO())
+	actual := recipeInstall.Install()
 
 	assert.Error(t, actual)
 	assert.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
 	assert.True(t, strings.Contains(actual.Error(), expected.Error()))
 }
 
-func TestInstallShouldSkipCoreInstall(t *testing.T) {
-	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).withShouldInstallCore(func() bool { return false }).WithBundleInstaller(bundleInstaller).Build()
-	coreBundle := bundler.CreateCoreBundle()
+func TestInstallGuidedShouldSkipCoreInstall(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return false }).WithStatusReporter(statusReporter).Build()
+	err := recipeInstall.Install()
 
-	_ = recipeInstall.install(context.TODO())
+	assert.Equal(t, "no recipes were installed", err.Error(), "no recipe installed")
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 0, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
+}
+func TestInstallGuidedShouldSkipCoreWhileInstallOthers(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
 
-	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
-	assert.False(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).
+		WithRecipeDetectionResult(r2).withShouldInstallCore(func() bool { return false }).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
+
+	assert.NoError(t, err, "No error during install")
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe Installed")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Core Not Installed")
 }
 
-func TestInstallShouldNotSkipCoreInstall(t *testing.T) {
-	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
-	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
-	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	coreBundle := bundler.CreateCoreBundle()
-	_ = recipeInstall.install(context.TODO())
+func TestInstallGuidedShouldNotSkipCoreInstall(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).
+		WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
 
-	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
-	assert.True(t, bundleInstaller.installedRecipes[coreBundle.BundleRecipes[0].Recipe.Name])
+	assert.NoError(t, err)
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 2, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 2, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 2, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe2 Installed")
 }
 
-func TestInstallCoreShouldStopOnError(t *testing.T) {
-	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
-	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
-	bundler := NewBundlerBuilder().WithCoreRecipe("Core").Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	coreBundle := bundler.CreateCoreBundle()
-	bundleInstaller.Error = errors.New("Install Error")
-	err := recipeInstall.install(context.TODO())
+func TestInstallGuidedCoreShouldStopOnError(t *testing.T) {
+	installErr := errors.New("Install Error")
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.LoggingRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).
+		WithStatusReporter(statusReporter).WithRecipeExecutionError(installErr).Build()
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "Install Error")
-	assert.Equal(t, 1, len(coreBundle.BundleRecipes))
-	assert.True(t, len(bundleInstaller.installedRecipes) == 0)
+	assert.True(t, strings.Contains(err.Error(), "Install Error"))
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 2, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
+	assert.Equal(t, 0, statusReporter.ReportRecommended[r2.Recipe.Name], "Recipe2 Recommended")
 }
 
-func TestInstallTargetInstallShouldInstall(t *testing.T) {
-	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
-	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
-	additionRecipeName := "additional"
-	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
-	_ = recipeInstall.install(context.TODO())
+func TestInstallTargetedInstallShouldInstallWithRecomendataion(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("Other2").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).
+		WithTargetRecipeName("Other").WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
 
-	assert.Equal(t, 1, len(additionalBundle.BundleRecipes))
-	assert.True(t, bundleInstaller.installedRecipes[additionalBundle.BundleRecipes[0].Recipe.Name])
+	assert.NoError(t, err)
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 1, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
+	assert.Equal(t, 1, statusReporter.ReportRecommended[r2.Recipe.Name], "Recipe2 Recommended")
 }
 
-func TestUnsupportedOsError(t *testing.T) {
-	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{KernelArch: "NOPE"}}
-	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
-	bundler := NewBundlerBuilder().Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	err := recipeInstall.install(context.TODO())
+func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return false }).
+		WithTargetRecipeName(types.InfraAgentRecipeName).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
 
-	assert.Error(t, err)
-	assert.Equal(t, err.Error(), "no supported recipes found")
-	assert.True(t, len(bundleInstaller.installedRecipes) == 0)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
 }
 
-func TestInstallTargetInstallShouldNotInstallCoreIfCoreWasNotSkipped(t *testing.T) {
-	additionRecipeName := types.InfraAgentRecipeName
-	bundler := NewBundlerBuilder().WithCoreRecipe(additionRecipeName).WithAdditionalRecipe(additionRecipeName).Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	bundleInstaller.Error = errors.New("Install Error")
-	_ = recipeInstall.install(context.TODO())
-
-	assert.Equal(t, 0, len(bundleInstaller.installedRecipes))
-}
-
-func TestInstallTargetInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
-	additionRecipeName := types.InfraAgentRecipeName
-	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithBundler(bundler).WithTargetRecipeName(additionRecipeName).withShouldInstallCore(func() bool { return false }).WithBundleInstaller(bundleInstaller).Build()
-	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
-	_ = recipeInstall.install(context.TODO())
-
-	assert.Equal(t, 1, len(additionalBundle.BundleRecipes))
-	assert.True(t, bundleInstaller.installedRecipes[additionalBundle.BundleRecipes[0].Recipe.Name])
-}
-
-func TestInstallTargetInstallWithoutRecipeShouldNotInstall(t *testing.T) {
-	additionRecipeName := "additional"
-	bundler := NewBundlerBuilder().Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{})
-	err := recipeInstall.install(context.TODO())
+func TestInstallTargetedInstallWithoutRecipeShouldNotInstall(t *testing.T) {
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName("Other").WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
 	assert.Equal(t, "no recipes were installed", err.Error())
-	assert.Equal(t, 0, len(additionalBundle.BundleRecipes))
-	assert.Equal(t, 0, len(bundleInstaller.installedRecipes))
+	assert.Equal(t, 0, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 0, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 }
 
-func TestInstallTargetInstallWithOneUnsupportedOneInstalledShouldError(t *testing.T) {
+func TestInstallTargetedInstallWithOneUnsupportedOneInstalledShouldError(t *testing.T) {
 	additionRecipeName := "additional"
-	bundler := NewBundlerBuilder().Build()
-	bundleInstaller := NewMockBundleInstaller()
-	bundleInstaller.installedRecipes["test"] = true
-
-	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName(additionRecipeName).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	additionalBundle := bundler.CreateAdditionalTargetedBundle([]string{additionRecipeName})
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(additionRecipeName).
+		WithStatusReporter(statusReporter).Build()
 	err := recipeInstall.install(context.TODO())
 
 	assert.Error(t, err)
 	assert.Equal(t, "one or more selected recipes could not be installed", err.Error())
-	assert.Equal(t, 0, len(additionalBundle.BundleRecipes))
-	assert.Equal(t, 1, len(bundleInstaller.installedRecipes))
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
 }
 
-func TestInstallGuidedInstallAdditionalShouldInstall(t *testing.T) {
-	mockInstallTargets := []types.OpenInstallationRecipeInstallTarget{{Os: "DARWIN"}, {Os: "LINUX"}, {Os: "WINDOWS"}}
-	fetchRecipesVal := []*types.OpenInstallationRecipe{{ID: "test", InstallTargets: mockInstallTargets}}
-	additionRecipeName := "additional"
-	bundler := NewBundlerBuilder().WithAdditionalRecipe(additionRecipeName).Build()
-	bundleInstaller := NewMockBundleInstaller()
-	recipeInstall := NewRecipeInstallBuilder().WithFetchRecipesVal(fetchRecipesVal).WithBundler(bundler).WithBundleInstaller(bundleInstaller).Build()
-	additionalBundle := bundler.CreateAdditionalGuidedBundle()
-	_ = recipeInstall.install(context.TODO())
+func TestInstallGuidededInstallAdditionalShouldInstall(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.install(context.TODO())
 
-	assert.Equal(t, 1, len(additionalBundle.BundleRecipes))
-	assert.Equal(t, 1, len(bundleInstaller.installedRecipes))
+	assert.NoError(t, err, "No error during install")
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
 }
 
 func TestPromptIfNotLatestCliVersionDoesNotLogMessagesOrErrorWhenVersionsMatch(t *testing.T) {
@@ -273,72 +368,144 @@ func TestPromptIfNotLatestCliVersionErrorsIfNotLatestVersion(t *testing.T) {
 	assert.True(t, ri.status.UpdateRequired)
 }
 
-func TestExecuteAndValidateWithProgressWhenKeyFetchError(t *testing.T) {
+func TestInstallWhenKeyFetchError(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
 	expected := errors.New("Some error")
-	recipeInstall := NewRecipeInstallBuilder().WithLicenseKeyFetchResult(expected).Build()
-
-	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), nil, recipes.NewRecipeBuilder().Name("").Build(), false)
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithLicenseKeyFetchResult(expected).WithRecipeDetectionResult(r).Build()
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
 	assert.Equal(t, expected, err)
+	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installed Count")
+	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Complete Call Count")
 }
 
-func TestExecuteAndValidateWithProgressWhenRecipeVarProviderError(t *testing.T) {
+func TestInstallWhenRecipeVarProviderError(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
 	expected := errors.New("Some error")
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeVarValues(nil, expected).Build()
-
-	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), false)
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeVarValues(nil, expected).WithRecipeDetectionResult(r).Build()
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
 	assert.Equal(t, expected, err)
+	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installed Count")
+	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Complete Call Count")
 }
 
-func TestExecuteAndValidateWithProgressWhenInstallFails(t *testing.T) {
+func TestInstallGuidedWhenInstallFails(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
 	expected := errors.New("Some error")
 	vars := map[string]string{}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeVarValues(vars, nil).WithRecipeExecutionResult(expected).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).
+		WithRecipeDetectionResult(r).WithRecipeVarValues(vars, nil).WithRecipeExecutionError(expected).Build()
+	recipeInstall.AssumeYes = true
 
-	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
 	assert.True(t, vars["assumeYes"] == "true")
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
-	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 }
 
-func TestExecuteAndValidateWithProgressWhenInstallGoTaskFails(t *testing.T) {
+func TestInstallGuidedWhenGoTaskFails(t *testing.T) {
 	expected := types.NewGoTaskGeneralError(errors.New("Some error"))
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	vars := map[string]string{}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeExecutionResult(expected).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).
+		WithRecipeDetectionResult(r).WithRecipeVarValues(vars, nil).WithRecipeExecutionError(expected).Build()
+	recipeInstall.AssumeYes = true
 
-	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
+	assert.True(t, vars["assumeYes"] == "true")
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
-	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 }
 
-func TestExecuteAndValidateWithProgressWhenInstallCancelled(t *testing.T) {
+func TestInstallWhenInstallIsCancelled(t *testing.T) {
 	expected := types.ErrInterrupt
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeExecutionResult(expected).Build()
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	vars := map[string]string{}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).
+		WithRecipeDetectionResult(r).WithRecipeVarValues(vars, nil).WithRecipeExecutionError(expected).Build()
+	recipeInstall.AssumeYes = true
 
-	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
+	assert.True(t, vars["assumeYes"] == "true")
 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 1, statusReporter.InstallCanceledCallCount, "Cancelled Count")
 }
 
-func TestExecuteAndValidateWithProgressWhenInstallUnsupported(t *testing.T) {
+func TestInstallWhenInstallIsUnsupported(t *testing.T) {
 	expected := &types.UnsupportedOperatingSystemError{Err: errors.New("Unsupported")}
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeExecutionResult(expected).Build()
-
-	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithStatusReporter(statusReporter).WithRecipeExecutionError(expected).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), expected.Error()))
-	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+
 }
 
 func TestExecuteAndValidateWithProgressWhenInstallWithNoValidationMethod(t *testing.T) {
@@ -359,6 +526,15 @@ func TestExecuteAndValidateRecipeWithAllMethodWithNoValidationMethods(t *testing
 
 	assert.NoError(t, err)
 	assert.Equal(t, "", entityGUID)
+}
+
+func TestExecuteAndValidateRecipeWithAllMethodWithValidationMethods(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithOutput("{\"EntityGuid\":\"abcd\"}").Build()
+
+	entityGUID, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipes.NewRecipeBuilder().Name("").Build(), true)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "abcd", entityGUID)
 }
 
 func TestExecuteAndValidateRecipeWithAllMethodWithAgentValidatorError(t *testing.T) {

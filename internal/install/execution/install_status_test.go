@@ -32,6 +32,7 @@ func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 	require.Equal(t, 1, len(s.Statuses))
 	require.Equal(t, RecipeStatusTypes.INSTALLED, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
+	require.True(t, s.RecipeHasStatus(r.Name, RecipeStatusTypes.INSTALLED))
 }
 
 func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
@@ -67,6 +68,7 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 	require.Equal(t, 1, len(s.Statuses))
 	require.Equal(t, RecipeStatusTypes.AVAILABLE, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
+	require.True(t, s.RecipeHasStatus(r.Name, RecipeStatusTypes.AVAILABLE))
 
 	s.Timestamp = 0
 	s.withRecipeEvent(e, RecipeStatusTypes.INSTALLED)
@@ -75,6 +77,7 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 	require.Equal(t, 1, len(s.Statuses))
 	require.Equal(t, RecipeStatusTypes.INSTALLED, s.Statuses[0].Status)
 	require.NotEmpty(t, s.Timestamp)
+	require.True(t, s.RecipeHasStatus(r.Name, RecipeStatusTypes.INSTALLED))
 }
 
 func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {

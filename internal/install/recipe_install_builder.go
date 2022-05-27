@@ -21,14 +21,13 @@ type RecipeInstallBuilder struct {
 	manifestValidator *discovery.ManifestValidator
 	licenseKeyFetcher *MockLicenseKeyFetcher
 	shouldInstallCore func() bool
-	bundler           RecipeBundler
-	bundleInstaller   RecipeBundleInstaller
 	installerContext  types.InstallerContext
 	recipeVarProvider *execution.MockRecipeVarProvider
 	recipeExecutor    *execution.MockRecipeExecutor
 	progressIndicator *ux.SpinnerProgressIndicator
 	agentValidator    *validation.MockAgentValidator
 	recipeValidator   *validation.MockRecipeValidator
+	recipeDetector    *MockRecipeDetector
 }
 
 func NewRecipeInstallBuilder() *RecipeInstallBuilder {
@@ -55,6 +54,7 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	rib.progressIndicator = ux.NewSpinnerProgressIndicator()
 	rib.agentValidator = &validation.MockAgentValidator{}
 	rib.recipeValidator = &validation.MockRecipeValidator{}
+	rib.recipeDetector = &MockRecipeDetector{}
 
 	return rib
 }
@@ -66,6 +66,11 @@ func (rib *RecipeInstallBuilder) WithLibraryVersion(libraryVersion string) *Reci
 
 func (rib *RecipeInstallBuilder) WithFetchRecipesVal(fetchRecipesVal []*types.OpenInstallationRecipe) *RecipeInstallBuilder {
 	rib.recipeFetcher.FetchRecipesVal = fetchRecipesVal
+	return rib
+}
+
+func (rib *RecipeInstallBuilder) WithRecipeDetectionResult(detectionResult *recipes.RecipeDetectionResult) *RecipeInstallBuilder {
+	rib.recipeDetector.AddRecipeDetectionResult(detectionResult)
 	return rib
 }
 
@@ -103,22 +108,12 @@ func (rib *RecipeInstallBuilder) withShouldInstallCore(shouldSkipCore func() boo
 	return rib
 }
 
-func (rib *RecipeInstallBuilder) WithBundler(bundler RecipeBundler) *RecipeInstallBuilder {
-	rib.bundler = bundler
-	return rib
-}
-
-func (rib *RecipeInstallBuilder) WithBundleInstaller(bundlerInstaller RecipeBundleInstaller) *RecipeInstallBuilder {
-	rib.bundleInstaller = bundlerInstaller
-	return rib
-}
-
 func (rib *RecipeInstallBuilder) WithTargetRecipeName(name string) *RecipeInstallBuilder {
 	rib.installerContext.RecipeNames = append(rib.installerContext.RecipeNames, name)
 	return rib
 }
 
-func (rib *RecipeInstallBuilder) WithRecipeExecutionResult(err error) *RecipeInstallBuilder {
+func (rib *RecipeInstallBuilder) WithRecipeExecutionError(err error) *RecipeInstallBuilder {
 	rib.recipeExecutor.ExecuteErr = err
 	return rib
 }
@@ -157,10 +152,10 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.status = rib.status
 	recipeInstall.manifestValidator = rib.manifestValidator
 	recipeInstall.bundlerFactory = func(ctx context.Context, detections recipes.RecipeDetectionResults) RecipeBundler {
-		return rib.bundler
+		return recipes.NewBundler(ctx, detections)
 	}
 	recipeInstall.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
-		return rib.bundleInstaller
+		return NewBundleInstaller(context.Background(), &types.DiscoveryManifest{}, recipeInstall, rib.status)
 	}
 	recipeInstall.shouldInstallCore = rib.shouldInstallCore
 	recipeInstall.InstallerContext = rib.installerContext
@@ -170,6 +165,9 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.progressIndicator = rib.progressIndicator
 	recipeInstall.agentValidator = rib.agentValidator
 	recipeInstall.recipeValidator = rib.recipeValidator
+	recipeInstall.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
+		return rib.recipeDetector
+	}
 
 	return recipeInstall
 }
