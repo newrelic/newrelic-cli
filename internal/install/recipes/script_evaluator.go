@@ -24,20 +24,28 @@ func newScriptEvaluator(executor execution.RecipeExecutor) *ScriptEvaluator {
 	}
 }
 
-func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType {
+func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) (statusResult execution.RecipeStatusType) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			log.Debugf("recipe %s failed script evaluation with panic %s", r.Name, err)
+			statusResult = execution.RecipeStatusTypes.NULL
+		}
+	}()
+
 	if err := se.executor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
 		log.Debugf("recipe %s failed script evaluation %s", r.Name, err)
 
 		if utils.IsExitStatusCode(132, err) {
-			return execution.RecipeStatusTypes.DETECTED
+			statusResult = execution.RecipeStatusTypes.DETECTED
+		} else if utils.IsExitStatusCode(131, err) {
+			statusResult = execution.RecipeStatusTypes.UNSUPPORTED
+		} else {
+			statusResult = execution.RecipeStatusTypes.NULL
 		}
-
-		if utils.IsExitStatusCode(131, err) {
-			return execution.RecipeStatusTypes.UNSUPPORTED
-		}
-
-		return execution.RecipeStatusTypes.NULL
+		return
 	}
 
-	return execution.RecipeStatusTypes.AVAILABLE
+	statusResult = execution.RecipeStatusTypes.AVAILABLE
+	return
 }
