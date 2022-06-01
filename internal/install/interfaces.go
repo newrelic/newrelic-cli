@@ -67,3 +67,7 @@ type RecipeBundleInstaller interface {
 	InstallContinueOnError(bundle *recipes.Bundle, assumeYes bool)
 	InstalledRecipesCount() int
 }
+
+type RecipeStatusDetector interface {
+	GetDetectedRecipes() (recipes.RecipeDetectionResults, recipes.RecipeDetectionResults, error)
+}

@@ -236,6 +236,15 @@ func (s *InstallStatus) InstallComplete(err error) {
 	}
 }
 
+func (s *InstallStatus) RecipeHasStatus(recipeName string, status RecipeStatusType) bool {
+	for _, s := range s.Statuses {
+		if s.Name == recipeName && s.Status == status {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *InstallStatus) ReportStatus(status RecipeStatusType, event RecipeStatusEvent) {
 
 	switch status {

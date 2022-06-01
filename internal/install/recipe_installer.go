@@ -46,6 +46,7 @@ type RecipeInstall struct {
 	bundlerFactory         func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
+	recipeDetectorFactory  func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -112,6 +113,9 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
 		return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
+	}
+	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
+		return recipes.NewRecipeDetector(ctx, repo)
 	}
 	return &i
 }
@@ -263,7 +267,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	i.printStartInstallingMessage(repo)
 
-	recipeDetector := recipes.NewRecipeDetector(ctx, repo)
+	recipeDetector := i.recipeDetectorFactory(ctx, repo)
 	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
 	if err != nil {
 		return err
@@ -271,9 +275,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
 
-	supportedRecipes, _ := repo.FindAll()
-
-	if len(supportedRecipes) == 0 && !i.RecipeNamesProvided() {
+	if len(availableRecipes) == 0 && len(unavailableRecipes) == 0 && !i.RecipeNamesProvided() {
 		fmt.Println("This system is not supported by any available recipes")
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no supported recipes found"),
@@ -293,8 +295,9 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return abErr
 	}
 
-	log.Debugf("Done installing.")
+	i.reportRecipeRecommendations(availableRecipes)
 
+	log.Debugf("Done installing.")
 	return nil
 }
 
@@ -319,10 +322,36 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 	for _, d := range availableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
-		if !i.isTargetInstallRecipe(d.Recipe.Name) {
-			i.status.ReportStatus(execution.RecipeStatusTypes.RECOMMENDED, e)
+	}
+}
+
+func (i *RecipeInstall) reportRecipeRecommendations(availableRecipes recipes.RecipeDetectionResults) {
+	recipeRecommendations := i.getRecipeRecommendations(availableRecipes)
+	for _, e := range recipeRecommendations {
+		i.status.ReportStatus(execution.RecipeStatusTypes.RECOMMENDED, e)
+	}
+}
+
+// Report recommendations for recipes that are available but have not been attempted to be installed
+func (i *RecipeInstall) getRecipeRecommendations(availableRecipes recipes.RecipeDetectionResults) []execution.RecipeStatusEvent {
+	isTargetedInstall := i.RecipeNamesProvided() && len(i.RecipeNames) > 0
+	recommendations := []execution.RecipeStatusEvent{}
+
+	if isTargetedInstall {
+		for _, d := range availableRecipes {
+			recipeName := d.Recipe.Name
+			installed := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.INSTALLED)
+			failed := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.FAILED)
+			unsupported := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.UNSUPPORTED)
+
+			if installed || failed || unsupported {
+				continue
+			}
+			e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
+			recommendations = append(recommendations, e)
 		}
 	}
+	return recommendations
 }
 
 func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
@@ -573,7 +602,6 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 
 // Installing recipe
 func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error) {
-
 	fmt.Println()
 	msg := fmt.Sprintf("Installing %s", r.DisplayName)
 
