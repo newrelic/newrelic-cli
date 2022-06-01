@@ -1,3 +1,8 @@
+<a name="v0.49.11"></a>
+## [v0.49.11] - 2022-06-01
+### Bug Fixes
+- **install:** Recommendation only needed for targeted none installed recipes ([#1308](https://github.com/newrelic/newrelic-client-go/issues/1308))
+
 <a name="v0.49.10"></a>
 ## [v0.49.10] - 2022-06-01
 ### Bug Fixes
@@ -1668,7 +1673,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.10...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.11...HEAD
+[v0.49.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.10...v0.49.11
 [v0.49.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.9...v0.49.10
 [v0.49.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.8...v0.49.9
 [v0.49.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.7...v0.49.8
