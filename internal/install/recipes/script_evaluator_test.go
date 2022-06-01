@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package recipes
 
 import (
@@ -34,6 +31,17 @@ func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
 	evaluator := GivenScriptEvaluatorError("something went wrong")
+	status := evaluator.DetectionStatus(context.Background(), recipe)
+
+	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
+}
+
+func TestScriptEvaluatorShouldReturnWhenPanic(t *testing.T) {
+	recipe := NewRecipeBuilder().Build()
+	recipeExecutor := execution.NewMockRecipeExecutor()
+	recipeExecutor.ShouldPanic = true
+
+	evaluator := newScriptEvaluator(recipeExecutor)
 	status := evaluator.DetectionStatus(context.Background(), recipe)
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)

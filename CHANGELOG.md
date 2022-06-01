@@ -1,3 +1,8 @@
+<a name="v0.49.10"></a>
+## [v0.49.10] - 2022-06-01
+### Bug Fixes
+- **install:** pre-install eval panic should return valid result ([#1309](https://github.com/newrelic/newrelic-client-go/issues/1309))
+
 <a name="v0.49.9"></a>
 ## [v0.49.9] - 2022-05-31
 <a name="v0.49.8"></a>
@@ -1663,7 +1668,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.9...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.10...HEAD
+[v0.49.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.9...v0.49.10
 [v0.49.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.8...v0.49.9
 [v0.49.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.7...v0.49.8
 [v0.49.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.6...v0.49.7
