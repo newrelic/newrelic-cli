@@ -3,6 +3,7 @@ package execution
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -11,6 +12,7 @@ import (
 type MockRecipeExecutor struct {
 	ExecuteErr   error
 	OutputParser *OutputParser
+	ShouldPanic  bool
 }
 
 func NewMockRecipeExecutor() *MockRecipeExecutor {
@@ -24,6 +26,9 @@ func (m *MockRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallati
 }
 
 func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenInstallationRecipe, v types.RecipeVars) error {
+	if m.ShouldPanic {
+		panic(errors.New("Panicing"))
+	}
 	return m.ExecuteErr
 }
 
