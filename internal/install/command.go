@@ -62,7 +62,7 @@ var Command = &cobra.Command{
 			}
 
 			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
-			fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://one.newrelic.com/-/06vjAeZLKjP."
+			fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
 
 			// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
 			// we need to output something to user to sinc we probably haven't displayed anything yet.
