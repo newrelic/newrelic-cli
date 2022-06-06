@@ -1,3 +1,5 @@
+### Adding Open Install Library v0.60.6 - 2022-06-06
+
 <a name="v0.50.0"></a>
 ## [v0.50.0] - 2022-06-03
 ### Features
