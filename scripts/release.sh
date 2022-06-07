@@ -5,6 +5,9 @@ COLOR_RED='\033[0;31m'
 COLOR_GREEN='\033[0;32m'
 COLOR_LIGHT_GREEN='\033[1;32m'
 
+REPO_OWNER='newrelic'
+REPO_NAME='newrelic-cli'
+
 DEFAULT_BRANCH='main'
 CURRENT_GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
@@ -64,6 +67,11 @@ fi
 
 echo "Generating release for ${VER_NEXT} with git user ${GIT_USER}"
 
+
+BRANCH_NAME="chore/update-changelog"
+
+git checkout -b ${BRANCH_NAME}
+
 # Auto-generate CLI documentation
 NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
 if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
@@ -85,12 +93,36 @@ ${SPELL_CMD} -source text -w ${CHANGELOG_FILE}
 # Commit CHANGELOG updates
 git add ${CHANGELOG_FILE}
 git commit --no-verify -m "chore(changelog): update CHANGELOG for ${VER_NEXT}"
-git push --no-verify origin HEAD:${DEFAULT_BRANCH}
+git push --no-verify origin ${BRANCH_NAME}
 
 if [ $? -ne 0 ]; then
   echo "Failed to push branch updates, exiting"
   exit 1
 fi
+
+# Create pull request for CHANGELOG updates
+pullResponse=$(curl -X POST -H "Authorization: token ${TOKEN}" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls -d '{"head":"nr-developer-toolkit:${BRANCH_NAME}","base":"main"}')
+PULL_NUMBER="Need to get the PR # from the previous PR request" # We could use jq to parse the associated JSON property in the response
+
+# Approve pull request for CHANGELOG updates with our verified bot GitHub user nr-developer-toolkit
+curl \
+  -X POST \
+  -H "Authorization: token ${TOKEN}" \
+  -H "Accept: application/vnd.github.v3+json" \
+  https://api.github.com/repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/reviews \
+  -d '{"event":"APPROVE"}'
+
+# Merge CHANGLOG pull request
+curl \
+  -X POST \
+  -H "Accept: application/vnd.github.v3+json" \
+  https://api.github.com/repos/${OWNER}/${REPO}/pulls/${PULL_NUMBER}/reviews \
+  -d '{"event":"APPROVE"}'
+
+# Change back to main branch and pull down merged CHANGELOG updates
+git fetch origin
+git checkout main
+git pull origin/main
 
 # Create and push new tag
 git tag ${VER_NEXT}
