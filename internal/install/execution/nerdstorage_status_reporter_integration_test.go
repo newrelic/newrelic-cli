@@ -60,7 +60,7 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 	err = r.RecipeInstalled(status, evt)
 	require.NoError(t, err)
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
