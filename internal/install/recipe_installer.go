@@ -271,10 +271,10 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
 
-	if len(availableRecipes) == 0 && len(unavailableRecipes) == 0 && !i.RecipeNamesProvided() {
-		fmt.Println("This system is not supported by any available recipes")
+	if len(availableRecipes) == 0 && !i.RecipeNamesProvided() {
+		fmt.Println("This system is not supported by any available recipes for automatic installation. Please see our documentation for requirements.")
 		return &types.UncaughtError{
-			Err: fmt.Errorf("no supported recipes found"),
+			Err: fmt.Errorf("no recipes found supporting this system"),
 		}
 	}
 

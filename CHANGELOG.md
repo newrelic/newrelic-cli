@@ -1,5 +1,14 @@
+### Adding Open Install Library v0.60.6 - 2022-06-06
+
+<a name="v0.50.0"></a>
+## [v0.50.0] - 2022-06-03
+### Features
+- **unsupported:** enhance messaging for unsupported systems
+
+<a name="v0.49.13"></a>
+## [v0.49.13] - 2022-06-02
 <a name="v0.49.12"></a>
-## [v0.49.12] - 2022-06-01
+## [v0.49.12] - 2022-06-02
 <a name="v0.49.11"></a>
 ## [v0.49.11] - 2022-06-01
 ### Bug Fixes
@@ -1675,7 +1684,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.12...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.0...HEAD
+[v0.50.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.13...v0.50.0
+[v0.49.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.12...v0.49.13
 [v0.49.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.11...v0.49.12
 [v0.49.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.10...v0.49.11
 [v0.49.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.9...v0.49.10
