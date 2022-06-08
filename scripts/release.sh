@@ -64,34 +64,6 @@ fi
 
 echo "Generating release for ${VER_NEXT} with git user ${GIT_USER}"
 
-# Auto-generate CLI documentation
-NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
-if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
-   rm -rf docs/cli/*
-   mkdir -p docs/cli
-   bin/${NATIVE_OS}/newrelic documentation --outputDir docs/cli/ --format markdown
-   git add docs/cli/*
-
-   # Commit generated docs
-   git commit --no-verify -m "chore(docs): regenerate CLI docs for ${VER_NEXT}"
-fi
-
-# Auto-generate CHANGELOG updates
-${CHANGELOG_CMD} --next-tag ${VER_NEXT} -o ${CHANGELOG_FILE} --sort semver
-
-# Fix any spelling issues in the CHANGELOG
-${SPELL_CMD} -source text -w ${CHANGELOG_FILE}
-
-# Commit CHANGELOG updates
-git add ${CHANGELOG_FILE}
-git commit --no-verify -m "chore(changelog): update CHANGELOG for ${VER_NEXT}"
-git push --no-verify origin HEAD:${DEFAULT_BRANCH}
-
-if [ $? -ne 0 ]; then
-  echo "Failed to push branch updates, exiting"
-  exit 1
-fi
-
 # Create and push new tag
 git tag ${VER_NEXT}
 git push --no-verify origin HEAD:${DEFAULT_BRANCH} --tags
