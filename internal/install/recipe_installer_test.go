@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/diagnose"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -50,6 +51,21 @@ func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
 	actual := recipeInstall.connectToPlatform()
 	assert.Error(t, actual)
 	assert.IsType(t, &nrErrors.PaymentRequiredError{}, actual)
+}
+
+func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
+	expected := diagnose.ConnectionError{
+		Err: errors.New("Connection Failed"),
+	}
+
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithConfigValidatorError(expected).Build()
+
+	actual := recipeInstall.Install()
+	assert.Error(t, actual)
+	assert.IsType(t, diagnose.ConnectionError{}, actual)
+	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
+	assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {

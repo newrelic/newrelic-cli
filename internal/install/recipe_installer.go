@@ -21,7 +21,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 const (
@@ -188,10 +187,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 	err = i.connectToPlatform()
 	if err != nil {
-		if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
-			i.status.InstallComplete(err)
-		}
-
+		i.status.InstallComplete(diagnose.ConnectionError{Err: err})
 		return err
 	}
 
