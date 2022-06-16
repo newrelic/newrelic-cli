@@ -210,7 +210,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-18.04
-    needs: [release-windows-installer, e2e, e2e-eu]
+    needs: [release-windows-installer]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
