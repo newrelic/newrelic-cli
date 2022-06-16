@@ -26,7 +26,7 @@ require (
 	github.com/tidwall/gjson v1.14.0
 	github.com/tidwall/sjson v1.2.4
 	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
+	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	gopkg.in/yaml.v2 v2.4.0
 	mvdan.cc/sh/v3 v3.4.3
 )
