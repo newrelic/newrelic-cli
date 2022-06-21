@@ -167,17 +167,35 @@ jobs:
       - name: Compile installer
         run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
 
+      - name: Create PFX certificate
+        id: create-pfx
+        env:
+          PFX_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+        run: |
+          $pfxPath = Join-Path -Path $env:RUNNER_TEMP -ChildPath "cert.pfx";
+          $encodedBytes = [System.Convert]::FromBase64String($env:PFX_CONTENT);
+          Set-Content $pfxPath -Value $encodedBytes -AsByteStream;
+          Write-Output "::set-output name=PFX_PATH::$pfxPath";
+
       - name: Sign installer
         env:
-          PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
         working-directory: .\build\package\msi\NewRelicCLIInstaller
         run: .\SignMSI.cmd
 
       - name: Sign install script
         env:
-          PFX_PASSWORD: ${{ secrets.PFX_PASSWORD }}
+          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
         working-directory: .\
         run: .\build\package\msi\NewRelicCLIInstaller\SignPS1.cmd
+      
+      - name: Delete PFX certificate
+        env: 
+          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
+        run: |
+          Remove-Item -Path $env:PFX_PATH;
 
       - name: Get latest release upload URL
         id: get-latest-release-upload-url
