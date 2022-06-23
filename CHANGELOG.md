@@ -1,4 +1,19 @@
-### Adding Open Install Library v0.60.6 - 2022-06-06
+<a name="v0.50.7"></a>
+## [v0.50.7] - 2022-06-16
+<a name="v0.50.6"></a>
+## [v0.50.6] - 2022-06-16
+<a name="v0.50.5"></a>
+## [v0.50.5] - 2022-06-14
+<a name="v0.50.4"></a>
+## [v0.50.4] - 2022-06-13
+<a name="v0.50.3"></a>
+## [v0.50.3] - 2022-06-13
+<a name="v0.50.2"></a>
+## [v0.50.2] - 2022-06-08
+<a name="v0.50.1"></a>
+## [v0.50.1] - 2022-06-07
+### Bug Fixes
+- **install:** Remove changelog writing to bypass sidekick error ([#1314](https://github.com/newrelic/newrelic-client-go/issues/1314))
 
 <a name="v0.50.0"></a>
 ## [v0.50.0] - 2022-06-03
@@ -1684,7 +1699,14 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.7...HEAD
+[v0.50.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.6...v0.50.7
+[v0.50.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.5...v0.50.6
+[v0.50.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.4...v0.50.5
+[v0.50.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.3...v0.50.4
+[v0.50.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.2...v0.50.3
+[v0.50.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.1...v0.50.2
+[v0.50.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.0...v0.50.1
 [v0.50.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.13...v0.50.0
 [v0.49.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.12...v0.49.13
 [v0.49.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.11...v0.49.12
