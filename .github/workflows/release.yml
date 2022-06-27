@@ -188,8 +188,8 @@ jobs:
         env:
           PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
           PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
-        working-directory: .\build\package\msi\NewRelicCLIInstaller
-        run: .\SignPS1.cmd
+        working-directory: .\
+        run: .\build\package\msi\NewRelicCLIInstaller\SignPS1.cmd
       
       - name: Delete PFX certificate
         env: 
