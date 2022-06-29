@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -20,6 +21,11 @@ type Discoverer interface {
 type Prompter interface {
 	PromptYesNo(msg string) (bool, error)
 	MultiSelect(msg string, options []string) ([]string, error)
+}
+
+type ProcessEvaluator interface {
+	GetOrLoadProcesses(ctx context.Context) []types.GenericProcess
+	DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType
 }
 
 type RecipeFileFetcher interface {

@@ -12,6 +12,11 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+type ProcessEvaluatorInterface interface {
+	GetOrLoadProcesses(ctx context.Context) []types.GenericProcess
+	DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType
+}
+
 type ProcessEvaluator struct {
 	processMatchFinder ProcessMatchFinder
 	processFetcher     func(context.Context) []types.GenericProcess
@@ -59,7 +64,7 @@ func GetPsUtilCommandLines(ctx context.Context) []types.GenericProcess {
 	return processes
 }
 
-func (pe *ProcessEvaluator) getOrLoadProcesses(ctx context.Context) []types.GenericProcess {
+func (pe *ProcessEvaluator) GetOrLoadProcesses(ctx context.Context) []types.GenericProcess {
 	if pe.isCached {
 		if pe.cachedProcess == nil {
 			pe.cachedProcess = pe.processFetcher(ctx)
@@ -74,7 +79,7 @@ func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIn
 		return execution.RecipeStatusTypes.AVAILABLE
 	}
 
-	processes := pe.getOrLoadProcesses(ctx)
+	processes := pe.GetOrLoadProcesses(ctx)
 	matches := pe.processMatchFinder.FindMatches(ctx, processes, *r)
 	if len(matches) == 0 {
 		log.Tracef("recipe %s is not matching any process", r.Name)

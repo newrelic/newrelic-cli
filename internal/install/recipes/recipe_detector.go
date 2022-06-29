@@ -51,9 +51,9 @@ type RecipeDetector struct {
 	repo             Finder
 }
 
-func NewRecipeDetector(contex context.Context, repo *RecipeRepository) *RecipeDetector {
+func NewRecipeDetector(contex context.Context, repo *RecipeRepository, peval ProcessEvaluatorInterface) *RecipeDetector {
 	return &RecipeDetector{
-		processEvaluator: NewProcessEvaluator(),
+		processEvaluator: peval,
 		scriptEvaluator:  NewScriptEvaluator(),
 		context:          contex,
 		repo:             repo,
