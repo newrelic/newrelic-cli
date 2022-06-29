@@ -28,6 +28,7 @@ type RecipeInstallBuilder struct {
 	agentValidator    *validation.MockAgentValidator
 	recipeValidator   *validation.MockRecipeValidator
 	recipeDetector    *MockRecipeDetector
+	processes         []types.GenericProcess
 }
 
 func NewRecipeInstallBuilder() *RecipeInstallBuilder {
@@ -35,6 +36,7 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 		configValidator: diagnose.NewMockConfigValidator(),
 		recipeFetcher:   recipes.NewMockRecipeFetcher(),
 		discoverer:      discovery.NewMockDiscoverer(),
+		processes:       []types.GenericProcess{},
 	}
 
 	statusReporter := execution.NewMockStatusReporter()
@@ -144,6 +146,12 @@ func (rib *RecipeInstallBuilder) WithRecipeValidationError(e error) *RecipeInsta
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) WithRunningProcess(cmd string, name string) *RecipeInstallBuilder {
+	p := recipes.NewMockProcess(cmd, name, 0)
+	rib.processes = append(rib.processes, p)
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall := &RecipeInstall{}
 	recipeInstall.discoverer = rib.discoverer
@@ -168,6 +176,9 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
 		return rib.recipeDetector
 	}
+	mockProcessEvaluator := recipes.NewMockProcessEvaluator()
+	mockProcessEvaluator.WithProcesses(rib.processes)
+	recipeInstall.processEvaluator = mockProcessEvaluator
 
 	return recipeInstall
 }

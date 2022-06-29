@@ -691,6 +691,21 @@ func TestIsTargetInstallRecipeShouldNotFindTarget(t *testing.T) {
 	assert.False(t, actual)
 }
 
+func TestWhenSingleInstallRunningErrorOnMultiple(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").WithRunningProcess("env=456 newrelic install", "newrelic").Build()
+	err := recipeInstall.Install()
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+}
+
+func TestWhenSingleInstallRunningNoError(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").Build()
+	err := recipeInstall.Install()
+	if err != nil {
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	}
+}
+
 func captureLoggingOutput(f func()) string {
 	var buf bytes.Buffer
 	existingLogger := config.Logger

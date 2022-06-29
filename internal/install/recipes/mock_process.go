@@ -1,19 +1,27 @@
 package recipes
 
-type mockProcess struct {
-	cmdline string
-	name    string
-	pid     int32
+type MockProcess struct {
+	cmd  string
+	name string
+	pid  int32
 }
 
-func (p mockProcess) Name() (string, error) {
+func NewMockProcess(cmd string, name string, pid int32) *MockProcess {
+	return &MockProcess{
+		cmd:  cmd,
+		name: name,
+		pid:  pid,
+	}
+}
+
+func (p MockProcess) Name() (string, error) {
 	return p.name, nil
 }
 
-func (p mockProcess) Cmd() (string, error) {
-	return p.cmdline, nil
+func (p MockProcess) Cmd() (string, error) {
+	return p.cmd, nil
 }
 
-func (p mockProcess) PID() int32 {
+func (p MockProcess) PID() int32 {
 	return p.pid
 }
