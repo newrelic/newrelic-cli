@@ -1,5 +1,10 @@
+<a name="v0.51.0"></a>
+## [v0.51.0] - 2022-06-29
+### Features
+- **install:** ensure only 1 newrelic install is running at once
+
 <a name="v0.50.14"></a>
-## [v0.50.14] - 2022-06-28
+## [v0.50.14] - 2022-06-29
 <a name="v0.50.13"></a>
 ## [v0.50.13] - 2022-06-28
 <a name="v0.50.12"></a>
@@ -1713,7 +1718,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.14...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.0...HEAD
+[v0.51.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.14...v0.51.0
 [v0.50.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.13...v0.50.14
 [v0.50.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.12...v0.50.13
 [v0.50.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.11...v0.50.12
