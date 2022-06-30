@@ -706,6 +706,21 @@ func TestWhenSingleInstallRunningNoError(t *testing.T) {
 	}
 }
 
+func TestWhenSingleInstallRunningErrorOnMultipleWindows(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "newrelic.exe").WithRunningProcess("env=456 C:\\path\\newrelic.exe install", "newrelic.exe").Build()
+	err := recipeInstall.Install()
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+}
+
+func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "C:\\path\\newrelic.exe").Build()
+	err := recipeInstall.Install()
+	if err != nil {
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	}
+}
+
 func captureLoggingOutput(f func()) string {
 	var buf bytes.Buffer
 	existingLogger := config.Logger
