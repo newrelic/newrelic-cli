@@ -12,19 +12,20 @@ import (
 var (
 	dashboardResourceName = "newrelic_one_dashboard"
 	widgetTypes           = map[string]string{
-		"viz.area":        "widget_area",
-		"viz.bar":         "widget_bar",
-		"viz.billboard":   "widget_billboard",
-		"viz.bullet":      "widget_bullet",
-		"viz.funnel":      "widget_funnel",
-		"viz.heatmap":     "widget_heatmap",
-		"viz.histogram":   "widget_histogram",
-		"viz.json":        "widget_json",
-		"viz.line":        "widget_line",
-		"viz.markdown":    "widget_markdown",
-		"viz.pie":         "widget_pie",
-		"viz.table":       "widget_table",
-		"viz.stacked-bar": "widget_stacked_bar",
+		"viz.area":                "widget_area",
+		"viz.bar":                 "widget_bar",
+		"viz.billboard":           "widget_billboard",
+		"viz.bullet":              "widget_bullet",
+		"viz.funnel":              "widget_funnel",
+		"viz.heatmap":             "widget_heatmap",
+		"viz.histogram":           "widget_histogram",
+		"viz.json":                "widget_json",
+		"viz.line":                "widget_line",
+		"viz.markdown":            "widget_markdown",
+		"viz.pie":                 "widget_pie",
+		"viz.table":               "widget_table",
+		"viz.stacked-bar":         "widget_stacked_bar",
+		"logger.log-table-widget": "widget_log_table",
 	}
 )
 
