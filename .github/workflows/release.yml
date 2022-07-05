@@ -102,7 +102,13 @@ jobs:
           sudo mv dist/newrelic_windows_amd64_v1/newrelic.exe dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
           osslsigncode sign -pkcs12 cert.pfx -pass "$PFX_PASSWORD" -h sha512 -t http://timestamp.digicert.com \
             -in dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe -out dist/newrelic_windows_amd64_v1/newrelic.exe
-          rm -f cert.pfx dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe 
+          rm -f cert.pfx dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
+
+      - name: Re-do Windows_x86_64.zip
+        run: |
+          VERSION=$(ls dist/*Windows_x86_64.zip | cut -d_ -f2)
+          rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
+          zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip dist/newrelic_windows_amd64_v1/newrelic.exe
 
       - name: Checkout newrelic-forks/homebrew-core
         uses: actions/checkout@v3
