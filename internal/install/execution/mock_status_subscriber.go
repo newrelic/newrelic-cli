@@ -1,6 +1,8 @@
 package execution
 
 import (
+	"errors"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
@@ -145,6 +147,7 @@ func (r *MockStatusSubscriber) InstallStarted(status *InstallStatus) error {
 }
 
 func (r *MockStatusSubscriber) InstallComplete(status *InstallStatus) error {
+	r.InstallCompleteErr = errors.New(status.Error.Message)
 	r.InstallCompleteCallCount++
 	return r.InstallCompleteErr
 }

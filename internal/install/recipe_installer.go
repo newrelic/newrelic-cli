@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -21,7 +22,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/newrelic"
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
 const (
@@ -47,6 +47,7 @@ type RecipeInstall struct {
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
 	recipeDetectorFactory  func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector
+	processEvaluator       recipes.ProcessEvaluatorInterface
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -99,6 +100,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeVarPreparer: rvp,
 		agentValidator:    av,
 		progressIndicator: ux.NewSpinnerProgressIndicator(),
+		processEvaluator:  recipes.NewProcessEvaluator(),
 	}
 
 	i.InstallerContext = ic
@@ -115,7 +117,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
 	}
 	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
-		return recipes.NewRecipeDetector(ctx, repo)
+		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator)
 	}
 	return &i
 }
@@ -156,6 +158,28 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 	return nil
 }
 
+func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error {
+	processes := i.processEvaluator.GetOrLoadProcesses(ctx)
+	count := 0
+	nameRegex := regexp.MustCompile("(?i)newrelic(\\.exe)?")
+	for _, p := range processes {
+		name, err := p.Name()
+		if err == nil && nameRegex.MatchString(name) {
+			cmd, err := p.Cmd()
+			cmdRegex := regexp.MustCompile("(?i)newrelic(\\.exe)? install")
+			if err == nil && cmdRegex.MatchString(cmd) {
+				log.Debugf(fmt.Sprintf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID()))
+				count++
+			}
+		}
+	}
+	if count > 1 {
+		message := fmt.Sprintf("only 1 newrelic install command can run at one time, found %d currently executing. Please retry later, or terminate the other newrelic installations", count)
+		return errors.New(message)
+	}
+	return nil
+}
+
 func (i *RecipeInstall) Install() error {
 	fmt.Printf(`
  _   _                 ____      _ _
@@ -178,6 +202,11 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		i.status.SetTargetedInstall()
 	}
 
+	if err := i.ensureSingleConcurrentInstall(utils.SignalCtx); err != nil {
+		log.Debug(err)
+		return err
+	}
+
 	i.status.InstallStarted()
 
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
@@ -188,10 +217,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 	err = i.connectToPlatform()
 	if err != nil {
-		if _, ok := err.(*nrErrors.PaymentRequiredError); ok {
-			i.status.InstallComplete(err)
-		}
-
+		i.status.InstallComplete(diagnose.ConnectionError{Err: err})
 		return err
 	}
 

@@ -1,6 +1,9 @@
 package diagnose
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 //nolint:golint
 var (
@@ -15,3 +18,11 @@ const PaymentRequiredExceptionMessage = `
   Your account has exceeded its plan data limit.
   Take full advantage of New Relic's platform by managing
   your account's plan and payment options at the URL below.`
+
+type ConnectionError struct {
+	Err error
+}
+
+func (p ConnectionError) Error() string {
+	return fmt.Sprintf("Connection Error: %s", p.Err)
+}

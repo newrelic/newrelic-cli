@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-cli/internal/diagnose"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -50,6 +51,21 @@ func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
 	actual := recipeInstall.connectToPlatform()
 	assert.Error(t, actual)
 	assert.IsType(t, &nrErrors.PaymentRequiredError{}, actual)
+}
+
+func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
+	expected := diagnose.ConnectionError{
+		Err: errors.New("Connection Failed"),
+	}
+
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithConfigValidatorError(expected).Build()
+
+	actual := recipeInstall.Install()
+	assert.Error(t, actual)
+	assert.IsType(t, diagnose.ConnectionError{}, actual)
+	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
+	assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
@@ -673,6 +689,36 @@ func TestIsTargetInstallRecipeShouldNotFindTarget(t *testing.T) {
 	actual := recipeInstall.isTargetInstallRecipe("target")
 
 	assert.False(t, actual)
+}
+
+func TestWhenSingleInstallRunningErrorOnMultiple(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").WithRunningProcess("env=456 newrelic install", "newrelic").Build()
+	err := recipeInstall.Install()
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+}
+
+func TestWhenSingleInstallRunningNoError(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").Build()
+	err := recipeInstall.Install()
+	if err != nil {
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	}
+}
+
+func TestWhenSingleInstallRunningErrorOnMultipleWindows(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "newrelic.exe").WithRunningProcess("env=456 C:\\path\\newrelic.exe install", "newrelic.exe").Build()
+	err := recipeInstall.Install()
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+}
+
+func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "C:\\path\\newrelic.exe").Build()
+	err := recipeInstall.Install()
+	if err != nil {
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	}
 }
 
 func captureLoggingOutput(f func()) string {
