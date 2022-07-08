@@ -213,6 +213,13 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 		i.EntityGUID = common.EntityGUID(event.EntityGUID)
 		i.ValidationDurationMilliseconds = event.ValidationDurationMs
 		i.TaskPath = strings.Join(event.TaskPath, ",")
+
+		if len(event.Metadata) > 0 {
+			i.Metadata = map[string]interface{}{}
+			for k, v := range event.Metadata {
+				i.Metadata[k] = v
+			}
+		}
 	}
 
 	if statusType != nil {

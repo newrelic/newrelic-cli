@@ -28,8 +28,9 @@ type RecipeStatusEvent struct {
 	TaskPath             []string
 	EntityGUID           string
 	ValidationDurationMs int64
+	Metadata             map[string]string
 }
 
 func NewRecipeStatusEvent(recipe *types.OpenInstallationRecipe) RecipeStatusEvent {
-	return RecipeStatusEvent{Recipe: *recipe}
+	return RecipeStatusEvent{Recipe: *recipe, Metadata: map[string]string{}}
 }

@@ -34,6 +34,30 @@ func TestOutputParserShouldNotEntityGuid(t *testing.T) {
 	assert.NotEqual(t, "abcd", result.EntityGUID())
 }
 
+func TestOutputParserShouldGetMetadata(t *testing.T) {
+	output := givenJSON("{\"Metadata\":{\"key1\":\"abcd\",\"key2\":\"efgh\"}}")
+
+	result := NewOutputParser(output)
+	assert.NotNil(t, result.Metadata())
+	assert.Equal(t, result.Metadata()["key1"], "abcd")
+	assert.Equal(t, result.Metadata()["key2"], "efgh")
+}
+
+func TestOutputParserShouldGetNoMetadata(t *testing.T) {
+	output := givenJSON("{\"EntityGuid\":\"abcd\"}")
+	result := NewOutputParser(output)
+	assert.Equal(t, len(result.Metadata()), 0)
+	assert.Nil(t, result.Metadata())
+}
+
+func TestOutputParserShouldGetMetadataMissing(t *testing.T) {
+	output := givenJSON("{\"Metadata\":{}}")
+	result := NewOutputParser(output)
+	assert.NotNil(t, result.Metadata())
+	assert.Equal(t, len(result.Metadata()), 0)
+	assert.Equal(t, result.Metadata()["key1"], "")
+}
+
 func TestOutputParserShouldBeEmpty(t *testing.T) {
 	output := givenJSON("")
 	result := NewOutputParser(output)
