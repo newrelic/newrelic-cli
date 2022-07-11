@@ -1,5 +1,13 @@
+<a name="v0.52.0"></a>
+## [v0.52.0] - 2022-07-11
+### Bug Fixes
+- **env-to-yaml:** fix indentation of passthrough_environment list
+
+### Features
+- **install:** wire recipe metadata to event ([#1331](https://github.com/newrelic/newrelic-client-go/issues/1331))
+
 <a name="v0.51.4"></a>
-## [v0.51.4] - 2022-07-05
+## [v0.51.4] - 2022-07-07
 <a name="v0.51.3"></a>
 ## [v0.51.3] - 2022-07-05
 <a name="v0.51.2"></a>
@@ -1729,7 +1737,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.0...HEAD
+[v0.52.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.4...v0.52.0
 [v0.51.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.3...v0.51.4
 [v0.51.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.2...v0.51.3
 [v0.51.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.1...v0.51.2
