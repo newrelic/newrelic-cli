@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/ghodss/yaml"
 
@@ -249,12 +250,13 @@ func yamlFromCommaDelimitedString(key string, commaDelimited string) string {
 		return ""
 	}
 
-	passthroughEnvironmentJSON := fmt.Sprintf("{\"passthrough_environment\": [%s] }", commaDelimited)
+	passthroughEnvironmentJSON := fmt.Sprintf("{\"passthrough_environment\": { \"env\": [%s] }}", commaDelimited)
 	yaml, err := yaml.JSONToYAML([]byte(passthroughEnvironmentJSON))
 	if err != nil {
 		log.Debugf("Could not transform %s comma-delimited value to yaml: %e", key, err)
 		return ""
 	}
-
-	return string(yaml)
+	// forcing indentation of list items without a key
+	trimmed := strings.ReplaceAll(string(yaml), "\n  env:", "")
+	return trimmed
 }
