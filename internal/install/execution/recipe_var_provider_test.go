@@ -181,10 +181,7 @@ func Test_yamlFromJSON_ConvertsEmptyStringToEmptyYaml(t *testing.T) {
 func Test_yamlFromCommaDelimitedString_convertsStringToYaml(t *testing.T) {
 	yaml := yamlFromCommaDelimitedString("key", "value1,value2, value3")
 
-	assert.Contains(t, yaml, "passthrough_environment:\n")
-	assert.Contains(t, yaml, "- value1\n")
-	assert.Contains(t, yaml, "- value2\n")
-	assert.Contains(t, yaml, "- value3\n")
+	assert.Contains(t, yaml, "passthrough_environment:\n  - value1\n  - value2\n  - value3\n")
 }
 
 func Test_yamlFromCommaDelimitedString_convertsNonCSVStringToYaml(t *testing.T) {
