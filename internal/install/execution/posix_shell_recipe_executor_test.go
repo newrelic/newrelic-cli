@@ -48,7 +48,7 @@ func TestPosixShellExecution_Error(t *testing.T) {
 
 	err := e.ExecutePreInstall(context.Background(), r, v)
 	require.Error(t, err)
-	require.Equal(t, "exit status 127: asdfakenotreal: command not found", err.Error())
+	require.Contains(t, err.Error(), "asdfakenotreal: command not found")
 }
 
 func TestPosixShellExecution_AllVars(t *testing.T) {

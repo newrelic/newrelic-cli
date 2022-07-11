@@ -18,3 +18,17 @@ func (op *OutputParser) EntityGUID() string {
 	}
 	return ""
 }
+
+func (op *OutputParser) Metadata() map[string]string {
+	metadata, ok := op.output["Metadata"].(map[string]interface{})
+	if ok {
+		result := map[string]string{}
+		for k := range metadata {
+			if v, ok := metadata[k].(string); ok {
+				result[k] = v
+			}
+		}
+		return result
+	}
+	return nil
+}
