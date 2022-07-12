@@ -62,6 +62,12 @@ Installation options are available for various platforms. If you're running an o
 
 ### MacOS
 
+#### Automated install
+
+`curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash`
+
+#### Homebrew
+
 Install the New Relic CLI on MacOS via [`homebrew`](https://brew.sh/). With `homebrew` installed, run:
 
 ```
@@ -71,6 +77,10 @@ brew install newrelic-cli
 ### Windows
 
 Installation is supported on 64-bit Windows.
+
+#### Automated install
+
+`[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile("https://download.newrelic.com/install/newrelic-cli/scripts/install.ps1", "$env:TEMP\install.ps1"); & $env:TEMP\install.ps1`
 
 #### Scoop
 
@@ -99,6 +109,12 @@ msiexec.exe /qn /i "$env:TEMP\NewRelicCLIInstaller.msi" | Out-Null; `
 ```
 
 ### Linux
+
+#### Automated install
+
+`curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash`
+
+#### Snapcraft
 
 Linux binaries can be installed via [Snapcraft](https://snapcraft.io/). With the `snapd` daemon installed, run:
 
