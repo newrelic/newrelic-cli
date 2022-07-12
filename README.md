@@ -3,7 +3,6 @@
 # newrelic-cli
 
 [![Testing](https://github.com/newrelic/newrelic-cli/workflows/Testing/badge.svg)](https://github.com/newrelic/newrelic-cli/actions)
-[![Security Scan](https://github.com/newrelic/newrelic-cli/workflows/Security%20Scan/badge.svg)](https://github.com/newrelic/newrelic-cli/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/newrelic/newrelic-cli?style=flat-square)](https://goreportcard.com/report/github.com/newrelic/newrelic-cli)
 [![GoDoc](https://godoc.org/github.com/newrelic/newrelic-cli?status.svg)](https://godoc.org/github.com/newrelic/newrelic-cli)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/main/LICENSE)
