@@ -3,7 +3,6 @@
 # newrelic-cli
 
 [![Testing](https://github.com/newrelic/newrelic-cli/workflows/Testing/badge.svg)](https://github.com/newrelic/newrelic-cli/actions)
-[![Security Scan](https://github.com/newrelic/newrelic-cli/workflows/Security%20Scan/badge.svg)](https://github.com/newrelic/newrelic-cli/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/newrelic/newrelic-cli?style=flat-square)](https://goreportcard.com/report/github.com/newrelic/newrelic-cli)
 [![GoDoc](https://godoc.org/github.com/newrelic/newrelic-cli?status.svg)](https://godoc.org/github.com/newrelic/newrelic-cli)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/newrelic/newrelic-cli/blob/main/LICENSE)
@@ -62,6 +61,12 @@ Installation options are available for various platforms. If you're running an o
 
 ### MacOS
 
+#### Automated install
+
+`curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash`
+
+#### Homebrew
+
 Install the New Relic CLI on MacOS via [`homebrew`](https://brew.sh/). With `homebrew` installed, run:
 
 ```
@@ -71,6 +76,10 @@ brew install newrelic-cli
 ### Windows
 
 Installation is supported on 64-bit Windows.
+
+#### Automated install
+
+`[Net.ServicePointManager]::SecurityProtocol = 'tls12, tls'; (New-Object System.Net.WebClient).DownloadFile("https://download.newrelic.com/install/newrelic-cli/scripts/install.ps1", "$env:TEMP\install.ps1"); & $env:TEMP\install.ps1`
 
 #### Scoop
 
@@ -99,6 +108,12 @@ msiexec.exe /qn /i "$env:TEMP\NewRelicCLIInstaller.msi" | Out-Null; `
 ```
 
 ### Linux
+
+#### Automated install
+
+`curl -Ls https://download.newrelic.com/install/newrelic-cli/scripts/install.sh | bash`
+
+#### Snapcraft
 
 Linux binaries can be installed via [Snapcraft](https://snapcraft.io/). With the `snapd` daemon installed, run:
 
