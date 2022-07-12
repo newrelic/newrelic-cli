@@ -1,3 +1,8 @@
+<a name="v0.52.1"></a>
+## [v0.52.1] - 2022-07-12
+### Bug Fixes
+- **install:** ensure host has name for installations ([#1334](https://github.com/newrelic/newrelic-client-go/issues/1334))
+
 <a name="v0.52.0"></a>
 ## [v0.52.0] - 2022-07-11
 ### Bug Fixes
@@ -1737,7 +1742,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.1...HEAD
+[v0.52.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.0...v0.52.1
 [v0.52.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.4...v0.52.0
 [v0.51.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.3...v0.51.4
 [v0.51.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.2...v0.51.3
