@@ -207,6 +207,12 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		return err
 	}
 
+	hostname, _ := os.Hostname()
+	if hostname == "" {
+		message := fmt.Sprintf("This system is not supported for automatic installation, no host info. Please see our documentation for requirements.")
+		return errors.New(message)
+	}
+
 	i.status.InstallStarted()
 
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
