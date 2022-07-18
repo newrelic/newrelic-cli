@@ -207,6 +207,12 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 		return err
 	}
 
+	hostname, _ := os.Hostname()
+	if hostname == "" {
+		message := fmt.Sprintf("This system is not supported for automatic installation, no host info. Please see our documentation for requirements.")
+		return errors.New(message)
+	}
+
 	i.status.InstallStarted()
 
 	ctx, cancel := context.WithCancel(utils.SignalCtx)
@@ -494,8 +500,9 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 		if e, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
-				Recipe: *r,
-				Msg:    e.Error(),
+				Recipe:   *r,
+				Msg:      e.Error(),
+				Metadata: i.recipeExecutor.GetOutput().Metadata(),
 			})
 
 			return "", err
@@ -503,8 +510,9 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
 		se := execution.RecipeStatusEvent{
-			Recipe: *r,
-			Msg:    msg,
+			Recipe:   *r,
+			Msg:      msg,
+			Metadata: i.recipeExecutor.GetOutput().Metadata(),
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {
@@ -525,6 +533,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		i.status.RecipeInstalled(execution.RecipeStatusEvent{
 			Recipe:     *r,
 			EntityGUID: entityGUID,
+			Metadata:   i.recipeExecutor.GetOutput().Metadata(),
 		})
 
 		return entityGUID, nil
@@ -546,6 +555,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 			Recipe:               *r,
 			Msg:                  validationErr.Error(),
 			ValidationDurationMs: validationDurationMs,
+			Metadata:             i.recipeExecutor.GetOutput().Metadata(),
 		})
 
 		return "", validationErr
@@ -555,6 +565,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		Recipe:               *r,
 		EntityGUID:           entityGUID,
 		ValidationDurationMs: validationDurationMs,
+		Metadata:             i.recipeExecutor.GetOutput().Metadata(),
 	})
 
 	return entityGUID, nil

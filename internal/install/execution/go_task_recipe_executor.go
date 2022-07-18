@@ -129,6 +129,8 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 			"err": err,
 		}).Debug("Task execution returned error")
 
+		re.setOutput(outputFile)
+
 		goTaskError := types.NewGoTaskGeneralError(err)
 
 		// go-task does not provide an error type to denote context cancelation
@@ -160,17 +162,21 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return goTaskError
 	}
 
+	re.setOutput(outputFile)
+
+	return nil
+}
+
+func (re *GoTaskRecipeExecutor) setOutput(outputFile *os.File) {
 	outputBytes, err := ioutil.ReadAll(outputFile)
 	if err == nil && len(outputBytes) > 0 {
 		var result map[string]interface{}
 		if err := json.Unmarshal(outputBytes, &result); err == nil {
 			re.Output = NewOutputParser(result)
 		} else {
-			log.Debugf("error while unmarshaling json output from recipe %s details:%s", r.Name, err.Error())
+			log.Debugf("error while unmarshaling json output from file %s details:%s", outputFile.Name(), err.Error())
 		}
 	}
-
-	return nil
 }
 
 func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {

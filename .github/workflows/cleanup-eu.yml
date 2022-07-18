@@ -2,7 +2,7 @@ name: Cleanup (EU)
 
 on:
   workflow_run:
-    workflows: [End to end testing (EU)]
+    workflows: [End to end testing (EU), Release]
     types: [completed]
 
 env:

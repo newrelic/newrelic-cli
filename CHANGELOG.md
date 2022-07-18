@@ -1,5 +1,27 @@
+<a name="v0.52.2"></a>
+## [v0.52.2] - 2022-07-13
+### Bug Fixes
+- **install:** parse recipe output when failing execution too ([#1338](https://github.com/newrelic/newrelic-client-go/issues/1338))
+
+<a name="v0.52.1"></a>
+## [v0.52.1] - 2022-07-12
+### Bug Fixes
+- **install:** ensure host has name for installations ([#1334](https://github.com/newrelic/newrelic-client-go/issues/1334))
+
+<a name="v0.52.0"></a>
+## [v0.52.0] - 2022-07-11
+### Bug Fixes
+- **env-to-yaml:** fix indentation of passthrough_environment list
+
+### Features
+- **install:** wire recipe metadata to event ([#1331](https://github.com/newrelic/newrelic-client-go/issues/1331))
+
+<a name="v0.51.4"></a>
+## [v0.51.4] - 2022-07-07
+<a name="v0.51.3"></a>
+## [v0.51.3] - 2022-07-05
 <a name="v0.51.2"></a>
-## [v0.51.2] - 2022-06-30
+## [v0.51.2] - 2022-07-01
 <a name="v0.51.1"></a>
 ## [v0.51.1] - 2022-06-30
 ### Bug Fixes
@@ -1725,7 +1747,12 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.2...HEAD
+[v0.52.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.1...v0.52.2
+[v0.52.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.0...v0.52.1
+[v0.52.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.4...v0.52.0
+[v0.51.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.3...v0.51.4
+[v0.51.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.2...v0.51.3
 [v0.51.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.1...v0.51.2
 [v0.51.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.0...v0.51.1
 [v0.51.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.14...v0.51.0
