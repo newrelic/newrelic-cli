@@ -13,14 +13,14 @@ newrelic agent config migrateV3toV4 [flags]
 ### Examples
 
 ```
-newrelic integrations config migrateV3toV4 --pathDefinition /file/path --pathConfiguration /file/path --pathOutput /file/path
+newrelic agent config migrateV3toV4 --pathDefinition /file/path --pathConfiguration /file/path --pathOutput /file/path
 ```
 
 ### Options
 
 ```
   -h, --help                       help for migrateV3toV4
-      --overwrite                  if set ti true and pathOutput file exists already the old file is removed 
+      --overwrite                  if set to true and pathOutput file exists already the old file is removed 
   -c, --pathConfiguration string   path configuration
   -d, --pathDefinition string      path definition
   -o, --pathOutput string          path output
