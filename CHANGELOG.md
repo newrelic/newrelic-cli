@@ -1,5 +1,10 @@
+<a name="v0.52.5"></a>
+## [v0.52.5] - 2022-07-27
+### Bug Fixes
+- **agent:** updated example command and spelling mistake ([#1340](https://github.com/newrelic/newrelic-client-go/issues/1340))
+
 <a name="v0.52.4"></a>
-## [v0.52.4] - 2022-07-21
+## [v0.52.4] - 2022-07-26
 <a name="v0.52.3"></a>
 ## [v0.52.3] - 2022-07-21
 <a name="v0.52.2"></a>
@@ -1751,7 +1756,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.5...HEAD
+[v0.52.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.4...v0.52.5
 [v0.52.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.3...v0.52.4
 [v0.52.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.2...v0.52.3
 [v0.52.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.1...v0.52.2
