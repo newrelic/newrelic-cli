@@ -63,9 +63,15 @@ func RequireClient(cmd *cobra.Command, args []string) {
 }
 
 func FetchLicenseKey(accountID int, profileName string) (string, error) {
-	client, err := NewClient(profileName)
-	if err != nil {
-		return "", err
+	var client *newrelic.NewRelic
+	var err error
+	if profileName == "" {
+		client = NRClient
+	} else {
+		client, err = NewClient(profileName)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	var key string
