@@ -1,3 +1,8 @@
+<a name="v0.52.6"></a>
+## [v0.52.6] - 2022-08-16
+### Bug Fixes
+- **default config:** Reuse existing NRClient to assert valid profile
+
 <a name="v0.52.5"></a>
 ## [v0.52.5] - 2022-07-27
 ### Bug Fixes
@@ -1756,7 +1761,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.6...HEAD
+[v0.52.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.5...v0.52.6
 [v0.52.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.4...v0.52.5
 [v0.52.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.3...v0.52.4
 [v0.52.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.2...v0.52.3
