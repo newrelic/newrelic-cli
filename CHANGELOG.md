@@ -1,5 +1,10 @@
+<a name="v0.53.0"></a>
+## [v0.53.0] - 2022-08-22
+### Features
+- **client:** add logger.log-table-widget to widgetTypes
+
 <a name="v0.52.8"></a>
-## [v0.52.8] - 2022-08-16
+## [v0.52.8] - 2022-08-18
 <a name="v0.52.7"></a>
 ## [v0.52.7] - 2022-08-16
 <a name="v0.52.6"></a>
@@ -1765,7 +1770,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.0...HEAD
+[v0.53.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.8...v0.53.0
 [v0.52.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.7...v0.52.8
 [v0.52.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.6...v0.52.7
 [v0.52.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.5...v0.52.6
