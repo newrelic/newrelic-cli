@@ -1,5 +1,21 @@
+<a name="v0.52.8"></a>
+## [v0.52.8] - 2022-08-16
+<a name="v0.52.7"></a>
+## [v0.52.7] - 2022-08-16
+<a name="v0.52.6"></a>
+## [v0.52.6] - 2022-08-16
+### Bug Fixes
+- **default config:** Reuse existing NRClient to assert valid profile
+
+<a name="v0.52.5"></a>
+## [v0.52.5] - 2022-07-27
+### Bug Fixes
+- **agent:** updated example command and spelling mistake ([#1340](https://github.com/newrelic/newrelic-client-go/issues/1340))
+
+<a name="v0.52.4"></a>
+## [v0.52.4] - 2022-07-26
 <a name="v0.52.3"></a>
-## [v0.52.3] - 2022-07-13
+## [v0.52.3] - 2022-07-21
 <a name="v0.52.2"></a>
 ## [v0.52.2] - 2022-07-13
 ### Bug Fixes
@@ -1749,7 +1765,12 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.8...HEAD
+[v0.52.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.7...v0.52.8
+[v0.52.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.6...v0.52.7
+[v0.52.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.5...v0.52.6
+[v0.52.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.4...v0.52.5
+[v0.52.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.3...v0.52.4
 [v0.52.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.2...v0.52.3
 [v0.52.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.1...v0.52.2
 [v0.52.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.0...v0.52.1

@@ -12,7 +12,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/itchyny/gojq v0.12.8
-	github.com/jedib0t/go-pretty/v6 v6.3.0
+	github.com/jedib0t/go-pretty/v6 v6.3.5
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.78.0
@@ -22,7 +22,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/splitio/go-client/v6 v6.1.6
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.7.4
 	github.com/tidwall/gjson v1.14.0
 	github.com/tidwall/sjson v1.2.4
 	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
@@ -60,7 +60,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/splitio/go-split-commons/v4 v4.1.0 // indirect
 	github.com/splitio/go-toolkit/v5 v5.2.0 // indirect
-	github.com/stretchr/objx v0.1.0 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.7 // indirect
