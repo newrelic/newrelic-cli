@@ -23,6 +23,9 @@ func NewOsValidator() *OsValidator {
 }
 
 func (v *OsValidator) Validate(m *types.DiscoveryManifest) error {
+	fmt.Print("\n****************************\n")
+	fmt.Printf("\n THING:  %+v \n", m.OS)
+	fmt.Print("\n****************************\n")
 	if m.OS == "" {
 		return fmt.Errorf(noOperatingSystemDetected)
 	}

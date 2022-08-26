@@ -22,6 +22,7 @@ var (
 	entitySearchQueries []string
 	scopeAccountIDs     []int
 	guid                string
+	description         string
 )
 
 var cmdGet = &cobra.Command{
@@ -106,6 +107,8 @@ you also have access to.
 		if len(scopeAccountIDs) > 0 {
 			createInput.ScopeAccounts = &workloads.WorkloadScopeAccountsInput{AccountIDs: scopeAccountIDs}
 		}
+
+		createInput.Description = description
 
 		workload, err := client.NRClient.Workloads.WorkloadCreateWithContext(utils.SignalCtx, accountID, createInput)
 		utils.LogIfFatal(err)
@@ -219,6 +222,7 @@ func init() {
 	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
+	cmdCreate.Flags().StringVarP(&description, "description", "d", "", "description of the workload")
 	utils.LogIfError(cmdCreate.MarkFlagRequired("name"))
 
 	// Update
