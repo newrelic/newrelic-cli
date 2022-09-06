@@ -193,7 +193,7 @@ install:
       cmds:
         - |
           sudo apt-get install gnupg2 -y
-          sudo curl -s https://download.newrelic.com/infrastructure_agent/gpg/newrelic-infra.gpg | sudo apt-key add -
+          sudo curl -s https://download.newrelic.com/infrastructure_agent/keys/newrelic_apt_key_current.gpg | sudo apt-key add -
       silent: true
 
     add_nr_source:
