@@ -1,3 +1,8 @@
+<a name="v0.54.0"></a>
+## [v0.54.0] - 2022-09-13
+### Features
+- **install:** allow the previous patch version to install ([#1358](https://github.com/newrelic/newrelic-client-go/issues/1358))
+
 <a name="v0.53.3"></a>
 ## [v0.53.3] - 2022-09-06
 <a name="v0.53.2"></a>
@@ -1776,7 +1781,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.0...HEAD
+[v0.54.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.3...v0.54.0
 [v0.53.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.2...v0.53.3
 [v0.53.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.1...v0.53.2
 [v0.53.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.0...v0.53.1
