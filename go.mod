@@ -8,7 +8,7 @@ require (
 	github.com/briandowns/spinner v1.19.0
 	github.com/fatih/color v1.13.0
 	github.com/ghodss/yaml v1.0.0
-	github.com/go-task/task/v3 v3.11.0
+	github.com/go-task/task/v3 v3.15.2
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/itchyny/gojq v0.12.9
@@ -22,13 +22,13 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
 	github.com/splitio/go-client/v6 v6.1.7
-	github.com/stretchr/testify v1.7.4
+	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/gjson v1.14.3
 	github.com/tidwall/sjson v1.2.5
 	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
 	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035
 	gopkg.in/yaml.v2 v2.4.0
-	mvdan.cc/sh/v3 v3.4.3
+	mvdan.cc/sh/v3 v3.6.0-0.dev.0.20220704111049-a6e3029cd899
 )
 
 require (
