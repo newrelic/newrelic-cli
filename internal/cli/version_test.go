@@ -29,12 +29,72 @@ func TestIsLatestVersion(t *testing.T) {
 	require.True(t, result)
 }
 
+func TestIsLatestVersionMajor_False(t *testing.T) {
+	t.Parallel()
+
+	// Set installed version as an older version
+	version = "1.30.0"
+	latest := "2.30.0"
+
+	result, err := IsLatestVersion(context.Background(), latest)
+	require.NoError(t, err)
+	require.False(t, result)
+}
+
 func TestIsLatestVersion_False(t *testing.T) {
 	t.Parallel()
 
 	// Set installed version as an older version
 	version = "0.30.0"
 	latest := "0.31.0"
+
+	result, err := IsLatestVersion(context.Background(), latest)
+	require.NoError(t, err)
+	require.False(t, result)
+}
+
+func TestIsLatestVersionPatch_False(t *testing.T) {
+	t.Parallel()
+
+	// Set installed version as an older version
+	version = "0.30.0"
+	latest := "0.30.5"
+
+	result, err := IsLatestVersion(context.Background(), latest)
+	require.NoError(t, err)
+	require.False(t, result)
+}
+
+func TestIsLatestVersionPatch_True(t *testing.T) {
+	t.Parallel()
+
+	// Set installed version as an older version
+	version = "0.30.0"
+	latest := "0.30.0"
+
+	result, err := IsLatestVersion(context.Background(), latest)
+	require.NoError(t, err)
+	require.True(t, result)
+}
+
+func TestIsLatestVersionPreviousPatch_True(t *testing.T) {
+	t.Parallel()
+
+	// Set installed version as an older version
+	version = "0.30.0"
+	latest := "0.30.1"
+
+	result, err := IsLatestVersion(context.Background(), latest)
+	require.NoError(t, err)
+	require.True(t, result)
+}
+
+func TestIsLatestVersionPreviousPatchTooOld_True(t *testing.T) {
+	t.Parallel()
+
+	// Set installed version as an older version
+	version = "0.30.0"
+	latest := "0.30.2"
 
 	result, err := IsLatestVersion(context.Background(), latest)
 	require.NoError(t, err)

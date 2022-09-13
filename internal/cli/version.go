@@ -53,21 +53,39 @@ func Version() string {
 // IsLatestVersion returns true if the provided version string matches
 // the current installed version.
 func IsLatestVersion(ctx context.Context, latestVersion string) (bool, error) {
-	installedVersion, err := semver.NewVersion(Version())
+	installed, err := semver.NewVersion(Version())
 	if err != nil {
 		return false, fmt.Errorf("error parsing installed CLI version %s: %s", version, err.Error())
 	}
 
-	lv, err := semver.NewVersion(latestVersion)
+	latest, err := semver.NewVersion(latestVersion)
 	if err != nil {
 		return false, fmt.Errorf("error parsing version to check %s: %s", latestVersion, err.Error())
 	}
 
-	if installedVersion.LessThan(lv) {
-		return false, nil
+	isEqual := installed.Equal(latest)
+	if isEqual {
+		return true, nil
 	}
 
-	return installedVersion.Equal(lv), nil
+	if isCurrentThePreviousLatest(installed, latest) {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func isCurrentThePreviousLatest(installed *semver.Version, latest *semver.Version) bool {
+	if installed.Major() != latest.Major() {
+		return false
+	}
+	if installed.Minor() != latest.Minor() {
+		return false
+	}
+	if installed.Patch() != (latest.Patch() - 1) {
+		return false
+	}
+	return true
 }
 
 // GetLatestReleaseVersion returns the latest released tag.
