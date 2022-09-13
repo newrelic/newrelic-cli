@@ -169,7 +169,12 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 }
 
 func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
-	outputFile, _ := os.Open(outputFileName)
+	outputFile, err := os.Open(outputFileName)
+	if err != nil {
+		log.Debugf("error openning json output file %s", outputFileName)
+		return
+	}
+
 	defer outputFile.Close()
 
 	outputBytes, err := ioutil.ReadAll(outputFile)
@@ -178,7 +183,7 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 		if err := json.Unmarshal(outputBytes, &result); err == nil {
 			re.Output = NewOutputParser(result)
 		} else {
-			log.Debugf("error while unmarshaling json output from file %s details:%s", outputFile.Name(), err.Error())
+			log.Debugf("error while unmarshaling json output from file %s details:%s", outputFileName, err.Error())
 		}
 	}
 }
