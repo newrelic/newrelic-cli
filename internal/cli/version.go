@@ -123,8 +123,8 @@ func GetLatestReleaseVersion(ctx context.Context) (string, error) {
 //
 // Examples of versions that have a prerelease tag (i.e. the suffix):
 //
-//  v0.32.1-10-gbe63a24
-//  v0.32.1-10-gbe63a24-dirty
+//	v0.32.1-10-gbe63a24
+//	v0.32.1-10-gbe63a24-dirty
 //
 // In this example version string, "10" represents the number of commits
 // since the 0.32.1 tag was created. The "gbe63a24" is the previous commit's

@@ -87,7 +87,6 @@ The search command performs a query for an APM application name and/or account I
 	},
 }
 
-//
 var cmdAppGet = &cobra.Command{
 	Use:   "get",
 	Short: "Get a New Relic application",

@@ -78,7 +78,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	outputFile, err := ioutil.TempFile("", fmt.Sprintf("%s_out", r.Name))
-    outputFile.Close()
+	outputFile.Close()
 	defer os.Remove(outputFile.Name())
 	if err != nil {
 		return err
@@ -169,8 +169,8 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 }
 
 func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
-    outputFile, _ := os.Open(outputFileName)
-    defer outputFile.Close()
+	outputFile, _ := os.Open(outputFileName)
+	defer outputFile.Close()
 
 	outputBytes, err := ioutil.ReadAll(outputFile)
 	if err == nil && len(outputBytes) > 0 {
