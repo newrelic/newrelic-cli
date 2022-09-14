@@ -21,7 +21,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
-	github.com/splitio/go-client/v6 v6.1.7
+	github.com/splitio/go-client/v6 v6.1.8
 	github.com/stretchr/testify v1.7.4
 	github.com/tidwall/gjson v1.14.3
 	github.com/tidwall/sjson v1.2.5
