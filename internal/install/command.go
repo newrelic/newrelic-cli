@@ -1,6 +1,7 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -45,33 +46,36 @@ var Command = &cobra.Command{
 			return nil
 		}
 
-		i := NewRecipeInstaller(ic, client.NRClient)
+		NewRecipeInstaller(ic, client.NRClient)
 
 		// Run the install.
-		if err := i.Install(); err != nil {
-			if err == types.ErrInterrupt {
-				return nil
-			}
+		//if err := i.Install(); err != nil {
 
-			if _, ok := err.(*types.UpdateRequiredError); ok {
-				return nil
-			}
+		err = errors.New("some weird error")
 
-			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
-				return e
-			}
-
-			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
-			fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
-
-			// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
-			// we need to output something to user to sinc we probably haven't displayed anything yet.
-			fmt.Println(fallbackErrorMsg)
-			fmt.Println(fallbackHelpMsg)
-			fmt.Print("\n\n")
-
-			log.Debug(fallbackErrorMsg)
+		if err == types.ErrInterrupt {
+			return nil
 		}
+
+		if _, ok := err.(*types.UpdateRequiredError); ok {
+			return nil
+		}
+
+		if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
+			return e
+		}
+
+		fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
+		fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
+
+		// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
+		// we need to output something to user to sinc we probably haven't displayed anything yet.
+		fmt.Println(fallbackErrorMsg)
+		fmt.Println(fallbackHelpMsg)
+		fmt.Print("\n\n")
+
+		log.Debug(fallbackErrorMsg)
+		//}
 
 		return nil
 	},
