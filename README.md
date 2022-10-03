@@ -15,7 +15,7 @@
 [![Docker Size](https://img.shields.io/docker/image-size/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 [![Docker Version](https://img.shields.io/docker/v/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 
-The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/).
+The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://developer.newrelic.com).
 
 - [Overview](#overview)
   - [Getting Started](#getting-started)
