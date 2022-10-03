@@ -1,5 +1,9 @@
+<a name="v0.55.2"></a>
+## [v0.55.2] - 2022-09-27
+<a name="v0.55.1"></a>
+## [v0.55.1] - 2022-09-27
 <a name="v0.55.0"></a>
-## [v0.55.0] - 2022-09-20
+## [v0.55.0] - 2022-09-22
 ### Features
 - **utils:** add yq utility for embedded yaml editing
 
@@ -1791,7 +1795,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2...HEAD
+[v0.55.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.1...v0.55.2
+[v0.55.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.0...v0.55.1
 [v0.55.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.1...v0.55.0
 [v0.54.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.0...v0.54.1
 [v0.54.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.3...v0.54.0
