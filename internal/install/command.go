@@ -3,6 +3,7 @@ package install
 import (
 	"errors"
 	"fmt"
+	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -13,6 +14,7 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	nrConfig "github.com/newrelic/newrelic-client-go/pkg/config"
 	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
 )
 
@@ -36,6 +38,12 @@ var Command = &cobra.Command{
 			RecipeNames:  recipeNames,
 			RecipePaths:  recipePaths,
 		}
+
+		cfg := nrConfig.New()
+		cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
+		cfg.LogLevel = "trace"
+		cfg.Compression = nrConfig.Compression.None
+		logClient := nrLogs.New(cfg)
 
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
@@ -67,6 +75,17 @@ var Command = &cobra.Command{
 
 		fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
 		fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
+
+		logEntry := struct {
+			Message string `json:"message"`
+		}{
+			Message: fallbackErrorMsg,
+		}
+
+		// Post a Log entry
+		if err := logClient.CreateLogEntry(logEntry); err != nil {
+			log.Fatal("error posting Log entry: ", err)
+		}
 
 		// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
 		// we need to output something to user to sinc we probably haven't displayed anything yet.
