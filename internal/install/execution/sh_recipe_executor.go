@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"container/list"
 	"context"
 	"fmt"
 	"io"
@@ -44,6 +45,10 @@ func (e *ShRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenIn
 
 func (e *ShRecipeExecutor) GetOutput() *OutputParser {
 	return NewOutputParser(map[string]interface{}{})
+}
+
+func (e *ShRecipeExecutor) GetErrors() *list.List {
+	return list.New()
 }
 
 func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {

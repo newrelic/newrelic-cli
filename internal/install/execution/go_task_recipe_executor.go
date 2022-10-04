@@ -2,6 +2,7 @@ package execution
 
 import (
 	"bytes"
+	"container/list"
 	"context"
 	"encoding/json"
 	"errors"
@@ -26,6 +27,7 @@ import (
 // uses the go-task module to execute the steps defined in each recipe.
 type GoTaskRecipeExecutor struct {
 	Stderr io.Writer
+	Errors *list.List
 	Stdin  io.Reader
 	Stdout io.Writer
 	Output *OutputParser
@@ -37,6 +39,7 @@ func NewGoTaskRecipeExecutor() *GoTaskRecipeExecutor {
 		Stderr: os.Stderr,
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
+		Errors: list.New(),
 		Output: NewOutputParser(map[string]interface{}{}),
 	}
 }
@@ -88,14 +91,14 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 
 	var stdoutCapture *LineCaptureBuffer
-	var stderrCapture *LineCaptureBuffer
+	var stderrCapture *ErrorCaptureBuffer
 
 	if silentInstall {
 		stdoutCapture = NewLineCaptureBuffer(&bytes.Buffer{})
-		stderrCapture = NewLineCaptureBuffer(&bytes.Buffer{})
+		stderrCapture = NewErrorCaptureBuffer(&bytes.Buffer{})
 	} else {
 		stdoutCapture = NewLineCaptureBuffer(re.Stdout)
-		stderrCapture = NewLineCaptureBuffer(re.Stderr)
+		stderrCapture = NewErrorCaptureBuffer(re.Stderr)
 	}
 
 	dir := os.TempDir()
@@ -130,6 +133,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 			"err": err,
 		}).Debug("Task execution returned error")
 
+		re.setErrors(stderrCapture.AllLines)
 		re.setOutput(outputFile.Name())
 
 		goTaskError := types.NewGoTaskGeneralError(err)
@@ -190,6 +194,14 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 
 func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {
 	return re.Output
+}
+
+func (re *GoTaskRecipeExecutor) setErrors(errors list.List) {
+	re.Errors = &errors
+}
+
+func (re *GoTaskRecipeExecutor) GetErrors() *list.List {
+	return re.Errors
 }
 
 func isExitStatusCode(exitCode int, err error) bool {

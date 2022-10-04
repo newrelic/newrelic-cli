@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"container/list"
 	"context"
 	"encoding/json"
 	"errors"
@@ -34,6 +35,10 @@ func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.Open
 
 func (m *MockRecipeExecutor) GetOutput() *OutputParser {
 	return m.OutputParser
+}
+
+func (m *MockRecipeExecutor) GetErrors() *list.List {
+	return list.New()
 }
 
 func (m *MockRecipeExecutor) SetOutput(value string) {

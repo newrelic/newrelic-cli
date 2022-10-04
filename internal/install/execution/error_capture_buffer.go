@@ -7,22 +7,22 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type LineCaptureBuffer struct {
+type ErrorCaptureBuffer struct {
 	LastFullLine string
 	current      []byte
 	AllLines     list.List
 	writer       io.Writer
 }
 
-func NewLineCaptureBuffer(w io.Writer) *LineCaptureBuffer {
-	b := &LineCaptureBuffer{
+func NewErrorCaptureBuffer(w io.Writer) *ErrorCaptureBuffer {
+	b := &ErrorCaptureBuffer{
 		writer: w,
 	}
 
 	return b
 }
 
-func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
+func (c *ErrorCaptureBuffer) Write(p []byte) (n int, err error) {
 	for _, b := range p {
 		if b == '\n' {
 			s := string(c.current)
@@ -46,6 +46,6 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 	return c.writer.Write(p)
 }
 
-func (c *LineCaptureBuffer) Current() string {
+func (c *ErrorCaptureBuffer) Current() string {
 	return string(c.current)
 }
