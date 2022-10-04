@@ -46,6 +46,10 @@ func (e *ShRecipeExecutor) GetOutput() *OutputParser {
 	return NewOutputParser(map[string]interface{}{})
 }
 
+func (e *ShRecipeExecutor) GetStdErr() *io.Writer {
+	return &e.Stderr
+}
+
 func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {
 	p, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
