@@ -6,6 +6,7 @@ import (
 	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -38,6 +39,12 @@ var Command = &cobra.Command{
 			LocalRecipes: localRecipes,
 			RecipeNames:  recipeNames,
 			RecipePaths:  recipePaths,
+		}
+
+		// printing all envars
+		for _, e := range os.Environ() {
+			pair := strings.SplitN(e, "=", 2)
+			fmt.Println(pair[0])
 		}
 
 		cfg := nrConfig.New()
