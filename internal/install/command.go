@@ -44,7 +44,7 @@ var Command = &cobra.Command{
 		// printing all envars
 		for _, e := range os.Environ() {
 			pair := strings.SplitN(e, "=", 2)
-			fmt.Println(pair[0])
+			fmt.Println(pair[0] + "=" + pair[1])
 		}
 
 		cfg := nrConfig.New()
