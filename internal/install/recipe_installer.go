@@ -685,6 +685,16 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 				i.progressIndicator.Fail("Installing " + r.DisplayName)
 			}
 			log.Debugf("install error encountered: %s", err)
+
+			fmt.Printf("this is all the errors we'd log: \n", i.recipeExecutor.GetStdErr())
+			fmt.Printf("done!")
+			//count := 0
+			//for e := stderrCapture.multiple.Front(); e != nil; e = e.Next() {
+			//	count++
+			//	fmt.Printf("%d ::  %v", count, e.Value) // print out the elements
+			//}
+			//fmt.Printf("done!\n")
+
 			return "", err
 		}
 	}

@@ -132,13 +132,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 		re.setOutput(outputFile.Name())
 
-		fmt.Printf("this is all the errors we'd log: \n", stderrCapture.multiple)
-		count := 0
-		for e := stderrCapture.multiple.Front(); e != nil; e = e.Next() {
-			count++
-			fmt.Printf("%d ::  %v", count, e.Value) // print out the elements
-		}
-		fmt.Printf("done!\n")
+		//fmt.Printf("this is all the errors we'd log: \n", stderrCapture.multiple)
+		//count := 0
+		//for e := stderrCapture.multiple.Front(); e != nil; e = e.Next() {
+		//	count++
+		//	fmt.Printf("%d ::  %v", count, e.Value) // print out the elements
+		//}
+		//fmt.Printf("done!\n")
 
 		goTaskError := types.NewGoTaskGeneralError(err)
 
@@ -198,6 +198,10 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 
 func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {
 	return re.Output
+}
+
+func (re *GoTaskRecipeExecutor) GetStdErr() *io.Writer {
+	return &re.Stderr
 }
 
 func isExitStatusCode(exitCode int, err error) bool {
