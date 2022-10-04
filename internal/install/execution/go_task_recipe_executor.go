@@ -132,6 +132,9 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 		re.setOutput(outputFile.Name())
 
+		fmt.Printf("this is all the errors we'd log: \n%v\n", stderrCapture.multiple)
+		fmt.Printf("done!\n")
+
 		goTaskError := types.NewGoTaskGeneralError(err)
 
 		// go-task does not provide an error type to denote context cancelation

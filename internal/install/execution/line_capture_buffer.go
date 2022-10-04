@@ -1,14 +1,15 @@
 package execution
 
 import (
-	"io"
-
+	"container/list"
 	log "github.com/sirupsen/logrus"
+	"io"
 )
 
 type LineCaptureBuffer struct {
 	LastFullLine string
 	current      []byte
+	multiple     list.List
 	writer       io.Writer
 }
 
@@ -27,6 +28,7 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 
 			if s != "" {
 				log.Debugf(s)
+				c.multiple.PushFront(s)
 				c.LastFullLine = s
 			}
 
