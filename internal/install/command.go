@@ -45,7 +45,7 @@ var Command = &cobra.Command{
 		cfg.LogLevel = "trace"
 
 		//regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
-		reg, _ := region.Get("Staging")
+		reg, _ := region.Get("STAGING")
 		cfg.SetRegion(reg)
 
 		cfg.Compression = nrConfig.Compression.None
