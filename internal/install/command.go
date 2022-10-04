@@ -1,7 +1,6 @@
 package install
 
 import (
-	"errors"
 	"fmt"
 	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
 	"github.com/newrelic/newrelic-client-go/pkg/region"
@@ -70,8 +69,6 @@ var Command = &cobra.Command{
 
 		//Run the install.
 		if err := i.Install(); err != nil {
-
-			err = errors.New("some weird error")
 
 			if err == types.ErrInterrupt {
 				return nil
