@@ -96,6 +96,7 @@ var Command = &cobra.Command{
 		}
 
 		// Post a Log entry
+		fmt.Printf("Posting Log Entry: %v\n", logEntry)
 		if err := logClient.CreateLogEntry(logEntry); err != nil {
 			log.Fatal("error posting Log entry: ", err)
 		}
