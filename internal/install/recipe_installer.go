@@ -494,6 +494,15 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(ctx, *r, vars); err != nil {
+		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+		fmt.Printf("got these errors in recipe_installer: \n")
+		count := 0
+		for e := i.recipeExecutor.GetErrors().Front(); e != nil; e = e.Next() {
+			count++
+			fmt.Printf("%d:  %v", count, e.Value) // print out the elements
+		}
+		fmt.Printf("\ndone with errors!")
+
 		if err == types.ErrInterrupt {
 			return "", err
 		}
@@ -507,15 +516,6 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 			return "", err
 		}
-
-		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
-		fmt.Printf("got these errors in recipe_installer: \n")
-		count := 0
-		for e := i.recipeExecutor.GetErrors().Front(); e != nil; e = e.Next() {
-			count++
-			fmt.Printf("%d:  %v", count, e.Value) // print out the elements
-		}
-		fmt.Printf("\ndone with errors!")
 
 		se := execution.RecipeStatusEvent{
 			Recipe:   *r,
