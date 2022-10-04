@@ -41,31 +41,30 @@ var Command = &cobra.Command{
 			RecipePaths:  recipePaths,
 		}
 
+		err := assertProfileIsValid()
+		if err != nil {
+			log.Fatal(err)
+			return nil
+		}
+
 		// printing all envars
 		for _, e := range os.Environ() {
 			pair := strings.SplitN(e, "=", 2)
 			fmt.Println(pair[0] + "=" + pair[1])
 		}
 
+		// building log api client
 		cfg := nrConfig.New()
 		cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
 		cfg.LogLevel = "trace"
-
-		//regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
-		reg, _ := region.Get("STAGING")
+		regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
+		reg, _ := region.Get(regName)
 		cfg.SetRegion(reg)
-
 		cfg.Compression = nrConfig.Compression.None
 		logClient := nrLogs.New(cfg)
 
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
-
-		err := assertProfileIsValid()
-		if err != nil {
-			log.Fatal(err)
-			return nil
-		}
 
 		NewRecipeInstaller(ic, client.NRClient)
 
