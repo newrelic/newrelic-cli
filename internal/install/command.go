@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -42,6 +43,11 @@ var Command = &cobra.Command{
 		cfg := nrConfig.New()
 		cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
 		cfg.LogLevel = "trace"
+
+		regName, err := region.Parse(os.Getenv("NEW_RELIC_REGION"))
+		reg, err := region.Get(regName)
+		cfg.SetRegion(reg)
+
 		cfg.Compression = nrConfig.Compression.None
 		logClient := nrLogs.New(cfg)
 
