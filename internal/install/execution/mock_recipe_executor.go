@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -13,6 +14,7 @@ type MockRecipeExecutor struct {
 	ExecuteErr   error
 	OutputParser *OutputParser
 	ShouldPanic  bool
+	StdErr       io.Writer
 }
 
 func NewMockRecipeExecutor() *MockRecipeExecutor {
@@ -34,6 +36,10 @@ func (m *MockRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.Open
 
 func (m *MockRecipeExecutor) GetOutput() *OutputParser {
 	return m.OutputParser
+}
+
+func (m *MockRecipeExecutor) GetStdErr() *io.Writer {
+	return &m.StdErr
 }
 
 func (m *MockRecipeExecutor) SetOutput(value string) {
