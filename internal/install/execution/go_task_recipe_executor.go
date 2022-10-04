@@ -133,8 +133,10 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		re.setOutput(outputFile.Name())
 
 		fmt.Printf("this is all the errors we'd log: \n", stderrCapture.multiple)
+		count := 0
 		for e := stderrCapture.multiple.Front(); e != nil; e = e.Next() {
-			fmt.Println(e.Value) // print out the elements
+			count++
+			fmt.Printf("%d ::  %v", count, e.Value) // print out the elements
 		}
 		fmt.Printf("done!\n")
 
