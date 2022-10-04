@@ -499,7 +499,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		count := 0
 		for e := i.recipeExecutor.GetErrors().Front(); e != nil; e = e.Next() {
 			count++
-			fmt.Printf("%d:  %v", count, e.Value) // print out the elements
+			fmt.Printf("\n%d:  %v\n", count, e.Value) // print out the elements
 		}
 		fmt.Printf("\ndone with errors!")
 
