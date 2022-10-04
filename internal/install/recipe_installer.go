@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nrConfig "github.com/newrelic/newrelic-client-go/pkg/config"
+	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 	"os"
 	"regexp"
 	"time"
@@ -495,11 +498,29 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 	// Execute the recipe steps.
 	if err := i.recipeExecutor.Execute(ctx, *r, vars); err != nil {
 		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
-		fmt.Printf("got these errors in recipe_installer: \n")
-		count := 0
+
+		// building log api client
+		cfg := nrConfig.New()
+		cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
+		cfg.LogLevel = "trace"
+		regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
+		reg, _ := region.Get(regName)
+		cfg.SetRegion(reg)
+		cfg.Compression = nrConfig.Compression.None
+		logClient := nrLogs.New(cfg)
+
 		for e := i.recipeExecutor.GetErrors().Front(); e != nil; e = e.Next() {
-			count++
-			fmt.Printf("\n%d:  %v\n", count, e.Value) // print out the elements
+			logEntry := struct {
+				Message string `json:"message"`
+			}{
+				Message: e.Value.(string),
+			}
+			// Post a Log entry
+			fmt.Printf("Posting Log Entry: %v\n", logEntry)
+			if err := logClient.CreateLogEntry(logEntry); err != nil {
+				log.Fatal("error posting Log entry: ", err)
+			}
+
 		}
 		fmt.Printf("\ndone with errors!")
 
