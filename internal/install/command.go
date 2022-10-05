@@ -111,8 +111,7 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 	scanner := backscanner.New(logFile, int(fileInfo.Size()))
 	currentLineCount := 0
 	for {
-		//line, pos, err := scanner.LineBytes()
-		_, pos, err := scanner.LineBytes()
+		line, pos, err := scanner.LineBytes()
 		if err != nil {
 			if err == io.EOF {
 				log.Debugf("Hit EOF at line position %d", pos)
@@ -124,17 +123,17 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 
 		if currentLineCount < lineCount {
 			currentLineCount++
-			//logEntry := struct {
-			//	Message string `json:"message"`
-			//}{
-			//	Message: string(line),
-			//}
+			logEntry := struct {
+				Message string `json:"message"`
+			}{
+				Message: string(line),
+			}
 
 			log.Debugf("Sending log entry")
 			//if err := logClient.CreateLogEntry(logEntry); err != nil {
 			//	log.Fatal("error posting Log entry: ", err)
 			//} else {
-			log.Info("Just sent line %d", currentLineCount)
+			log.Infof("Just sent entry\n%v", logEntry)
 			//}
 		}
 
