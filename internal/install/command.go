@@ -110,7 +110,6 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 	cfg.Compression = nrConfig.Compression.None
 	logClient := nrLogs.New(cfg)
 
-	log.Debugf("Starting the scan")
 	scanner := backscanner.New(logFile, int(fileInfo.Size()))
 	currentLineCount := 0
 	for {
@@ -132,14 +131,10 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 				Message: string(line),
 			}
 
-			log.Debugf("Sending log entry")
 			if err := logClient.CreateLogEntry(logEntry); err != nil {
 				log.Debugf("error posting Log entry: %e", err)
-			} else {
-				log.Infof("Just sent entry\n%v", logEntry)
 			}
 		}
-
 	}
 }
 
