@@ -135,9 +135,9 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 			} else {
 				log.Info("Just sent line %d", currentLineCount)
 			}
-
-			currentLineCount++
 		}
+
+		currentLineCount++
 	}
 }
 
