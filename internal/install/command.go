@@ -2,9 +2,6 @@ package install
 
 import (
 	"fmt"
-	nrConfig "github.com/newrelic/newrelic-client-go/pkg/config"
-	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
-	"github.com/newrelic/newrelic-client-go/pkg/region"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io"
@@ -101,20 +98,21 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 	}
 
 	// building log api client
-	cfg := nrConfig.New()
-	cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
-	cfg.LogLevel = "trace"
-	regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
-	reg, _ := region.Get(regName)
-	cfg.SetRegion(reg)
-	cfg.Compression = nrConfig.Compression.None
-	logClient := nrLogs.New(cfg)
+	//cfg := nrConfig.New()
+	//cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
+	//cfg.LogLevel = "trace"
+	//regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
+	//reg, _ := region.Get(regName)
+	//cfg.SetRegion(reg)
+	//cfg.Compression = nrConfig.Compression.None
+	//logClient := nrLogs.New(cfg)
 
 	log.Debugf("Starting the scan")
 	scanner := backscanner.New(logFile, int(fileInfo.Size()))
 	currentLineCount := 0
 	for {
-		line, pos, err := scanner.LineBytes()
+		//line, pos, err := scanner.LineBytes()
+		_, pos, err := scanner.LineBytes()
 		if err != nil {
 			if err == io.EOF {
 				log.Debugf("Hit EOF at line position %d", pos)
@@ -125,21 +123,21 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 		}
 
 		if currentLineCount < lineCount {
-			logEntry := struct {
-				Message string `json:"message"`
-			}{
-				Message: string(line),
-			}
+			currentLineCount++
+			//logEntry := struct {
+			//	Message string `json:"message"`
+			//}{
+			//	Message: string(line),
+			//}
 
 			log.Debugf("Sending log entry")
-			if err := logClient.CreateLogEntry(logEntry); err != nil {
-				log.Fatal("error posting Log entry: ", err)
-			} else {
-				log.Info("Just sent line %d", currentLineCount)
-			}
+			//if err := logClient.CreateLogEntry(logEntry); err != nil {
+			//	log.Fatal("error posting Log entry: ", err)
+			//} else {
+			log.Info("Just sent line %d", currentLineCount)
+			//}
 		}
 
-		currentLineCount++
 	}
 }
 
