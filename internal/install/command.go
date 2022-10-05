@@ -132,6 +132,8 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 
 			if err := logClient.CreateLogEntry(logEntry); err != nil {
 				log.Fatal("error posting Log entry: ", err)
+			} else {
+				log.Info("Just sent line %d", currentLineCount)
 			}
 
 			currentLineCount++
