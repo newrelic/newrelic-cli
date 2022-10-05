@@ -2,19 +2,21 @@ package install
 
 import (
 	"fmt"
+	nrConfig "github.com/newrelic/newrelic-client-go/pkg/config"
+	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
+	"github.com/newrelic/newrelic-client-go/pkg/region"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io"
 	"os"
 
+	"github.com/icza/backscanner"
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
-
-	"github.com/icza/backscanner"
 )
 
 var (
@@ -98,6 +100,16 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 		return
 	}
 
+	// building log api client
+	cfg := nrConfig.New()
+	cfg.LicenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
+	cfg.LogLevel = "trace"
+	regName, _ := region.Parse(os.Getenv("NEW_RELIC_REGION"))
+	reg, _ := region.Get(regName)
+	cfg.SetRegion(reg)
+	cfg.Compression = nrConfig.Compression.None
+	logClient := nrLogs.New(cfg)
+
 	scanner := backscanner.New(logFile, int(fileInfo.Size()))
 	currentLineCount := 0
 	for {
@@ -110,8 +122,18 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 			}
 			break
 		}
+
 		if currentLineCount < lineCount {
-			log.Infof("line to send(%d): %s", currentLineCount, line)
+			logEntry := struct {
+				Message string `json:"message"`
+			}{
+				Message: string(line),
+			}
+
+			if err := logClient.CreateLogEntry(logEntry); err != nil {
+				log.Fatal("error posting Log entry: ", err)
+			}
+
 			currentLineCount++
 		}
 	}
