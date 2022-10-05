@@ -116,6 +116,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
 		return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
 	}
+
 	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
 		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator)
 	}

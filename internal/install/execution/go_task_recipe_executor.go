@@ -171,7 +171,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 	outputFile, err := os.Open(outputFileName)
 	if err != nil {
-		log.Debugf("error openning json output file %s", outputFileName)
+		log.Debugf("error opening json output file %s", outputFileName)
 		return
 	}
 

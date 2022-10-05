@@ -2,10 +2,10 @@ package install
 
 import (
 	"fmt"
-	"os"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"io"
+	"os"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -13,6 +13,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
+
+	"github.com/icza/backscanner"
 )
 
 var (
@@ -44,11 +46,22 @@ var Command = &cobra.Command{
 			log.Fatal(err)
 			return nil
 		}
+		//TODO starting here we'd have the keys needed to create the Logs API client
+		//TODO create 'temp' file - do we even need this or can we send the last x lines from the cli log?
+		//tempFileName := fmt.Sprintf("%d_install_out", time.Now().UnixMilli())
+		//outputFile, err := ioutil.TempFile("", tempFileName)
+		//defer os.Remove(outputFile.Name())
 
+		//TODO give RecipeInstall a new `exection.ErrorLogCollector` that is instantiated with the filename above
 		i := NewRecipeInstaller(ic, client.NRClient)
 
 		// Run the install.
 		if err := i.Install(); err != nil {
+			file, err := os.Open(config.GetDefaultLogFilePath())
+			postMostRecentLogsToNr(100, file)
+
+			//TODO we made it this far; this is where to prompt user, then call Logs API service (to-be-created)
+			// TODO should we collect logs on interrupt?  Assuming not on update/payment required
 			if err == types.ErrInterrupt {
 				return nil
 			}
@@ -69,12 +82,39 @@ var Command = &cobra.Command{
 			fmt.Println(fallbackErrorMsg)
 			fmt.Println(fallbackHelpMsg)
 			fmt.Print("\n\n")
-
 			log.Debug(fallbackErrorMsg)
 		}
 
 		return nil
 	},
+}
+
+func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
+	fileInfo, err := os.Stat(logFile.Name())
+
+	if err != nil {
+		//TODO Post this to LogsApi
+		log.Debugf("Couldn't stat file: %s", logFile.Name())
+		return
+	}
+
+	scanner := backscanner.New(logFile, int(fileInfo.Size()))
+	currentLineCount := 0
+	for {
+		line, pos, err := scanner.LineBytes()
+		if err != nil {
+			if err == io.EOF {
+				log.Debugf("Hit EOF at line position %d", pos)
+			} else {
+				log.Debugf("Some other error:", err)
+			}
+			break
+		}
+		if currentLineCount < lineCount {
+			log.Infof("line to send: %s", line)
+			currentLineCount++
+		}
+	}
 }
 
 func assertProfileIsValid() error {
