@@ -111,7 +111,7 @@ func postMostRecentLogsToNr(lineCount int, logFile *os.File) {
 			break
 		}
 		if currentLineCount < lineCount {
-			log.Infof("line to send: %s", line)
+			log.Infof("line to send(%d): %s", currentLineCount, line)
 			currentLineCount++
 		}
 	}
