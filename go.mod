@@ -3,7 +3,7 @@ module github.com/newrelic/newrelic-cli
 go 1.18
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.5
+	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/briandowns/spinner v1.19.0
 	github.com/fatih/color v1.13.0
