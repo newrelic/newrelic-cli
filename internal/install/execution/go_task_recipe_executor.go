@@ -77,14 +77,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return err
 	}
 
-	outputFile, err := ioutil.TempFile("", fmt.Sprintf("%s_out", r.Name))
-	outputFile.Close()
-	defer os.Remove(outputFile.Name())
-	if err != nil {
-		return err
-	}
-	recipeVars["NR_CLI_OUTPUT"] = outputFile.Name()
-
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 
 	var stdoutCapture *LineCaptureBuffer
@@ -97,6 +89,14 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		stdoutCapture = NewLineCaptureBuffer(re.Stdout)
 		stderrCapture = NewLineCaptureBuffer(re.Stderr)
 	}
+
+	outputFile, err := ioutil.TempFile("", fmt.Sprintf("%s_out", r.Name))
+	re.Stderr = outputFile
+	defer os.Remove(outputFile.Name())
+	if err != nil {
+		return err
+	}
+	recipeVars["NR_CLI_OUTPUT"] = outputFile.Name()
 
 	dir := os.TempDir()
 	fileBase := filepath.Base(taskFile.Name())
