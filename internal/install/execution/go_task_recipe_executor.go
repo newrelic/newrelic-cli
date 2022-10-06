@@ -130,6 +130,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 			"err": err,
 		}).Debug("Task execution returned error")
 
+		log.Infof("should be writing to %s as we're handling an error...", outputFile.Name())
 		re.setOutput(outputFile.Name())
 
 		goTaskError := types.NewGoTaskGeneralError(err)
@@ -178,6 +179,7 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 	defer outputFile.Close()
 
 	outputBytes, err := ioutil.ReadAll(outputFile)
+	log.Infof("Content of the output file: %s", string(outputBytes))
 	if err == nil && len(outputBytes) > 0 {
 		var result map[string]interface{}
 		if err := json.Unmarshal(outputBytes, &result); err == nil {
