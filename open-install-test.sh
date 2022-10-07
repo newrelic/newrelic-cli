@@ -16,6 +16,13 @@ if [[ -z "${NEW_RELIC_REGION}" ]]; then
   exit 1
 fi
 
+if [ ! -n "$1" ]; then
+  echo "Please set the first parameter to dockerfile"
+  echo "For example ./open-install-test.sh dockerfiles/ubuntu.22-04.Dockerfile"
+  exit 1
+fi
+DOCKERFILE=$1
+
 # Check if we have the open install repo locally
 if [ ! -d "tmp/" ]
 then
@@ -39,7 +46,7 @@ if [ "$CHANGES" -gt 0 ]; then
 fi
 
 # Build container async
-docker build -t samuel:test . &
+docker build --file $DOCKERFILE -t openinstall:local . &
 pids[2]=$!
 
 # Remove old containers
@@ -55,10 +62,11 @@ done
 docker run -d \
     --name "cli-test" \
     --mount type=bind,source="$(pwd)"/bin,target=/app,readonly \
-    samuel:test
+    openinstall:local
 
 # Docker exec into it
 docker exec -it -e NEW_RELIC_API_KEY=$NEW_RELIC_API_KEY -e NEW_RELIC_ACCOUNT_ID=$NEW_RELIC_ACCOUNT_ID -e NEW_RELIC_REGION=$NEW_RELIC_REGION cli-test bash -c "./app/linux/newrelic install && cat /root/.newrelic/newrelic-cli.log"
 
-# Close it again
-docker rm --force cli-test
+# We leave the container running so we can exec into it for debugging
+echo "Use following command to exec into the running container"
+echo "docker exec -it -e NEW_RELIC_API_KEY=$NEW_RELIC_API_KEY -e NEW_RELIC_ACCOUNT_ID=$NEW_RELIC_ACCOUNT_ID -e NEW_RELIC_REGION=$NEW_RELIC_REGION cli-test bash"
