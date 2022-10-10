@@ -15,9 +15,9 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.0
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go v0.91.3
+	github.com/newrelic/newrelic-client-go v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/shirou/gopsutil v3.21.11+incompatible
+	github.com/shirou/gopsutil/v3 v3.22.2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.0
 	github.com/spf13/pflag v1.0.5
@@ -48,6 +48,7 @@ require (
 	github.com/itchyny/timefmt-go v0.1.4 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
+	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
@@ -55,6 +56,7 @@ require (
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -63,8 +65,8 @@ require (
 	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tklauser/go-sysconf v0.3.7 // indirect
-	github.com/tklauser/numcpus v0.2.3 // indirect
+	github.com/tklauser/go-sysconf v0.3.9 // indirect
+	github.com/tklauser/numcpus v0.3.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/fastjson v1.6.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect

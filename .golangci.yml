@@ -48,7 +48,7 @@ linters:
     - govet
     - ineffassign
     - misspell
-    - staticcheck
+#    - staticcheck
     - structcheck
     - unconvert
     - unused

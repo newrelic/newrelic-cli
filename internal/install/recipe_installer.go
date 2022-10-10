@@ -36,6 +36,7 @@ type RecipeInstall struct {
 	recipeExecutor         execution.RecipeExecutor
 	recipeValidator        RecipeValidator
 	recipeFileFetcher      RecipeFileFetcher
+	recipeLogForwarder     execution.RecipeLogForwarder
 	status                 *execution.InstallStatus
 	prompter               Prompter
 	licenseKeyFetcher      LicenseKeyFetcher
@@ -69,6 +70,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
+	lf := execution.NewRecipeLogForwarder()
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
@@ -87,20 +89,21 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstall{
-		discoverer:        d,
-		manifestValidator: mv,
-		recipeFetcher:     recipeFetcher,
-		recipeExecutor:    re,
-		recipeValidator:   v,
-		recipeFileFetcher: ff,
-		status:            statusRollup,
-		prompter:          p,
-		licenseKeyFetcher: lkf,
-		configValidator:   cv,
-		recipeVarPreparer: rvp,
-		agentValidator:    av,
-		progressIndicator: ux.NewSpinnerProgressIndicator(),
-		processEvaluator:  recipes.NewProcessEvaluator(),
+		discoverer:         d,
+		manifestValidator:  mv,
+		recipeFetcher:      recipeFetcher,
+		recipeExecutor:     re,
+		recipeValidator:    v,
+		recipeFileFetcher:  ff,
+		recipeLogForwarder: lf,
+		status:             statusRollup,
+		prompter:           p,
+		licenseKeyFetcher:  lkf,
+		configValidator:    cv,
+		recipeVarPreparer:  rvp,
+		agentValidator:     av,
+		progressIndicator:  ux.NewSpinnerProgressIndicator(),
+		processEvaluator:   recipes.NewProcessEvaluator(),
 	}
 
 	i.InstallerContext = ic
@@ -427,7 +430,7 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	if i.shouldInstallCore() {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)
-		err := bundleInstaller.InstallStopOnError(coreBundle, true)
+		err := bundleInstaller.InstallStopOnError(coreBundle, i.AssumeYes)
 		if err != nil {
 			log.Debugf("error installing core bundle:%s", err)
 			return err
@@ -683,6 +686,18 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
 				i.progressIndicator.Fail("Installing " + r.DisplayName)
+				if i.recipeExecutor.GetOutput().FailedRecipeOutput() != "" {
+					outputFilePath := i.recipeExecutor.GetOutput().FailedRecipeOutput()
+					sendLogs := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
+					if sendLogs {
+						i.progressIndicator.Start("Sending logs to New Relic")
+						i.recipeLogForwarder.SendLogsToNewRelic(outputFilePath, r.DisplayName)
+						i.progressIndicator.Success("Complete!")
+					}
+
+					os.Remove(outputFilePath)
+				}
+
 			}
 			log.Debugf("install error encountered: %s", err)
 			return "", err
