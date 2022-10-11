@@ -17,7 +17,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/newrelic/newrelic-client-go v0.91.3
 	github.com/pkg/errors v0.9.1
-	github.com/shirou/gopsutil v3.21.10+incompatible
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/spf13/pflag v1.0.5
@@ -33,7 +33,6 @@ require (
 )
 
 require (
-	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -68,6 +67,7 @@ require (
 	github.com/tklauser/numcpus v0.2.3 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/fastjson v1.6.3 // indirect
+	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
 	golang.org/x/text v0.3.6 // indirect
