@@ -161,12 +161,12 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error {
 	processes := i.processEvaluator.GetOrLoadProcesses(ctx)
 	count := 0
-	nameRegex := regexp.MustCompile("(?i)newrelic(\\.exe)?")
+	nameRegex := regexp.MustCompile(`(?i)newrelic(\.exe)?`)
 	for _, p := range processes {
 		name, err := p.Name()
 		if err == nil && nameRegex.MatchString(name) {
 			cmd, err := p.Cmd()
-			cmdRegex := regexp.MustCompile("(?i)newrelic(\\.exe)? install")
+			cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? install`)
 			if err == nil && cmdRegex.MatchString(cmd) {
 				log.Debugf(fmt.Sprintf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID()))
 				count++
@@ -209,7 +209,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 	hostname, _ := os.Hostname()
 	if hostname == "" {
-		message := fmt.Sprintf("This system is not supported for automatic installation, no host info. Please see our documentation for requirements.")
+		message := "This system is not supported for automatic installation, no host info. Please see our documentation for requirements."
 		return errors.New(message)
 	}
 
