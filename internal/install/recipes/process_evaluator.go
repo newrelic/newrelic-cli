@@ -5,7 +5,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
 
 	//"github.com/newrelic/newrelic-cli/internal/install/execution"

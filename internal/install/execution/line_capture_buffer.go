@@ -2,6 +2,7 @@ package execution
 
 import (
 	"io"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -9,7 +10,17 @@ import (
 type LineCaptureBuffer struct {
 	LastFullLine string
 	current      []byte
+	cliOutput    *os.File
 	writer       io.Writer
+}
+
+func NewLineCaptureToFileBuffer(w io.Writer, outputFile *os.File) *LineCaptureBuffer {
+	b := &LineCaptureBuffer{
+		cliOutput: outputFile,
+		writer:    w,
+	}
+
+	return b
 }
 
 func NewLineCaptureBuffer(w io.Writer) *LineCaptureBuffer {
@@ -28,6 +39,13 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 			if s != "" {
 				log.Debugf(s)
 				c.LastFullLine = s
+			}
+
+			if nil != c.cliOutput {
+				_, err := c.cliOutput.WriteString(s + "\n")
+				if nil != err {
+					log.Debugf("Couldn't write to cli output file: %e", err)
+				}
 			}
 
 			c.current = []byte{}

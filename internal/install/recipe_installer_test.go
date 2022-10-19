@@ -111,6 +111,7 @@ func TestInstallGuidedShouldSkipCoreInstall(t *testing.T) {
 	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
 }
+
 func TestInstallGuidedShouldSkipCoreWhileInstallOthers(t *testing.T) {
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
@@ -151,8 +152,7 @@ func TestInstallGuidedShouldNotSkipCoreInstall(t *testing.T) {
 		Status: execution.RecipeStatusTypes.AVAILABLE,
 	}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).
-		WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
 	err := recipeInstall.Install()
 

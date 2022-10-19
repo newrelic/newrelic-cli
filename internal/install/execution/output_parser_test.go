@@ -58,6 +58,28 @@ func TestOutputParserShouldGetMetadataMissing(t *testing.T) {
 	assert.Equal(t, result.Metadata()["key1"], "")
 }
 
+func TestOutputParserShouldGetFailedRecipeOutput(t *testing.T) {
+	output := givenJSON("{\"FailedRecipeOutput\":\"/tmp/some/output-file.out\"}")
+
+	result := NewOutputParser(output)
+	assert.NotNil(t, result.FailedRecipeOutput())
+	assert.Equal(t, "/tmp/some/output-file.out", result.FailedRecipeOutput())
+}
+
+func TestOutputParserShouldGetNoFailedRecipeOutput(t *testing.T) {
+	output := givenJSON("{\"EntityGuid\":\"abcd\"}")
+	result := NewOutputParser(output)
+	assert.NotNil(t, result.FailedRecipeOutput())
+	assert.Equal(t, "", result.FailedRecipeOutput())
+}
+
+func TestOutputParserShouldGetFailedRecipeOutputMissing(t *testing.T) {
+	output := givenJSON("{\"FailedRecipeOutput\":\"\"}")
+	result := NewOutputParser(output)
+	assert.NotNil(t, result.FailedRecipeOutput())
+	assert.Equal(t, "", result.FailedRecipeOutput())
+}
+
 func TestOutputParserShouldBeEmpty(t *testing.T) {
 	output := givenJSON("")
 	result := NewOutputParser(output)

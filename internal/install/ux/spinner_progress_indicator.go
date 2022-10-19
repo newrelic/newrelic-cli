@@ -87,7 +87,10 @@ func (s *SpinnerProgressIndicator) Success(msg string) {
 		fmt.Print(msg)
 	}
 
-	if strings.Contains(msg, "Installing") {
+	if strings.Contains(msg, "Complete!") {
+		fmt.Println()
+		return
+	} else if strings.Contains(msg, "Installing") {
 		printInstallFinalMessage("Installed", color.BgGreen)
 	} else {
 		printInstallFinalMessage("Connected", color.BgGreen)
