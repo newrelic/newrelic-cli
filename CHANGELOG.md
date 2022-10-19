@@ -1,5 +1,10 @@
+<a name="v0.56.0"></a>
+## [v0.56.0] - 2022-10-19
+### Features
+- **cli-logs:** Sending CLI output to LogsApi for infra agent recipe failures
+
 <a name="v0.55.8"></a>
-## [v0.55.8] - 2022-10-17
+## [v0.55.8] - 2022-10-19
 <a name="v0.55.7"></a>
 ## [v0.55.7] - 2022-10-17
 <a name="v0.55.6"></a>
@@ -1809,7 +1814,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.0...HEAD
+[v0.56.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.8...v0.56.0
 [v0.55.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.7...v0.55.8
 [v0.55.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.6...v0.55.7
 [v0.55.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.5...v0.55.6
