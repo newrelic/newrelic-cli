@@ -1,6 +1,9 @@
 package execution
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type OutputParser struct {
 	output map[string]interface{}
@@ -31,6 +34,17 @@ func (op *OutputParser) Metadata() map[string]string {
 		return result
 	}
 	return nil
+}
+
+// Get indicator if recipe wants to log the recipe output
+func (op *OutputParser) LogRecipeOutput() bool {
+	metadata := op.Metadata()
+	if val, ok := metadata["LogRecipeOutput"]; ok {
+		if flag, err := strconv.ParseBool(val); err == nil {
+			return flag
+		}
+	}
+	return false
 }
 
 func (op *OutputParser) FailedRecipeOutput() string {

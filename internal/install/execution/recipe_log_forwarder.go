@@ -51,15 +51,15 @@ func (lf *RecipeLogForwarder) PromptUserToSendLogs(reader io.Reader) bool {
 	return false
 }
 
-func (lf *RecipeLogForwarder) SendLogsToNewRelic(outputFilePath string, recipeName string) {
+func (lf *RecipeLogForwarder) SendLogsToNewRelic(recipeOutput []string, recipeName string) {
 	// open file, build log entries
-	f, err := os.Open(outputFilePath)
-	if err != nil {
-		log.Fatalf("open file error: %v", err)
-		return
-	}
-	defer f.Close()
-	lf.buildLogEntryBatch(recipeName, bufio.NewScanner(f))
+	// f, err := os.Open(outputFilePath)
+	// if err != nil {
+	// 	log.Fatalf("open file error: %v", err)
+	// 	return
+	// }
+	// defer f.Close()
+	lf.buildLogEntryBatch(recipeName, recipeOutput)
 
 	// building log api client
 	config, err := createLogClientConfig()
@@ -93,15 +93,15 @@ func (lf *RecipeLogForwarder) SendLogsToNewRelic(outputFilePath string, recipeNa
 	}
 }
 
-func (lf *RecipeLogForwarder) buildLogEntryBatch(recipeName string, fs *bufio.Scanner) {
+func (lf *RecipeLogForwarder) buildLogEntryBatch(recipeName string, recipeOutput []string) {
 	now := time.Now().UnixMilli()
-	for fs.Scan() {
+	for _, line := range recipeOutput {
 		now++ //using timestamp to retain log sequence
-		lf.LogEntries = append(lf.LogEntries, LogEntry{map[string]interface{}{"nr-install-recipe": recipeName, "timestamp": now}, "cli-output", fs.Text()})
+		lf.LogEntries = append(lf.LogEntries, LogEntry{map[string]interface{}{"nr-install-recipe": recipeName, "timestamp": now}, "cli-output", line})
 	}
-	if err := fs.Err(); err != nil {
-		log.Fatalf("scan file error: %v", err)
-	}
+	// if err := fs.Err(); err != nil {
+	// 	log.Fatalf("scan file error: %v", err)
+	// }
 }
 
 func createLogClientConfig() (nrConfig.Config, error) {

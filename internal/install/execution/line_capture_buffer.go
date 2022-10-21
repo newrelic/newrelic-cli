@@ -8,16 +8,18 @@ import (
 )
 
 type LineCaptureBuffer struct {
-	LastFullLine string
-	current      []byte
-	cliOutput    *os.File
-	writer       io.Writer
+	LastFullLine     string
+	current          []byte
+	cliOutput        *os.File
+	writer           io.Writer
+	fullRecipeOutput []string
 }
 
 func NewLineCaptureToFileBuffer(w io.Writer, outputFile *os.File) *LineCaptureBuffer {
 	b := &LineCaptureBuffer{
-		cliOutput: outputFile,
-		writer:    w,
+		cliOutput:        outputFile,
+		writer:           w,
+		fullRecipeOutput: []string{},
 	}
 
 	return b
@@ -25,7 +27,8 @@ func NewLineCaptureToFileBuffer(w io.Writer, outputFile *os.File) *LineCaptureBu
 
 func NewLineCaptureBuffer(w io.Writer) *LineCaptureBuffer {
 	b := &LineCaptureBuffer{
-		writer: w,
+		writer:           w,
+		fullRecipeOutput: []string{},
 	}
 
 	return b
@@ -41,6 +44,7 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 				c.LastFullLine = s
 			}
 
+			c.fullRecipeOutput = append(c.fullRecipeOutput, s)
 			if nil != c.cliOutput {
 				_, err := c.cliOutput.WriteString(s + "\n")
 				if nil != err {
@@ -63,4 +67,8 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 
 func (c *LineCaptureBuffer) Current() string {
 	return string(c.current)
+}
+
+func (c *LineCaptureBuffer) GetFullRecipeOutput() []string {
+	return c.fullRecipeOutput
 }
