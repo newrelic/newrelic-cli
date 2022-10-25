@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nrdb"
 )
 
 type MockNRDBClient struct {

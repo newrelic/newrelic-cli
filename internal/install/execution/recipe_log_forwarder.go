@@ -13,9 +13,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 
-	nrConfig "github.com/newrelic/newrelic-client-go/pkg/config"
-	nrLogs "github.com/newrelic/newrelic-client-go/pkg/logs"
-	"github.com/newrelic/newrelic-client-go/pkg/region"
+	nrConfig "github.com/newrelic/newrelic-client-go/v2/pkg/config"
+	nrLogs "github.com/newrelic/newrelic-client-go/v2/pkg/logs"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/region"
 )
 
 type LogEntry struct {

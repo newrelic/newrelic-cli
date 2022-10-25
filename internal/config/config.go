@@ -7,7 +7,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-client-go/pkg/region"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/region"
 )
 
 const (

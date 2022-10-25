@@ -1,6 +1,6 @@
 package execution
 
-import "github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
+import "github.com/newrelic/newrelic-client-go/v2/pkg/nerdstorage"
 
 type MockNerdStorageClient struct {
 	WriteDocumentWithUserScopeVal          interface{}
