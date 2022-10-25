@@ -6,7 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-client-go/pkg/dashboards"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/dashboards"
 )
 
 var (

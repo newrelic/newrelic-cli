@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
+	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
 type RetryContext struct {

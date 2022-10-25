@@ -18,7 +18,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
+	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {

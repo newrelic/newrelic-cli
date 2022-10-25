@@ -11,11 +11,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/common"
-	"github.com/newrelic/newrelic-client-go/pkg/config"
-	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
-	"github.com/newrelic/newrelic-client-go/pkg/workloads"
+	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/common"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/config"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdstorage"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/workloads"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )

@@ -1,7 +1,7 @@
 package execution
 
 import (
-	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdstorage"
 )
 
 type NerdStorageClient interface {
