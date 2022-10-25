@@ -3,7 +3,6 @@ package execution
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,11 +11,6 @@ import (
 // odd hack that works
 func cleanup() {
 	fmt.Printf("\n")
-}
-
-func cleanupWithFile(filename string) {
-	os.Remove(filename)
-	cleanup()
 }
 
 func TestSendLogsIsTrueWhenyYOrNothingEntered(t *testing.T) {
@@ -50,20 +44,8 @@ func TestSendLogsIsFalseWhenAnythingButyYandNothingEntered(t *testing.T) {
 }
 
 func TestSendLogsToNewRelicBuildsLogEntryForEachLogLine(t *testing.T) {
-	file, err := os.CreateTemp("", "some-test-file")
-	assert.NoError(t, err)
-	outputFile := file.Name()
-
-	_, err = file.WriteString("error line one\n")
-	assert.NoError(t, err)
-	_, err = file.WriteString("error line two\n")
-	assert.NoError(t, err)
-	_, err = file.WriteString("error line three\n")
-	assert.NoError(t, err)
-
 	rlf := NewRecipeLogForwarder()
-	rlf.SendLogsToNewRelic(outputFile, "test-recipe")
+	rlf.SendLogsToNewRelic("test-recipe", []string{"error line one\n", "error line two\n", "error line three\n"})
 
 	assert.Equal(t, 3, len(rlf.LogEntries))
-	cleanupWithFile(outputFile)
 }

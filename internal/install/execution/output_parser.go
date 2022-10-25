@@ -34,15 +34,8 @@ func (op *OutputParser) Metadata() map[string]string {
 }
 
 func (op *OutputParser) LogCaptureEnabled() bool {
-	if val, ok := op.output["capturedCliOutput"]; ok {
+	if val, ok := op.output["CapturedCliOutput"]; ok {
 		return val.(bool)
 	}
 	return false
 }
-
-//func (op *OutputParser) FailedRecipeOutput() string {
-//	if val, ok := op.output["FailedRecipeOutput"]; ok {
-//		return val.(string)
-//	}
-//	return ""
-//}

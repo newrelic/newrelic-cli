@@ -1,31 +1,21 @@
 package execution
 
 import (
-	"io"
-	"os"
-
 	log "github.com/sirupsen/logrus"
+	"io"
 )
 
 type LineCaptureBuffer struct {
 	LastFullLine     string
 	fullRecipeOutput []string
 	current          []byte
-	cliOutput        *os.File
 	writer           io.Writer
-}
-
-func NewLineCaptureBufferMultiWriters(out io.Writer, err io.Writer) *LineCaptureBuffer {
-	b := &LineCaptureBuffer{
-		writer: io.MultiWriter(out, err),
-	}
-
-	return b
 }
 
 func NewLineCaptureBuffer(w io.Writer) *LineCaptureBuffer {
 	b := &LineCaptureBuffer{
-		writer: w,
+		writer:           w,
+		fullRecipeOutput: []string{},
 	}
 
 	return b

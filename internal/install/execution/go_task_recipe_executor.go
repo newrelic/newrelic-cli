@@ -79,21 +79,15 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	defer outputJSONFile.Close()
 	defer os.Remove(outputJSONFile.Name())
 
-	captureCliLogs, _ := strconv.ParseBool(recipeVars["CAPTURE_CLI_LOGS"])
-	if captureCliLogs {
-		outputJSONFile.WriteString("{\"cliOutputCaptured\":true}\n")
-	}
-
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
 	var stdoutCapture *LineCaptureBuffer
 	var stderrCapture *LineCaptureBuffer
 
 	if silentInstall {
-		buffer := NewLineCaptureBuffer(&bytes.Buffer{})
-		stdoutCapture = buffer
-		stderrCapture = buffer
+		stdoutCapture = NewLineCaptureBuffer(&bytes.Buffer{})
+		stderrCapture = NewLineCaptureBuffer(&bytes.Buffer{})
 	} else {
-		buffer := NewLineCaptureBufferMultiWriters(re.Stdout, re.Stderr)
+		buffer := NewLineCaptureBuffer(re.Stdout)
 		stdoutCapture = buffer
 		stderrCapture = buffer
 	}
@@ -114,16 +108,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	for k, val := range recipeVars {
 		e.Taskfile.Vars.Set(k, taskfile.Var{Static: val})
 	}
-
-	// configure cli output capture, potentially creating temp file to post logs to New Relic
-	//var stdoutCapture *LineCaptureBuffer
-	//var stderrCapture *LineCaptureBuffer
-	//stdoutCapture, stderrCapture, err = configureRecipeOutputCapture(re, e.Taskfile.Vars.ToCacheMap())
-	//if err != nil {
-	//	return err
-	//}
-	//e.Stdout = stdoutCapture
-	//e.Stderr = stderrCapture
+	setCapturedCliOutputFlag(e.Taskfile.Vars.ToCacheMap(), outputJSONFile)
 
 	if err = e.Run(ctx, calls...); err != nil {
 		log.WithFields(log.Fields{
@@ -165,47 +150,19 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		return goTaskError
 	}
 
-	// remove output file immediately since install did not error
-	// will be nil for recipes other than infrastructure-agent-installer
-	//if nil != cliOutputFile {
-	//	os.Remove(cliOutputFile.Name())
-	//}
 	re.setOutput(outputJSONFile.Name())
 
 	return nil
 }
 
-//func configureRecipeOutputCapture(re *GoTaskRecipeExecutor, recipeVars map[string]interface{}) (*LineCaptureBuffer, *LineCaptureBuffer, error) {
-//	silentInstall := false
-//	stdOutBuffer := NewLineCaptureBuffer(re.Stdout)
-//	stdErrBuffer := NewLineCaptureBuffer(re.Stderr)
-//
-//	if assumeYes, ok := recipeVars["assumeYes"]; ok {
-//		silentInstall, _ = strconv.ParseBool(assumeYes.(string))
-//		if silentInstall {
-//			stdOutBuffer = NewLineCaptureBuffer(&bytes.Buffer{})
-//			stdErrBuffer = NewLineCaptureBuffer(&bytes.Buffer{})
-//		}
-//	}
-//
-//	return stdOutBuffer, stdErrBuffer, nil
-
-// Create a temporary cli output file only for non-silent infra installs
-//sendLogs := false
-//if captureLogs, ok := recipeVars["CAPTURE_CLI_LOGS"]; ok {
-//	sendLogs, _ = strconv.ParseBool(captureLogs.(string))
-//	if sendLogs {
-//		var err error
-//		cliOutputFile, err = ioutil.TempFile("", fmt.Sprintf("%s_cli_stderr_", recipeName))
-//		if err != nil {
-//			log.Debugf("Could not create temp file for recipe cli output: %e", err)
-//			cliOutputFile = nil
-//		}
-//	}
-//}
-//return NewLineCaptureToFileBuffer(re.Stdout, cliOutputFile), NewLineCaptureToFileBuffer(re.Stderr, cliOutputFile), cliOutputFile, nil
-//
-//}
+func setCapturedCliOutputFlag(recipeVars map[string]interface{}, outputJSONFile *os.File) {
+	if logsCapturedByRecipe, ok := recipeVars["CAPTURE_CLI_LOGS"]; ok {
+		captureCliLogs, _ := strconv.ParseBool(logsCapturedByRecipe.(string))
+		if captureCliLogs {
+			outputJSONFile.WriteString("{\"CapturedCliOutput\":true}\n")
+		}
+	}
+}
 
 func createRecipeTempFile(r types.OpenInstallationRecipe) (*os.File, error) {
 	out := []byte(r.Install)

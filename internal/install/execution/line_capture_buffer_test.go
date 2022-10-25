@@ -2,8 +2,6 @@ package execution
 
 import (
 	"bytes"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,22 +19,25 @@ func TestLineCaptureBuffer(t *testing.T) {
 	require.Equal(t, "abc\n123\ndef", w.String())
 }
 
-func TestLineCaptureBufferToFile(t *testing.T) {
-
+func TestLineCaptureBufferCapturesEntireOutput(t *testing.T) {
 	w := bytes.NewBufferString("")
-	outputFile, _ := ioutil.TempFile("", "some-test-file_")
-	defer outputFile.Close()
-	defer os.Remove(outputFile.Name())
 
-	b := NewLineCaptureToFileBuffer(w, outputFile)
-	_, err := b.Write([]byte("abc\n123\ndef"))
+	b := NewLineCaptureBuffer(w)
+	_, err := b.Write([]byte("abc\n"))
 	assert.NoError(t, err)
-	require.Equal(t, "123", b.LastFullLine)
-	require.Equal(t, "def", b.Current())
-	require.Equal(t, "abc\n123\ndef", w.String())
 
-	data, err := os.ReadFile(outputFile.Name())
+	_, err = b.Write([]byte("123\n"))
 	assert.NoError(t, err)
-	require.Equal(t, "abc\n123\n", string(data)) // only writes full lines to output file
+
+	_, err = b.Write([]byte("def\n"))
+	assert.NoError(t, err)
+
+	_, err = b.Write([]byte("nope"))
+	assert.NoError(t, err)
+
+	require.Equal(t, "def", b.LastFullLine)
+	require.Equal(t, "nope", b.Current())
+
+	require.Equal(t, len(b.fullRecipeOutput), 3)
 
 }
