@@ -33,9 +33,16 @@ func (op *OutputParser) Metadata() map[string]string {
 	return nil
 }
 
-func (op *OutputParser) FailedRecipeOutput() string {
-	if val, ok := op.output["FailedRecipeOutput"]; ok {
-		return val.(string)
+func (op *OutputParser) LogCaptureEnabled() bool {
+	if val, ok := op.output["capturedCliOutput"]; ok {
+		return val.(bool)
 	}
-	return ""
+	return false
 }
+
+//func (op *OutputParser) FailedRecipeOutput() string {
+//	if val, ok := op.output["FailedRecipeOutput"]; ok {
+//		return val.(string)
+//	}
+//	return ""
+//}

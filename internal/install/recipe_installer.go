@@ -686,16 +686,16 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
 				i.progressIndicator.Fail("Installing " + r.DisplayName)
-				if i.recipeExecutor.GetOutput().FailedRecipeOutput() != "" {
-					outputFilePath := i.recipeExecutor.GetOutput().FailedRecipeOutput()
+				recipeOutput := i.recipeExecutor.GetRecipeOutput()
+				capturedLogs := i.recipeExecutor.GetOutput().LogCaptureEnabled()
+				if len(recipeOutput) > 0 && capturedLogs {
 					sendLogs := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
 					if sendLogs {
 						i.progressIndicator.Start("Sending logs to New Relic")
-						i.recipeLogForwarder.SendLogsToNewRelic(outputFilePath, r.DisplayName)
+						i.recipeLogForwarder.SendLogsToNewRelic(r.DisplayName, recipeOutput)
 						i.progressIndicator.Success("Complete!")
 					}
 
-					os.Remove(outputFilePath)
 				}
 
 			}

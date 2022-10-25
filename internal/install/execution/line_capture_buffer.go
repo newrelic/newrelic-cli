@@ -8,16 +8,16 @@ import (
 )
 
 type LineCaptureBuffer struct {
-	LastFullLine string
-	current      []byte
-	cliOutput    *os.File
-	writer       io.Writer
+	LastFullLine     string
+	fullRecipeOutput []string
+	current          []byte
+	cliOutput        *os.File
+	writer           io.Writer
 }
 
-func NewLineCaptureToFileBuffer(w io.Writer, outputFile *os.File) *LineCaptureBuffer {
+func NewLineCaptureBufferMultiWriters(out io.Writer, err io.Writer) *LineCaptureBuffer {
 	b := &LineCaptureBuffer{
-		cliOutput: outputFile,
-		writer:    w,
+		writer: io.MultiWriter(out, err),
 	}
 
 	return b
@@ -35,17 +35,11 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 	for _, b := range p {
 		if b == '\n' {
 			s := string(c.current)
+			c.fullRecipeOutput = append(c.fullRecipeOutput, s)
 
 			if s != "" {
 				log.Debugf(s)
 				c.LastFullLine = s
-			}
-
-			if nil != c.cliOutput {
-				_, err := c.cliOutput.WriteString(s + "\n")
-				if nil != err {
-					log.Debugf("Couldn't write to cli output file: %e", err)
-				}
 			}
 
 			c.current = []byte{}
@@ -63,4 +57,8 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 
 func (c *LineCaptureBuffer) Current() string {
 	return string(c.current)
+}
+
+func (c *LineCaptureBuffer) GetFullRecipeOutput() []string {
+	return c.fullRecipeOutput
 }
