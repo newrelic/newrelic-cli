@@ -36,7 +36,7 @@ type RecipeInstall struct {
 	recipeExecutor         execution.RecipeExecutor
 	recipeValidator        RecipeValidator
 	recipeFileFetcher      RecipeFileFetcher
-	recipeLogForwarder     execution.RecipeLogForwarder
+	recipeLogForwarder     *execution.RecipeLogForwarder
 	status                 *execution.InstallStatus
 	prompter               Prompter
 	licenseKeyFetcher      LicenseKeyFetcher
@@ -685,22 +685,25 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 			if errors.Is(err, types.ErrInterrupt) {
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
-				i.progressIndicator.Fail("Installing " + r.DisplayName)
-				if i.recipeExecutor.GetOutput().FailedRecipeOutput() != "" {
-					outputFilePath := i.recipeExecutor.GetOutput().FailedRecipeOutput()
-					sendLogs := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
-					if sendLogs {
-						i.progressIndicator.Start("Sending logs to New Relic")
-						i.recipeLogForwarder.SendLogsToNewRelic(outputFilePath, r.DisplayName)
-						i.progressIndicator.Success("Complete!")
-					}
-
-					os.Remove(outputFilePath)
-				}
-
+				handleRecipeFailure(i, r.DisplayName)
 			}
 			log.Debugf("install error encountered: %s", err)
 			return "", err
+		}
+	}
+}
+
+func handleRecipeFailure(i *RecipeInstall, recipeName string) {
+	i.progressIndicator.Fail("Installing " + recipeName)
+
+	recipeOutput := i.recipeExecutor.GetRecipeOutput()
+	logCaptureEnabledForRecipe := i.recipeExecutor.GetOutput().IsCapturedCliOutput()
+	if len(recipeOutput) > 0 && logCaptureEnabledForRecipe {
+		sendLogs := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
+		if sendLogs {
+			i.progressIndicator.Start("Sending logs to New Relic")
+			i.recipeLogForwarder.SendLogsToNewRelic(recipeName, recipeOutput)
+			i.progressIndicator.Success("Complete!")
 		}
 	}
 }
