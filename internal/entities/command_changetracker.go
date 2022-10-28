@@ -22,7 +22,7 @@ var (
 	deploymentType string
 	description    string
 	groupID        string
-	timestamp      string
+	timestamp      int64
 	user           string
 	version        string
 )
@@ -50,8 +50,10 @@ The changetracker command marks a deployment (change?) for a New Relic entity
 		params := changetracking.ChangeTrackingDeploymentInput{}
 
 		// TODO: How to handle timestamp best?
-		if timestamp == "" {
+		if timestamp == 0 {
 			params.Timestamp = nrtime.EpochMilliseconds(time.Now())
+		} else {
+			params.Timestamp = nrtime.EpochMilliseconds(time.UnixMilli(timestamp))
 		}
 
 		params.Changelog = changelog
@@ -81,12 +83,12 @@ func init() {
 	cmdEntityChangetrackerCreate.Flags().StringVarP(&version, "version", "v", "", "the version associate with this change")
 	utils.LogIfError(cmdEntityChangetrackerCreate.MarkFlagRequired("version"))
 
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&changelog, "changelog", "", "", "a URL for the changelog or list of changes if not linkable")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&commit, "commit", "", "", "the commit identifier, for example, a Git commit SHA")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&deepLink, "deepLink", "", "", "a link back to the system generating the deployment")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&deploymentType, "deploymentType", "", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&description, "description", "", "", "a description of the deployment")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&groupID, "groupID", "", "", "string that can be used to correlate two or more events")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&timestamp, "timestamp", "t", "", "the start time of the deployment, the number of milliseconds since the Unix epoch, defaults to now")
+	cmdEntityChangetrackerCreate.Flags().StringVar(&changelog, "changelog", "", "a URL for the changelog or list of changes if not linkable")
+	cmdEntityChangetrackerCreate.Flags().StringVar(&commit, "commit", "", "the commit identifier, for example, a Git commit SHA")
+	cmdEntityChangetrackerCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
+	cmdEntityChangetrackerCreate.Flags().StringVar(&deploymentType, "deploymentType", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
+	cmdEntityChangetrackerCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
+	cmdEntityChangetrackerCreate.Flags().StringVar(&groupID, "groupID", "", "string that can be used to correlate two or more events")
+	cmdEntityChangetrackerCreate.Flags().Int64VarP(&timestamp, "timestamp", "t", 0, "the start time of the deployment, the number of milliseconds since the Unix epoch, defaults to now")
 	cmdEntityChangetrackerCreate.Flags().StringVarP(&groupID, "user", "u", "", "username of the deployer or bot")
 }
