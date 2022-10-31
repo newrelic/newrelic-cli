@@ -49,7 +49,6 @@ The changetracker command marks a deployment (change?) for a New Relic entity
 	Run: func(cmd *cobra.Command, args []string) {
 		params := changetracking.ChangeTrackingDeploymentInput{}
 
-		// TODO: How to handle timestamp best?
 		if timestamp == 0 {
 			params.Timestamp = nrtime.EpochMilliseconds(time.Now())
 		} else {
