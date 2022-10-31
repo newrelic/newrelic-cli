@@ -89,5 +89,5 @@ func init() {
 	cmdEntityChangetrackerCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
 	cmdEntityChangetrackerCreate.Flags().StringVar(&groupID, "groupID", "", "string that can be used to correlate two or more events")
 	cmdEntityChangetrackerCreate.Flags().Int64VarP(&timestamp, "timestamp", "t", 0, "the start time of the deployment, the number of milliseconds since the Unix epoch, defaults to now")
-	cmdEntityChangetrackerCreate.Flags().StringVarP(&groupID, "user", "u", "", "username of the deployer or bot")
+	cmdEntityChangetrackerCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
 }
