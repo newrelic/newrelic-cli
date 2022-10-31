@@ -46,7 +46,7 @@ The search command performs a search for New Relic entities.
 		}
 
 		if entityTag != "" {
-			key, value, err := assembleTagValue(entityTag)
+			key, value, err := utils.AssembleTagValue(entityTag)
 			utils.LogIfFatal(err)
 
 			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
