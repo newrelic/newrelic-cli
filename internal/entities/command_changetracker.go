@@ -32,7 +32,7 @@ var cmdEntityChangetracker = &cobra.Command{
 	Short: "Create a New Relic entity change tracker",
 	Long: `Create a New Relic entity change tracker
 	
-The changetracker command marks a deployment for a New Relic entity
+The changetracker command marks a change for a New Relic entity
 	`,
 	Example: "newrelic entity changetracker create --entityGUID <GUID> --version <0.0.1>",
 }
@@ -42,7 +42,7 @@ var cmdEntityChangetrackerCreate = &cobra.Command{
 	Short: "Create a New Relic entity change tracker",
 	Long: `Create a New Relic entity change tracker
 	
-The changetracker command marks a deployment (change?) for a New Relic entity
+The changetracker command marks a change for a New Relic entity
 	`,
 	Example: "newrelic entity changetracker create --guid <GUID> --version <0.0.1>",
 	PreRun:  client.RequireClient,
