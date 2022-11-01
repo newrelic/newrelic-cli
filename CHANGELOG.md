@@ -1,3 +1,33 @@
+<a name="v0.56.1"></a>
+## [v0.56.1] - 2022-10-19
+<a name="v0.56.0"></a>
+## [v0.56.0] - 2022-10-19
+### Features
+- **cli-logs:** Sending CLI output to LogsApi for infra agent recipe failures
+
+<a name="v0.55.8"></a>
+## [v0.55.8] - 2022-10-19
+<a name="v0.55.7"></a>
+## [v0.55.7] - 2022-10-17
+<a name="v0.55.6"></a>
+## [v0.55.6] - 2022-10-13
+<a name="v0.55.5"></a>
+## [v0.55.5] - 2022-10-11
+<a name="v0.55.4"></a>
+## [v0.55.4] - 2022-10-06
+<a name="v0.55.3"></a>
+## [v0.55.3] - 2022-10-06
+<a name="v0.55.2"></a>
+## [v0.55.2] - 2022-09-29
+<a name="v0.55.2-abc"></a>
+## [v0.55.2-abc] - 2022-10-06
+<a name="v0.55.1"></a>
+## [v0.55.1] - 2022-09-27
+<a name="v0.55.0"></a>
+## [v0.55.0] - 2022-09-22
+### Features
+- **utils:** add yq utility for embedded yaml editing
+
 <a name="v0.54.1"></a>
 ## [v0.54.1] - 2022-09-14
 ### Bug Fixes
@@ -1786,7 +1816,19 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.1...HEAD
+[v0.56.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.0...v0.56.1
+[v0.56.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.8...v0.56.0
+[v0.55.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.7...v0.55.8
+[v0.55.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.6...v0.55.7
+[v0.55.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.5...v0.55.6
+[v0.55.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.4...v0.55.5
+[v0.55.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.3...v0.55.4
+[v0.55.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2...v0.55.3
+[v0.55.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2-abc...v0.55.2
+[v0.55.2-abc]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.1...v0.55.2-abc
+[v0.55.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.0...v0.55.1
+[v0.55.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.1...v0.55.0
 [v0.54.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.0...v0.54.1
 [v0.54.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.3...v0.54.0
 [v0.53.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.2...v0.53.3

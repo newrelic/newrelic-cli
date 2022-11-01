@@ -21,7 +21,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
 
 const (
@@ -36,6 +36,7 @@ type RecipeInstall struct {
 	recipeExecutor         execution.RecipeExecutor
 	recipeValidator        RecipeValidator
 	recipeFileFetcher      RecipeFileFetcher
+	recipeLogForwarder     execution.RecipeLogForwarder
 	status                 *execution.InstallStatus
 	prompter               Prompter
 	licenseKeyFetcher      LicenseKeyFetcher
@@ -69,6 +70,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
+	lf := execution.NewRecipeLogForwarder()
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
@@ -87,20 +89,21 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstall{
-		discoverer:        d,
-		manifestValidator: mv,
-		recipeFetcher:     recipeFetcher,
-		recipeExecutor:    re,
-		recipeValidator:   v,
-		recipeFileFetcher: ff,
-		status:            statusRollup,
-		prompter:          p,
-		licenseKeyFetcher: lkf,
-		configValidator:   cv,
-		recipeVarPreparer: rvp,
-		agentValidator:    av,
-		progressIndicator: ux.NewSpinnerProgressIndicator(),
-		processEvaluator:  recipes.NewProcessEvaluator(),
+		discoverer:         d,
+		manifestValidator:  mv,
+		recipeFetcher:      recipeFetcher,
+		recipeExecutor:     re,
+		recipeValidator:    v,
+		recipeFileFetcher:  ff,
+		recipeLogForwarder: lf,
+		status:             statusRollup,
+		prompter:           p,
+		licenseKeyFetcher:  lkf,
+		configValidator:    cv,
+		recipeVarPreparer:  rvp,
+		agentValidator:     av,
+		progressIndicator:  ux.NewSpinnerProgressIndicator(),
+		processEvaluator:   recipes.NewProcessEvaluator(),
 	}
 
 	i.InstallerContext = ic
@@ -161,12 +164,12 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error {
 	processes := i.processEvaluator.GetOrLoadProcesses(ctx)
 	count := 0
-	nameRegex := regexp.MustCompile("(?i)newrelic(\\.exe)?")
+	nameRegex := regexp.MustCompile(`(?i)newrelic(\.exe)?`)
 	for _, p := range processes {
 		name, err := p.Name()
 		if err == nil && nameRegex.MatchString(name) {
 			cmd, err := p.Cmd()
-			cmdRegex := regexp.MustCompile("(?i)newrelic(\\.exe)? install")
+			cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? install`)
 			if err == nil && cmdRegex.MatchString(cmd) {
 				log.Debugf(fmt.Sprintf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID()))
 				count++
@@ -209,7 +212,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 	hostname, _ := os.Hostname()
 	if hostname == "" {
-		message := fmt.Sprintf("This system is not supported for automatic installation, no host info. Please see our documentation for requirements.")
+		message := "This system is not supported for automatic installation, no host info. Please see our documentation for requirements."
 		return errors.New(message)
 	}
 
@@ -427,7 +430,7 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	if i.shouldInstallCore() {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)
-		err := bundleInstaller.InstallStopOnError(coreBundle, true)
+		err := bundleInstaller.InstallStopOnError(coreBundle, i.AssumeYes)
 		if err != nil {
 			log.Debugf("error installing core bundle:%s", err)
 			return err
@@ -683,6 +686,18 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
 				i.progressIndicator.Fail("Installing " + r.DisplayName)
+				if i.recipeExecutor.GetOutput().FailedRecipeOutput() != "" {
+					outputFilePath := i.recipeExecutor.GetOutput().FailedRecipeOutput()
+					sendLogs := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
+					if sendLogs {
+						i.progressIndicator.Start("Sending logs to New Relic")
+						i.recipeLogForwarder.SendLogsToNewRelic(outputFilePath, r.DisplayName)
+						i.progressIndicator.Success("Complete!")
+					}
+
+					os.Remove(outputFilePath)
+				}
+
 			}
 			log.Debugf("install error encountered: %s", err)
 			return "", err

@@ -1,6 +1,6 @@
 package execution
 
-import "github.com/newrelic/newrelic-client-go/pkg/installevents"
+import "github.com/newrelic/newrelic-client-go/v2/pkg/installevents"
 
 type MockInstalleventsClient struct {
 	CreateInstallEventVal        *installevents.InstallationRecipeEvent

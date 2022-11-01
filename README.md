@@ -15,7 +15,7 @@
 [![Docker Size](https://img.shields.io/docker/image-size/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 [![Docker Version](https://img.shields.io/docker/v/newrelic/cli.svg?sort=semver)](https://hub.docker.com/r/newrelic/k8s-operator)
 
-The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://newrelic.github.io/developer-toolkit/).
+The New Relic CLI is an officially supported command line interface for New Relic, released as part of the [Developer Toolkit](https://developer.newrelic.com).
 
 - [Overview](#overview)
   - [Getting Started](#getting-started)
@@ -380,6 +380,7 @@ time.
   CLI to install the New Relic AWS Lambda integration and layers.
 - [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
   A utility that automatically detects common problems with New Relic agents.
+
 
 ## Open Source License
 

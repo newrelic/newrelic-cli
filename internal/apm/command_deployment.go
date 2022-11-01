@@ -4,7 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-client-go/pkg/apm"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/apm"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"

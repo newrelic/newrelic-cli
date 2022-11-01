@@ -13,7 +13,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	ng "github.com/newrelic/newrelic-client-go/pkg/nerdgraph"
+	ng "github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
 )
 
 var (
