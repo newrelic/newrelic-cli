@@ -32,3 +32,8 @@ jobs:
         env:
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+
+      - name: Run coverage
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
