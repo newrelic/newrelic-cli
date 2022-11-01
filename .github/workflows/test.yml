@@ -76,7 +76,12 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Unit Tests
-        run: make test-unit
+        run: make test-unit cover-report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage.out
 
   test-integration:
     runs-on: ubuntu-latest
