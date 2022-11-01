@@ -33,8 +33,9 @@ func NewHTTPClient(apiKey string) HTTPClientInterface {
 func (c *HTTPClient) Get(ctx context.Context, url string) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
+		escapedUrl := html.EscapeString(url)
 		log.WithFields(log.Fields{
-			"url":   html.EscapeString(url),
+			"url":   escapedUrl,
 			"error": err.Error(),
 		}).Debug("HTTPClient: error creating new GET request")
 		return nil, err
@@ -56,8 +57,9 @@ func (c *HTTPClient) Post(ctx context.Context, url string, requestBody []byte) (
 	rBody := bytes.NewBuffer(requestBody)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, rBody)
 	if err != nil {
+		escapedUrl := html.EscapeString(url)
 		log.WithFields(log.Fields{
-			"url":   html.EscapeString(url),
+			"url":   escapedUrl,
 			"error": err.Error(),
 		}).Debug("HTTPClient: error creating new POST request")
 		return nil, err
@@ -89,17 +91,18 @@ func (c *HTTPClient) Do(req *http.Request) (*http.Response, error) {
 
 	respStatusCode := getResponseCodeString(resp)
 	url := req.URL.String()
+	escapedUrl := html.EscapeString(url)
 	if err != nil || !isResponseSuccess(resp) {
 		log.WithFields(log.Fields{
 			"method":     req.Method,
 			"statusCode": respStatusCode,
-			"url":        html.EscapeString(url),
+			"url":        escapedUrl,
 			"error":      err,
 		}).Debug("HTTPClient: error performing request")
 	}
 
 	if !isResponseSuccess(resp) {
-		err = fmt.Errorf("error performing %s request to %s: %s", req.Method, html.EscapeString(url), respStatusCode)
+		err = fmt.Errorf("error performing %s request to %s: %s", req.Method, escapedUrl, respStatusCode)
 	}
 
 	return resp, err
