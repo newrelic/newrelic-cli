@@ -13,6 +13,7 @@ import (
 	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -22,6 +23,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/common"
 )
 
 const (
@@ -679,7 +681,7 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		select {
 		case entityGUID := <-successChan:
 			i.progressIndicator.Success("Installing " + r.DisplayName)
-
+			_ = i.tagEntity(ctx, entityGUID)
 			return entityGUID, nil
 		case err := <-errorChan:
 			if errors.Is(err, types.ErrInterrupt) {
@@ -703,6 +705,16 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 			return "", err
 		}
 	}
+}
+
+func (i *RecipeInstall) tagEntity(ctx context.Context, entityGUID string) error {
+	if tags, ok := i.GetEntityTags(); ok {
+		_, err := client.NRClient.Entities.TaggingReplaceTagsOnEntityWithContext(ctx, common.EntityGUID(entityGUID), tags)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func checkNetwork(nrClient *newrelic.NewRelic) {

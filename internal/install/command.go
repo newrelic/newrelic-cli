@@ -21,6 +21,7 @@ var (
 	recipeNames  []string
 	recipePaths  []string
 	testMode     bool
+	entityTags   []string
 )
 
 // Command represents the install command.
@@ -34,6 +35,7 @@ var Command = &cobra.Command{
 			LocalRecipes: localRecipes,
 			RecipeNames:  recipeNames,
 			RecipePaths:  recipePaths,
+			EntityTags:   entityTags,
 		}
 
 		logLevel := configAPI.GetLogLevel()
@@ -119,4 +121,5 @@ func init() {
 	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
+	Command.Flags().StringSliceVarP(&entityTags, "tag", "", []string{}, "the tags to add")
 }

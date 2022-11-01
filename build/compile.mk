@@ -35,12 +35,13 @@ compile-all: deps-only
 	done
 
 compile-only: deps-only
+	@echo "=== $(GOARCH) $(GOOS)=== [ GOOS          ]: building commands:"
 	@echo "=== $(PROJECT_NAME) === [ compile          ]: building commands:"
 	@mkdir -p $(BUILD_DIR)/$(GOOS)
 	@for b in $(BINS); do \
 		echo "=== $(PROJECT_NAME) === [ compile          ]:     $(BUILD_DIR)/$(GOOS)/$$b"; \
 		BUILD_FILES=`find $(SRCDIR)/cmd/$$b -type f -name "*.go"` ; \
-		CGO_ENABLED=0 GOOS=$(GOOS) $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
+		CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -ldflags=$(LDFLAGS) -o $(BUILD_DIR)/$(GOOS)/$$b $$BUILD_FILES ; \
 	done
 
 # Override GOOS for these specific targets
@@ -49,6 +50,10 @@ compile-darwin: deps-only compile-only
 
 compile-linux: GOOS=linux
 compile-linux: deps-only compile-only
+
+compile-linux-x86: GOOS=linux
+compile-linux-x86: GOARCH=386
+compile-linux-x86: deps-only compile-only
 
 compile-windows: GOOS=windows
 compile-windows: deps-only compile-only
