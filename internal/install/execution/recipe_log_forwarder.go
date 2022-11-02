@@ -21,6 +21,8 @@ import (
 type LogForwarder interface {
 	PromptUserToSendLogs(reader io.Reader) bool
 	SendLogsToNewRelic(recipeName string, data []string)
+	HasUserOptedIn() bool
+	SetUserOptedIn(val bool)
 }
 
 type LogEntry struct {
@@ -31,11 +33,13 @@ type LogEntry struct {
 
 type RecipeLogForwarder struct {
 	LogEntries []LogEntry
+	optIn      bool
 }
 
 func NewRecipeLogForwarder() *RecipeLogForwarder {
 	return &RecipeLogForwarder{
 		LogEntries: []LogEntry{},
+		optIn:      false,
 	}
 }
 
@@ -54,6 +58,14 @@ func (lf *RecipeLogForwarder) PromptUserToSendLogs(reader io.Reader) bool {
 	}
 
 	return false
+}
+
+func (lf *RecipeLogForwarder) HasUserOptedIn() bool {
+	return lf.optIn
+}
+
+func (lf *RecipeLogForwarder) SetUserOptedIn(val bool) {
+	lf.optIn = val
 }
 
 func (lf *RecipeLogForwarder) SendLogsToNewRelic(recipeName string, data []string) {
