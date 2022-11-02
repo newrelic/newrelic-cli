@@ -1,4 +1,4 @@
-## newrelic entity changetracker
+## newrelic entity deployment
 
 Manage New Relic Entity changes
 
@@ -6,22 +6,22 @@ Manage New Relic Entity changes
 
 Manage New Relic Entity changes
 
-A change tracker is an event indicating that a change happened, and
+A deployment marker is an event indicating that a deployment happened, and
 it's paired with metadata available from your SCM system (for example,
 the user, revision, or change-log). New Relic displays a vertical line, or
-“marker,” on charts and graphs at the change event's timestamp.
+“marker,” on charts and graphs at the deployment event's timestamp.
 
 
 ### Examples
 
 ```
-newrelic entity changetracker create --guid <guid> --version <1.0.0>
+newrelic entity deployment create --guid <guid> --version <1.0.0>
 ```
 
 ### Options
 
 ```
-  -h, --help   help for changetracker
+  -h, --help   help for deployment
 ```
 
 ### Options inherited from parent commands
@@ -38,5 +38,5 @@ newrelic entity changetracker create --guid <guid> --version <1.0.0>
 ### SEE ALSO
 
 * [newrelic entity](newrelic_entity.md)	 - Interact with New Relic entities
-* [newrelic entity changetracker create](newrelic_entity_changetracker_create.md)	 - Create a change for a New Relic entity
+* [newrelic entity deployment create](newrelic_entity_deployment_create.md)	 - Create a deployment marker for a New Relic entity
 

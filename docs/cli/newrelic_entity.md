@@ -24,5 +24,5 @@ Interact with New Relic entities
 * [newrelic](newrelic.md)	 - The New Relic CLI
 * [newrelic entity search](newrelic_entity_search.md)	 - Search for New Relic entities
 * [newrelic entity tags](newrelic_entity_tags.md)	 - Manage tags on New Relic entities
-* [newrelic entity changetracker](newrelic_entity_changetracker.md) - Track changes to New Relic entities 
+* [newrelic entity deployment](newrelic_entity_deployment.md) - Track deployments for a New Relic entity 
 

@@ -1,22 +1,22 @@
-## newrelic entity changetracker create
+## newrelic entity deployment create
 
-Create a change to the given entity
+Create a deployment marker for a given entity
 
 ### Synopsis
 
-Create a change to the given entity
+Create a deployment marker for a given entity
 
-The create command marks a change to the given New Relic entity.
+The create command marks a deployment for the given New Relic entity.
 
 
 ```
-newrelic entity changetracker create [flags]
+newrelic entity deployment create [flags]
 ```
 
 ### Examples
 
 ```
-newrelic entity changetracker create --guid <GUID> --version <1.0.0>
+newrelic entity deployment create --guid <GUID> --version <1.0.0>
 ```
 
 ### Options
@@ -48,5 +48,5 @@ newrelic entity changetracker create --guid <GUID> --version <1.0.0>
 
 ### SEE ALSO
 
-* [newrelic entity changetracker](newrelic_entity_changetracker.md) - Track changes to New Relic entities 
+* [newrelic entity deployment](newrelic_entity_deployment.md) - Track deployments for a New Relic entity 
 
