@@ -120,10 +120,11 @@ func (r InstallEventsReporter) createMultipleRecipeInstallEvents(status *Install
 			PlatformFamily:                 status.DiscoveryManifest.PlatformFamily,
 			PlatformVersion:                status.DiscoveryManifest.PlatformVersion,
 			RedirectURL:                    status.RedirectURL,
-			TargetedInstall:                status.targetedInstall,
 			InstallId:                      status.InstallID,
 			InstallLibraryVersion:          status.InstallLibraryVersion,
 		}
+
+		updateTargetedInstallEvent(status, &i)
 
 		_, err := r.client.InstallationCreateRecipeEvent(r.accountID, i)
 		if err != nil {
@@ -220,6 +221,8 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 				i.Metadata[k] = v
 			}
 		}
+
+		updateTargetedInstallEvent(status, &i)
 	}
 
 	if statusType != nil {
@@ -227,4 +230,15 @@ func buildRecipeStatus(status *InstallStatus, event *RecipeStatusEvent, statusTy
 	}
 
 	return i
+}
+
+func updateTargetedInstallEvent(status *InstallStatus, installationRecipeStatus *installevents.InstallationRecipeStatus) {
+	// Only set to be target install for recipe if it's targed recipe
+	installationRecipeStatus.TargetedInstall = false
+	for _, n := range status.targetedInstallNames {
+		if n == installationRecipeStatus.Name {
+			installationRecipeStatus.TargetedInstall = true
+			return
+		}
+	}
 }

@@ -210,3 +210,25 @@ func TestStatus_HTTPSProxy(t *testing.T) {
 
 	require.Equal(t, "localhost:8888", s.HTTPSProxy)
 }
+
+func TestSetTargetInstallShouldSet(t *testing.T) {
+
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	recipeNames := []string{"infra", "logging"}
+	status.SetTargetedInstall(recipeNames)
+
+	require.True(t, status.targetedInstall)
+	require.Equal(t, status.targetedInstallNames, recipeNames)
+}
+
+func TestSetTargetInstallShouldNotSet(t *testing.T) {
+
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	recipeNames := []string{}
+	status.SetTargetedInstall(recipeNames)
+
+	require.False(t, status.targetedInstall)
+	require.Equal(t, len(recipeNames), len(status.targetedInstallNames))
+}
