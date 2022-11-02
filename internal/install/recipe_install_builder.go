@@ -125,6 +125,10 @@ func (rib *RecipeInstallBuilder) WithOutput(value string) *RecipeInstallBuilder 
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) WithRecipeOutput(value []string) *RecipeInstallBuilder {
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) WithRecipeVarValues(vars map[string]string, err error) *RecipeInstallBuilder {
 	rib.recipeVarProvider.Vars = vars
 	rib.recipeVarProvider.Error = err
