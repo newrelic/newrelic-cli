@@ -18,18 +18,20 @@ import (
 )
 
 type ShRecipeExecutor struct {
-	Dir    string
-	Stderr io.Writer
-	Stdin  io.Reader
-	Stdout io.Writer
+	Dir          string
+	Stderr       io.Writer
+	Stdin        io.Reader
+	Stdout       io.Writer
+	RecipeOutput []string
 }
 
 func NewShRecipeExecutor() *ShRecipeExecutor {
 	writer := config.Logger.WriterLevel(log.DebugLevel)
 	return &ShRecipeExecutor{
-		Stdin:  os.Stdin,
-		Stdout: writer,
-		Stderr: writer,
+		Stdin:        os.Stdin,
+		Stdout:       writer,
+		Stderr:       writer,
+		RecipeOutput: []string{},
 	}
 }
 
@@ -44,6 +46,10 @@ func (e *ShRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.OpenIn
 
 func (e *ShRecipeExecutor) GetOutput() *OutputParser {
 	return NewOutputParser(map[string]interface{}{})
+}
+
+func (e *ShRecipeExecutor) GetRecipeOutput() []string {
+	return e.RecipeOutput
 }
 
 func (e *ShRecipeExecutor) execute(ctx context.Context, script string, v types.RecipeVars) error {

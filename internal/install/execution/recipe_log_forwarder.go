@@ -18,6 +18,11 @@ import (
 	"github.com/newrelic/newrelic-client-go/v2/pkg/region"
 )
 
+type LogForwarder interface {
+	PromptUserToSendLogs(reader io.Reader) bool
+	SendLogsToNewRelic(recipeName string, data []string)
+}
+
 type LogEntry struct {
 	Attributes map[string]interface{} `json:"attributes"`
 	LogType    string                 `json:"logType"`
@@ -28,8 +33,8 @@ type RecipeLogForwarder struct {
 	LogEntries []LogEntry
 }
 
-func NewRecipeLogForwarder() RecipeLogForwarder {
-	return RecipeLogForwarder{
+func NewRecipeLogForwarder() *RecipeLogForwarder {
+	return &RecipeLogForwarder{
 		LogEntries: []LogEntry{},
 	}
 }
@@ -51,15 +56,8 @@ func (lf *RecipeLogForwarder) PromptUserToSendLogs(reader io.Reader) bool {
 	return false
 }
 
-func (lf *RecipeLogForwarder) SendLogsToNewRelic(outputFilePath string, recipeName string) {
-	// open file, build log entries
-	f, err := os.Open(outputFilePath)
-	if err != nil {
-		log.Fatalf("open file error: %v", err)
-		return
-	}
-	defer f.Close()
-	lf.buildLogEntryBatch(recipeName, bufio.NewScanner(f))
+func (lf *RecipeLogForwarder) SendLogsToNewRelic(recipeName string, data []string) {
+	lf.buildLogEntryBatch(recipeName, data)
 
 	// building log api client
 	config, err := createLogClientConfig()
@@ -93,14 +91,11 @@ func (lf *RecipeLogForwarder) SendLogsToNewRelic(outputFilePath string, recipeNa
 	}
 }
 
-func (lf *RecipeLogForwarder) buildLogEntryBatch(recipeName string, fs *bufio.Scanner) {
+func (lf *RecipeLogForwarder) buildLogEntryBatch(recipeName string, data []string) {
 	now := time.Now().UnixMilli()
-	for fs.Scan() {
+	for _, line := range data {
 		now++ //using timestamp to retain log sequence
-		lf.LogEntries = append(lf.LogEntries, LogEntry{map[string]interface{}{"nr-install-recipe": recipeName, "timestamp": now}, "cli-output", fs.Text()})
-	}
-	if err := fs.Err(); err != nil {
-		log.Fatalf("scan file error: %v", err)
+		lf.LogEntries = append(lf.LogEntries, LogEntry{map[string]interface{}{"nr-install-recipe": recipeName, "timestamp": now}, "cli-output", line})
 	}
 }
 

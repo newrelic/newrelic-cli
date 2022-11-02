@@ -36,6 +36,10 @@ func (m *MockRecipeExecutor) GetOutput() *OutputParser {
 	return m.OutputParser
 }
 
+func (m *MockRecipeExecutor) GetRecipeOutput() []string {
+	return []string{}
+}
+
 func (m *MockRecipeExecutor) SetOutput(value string) {
 	if value != "" {
 		var values map[string]interface{}

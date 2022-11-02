@@ -58,26 +58,33 @@ func TestOutputParserShouldGetMetadataMissing(t *testing.T) {
 	assert.Equal(t, result.Metadata()["key1"], "")
 }
 
-func TestOutputParserShouldGetFailedRecipeOutput(t *testing.T) {
-	output := givenJSON("{\"FailedRecipeOutput\":\"/tmp/some/output-file.out\"}")
-
+func TestOutputParserShouldGetCapturedCliOutputFlag(t *testing.T) {
+	// value is true
+	output := givenJSON("{\"CapturedCliOutput\":true}")
 	result := NewOutputParser(output)
-	assert.NotNil(t, result.FailedRecipeOutput())
-	assert.Equal(t, "/tmp/some/output-file.out", result.FailedRecipeOutput())
-}
+	assert.NotNil(t, result.IsCapturedCliOutput())
+	assert.True(t, result.IsCapturedCliOutput())
 
-func TestOutputParserShouldGetNoFailedRecipeOutput(t *testing.T) {
-	output := givenJSON("{\"EntityGuid\":\"abcd\"}")
-	result := NewOutputParser(output)
-	assert.NotNil(t, result.FailedRecipeOutput())
-	assert.Equal(t, "", result.FailedRecipeOutput())
-}
+	// value is false
+	output = givenJSON("{\"CapturedCliOutput\":false}")
+	result = NewOutputParser(output)
+	assert.NotNil(t, result.IsCapturedCliOutput())
+	assert.False(t, result.IsCapturedCliOutput())
 
-func TestOutputParserShouldGetFailedRecipeOutputMissing(t *testing.T) {
-	output := givenJSON("{\"FailedRecipeOutput\":\"\"}")
-	result := NewOutputParser(output)
-	assert.NotNil(t, result.FailedRecipeOutput())
-	assert.Equal(t, "", result.FailedRecipeOutput())
+	// value is empty
+	output = givenJSON("{\"CapturedCliOutput\":\"\"}")
+	result = NewOutputParser(output)
+	assert.False(t, result.IsCapturedCliOutput())
+
+	// value is string, not boolean
+	output = givenJSON("{\"CapturedCliOutput\":\"true\"}")
+	result = NewOutputParser(output)
+	assert.False(t, result.IsCapturedCliOutput())
+
+	// key does not exist
+	output = givenJSON("{\"EntityGuid\":\"abcd\"}")
+	result = NewOutputParser(output)
+	assert.False(t, result.IsCapturedCliOutput())
 }
 
 func TestOutputParserShouldBeEmpty(t *testing.T) {
