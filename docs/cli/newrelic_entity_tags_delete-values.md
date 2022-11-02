@@ -16,7 +16,7 @@ newrelic entity tags delete-values [flags]
 ### Examples
 
 ```
-newrelic entity tags delete-values --guid <guid> --tag tag1:value1
+newrelic entity tags delete-values --guid <guid> --value tag1:value1
 ```
 
 ### Options
