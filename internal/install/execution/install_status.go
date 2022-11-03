@@ -40,6 +40,7 @@ type InstallStatus struct {
 	UpdateRequired        bool                    `json:"updateRequired"`
 	DocumentID            string
 	targetedInstall       bool
+	targetedInstallNames  []string
 	statusSubscriber      []StatusSubscriber
 	successLinkConfig     types.OpenInstallationSuccessLinkConfig
 	PlatformLinkGenerator LinkGenerator
@@ -297,8 +298,11 @@ func (s *InstallStatus) hasAnyRecipeStatus(status RecipeStatusType) bool {
 	return false
 }
 
-func (s *InstallStatus) SetTargetedInstall() {
-	s.targetedInstall = true
+func (s *InstallStatus) SetTargetedInstall(targetedInstallNames []string) {
+	if len(targetedInstallNames) > 0 {
+		s.targetedInstall = true
+		s.targetedInstallNames = targetedInstallNames
+	}
 }
 
 func (s *InstallStatus) IsTargetedInstall() bool {

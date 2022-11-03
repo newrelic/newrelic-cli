@@ -5,6 +5,7 @@ package execution
 import (
 	"testing"
 
+	"github.com/newrelic/newrelic-client-go/v2/pkg/installevents"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
@@ -220,4 +221,24 @@ func TestInstallEventsReporter_writeStatus(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, createInstallEventCallCount, c.CreateInstallEventCallCount)
 	}
+}
+
+func TestUpdateTargedInstallEventShouldSet(t *testing.T) {
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	i := installevents.InstallationRecipeStatus{}
+	targetedInstallNames := []string{"infra", "logging"}
+	status.SetTargetedInstall(targetedInstallNames)
+
+	i.Name = "infra"
+	updateTargetedInstallEvent(status, &i)
+	require.True(t, i.TargetedInstall)
+
+	i.Name = "logging"
+	updateTargetedInstallEvent(status, &i)
+	require.True(t, i.TargetedInstall)
+
+	i.Name = "mysql"
+	updateTargetedInstallEvent(status, &i)
+	require.False(t, i.TargetedInstall)
 }
