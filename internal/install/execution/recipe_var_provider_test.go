@@ -82,6 +82,16 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	require.Equal(t, "", v["NRIA_CUSTOM_ATTRIBUTES"])
 	require.Equal(t, "", v["NRIA_PASSTHROUGH_ENVIRONMENT"])
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
+
+	os.Setenv(EnvInstallCustomAttributes, "test:123,bad")
+	v, err = e.Prepare(m, r, false, "testLicenseKey")
+	require.NoError(t, err)
+	require.Equal(t, "custom_attributes:\n  test: \"123\"\n", v["NRIA_CUSTOM_ATTRIBUTES"])
+
+	os.Setenv(EnvNriaCustomAttributes, "{\"owning_team\":\"virtuoso\"}")
+	v, err = e.Prepare(m, r, false, "testLicenseKey")
+	require.NoError(t, err)
+	require.Equal(t, "custom_attributes:\n  owning_team: virtuoso\n  test: \"123\"\n", v["NRIA_CUSTOM_ATTRIBUTES"])
 }
 
 func TestRecipeVarProvider_CommandLineEnvarsDirectlyPassedToRecipeContext(t *testing.T) {
@@ -163,19 +173,62 @@ func TestRecipeVarProvider_CommandLineEnvarsDirectlyPassedToRecipeContext(t *tes
 func Test_yamlFromJSON_convertsValidJsonToYaml(t *testing.T) {
 	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
 
-	yaml := yamlFromJSON("key", json)
+	yaml := yamlFromJSON("key", json, []string{})
 
 	assert.Contains(t, yaml, "custom_attributes:\n")
 	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
 	assert.Contains(t, yaml, " customAttribute_2: SOME_ATTRIBUTE_2\n")
 }
 
+func Test_yamlFromJSON_convertsValidJsonToYamlWithInvalidTags(t *testing.T) {
+	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
+
+	yaml := yamlFromJSON("key", json, []string{"abc"})
+
+	assert.Contains(t, yaml, "custom_attributes:\n")
+	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
+	assert.Contains(t, yaml, " customAttribute_2: SOME_ATTRIBUTE_2\n")
+	assert.NotContains(t, yaml, "abc")
+}
+
+func Test_yamlFromJSON_convertsValidJsonToYamlWithSomeValidTags(t *testing.T) {
+	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
+
+	yaml := yamlFromJSON("key", json, []string{"tag1:abc", "tag2:efg", "nocolontag"})
+
+	assert.Contains(t, yaml, "custom_attributes:\n")
+	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
+	assert.Contains(t, yaml, " customAttribute_2: SOME_ATTRIBUTE_2\n")
+	assert.Contains(t, yaml, " tag1: abc\n")
+	assert.Contains(t, yaml, " tag2: efg\n")
+	assert.NotContains(t, yaml, " nocolontag\n")
+}
+
+func Test_yamlFromJSON_convertsValidJsonToYamTagWithMultipleValue(t *testing.T) {
+	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
+
+	yaml := yamlFromJSON("key", json, []string{"tag1:abc def"})
+
+	assert.Contains(t, yaml, "custom_attributes:\n")
+	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
+	assert.Contains(t, yaml, " customAttribute_2: SOME_ATTRIBUTE_2\n")
+	assert.Contains(t, yaml, " tag1: abc def\n")
+}
+
+func Test_yamlFromJSON_ConvertsInvalidJsonToEmptyValidTags(t *testing.T) {
+	json := ""
+	yaml := yamlFromJSON("key", json, []string{"tag1:abc"})
+
+	assert.Contains(t, yaml, "custom_attributes:\n")
+	assert.Contains(t, yaml, " tag1: abc\n")
+}
+
 func Test_yamlFromJSON_ConvertsInvalidJsonToEmpty(t *testing.T) {
-	assert.Equal(t, "", yamlFromJSON("key", "totally-not-valid; json"))
+	assert.Equal(t, "", yamlFromJSON("key", "totally-not-valid; json", []string{}))
 }
 
 func Test_yamlFromJSON_ConvertsEmptyStringToEmptyYaml(t *testing.T) {
-	assert.Equal(t, "", yamlFromJSON("key", ""))
+	assert.Equal(t, "", yamlFromJSON("key", "", []string{}))
 }
 
 func Test_yamlFromCommaDelimitedString_convertsStringToYaml(t *testing.T) {
