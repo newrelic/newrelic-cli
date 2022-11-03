@@ -23,12 +23,12 @@ func TestRecipePathsProvided(t *testing.T) {
 	require.True(t, ic.RecipePathsProvided())
 }
 
-func TestSetEntityTags(t *testing.T) {
+func TestSetTags(t *testing.T) {
 	ic := InstallerContext{}
 	args := []string{"tag1:test", "tag2:test"}
-	ic.SetEntityTags(args)
+	ic.SetTags(args)
 	args = append(args, BuiltinTags)
 
-	require.Equal(t, args, ic.EntityTags)
+	require.Equal(t, args, ic.Tags)
 	require.Equal(t, "tag1:test,tag2:test,"+BuiltinTags, os.Getenv(EnvInstallCustomAttributes))
 }
