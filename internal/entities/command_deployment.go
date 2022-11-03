@@ -79,7 +79,7 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVarP(&entityGUID, "guid", "g", "", "the GUID of the entity associated with this change")
 	utils.LogIfError(cmdEntityDeploymentCreate.MarkFlagRequired("guid"))
 
-	cmdEntityDeploymentCreate.Flags().StringVarP(&version, "version", "v", "", "the version associate with this change")
+	cmdEntityDeploymentCreate.Flags().StringVarP(&version, "version", "v", "", "the version of the deployed software, for example, something like v1.1")
 	utils.LogIfError(cmdEntityDeploymentCreate.MarkFlagRequired("version"))
 
 	cmdEntityDeploymentCreate.Flags().StringVar(&changelog, "changelog", "", "a URL for the changelog or list of changes if not linkable")
