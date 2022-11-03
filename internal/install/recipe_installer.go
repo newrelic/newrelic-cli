@@ -202,7 +202,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 	}).Debug("context summary")
 
 	if i.RecipeNamesProvided() {
-		i.status.SetTargetedInstall()
+		i.status.SetTargetedInstall(i.RecipeNames)
 	}
 
 	if err := i.ensureSingleConcurrentInstall(utils.SignalCtx); err != nil {
