@@ -199,17 +199,18 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 		log.Debugf("error openning json output file %s", outputFileName)
 		return
 	}
-
 	defer outputFile.Close()
 
-	outputBytes, err := ioutil.ReadAll(outputFile)
-	if err == nil && len(outputBytes) > 0 {
+	outputBytes, _ := ioutil.ReadAll(outputFile)
+	if len(outputBytes) > 0 {
 		var result map[string]interface{}
 		if err := json.Unmarshal(outputBytes, &result); err == nil {
 			re.Output = NewOutputParser(result)
 		} else {
 			log.Debugf("error while unmarshaling json output from file %s details:%s", outputFileName, err.Error())
 		}
+	} else {
+		re.Output = NewOutputParser(map[string]interface{}{})
 	}
 }
 

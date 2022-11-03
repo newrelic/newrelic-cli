@@ -5,9 +5,10 @@ package execution
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-client-go/v2/pkg/installevents"
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+
+	"github.com/newrelic/newrelic-client-go/v2/pkg/installevents"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
