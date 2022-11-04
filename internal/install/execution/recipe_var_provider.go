@@ -30,6 +30,7 @@ var (
 const (
 	EnvNriaCustomAttributes       = "NRIA_CUSTOM_ATTRIBUTES"
 	EnvNriaPassthroughEnvironment = "NRIA_PASSTHROUGH_ENVIRONMENT"
+	EnvInstallCustomAttributes    = "INSTALL_CUSTOM_ATTRIBUTES"
 )
 
 type RecipeVarProvider struct{}
@@ -217,8 +218,10 @@ func varFromEnv() types.RecipeVars {
 	vars["NR_CLI_CLUSTERNAME"] = os.Getenv("NR_CLI_CLUSTERNAME")
 
 	customAttributes := os.Getenv(EnvNriaCustomAttributes)
-	if len(customAttributes) > 0 {
-		vars[EnvNriaCustomAttributes] = yamlFromJSON(EnvNriaCustomAttributes, customAttributes)
+	installCustomAttributes := os.Getenv(EnvInstallCustomAttributes)
+
+	if len(customAttributes) > 0 || len(installCustomAttributes) > 0 {
+		vars[EnvNriaCustomAttributes] = yamlFromJSON(EnvNriaCustomAttributes, customAttributes, strings.Split(installCustomAttributes, ","))
 	}
 
 	passthroughEnvironment := os.Getenv(EnvNriaPassthroughEnvironment)
@@ -229,13 +232,34 @@ func varFromEnv() types.RecipeVars {
 	return vars
 }
 
-func yamlFromJSON(key string, jsonVal string) string {
-	if !json.Valid([]byte(jsonVal)) || len(jsonVal) == 0 {
+func yamlFromJSON(key string, jsonVal string, tags []string) string {
+	if (!json.Valid([]byte(jsonVal)) || len(jsonVal) == 0) && len(tags) == 0 {
 		log.Debugf("Invalid json passed in %s: %s", key, jsonVal)
 		return ""
 	}
 
-	customAttributesJSON := fmt.Sprintf("{\"custom_attributes\": %s }", jsonVal)
+	customerAttributeMap := map[string]string{}
+	if json.Valid([]byte(jsonVal)) && len(jsonVal) > 0 {
+		err := json.Unmarshal([]byte(jsonVal), &customerAttributeMap)
+		if err != nil {
+			log.Debugf("Could transform custom attributes to a map: %e", err)
+		}
+	}
+
+	// get tag and override custom attributes
+	tagMap := makeTagMap(tags)
+	for k, v := range tagMap {
+		customerAttributeMap[k] = v
+	}
+
+	mergedAttributesJSON, err := json.Marshal(customerAttributeMap)
+
+	if err != nil {
+		log.Debugf("Could not transform custom attribute map to json: %e", err)
+		return ""
+	}
+
+	customAttributesJSON := fmt.Sprintf("{\"custom_attributes\": %s }", mergedAttributesJSON)
 	yaml, err := yaml.JSONToYAML([]byte(customAttributesJSON))
 	if err != nil {
 		log.Debugf("Could not transform %s json value to yaml: %e", key, err)
@@ -259,4 +283,16 @@ func yamlFromCommaDelimitedString(key string, commaDelimited string) string {
 	// forcing indentation of list items without a key
 	trimmed := strings.ReplaceAll(string(yaml), "\n  env:", "")
 	return trimmed
+}
+
+func makeTagMap(tags []string) map[string]string {
+	tagMap := make(map[string]string)
+	for _, x := range tags {
+		if !strings.Contains(x, ":") {
+			continue
+		}
+		v := strings.SplitN(x, ":", 2)
+		tagMap[v[0]] = v[1]
+	}
+	return tagMap
 }
