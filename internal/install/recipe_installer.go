@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -36,7 +37,7 @@ type RecipeInstall struct {
 	recipeExecutor         execution.RecipeExecutor
 	recipeValidator        RecipeValidator
 	recipeFileFetcher      RecipeFileFetcher
-	recipeLogForwarder     *execution.RecipeLogForwarder
+	recipeLogForwarder     execution.LogForwarder
 	status                 *execution.InstallStatus
 	prompter               Prompter
 	licenseKeyFetcher      LicenseKeyFetcher
@@ -511,7 +512,10 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 			return "", err
 		}
 
+		// Needed to move some of the failure CLI output/messaging here.  We want to capture metadata on when a user
+		// opts in/out of sending cli logs, and this must occur before we build the RecipeStatusEvent to post to NR
 		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+		i.optInToSendLogsAndUpdateRecipeMetadata(r.Name)
 		se := execution.RecipeStatusEvent{
 			Recipe:   *r,
 			Msg:      msg,
@@ -572,6 +576,17 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 	})
 
 	return entityGUID, nil
+}
+
+func (i *RecipeInstall) optInToSendLogsAndUpdateRecipeMetadata(recipeName string) {
+	i.progressIndicator.Fail("Installing " + recipeName)
+	recipeOutput := i.recipeExecutor.GetRecipeOutput()
+	logCaptureEnabledForRecipe := i.recipeExecutor.GetOutput().IsCapturedCliOutput()
+	if len(recipeOutput) > 0 && logCaptureEnabledForRecipe {
+		userOptIn := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
+		i.recipeLogForwarder.SetUserOptedIn(userOptIn)
+		i.recipeExecutor.GetOutput().AddMetadata("SendLogsOptIn", strconv.FormatBool(userOptIn))
+	}
 }
 
 type validationFunc func() (string, error)
@@ -685,7 +700,9 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 			if errors.Is(err, types.ErrInterrupt) {
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
-				handleRecipeFailure(i, r.DisplayName)
+				// progressIndicator has already been called; we need to finish i.e. message about logs being sent
+				// and actually post logs to NR if the user has opted-in
+				i.finishHandlingFailure(r.DisplayName)
 			}
 			log.Debugf("install error encountered: %s", err)
 			return "", err
@@ -693,18 +710,11 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 	}
 }
 
-func handleRecipeFailure(i *RecipeInstall, recipeName string) {
-	i.progressIndicator.Fail("Installing " + recipeName)
-
-	recipeOutput := i.recipeExecutor.GetRecipeOutput()
-	logCaptureEnabledForRecipe := i.recipeExecutor.GetOutput().IsCapturedCliOutput()
-	if len(recipeOutput) > 0 && logCaptureEnabledForRecipe {
-		sendLogs := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
-		if sendLogs {
-			i.progressIndicator.Start("Sending logs to New Relic")
-			i.recipeLogForwarder.SendLogsToNewRelic(recipeName, recipeOutput)
-			i.progressIndicator.Success("Complete!")
-		}
+func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
+	if i.recipeLogForwarder.HasUserOptedIn() {
+		i.progressIndicator.Start("Sending logs to New Relic")
+		i.recipeLogForwarder.SendLogsToNewRelic(recipeName, i.recipeExecutor.GetRecipeOutput())
+		i.progressIndicator.Success("Complete!")
 	}
 }
 

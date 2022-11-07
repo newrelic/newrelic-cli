@@ -108,7 +108,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	for k, val := range recipeVars {
 		e.Taskfile.Vars.Set(k, taskfile.Var{Static: val})
 	}
-	setCapturedCliOutputFlag(e.Taskfile.Vars.ToCacheMap(), outputJSONFile)
 
 	if err = e.Run(ctx, calls...); err != nil {
 		log.WithFields(log.Fields{
@@ -153,18 +152,6 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	re.setOutput(outputJSONFile.Name())
 
 	return nil
-}
-
-func setCapturedCliOutputFlag(recipeVars map[string]interface{}, outputJSONFile *os.File) {
-	if logsCapturedByRecipe, ok := recipeVars["CAPTURE_CLI_LOGS"]; ok {
-		captureCliLogs, _ := strconv.ParseBool(logsCapturedByRecipe.(string))
-		if captureCliLogs {
-			_, err := outputJSONFile.WriteString("{\"CapturedCliOutput\":true}\n")
-			if err != nil {
-				log.Debugf("Could not write \"CapturedCliOutput\" to file: %e", err)
-			}
-		}
-	}
 }
 
 func createRecipeTempFile(r types.OpenInstallationRecipe) (*os.File, error) {

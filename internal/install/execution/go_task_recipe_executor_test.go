@@ -62,8 +62,7 @@ tasks:
 
 func TestExecute_WritesCliOutputVar(t *testing.T) {
 	v := types.RecipeVars{
-		"TEST_VAR":         "testValue",
-		"CAPTURE_CLI_LOGS": "true",
+		"TEST_VAR": "testValue",
 	}
 	r := types.OpenInstallationRecipe{
 		Name: "test-recipe",
@@ -80,8 +79,6 @@ tasks:
 
 	e := NewGoTaskRecipeExecutor()
 	err := e.Execute(context.Background(), r, v)
-	_, containsKey := e.GetOutput().output["CapturedCliOutput"]
-	assert.Truef(t, containsKey, "Output file missing key for 'CapturedCliOutput")
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "testValue")
 }
