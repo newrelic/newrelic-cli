@@ -1,6 +1,9 @@
 package execution
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type OutputParser struct {
 	output map[string]interface{}
@@ -34,12 +37,40 @@ func (op *OutputParser) Metadata() map[string]string {
 }
 
 func (op *OutputParser) IsCapturedCliOutput() bool {
-	if val, ok := op.output["CapturedCliOutput"]; ok {
-		valAsBool, isBool := val.(bool)
-		if !isBool {
-			return false
+	capturedOutput := false
+	data, ok := op.metadataWithKey("CapturedCliOutput")
+	if ok {
+		valAsBool, err := strconv.ParseBool(data)
+		if err == nil {
+			capturedOutput = valAsBool
 		}
-		return valAsBool
 	}
-	return false
+
+	return capturedOutput
+}
+
+func (op *OutputParser) metadataWithKey(key string) (string, bool) {
+	metadata, ok := op.output["Metadata"].(map[string]interface{})
+	if ok {
+		data, exists := metadata[key]
+		if exists {
+			return data.(string), ok
+		}
+	}
+	return "", ok
+}
+
+func (op *OutputParser) AddMetadata(key string, value string) {
+	output := op.output
+	if output == nil {
+		op.output = make(map[string]interface{})
+	}
+
+	metadata, ok := op.output["Metadata"].(map[string]interface{})
+	if !ok {
+		metadata = make(map[string]interface{})
+	}
+
+	metadata[key] = value
+	op.output["Metadata"] = metadata
 }
