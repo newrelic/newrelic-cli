@@ -11,6 +11,12 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Discoverer
+
+type Discoverer interface {
+	Discover(context.Context) (*types.DiscoveryManifest, error)
+}
+
 type PSUtilDiscoverer struct{}
 
 func NewPSUtilDiscoverer() *PSUtilDiscoverer {

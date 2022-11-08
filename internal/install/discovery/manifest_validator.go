@@ -6,12 +6,13 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type ManifestValidator struct {
-	validators []validator
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 . Validator
+type Validator interface {
+	Validate(m *types.DiscoveryManifest) error
 }
 
-type validator interface {
-	Validate(m *types.DiscoveryManifest) error
+type ManifestValidator struct {
+	validators []Validator
 }
 
 var (
@@ -22,7 +23,7 @@ var (
 // NewManifestValidator returns a new instance of ManifestValidator.
 func NewManifestValidator() *ManifestValidator {
 	mv := ManifestValidator{
-		validators: []validator{},
+		validators: []Validator{},
 	}
 
 	mv.validators = append(mv.validators, NewOsValidator())

@@ -28,4 +28,7 @@ import (
 
 	// build/generate.mk
 	_ "github.com/newrelic/tutone/cmd/tutone"
+
+	// mocking library
+	_ "github.com/maxbrunsfeld/counterfeiter/v6"
 )

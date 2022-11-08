@@ -11,12 +11,12 @@ func NewEmptyManifestValidator() *ManifestValidator {
 }
 
 type MockManifestValidator struct {
-	validators []validator
+	validators []Validator
 }
 
-func NewMockManifestValidator(mockValidator validator) *ManifestValidator {
+func NewMockManifestValidator(mockValidator Validator) *ManifestValidator {
 	mv := ManifestValidator{
-		validators: []validator{mockValidator},
+		validators: []Validator{mockValidator},
 	}
 
 	return &mv
