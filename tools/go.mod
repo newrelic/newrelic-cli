@@ -9,6 +9,7 @@ require (
 	github.com/golangci/golangci-lint v1.50.0
 	github.com/goreleaser/goreleaser v1.11.5
 	github.com/llorllale/go-gitlint v0.0.0-20210608233938-d6303cc52cc5
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/newrelic/tutone v0.10.319
 	github.com/psampaz/go-mod-outdated v0.8.0
 	github.com/stretchr/testify v1.8.0
