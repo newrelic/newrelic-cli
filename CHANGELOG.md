@@ -1,3 +1,9 @@
+<a name="v0.58.0"></a>
+## [v0.58.0] - 2022-11-07
+### Features
+- **install:** Allow --tag to be passed in via install command ([#1389](https://github.com/newrelic/newrelic-client-go/issues/1389))
+- **log-metadata:** adding SendLogsOptIn recipe metadata for querying VirtuosoInstallRecipe
+
 <a name="v0.57.2"></a>
 ## [v0.57.2] - 2022-11-03
 <a name="v0.57.1"></a>
@@ -1825,7 +1831,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.58.0...HEAD
+[v0.58.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.2...v0.58.0
 [v0.57.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.1...v0.57.2
 [v0.57.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.0...v0.57.1
 [v0.57.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.1...v0.57.0
