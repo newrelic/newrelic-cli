@@ -194,12 +194,12 @@ func Test_yamlFromJSON_convertsValidJsonToYamlWithInvalidTags(t *testing.T) {
 func Test_yamlFromJSON_convertsValidJsonToYamlWithSomeValidTags(t *testing.T) {
 	json := "{\"customAttribute_1\":\"SOME_ATTRIBUTE\",\"customAttribute_2\": \"SOME_ATTRIBUTE_2\"}"
 
-	yaml := yamlFromJSON("key", json, []string{"tag1:abc", "tag2:efg", "nocolontag"})
+	yaml := yamlFromJSON("key", json, []string{"tag1:abc", "tag2:efg", "nocolontag", "tag1:zzz"})
 
 	assert.Contains(t, yaml, "custom_attributes:\n")
 	assert.Contains(t, yaml, " customAttribute_1: SOME_ATTRIBUTE\n")
 	assert.Contains(t, yaml, " customAttribute_2: SOME_ATTRIBUTE_2\n")
-	assert.Contains(t, yaml, " tag1: abc\n")
+	assert.Contains(t, yaml, " tag1: zzz\n")
 	assert.Contains(t, yaml, " tag2: efg\n")
 	assert.NotContains(t, yaml, " nocolontag\n")
 }

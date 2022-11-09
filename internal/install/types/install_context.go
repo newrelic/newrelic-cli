@@ -31,6 +31,6 @@ func (i *InstallerContext) RecipeNamesProvided() bool {
 }
 func (i *InstallerContext) SetTags(tags []string) {
 	i.Tags = tags
-	i.Tags = append(i.Tags, BuiltinTags)
+	i.Tags = append([]string{BuiltinTags}, i.Tags...)
 	os.Setenv(EnvInstallCustomAttributes, strings.Join(i.Tags, ","))
 }
