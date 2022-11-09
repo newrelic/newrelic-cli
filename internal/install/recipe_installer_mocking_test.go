@@ -1,8 +1,16 @@
 package install
 
 import (
-	"github.com/newrelic/newrelic-cli/internal/diagnose/mocks"
+	"errors"
+	"github.com/newrelic/newrelic-cli/internal/diagnose"
+	diagnose_mocks "github.com/newrelic/newrelic-cli/internal/diagnose/mocks"
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	execution_mocks "github.com/newrelic/newrelic-cli/internal/install/execution/mocks"
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	recipes_mocks "github.com/newrelic/newrelic-cli/internal/install/recipes/mocks"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
+	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
@@ -10,62 +18,90 @@ import (
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
-	//anyContext := mock.MatchedBy(func(c context.Context) bool {
-	//	// if the passed in parameter does not implement the context.Context interface, the
-	//	// wrapping MatchedBy will panic - so we can simply return true, since we
-	//	// know it's a context.Context if execution flow makes it here.
-	//	return true
-	//})
-
-	configValidator := mocks.NewValidator(t)
-	configValidator.On("Validate", mock.AnythingOfType("context.Context")).Return(nil)
+	mockConfigValidator := diagnose_mocks.NewValidator(t)
+	mockConfigValidator.On("Validate", mock.Anything).Return(nil)
 
 	recipeInstall := NewRecipeInstallWithStubs(t).
-		WithConfigValidatorStub(configValidator).
+		WithConfigValidatorStub(mockConfigValidator).
 		WithProgressIndicator(ux.NewSpinnerProgressIndicator()).
 		Create()
 
-	err := recipeInstall.connectToPlatform()
-	assert.NoError(t, err)
+	assert.NoError(t, recipeInstall.connectToPlatform())
 }
 
-//
-//func TestConnectToPlatformShouldReturnError(t *testing.T) {
-//	expected := errors.New("Failing to connect to platform")
-//	pi := ux.NewSpinnerProgressIndicator()
-//
-//	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
-//
-//	actual := recipeInstall.connectToPlatform()
-//	assert.Error(t, actual)
-//	assert.Equal(t, expected.Error(), actual.Error())
-//}
-//
-//func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
-//	expected := nrErrors.NewPaymentRequiredError()
-//	pi := ux.NewSpinnerProgressIndicator()
-//
-//	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
-//
-//	actual := recipeInstall.connectToPlatform()
-//	assert.Error(t, actual)
-//	assert.IsType(t, &nrErrors.PaymentRequiredError{}, actual)
-//}
-//
-//func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
-//	expected := diagnose.ConnectionError{
-//		Err: errors.New("Connection Failed"),
-//	}
-//
-//	statusReporter := execution.NewMockStatusReporter()
-//	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithConfigValidatorError(expected).Build()
-//
-//	actual := recipeInstall.Install()
-//	assert.Error(t, actual)
-//	assert.IsType(t, diagnose.ConnectionError{}, actual)
-//	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
-//	assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
-//}
+func TestConnectToPlatformShouldReturnError(t *testing.T) {
+	expected := errors.New("Failing to connect to platform")
+	mockConfigValidator := diagnose_mocks.NewValidator(t)
+	mockConfigValidator.On("Validate", mock.Anything).Return(expected)
+
+	recipeInstall := NewRecipeInstallWithStubs(t).
+		WithConfigValidatorStub(mockConfigValidator).
+		WithProgressIndicator(ux.NewSpinnerProgressIndicator()).
+		Create()
+
+	actual := recipeInstall.connectToPlatform()
+	assert.Error(t, actual)
+	assert.Equal(t, expected.Error(), actual.Error())
+}
+
+func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
+	expected := nrErrors.NewPaymentRequiredError()
+	mockConfigValidator := diagnose_mocks.NewValidator(t)
+	mockConfigValidator.On("Validate", mock.Anything).Return(expected)
+
+	recipeInstall := NewRecipeInstallWithStubs(t).
+		WithConfigValidatorStub(mockConfigValidator).
+		WithProgressIndicator(ux.NewSpinnerProgressIndicator()).
+		Create()
+
+	actual := recipeInstall.connectToPlatform()
+	assert.Error(t, actual)
+	assert.IsType(t, &nrErrors.PaymentRequiredError{}, actual)
+}
+
+func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
+	expected := &diagnose.ConnectionError{
+		Err: errors.New("Connection Failed"),
+	}
+
+	mockConfigValidator := diagnose_mocks.NewValidator(t)
+	mockConfigValidator.
+		On("Validate", mock.Anything).
+		Return(expected)
+
+	mockProcessEvaluator := recipes_mocks.NewProcessEvaluatorInterface(t)
+	mockProcessEvaluator.
+		On("GetOrLoadProcesses", mock.Anything).
+		Return([]types.GenericProcess{
+			*recipes.NewMockProcess("command.exe", "some-command", 123),
+			*recipes.NewMockProcess("another-command.exe", "another-command", 456),
+		})
+
+	mockStatusReporter := execution_mocks.NewStatusReporter(t)
+	mockStatusReporter.
+		On("InstallStarted", mock.Anything).Return().
+		On("InstallComplete", expected.Err.(error)).Return()
+	//TODO remove these handrolled mocks in favor of mockery/testify
+	statusReporters := []execution.StatusSubscriber{mockStatusReporter}
+	installStatus := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+
+	recipeInstall := NewRecipeInstallWithStubs(t).
+		WithConfigValidatorStub(mockConfigValidator).
+		WithProcessEvaluator(mockProcessEvaluator).
+		//WithStatusReporter(mockStatusReporter).
+		WithInstallStatus(installStatus).
+		WithProgressIndicator(ux.NewSpinnerProgressIndicator()).
+		Create()
+
+	actual := recipeInstall.Install()
+
+	assert.Error(t, actual)
+	assert.IsType(t, diagnose.ConnectionError{}, actual)
+
+	//assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
+	//assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
+}
+
 //
 //func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
 //	expected := errors.New("Some Discover error")

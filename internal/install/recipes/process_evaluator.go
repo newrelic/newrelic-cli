@@ -12,6 +12,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+// FIXME ProcessEvaluator interface already exists in install/interfaces
 type ProcessEvaluatorInterface interface {
 	GetOrLoadProcesses(ctx context.Context) []types.GenericProcess
 	DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType

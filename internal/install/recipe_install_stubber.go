@@ -4,11 +4,12 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	diagnose_mocks "github.com/newrelic/newrelic-cli/internal/diagnose/mocks"
 	discovery_mocks "github.com/newrelic/newrelic-cli/internal/install/discovery/mocks"
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	recipes_mocks "github.com/newrelic/newrelic-cli/internal/install/recipes/mocks"
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	execution_mocks "github.com/newrelic/newrelic-cli/internal/install/execution/mocks"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
@@ -43,6 +44,7 @@ type RecipeInstallStub struct {
 	recipeFetcher      recipes.RecipeFetcher
 	discoverer         discovery.Discoverer
 	status             *execution.InstallStatus //struct
+	statusReporter     execution.StatusReporter
 	mockOsValidator    *discovery.Validator
 	manifestValidator  *discovery.Validator
 	licenseKeyFetcher  *LicenseKeyFetcher
@@ -56,15 +58,24 @@ type RecipeInstallStub struct {
 	recipeValidator    *validation.MockRecipeValidator //needs interface
 	recipeDetector     *MockRecipeDetector             //needs interface
 	processes          []types.GenericProcess
+	processEvaluator   recipes.ProcessEvaluatorInterface
 }
 
 func NewRecipeInstallWithStubs(t *testing.T) *RecipeInstallStub {
 	recipeInstallWithStubs := &RecipeInstallStub{
-		testContext:     t,
-		configValidator: diagnose_mocks.NewValidator(t),
-		discoverer:      discovery_mocks.NewDiscoverer(t),
-		recipeFetcher:   recipes_mocks.NewRecipeFetcher(t),
+		testContext:      t,
+		configValidator:  diagnose_mocks.NewValidator(t),
+		discoverer:       discovery_mocks.NewDiscoverer(t),
+		recipeFetcher:    recipes_mocks.NewRecipeFetcher(t),
+		statusReporter:   execution_mocks.NewStatusReporter(t),
+		processEvaluator: recipes_mocks.NewProcessEvaluatorInterface(t),
 	}
+
+	//TODO remove these handrolled mocks in favor of mockery/testify
+	//statusReporter := execution.NewMockStatusReporter()
+	//statusReporters := []execution.StatusSubscriber{statusReporter}
+	//status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	//recipeInstallWithStubs.status = status
 
 	return recipeInstallWithStubs
 }
@@ -89,11 +100,29 @@ func (ris *RecipeInstallStub) WithProgressIndicator(i *ux.SpinnerProgressIndicat
 	return ris
 }
 
+func (ris *RecipeInstallStub) WithStatusReporter(stub *execution_mocks.StatusReporter) *RecipeInstallStub {
+	ris.statusReporter = stub
+	return ris
+}
+
+func (ris *RecipeInstallStub) WithProcessEvaluator(stub *recipes_mocks.ProcessEvaluatorInterface) *RecipeInstallStub {
+	ris.processEvaluator = stub
+	return ris
+}
+
+func (ris *RecipeInstallStub) WithInstallStatus(installStatus *execution.InstallStatus) *RecipeInstallStub {
+	ris.status = installStatus
+	return ris
+}
+
 func (ris *RecipeInstallStub) Create() *RecipeInstall {
 	recipeInstall := &RecipeInstall{}
 	recipeInstall.configValidator = ris.configValidator
 	recipeInstall.discoverer = ris.discoverer
 	recipeInstall.recipeFetcher = ris.recipeFetcher
+	recipeInstall.progressIndicator = ris.progressIndicator
+	recipeInstall.processEvaluator = ris.processEvaluator
+	recipeInstall.status = ris.status
 
 	return recipeInstall
 }
