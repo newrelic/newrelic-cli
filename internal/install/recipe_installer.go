@@ -41,7 +41,7 @@ type RecipeInstall struct {
 	status                 *execution.InstallStatus
 	prompter               Prompter
 	licenseKeyFetcher      LicenseKeyFetcher
-	configValidator        ConfigValidator
+	configValidator        diagnose.Validator
 	recipeVarPreparer      RecipeVarPreparer
 	agentValidator         AgentValidator
 	shouldInstallCore      func() bool

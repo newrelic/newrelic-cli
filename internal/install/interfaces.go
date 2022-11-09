@@ -9,9 +9,9 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type ConfigValidator interface {
-	Validate(ctx context.Context) error
-}
+//type ConfigValidator interface {
+//	Validate(ctx context.Context) error
+//}
 
 // Discoverer is responsible for discovering information about the host system.
 type Discoverer interface {

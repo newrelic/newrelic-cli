@@ -1,18 +1,29 @@
 package install
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-
+	"github.com/newrelic/newrelic-cli/internal/diagnose/mocks"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"testing"
 )
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
-	var expected error
-	pi := ux.NewSpinnerProgressIndicator()
+	//anyContext := mock.MatchedBy(func(c context.Context) bool {
+	//	// if the passed in parameter does not implement the context.Context interface, the
+	//	// wrapping MatchedBy will panic - so we can simply return true, since we
+	//	// know it's a context.Context if execution flow makes it here.
+	//	return true
+	//})
 
-	recipeInstall := NewRecipeInstallBuilder().WithConfigValidatorError(expected).WithProgressIndicator(pi).Build()
+	configValidator := mocks.NewValidator(t)
+	configValidator.On("Validate", mock.AnythingOfType("context.Context")).Return(nil)
+
+	recipeInstall := NewRecipeInstallWithStubs(t).
+		WithConfigValidatorStub(configValidator).
+		WithProgressIndicator(ux.NewSpinnerProgressIndicator()).
+		Create()
 
 	err := recipeInstall.connectToPlatform()
 	assert.NoError(t, err)
