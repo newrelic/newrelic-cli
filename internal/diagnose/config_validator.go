@@ -23,6 +23,10 @@ const (
 	DefaultMaxValidationAttempts = 20
 )
 
+type Validator interface {
+	Validate(context.Context) error
+}
+
 type ConfigValidator struct {
 	client *newrelic.NewRelic
 	*validation.PollingNRQLValidator

@@ -2,9 +2,11 @@ package install
 
 import (
 	"context"
+	"github.com/newrelic/newrelic-cli/internal/diagnose/old"
 
-	"github.com/newrelic/newrelic-cli/internal/diagnose"
+	mock_diagnose "github.com/newrelic/newrelic-cli/internal/diagnose/mocks"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
+	mock_discovery "github.com/newrelic/newrelic-cli/internal/install/discovery/mocks"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -13,9 +15,9 @@ import (
 )
 
 type RecipeInstallBuilder struct {
-	configValidator    *diagnose.MockConfigValidator
+	configValidator    mock_diagnose.Validator
 	recipeFetcher      *recipes.MockRecipeFetcher
-	discoverer         *discovery.MockDiscoverer
+	discoverer         mock_discovery.Discoverer
 	status             *execution.InstallStatus
 	mockOsValidator    *discovery.MockOsValidator
 	manifestValidator  *discovery.ManifestValidator
@@ -32,36 +34,36 @@ type RecipeInstallBuilder struct {
 	processes          []types.GenericProcess
 }
 
-func NewRecipeInstallBuilder() *RecipeInstallBuilder {
-	rib := &RecipeInstallBuilder{
-		configValidator: diagnose.NewMockConfigValidator(),
-		recipeFetcher:   recipes.NewMockRecipeFetcher(),
-		discoverer:      discovery.NewMockDiscoverer(),
-		processes:       []types.GenericProcess{},
-	}
-
-	statusReporter := execution.NewMockStatusReporter()
-	statusReporters := []execution.StatusSubscriber{statusReporter}
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
-	rib.status = status
-
-	rib.mockOsValidator = discovery.NewMockOsValidator()
-	rib.manifestValidator = discovery.NewMockManifestValidator(rib.mockOsValidator)
-	// Default to not skip core
-	rib.shouldInstallCore = func() bool { return true }
-	rib.installerContext = types.InstallerContext{}
-	rib.licenseKeyFetcher = NewMockLicenseKeyFetcher()
-	rib.recipeLogForwarder = execution.NewMockRecipeLogForwarder()
-	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
-	rib.recipeVarProvider.Vars = map[string]string{}
-	rib.recipeExecutor = execution.NewMockRecipeExecutor()
-	rib.progressIndicator = ux.NewSpinnerProgressIndicator()
-	rib.agentValidator = &validation.MockAgentValidator{}
-	rib.recipeValidator = &validation.MockRecipeValidator{}
-	rib.recipeDetector = &MockRecipeDetector{}
-
-	return rib
-}
+//func NewRecipeInstallBuilder() *RecipeInstallBuilder {
+//	rib := &RecipeInstallBuilder{
+//		configValidator: old.NewMockConfigValidator(),
+//		recipeFetcher:   recipes.NewMockRecipeFetcher(),
+//		discoverer:      discovery.NewMockDiscoverer(),
+//		processes:       []types.GenericProcess{},
+//	}
+//
+//	statusReporter := execution.NewMockStatusReporter()
+//	statusReporters := []execution.StatusSubscriber{statusReporter}
+//	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+//	rib.status = status
+//
+//	rib.mockOsValidator = discovery.NewMockOsValidator()
+//	rib.manifestValidator = discovery.NewMockManifestValidator(rib.mockOsValidator)
+//	// Default to not skip core
+//	rib.shouldInstallCore = func() bool { return true }
+//	rib.installerContext = types.InstallerContext{}
+//	rib.licenseKeyFetcher = NewMockLicenseKeyFetcher()
+//	rib.recipeLogForwarder = execution.NewMockRecipeLogForwarder()
+//	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
+//	rib.recipeVarProvider.Vars = map[string]string{}
+//	rib.recipeExecutor = execution.NewMockRecipeExecutor()
+//	rib.progressIndicator = ux.NewSpinnerProgressIndicator()
+//	rib.agentValidator = &validation.MockAgentValidator{}
+//	rib.recipeValidator = &validation.MockRecipeValidator{}
+//	rib.recipeDetector = &MockRecipeDetector{}
+//
+//	return rib
+//}
 
 func (rib *RecipeInstallBuilder) WithLibraryVersion(libraryVersion string) *RecipeInstallBuilder {
 	rib.recipeFetcher.LibraryVersion = libraryVersion
