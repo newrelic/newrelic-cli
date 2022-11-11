@@ -8,6 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/mock"
+
+	"github.com/newrelic/newrelic-cli/internal/install/discovery/mocks"
+
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 
@@ -69,25 +73,31 @@ func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
 }
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
-	expected := errors.New("Some Discover error")
-	recipeInstall := NewRecipeInstallBuilder().WithDiscovererError(expected).Build()
+	setup()
+	defer teardown()
+	expectedDiscoveryErr := errors.New("Some Discover error")
+	discoverManifest = failedDiscoveryManifest(expectedDiscoveryErr)
+
+	recipeInstall := NewRecipeInstallBuilder().Build()
 
 	actual := recipeInstall.Install()
-
 	assert.Error(t, actual)
-	assert.True(t, strings.Contains(actual.Error(), expected.Error()))
+	assert.True(t, strings.Contains(actual.Error(), expectedDiscoveryErr.Error()))
 }
 
 func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
-	expected := errors.New("some discovery validation error")
-
+	setup()
+	defer teardown()
+	expectedValidationErr := errors.New("some manifest validation error")
+	validateManifest = failedValidateManifest(expectedValidationErr)
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithDiscovererValidatorError(expected).Build()
-	actual := recipeInstall.Install()
 
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).Build()
+
+	actual := recipeInstall.Install()
 	assert.Error(t, actual)
+	assert.True(t, strings.Contains(actual.Error(), expectedValidationErr.Error()))
 	assert.Equal(t, 1, statusReporter.DiscoveryCompleteCallCount)
-	assert.True(t, strings.Contains(actual.Error(), expected.Error()))
 }
 
 func TestInstallGuidedShouldSkipCoreInstall(t *testing.T) {
@@ -729,4 +739,74 @@ func captureLoggingOutput(f func()) string {
 	f()
 	existingLogger.SetOutput(os.Stderr)
 	return buf.String()
+}
+
+func TestDiscoverManifestReturnsValidManifest(t *testing.T) {
+	validManifest := &types.DiscoveryManifest{OS: "some-os", PlatformVersion: "123"}
+	mockDiscoverer := mocks.NewDiscoverer(t)
+	mockDiscoverer.On("Discover", mock.Anything).Return(validManifest, nil)
+
+	manifest, err := discoverManifest(context.Background(), mockDiscoverer)
+
+	assert.Equal(t, validManifest, manifest)
+	assert.NoError(t, err)
+}
+
+func TestDiscoverManifestReturnsError(t *testing.T) {
+	expectedError := errors.New("Manifest discovery failed")
+	mockDiscoverer := mocks.NewDiscoverer(t)
+	mockDiscoverer.On("Discover", mock.Anything).Return(nil, expectedError)
+
+	manifest, err := discoverManifest(context.Background(), mockDiscoverer)
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "Manifest discovery failed"))
+	assert.Nil(t, manifest)
+}
+
+// stubs
+// while these functions are privates in recipe_installer, they are no longer receivers of recipe_install
+// we can stub the original functions implemented with our own impls depending on the test case
+// only caveat - need to 'save off' the real impl, then make sure you reset (teardown) as part of each test
+var realDiscoverManifest func(context.Context, Discoverer) (*types.DiscoveryManifest, error)
+var realValidateManifest func(*types.DiscoveryManifest) error
+
+func setup() {
+	realDiscoverManifest = discoverManifest
+	realValidateManifest = validateManifest
+	discoverManifest = successfulDiscoveryManifest(&types.DiscoveryManifest{OS: "some-valid-os"})
+	validateManifest = successfulValidateManifest()
+}
+
+func teardown() {
+	discoverManifest = realDiscoverManifest
+	validateManifest = realValidateManifest
+}
+
+func failedDiscoveryManifest(err error) func(context.Context, Discoverer) (*types.DiscoveryManifest, error) {
+	return func(context.Context, Discoverer) (*types.DiscoveryManifest, error) {
+		return nil, err
+	}
+}
+
+func successfulDiscoveryManifest(manifest *types.DiscoveryManifest) func(context.Context, Discoverer) (*types.DiscoveryManifest, error) {
+	if manifest == nil {
+		manifest = &types.DiscoveryManifest{OS: "some-valid-os"}
+	}
+
+	return func(context.Context, Discoverer) (*types.DiscoveryManifest, error) {
+		return manifest, nil
+	}
+}
+
+func failedValidateManifest(err error) func(m *types.DiscoveryManifest) error {
+	return func(m *types.DiscoveryManifest) error {
+		return err
+	}
+}
+
+func successfulValidateManifest() func(m *types.DiscoveryManifest) error {
+	return func(m *types.DiscoveryManifest) error {
+		return nil
+	}
 }

@@ -31,8 +31,6 @@ const (
 
 type RecipeInstall struct {
 	types.InstallerContext
-	discoverer             Discoverer
-	manifestValidator      *discovery.ManifestValidator
 	recipeFetcher          recipes.RecipeFetcher
 	recipeExecutor         execution.RecipeExecutor
 	recipeValidator        RecipeValidator
@@ -69,7 +67,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
 
-	mv := discovery.NewManifestValidator()
+	//mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
 	lf := execution.NewRecipeLogForwarder()
 	ers := []execution.StatusSubscriber{
@@ -81,7 +79,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 
-	d := discovery.NewPSUtilDiscoverer()
+	//d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	cv := diagnose.NewConfigValidator(nrClient)
@@ -90,8 +88,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstall{
-		discoverer:         d,
-		manifestValidator:  mv,
+		//discoverer:         d,
+		//manifestValidator:  mv,
 		recipeFetcher:      recipeFetcher,
 		recipeExecutor:     re,
 		recipeValidator:    v,
@@ -124,6 +122,27 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator)
 	}
 	return &i
+}
+
+var discoverManifest = func(ctx context.Context, discoverer Discoverer) (*types.DiscoveryManifest, error) {
+	log.Debug("discovering system information")
+	//discoverer := discovery.NewPSUtilDiscoverer()
+	m, err := discoverer.Discover(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
+	}
+
+	return m, nil
+}
+
+var validateManifest = func(m *types.DiscoveryManifest) error {
+	manifestValidator := discovery.NewManifestValidator()
+	err := manifestValidator.Validate(m)
+	if err != nil {
+		return err
+	}
+	log.Debugf("Done asserting valid operating system for OS:%s and PlatformVersion:%s", m.OS, m.PlatformVersion)
+	return nil
 }
 
 var getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
@@ -290,16 +309,21 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
 
-	// Execute the discovery process, exiting on failure.
-	m, err := i.discover(ctx)
-	if err != nil {
-		return err
+	// Execute the discovery process and validate, exiting on failure.
+	discoveryManifest, discoveryError := discoverManifest(ctx, discovery.NewPSUtilDiscoverer())
+	if discoveryError != nil {
+		return discoveryError
+	}
+	i.status.DiscoveryComplete(*discoveryManifest)
+	invalidManifestError := validateManifest(discoveryManifest)
+	if invalidManifestError != nil {
+		return invalidManifestError
 	}
 
 	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
 		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return recipes, err2
-	}, m)
+	}, discoveryManifest)
 
 	i.printStartInstallingMessage(repo)
 
@@ -319,7 +343,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}
 
 	bundler := i.bundlerFactory(ctx, availableRecipes)
-	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
+	bundleInstaller := i.bundleInstallerFactory(ctx, discoveryManifest, i, i.status)
 
 	cbErr := i.installCoreBundle(bundler, bundleInstaller)
 	if cbErr != nil {
@@ -441,33 +465,6 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	}
 
 	return nil
-}
-
-func (i *RecipeInstall) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
-	err := i.manifestValidator.Validate(m)
-	if err != nil {
-		return err
-	}
-	log.Debugf("Done asserting valid operating system for OS:%s and PlatformVersion:%s", m.OS, m.PlatformVersion)
-	return nil
-}
-
-func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
-	log.Debug("discovering system information")
-
-	m, err := i.discoverer.Discover(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
-	}
-
-	err = i.assertDiscoveryValid(ctx, m)
-	i.status.DiscoveryComplete(*m)
-
-	if err != nil {
-		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
-	}
-
-	return m, nil
 }
 
 func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {

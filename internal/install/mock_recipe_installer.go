@@ -23,16 +23,6 @@ func (mri *mockRecipeInstaller) install(ctx context.Context) error {
 	return args.Error(0)
 }
 
-func (mri *mockRecipeInstaller) assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error {
-	args := mri.Called(ctx, m)
-	return args.Error(0)
-}
-
-func (mri *mockRecipeInstaller) discover(ctx context.Context) (*types.DiscoveryManifest, error) {
-	args := mri.Called(ctx)
-	return nil, args.Error(1)
-}
-
 func (mri *mockRecipeInstaller) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars, assumeYes bool) (string, error) {
 	args := mri.Called(ctx, m, r, vars)
 	return args.String(0), args.Error(1)

@@ -4,42 +4,59 @@
 package discovery
 
 import (
+	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+
+	"github.com/newrelic/newrelic-cli/internal/install/discovery/mocks"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
+
 	"github.com/stretchr/testify/require"
 )
 
-func Test(t *testing.T) {
-	assert.True(t, true)
-}
-
 func Test_FailsOnInvalidOs(t *testing.T) {
-	discover := NewMockDiscoverer()
-	discover.SetOs("freebsd")
-	err := NewOsValidator().Validate(discover.GetManifest())
+	mockDiscoverer := mocks.NewDiscoverer(t)
+	mockDiscoverer.On("Discover", mock.Anything).Return(&types.DiscoveryManifest{
+		OS: "freebsd",
+	}, nil)
+	manifest, _ := mockDiscoverer.Discover(context.Background())
+
+	err := NewOsValidator().Validate(manifest)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), operatingSystemNotSupportedPrefix)
 	require.Contains(t, err.Error(), "freebsd")
 }
 
 func Test_FailsOnNoOs(t *testing.T) {
-	discover := NewMockDiscoverer()
-	discover.SetOs("")
-	result := NewOsValidator().Validate(discover.GetManifest())
+	mockDiscoverer := mocks.NewDiscoverer(t)
+	mockDiscoverer.On("Discover", mock.Anything).Return(&types.DiscoveryManifest{
+		OS: "",
+	}, nil)
+	manifest, _ := mockDiscoverer.Discover(context.Background())
+
+	result := NewOsValidator().Validate(manifest)
 	require.Equal(t, noOperatingSystemDetected, result.Error())
 }
 
 func Test_DoesntFailForWindowsOs(t *testing.T) {
-	discover := NewMockDiscoverer()
-	discover.SetOs("windows")
-	result := NewOsValidator().Validate(discover.GetManifest())
+	mockDiscoverer := mocks.NewDiscoverer(t)
+	mockDiscoverer.On("Discover", mock.Anything).Return(&types.DiscoveryManifest{
+		OS: "windows",
+	}, nil)
+	manifest, _ := mockDiscoverer.Discover(context.Background())
+
+	result := NewOsValidator().Validate(manifest)
 	require.NoError(t, result)
 }
 
 func Test_DoesntFailForLinuxOs(t *testing.T) {
-	discover := NewMockDiscoverer()
-	discover.SetOs("linux")
-	result := NewOsValidator().Validate(discover.GetManifest())
+	mockDiscoverer := mocks.NewDiscoverer(t)
+	mockDiscoverer.On("Discover", mock.Anything).Return(&types.DiscoveryManifest{
+		OS: "linux",
+	}, nil)
+	manifest, _ := mockDiscoverer.Discover(context.Background())
+
+	result := NewOsValidator().Validate(manifest)
 	require.NoError(t, result)
 }

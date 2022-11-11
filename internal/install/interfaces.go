@@ -52,12 +52,13 @@ type RecipeVarPreparer interface {
 }
 
 // RecipeInstaller wrapper responsible for performing recipe validation, installation, and reporting install status
+// FIXME remove private methods from interface definition
 type RecipeInstaller interface {
 	promptIfNotLatestCLIVersion(ctx context.Context) error
 	Install() error
 	install(ctx context.Context) error
-	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
-	discover(ctx context.Context) (*types.DiscoveryManifest, error)
+	//assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
+	//discover(ctx context.Context) (*types.DiscoveryManifest, error)
 	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars, assumeYes bool) (string, error)
 	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars, assumeYes bool) (string, error)
 	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
