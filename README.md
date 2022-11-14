@@ -20,7 +20,7 @@ The New Relic CLI is an officially supported command line interface for New Reli
 - [Overview](#overview)
   - [Getting Started](#getting-started)
   - [New Relic CLI Documentation](docs/cli/newrelic.md)
-- [Installation](#installation)
+- [Installation](#installation--upgrades)
   - [MacOS](#macos)
   - [Windows](#windows)
   - [Linux](#linux)
