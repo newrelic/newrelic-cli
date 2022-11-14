@@ -1,3 +1,10 @@
+<a name="v0.59.1"></a>
+## [v0.59.1] - 2022-11-11
+<a name="v0.59.0"></a>
+## [v0.59.0] - 2022-11-10
+### Features
+- **install:** Built-int tags should prepend so can be overridden ([#1391](https://github.com/newrelic/newrelic-client-go/issues/1391))
+
 <a name="v0.58.0"></a>
 ## [v0.58.0] - 2022-11-07
 ### Features
@@ -1831,7 +1838,9 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.58.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.59.1...HEAD
+[v0.59.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.59.0...v0.59.1
+[v0.59.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.58.0...v0.59.0
 [v0.58.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.2...v0.58.0
 [v0.57.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.1...v0.57.2
 [v0.57.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.0...v0.57.1
