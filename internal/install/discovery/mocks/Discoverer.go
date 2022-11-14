@@ -52,7 +52,7 @@ type Discoverer_Discover_Call struct {
 }
 
 // Discover is a helper method to define mock.On call
-//   - _a0 context.Context
+//   - _a0 context.MockContext
 func (_e *Discoverer_Expecter) Discover(_a0 interface{}) *Discoverer_Discover_Call {
 	return &Discoverer_Discover_Call{Call: _e.mock.On("Discover", _a0)}
 }

@@ -29,11 +29,18 @@ const (
 	validationTimeout = 5 * time.Minute
 )
 
+var (
+	discoverManifest            = discovery.DiscoverManifest
+	validateManifest            = discovery.ValidateManifest
+	getLatestCliVersionReleased = cli.GetLatestReleaseVersion
+	isLatestCliVersionInstalled = cli.IsLatestVersion
+)
+
 type RecipeInstall struct {
 	types.InstallerContext
 	recipeFetcher          recipes.RecipeFetcher
 	recipeExecutor         execution.RecipeExecutor
-	recipeValidator        RecipeValidator
+	recipeValidator        validation.RecipeValidator
 	recipeFileFetcher      RecipeFileFetcher
 	recipeLogForwarder     execution.LogForwarder
 	status                 *execution.InstallStatus
@@ -41,7 +48,7 @@ type RecipeInstall struct {
 	licenseKeyFetcher      LicenseKeyFetcher
 	configValidator        ConfigValidator
 	recipeVarPreparer      RecipeVarPreparer
-	agentValidator         AgentValidator
+	agentValidator         validation.AgentValidator
 	shouldInstallCore      func() bool
 	bundlerFactory         func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
@@ -122,35 +129,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator)
 	}
 	return &i
-}
-
-var discoverManifest = func(ctx context.Context, discoverer Discoverer) (*types.DiscoveryManifest, error) {
-	log.Debug("discovering system information")
-	//discoverer := discovery.NewPSUtilDiscoverer()
-	m, err := discoverer.Discover(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("there was an error discovering system info: %s", err)
-	}
-
-	return m, nil
-}
-
-var validateManifest = func(m *types.DiscoveryManifest) error {
-	manifestValidator := discovery.NewManifestValidator()
-	err := manifestValidator.Validate(m)
-	if err != nil {
-		return err
-	}
-	log.Debugf("Done asserting valid operating system for OS:%s and PlatformVersion:%s", m.OS, m.PlatformVersion)
-	return nil
-}
-
-var getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
-	return cli.GetLatestReleaseVersion(ctx)
-}
-
-var isLatestCliVersionInstalled = func(ctx context.Context, version string) (bool, error) {
-	return cli.IsLatestVersion(ctx, version)
 }
 
 func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
@@ -315,7 +293,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return discoveryError
 	}
 	i.status.DiscoveryComplete(*discoveryManifest)
-	invalidManifestError := validateManifest(discoveryManifest)
+	invalidManifestError := validateManifest(discoveryManifest, discovery.NewManifestValidator())
 	if invalidManifestError != nil {
 		return invalidManifestError
 	}

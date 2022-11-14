@@ -7,9 +7,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/newrelic/newrelic-cli/internal/install/discovery/mocks"
+
 	"github.com/stretchr/testify/mock"
 
-	"github.com/newrelic/newrelic-cli/internal/install/discovery/mocks"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 
 	"github.com/stretchr/testify/require"

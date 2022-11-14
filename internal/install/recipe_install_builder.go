@@ -3,12 +3,13 @@ package install
 import (
 	"context"
 
+	"github.com/newrelic/newrelic-cli/internal/install/validation/mocks"
+
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
-	"github.com/newrelic/newrelic-cli/internal/install/validation"
 )
 
 type RecipeInstallBuilder struct {
@@ -22,8 +23,8 @@ type RecipeInstallBuilder struct {
 	recipeVarProvider  *execution.MockRecipeVarProvider
 	recipeExecutor     *execution.MockRecipeExecutor
 	progressIndicator  *ux.SpinnerProgressIndicator
-	agentValidator     *validation.MockAgentValidator
-	recipeValidator    *validation.MockRecipeValidator
+	agentValidator     *mocks.MockAgentValidator
+	recipeValidator    *mocks.MockRecipeValidator
 	recipeDetector     *MockRecipeDetector
 	processes          []types.GenericProcess
 }
@@ -49,8 +50,8 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	rib.recipeVarProvider.Vars = map[string]string{}
 	rib.recipeExecutor = execution.NewMockRecipeExecutor()
 	rib.progressIndicator = ux.NewSpinnerProgressIndicator()
-	rib.agentValidator = &validation.MockAgentValidator{}
-	rib.recipeValidator = &validation.MockRecipeValidator{}
+	rib.agentValidator = &mocks.MockAgentValidator{}
+	rib.recipeValidator = &mocks.MockRecipeValidator{}
 	rib.recipeDetector = &MockRecipeDetector{}
 
 	return rib

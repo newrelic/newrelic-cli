@@ -21,13 +21,13 @@ func (_m *Validator) EXPECT() *Validator_Expecter {
 	return &Validator_Expecter{mock: &_m.Mock}
 }
 
-// Validate provides a mock function with given fields: _a0
-func (_m *Validator) Validate(_a0 *types.DiscoveryManifest) error {
-	ret := _m.Called(_a0)
+// Validate provides a mock function with given fields: m
+func (_m *Validator) Validate(m *types.DiscoveryManifest) error {
+	ret := _m.Called(m)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(*types.DiscoveryManifest) error); ok {
-		r0 = rf(_a0)
+		r0 = rf(m)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -41,12 +41,12 @@ type Validator_Validate_Call struct {
 }
 
 // Validate is a helper method to define mock.On call
-//   - _a0 *types.DiscoveryManifest
-func (_e *Validator_Expecter) Validate(_a0 interface{}) *Validator_Validate_Call {
-	return &Validator_Validate_Call{Call: _e.mock.On("Validate", _a0)}
+//   - m *types.DiscoveryManifest
+func (_e *Validator_Expecter) Validate(m interface{}) *Validator_Validate_Call {
+	return &Validator_Validate_Call{Call: _e.mock.On("Validate", m)}
 }
 
-func (_c *Validator_Validate_Call) Run(run func(_a0 *types.DiscoveryManifest)) *Validator_Validate_Call {
+func (_c *Validator_Validate_Call) Run(run func(m *types.DiscoveryManifest)) *Validator_Validate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(*types.DiscoveryManifest))
 	})
