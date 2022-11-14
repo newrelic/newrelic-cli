@@ -34,18 +34,19 @@ var (
 	validateManifest            = discovery.ValidateManifest
 	getLatestCliVersionReleased = cli.GetLatestReleaseVersion
 	isLatestCliVersionInstalled = cli.IsLatestVersion
+	licenseKeyFetcher           = NewServiceLicenseKeyFetcher()
 )
 
 type RecipeInstall struct {
 	types.InstallerContext
-	recipeFetcher          recipes.RecipeFetcher
-	recipeExecutor         execution.RecipeExecutor
-	recipeValidator        validation.RecipeValidator
-	recipeFileFetcher      RecipeFileFetcher
-	recipeLogForwarder     execution.LogForwarder
-	status                 *execution.InstallStatus
-	prompter               Prompter
-	licenseKeyFetcher      LicenseKeyFetcher
+	recipeFetcher      recipes.RecipeFetcher
+	recipeExecutor     execution.RecipeExecutor
+	recipeValidator    validation.RecipeValidator
+	recipeFileFetcher  RecipeFileFetcher
+	recipeLogForwarder execution.LogForwarder
+	status             *execution.InstallStatus
+	prompter           Prompter
+	//licenseKeyFetcher      LicenseKeyFetcher
 	configValidator        ConfigValidator
 	recipeVarPreparer      RecipeVarPreparer
 	agentValidator         validation.AgentValidator
@@ -74,7 +75,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeFetcher = recipes.NewEmbeddedRecipeFetcher()
 	}
 
-	//mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
 	lf := execution.NewRecipeLogForwarder()
 	ers := []execution.StatusSubscriber{
@@ -82,11 +82,10 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
-	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
+	//lkf := NewServiceLicenseKeyFetcher()
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ers, slg)
 
-	//d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
 	cv := diagnose.NewConfigValidator(nrClient)
@@ -95,8 +94,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstall{
-		//discoverer:         d,
-		//manifestValidator:  mv,
 		recipeFetcher:      recipeFetcher,
 		recipeExecutor:     re,
 		recipeValidator:    v,
@@ -104,12 +101,12 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		recipeLogForwarder: lf,
 		status:             statusRollup,
 		prompter:           p,
-		licenseKeyFetcher:  lkf,
-		configValidator:    cv,
-		recipeVarPreparer:  rvp,
-		agentValidator:     av,
-		progressIndicator:  ux.NewSpinnerProgressIndicator(),
-		processEvaluator:   recipes.NewProcessEvaluator(),
+		//licenseKeyFetcher:  lkf,
+		configValidator:   cv,
+		recipeVarPreparer: rvp,
+		agentValidator:    av,
+		progressIndicator: ux.NewSpinnerProgressIndicator(),
+		processEvaluator:  recipes.NewProcessEvaluator(),
 	}
 
 	i.InstallerContext = ic
@@ -639,7 +636,7 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 	successChan := make(chan string)
 
 	go func() {
-		licenseKey, err := i.licenseKeyFetcher.FetchLicenseKey(ctx)
+		licenseKey, err := licenseKeyFetcher.FetchLicenseKey()
 		if err != nil {
 			errorChan <- err
 			return

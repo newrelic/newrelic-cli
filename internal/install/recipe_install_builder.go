@@ -13,10 +13,10 @@ import (
 )
 
 type RecipeInstallBuilder struct {
-	configValidator    *diagnose.MockConfigValidator
-	recipeFetcher      *recipes.MockRecipeFetcher
-	status             *execution.InstallStatus
-	licenseKeyFetcher  *MockLicenseKeyFetcher
+	configValidator *diagnose.MockConfigValidator
+	recipeFetcher   *recipes.MockRecipeFetcher
+	status          *execution.InstallStatus
+	//licenseKeyFetcher  *install_mocks.MockLicenseKeyFetcher
 	shouldInstallCore  func() bool
 	installerContext   types.InstallerContext
 	recipeLogForwarder *execution.MockRecipeLogForwarder
@@ -44,7 +44,7 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	// Default to not skip core
 	rib.shouldInstallCore = func() bool { return true }
 	rib.installerContext = types.InstallerContext{}
-	rib.licenseKeyFetcher = NewMockLicenseKeyFetcher()
+	//rib.licenseKeyFetcher = install_mocks.NewMockLicenseKeyFetcher()
 	rib.recipeLogForwarder = execution.NewMockRecipeLogForwarder()
 	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
 	rib.recipeVarProvider.Vars = map[string]string{}
@@ -72,12 +72,12 @@ func (rib *RecipeInstallBuilder) WithRecipeDetectionResult(detectionResult *reci
 	return rib
 }
 
-func (rib *RecipeInstallBuilder) WithLicenseKeyFetchResult(result error) *RecipeInstallBuilder {
-	rib.licenseKeyFetcher.FetchLicenseKeyFunc = func(ctx context.Context) (string, error) {
-		return "", result
-	}
-	return rib
-}
+//func (rib *RecipeInstallBuilder) WithLicenseKeyFetchResult(result error) *RecipeInstallBuilder {
+//	rib.licenseKeyFetcher.FetchLicenseKeyFunc = func() (string, error) {
+//		return "", result
+//	}
+//	return rib
+//}
 
 func (rib *RecipeInstallBuilder) WithConfigValidatorError(err error) *RecipeInstallBuilder {
 	rib.configValidator.Error = err
@@ -160,7 +160,7 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	}
 	recipeInstall.shouldInstallCore = rib.shouldInstallCore
 	recipeInstall.InstallerContext = rib.installerContext
-	recipeInstall.licenseKeyFetcher = rib.licenseKeyFetcher
+	//recipeInstall.licenseKeyFetcher = rib.licenseKeyFetcher
 	recipeInstall.recipeLogForwarder = rib.recipeLogForwarder
 	recipeInstall.recipeVarPreparer = rib.recipeVarProvider
 	recipeInstall.recipeExecutor = rib.recipeExecutor
