@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nrtime"
@@ -33,9 +34,11 @@ var cmdEntityDeployment = &cobra.Command{
 	Short: "Manage deployment markers for a New Relic entity",
 	Long: `Manage deployment markers for a New Relic entity
 	
+` + color.HiYellowString("NOTE:") + ` This feature is in Limited Preview and not yet available to all customers.
+	
 The deployment command manages deployments for a New Relic entity. Use --help for more information.
 	`,
-	Example: "newrelic entity deployment create --entityGUID <GUID> --version <0.0.1>",
+	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
 }
 
 var cmdEntityDeploymentCreate = &cobra.Command{
@@ -43,9 +46,11 @@ var cmdEntityDeploymentCreate = &cobra.Command{
 	Short: "Create a New Relic entity deployment marker",
 	Long: `Create a New Relic entity deployment marker
 	
+` + color.HiYellowString("NOTE:") + ` This feature is in Limited Preview and not yet available to all customers.
+	
 The deployment command marks a change for a New Relic entity
 	`,
-	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
+	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := changetracking.ChangeTrackingDeploymentInput{}
@@ -53,7 +58,7 @@ The deployment command marks a change for a New Relic entity
 		if timestamp == 0 {
 			params.Timestamp = nrtime.EpochMilliseconds(time.Now())
 		} else {
-			params.Timestamp = nrtime.EpochMilliseconds(time.UnixMilli(timestamp))
+			params.Timestamp = nrtime.EpochMilliseconds(time.Unix(timestamp, 0))
 		}
 
 		if version == "" {
@@ -92,7 +97,7 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deploymentType, "deploymentType", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
 	cmdEntityDeploymentCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
-	cmdEntityDeploymentCreate.Flags().StringVar(&groupID, "groupID", "", "string that can be used to correlate two or more events")
+	cmdEntityDeploymentCreate.Flags().StringVar(&groupID, "groupId", "", "string that can be used to correlate two or more events")
 	cmdEntityDeploymentCreate.Flags().Int64VarP(&timestamp, "timestamp", "t", 0, "the start time of the deployment, the number of milliseconds since the Unix epoch, defaults to now")
 	cmdEntityDeploymentCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
 }
