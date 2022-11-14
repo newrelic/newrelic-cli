@@ -6,6 +6,8 @@ Create a deployment marker for a given entity
 
 Create a deployment marker for a given entity
 
+*NOTE:* This feature is in Limited Preview and not yet available to all customers.
+
 The create command marks a deployment for the given New Relic entity.
 
 
@@ -16,7 +18,7 @@ newrelic entity deployment create [flags]
 ### Examples
 
 ```
-newrelic entity deployment create --guid <GUID> --version <1.0.0>
+newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'
 ```
 
 ### Options

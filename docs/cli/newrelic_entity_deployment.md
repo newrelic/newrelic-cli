@@ -6,6 +6,8 @@ Manage New Relic Entity deployments
 
 Manage New Relic Entity deployments
 
+*NOTE:* This feature is in Limited Preview and not yet available to all customers.
+
 A deployment marker is an event indicating that a deployment happened, and
 it's paired with metadata available from your SCM system (for example,
 the user, revision, or change-log). New Relic displays a vertical line, or
