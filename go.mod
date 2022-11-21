@@ -15,7 +15,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.0
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.1.0
+	github.com/newrelic/newrelic-client-go/v2 v2.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.22.2
 	github.com/sirupsen/logrus v1.9.0
