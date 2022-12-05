@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -21,7 +22,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
 
 const (
@@ -36,6 +37,7 @@ type RecipeInstall struct {
 	recipeExecutor         execution.RecipeExecutor
 	recipeValidator        RecipeValidator
 	recipeFileFetcher      RecipeFileFetcher
+	recipeLogForwarder     execution.LogForwarder
 	status                 *execution.InstallStatus
 	prompter               Prompter
 	licenseKeyFetcher      LicenseKeyFetcher
@@ -69,6 +71,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
+	lf := execution.NewRecipeLogForwarder()
 	ers := []execution.StatusSubscriber{
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
@@ -87,20 +90,21 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	av := validation.NewAgentValidator()
 
 	i := RecipeInstall{
-		discoverer:        d,
-		manifestValidator: mv,
-		recipeFetcher:     recipeFetcher,
-		recipeExecutor:    re,
-		recipeValidator:   v,
-		recipeFileFetcher: ff,
-		status:            statusRollup,
-		prompter:          p,
-		licenseKeyFetcher: lkf,
-		configValidator:   cv,
-		recipeVarPreparer: rvp,
-		agentValidator:    av,
-		progressIndicator: ux.NewSpinnerProgressIndicator(),
-		processEvaluator:  recipes.NewProcessEvaluator(),
+		discoverer:         d,
+		manifestValidator:  mv,
+		recipeFetcher:      recipeFetcher,
+		recipeExecutor:     re,
+		recipeValidator:    v,
+		recipeFileFetcher:  ff,
+		recipeLogForwarder: lf,
+		status:             statusRollup,
+		prompter:           p,
+		licenseKeyFetcher:  lkf,
+		configValidator:    cv,
+		recipeVarPreparer:  rvp,
+		agentValidator:     av,
+		progressIndicator:  ux.NewSpinnerProgressIndicator(),
+		processEvaluator:   recipes.NewProcessEvaluator(),
 	}
 
 	i.InstallerContext = ic
@@ -161,12 +165,12 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error {
 	processes := i.processEvaluator.GetOrLoadProcesses(ctx)
 	count := 0
-	nameRegex := regexp.MustCompile("(?i)newrelic(\\.exe)?")
+	nameRegex := regexp.MustCompile(`(?i)newrelic(\.exe)?`)
 	for _, p := range processes {
 		name, err := p.Name()
 		if err == nil && nameRegex.MatchString(name) {
 			cmd, err := p.Cmd()
-			cmdRegex := regexp.MustCompile("(?i)newrelic(\\.exe)? install")
+			cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? install`)
 			if err == nil && cmdRegex.MatchString(cmd) {
 				log.Debugf(fmt.Sprintf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID()))
 				count++
@@ -199,7 +203,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 	}).Debug("context summary")
 
 	if i.RecipeNamesProvided() {
-		i.status.SetTargetedInstall()
+		i.status.SetTargetedInstall(i.RecipeNames)
 	}
 
 	if err := i.ensureSingleConcurrentInstall(utils.SignalCtx); err != nil {
@@ -209,7 +213,7 @@ Welcome to New Relic. Let's set up full stack observability for your environment
 
 	hostname, _ := os.Hostname()
 	if hostname == "" {
-		message := fmt.Sprintf("This system is not supported for automatic installation, no host info. Please see our documentation for requirements.")
+		message := "This system is not supported for automatic installation, no host info. Please see our documentation for requirements."
 		return errors.New(message)
 	}
 
@@ -427,7 +431,7 @@ func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller
 	if i.shouldInstallCore() {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)
-		err := bundleInstaller.InstallStopOnError(coreBundle, true)
+		err := bundleInstaller.InstallStopOnError(coreBundle, i.AssumeYes)
 		if err != nil {
 			log.Debugf("error installing core bundle:%s", err)
 			return err
@@ -508,7 +512,10 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 			return "", err
 		}
 
+		// Needed to move some of the failure CLI output/messaging here.  We want to capture metadata on when a user
+		// opts in/out of sending cli logs, and this must occur before we build the RecipeStatusEvent to post to NR
 		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
+		i.optInToSendLogsAndUpdateRecipeMetadata(r.Name)
 		se := execution.RecipeStatusEvent{
 			Recipe:   *r,
 			Msg:      msg,
@@ -569,6 +576,17 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 	})
 
 	return entityGUID, nil
+}
+
+func (i *RecipeInstall) optInToSendLogsAndUpdateRecipeMetadata(recipeName string) {
+	i.progressIndicator.Fail("Installing " + recipeName)
+	recipeOutput := i.recipeExecutor.GetRecipeOutput()
+	logCaptureEnabledForRecipe := i.recipeExecutor.GetOutput().IsCapturedCliOutput()
+	if len(recipeOutput) > 0 && logCaptureEnabledForRecipe {
+		userOptIn := i.recipeLogForwarder.PromptUserToSendLogs(os.Stdin)
+		i.recipeLogForwarder.SetUserOptedIn(userOptIn)
+		i.recipeExecutor.GetOutput().AddMetadata("SendLogsOptIn", strconv.FormatBool(userOptIn))
+	}
 }
 
 type validationFunc func() (string, error)
@@ -682,11 +700,21 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 			if errors.Is(err, types.ErrInterrupt) {
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 			} else {
-				i.progressIndicator.Fail("Installing " + r.DisplayName)
+				// progressIndicator has already been called; we need to finish i.e. message about logs being sent
+				// and actually post logs to NR if the user has opted-in
+				i.finishHandlingFailure(r.DisplayName)
 			}
 			log.Debugf("install error encountered: %s", err)
 			return "", err
 		}
+	}
+}
+
+func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
+	if i.recipeLogForwarder.HasUserOptedIn() {
+		i.progressIndicator.Start("Sending logs to New Relic")
+		i.recipeLogForwarder.SendLogsToNewRelic(recipeName, i.recipeExecutor.GetRecipeOutput())
+		i.progressIndicator.Success("Complete!")
 	}
 }
 

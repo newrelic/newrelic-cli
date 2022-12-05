@@ -1,5 +1,53 @@
+<a name="v0.60.3"></a>
+## [v0.60.3] - 2022-11-22
+<a name="v0.60.2"></a>
+## [v0.60.2] - 2022-11-15
+<a name="v0.60.1"></a>
+## [v0.60.1] - 2022-11-15
+<a name="v0.60.0"></a>
+## [v0.60.0] - 2022-11-15
+### Features
+- add entity deployment command
+
+<a name="v0.59.1"></a>
+## [v0.59.1] - 2022-11-11
+<a name="v0.59.0"></a>
+## [v0.59.0] - 2022-11-10
+### Features
+- **install:** Built-int tags should prepend so can be overridden ([#1391](https://github.com/newrelic/newrelic-client-go/issues/1391))
+
+<a name="v0.58.0"></a>
+## [v0.58.0] - 2022-11-07
+### Features
+- **install:** Allow --tag to be passed in via install command ([#1389](https://github.com/newrelic/newrelic-client-go/issues/1389))
+- **log-metadata:** adding SendLogsOptIn recipe metadata for querying VirtuosoInstallRecipe
+
+<a name="v0.57.2"></a>
+## [v0.57.2] - 2022-11-03
+<a name="v0.57.1"></a>
+## [v0.57.1] - 2022-11-03
+<a name="v0.57.0"></a>
+## [v0.57.0] - 2022-11-02
+### Features
+- **logs:** removed usage of temp file for log output
+
+<a name="v0.56.1"></a>
+## [v0.56.1] - 2022-10-25
+<a name="v0.56.0"></a>
+## [v0.56.0] - 2022-10-19
+### Features
+- **cli-logs:** Sending CLI output to LogsApi for infra agent recipe failures
+
+<a name="v0.55.8"></a>
+## [v0.55.8] - 2022-10-19
+<a name="v0.55.7"></a>
+## [v0.55.7] - 2022-10-17
+<a name="v0.55.6"></a>
+## [v0.55.6] - 2022-10-13
+<a name="v0.55.5"></a>
+## [v0.55.5] - 2022-10-11
 <a name="v0.55.4"></a>
-## [v0.55.4] - 0001-01-01
+## [v0.55.4] - 2022-10-06
 <a name="v0.55.3"></a>
 ## [v0.55.3] - 2022-10-06
 <a name="v0.55.2"></a>
@@ -1801,7 +1849,23 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.3...HEAD
+[v0.60.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.2...v0.60.3
+[v0.60.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.1...v0.60.2
+[v0.60.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.0...v0.60.1
+[v0.60.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.59.1...v0.60.0
+[v0.59.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.59.0...v0.59.1
+[v0.59.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.58.0...v0.59.0
+[v0.58.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.2...v0.58.0
+[v0.57.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.1...v0.57.2
+[v0.57.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.0...v0.57.1
+[v0.57.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.1...v0.57.0
+[v0.56.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.0...v0.56.1
+[v0.56.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.8...v0.56.0
+[v0.55.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.7...v0.55.8
+[v0.55.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.6...v0.55.7
+[v0.55.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.5...v0.55.6
+[v0.55.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.4...v0.55.5
 [v0.55.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.3...v0.55.4
 [v0.55.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2...v0.55.3
 [v0.55.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2-abc...v0.55.2

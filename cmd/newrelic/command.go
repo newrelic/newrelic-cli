@@ -12,8 +12,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/split"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
+	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
 var (

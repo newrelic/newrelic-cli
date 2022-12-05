@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 
-	"github.com/newrelic/newrelic-client-go/pkg/nrdb"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nrdb"
 )
 
 type NRDBClient interface {

@@ -58,6 +58,61 @@ func TestOutputParserShouldGetMetadataMissing(t *testing.T) {
 	assert.Equal(t, result.Metadata()["key1"], "")
 }
 
+func TestOutputParserShouldGetCapturedCliOutputFlag(t *testing.T) {
+	// value is true
+	output := givenJSON("{\"Metadata\":{\"CapturedCliOutput\":\"true\"}}")
+	result := NewOutputParser(output)
+	assert.NotNil(t, result.IsCapturedCliOutput())
+	assert.True(t, result.IsCapturedCliOutput())
+
+	// value is false
+	output = givenJSON("{\"Metadata\":{\"CapturedCliOutput\":\"false\"}}")
+	result = NewOutputParser(output)
+	assert.NotNil(t, result.IsCapturedCliOutput())
+	assert.False(t, result.IsCapturedCliOutput())
+
+	// value is empty
+	output = givenJSON("{\"Metadata\":{\"CapturedCliOutput\":\"\"}}")
+	result = NewOutputParser(output)
+	assert.False(t, result.IsCapturedCliOutput())
+
+	// key does not exist
+	output = givenJSON("{\"EntityGuid\":\"abcd\"}")
+	result = NewOutputParser(output)
+	assert.False(t, result.IsCapturedCliOutput())
+}
+
+func TestAddingMetadataAddsNewAndPreservesExistingValues(t *testing.T) {
+	// start with one piece of metadata
+	data := NewOutputParser(givenJSON("{\"Metadata\":{\"originalvalue\":\"abc\"}}"))
+	assert.Equal(t, 1, len(data.Metadata()))
+
+	// add a second
+	data.AddMetadata("addedvalue", "123")
+	assert.Equal(t, 2, len(data.Metadata()))
+
+	// original should exist
+	originalValue, originalExists := data.Metadata()["originalvalue"]
+	assert.True(t, originalExists)
+	assert.Equal(t, "abc", originalValue)
+
+	// added value should exist
+	addedValue, addedExists := data.Metadata()["addedvalue"]
+	assert.True(t, addedExists)
+	assert.Equal(t, "123", addedValue)
+
+	// adding value to empty output doesn't break
+	empty := NewOutputParser(nil)
+	assert.Equal(t, 0, len(empty.Metadata()))
+
+	empty.AddMetadata("newEntry", "456")
+	assert.Equal(t, 1, len(empty.Metadata()))
+
+	newEntry, newEntryExists := empty.Metadata()["newEntry"]
+	assert.True(t, newEntryExists)
+	assert.Equal(t, "456", newEntry)
+}
+
 func TestOutputParserShouldBeEmpty(t *testing.T) {
 	output := givenJSON("")
 	result := NewOutputParser(output)

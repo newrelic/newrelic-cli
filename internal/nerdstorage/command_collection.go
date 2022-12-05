@@ -10,7 +10,7 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/pkg/nerdstorage"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdstorage"
 )
 
 var cmdCollection = &cobra.Command{

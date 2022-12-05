@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	nrErrors "github.com/newrelic/newrelic-client-go/pkg/errors"
+	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
 var (

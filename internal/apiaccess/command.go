@@ -8,7 +8,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
 )
 
 var Command = &cobra.Command{

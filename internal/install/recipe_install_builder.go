@@ -13,22 +13,23 @@ import (
 )
 
 type RecipeInstallBuilder struct {
-	configValidator   *diagnose.MockConfigValidator
-	recipeFetcher     *recipes.MockRecipeFetcher
-	discoverer        *discovery.MockDiscoverer
-	status            *execution.InstallStatus
-	mockOsValidator   *discovery.MockOsValidator
-	manifestValidator *discovery.ManifestValidator
-	licenseKeyFetcher *MockLicenseKeyFetcher
-	shouldInstallCore func() bool
-	installerContext  types.InstallerContext
-	recipeVarProvider *execution.MockRecipeVarProvider
-	recipeExecutor    *execution.MockRecipeExecutor
-	progressIndicator *ux.SpinnerProgressIndicator
-	agentValidator    *validation.MockAgentValidator
-	recipeValidator   *validation.MockRecipeValidator
-	recipeDetector    *MockRecipeDetector
-	processes         []types.GenericProcess
+	configValidator    *diagnose.MockConfigValidator
+	recipeFetcher      *recipes.MockRecipeFetcher
+	discoverer         *discovery.MockDiscoverer
+	status             *execution.InstallStatus
+	mockOsValidator    *discovery.MockOsValidator
+	manifestValidator  *discovery.ManifestValidator
+	licenseKeyFetcher  *MockLicenseKeyFetcher
+	shouldInstallCore  func() bool
+	installerContext   types.InstallerContext
+	recipeLogForwarder *execution.MockRecipeLogForwarder
+	recipeVarProvider  *execution.MockRecipeVarProvider
+	recipeExecutor     *execution.MockRecipeExecutor
+	progressIndicator  *ux.SpinnerProgressIndicator
+	agentValidator     *validation.MockAgentValidator
+	recipeValidator    *validation.MockRecipeValidator
+	recipeDetector     *MockRecipeDetector
+	processes          []types.GenericProcess
 }
 
 func NewRecipeInstallBuilder() *RecipeInstallBuilder {
@@ -50,6 +51,7 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	rib.shouldInstallCore = func() bool { return true }
 	rib.installerContext = types.InstallerContext{}
 	rib.licenseKeyFetcher = NewMockLicenseKeyFetcher()
+	rib.recipeLogForwarder = execution.NewMockRecipeLogForwarder()
 	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
 	rib.recipeVarProvider.Vars = map[string]string{}
 	rib.recipeExecutor = execution.NewMockRecipeExecutor()
@@ -125,9 +127,18 @@ func (rib *RecipeInstallBuilder) WithOutput(value string) *RecipeInstallBuilder 
 	return rib
 }
 
+func (rib *RecipeInstallBuilder) WithRecipeOutput(value []string) *RecipeInstallBuilder {
+	return rib
+}
+
 func (rib *RecipeInstallBuilder) WithRecipeVarValues(vars map[string]string, err error) *RecipeInstallBuilder {
 	rib.recipeVarProvider.Vars = vars
 	rib.recipeVarProvider.Error = err
+	return rib
+}
+
+func (rib *RecipeInstallBuilder) WithRecipeLogForwarder(optIn bool) *RecipeInstallBuilder {
+	rib.recipeLogForwarder.SetUserOptedIn(optIn)
 	return rib
 }
 
@@ -168,6 +179,7 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.shouldInstallCore = rib.shouldInstallCore
 	recipeInstall.InstallerContext = rib.installerContext
 	recipeInstall.licenseKeyFetcher = rib.licenseKeyFetcher
+	recipeInstall.recipeLogForwarder = rib.recipeLogForwarder
 	recipeInstall.recipeVarPreparer = rib.recipeVarProvider
 	recipeInstall.recipeExecutor = rib.recipeExecutor
 	recipeInstall.progressIndicator = rib.progressIndicator

@@ -18,3 +18,26 @@ func TestLineCaptureBuffer(t *testing.T) {
 	require.Equal(t, "def", b.Current())
 	require.Equal(t, "abc\n123\ndef", w.String())
 }
+
+func TestLineCaptureBufferCapturesEntireOutput(t *testing.T) {
+	w := bytes.NewBufferString("")
+
+	b := NewLineCaptureBuffer(w)
+	_, err := b.Write([]byte("abc\n"))
+	assert.NoError(t, err)
+
+	_, err = b.Write([]byte("123\n"))
+	assert.NoError(t, err)
+
+	_, err = b.Write([]byte("def\n"))
+	assert.NoError(t, err)
+
+	_, err = b.Write([]byte("nope"))
+	assert.NoError(t, err)
+
+	require.Equal(t, "def", b.LastFullLine)
+	require.Equal(t, "nope", b.Current())
+
+	require.Equal(t, len(b.fullRecipeOutput), 3)
+
+}

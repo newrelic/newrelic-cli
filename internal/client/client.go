@@ -12,9 +12,9 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/newrelic"
-	"github.com/newrelic/newrelic-client-go/pkg/apiaccess"
-	clientLogging "github.com/newrelic/newrelic-client-go/pkg/logging"
+	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
+	clientLogging "github.com/newrelic/newrelic-client-go/v2/pkg/logging"
 
 	log "github.com/sirupsen/logrus"
 )
