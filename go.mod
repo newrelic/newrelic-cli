@@ -11,6 +11,7 @@ require (
 	github.com/go-task/task/v3 v3.11.0
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
+	github.com/imdario/mergo v0.3.13
 	github.com/itchyny/gojq v0.12.9
 	github.com/jedib0t/go-pretty/v6 v6.4.0
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
@@ -20,7 +21,6 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.2
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.0
-	github.com/spf13/pflag v1.0.5
 	github.com/splitio/go-client/v6 v6.1.8
 	github.com/stretchr/testify v1.8.0
 	github.com/tidwall/gjson v1.14.3
@@ -43,7 +43,6 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/itchyny/timefmt-go v0.1.4 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
@@ -60,6 +59,7 @@ require (
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/splitio/go-split-commons/v4 v4.1.3 // indirect
 	github.com/splitio/go-toolkit/v5 v5.2.1 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect

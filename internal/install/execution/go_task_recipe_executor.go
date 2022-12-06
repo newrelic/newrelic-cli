@@ -13,6 +13,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/imdario/mergo"
+
 	"github.com/go-task/task/v3"
 	taskargs "github.com/go-task/task/v3/args"
 	"github.com/go-task/task/v3/taskfile"
@@ -191,11 +193,22 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 	outputBytes, _ := ioutil.ReadAll(outputFile)
 	if len(outputBytes) > 0 {
 		var result map[string]interface{}
-		if err := json.Unmarshal(outputBytes, &result); err == nil {
-			re.Output = NewOutputParser(result)
-		} else {
-			log.Debugf("error while unmarshaling json output from file %s details:%s", outputFileName, err.Error())
+		lines := strings.Split(string(outputBytes), "\n")
+		for _, line := range lines {
+			if json.Valid([]byte(line)) {
+				var jsonFromString map[string]interface{}
+				if err := json.Unmarshal([]byte(line), &jsonFromString); err == nil {
+					if mergoErr := mergo.Merge(&result, jsonFromString, mergo.WithOverride); mergoErr != nil {
+						log.Debugf("error while merging JSON output resuls, details:%s", mergoErr.Error())
+					}
+				} else {
+					log.Debugf("error while unmarshaling JSON output, details:%s", err.Error())
+				}
+			} else {
+				log.Debugf(fmt.Sprintf("Invalid JSON string found in output file, skipping: %v", line))
+			}
 		}
+		re.Output = NewOutputParser(result)
 	} else {
 		re.Output = NewOutputParser(map[string]interface{}{})
 	}
