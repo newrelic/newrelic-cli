@@ -1,5 +1,10 @@
+<a name="v0.61.0"></a>
+## [v0.61.0] - 2022-12-12
+### Features
+- **metadata:** allow multiple metadata writes within a single recipe
+
 <a name="v0.60.6"></a>
-## [v0.60.6] - 2022-12-07
+## [v0.60.6] - 2022-12-08
 <a name="v0.60.5"></a>
 ## [v0.60.5] - 2022-12-07
 <a name="v0.60.4"></a>
@@ -1855,7 +1860,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.0...HEAD
+[v0.61.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.6...v0.61.0
 [v0.60.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.5...v0.60.6
 [v0.60.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.4...v0.60.5
 [v0.60.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.3...v0.60.4
