@@ -1,42 +1,42 @@
 package install
 
 import (
-	"context"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 // relies on the Nerdgraph service
+// FIXME not sure if this really relies on NerdGraph service
+
+var (
+	getActiveProfileAccountID = configAPI.GetActiveProfileAccountID
+	getActiveProfileName      = configAPI.GetActiveProfileName
+	fetchLicenseKey           = client.FetchLicenseKey
+)
+
+type LicenseKeyFetcher interface {
+	FetchLicenseKey() (string, error)
+}
+
 type ServiceLicenseKeyFetcher struct {
-	client     recipes.NerdGraphClient
 	LicenseKey string
 }
 
-type LicenseKeyFetcher interface {
-	FetchLicenseKey(context.Context) (string, error)
+func NewServiceLicenseKeyFetcher() *ServiceLicenseKeyFetcher {
+	return &ServiceLicenseKeyFetcher{}
 }
 
-func NewServiceLicenseKeyFetcher(client recipes.NerdGraphClient) LicenseKeyFetcher {
-	f := ServiceLicenseKeyFetcher{
-		client: client,
-	}
-
-	return &f
-}
-
-func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string, error) {
+func (f *ServiceLicenseKeyFetcher) FetchLicenseKey() (string, error) {
 
 	if f.LicenseKey != "" {
 		return f.LicenseKey, nil
 	}
 
-	accountID := configAPI.GetActiveProfileAccountID()
-	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName())
+	accountID := getActiveProfileAccountID()
+	licenseKey, err := fetchLicenseKey(accountID, getActiveProfileName())
 	if err != nil {
 		return "", err
 	}

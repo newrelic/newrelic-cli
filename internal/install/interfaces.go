@@ -13,11 +13,6 @@ type ConfigValidator interface {
 	Validate(ctx context.Context) error
 }
 
-// Discoverer is responsible for discovering information about the host system.
-type Discoverer interface {
-	Discover(context.Context) (*types.DiscoveryManifest, error)
-}
-
 type Prompter interface {
 	PromptYesNo(msg string) (bool, error)
 	MultiSelect(msg string, options []string) ([]string, error)
@@ -38,26 +33,28 @@ type RecipeFilterRunner interface {
 	EnsureDoesNotFilter(ctx context.Context, r []types.OpenInstallationRecipe, m *types.DiscoveryManifest) error
 }
 
-// RecipeValidator validates installation of a recipe.
-type RecipeValidator interface {
-	ValidateRecipe(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, types.RecipeVars) (entityGUID string, err error)
-}
-
-type AgentValidator interface {
-	Validate(ctx context.Context, url string) (string, error)
-}
+//
+//// RecipeValidator validates installation of a recipe.
+//type RecipeValidator interface {
+//	ValidateRecipe(context.Context, types.DiscoveryManifest, types.OpenInstallationRecipe, types.RecipeVars) (entityGUID string, err error)
+//}
+//
+//type AgentValidator interface {
+//	Validate(ctx context.Context, url string) (string, error)
+//}
 
 type RecipeVarPreparer interface {
 	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
 }
 
 // RecipeInstaller wrapper responsible for performing recipe validation, installation, and reporting install status
+// FIXME remove private methods from interface definition
 type RecipeInstaller interface {
 	promptIfNotLatestCLIVersion(ctx context.Context) error
 	Install() error
 	install(ctx context.Context) error
-	assertDiscoveryValid(ctx context.Context, m *types.DiscoveryManifest) error
-	discover(ctx context.Context) (*types.DiscoveryManifest, error)
+	//assertDiscoveryValid(ctx context.MockContext, m *types.DiscoveryManifest) error
+	//discover(ctx context.MockContext) (*types.DiscoveryManifest, error)
 	executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars, assumeYes bool) (string, error)
 	validateRecipeViaAllMethods(ctx context.Context, r *types.OpenInstallationRecipe, m *types.DiscoveryManifest, vars types.RecipeVars, assumeYes bool) (string, error)
 	executeAndValidateWithProgress(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, assumeYes bool) (string, error)
