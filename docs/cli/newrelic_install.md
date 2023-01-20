@@ -14,6 +14,7 @@ newrelic install [flags]
       --localRecipes string   a path to local recipes to load instead of service other fetching
   -n, --recipe strings        the name of a recipe to install
   -c, --recipePath strings    the path to a recipe file to install
+      --tag string            comma-separated list of tags ("key:value,key:value")
   -t, --testMode              fakes operations for UX testing
 ```
 
@@ -30,5 +31,4 @@ newrelic install [flags]
 
 ### SEE ALSO
 
-* [newrelic](newrelic.md)	 - The New Relic CLI
-
+- [newrelic](newrelic.md) - The New Relic CLI
