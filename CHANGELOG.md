@@ -1,5 +1,10 @@
+<a name="v0.61.4"></a>
+## [v0.61.4] - 2023-01-20
+### Documentation Updates
+- add install tag flag documentation
+
 <a name="v0.61.3"></a>
-## [v0.61.3] - 2023-01-17
+## [v0.61.3] - 2023-01-18
 <a name="v0.61.2"></a>
 ## [v0.61.2] - 2023-01-05
 <a name="v0.61.1"></a>
@@ -1866,7 +1871,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.4...HEAD
+[v0.61.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.3...v0.61.4
 [v0.61.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.2...v0.61.3
 [v0.61.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.1...v0.61.2
 [v0.61.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.0...v0.61.1
