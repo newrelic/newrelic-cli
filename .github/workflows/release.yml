@@ -130,7 +130,7 @@ jobs:
           sudo apt-get install awscli -y
 
       - name: Write config 1
-        uses: DamianReeves/write-file-action@v1.0
+        uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/credentials
           contents:  |
@@ -140,7 +140,7 @@ jobs:
           write-mode: overwrite
 
       - name: Write config 2
-        uses: DamianReeves/write-file-action@v1.0
+        uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/config
           contents:  |
@@ -282,7 +282,7 @@ jobs:
           sudo apt-get install awscli -y
 
       - name: Write config 1
-        uses: DamianReeves/write-file-action@v1.0
+        uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/credentials
           contents:  |
@@ -292,7 +292,7 @@ jobs:
           write-mode: overwrite
 
       - name: Write config 2
-        uses: DamianReeves/write-file-action@v1.0
+        uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/config
           contents:  |
