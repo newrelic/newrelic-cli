@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nrtime"
@@ -33,9 +32,7 @@ var cmdEntityDeployment = &cobra.Command{
 	Use:   "deployment",
 	Short: "Manage deployment markers for a New Relic entity",
 	Long: `Manage deployment markers for a New Relic entity
-	
-` + color.HiYellowString("NOTE:") + ` This feature is in Limited Preview and not yet available to all customers.
-	
+
 The deployment command manages deployments for a New Relic entity. Use --help for more information.
 	`,
 	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
@@ -45,9 +42,7 @@ var cmdEntityDeploymentCreate = &cobra.Command{
 	Use:   "create",
 	Short: "Create a New Relic entity deployment marker",
 	Long: `Create a New Relic entity deployment marker
-	
-` + color.HiYellowString("NOTE:") + ` This feature is in Limited Preview and not yet available to all customers.
-	
+
 The deployment command marks a change for a New Relic entity
 	`,
 	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'",
