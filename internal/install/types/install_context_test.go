@@ -28,7 +28,6 @@ func TestSetTags(t *testing.T) {
 	ic := InstallerContext{}
 	args := []string{"tag1:test", "tag2:test"}
 	ic.SetTags(args)
-	args = append([]string{BuiltinTags}, args...)
 
 	require.Equal(t, "tag1:test,tag2:test,"+BuiltinTags, os.Getenv(EnvInstallCustomAttributes))
 }

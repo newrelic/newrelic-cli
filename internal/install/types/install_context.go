@@ -47,7 +47,7 @@ func (i *InstallerContext) SetTags(tags []string) {
 			csv += value
 		}
 	}
-	if strings.Contains(csv, DeployedByTagKey) == false {
+	if !strings.Contains(csv, DeployedByTagKey) {
 		if len(csv) > 0 {
 			csv += ","
 		}
