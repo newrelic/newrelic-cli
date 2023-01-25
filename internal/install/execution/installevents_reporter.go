@@ -159,6 +159,7 @@ func (r InstallEventsReporter) UpdateRequired(status *InstallStatus) error {
 func buildInstallStatus(state installevents.InstallationInstallStateType, status *InstallStatus, event *RecipeStatusEvent) installevents.InstallationInstallStatusInput {
 	i := installevents.InstallationInstallStatusInput{
 		CliVersion: status.CLIVersion,
+		DeployedBy: status.DeployedBy,
 		Error: installevents.InstallationStatusErrorInput{
 			Details: status.Error.Details,
 			Message: status.Error.Message,
