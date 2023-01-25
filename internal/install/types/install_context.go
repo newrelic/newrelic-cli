@@ -8,8 +8,9 @@ import (
 const (
 	ApmKeyword                 = "Apm"
 	DeployedByTagKey           = "nr_deployed_by"
+	DefaultDeployedBy          = "newrelic-cli"
 	TagSeparator               = ":"
-	BuiltinTags                = DeployedByTagKey + TagSeparator + "newrelic-cli"
+	BuiltinTags                = DeployedByTagKey + TagSeparator + DefaultDeployedBy
 	EnvInstallCustomAttributes = "INSTALL_CUSTOM_ATTRIBUTES"
 )
 
@@ -48,6 +49,7 @@ func (i *InstallerContext) SetTags(tags []string) {
 		}
 	}
 	if !strings.Contains(csv, DeployedByTagKey) {
+		i.deployedBy = DefaultDeployedBy
 		if len(csv) > 0 {
 			csv += ","
 		}

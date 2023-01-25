@@ -66,3 +66,12 @@ func TestShouldGetDeployedBy(t *testing.T) {
 
 	require.Equal(t, "SomeoneElse", ic.GetDeployedBy())
 }
+
+func TestShouldGetDefaultDeployedBy(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
+	ic := InstallerContext{}
+	args := []string{"tag2:test"}
+	ic.SetTags(args)
+
+	require.Equal(t, "newrelic-cli", ic.GetDeployedBy())
+}
