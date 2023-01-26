@@ -1,5 +1,10 @@
+<a name="v0.62.0"></a>
+## [v0.62.0] - 2023-01-26
+### Features
+- **install:** wire deployedBy attribute when installing ([#1417](https://github.com/newrelic/newrelic-client-go/issues/1417))
+
 <a name="v0.61.4"></a>
-## [v0.61.4] - 2023-01-20
+## [v0.61.4] - 2023-01-23
 ### Documentation Updates
 - add install tag flag documentation
 
@@ -1871,7 +1876,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.0...HEAD
+[v0.62.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.4...v0.62.0
 [v0.61.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.3...v0.61.4
 [v0.61.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.2...v0.61.3
 [v0.61.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.1...v0.61.2
