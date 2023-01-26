@@ -7,7 +7,10 @@ import (
 
 const (
 	ApmKeyword                 = "Apm"
-	BuiltinTags                = "nr_deployed_by:newrelic-cli"
+	DeployedByTagKey           = "nr_deployed_by"
+	DefaultDeployedBy          = "newrelic-cli"
+	TagSeparator               = ":"
+	BuiltinTags                = DeployedByTagKey + TagSeparator + DefaultDeployedBy
 	EnvInstallCustomAttributes = "INSTALL_CUSTOM_ATTRIBUTES"
 )
 
@@ -18,7 +21,7 @@ type InstallerContext struct {
 	RecipePaths []string
 	// LocalRecipes is the path to a local recipe directory from which to load recipes.
 	LocalRecipes string
-	Tags         []string
+	deployedBy   string
 }
 
 func (i *InstallerContext) RecipePathsProvided() bool {
@@ -29,8 +32,31 @@ func (i *InstallerContext) RecipeNamesProvided() bool {
 	return len(i.RecipeNames) > 0
 
 }
+
 func (i *InstallerContext) SetTags(tags []string) {
-	i.Tags = tags
-	i.Tags = append([]string{BuiltinTags}, i.Tags...)
-	os.Setenv(EnvInstallCustomAttributes, strings.Join(i.Tags, ","))
+	csv := ""
+	for _, value := range tags {
+		parts := strings.Split(value, TagSeparator)
+		if len(parts) == 2 {
+			if parts[0] == DeployedByTagKey {
+				i.deployedBy = parts[1]
+			}
+			if len(csv) > 0 {
+				csv += ","
+			}
+			csv += value
+		}
+	}
+	if !strings.Contains(csv, DeployedByTagKey) {
+		i.deployedBy = DefaultDeployedBy
+		if len(csv) > 0 {
+			csv += ","
+		}
+		csv += BuiltinTags
+	}
+	os.Setenv(EnvInstallCustomAttributes, csv)
+}
+
+func (i *InstallerContext) GetDeployedBy() string {
+	return i.deployedBy
 }

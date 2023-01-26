@@ -40,16 +40,16 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 		processes:       []types.GenericProcess{},
 	}
 
+	rib.installerContext = types.InstallerContext{}
 	statusReporter := execution.NewMockStatusReporter()
 	statusReporters := []execution.StatusSubscriber{statusReporter}
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	status := execution.NewInstallStatus(rib.installerContext, statusReporters, execution.NewPlatformLinkGenerator())
 	rib.status = status
 
 	rib.mockOsValidator = discovery.NewMockOsValidator()
 	rib.manifestValidator = discovery.NewMockManifestValidator(rib.mockOsValidator)
 	// Default to not skip core
 	rib.shouldInstallCore = func() bool { return true }
-	rib.installerContext = types.InstallerContext{}
 	rib.licenseKeyFetcher = NewMockLicenseKeyFetcher()
 	rib.recipeLogForwarder = execution.NewMockRecipeLogForwarder()
 	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
@@ -97,7 +97,7 @@ func (rib *RecipeInstallBuilder) WithDiscovererError(err error) *RecipeInstallBu
 
 func (rib *RecipeInstallBuilder) WithStatusReporter(statusReporter *execution.MockStatusSubscriber) *RecipeInstallBuilder {
 	statusReporters := []execution.StatusSubscriber{statusReporter}
-	status := execution.NewInstallStatus(statusReporters, execution.NewPlatformLinkGenerator())
+	status := execution.NewInstallStatus(rib.installerContext, statusReporters, execution.NewPlatformLinkGenerator())
 	rib.status = status
 	return rib
 }

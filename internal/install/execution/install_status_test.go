@@ -14,14 +14,14 @@ import (
 
 func TestNewInstallStatus(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	require.NotEmpty(t, s.Timestamp)
 	require.NotEmpty(t, s.DocumentID)
 }
 
 func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
@@ -37,7 +37,7 @@ func TestStatusWithRecipeEvent_Basic(t *testing.T) {
 
 func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{
 		Recipe: r,
@@ -57,7 +57,7 @@ func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
 
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r}
 
@@ -82,7 +82,7 @@ func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
 
 func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
@@ -96,7 +96,7 @@ func TestStatusWithRecipeEvent_EntityGUID(t *testing.T) {
 
 func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	s.withEntityGUID("testGUID")
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
@@ -111,7 +111,7 @@ func TestStatusWithRecipeEvent_EntityGUIDExists(t *testing.T) {
 
 func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{Recipe: r, EntityGUID: "testGUID"}
 
@@ -154,7 +154,7 @@ func TestInstallStatus_statusUpdateMethods(t *testing.T) {
 
 func TestInstallStatus_shouldNotFailAvailableOnComplete(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 
 	s.RecipeAvailable(NewRecipeStatusEvent(&r))
@@ -165,7 +165,7 @@ func TestInstallStatus_shouldNotFailAvailableOnComplete(t *testing.T) {
 
 func TestInstallStatus_shouldFailAvailableOnCancel(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 
 	s.RecipeAvailable(NewRecipeStatusEvent(&r))
@@ -176,7 +176,7 @@ func TestInstallStatus_shouldFailAvailableOnCancel(t *testing.T) {
 
 func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	recipeInstalled := types.OpenInstallationRecipe{Name: "installed"}
 	installedRecipeEvent := RecipeStatusEvent{Recipe: recipeInstalled, EntityGUID: "installedGUID"}
 
@@ -206,7 +206,7 @@ func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 func TestStatus_HTTPSProxy(t *testing.T) {
 	os.Setenv("HTTPS_PROXY", "localhost:8888")
 	slg := NewPlatformLinkGenerator()
-	s := NewInstallStatus([]StatusSubscriber{}, slg)
+	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 
 	require.Equal(t, "localhost:8888", s.HTTPSProxy)
 }
@@ -214,7 +214,7 @@ func TestStatus_HTTPSProxy(t *testing.T) {
 func TestSetTargetInstallShouldSet(t *testing.T) {
 
 	slg := NewMockPlatformLinkGenerator()
-	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	recipeNames := []string{"infra", "logging"}
 	status.SetTargetedInstall(recipeNames)
 
@@ -225,7 +225,7 @@ func TestSetTargetInstallShouldSet(t *testing.T) {
 func TestSetTargetInstallShouldNotSet(t *testing.T) {
 
 	slg := NewMockPlatformLinkGenerator()
-	status := NewInstallStatus([]StatusSubscriber{}, slg)
+	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	recipeNames := []string{}
 	status.SetTargetedInstall(recipeNames)
 

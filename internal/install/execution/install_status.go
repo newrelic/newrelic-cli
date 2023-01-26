@@ -18,6 +18,7 @@ import (
 type InstallStatus struct {
 	InstallID             string                  `json:"installId"`
 	Complete              bool                    `json:"complete"`
+	DeployedBy            string                  `json:"deployedBy"`
 	DiscoveryManifest     types.DiscoveryManifest `json:"discoveryManifest"`
 	EntityGUIDs           []string                `json:"entityGuids"`
 	Error                 StatusError             `json:"error"`
@@ -96,9 +97,10 @@ var StatusIconMap = map[RecipeStatusType]string{
 	RecipeStatusTypes.CANCELED:    ux.IconMinus,
 }
 
-func NewInstallStatus(reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
+func NewInstallStatus(context types.InstallerContext, reporters []StatusSubscriber, PlatformLinkGenerator LinkGenerator) *InstallStatus {
 	s := InstallStatus{
 		InstallID:             uuid.New().String(),
+		DeployedBy:            context.GetDeployedBy(),
 		DocumentID:            uuid.New().String(),
 		Timestamp:             utils.GetTimestamp(),
 		LogFilePath:           config.GetDefaultLogFilePath(),
