@@ -63,6 +63,11 @@ fi
 LATEST_URL="https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
 DESTDIR="${DESTDIR:-/usr/local/bin}"
 
+# Create DESTDIR if it does not exist.
+if [ ! -d "$DESTDIR" ]; then 
+    mkdir -m 755 -p "$DESTDIR"
+fi
+
 if [ -z "$VERSION" ]; then
     VERSION=$(curl -sL $LATEST_URL | cut -d "v" -f 2)
 fi
