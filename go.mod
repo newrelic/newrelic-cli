@@ -16,7 +16,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.11.1
+	github.com/newrelic/newrelic-client-go/v2 v2.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.22.12
 	github.com/sirupsen/logrus v1.9.0
@@ -75,3 +75,5 @@ require (
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
+
+replace github.com/newrelic/newrelic-client-go => /Users/sblue/dev/newrelic-client-go
