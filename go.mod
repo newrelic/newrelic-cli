@@ -22,7 +22,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
-	github.com/splitio/go-client/v6 v6.1.8
+	github.com/splitio/go-client/v6 v6.2.1
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
@@ -34,6 +34,8 @@ require (
 )
 
 require (
+	github.com/bits-and-blooms/bitset v1.3.1 // indirect
+	github.com/bits-and-blooms/bloom/v3 v3.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -60,8 +62,8 @@ require (
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/splitio/go-split-commons/v4 v4.1.3 // indirect
-	github.com/splitio/go-toolkit/v5 v5.2.1 // indirect
+	github.com/splitio/go-split-commons/v4 v4.2.0 // indirect
+	github.com/splitio/go-toolkit/v5 v5.2.2 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
