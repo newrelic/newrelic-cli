@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	log "github.com/sirupsen/logrus"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -67,5 +69,35 @@ func TestIsAbsoluteURL(t *testing.T) {
 	for _, u := range urls {
 		result := IsAbsoluteURL(u.URL)
 		require.Equal(t, u.IsAbsolute, result)
+	}
+}
+
+func TestLogIfFatal(t *testing.T) {
+	cases := []struct {
+		param       error
+		expectFatal bool
+	}{
+		{
+			param:       nil,
+			expectFatal: false,
+		},
+		{
+			param:       errors.New("invalid"),
+			expectFatal: true,
+		},
+		{
+			param:       errors.New("403"),
+			expectFatal: true,
+		},
+	}
+
+	defer func() { log.StandardLogger().ExitFunc = nil }()
+	var fatal bool
+	log.StandardLogger().ExitFunc = func(int) { fatal = true }
+
+	for _, c := range cases {
+		fatal = false
+		LogIfFatal(c.param)
+		require.Equal(t, c.expectFatal, fatal)
 	}
 }
