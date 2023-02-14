@@ -26,8 +26,8 @@ var (
 
 var cmdYq = &cobra.Command{
 	Use:   "yq",
-	Short: "Parse json strings",
-	Long: `Parse json strings
+	Short: "Parse yaml strings",
+	Long: `Parse yaml strings
 
 The yq subcommand makes use of gojq (https://github.com/itchyny/gojq) to provide
 yaml parsing capabilities.
