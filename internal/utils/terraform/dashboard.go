@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -37,6 +38,9 @@ type DashboardWidgetRawConfiguration struct {
 	Facet             DashboardWidgetFacet       `json:"facet"`
 	Legend            DashboardWidgetLegend      `json:"legend"`
 	YAxisLeft         DashboardWidgetYAxisLeft   `json:"yAxisLeft"`
+	NullValues        DashboardWidgetNullValues  `json:"nullValues"`
+	Units             DashboardWidgetUnits       `json:"units"`
+	Colors            DashboardWidgetColors      `json:"colors"`
 }
 
 type DataFormatter struct {
@@ -60,6 +64,35 @@ type DashboardWidgetLegend struct {
 
 type DashboardWidgetYAxisLeft struct {
 	Zero bool `json:"zero"`
+}
+
+type DashboardWidgetNullValues struct {
+	NullValue       string                              `json:"nullValue"`
+	SeriesOverrides []DashboardWidgetNullValueOverrides `json:"seriesOverrides"`
+}
+
+type DashboardWidgetNullValueOverrides struct {
+	NullValue  string `json:"nullValue"`
+	SeriesName string `json:"seriesName"`
+}
+type DashboardWidgetUnits struct {
+	Unit            string                         `json:"unit"`
+	SeriesOverrides []DashboardWidgetUnitOverrides `json:"seriesOverrides"`
+}
+
+type DashboardWidgetUnitOverrides struct {
+	Unit       string `json:"unit"`
+	SeriesName string `json:"seriesName"`
+}
+
+type DashboardWidgetColors struct {
+	Color           string                          `json:"color"`
+	SeriesOverrides []DashboardWidgetColorOverrides `json:"seriesOverrides"`
+}
+
+type DashboardWidgetColorOverrides struct {
+	Color      string `json:"color"`
+	SeriesName string `json:"seriesName"`
 }
 
 func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (string, error) {
@@ -100,6 +133,43 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 								h.WriteMultilineStringAttribute("query", q.Query)
 							})
 						}
+						h.WriteBlock("facet", []string{}, func() {
+							h.WriteStringAttribute("showOtherSeries", strconv.FormatBool(config.Facet.ShowOtherSeries))
+						})
+						h.WriteBlock("legend", []string{}, func() {
+							h.WriteStringAttribute("enabled", strconv.FormatBool(config.Legend.Enabled))
+						})
+						h.WriteBlock("yAxisLeft", []string{}, func() {
+							h.WriteStringAttribute("zero", strconv.FormatBool(config.YAxisLeft.Zero))
+						})
+						h.WriteBlock("nullValues", []string{}, func() {
+							h.WriteStringAttribute("nullValue", config.NullValues.NullValue)
+							for _, so := range config.NullValues.SeriesOverrides {
+								h.WriteBlock("seriesOverrides", []string{}, func() {
+									h.WriteStringAttribute("nullValue", so.NullValue)
+									h.WriteStringAttribute("seriesName", so.SeriesName)
+								})
+							}
+						})
+						h.WriteBlock("units", []string{}, func() {
+							h.WriteStringAttribute("unit", config.Units.Unit)
+							for _, so := range config.Units.SeriesOverrides {
+								h.WriteBlock("seriesOverrides", []string{}, func() {
+									h.WriteStringAttribute("unit", so.Unit)
+									h.WriteStringAttribute("seriesName", so.SeriesName)
+								})
+							}
+						})
+						h.WriteBlock("colors", []string{}, func() {
+							h.WriteStringAttribute("color", config.Colors.Color)
+							for _, so := range config.Colors.SeriesOverrides {
+								h.WriteBlock("seriesOverrides", []string{}, func() {
+									h.WriteStringAttribute("color", so.Color)
+									h.WriteStringAttribute("seriesName", so.SeriesName)
+								})
+							}
+						})
+
 					})
 				}
 			})
