@@ -24,11 +24,54 @@ func TestRecipePathsProvided(t *testing.T) {
 }
 
 func TestSetTags(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
 	ic := InstallerContext{}
 	args := []string{"tag1:test", "tag2:test"}
 	ic.SetTags(args)
-	args = append([]string{BuiltinTags}, args...)
 
-	require.Equal(t, args, ic.Tags)
-	require.Equal(t, BuiltinTags+",tag1:test,tag2:test", os.Getenv(EnvInstallCustomAttributes))
+	require.Equal(t, "tag1:test,tag2:test,"+BuiltinTags, os.Getenv(EnvInstallCustomAttributes))
+}
+
+func TestSetTagsShouldSkipIncorrectSyntax(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
+	ic := InstallerContext{}
+	args := []string{"tag1:test", "notvalidtag"}
+	ic.SetTags(args)
+
+	require.Equal(t, "tag1:test,"+BuiltinTags, os.Getenv(EnvInstallCustomAttributes))
+}
+
+func TestSetTagsShouldAddDeployedBy(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
+	ic := InstallerContext{}
+	ic.SetTags([]string{})
+
+	require.Equal(t, BuiltinTags, os.Getenv(EnvInstallCustomAttributes))
+}
+
+func TestSetTagsShouldNotReplaceDeployedBy(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
+	ic := InstallerContext{}
+	args := []string{"nr_deployed_by:Me", "tag1:test", "tag2:test"}
+	ic.SetTags(args)
+
+	require.Equal(t, "nr_deployed_by:Me,tag1:test,tag2:test", os.Getenv(EnvInstallCustomAttributes))
+}
+
+func TestShouldGetDeployedBy(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
+	ic := InstallerContext{}
+	args := []string{"nr_deployed_by:SomeoneElse", "tag2:test"}
+	ic.SetTags(args)
+
+	require.Equal(t, "SomeoneElse", ic.GetDeployedBy())
+}
+
+func TestShouldGetDefaultDeployedBy(t *testing.T) {
+	t.Setenv(EnvInstallCustomAttributes, "")
+	ic := InstallerContext{}
+	args := []string{"tag2:test"}
+	ic.SetTags(args)
+
+	require.Equal(t, "newrelic-cli", ic.GetDeployedBy())
 }

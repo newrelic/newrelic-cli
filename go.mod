@@ -4,35 +4,38 @@ go 1.18
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
-	github.com/Masterminds/semver/v3 v3.1.1
-	github.com/briandowns/spinner v1.19.0
-	github.com/fatih/color v1.13.0
+	github.com/Masterminds/semver/v3 v3.2.0
+	github.com/briandowns/spinner v1.21.0
+	github.com/fatih/color v1.14.1
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-task/task/v3 v3.11.0
 	github.com/google/uuid v1.3.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
-	github.com/itchyny/gojq v0.12.9
-	github.com/jedib0t/go-pretty/v6 v6.4.0
+	github.com/imdario/mergo v0.3.13
+	github.com/itchyny/gojq v0.12.11
+	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.2.0
+	github.com/newrelic/newrelic-client-go/v2 v2.12.0
 	github.com/pkg/errors v0.9.1
-	github.com/shirou/gopsutil/v3 v3.22.2
+	github.com/shirou/gopsutil/v3 v3.22.12
 	github.com/sirupsen/logrus v1.9.0
-	github.com/spf13/cobra v1.6.0
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
-	github.com/splitio/go-client/v6 v6.1.8
-	github.com/stretchr/testify v1.8.0
-	github.com/tidwall/gjson v1.14.3
+	github.com/splitio/go-client/v6 v6.2.1
+	github.com/stretchr/testify v1.8.1
+	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f
-	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
+	golang.org/x/term v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.4.3
 )
 
 require (
+	github.com/bits-and-blooms/bitset v1.3.1 // indirect
+	github.com/bits-and-blooms/bloom/v3 v3.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -43,15 +46,14 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.1 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
-	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
-	github.com/itchyny/timefmt-go v0.1.4 // indirect
+	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/mattn/go-colorable v0.1.9 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
-	github.com/mattn/go-runewidth v0.0.13 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mattn/go-zglob v0.0.3 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
@@ -60,18 +62,20 @@ require (
 	github.com/radovskyb/watcher v1.0.7 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/splitio/go-split-commons/v4 v4.1.3 // indirect
-	github.com/splitio/go-toolkit/v5 v5.2.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/splitio/go-split-commons/v4 v4.2.0 // indirect
+	github.com/splitio/go-toolkit/v5 v5.2.2 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
-	github.com/tklauser/go-sysconf v0.3.9 // indirect
-	github.com/tklauser/numcpus v0.3.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.11 // indirect
+	github.com/tklauser/numcpus v0.6.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/valyala/fastjson v1.6.3 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261 // indirect
+	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/text v0.3.6 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
+
+replace github.com/newrelic/newrelic-client-go => /Users/sblue/dev/newrelic-client-go

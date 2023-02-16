@@ -38,7 +38,7 @@ func TestInstallEventsReporter_Basic(t *testing.T) {
 	entityGUID := createEntity(t, a, c)
 
 	r := NewInstallEventsReporter(&c.InstallEvents)
-	status := NewInstallStatus([]StatusSubscriber{r}, NewPlatformLinkGenerator())
+	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{r}, NewPlatformLinkGenerator())
 	status.withEntityGUID(entityGUID)
 
 	err = r.InstallStarted(status)

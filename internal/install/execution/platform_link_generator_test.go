@@ -127,7 +127,7 @@ func newPlatformLinkGeneratorBuilder() *platformLinkGeneratorBuilder {
 		platformLinkGenerator: NewPlatformLinkGenerator(),
 	}
 
-	p.installStatus = NewInstallStatus(make([]StatusSubscriber, 0), p.platformLinkGenerator)
+	p.installStatus = NewInstallStatus(types.InstallerContext{}, make([]StatusSubscriber, 0), p.platformLinkGenerator)
 	// We set an API key in the unit test so we don't make an real HTTP request
 	// to the New Relic short URL service (see integration test), and so we can test
 	// the query param being added for the fallback installation strategy below.
