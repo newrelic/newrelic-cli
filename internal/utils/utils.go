@@ -78,6 +78,9 @@ func LogIfError(err error) {
 // Logs at Fatal level
 func LogIfFatal(err error) {
 	if err != nil {
+		if strings.Contains(err.Error(), "403") {
+			log.Fatal(fmt.Errorf("403 response returned - please check your API key and region"))
+		}
 		log.Fatal(err)
 	}
 }
