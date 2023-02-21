@@ -2,17 +2,16 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/v2/pkg/events"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -48,39 +47,24 @@ represents the custom event's type.
 		}
 		defer jsonFile.Close()
 
-		byteValue, _ := ioutil.ReadAll(jsonFile)
-
-		if err := client.NRClient.Events.BatchMode(utils.SignalCtx, accountID, events.BatchConfigQueueSize(1), events.BatchConfigTimeout(1)); err != nil {
-			log.Fatal("error starting batch mode:", err)
-		}
-
-		data := getJsonArray(byteValue)
-		for _, e := range *data {
-			fmt.Printf("Processing event %s", e)
-			if err := client.NRClient.Events.EnqueueEvent(utils.SignalCtx, e); err != nil {
-				log.Fatal("error posting custom event:", err)
+		bytes, _ := ioutil.ReadAll(jsonFile)
+		data := getArray(bytes)
+		slices := sliceBy(data, 10)
+		for k, slice := range slices {
+			log.Debugf("Sending batch %d with %d items", k, len(slice))
+			if err := client.NRClient.Events.CreateEventWithContext(utils.SignalCtx, accountID, slice); err != nil {
+				return err
 			}
 		}
-
-		if err := client.NRClient.Events.Flush(); err != nil {
-			log.Fatal("error flushing event queue:", err)
-		}
-
-		// time.Sleep(1100 * time.Millisecond)
-
-		// for _, e := range *data {
-		// if err := client.NRClient.Events.CreateEventWithContext(utils.SignalCtx, accountID, e); err != nil {
-		// 	return err
-		// }
 
 		log.Info("success")
 		return nil
 	},
 }
 
-func getJsonArray(bytes []byte) *jsonArray {
+func getArray(bytes []byte) *jsonArray {
 	var data jsonArray
-	err := json.Unmarshal([]byte(bytes), &data)
+	err := json.Unmarshal(bytes, &data)
 	if err != nil {
 		log.Errorf("json file must be composed of an array of event data, details:%s", err)
 	}
@@ -96,7 +80,7 @@ func sliceBy(data *jsonArray, size int) []jsonArray {
 	for _, e := range *data {
 		count++
 		single = append(single, e)
-		if count == 10 {
+		if count == size {
 			result = append(result, single)
 			single = make(jsonArray, 0)
 			count = 0
