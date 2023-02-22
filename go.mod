@@ -16,6 +16,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/newrelic/foil v0.1.0
 	github.com/newrelic/newrelic-client-go/v2 v2.12.0
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.22.12
@@ -32,6 +33,8 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	mvdan.cc/sh/v3 v3.4.3
 )
+
+replace github.com/newrelic/foil v0.1.0 => ../foil
 
 require (
 	github.com/bits-and-blooms/bitset v1.3.1 // indirect

@@ -20,6 +20,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/events"
+	"github.com/newrelic/newrelic-cli/internal/finstall"
 	"github.com/newrelic/newrelic-cli/internal/install"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
@@ -47,6 +48,7 @@ func init() {
 	Command.AddCommand(edge.Command)
 	Command.AddCommand(entities.Command)
 	Command.AddCommand(events.Command)
+	Command.AddCommand(finstall.Command)
 	Command.AddCommand(install.Command)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
