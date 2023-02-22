@@ -56,4 +56,8 @@ func init() {
 	Command.AddCommand(cmdPost)
 	cmdPost.Flags().StringVarP(&event, "event", "e", "{}", "a JSON-formatted event payload to post")
 	utils.LogIfError(cmdPost.MarkFlagRequired("event"))
+
+	Command.AddCommand(cmdPostFile)
+	cmdPostFile.Flags().StringVarP(&file, "file", "f", "file.json", "a JSON-formatted events file to post")
+	utils.LogIfError(cmdPostFile.MarkFlagFilename("file"))
 }
