@@ -59,6 +59,13 @@ if [ $IS_CURL_INSTALLED -eq 0 ]; then
     fi
 fi
 
+# Set curl flags to use the proxy if one has been specified 
+if [ -n "$HTTPS_PROXY" ]; then 
+    CURL_FLAGS="-sLx $HTTPS_PROXY"
+else
+    CURL_FLAGS="-sL"
+fi
+
 # GitHub's URL for the latest release, will redirect.
 LATEST_URL="https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
 DESTDIR="${DESTDIR:-/usr/local/bin}"
@@ -69,7 +76,7 @@ if [ ! -d "$DESTDIR" ]; then
 fi
 
 if [ -z "$VERSION" ]; then
-    VERSION=$(curl -sL $LATEST_URL | cut -d "v" -f 2)
+    VERSION=$(curl $CURL_FLAGS $LATEST_URL | cut -d "v" -f 2)
 fi
 
 echo "Installing New Relic CLI v${VERSION}"
@@ -88,7 +95,7 @@ trap error ERR
 RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
 
 # Download & unpack the release tarball.
-curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
+curl $CURL_FLAGS --retry 3 "${RELEASE_URL}" | tar -xz
 
 if [ "$UID" != "0" ]; then
     echo "Installing to $DESTDIR using sudo"
