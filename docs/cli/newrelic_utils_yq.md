@@ -1,11 +1,29 @@
-## newrelic utils
+## newrelic utils yq
 
-Various utility methods
+Parse yaml strings
+
+### Synopsis
+
+Parse yaml strings
+
+The yq subcommand makes use of gojq (https://github.com/itchyny/gojq) to provide
+yaml parsing capabilities.
+
+
+```
+newrelic utils yq [flags]
+```
+
+### Examples
+
+```
+echo '"foo": 128' | newrelic utils yq '.foo'
+```
 
 ### Options
 
 ```
-  -h, --help   help for utils
+  -h, --help   help for yq
 ```
 
 ### Options inherited from parent commands
@@ -21,9 +39,4 @@ Various utility methods
 
 ### SEE ALSO
 
-* [newrelic](newrelic.md)	 - The New Relic CLI
-* [newrelic utils jq](newrelic_utils_jq.md)	 - Parse json strings
-* [newrelic utils semver](newrelic_utils_semver.md)	 - Work with semantic version strings
-* [newrelic utils terraform](newrelic_utils_terraform.md)	 - Tools for working with Terraform
-* [newrelic utils yq](newrelic_utils_yq.md)	 - Parse yaml strings
-
+* [newrelic utils](newrelic_utils.md)	 - Various utility methods

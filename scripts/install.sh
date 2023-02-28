@@ -67,8 +67,12 @@ else
 fi
 
 # GitHub's URL for the latest release, will redirect.
-LATEST_URL="https://download.newrelic.com/install/newrelic-cli/currentVersion.txt"
+BASE_URL="https://download.newrelic.com"
+LATEST_URL="$BASE_URL/install/newrelic-cli/currentVersion.txt"
 DESTDIR="${DESTDIR:-/usr/local/bin}"
+
+# Check for connectivity to https://download.newrelic.com
+curl --connect-timeout 10 -IsL "$BASE_URL" > /dev/null || ( echo "Cannot connect to $BASE_URL to download the New Relic CLI. Check your firewall settings. If you are using a proxy, make sure you have set the HTTPS_PROXY environment variable." && exit 132 )
 
 # Create DESTDIR if it does not exist.
 if [ ! -d "$DESTDIR" ]; then 

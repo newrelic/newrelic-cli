@@ -219,9 +219,12 @@ func varFromEnv() types.RecipeVars {
 
 	customAttributes := os.Getenv(EnvNriaCustomAttributes)
 	installCustomAttributes := os.Getenv(EnvInstallCustomAttributes)
-
 	if len(customAttributes) > 0 || len(installCustomAttributes) > 0 {
 		vars[EnvNriaCustomAttributes] = yamlFromJSON(EnvNriaCustomAttributes, customAttributes, strings.Split(installCustomAttributes, ","))
+	}
+
+	if len(installCustomAttributes) > 0 {
+		vars["NEW_RELIC_CLI_TAGS"] = strings.Join(strings.Split(installCustomAttributes, ","), ";")
 	}
 
 	passthroughEnvironment := os.Getenv(EnvNriaPassthroughEnvironment)

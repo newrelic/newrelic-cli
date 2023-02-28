@@ -1,5 +1,11 @@
+<a name="v0.64.0"></a>
+## [v0.64.0] - 2023-02-24
+### Features
+- **proxy:** Improve proxy support for install scripts ([#1432](https://github.com/newrelic/newrelic-client-go/issues/1432))
+- **tags:** propagate cli tags to recipes via NEW_RELIC_CLI_TAGS
+
 <a name="v0.63.0"></a>
-## [v0.63.0] - 2023-02-22
+## [v0.63.0] - 2023-02-23
 ### Bug Fixes
 - **diagnostics:** Clear 403 error msg
 
@@ -1901,7 +1907,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.63.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.0...HEAD
+[v0.64.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.63.0...v0.64.0
 [v0.63.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.7...v0.63.0
 [v0.62.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.6...v0.62.7
 [v0.62.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.5...v0.62.6
