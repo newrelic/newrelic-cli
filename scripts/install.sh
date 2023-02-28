@@ -59,11 +59,9 @@ if [ $IS_CURL_INSTALLED -eq 0 ]; then
     fi
 fi
 
-# Set curl flags to use the proxy if one has been specified 
+# Set curl proxy flag to use HTTPS_PROXY if it has been set
 if [ -n "$HTTPS_PROXY" ]; then 
-    CURL_FLAGS="-sLx $HTTPS_PROXY"
-else
-    CURL_FLAGS="-sL"
+    USE_PROXY="x $HTTPS_PROXY"
 fi
 
 # GitHub's URL for the latest release, will redirect.
@@ -72,7 +70,7 @@ LATEST_URL="$BASE_URL/install/newrelic-cli/currentVersion.txt"
 DESTDIR="${DESTDIR:-/usr/local/bin}"
 
 # Check for connectivity to https://download.newrelic.com
-curl --connect-timeout 10 -IsL "$BASE_URL" > /dev/null || ( echo "Cannot connect to $BASE_URL to download the New Relic CLI. Check your firewall settings. If you are using a proxy, make sure you have set the HTTPS_PROXY environment variable." && exit 132 )
+curl --connect-timeout 10 -IsL${CURL_PROXY} "$BASE_URL" > /dev/null || ( echo "Cannot connect to $BASE_URL to download the New Relic CLI. Check your firewall settings. If you are using a proxy, make sure you have set the HTTPS_PROXY environment variable." && exit 132 )
 
 # Create DESTDIR if it does not exist.
 if [ ! -d "$DESTDIR" ]; then 
@@ -80,7 +78,7 @@ if [ ! -d "$DESTDIR" ]; then
 fi
 
 if [ -z "$VERSION" ]; then
-    VERSION=$(curl $CURL_FLAGS $LATEST_URL | cut -d "v" -f 2)
+    VERSION=$(curl -sL${USE_PROXY} $LATEST_URL | cut -d "v" -f 2)
 fi
 
 echo "Installing New Relic CLI v${VERSION}"
@@ -96,10 +94,10 @@ function error {
 
 trap error ERR
 
-RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+RELEASE_URL="${BASE_URL}/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
 
 # Download & unpack the release tarball.
-curl $CURL_FLAGS --retry 3 "${RELEASE_URL}" | tar -xz
+curl -sL${USE_PROXY} --retry 3 "${RELEASE_URL}" | tar -xz
 
 if [ "$UID" != "0" ]; then
     echo "Installing to $DESTDIR using sudo"
