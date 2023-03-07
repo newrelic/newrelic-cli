@@ -1,5 +1,11 @@
+<a name="v0.64.1"></a>
+## [v0.64.1] - 2023-03-07
+### Bug Fixes
+- Downgrade release runner to Ubuntu focal ([#1435](https://github.com/newrelic/newrelic-client-go/issues/1435))
+- Replace deprecated ubuntu version in release ([#1434](https://github.com/newrelic/newrelic-client-go/issues/1434))
+
 <a name="v0.64.0"></a>
-## [v0.64.0] - 2023-02-24
+## [v0.64.0] - 2023-02-27
 ### Features
 - **proxy:** Improve proxy support for install scripts ([#1432](https://github.com/newrelic/newrelic-client-go/issues/1432))
 - **tags:** propagate cli tags to recipes via NEW_RELIC_CLI_TAGS
@@ -1907,7 +1913,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.1...HEAD
+[v0.64.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.0...v0.64.1
 [v0.64.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.63.0...v0.64.0
 [v0.63.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.7...v0.63.0
 [v0.62.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.6...v0.62.7
