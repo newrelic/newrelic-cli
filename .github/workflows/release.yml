@@ -42,7 +42,7 @@ jobs:
   release:
     if: github.ref == 'refs/heads/main'
     needs: test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -246,7 +246,7 @@ jobs:
           asset_content_type: application/octet-stream
 
   publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     needs: [release-windows-installer, e2e, e2e-eu]
     steps:
       - name: Checkout code
