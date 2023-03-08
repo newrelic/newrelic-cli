@@ -32,6 +32,13 @@ func (h *HCLGen) WriteStringAttribute(label string, value string) {
 	h.WriteString(fmt.Sprintf("%s%s = \"%s\"\n", h.i, label, strings.ReplaceAll(value, "\"", "\\\"")))
 }
 
+func (h *HCLGen) WriteBooleanAttribute(label string, value bool) {
+	h.WriteString(fmt.Sprintf("%s%s = %t\n", h.i, label, value))
+}
+func (h *HCLGen) WriteFloatAttribute(label string, value float64) {
+	h.WriteString(fmt.Sprintf("%s%s = %g\n", h.i, label, value))
+}
+
 func (h *HCLGen) WriteStringAttributeIfNotEmpty(label string, value string) {
 	if value != "" {
 		h.WriteStringAttribute(label, value)
