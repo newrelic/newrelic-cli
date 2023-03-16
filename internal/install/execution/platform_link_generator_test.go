@@ -79,7 +79,7 @@ func TestGenerateRedirectURL_InstallPartialSuccess(t *testing.T) {
 	g, s := b.build()
 
 	result := g.GenerateRedirectURL(*s)
-	expectedEncodedQueryParamSubstring := utils.Base64Encode(g.generateReferrerParam(infraName))
+	expectedEncodedQueryParamSubstring := utils.Base64Encode(g.generateReferrerParam(infraName, b.installStatus.InstallID))
 
 	require.Equal(t, 1, len(s.EntityGUIDs))
 	require.Equal(t, 1, len(s.Installed))
@@ -94,6 +94,19 @@ func TestGenerateRedirectURL_InstallFailed(t *testing.T) {
 
 	b := newPlatformLinkGeneratorBuilder()
 	b.recipeStatusUpdate(infraName, "Failed")
+	g, s := b.build()
+
+	result := g.GenerateRedirectURL(*s)
+	require.Contains(t, result, "explorer")
+}
+
+func TestGenerateRedirectURL_InstallCanceled(t *testing.T) {
+	t.Parallel()
+
+	infraName := "infrastructure-agent-installer"
+
+	b := newPlatformLinkGeneratorBuilder()
+	b.recipeStatusUpdate(infraName, "Canceled")
 	g, s := b.build()
 
 	result := g.GenerateRedirectURL(*s)
@@ -148,6 +161,8 @@ func (p *platformLinkGeneratorBuilder) recipeStatusUpdate(rn, status string) *pl
 	switch status {
 	case "Failed":
 		p.installStatus.RecipeFailed(rs)
+	case "Canceled":
+		p.installStatus.RecipeCanceled(rs)
 	case "Installed":
 		// just for testing, assume name is the same as entity id
 		rs.EntityGUID = rn

@@ -67,6 +67,7 @@ type referrerParamValue struct {
 	NerdletID  string `json:"nerdletId,omitempty"`
 	Referrer   string `json:"referrer,omitempty"`
 	EntityGUID string `json:"entityGuid,omitempty"`
+	InstallID  string `json:"installId,omitempty"`
 }
 
 type loggingLauncher struct {
@@ -78,7 +79,7 @@ type loggingLauncher struct {
 // the UI can use to understand how/where the URL was generated. This allows the
 // UI to return to its previous state in the case of a user closing the browser
 // and then clicking a redirect URL in the CLI's output.
-func (g *PlatformLinkGenerator) generateReferrerParam(entityGUID string) string {
+func (g *PlatformLinkGenerator) generateReferrerParam(entityGUID string, installID string) string {
 	p := referrerParamValue{
 		NerdletID: "nr1-install-newrelic.installation-plan",
 		Referrer:  "newrelic-cli",
@@ -86,6 +87,10 @@ func (g *PlatformLinkGenerator) generateReferrerParam(entityGUID string) string 
 
 	if entityGUID != "" {
 		p.EntityGUID = entityGUID
+	}
+
+	if installID != "" {
+		p.InstallID = installID
 	}
 
 	stringifiedParam, err := json.Marshal(p)
@@ -102,7 +107,7 @@ func (g *PlatformLinkGenerator) generateExplorerLink(status InstallStatus) strin
 		nrPlatformHostname(),
 		utils.Base64Encode(status.successLinkConfig.Filter),
 		configAPI.GetActiveProfileAccountID(),
-		utils.Base64Encode(g.generateReferrerParam(status.HostEntityGUID())),
+		utils.Base64Encode(g.generateReferrerParam(status.HostEntityGUID(), status.InstallID)),
 	)
 
 	shortURL, err := g.generateShortNewRelicURL(longURL)
