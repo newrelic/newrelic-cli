@@ -41,6 +41,11 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
+		if err := checkNetwork(client.NRClient); err != nil {
+			log.Fatal(err)
+			return nil
+		}
+
 		err := assertProfileIsValid()
 		if err != nil {
 			log.Fatal(err)
