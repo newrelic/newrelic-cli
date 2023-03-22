@@ -55,8 +55,6 @@ type RecipeInstall struct {
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
 func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
-	checkNetwork(nrClient)
-
 	var recipeFetcher recipes.RecipeFetcher
 
 	if ic.LocalRecipes != "" {
@@ -718,7 +716,7 @@ func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
 	}
 }
 
-func checkNetwork(nrClient *newrelic.NewRelic) {
+func checkNetwork(nrClient *newrelic.NewRelic) error {
 	err := nrClient.TestEndpoints()
 	if err != nil {
 
@@ -726,9 +724,20 @@ func checkNetwork(nrClient *newrelic.NewRelic) {
 
 		log.Debugf("proxyConfig: %+v", proxyConfig)
 		if proxyConfig.HTTPProxy != "" || proxyConfig.HTTPSProxy != "" || proxyConfig.NoProxy != "" {
-			log.Warn("Proxy settings have been configured but we are still unable to connect to the New Relic platform.  You may need to adjust your proxy environment variables.  https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
+			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
+			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
+			log.Warn("Current proxy config:")
+			log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
+			log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
+			log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
+		} else {
+			log.Warn("Failed to connect to the New Relic platform.")
+			log.Warn("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again.")
 		}
+		log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
+		log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
 
-		log.Error(err)
 	}
+
+	return err
 }
