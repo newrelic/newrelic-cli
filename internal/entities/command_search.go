@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"strconv"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -17,58 +17,42 @@ var cmdEntitySearch = &cobra.Command{
 	Short: "Search for New Relic entities",
 	Long: `Search for New Relic entities
 
-The search command performs a search for New Relic entities.
+The search command performs a search for New Relic entities based on the provided search criteria.
 `,
-	Example: "newrelic entity search --name <applicationName>",
-	PreRun:  client.RequireClient,
+	Example: `
+newrelic entity search --name AppName --tag tagKey:tagValue
+`,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		params := entities.EntitySearchQueryBuilder{}
-
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
 			utils.LogIfError(cmd.Help())
 			log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
 		}
 
-		if entityName != "" {
-			params.Name = entityName
-		}
-
-		if entityType != "" {
-			params.Type = entities.EntitySearchQueryBuilderType(entityType)
-		}
-
-		if entityAlertSeverity != "" {
-			params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
-		}
-
-		if entityDomain != "" {
-			params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
-		}
+		eTags := []map[string]string{}
 
 		if entityTag != "" {
 			key, value, err := assembleTagValue(entityTag)
 			utils.LogIfFatal(err)
 
-			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
-		}
-
-		if entityReporting != "" {
-			reporting, err := strconv.ParseBool(entityReporting)
-
-			if err != nil {
-				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
+			eTags = []map[string]string{
+				{
+					"key":   key,
+					"value": value,
+				},
 			}
-
-			params.Reporting = reporting
 		}
 
-		results, err := client.NRClient.Entities.GetEntitySearchWithContext(
+		query := buildEntitySearchQuery(entityName, entityDomain, entityType, eTags, entityAlertSeverity, entityReporting)
+		results, err := client.NRClient.Entities.GetEntitySearchByQueryWithContext(
 			utils.SignalCtx,
-			entities.EntitySearchOptions{},
-			"",
-			params,
+			entities.EntitySearchOptions{
+				CaseSensitiveTagMatching: false, // TODO: parameterize this
+			},
+			query,
 			[]entities.EntitySearchSortCriteria{},
 		)
+
 		utils.LogIfFatal(err)
 
 		entities := results.Results.Entities
@@ -103,6 +87,53 @@ func mapEntities(entities []entities.EntityOutlineInterface, fields []string, fn
 	}
 
 	return mappedEntities
+}
+
+func buildEntitySearchQuery(name string, domain string, entityType string, tags []map[string]string, alertSeverity string, reporting string) string {
+	var query string
+
+	if name != "" {
+		query = fmt.Sprintf("name = '%s'", name)
+	}
+
+	if domain != "" {
+		query = fmt.Sprintf("%s AND domain = '%s'", query, domain)
+	}
+
+	if entityType != "" {
+		query = fmt.Sprintf("%s AND type = '%s'", query, entityType)
+	}
+
+	if alertSeverity != "" {
+		query = fmt.Sprintf("%s AND alertSeverity = '%s'", query, alertSeverity)
+	}
+
+	if reporting != "" {
+		query = fmt.Sprintf("%s AND reporting = '%s'", query, reporting)
+	}
+
+	if len(tags) > 0 {
+		query = fmt.Sprintf("%s AND %s", query, buildTagsQueryFragment(tags))
+	}
+
+	return query
+}
+
+func buildTagsQueryFragment(tags []map[string]string) string {
+	var query string
+
+	for i, tag := range tags {
+		var q string
+		if i > 0 {
+			q = fmt.Sprintf(" AND tags.`%s` = '%s'", tag["key"], tag["value"])
+		} else {
+			q = fmt.Sprintf("tags.`%s` = '%s'", tag["key"], tag["value"])
+		}
+
+		query = fmt.Sprintf("%s%s", query, q)
+	}
+
+	return query
 }
 
 func init() {
