@@ -381,7 +381,6 @@ time.
 - [New Relic Diagnostics](https://docs.newrelic.com/docs/agents/manage-apm-agents/troubleshooting/new-relic-diagnostics):
   A utility that automatically detects common problems with New Relic agents.
 
-
 ## Open Source License
 
 This project is distributed under the [Apache 2 license](LICENSE).
