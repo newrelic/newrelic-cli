@@ -1,5 +1,7 @@
+<a name="v0.65.5"></a>
+## [v0.65.5] - 2023-03-27
 <a name="v0.65.4"></a>
-## [v0.65.4] - 2023-03-25
+## [v0.65.4] - 2023-03-27
 <a name="v0.65.3"></a>
 ## [v0.65.3] - 2023-03-25
 ### Bug Fixes
@@ -1933,7 +1935,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.5...HEAD
+[v0.65.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.4...v0.65.5
 [v0.65.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.3...v0.65.4
 [v0.65.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.2...v0.65.3
 [v0.65.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.1...v0.65.2
