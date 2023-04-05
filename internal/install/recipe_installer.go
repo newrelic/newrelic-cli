@@ -29,6 +29,8 @@ const (
 	validationTimeout = 5 * time.Minute
 )
 
+var infraAgentEntityKey string
+
 type RecipeInstall struct {
 	types.InstallerContext
 	discoverer             Discoverer
