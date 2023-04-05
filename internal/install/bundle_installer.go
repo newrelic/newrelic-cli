@@ -12,6 +12,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 )
 
+var infraAgentEntityKey string = ""
+
 type StatusReporter interface {
 	ReportStatus(status execution.RecipeStatusType, event execution.RecipeStatusEvent)
 }
