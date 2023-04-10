@@ -174,6 +174,34 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 				}
 			})
 		}
+
+		for _, v := range d.Variables {
+			log.Println(v)
+			h.WriteBlock("variable", []string{}, func() {
+				h.WriteStringAttribute("name", v.Name)
+				h.WriteStringAttributeIfNotEmpty("title", v.Title)
+				h.WriteStringAttribute("type", strings.ToLower(string(v.Type)))
+
+				arr := []string{}
+				if v.DefaultValues != nil {
+					for _, value := range *v.DefaultValues {
+						arr = append(arr, value.Value.String)
+					}
+				}
+				h.WriteStringSliceAttributeIfNotEmpty("default_values", arr)
+
+				if v.NRQLQuery != nil {
+					h.WriteBlock("nrql_query", []string{}, func() {
+						h.WriteIntArrayAttribute("account_ids", v.NRQLQuery.AccountIDs)
+						h.WriteStringAttribute("query", string(v.NRQLQuery.Query))
+					})
+				}
+
+				h.WriteBooleanAttribute("is_multi_selection", v.IsMultiSelection)
+				h.WriteStringAttributeIfNotEmpty("replacement_strategy", strings.ToLower(string(v.ReplacementStrategy)))
+
+			})
+		}
 	})
 
 	return h.String(), nil

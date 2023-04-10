@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -57,6 +58,44 @@ func (h *HCLGen) WriteStringSliceAttributeIfNotEmpty(label string, value []strin
 
 func (h *HCLGen) WriteIntAttribute(label string, value int) {
 	h.WriteString(fmt.Sprintf("%s%s = %d\n", h.i, label, value))
+}
+
+func (h *HCLGen) WriteIntArrayAttribute(label string, values []int) {
+	arrayString := "["
+	commaFlag := false
+	for _, value := range values {
+		if commaFlag == false {
+			arrayString += fmt.Sprintf("%d", value)
+			commaFlag = true
+		} else {
+			arrayString += fmt.Sprintf(" ,%d", value)
+		}
+	}
+	arrayString += "]"
+
+	h.WriteString(fmt.Sprintf("%s%s = %s\n", h.i, label, arrayString))
+}
+
+func (h *HCLGen) WriteStringArrayAttribute(label string, values []string) {
+	arrayString := "["
+	commaFlag := false
+	for _, value := range values {
+		if commaFlag == false {
+			arrayString += fmt.Sprintf("'%s'", escapeSingleQuote(value))
+			commaFlag = true
+		} else {
+			arrayString += fmt.Sprintf(" ,'%s'", escapeSingleQuote(value))
+		}
+	}
+	arrayString += "]"
+
+	h.WriteString(arrayString)
+}
+
+func escapeSingleQuote(name string) string {
+	unescapedSingleQuoteRegex := regexp.MustCompile(`'`)
+	quoteFormattedName := unescapedSingleQuoteRegex.ReplaceAllString(name, "\\'")
+	return quoteFormattedName
 }
 
 func (h *HCLGen) WriteIntAttributeIfNotZero(label string, value int) {

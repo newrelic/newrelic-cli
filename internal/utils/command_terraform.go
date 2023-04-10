@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/dashboards"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -73,7 +75,7 @@ Output will be sent to STDOUT by default but can be redirected to a file with th
 			}
 		}
 
-		hcl, err := terraform.GenerateDashboardHCL(label, shiftWidth, input)
+		hcl, err := terraform.GenerateDashboardHCL(label, shiftWidth, formatVariableDefaultValues(input))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -88,6 +90,52 @@ Output will be sent to STDOUT by default but can be redirected to a file with th
 			fmt.Print(hcl)
 		}
 	},
+}
+
+func formatVariableDefaultValues(input []byte) []byte {
+	dash := dashboards.DashboardInput{}
+
+	var DashboardJSON map[string]interface{}
+	json.Unmarshal(input, &DashboardJSON)
+
+	var listOfVariables []interface{}
+	defaultValuesPerIndex := make(map[int][]dashboards.DashboardVariableDefaultItemInput)
+
+	if variables, ok := DashboardJSON["variables"]; ok {
+		vars := variables.([]interface{})
+
+		for index, variable := range vars {
+			variableInJSONDashboard := variable.(map[string]interface{})
+			defaultValues := variableInJSONDashboard["defaultValues"].([]interface{})
+
+			for _, defaultValue := range defaultValues {
+				defaultValuesPerIndex[index] = append(
+					defaultValuesPerIndex[index],
+					dashboards.DashboardVariableDefaultItemInput{
+						Value: dashboards.DashboardVariableDefaultValueInput{
+							String: defaultValue.(string)}})
+			}
+
+			variableInJSONDashboard["defaultValues"] = make([]string, 0)
+			listOfVariables = append(listOfVariables, variableInJSONDashboard)
+		}
+
+		DashboardJSON["variables"] = listOfVariables
+		bytes, _ := json.Marshal(DashboardJSON)
+
+		err := json.Unmarshal(bytes, &dash)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i, _ := range dash.Variables {
+			a := defaultValuesPerIndex[i]
+			dash.Variables[i].DefaultValues = &a
+		}
+
+		input, _ = json.Marshal(dash)
+	}
+	return input
 }
 
 func init() {
