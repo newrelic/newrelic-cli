@@ -29,6 +29,8 @@ const (
 	validationTimeout = 5 * time.Minute
 )
 
+var infraAgentEntityKey string
+
 type RecipeInstall struct {
 	types.InstallerContext
 	discoverer             Discoverer
@@ -544,6 +546,16 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		return entityGUID, nil
 	}
 
+	// 'INFRA_KEY' is sent by the infrastructure-agent-installer recipe back to the CLI via the 'Metadata' mechanism writing to 'NR_CLI_OUTPUT'.
+	// Once retrieved from the 'Metadata' output of the infrastructure agent, it is then made globally available for the rest of the subsequent
+	// recipes to be installed so they can use it for validation purposes.
+	if r.Name == types.InfraAgentRecipeName {
+		infraAgentEntityKey = i.recipeExecutor.GetOutput().Metadata()["INFRA_KEY"]
+		if infraAgentEntityKey == "" {
+			log.Debug("empty infrastructure agent entity key")
+		}
+	}
+
 	// show validation spinner if we need to validate and has no other spinner (Spinner is show when assume yes)
 	if !assumeYes {
 		msg := fmt.Sprintf("Validating %s", r.DisplayName)
@@ -675,6 +687,9 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		}
 
 		vars["assumeYes"] = fmt.Sprintf("%v", assumeYes)
+		if infraAgentEntityKey != "" {
+			vars["INFRA_KEY"] = infraAgentEntityKey
+		}
 
 		entityGUID, err := i.executeAndValidate(ctx, m, r, vars, assumeYes)
 
