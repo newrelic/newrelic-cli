@@ -64,10 +64,10 @@ func (g *PlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string
 }
 
 type referrerParamValue struct {
-	NerdletID  string `json:"nerdletId,omitempty"`
-	Referrer   string `json:"referrer,omitempty"`
-	EntityGUID string `json:"entityGuid,omitempty"`
-	InstallID  string `json:"installId,omitempty"`
+	NerdletID  string   `json:"nerdletId,omitempty"`
+	Referrer   string   `json:"referrer,omitempty"`
+	EntityGUID string   `json:"entityGuid,omitempty"`
+	InstallIDs []string `json:"installIds,omitempty"`
 }
 
 type loggingLauncher struct {
@@ -90,7 +90,8 @@ func (g *PlatformLinkGenerator) generateReferrerParam(entityGUID string, install
 	}
 
 	if installID != "" {
-		p.InstallID = installID
+		// UI expects an array of strings
+		p.InstallIDs = []string{installID}
 	}
 
 	stringifiedParam, err := json.Marshal(p)
