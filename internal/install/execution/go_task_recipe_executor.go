@@ -50,7 +50,6 @@ func (re *GoTaskRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.O
 }
 
 func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) (retErr error) {
-
 	defer func() {
 		if r := recover(); r != nil {
 			switch x := r.(type) {
@@ -78,7 +77,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	if err != nil {
 		return err
 	}
-	defer outputJSONFile.Close()
+	outputJSONFile.Close()
 	defer os.Remove(outputJSONFile.Name())
 
 	silentInstall, _ := strconv.ParseBool(recipeVars["assumeYes"])
@@ -116,7 +115,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 			"err": err,
 		}).Debug("Task execution returned error")
 
-		//should contain both out and err
+		// should contain both out and err
 		re.RecipeOutput = stdoutCapture.GetFullRecipeOutput()
 		re.setOutput(outputJSONFile.Name())
 
