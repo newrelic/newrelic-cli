@@ -195,17 +195,19 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 		var result map[string]interface{}
 		lines := strings.Split(string(outputBytes), "\n")
 		for _, line := range lines {
-			if json.Valid([]byte(line)) {
-				var jsonFromString map[string]interface{}
-				if err := json.Unmarshal([]byte(line), &jsonFromString); err == nil {
-					if mergoErr := mergo.Merge(&result, jsonFromString, mergo.WithOverride); mergoErr != nil {
-						log.Debugf("error while merging JSON output resuls, details:%s", mergoErr.Error())
+			if len(line) > 0 {
+				if json.Valid([]byte(line)) {
+					var jsonFromString map[string]interface{}
+					if err := json.Unmarshal([]byte(line), &jsonFromString); err == nil {
+						if mergoErr := mergo.Merge(&result, jsonFromString, mergo.WithOverride); mergoErr != nil {
+							log.Debugf("error while merging JSON output resuls, details:%s", mergoErr.Error())
+						}
+					} else {
+						log.Debugf("error while unmarshaling JSON output, details:%s", err.Error())
 					}
 				} else {
-					log.Debugf("error while unmarshaling JSON output, details:%s", err.Error())
+					log.Debugf(fmt.Sprintf("Invalid JSON string found in output file, skipping: %v", line))
 				}
-			} else {
-				log.Debugf(fmt.Sprintf("Invalid JSON string found in output file, skipping: %v", line))
 			}
 		}
 		re.Output = NewOutputParser(result)
