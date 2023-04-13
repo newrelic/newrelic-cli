@@ -57,4 +57,8 @@ compile-linux-x86: deps-only compile-only
 compile-windows: GOOS=windows
 compile-windows: deps-only compile-only
 
+compile-windows-x86: GOOS=windows
+compile-windows-x86: GOARCH=386
+compile-windows-x86: deps-only compile-only
+
 .PHONY: clean-compile compile compile-darwin compile-linux compile-only compile-windows
