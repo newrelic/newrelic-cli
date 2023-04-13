@@ -59,6 +59,23 @@ func (h *HCLGen) WriteIntAttribute(label string, value int) {
 	h.WriteString(fmt.Sprintf("%s%s = %d\n", h.i, label, value))
 }
 
+// WriteIntArrayAttribute :function to convert an integer array into a string
+func (h *HCLGen) WriteIntArrayAttribute(label string, values []int) {
+	arrayString := "["
+	commaFlag := false
+	for _, value := range values {
+		if !commaFlag {
+			arrayString += fmt.Sprintf("%d", value)
+			commaFlag = true
+		} else {
+			arrayString += fmt.Sprintf(", %d", value)
+		}
+	}
+	arrayString += "]"
+
+	h.WriteString(fmt.Sprintf("%s%s = %s\n", h.i, label, arrayString))
+}
+
 func (h *HCLGen) WriteIntAttributeIfNotZero(label string, value int) {
 	if value != 0 {
 		h.WriteIntAttribute(label, value)
