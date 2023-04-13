@@ -1,3 +1,12 @@
+<a name="v0.67.0"></a>
+## [v0.67.0] - 2023-04-13
+### Bug Fixes
+- Close metadata file and prevent file lock during recipe write ([#1445](https://github.com/newrelic/newrelic-client-go/issues/1445))
+- **dashboard:** addition to the utility to parse variables from the dashboard JSON ([#1444](https://github.com/newrelic/newrelic-client-go/issues/1444))
+
+### Features
+- **install:** Pluralize installId url param ([#1443](https://github.com/newrelic/newrelic-client-go/issues/1443))
+
 <a name="v0.66.2"></a>
 ## [v0.66.2] - 2023-04-11
 <a name="v0.66.1"></a>
@@ -1948,7 +1957,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.0...HEAD
+[v0.67.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.2...v0.67.0
 [v0.66.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.1...v0.66.2
 [v0.66.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.0...v0.66.1
 [v0.66.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.7...v0.66.0
