@@ -20,7 +20,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestReportRecipeSucceeded_Basic(t *testing.T) {
+func TestReportRecipeSucceeded_SingleEntityGUID(t *testing.T) {
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	if apiKey == "" || accountID == "" {
@@ -64,13 +64,13 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
-	require.NotEmpty(t, s)
+	require.Empty(t, s)
 
 	s, err = getEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	require.NoError(t, err)
 	require.NotEmpty(t, s)
 }
-func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
+func TestReportRecipeSucceeded_NoEntityGUIDs(t *testing.T) {
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	if apiKey == "" || accountID == "" {
@@ -110,7 +110,7 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
-	require.NotEmpty(t, s)
+	require.Empty(t, s)
 
 	s, err = getEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	require.NoError(t, err)
