@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -184,33 +185,32 @@ func createOutputJSONFile(r types.OpenInstallationRecipe, recipeVars types.Recip
 func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 	outputFile, err := os.Open(outputFileName)
 	if err != nil {
-		log.Debugf("error openning json output file %s", outputFileName)
+		log.Debugf("error opening JSON output file %s", outputFileName)
 		return
 	}
 	defer outputFile.Close()
 
-	outputBytes, _ := ioutil.ReadAll(outputFile)
-	if len(outputBytes) > 0 {
-		var result map[string]interface{}
-		lines := strings.Split(string(outputBytes), "\n")
-		for _, line := range lines {
-			if json.Valid([]byte(line)) {
-				var jsonFromString map[string]interface{}
-				if err := json.Unmarshal([]byte(line), &jsonFromString); err == nil {
-					if mergoErr := mergo.Merge(&result, jsonFromString, mergo.WithOverride); mergoErr != nil {
-						log.Debugf("error while merging JSON output resuls, details:%s", mergoErr.Error())
-					}
-				} else {
-					log.Debugf("error while unmarshaling JSON output, details:%s", err.Error())
-				}
-			} else {
-				log.Debugf(fmt.Sprintf("Invalid JSON string found in output file, skipping: %v", line))
+	output := map[string]interface{}{}
+	s := bufio.NewScanner(outputFile)
+	for s.Scan() {
+		bs := s.Bytes()
+		if json.Valid(bs) {
+			var jsonFromString map[string]interface{}
+			if err = json.Unmarshal(bs, &jsonFromString); err != nil {
+				log.Debugf("error unmarshaling JSON output: %s", err.Error())
 			}
+			if err = mergo.Merge(&output, jsonFromString, mergo.WithOverride); err != nil {
+				log.Debugf("error merging JSON output: %s", err.Error())
+			}
+		} else {
+			log.Debugf("Invalid JSON string found in output file, skipping: %s", s.Text())
 		}
-		re.Output = NewOutputParser(result)
-	} else {
-		re.Output = NewOutputParser(map[string]interface{}{})
 	}
+	if err = s.Err(); err != nil {
+		log.Debugf("error scanning output file %s: %w", outputFileName, err)
+	}
+
+	re.Output = NewOutputParser(output)
 }
 
 func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {
