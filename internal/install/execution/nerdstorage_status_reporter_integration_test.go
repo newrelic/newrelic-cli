@@ -46,10 +46,8 @@ func TestReportRecipeSucceeded_SingleEntityGUID(t *testing.T) {
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{r}, NewPlatformLinkGenerator())
 	status.withEntityGUID(entityGUID)
 
-	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
-	defer deleteAccountStatusCollection(t, a, c.NerdStorage)
 
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
@@ -70,6 +68,7 @@ func TestReportRecipeSucceeded_SingleEntityGUID(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, s)
 }
+
 func TestReportRecipeSucceeded_NoEntityGUIDs(t *testing.T) {
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
@@ -95,10 +94,8 @@ func TestReportRecipeSucceeded_NoEntityGUIDs(t *testing.T) {
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{r}, NewPlatformLinkGenerator())
 
-	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
-	defer deleteAccountStatusCollection(t, a, c.NerdStorage)
 
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
