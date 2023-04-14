@@ -132,26 +132,6 @@ func getEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStor
 	return c.GetCollectionWithEntityScope(guid, getCollectionInput)
 }
 
-func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.NerdStorage) {
-	di := nerdstorage.DeleteCollectionInput{
-		Collection: collectionID,
-		PackageID:  packageID,
-	}
-	ok, err := c.DeleteCollectionWithAccountScope(accountID, di)
-	require.NoError(t, err)
-	require.True(t, ok)
-}
-
-func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
-	di := nerdstorage.DeleteCollectionInput{
-		Collection: collectionID,
-		PackageID:  packageID,
-	}
-	ok, err := c.DeleteCollectionWithUserScope(di)
-	require.NoError(t, err)
-	require.True(t, ok)
-}
-
 func deleteEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
