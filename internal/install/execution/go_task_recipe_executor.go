@@ -204,7 +204,9 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 					log.Debugf("error while unmarshaling JSON output, details:%s", err.Error())
 				}
 			} else {
-				log.Debugf(fmt.Sprintf("Invalid JSON string found in output file, skipping: %v", line))
+				if line != "" {
+					log.Debugf(fmt.Sprintf("Invalid JSON string found in output file, skipping: %v", line))
+				}
 			}
 		}
 		re.Output = NewOutputParser(result)
