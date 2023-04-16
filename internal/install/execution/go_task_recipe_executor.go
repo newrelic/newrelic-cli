@@ -207,7 +207,7 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 		}
 	}
 	if err = s.Err(); err != nil {
-		log.Debugf("error scanning output file %s: %w", outputFileName, err)
+		log.Debugf("error scanning output file %s: %s", outputFileName, err.Error())
 	}
 
 	re.Output = NewOutputParser(output)
