@@ -502,9 +502,9 @@ func Test_mergeStringJSON(t *testing.T) {
 		output: &outputExistingMap,
 		bs:     []byte("{\"Metadata\":{\"another\":\"thing\"}}\n"),
 	}
-	outputInvalidJson := map[string]interface{}{}
-	argsInvalidJson := args{
-		output: &outputInvalidJson,
+	outputInvalidJSON := map[string]interface{}{}
+	argsInvalidJSON := args{
+		output: &outputInvalidJSON,
 		bs:     []byte("Invalid JSON"),
 	}
 	outputEmptyString := map[string]interface{}{}
@@ -520,7 +520,7 @@ func Test_mergeStringJSON(t *testing.T) {
 	}{
 		{"new map", argsNewMap, false, 1},
 		{"existing map", argsExistingMap, false, 2},
-		{"invalid JSON", argsInvalidJson, true, 0},
+		{"invalid JSON", argsInvalidJSON, true, 0},
 		{"empty string", argsEmptyString, true, 0},
 	}
 	for _, tt := range tests {
