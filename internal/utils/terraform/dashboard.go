@@ -63,8 +63,9 @@ type DashboardWidgetLegend struct {
 }
 
 type DashboardWidgetYAxisLeft struct {
-	Max float64 `json:"max,omitempty"`
-	Min float64 `json:"min,omitempty"`
+	Max  float64 `json:"max,omitempty"`
+	Min  float64 `json:"min,omitempty"`
+	Zero bool    `json:"zero,omitempty"`
 }
 
 type DashboardWidgetNullValues struct {
@@ -142,6 +143,9 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 						h.WriteBooleanAttribute("ignore_time_range", config.PlatformOptions.IgnoreTimeRange)
 						h.WriteFloatAttribute("y_axis_left_min", config.YAxisLeft.Min)
 						h.WriteFloatAttribute("y_axis_left_max", config.YAxisLeft.Max)
+						if w.Visualization.ID == "viz.line" {
+							h.WriteBooleanAttribute("y_axis_left_zero", config.YAxisLeft.Zero)
+						}
 						h.WriteBlock("null_values", []string{}, func() {
 							h.WriteStringAttribute("null_value", config.NullValues.NullValue)
 							for _, so := range config.NullValues.SeriesOverrides {
