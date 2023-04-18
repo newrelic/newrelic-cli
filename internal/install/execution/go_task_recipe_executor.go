@@ -195,12 +195,8 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 	for s.Scan() {
 		bs := s.Bytes()
 		if json.Valid(bs) {
-			var jsonFromString map[string]interface{}
-			if err = json.Unmarshal(bs, &jsonFromString); err != nil {
-				log.Debugf("error unmarshaling JSON output: %s", err.Error())
-			}
-			if err = mergo.Merge(&output, jsonFromString, mergo.WithOverride); err != nil {
-				log.Debugf("error merging JSON output: %s", err.Error())
+			if err = mergeStringJSON(&output, bs); err != nil {
+				log.Debug(err.Error())
 			}
 		} else {
 			log.Debugf("Invalid JSON string found in output file, skipping: %s", s.Text())
@@ -211,6 +207,18 @@ func (re *GoTaskRecipeExecutor) setOutput(outputFileName string) {
 	}
 
 	re.Output = NewOutputParser(output)
+}
+
+func mergeStringJSON(output *map[string]interface{}, bs []byte) error {
+	var jsonFromString map[string]interface{}
+	var err error
+	if err = json.Unmarshal(bs, &jsonFromString); err != nil {
+		return fmt.Errorf("error unmarshaling JSON output: %w", err)
+	}
+	if err = mergo.Merge(output, jsonFromString, mergo.WithOverride); err != nil {
+		return fmt.Errorf("error merging JSON output: %w", err)
+	}
+	return nil
 }
 
 func (re *GoTaskRecipeExecutor) GetOutput() *OutputParser {

@@ -9,11 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/stretchr/testify/require"
-
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExecute_SystemVariableInterpolation(t *testing.T) {
@@ -485,4 +483,68 @@ tasks:
 	assert.Empty(t, e.GetOutput().Metadata()["some"])
 	assert.Empty(t, e.GetOutput().Metadata()["something"])
 	assert.Equal(t, "very", e.GetOutput().Metadata()["clean"])
+}
+
+func Test_mergeStringJSON(t *testing.T) {
+	type args struct {
+		output *map[string]interface{}
+		bs     []byte
+	}
+	outputNewMap := map[string]interface{}{}
+	argsNewMap := args{
+		output: &outputNewMap,
+		bs:     []byte("{\"Metadata\":{\"some\":\"thing\"}}\n"),
+	}
+	outputExistingMap := map[string]interface{}{
+		"Metadata": map[string]interface{}{"some": "thing"},
+	}
+	argsExistingMap := args{
+		output: &outputExistingMap,
+		bs:     []byte("{\"Metadata\":{\"another\":\"thing\"}}\n"),
+	}
+	outputInvalidJson := map[string]interface{}{}
+	argsInvalidJson := args{
+		output: &outputInvalidJson,
+		bs:     []byte("Invalid JSON"),
+	}
+	outputEmptyString := map[string]interface{}{}
+	argsEmptyString := args{
+		output: &outputEmptyString,
+		bs:     []byte(""),
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+		wantLen int
+	}{
+		{"new map", argsNewMap, false, 1},
+		{"existing map", argsExistingMap, false, 2},
+		{"invalid JSON", argsInvalidJson, true, 0},
+		{"empty string", argsEmptyString, true, 0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := mergeStringJSON(tt.args.output, tt.args.bs); (err != nil) != tt.wantErr {
+				t.Errorf("mergeStringJSON() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			output := *tt.args.output
+			if output == nil {
+				t.Errorf("expected output map, got nil")
+			}
+			if tt.wantLen == 0 {
+				if len(output) > 0 {
+					t.Errorf("unexpected number of results -- expected 0, got %d", len(output))
+				}
+			} else {
+				metadata := output["Metadata"].(map[string]interface{})
+				if metadata == nil {
+					t.Errorf("expected 'Metadata' field in output map, got nil")
+				}
+				if len(metadata) != tt.wantLen {
+					t.Errorf("unexpected number of results -- expected %d, got %d\n results: %v", tt.wantLen, len(metadata), tt.args.output)
+				}
+			}
+		})
+	}
 }
