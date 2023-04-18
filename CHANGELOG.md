@@ -1,5 +1,7 @@
+<a name="v0.67.3"></a>
+## [v0.67.3] - 0001-01-01
 <a name="v0.67.2"></a>
-## [v0.67.2] - 2023-04-17
+## [v0.67.2] - 2023-04-18
 <a name="v0.67.1"></a>
 ## [v0.67.1] - 2023-04-17
 <a name="v0.67.0"></a>
@@ -1961,7 +1963,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.3...HEAD
+[v0.67.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.2...v0.67.3
 [v0.67.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.1...v0.67.2
 [v0.67.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.0...v0.67.1
 [v0.67.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.2...v0.67.0
