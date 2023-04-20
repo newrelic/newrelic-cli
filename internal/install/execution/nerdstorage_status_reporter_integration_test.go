@@ -20,7 +20,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-func TestReportRecipeSucceeded_Basic(t *testing.T) {
+func TestReportRecipeSucceeded_SingleEntityGUID(t *testing.T) {
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	if apiKey == "" || accountID == "" {
@@ -62,15 +62,18 @@ func TestReportRecipeSucceeded_Basic(t *testing.T) {
 
 	time.Sleep(10 * time.Second)
 
+	// Should not write to user collection
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
-	require.NotEmpty(t, s)
+	require.Empty(t, s)
 
+	// Should write to entity collection
 	s, err = getEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	require.NoError(t, err)
 	require.NotEmpty(t, s)
 }
-func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
+
+func TestReportRecipeSucceeded_NoEntityGUIDs(t *testing.T) {
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	if apiKey == "" || accountID == "" {
@@ -108,10 +111,12 @@ func TestReportRecipeSucceeded_UserScopeOnly(t *testing.T) {
 	err = r.RecipeInstalled(status, evt)
 	require.NoError(t, err)
 
+	// Should not write to user collection
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
-	require.NotEmpty(t, s)
+	require.Empty(t, s)
 
+	// Should not write to entity collection
 	s, err = getEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	require.NoError(t, err)
 	require.Empty(t, s)
@@ -135,26 +140,27 @@ func getEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStor
 	return c.GetCollectionWithEntityScope(guid, getCollectionInput)
 }
 
+// TODO: remove after 5/20/23 since we are no longer writing to these collections.
 func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
 		PackageID:  packageID,
 	}
-	ok, err := c.DeleteCollectionWithAccountScope(accountID, di)
+	_, err := c.DeleteCollectionWithAccountScope(accountID, di)
 	require.NoError(t, err)
-	require.True(t, ok)
 }
 
+// TODO: remove after 5/20/23 since we are no longer writing to these collections.
 func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
 		PackageID:  packageID,
 	}
-	ok, err := c.DeleteCollectionWithUserScope(di)
+	_, err := c.DeleteCollectionWithUserScope(di)
 	require.NoError(t, err)
-	require.True(t, ok)
 }
 
+// TODO: remove after we stop writing to entity storage (NR-99441)
 func deleteEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
