@@ -46,10 +46,8 @@ func TestReportRecipeSucceeded_SingleEntityGUID(t *testing.T) {
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{r}, NewPlatformLinkGenerator())
 	status.withEntityGUID(entityGUID)
 
-	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
-	defer deleteAccountStatusCollection(t, a, c.NerdStorage)
 
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
@@ -96,10 +94,8 @@ func TestReportRecipeSucceeded_NoEntityGUIDs(t *testing.T) {
 	r := NewNerdStorageStatusReporter(&c.NerdStorage)
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{r}, NewPlatformLinkGenerator())
 
-	defer deleteUserStatusCollection(t, c.NerdStorage)
 	defer deleteEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	defer deleteEntity(t, entityGUID, c)
-	defer deleteAccountStatusCollection(t, a, c.NerdStorage)
 
 	rec := types.OpenInstallationRecipe{Name: "testName"}
 	evt := RecipeStatusEvent{
@@ -134,26 +130,6 @@ func getEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStor
 	}
 
 	return c.GetCollectionWithEntityScope(guid, getCollectionInput)
-}
-
-func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.NerdStorage) {
-	di := nerdstorage.DeleteCollectionInput{
-		Collection: collectionID,
-		PackageID:  packageID,
-	}
-	ok, err := c.DeleteCollectionWithAccountScope(accountID, di)
-	require.NoError(t, err)
-	require.True(t, ok)
-}
-
-func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
-	di := nerdstorage.DeleteCollectionInput{
-		Collection: collectionID,
-		PackageID:  packageID,
-	}
-	ok, err := c.DeleteCollectionWithUserScope(di)
-	require.NoError(t, err)
-	require.True(t, ok)
 }
 
 func deleteEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStorage) {
