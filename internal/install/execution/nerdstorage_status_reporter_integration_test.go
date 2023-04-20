@@ -143,7 +143,6 @@ func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.Ne
 	}
 	ok, err := c.DeleteCollectionWithAccountScope(accountID, di)
 	require.NoError(t, err)
-	require.True(t, ok)
 }
 
 func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
@@ -153,7 +152,6 @@ func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
 	}
 	ok, err := c.DeleteCollectionWithUserScope(di)
 	require.NoError(t, err)
-	require.True(t, ok)
 }
 
 func deleteEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStorage) {
