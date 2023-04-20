@@ -62,10 +62,12 @@ func TestReportRecipeSucceeded_SingleEntityGUID(t *testing.T) {
 
 	time.Sleep(10 * time.Second)
 
+	// Should not write to user collection
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
 	require.Empty(t, s)
 
+	// Should write to entity collection
 	s, err = getEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	require.NoError(t, err)
 	require.NotEmpty(t, s)
@@ -109,10 +111,12 @@ func TestReportRecipeSucceeded_NoEntityGUIDs(t *testing.T) {
 	err = r.RecipeInstalled(status, evt)
 	require.NoError(t, err)
 
+	// Should not write to user collection
 	s, err := getUserStatusCollection(t, c.NerdStorage)
 	require.NoError(t, err)
 	require.Empty(t, s)
 
+	// Should not write to entity collection
 	s, err = getEntityStatusCollection(t, entityGUID, c.NerdStorage)
 	require.NoError(t, err)
 	require.Empty(t, s)
