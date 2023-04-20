@@ -145,7 +145,7 @@ func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.Ne
 		Collection: collectionID,
 		PackageID:  packageID,
 	}
-	ok, err := c.DeleteCollectionWithAccountScope(accountID, di)
+	_, err := c.DeleteCollectionWithAccountScope(accountID, di)
 	require.NoError(t, err)
 }
 
@@ -154,7 +154,7 @@ func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
 		Collection: collectionID,
 		PackageID:  packageID,
 	}
-	ok, err := c.DeleteCollectionWithUserScope(di)
+	_, err := c.DeleteCollectionWithUserScope(di)
 	require.NoError(t, err)
 }
 
