@@ -79,8 +79,8 @@ The search command performs a query for an APM application name and/or account I
 				[]entities.EntitySearchSortCriteria{},
 			)
 
-			entityResults = results.Results.Entities
 			utils.LogIfFatal(err)
+			entityResults = results.Results.Entities
 		}
 
 		utils.LogIfFatal(output.Print(entityResults))
