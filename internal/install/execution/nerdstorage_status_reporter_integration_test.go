@@ -140,6 +140,7 @@ func getEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStor
 	return c.GetCollectionWithEntityScope(guid, getCollectionInput)
 }
 
+// TODO: remove after 5/20/23 since we are no longer writing to these collections.
 func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
@@ -149,6 +150,7 @@ func deleteAccountStatusCollection(t *testing.T, accountID int, c nerdstorage.Ne
 	require.NoError(t, err)
 }
 
+// TODO: remove after 5/20/23 since we are no longer writing to these collections.
 func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
@@ -158,6 +160,7 @@ func deleteUserStatusCollection(t *testing.T, c nerdstorage.NerdStorage) {
 	require.NoError(t, err)
 }
 
+// TODO: remove after we stop writing to entity storage (NR-99441)
 func deleteEntityStatusCollection(t *testing.T, guid string, c nerdstorage.NerdStorage) {
 	di := nerdstorage.DeleteCollectionInput{
 		Collection: collectionID,
