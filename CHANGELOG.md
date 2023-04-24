@@ -1,3 +1,9 @@
+<a name="v0.67.5"></a>
+## [v0.67.5] - 2023-04-21
+### Bug Fixes
+- **apm:** code correction to refactor error handling in apm 'search' ([#1452](https://github.com/newrelic/newrelic-cli/issues/1452))
+- **dashboard:** addition of 'zero' to the dashboard HCL parser utility ([#1450](https://github.com/newrelic/newrelic-cli/issues/1450))
+
 <a name="v0.67.4"></a>
 ## [v0.67.4] - 2023-04-18
 <a name="v0.67.3"></a>
@@ -9,11 +15,11 @@
 <a name="v0.67.0"></a>
 ## [v0.67.0] - 2023-04-13
 ### Bug Fixes
-- Close metadata file and prevent file lock during recipe write ([#1445](https://github.com/newrelic/newrelic-client-go/issues/1445))
-- **dashboard:** addition to the utility to parse variables from the dashboard JSON ([#1444](https://github.com/newrelic/newrelic-client-go/issues/1444))
+- Close metadata file and prevent file lock during recipe write ([#1445](https://github.com/newrelic/newrelic-cli/issues/1445))
+- **dashboard:** addition to the utility to parse variables from the dashboard JSON ([#1444](https://github.com/newrelic/newrelic-cli/issues/1444))
 
 ### Features
-- **install:** Pluralize installId url param ([#1443](https://github.com/newrelic/newrelic-client-go/issues/1443))
+- **install:** Pluralize installId url param ([#1443](https://github.com/newrelic/newrelic-cli/issues/1443))
 
 <a name="v0.66.2"></a>
 ## [v0.66.2] - 2023-04-11
@@ -44,7 +50,7 @@
 <a name="v0.65.0"></a>
 ## [v0.65.0] - 2023-03-20
 ### Features
-- **NR-94773:** Add `installId` to platform links ([#1436](https://github.com/newrelic/newrelic-client-go/issues/1436))
+- **NR-94773:** Add `installId` to platform links ([#1436](https://github.com/newrelic/newrelic-cli/issues/1436))
 
 <a name="v0.64.3"></a>
 ## [v0.64.3] - 2023-03-16
@@ -53,13 +59,13 @@
 <a name="v0.64.1"></a>
 ## [v0.64.1] - 2023-03-07
 ### Bug Fixes
-- Downgrade release runner to Ubuntu focal ([#1435](https://github.com/newrelic/newrelic-client-go/issues/1435))
-- Replace deprecated ubuntu version in release ([#1434](https://github.com/newrelic/newrelic-client-go/issues/1434))
+- Downgrade release runner to Ubuntu focal ([#1435](https://github.com/newrelic/newrelic-cli/issues/1435))
+- Replace deprecated ubuntu version in release ([#1434](https://github.com/newrelic/newrelic-cli/issues/1434))
 
 <a name="v0.64.0"></a>
 ## [v0.64.0] - 2023-02-27
 ### Features
-- **proxy:** Improve proxy support for install scripts ([#1432](https://github.com/newrelic/newrelic-client-go/issues/1432))
+- **proxy:** Improve proxy support for install scripts ([#1432](https://github.com/newrelic/newrelic-cli/issues/1432))
 - **tags:** propagate cli tags to recipes via NEW_RELIC_CLI_TAGS
 
 <a name="v0.63.0"></a>
@@ -90,7 +96,7 @@
 <a name="v0.62.0"></a>
 ## [v0.62.0] - 2023-01-26
 ### Features
-- **install:** wire deployedBy attribute when installing ([#1417](https://github.com/newrelic/newrelic-client-go/issues/1417))
+- **install:** wire deployedBy attribute when installing ([#1417](https://github.com/newrelic/newrelic-cli/issues/1417))
 
 <a name="v0.61.4"></a>
 ## [v0.61.4] - 2023-01-23
@@ -130,12 +136,12 @@
 <a name="v0.59.0"></a>
 ## [v0.59.0] - 2022-11-10
 ### Features
-- **install:** Built-int tags should prepend so can be overridden ([#1391](https://github.com/newrelic/newrelic-client-go/issues/1391))
+- **install:** Built-int tags should prepend so can be overridden ([#1391](https://github.com/newrelic/newrelic-cli/issues/1391))
 
 <a name="v0.58.0"></a>
 ## [v0.58.0] - 2022-11-07
 ### Features
-- **install:** Allow --tag to be passed in via install command ([#1389](https://github.com/newrelic/newrelic-client-go/issues/1389))
+- **install:** Allow --tag to be passed in via install command ([#1389](https://github.com/newrelic/newrelic-cli/issues/1389))
 - **log-metadata:** adding SendLogsOptIn recipe metadata for querying VirtuosoInstallRecipe
 
 <a name="v0.57.2"></a>
@@ -180,12 +186,12 @@
 <a name="v0.54.1"></a>
 ## [v0.54.1] - 2022-09-14
 ### Bug Fixes
-- **install:** Close output file so recipe can write ([#1361](https://github.com/newrelic/newrelic-client-go/issues/1361))
+- **install:** Close output file so recipe can write ([#1361](https://github.com/newrelic/newrelic-cli/issues/1361))
 
 <a name="v0.54.0"></a>
 ## [v0.54.0] - 2022-09-13
 ### Features
-- **install:** allow the previous patch version to install ([#1358](https://github.com/newrelic/newrelic-client-go/issues/1358))
+- **install:** allow the previous patch version to install ([#1358](https://github.com/newrelic/newrelic-cli/issues/1358))
 
 <a name="v0.53.3"></a>
 ## [v0.53.3] - 2022-09-06
@@ -210,7 +216,7 @@
 <a name="v0.52.5"></a>
 ## [v0.52.5] - 2022-07-27
 ### Bug Fixes
-- **agent:** updated example command and spelling mistake ([#1340](https://github.com/newrelic/newrelic-client-go/issues/1340))
+- **agent:** updated example command and spelling mistake ([#1340](https://github.com/newrelic/newrelic-cli/issues/1340))
 
 <a name="v0.52.4"></a>
 ## [v0.52.4] - 2022-07-26
@@ -219,12 +225,12 @@
 <a name="v0.52.2"></a>
 ## [v0.52.2] - 2022-07-13
 ### Bug Fixes
-- **install:** parse recipe output when failing execution too ([#1338](https://github.com/newrelic/newrelic-client-go/issues/1338))
+- **install:** parse recipe output when failing execution too ([#1338](https://github.com/newrelic/newrelic-cli/issues/1338))
 
 <a name="v0.52.1"></a>
 ## [v0.52.1] - 2022-07-12
 ### Bug Fixes
-- **install:** ensure host has name for installations ([#1334](https://github.com/newrelic/newrelic-client-go/issues/1334))
+- **install:** ensure host has name for installations ([#1334](https://github.com/newrelic/newrelic-cli/issues/1334))
 
 <a name="v0.52.0"></a>
 ## [v0.52.0] - 2022-07-11
@@ -232,7 +238,7 @@
 - **env-to-yaml:** fix indentation of passthrough_environment list
 
 ### Features
-- **install:** wire recipe metadata to event ([#1331](https://github.com/newrelic/newrelic-client-go/issues/1331))
+- **install:** wire recipe metadata to event ([#1331](https://github.com/newrelic/newrelic-cli/issues/1331))
 
 <a name="v0.51.4"></a>
 ## [v0.51.4] - 2022-07-07
@@ -243,7 +249,7 @@
 <a name="v0.51.1"></a>
 ## [v0.51.1] - 2022-06-30
 ### Bug Fixes
-- **install:** fix serial install detection for windows ([#1326](https://github.com/newrelic/newrelic-client-go/issues/1326))
+- **install:** fix serial install detection for windows ([#1326](https://github.com/newrelic/newrelic-cli/issues/1326))
 
 <a name="v0.51.0"></a>
 ## [v0.51.0] - 2022-06-30
@@ -279,7 +285,7 @@
 <a name="v0.50.1"></a>
 ## [v0.50.1] - 2022-06-07
 ### Bug Fixes
-- **install:** Remove changelog writing to bypass sidekick error ([#1314](https://github.com/newrelic/newrelic-client-go/issues/1314))
+- **install:** Remove changelog writing to bypass sidekick error ([#1314](https://github.com/newrelic/newrelic-cli/issues/1314))
 
 <a name="v0.50.0"></a>
 ## [v0.50.0] - 2022-06-03
@@ -293,12 +299,12 @@
 <a name="v0.49.11"></a>
 ## [v0.49.11] - 2022-06-01
 ### Bug Fixes
-- **install:** Recommendation only needed for targeted none installed recipes ([#1308](https://github.com/newrelic/newrelic-client-go/issues/1308))
+- **install:** Recommendation only needed for targeted none installed recipes ([#1308](https://github.com/newrelic/newrelic-cli/issues/1308))
 
 <a name="v0.49.10"></a>
 ## [v0.49.10] - 2022-06-01
 ### Bug Fixes
-- **install:** pre-install eval panic should return valid result ([#1309](https://github.com/newrelic/newrelic-client-go/issues/1309))
+- **install:** pre-install eval panic should return valid result ([#1309](https://github.com/newrelic/newrelic-cli/issues/1309))
 
 <a name="v0.49.9"></a>
 ## [v0.49.9] - 2022-05-31
@@ -326,7 +332,7 @@
 ### Features
 - **envars:** Pass NRIA_CUSTOM_ATTRIBUTES and NRIA_PASSTHROUGH_ENVIRONMENT cli args to recipe context
 - **envars-to-recipe:**  Parsing/passing envars as yaml to recipe context
-- **install:** add detection during targeted install ([#1291](https://github.com/newrelic/newrelic-client-go/issues/1291))
+- **install:** add detection during targeted install ([#1291](https://github.com/newrelic/newrelic-cli/issues/1291))
 - **unsupported:** create better messaging for unsupported recipes
 
 <a name="v0.48.2"></a>
@@ -343,7 +349,7 @@
 <a name="v0.47.0"></a>
 ## [v0.47.0] - 2022-05-04
 ### Features
-- **install:** ability to get recipe output data back ([#1287](https://github.com/newrelic/newrelic-client-go/issues/1287)) ([#1290](https://github.com/newrelic/newrelic-client-go/issues/1290))
+- **install:** ability to get recipe output data back ([#1287](https://github.com/newrelic/newrelic-cli/issues/1287)) ([#1290](https://github.com/newrelic/newrelic-cli/issues/1290))
 
 <a name="v0.46.4"></a>
 ## [v0.46.4] - 2022-05-02
@@ -366,7 +372,7 @@
 <a name="v0.45.2"></a>
 ## [v0.45.2] - 2022-04-21
 ### Bug Fixes
-- **install:** tls13 not supported on older windows ([#1286](https://github.com/newrelic/newrelic-client-go/issues/1286))
+- **install:** tls13 not supported on older windows ([#1286](https://github.com/newrelic/newrelic-cli/issues/1286))
 
 <a name="v0.45.1"></a>
 ## [v0.45.1] - 2022-04-20
@@ -414,7 +420,7 @@
 <a name="v0.44.0"></a>
 ## [v0.44.0] - 2022-03-16
 ### Bug Fixes
-- **install:** fix dependency on not available ([#1264](https://github.com/newrelic/newrelic-client-go/issues/1264))
+- **install:** fix dependency on not available ([#1264](https://github.com/newrelic/newrelic-cli/issues/1264))
 
 <a name="v0.43.5"></a>
 ## [v0.43.5] - 2022-03-15
@@ -426,8 +432,8 @@
 <a name="v0.43.3"></a>
 ## [v0.43.3] - 2022-03-10
 ### Bug Fixes
-- **bundler:** do not bundle recipe if dependencies are not installable ([#1248](https://github.com/newrelic/newrelic-client-go/issues/1248))
-- **install:** nil pointer error when executing recipe ([#1249](https://github.com/newrelic/newrelic-client-go/issues/1249))
+- **bundler:** do not bundle recipe if dependencies are not installable ([#1248](https://github.com/newrelic/newrelic-cli/issues/1248))
+- **install:** nil pointer error when executing recipe ([#1249](https://github.com/newrelic/newrelic-cli/issues/1249))
 
 <a name="v0.43.2"></a>
 ## [v0.43.2] - 2022-03-10
@@ -657,7 +663,7 @@
 ## [v0.36.30] - 2021-11-08
 ### Bug Fixes
 - **install:** add gpg key for e2e
-- **nerdgraph:** enable Docs and RequestContext fields in QueryResponse ([#1167](https://github.com/newrelic/newrelic-client-go/issues/1167))
+- **nerdgraph:** enable Docs and RequestContext fields in QueryResponse ([#1167](https://github.com/newrelic/newrelic-cli/issues/1167))
 - **release:** use go install command to avoid affecting go.mod file during release
 
 <a name="v0.36.29"></a>
@@ -1629,7 +1635,7 @@
 ## [v0.14.0] - 2020-09-30
 ### Features
 - **nerdgraph:** implement tutone-generated mutation command alertsPolicyCreate
-- **release:** [#45](https://github.com/newrelic/newrelic-client-go/issues/45) add support for command chaining
+- **release:** [#45](https://github.com/newrelic/newrelic-cli/issues/45) add support for command chaining
 
 <a name="v0.13.0"></a>
 ## [v0.13.0] - 2020-08-27
@@ -1725,7 +1731,7 @@
 - add a command for posting custom events
 - release edge command
 - **apiaccess:** add generated apiAccess commands (prerelease)
-- **config:** Add config option to show Pre-Release Features (resolves [#274](https://github.com/newrelic/newrelic-client-go/issues/274))
+- **config:** Add config option to show Pre-Release Features (resolves [#274](https://github.com/newrelic/newrelic-cli/issues/274))
 - **edge:** add infinite tracing support
 - **edge:** mark as pre-release
 - **install:** implement a mock server for process-based task selection
@@ -1741,7 +1747,7 @@
 - **nrql:** Add NRQL Query and History commands
 - **output:** Add text output formatter to general package
 - **profiles:** create a profile automatically if it's possible
-- **release:** [#45](https://github.com/newrelic/newrelic-client-go/issues/45) add support for command chaining
+- **release:** [#45](https://github.com/newrelic/newrelic-cli/issues/45) add support for command chaining
 - **release:** update master branch with latest code from upstream
 - **release:** attempt to automate syncing our homebrew-core fork with upstream
 - **release:** add step to update newrelic-forks/homebrew-core with latest from upstream homebrew-code
@@ -1965,418 +1971,419 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.4...HEAD
-[v0.67.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.3...v0.67.4
-[v0.67.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.2...v0.67.3
-[v0.67.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.1...v0.67.2
-[v0.67.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.67.0...v0.67.1
-[v0.67.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.2...v0.67.0
-[v0.66.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.1...v0.66.2
-[v0.66.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.66.0...v0.66.1
-[v0.66.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.7...v0.66.0
-[v0.65.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.6...v0.65.7
-[v0.65.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.5...v0.65.6
-[v0.65.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.4...v0.65.5
-[v0.65.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.3...v0.65.4
-[v0.65.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.2...v0.65.3
-[v0.65.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.1...v0.65.2
-[v0.65.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.65.0...v0.65.1
-[v0.65.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.3...v0.65.0
-[v0.64.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.2...v0.64.3
-[v0.64.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.1...v0.64.2
-[v0.64.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.64.0...v0.64.1
-[v0.64.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.63.0...v0.64.0
-[v0.63.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.7...v0.63.0
-[v0.62.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.6...v0.62.7
-[v0.62.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.5...v0.62.6
-[v0.62.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.4...v0.62.5
-[v0.62.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.3...v0.62.4
-[v0.62.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.2...v0.62.3
-[v0.62.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.1...v0.62.2
-[v0.62.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.62.0...v0.62.1
-[v0.62.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.4...v0.62.0
-[v0.61.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.3...v0.61.4
-[v0.61.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.2...v0.61.3
-[v0.61.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.1...v0.61.2
-[v0.61.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.61.0...v0.61.1
-[v0.61.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.6...v0.61.0
-[v0.60.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.5...v0.60.6
-[v0.60.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.4...v0.60.5
-[v0.60.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.3...v0.60.4
-[v0.60.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.2...v0.60.3
-[v0.60.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.1...v0.60.2
-[v0.60.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.60.0...v0.60.1
-[v0.60.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.59.1...v0.60.0
-[v0.59.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.59.0...v0.59.1
-[v0.59.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.58.0...v0.59.0
-[v0.58.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.2...v0.58.0
-[v0.57.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.1...v0.57.2
-[v0.57.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.57.0...v0.57.1
-[v0.57.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.1...v0.57.0
-[v0.56.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.56.0...v0.56.1
-[v0.56.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.8...v0.56.0
-[v0.55.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.7...v0.55.8
-[v0.55.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.6...v0.55.7
-[v0.55.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.5...v0.55.6
-[v0.55.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.4...v0.55.5
-[v0.55.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.3...v0.55.4
-[v0.55.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2...v0.55.3
-[v0.55.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.2-abc...v0.55.2
-[v0.55.2-abc]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.1...v0.55.2-abc
-[v0.55.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.55.0...v0.55.1
-[v0.55.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.1...v0.55.0
-[v0.54.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.54.0...v0.54.1
-[v0.54.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.3...v0.54.0
-[v0.53.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.2...v0.53.3
-[v0.53.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.1...v0.53.2
-[v0.53.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.53.0...v0.53.1
-[v0.53.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.8...v0.53.0
-[v0.52.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.7...v0.52.8
-[v0.52.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.6...v0.52.7
-[v0.52.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.5...v0.52.6
-[v0.52.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.4...v0.52.5
-[v0.52.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.3...v0.52.4
-[v0.52.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.2...v0.52.3
-[v0.52.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.1...v0.52.2
-[v0.52.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.52.0...v0.52.1
-[v0.52.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.4...v0.52.0
-[v0.51.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.3...v0.51.4
-[v0.51.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.2...v0.51.3
-[v0.51.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.1...v0.51.2
-[v0.51.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.51.0...v0.51.1
-[v0.51.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.14...v0.51.0
-[v0.50.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.13...v0.50.14
-[v0.50.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.12...v0.50.13
-[v0.50.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.11...v0.50.12
-[v0.50.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.10...v0.50.11
-[v0.50.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.9...v0.50.10
-[v0.50.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.8...v0.50.9
-[v0.50.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.7...v0.50.8
-[v0.50.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.6...v0.50.7
-[v0.50.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.5...v0.50.6
-[v0.50.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.4...v0.50.5
-[v0.50.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.3...v0.50.4
-[v0.50.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.2...v0.50.3
-[v0.50.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.1...v0.50.2
-[v0.50.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.50.0...v0.50.1
-[v0.50.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.13...v0.50.0
-[v0.49.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.12...v0.49.13
-[v0.49.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.11...v0.49.12
-[v0.49.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.10...v0.49.11
-[v0.49.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.9...v0.49.10
-[v0.49.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.8...v0.49.9
-[v0.49.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.7...v0.49.8
-[v0.49.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.6...v0.49.7
-[v0.49.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.5...v0.49.6
-[v0.49.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.4...v0.49.5
-[v0.49.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.3...v0.49.4
-[v0.49.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.2...v0.49.3
-[v0.49.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.1...v0.49.2
-[v0.49.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.49.0...v0.49.1
-[v0.49.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.2...v0.49.0
-[v0.48.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.1...v0.48.2
-[v0.48.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.48.0...v0.48.1
-[v0.48.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.1...v0.48.0
-[v0.47.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.47.0...v0.47.1
-[v0.47.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.4...v0.47.0
-[v0.46.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.3...v0.46.4
-[v0.46.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.2...v0.46.3
-[v0.46.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.1...v0.46.2
-[v0.46.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.46.0...v0.46.1
-[v0.46.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.2...v0.46.0
-[v0.45.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.1...v0.45.2
-[v0.45.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.45.0...v0.45.1
-[v0.45.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.10...v0.45.0
-[v0.44.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.9...v0.44.10
-[v0.44.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.8...v0.44.9
-[v0.44.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.7...v0.44.8
-[v0.44.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.6...v0.44.7
-[v0.44.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.5...v0.44.6
-[v0.44.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.4...v0.44.5
-[v0.44.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.3...v0.44.4
-[v0.44.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.2...v0.44.3
-[v0.44.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.1...v0.44.2
-[v0.44.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.44.0...v0.44.1
-[v0.44.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.5...v0.44.0
-[v0.43.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.4...v0.43.5
-[v0.43.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.3...v0.43.4
-[v0.43.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.2...v0.43.3
-[v0.43.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.1...v0.43.2
-[v0.43.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.43.0...v0.43.1
-[v0.43.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.2...v0.43.0
-[v0.42.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.1...v0.42.2
-[v0.42.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.42.0...v0.42.1
-[v0.42.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.31...v0.42.0
-[v0.41.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.30...v0.41.31
-[v0.41.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.29...v0.41.30
-[v0.41.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.28...v0.41.29
-[v0.41.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.27...v0.41.28
-[v0.41.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.26...v0.41.27
-[v0.41.26]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.25...v0.41.26
-[v0.41.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.24...v0.41.25
-[v0.41.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.23...v0.41.24
-[v0.41.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.22...v0.41.23
-[v0.41.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.21...v0.41.22
-[v0.41.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.20...v0.41.21
-[v0.41.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.19...v0.41.20
-[v0.41.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.18...v0.41.19
-[v0.41.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.17...v0.41.18
-[v0.41.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.16...v0.41.17
-[v0.41.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.15...v0.41.16
-[v0.41.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.14...v0.41.15
-[v0.41.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.13...v0.41.14
-[v0.41.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.12...v0.41.13
-[v0.41.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.11...v0.41.12
-[v0.41.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.10...v0.41.11
-[v0.41.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.9...v0.41.10
-[v0.41.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.8...v0.41.9
-[v0.41.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.7...v0.41.8
-[v0.41.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.6...v0.41.7
-[v0.41.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.5...v0.41.6
-[v0.41.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.4...v0.41.5
-[v0.41.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.3...v0.41.4
-[v0.41.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.2...v0.41.3
-[v0.41.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.1...v0.41.2
-[v0.41.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.41.0...v0.41.1
-[v0.41.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.4...v0.41.0
-[v0.40.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.3...v0.40.4
-[v0.40.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.2...v0.40.3
-[v0.40.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.1...v0.40.2
-[v0.40.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.40.0...v0.40.1
-[v0.40.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.2...v0.40.0
-[v0.39.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.1...v0.39.2
-[v0.39.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.39.0...v0.39.1
-[v0.39.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.38.0...v0.39.0
-[v0.38.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.19...v0.38.0
-[v0.37.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.18...v0.37.19
-[v0.37.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.17...v0.37.18
-[v0.37.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.16...v0.37.17
-[v0.37.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.15...v0.37.16
-[v0.37.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.14...v0.37.15
-[v0.37.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.13...v0.37.14
-[v0.37.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.12...v0.37.13
-[v0.37.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.11...v0.37.12
-[v0.37.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.10...v0.37.11
-[v0.37.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.9...v0.37.10
-[v0.37.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.8...v0.37.9
-[v0.37.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.7...v0.37.8
-[v0.37.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.6...v0.37.7
-[v0.37.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.5...v0.37.6
-[v0.37.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.4...v0.37.5
-[v0.37.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.3...v0.37.4
-[v0.37.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.2...v0.37.3
-[v0.37.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.1...v0.37.2
-[v0.37.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.37.0...v0.37.1
-[v0.37.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.30...v0.37.0
-[v0.36.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.29...v0.36.30
-[v0.36.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.28...v0.36.29
-[v0.36.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.27...v0.36.28
-[v0.36.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.26...v0.36.27
-[v0.36.26]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.25...v0.36.26
-[v0.36.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.24...v0.36.25
-[v0.36.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.23...v0.36.24
-[v0.36.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.22...v0.36.23
-[v0.36.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.21...v0.36.22
-[v0.36.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.20...v0.36.21
-[v0.36.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.19...v0.36.20
-[v0.36.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.18...v0.36.19
-[v0.36.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.17...v0.36.18
-[v0.36.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.16...v0.36.17
-[v0.36.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.15...v0.36.16
-[v0.36.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.14...v0.36.15
-[v0.36.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.13...v0.36.14
-[v0.36.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.12...v0.36.13
-[v0.36.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.11...v0.36.12
-[v0.36.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.10...v0.36.11
-[v0.36.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.9...v0.36.10
-[v0.36.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.8...v0.36.9
-[v0.36.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.7...v0.36.8
-[v0.36.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.6...v0.36.7
-[v0.36.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.5...v0.36.6
-[v0.36.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.4...v0.36.5
-[v0.36.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.3...v0.36.4
-[v0.36.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.2...v0.36.3
-[v0.36.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.1...v0.36.2
-[v0.36.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.36.0...v0.36.1
-[v0.36.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.2...v0.36.0
-[v0.35.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.1...v0.35.2
-[v0.35.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.35.0...v0.35.1
-[v0.35.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.39...v0.35.0
-[v0.34.39]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.38...v0.34.39
-[v0.34.38]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.37...v0.34.38
-[v0.34.37]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.36...v0.34.37
-[v0.34.36]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.35...v0.34.36
-[v0.34.35]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.34...v0.34.35
-[v0.34.34]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.33...v0.34.34
-[v0.34.33]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.32...v0.34.33
-[v0.34.32]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.31...v0.34.32
-[v0.34.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.30...v0.34.31
-[v0.34.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.29...v0.34.30
-[v0.34.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.28...v0.34.29
-[v0.34.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.27...v0.34.28
-[v0.34.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.26...v0.34.27
-[v0.34.26]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.25...v0.34.26
-[v0.34.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.24...v0.34.25
-[v0.34.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.23...v0.34.24
-[v0.34.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.22...v0.34.23
-[v0.34.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.21...v0.34.22
-[v0.34.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.20...v0.34.21
-[v0.34.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.19...v0.34.20
-[v0.34.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.18...v0.34.19
-[v0.34.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.17...v0.34.18
-[v0.34.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.16...v0.34.17
-[v0.34.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.15...v0.34.16
-[v0.34.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.14...v0.34.15
-[v0.34.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.13...v0.34.14
-[v0.34.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.12...v0.34.13
-[v0.34.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.11...v0.34.12
-[v0.34.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.10...v0.34.11
-[v0.34.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.9...v0.34.10
-[v0.34.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.8...v0.34.9
-[v0.34.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.7...v0.34.8
-[v0.34.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.6...v0.34.7
-[v0.34.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.5...v0.34.6
-[v0.34.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.4...v0.34.5
-[v0.34.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.3...v0.34.4
-[v0.34.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.2...v0.34.3
-[v0.34.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.1...v0.34.2
-[v0.34.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.34.0...v0.34.1
-[v0.34.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.33.1...v0.34.0
-[v0.33.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.33.0...v0.33.1
-[v0.33.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.6...v0.33.0
-[v0.32.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.5...v0.32.6
-[v0.32.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.4...v0.32.5
-[v0.32.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.3...v0.32.4
-[v0.32.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.2...v0.32.3
-[v0.32.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.1...v0.32.2
-[v0.32.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.32.0...v0.32.1
-[v0.32.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.4...v0.32.0
-[v0.31.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.3...v0.31.4
-[v0.31.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.2...v0.31.3
-[v0.31.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.1...v0.31.2
-[v0.31.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.31.0...v0.31.1
-[v0.31.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.5...v0.31.0
-[v0.30.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.4...v0.30.5
-[v0.30.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.3...v0.30.4
-[v0.30.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.2...v0.30.3
-[v0.30.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.1...v0.30.2
-[v0.30.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.30.0...v0.30.1
-[v0.30.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.5...v0.30.0
-[v0.29.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.4...v0.29.5
-[v0.29.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.3...v0.29.4
-[v0.29.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.2...v0.29.3
-[v0.29.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.1...v0.29.2
-[v0.29.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.29.0...v0.29.1
-[v0.29.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.14...v0.29.0
-[v0.28.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.13...v0.28.14
-[v0.28.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.12...v0.28.13
-[v0.28.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.11...v0.28.12
-[v0.28.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.10...v0.28.11
-[v0.28.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.9...v0.28.10
-[v0.28.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.8...v0.28.9
-[v0.28.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.7...v0.28.8
-[v0.28.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.6...v0.28.7
-[v0.28.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.5...v0.28.6
-[v0.28.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.4...v0.28.5
-[v0.28.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.3...v0.28.4
-[v0.28.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.2...v0.28.3
-[v0.28.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.1...v0.28.2
-[v0.28.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.28.0...v0.28.1
-[v0.28.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.5...v0.28.0
-[v0.27.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.4...v0.27.5
-[v0.27.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.3...v0.27.4
-[v0.27.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.2...v0.27.3
-[v0.27.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.1...v0.27.2
-[v0.27.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.27.0...v0.27.1
-[v0.27.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.2...v0.27.0
-[v0.26.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.1...v0.26.2
-[v0.26.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.26.0...v0.26.1
-[v0.26.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.25.0...v0.26.0
-[v0.25.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.1...v0.25.0
-[v0.24.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.24.0...v0.24.1
-[v0.24.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.23.2...v0.24.0
-[v0.23.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.23.1...v0.23.2
-[v0.23.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.23.0...v0.23.1
-[v0.23.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.22.0...v0.23.0
-[v0.22.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.21.1...v0.22.0
-[v0.21.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.21.0...v0.21.1
-[v0.21.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.28...v0.21.0
-[v0.20.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.7...v0.20.28
-[v0.20.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.6...v0.20.7
-[v0.20.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.5...v0.20.6
-[v0.20.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.4...v0.20.5
-[v0.20.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.3...v0.20.4
-[v0.20.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.2...v0.20.3
-[v0.20.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.1...v0.20.2
-[v0.20.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.20.0...v0.20.1
-[v0.20.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.2...v0.20.0
-[v0.19.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.1...v0.19.2
-[v0.19.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.19.0...v0.19.1
-[v0.19.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.32...v0.19.0
-[v0.18.32]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.31...v0.18.32
-[v0.18.31]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.30...v0.18.31
-[v0.18.30]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.29...v0.18.30
-[v0.18.29]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.28...v0.18.29
-[v0.18.28]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.27...v0.18.28
-[v0.18.27]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.26...v0.18.27
-[v0.18.26]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.25...v0.18.26
-[v0.18.25]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.24...v0.18.25
-[v0.18.24]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.23...v0.18.24
-[v0.18.23]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.22...v0.18.23
-[v0.18.22]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.21...v0.18.22
-[v0.18.21]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.20...v0.18.21
-[v0.18.20]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.19...v0.18.20
-[v0.18.19]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.18...v0.18.19
-[v0.18.18]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.17...v0.18.18
-[v0.18.17]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.16...v0.18.17
-[v0.18.16]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.15...v0.18.16
-[v0.18.15]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.14...v0.18.15
-[v0.18.14]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.13...v0.18.14
-[v0.18.13]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.12...v0.18.13
-[v0.18.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.11...v0.18.12
-[v0.18.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.10...v0.18.11
-[v0.18.10]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.9...v0.18.10
-[v0.18.9]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.8...v0.18.9
-[v0.18.8]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.7...v0.18.8
-[v0.18.7]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.6...v0.18.7
-[v0.18.6]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.5...v0.18.6
-[v0.18.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.4...v0.18.5
-[v0.18.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.3...v0.18.4
-[v0.18.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.2...v0.18.3
-[v0.18.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.1...v0.18.2
-[v0.18.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.18.0...v0.18.1
-[v0.18.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.1...v0.18.0
-[v0.17.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.17.0...v0.17.1
-[v0.17.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.16.0...v0.17.0
-[v0.16.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.2...v0.16.0
-[v0.15.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.1...v0.15.2
-[v0.15.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.15.0...v0.15.1
-[v0.15.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.1...v0.15.0
-[v0.14.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.14.0...v0.14.1
-[v0.14.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.13.0...v0.14.0
-[v0.13.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.12.0...v0.13.0
-[v0.12.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.11.0...v0.12.0
-[v0.11.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.10.0...v0.11.0
-[v0.10.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.9.0...v0.10.0
-[v0.9.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.12...v0.9.0
-[v0.8.12]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.11...v0.8.12
-[v0.8.11]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.5...v0.8.11
-[v0.8.5]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.4...v0.8.5
-[v0.8.4]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.3...v0.8.4
-[v0.8.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.2...v0.8.3
-[v0.8.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.1...v0.8.2
-[v0.8.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.8.0...v0.8.1
-[v0.8.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.7.0...v0.8.0
-[v0.7.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2...v0.7.0
-[v0.6.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.2-test...v0.6.2
-[v0.6.2-test]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.1...v0.6.2-test
-[v0.6.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.6.0...v0.6.1
-[v0.6.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.5.0...v0.6.0
-[v0.5.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.1...v0.5.0
-[v0.4.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.4.0...v0.4.1
-[v0.4.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.3.0...v0.4.0
-[v0.3.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.3...v0.3.0
-[v0.2.3]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.2...v0.2.3
-[v0.2.2]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.1...v0.2.2
-[v0.2.1]: https://github.com/newrelic/newrelic-client-go/compare/v0.2.0...v0.2.1
-[v0.2.0]: https://github.com/newrelic/newrelic-client-go/compare/v0.1.0...v0.2.0
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.67.5...HEAD
+[v0.67.5]: https://github.com/newrelic/newrelic-cli/compare/v0.67.4...v0.67.5
+[v0.67.4]: https://github.com/newrelic/newrelic-cli/compare/v0.67.3...v0.67.4
+[v0.67.3]: https://github.com/newrelic/newrelic-cli/compare/v0.67.2...v0.67.3
+[v0.67.2]: https://github.com/newrelic/newrelic-cli/compare/v0.67.1...v0.67.2
+[v0.67.1]: https://github.com/newrelic/newrelic-cli/compare/v0.67.0...v0.67.1
+[v0.67.0]: https://github.com/newrelic/newrelic-cli/compare/v0.66.2...v0.67.0
+[v0.66.2]: https://github.com/newrelic/newrelic-cli/compare/v0.66.1...v0.66.2
+[v0.66.1]: https://github.com/newrelic/newrelic-cli/compare/v0.66.0...v0.66.1
+[v0.66.0]: https://github.com/newrelic/newrelic-cli/compare/v0.65.7...v0.66.0
+[v0.65.7]: https://github.com/newrelic/newrelic-cli/compare/v0.65.6...v0.65.7
+[v0.65.6]: https://github.com/newrelic/newrelic-cli/compare/v0.65.5...v0.65.6
+[v0.65.5]: https://github.com/newrelic/newrelic-cli/compare/v0.65.4...v0.65.5
+[v0.65.4]: https://github.com/newrelic/newrelic-cli/compare/v0.65.3...v0.65.4
+[v0.65.3]: https://github.com/newrelic/newrelic-cli/compare/v0.65.2...v0.65.3
+[v0.65.2]: https://github.com/newrelic/newrelic-cli/compare/v0.65.1...v0.65.2
+[v0.65.1]: https://github.com/newrelic/newrelic-cli/compare/v0.65.0...v0.65.1
+[v0.65.0]: https://github.com/newrelic/newrelic-cli/compare/v0.64.3...v0.65.0
+[v0.64.3]: https://github.com/newrelic/newrelic-cli/compare/v0.64.2...v0.64.3
+[v0.64.2]: https://github.com/newrelic/newrelic-cli/compare/v0.64.1...v0.64.2
+[v0.64.1]: https://github.com/newrelic/newrelic-cli/compare/v0.64.0...v0.64.1
+[v0.64.0]: https://github.com/newrelic/newrelic-cli/compare/v0.63.0...v0.64.0
+[v0.63.0]: https://github.com/newrelic/newrelic-cli/compare/v0.62.7...v0.63.0
+[v0.62.7]: https://github.com/newrelic/newrelic-cli/compare/v0.62.6...v0.62.7
+[v0.62.6]: https://github.com/newrelic/newrelic-cli/compare/v0.62.5...v0.62.6
+[v0.62.5]: https://github.com/newrelic/newrelic-cli/compare/v0.62.4...v0.62.5
+[v0.62.4]: https://github.com/newrelic/newrelic-cli/compare/v0.62.3...v0.62.4
+[v0.62.3]: https://github.com/newrelic/newrelic-cli/compare/v0.62.2...v0.62.3
+[v0.62.2]: https://github.com/newrelic/newrelic-cli/compare/v0.62.1...v0.62.2
+[v0.62.1]: https://github.com/newrelic/newrelic-cli/compare/v0.62.0...v0.62.1
+[v0.62.0]: https://github.com/newrelic/newrelic-cli/compare/v0.61.4...v0.62.0
+[v0.61.4]: https://github.com/newrelic/newrelic-cli/compare/v0.61.3...v0.61.4
+[v0.61.3]: https://github.com/newrelic/newrelic-cli/compare/v0.61.2...v0.61.3
+[v0.61.2]: https://github.com/newrelic/newrelic-cli/compare/v0.61.1...v0.61.2
+[v0.61.1]: https://github.com/newrelic/newrelic-cli/compare/v0.61.0...v0.61.1
+[v0.61.0]: https://github.com/newrelic/newrelic-cli/compare/v0.60.6...v0.61.0
+[v0.60.6]: https://github.com/newrelic/newrelic-cli/compare/v0.60.5...v0.60.6
+[v0.60.5]: https://github.com/newrelic/newrelic-cli/compare/v0.60.4...v0.60.5
+[v0.60.4]: https://github.com/newrelic/newrelic-cli/compare/v0.60.3...v0.60.4
+[v0.60.3]: https://github.com/newrelic/newrelic-cli/compare/v0.60.2...v0.60.3
+[v0.60.2]: https://github.com/newrelic/newrelic-cli/compare/v0.60.1...v0.60.2
+[v0.60.1]: https://github.com/newrelic/newrelic-cli/compare/v0.60.0...v0.60.1
+[v0.60.0]: https://github.com/newrelic/newrelic-cli/compare/v0.59.1...v0.60.0
+[v0.59.1]: https://github.com/newrelic/newrelic-cli/compare/v0.59.0...v0.59.1
+[v0.59.0]: https://github.com/newrelic/newrelic-cli/compare/v0.58.0...v0.59.0
+[v0.58.0]: https://github.com/newrelic/newrelic-cli/compare/v0.57.2...v0.58.0
+[v0.57.2]: https://github.com/newrelic/newrelic-cli/compare/v0.57.1...v0.57.2
+[v0.57.1]: https://github.com/newrelic/newrelic-cli/compare/v0.57.0...v0.57.1
+[v0.57.0]: https://github.com/newrelic/newrelic-cli/compare/v0.56.1...v0.57.0
+[v0.56.1]: https://github.com/newrelic/newrelic-cli/compare/v0.56.0...v0.56.1
+[v0.56.0]: https://github.com/newrelic/newrelic-cli/compare/v0.55.8...v0.56.0
+[v0.55.8]: https://github.com/newrelic/newrelic-cli/compare/v0.55.7...v0.55.8
+[v0.55.7]: https://github.com/newrelic/newrelic-cli/compare/v0.55.6...v0.55.7
+[v0.55.6]: https://github.com/newrelic/newrelic-cli/compare/v0.55.5...v0.55.6
+[v0.55.5]: https://github.com/newrelic/newrelic-cli/compare/v0.55.4...v0.55.5
+[v0.55.4]: https://github.com/newrelic/newrelic-cli/compare/v0.55.3...v0.55.4
+[v0.55.3]: https://github.com/newrelic/newrelic-cli/compare/v0.55.2...v0.55.3
+[v0.55.2]: https://github.com/newrelic/newrelic-cli/compare/v0.55.2-abc...v0.55.2
+[v0.55.2-abc]: https://github.com/newrelic/newrelic-cli/compare/v0.55.1...v0.55.2-abc
+[v0.55.1]: https://github.com/newrelic/newrelic-cli/compare/v0.55.0...v0.55.1
+[v0.55.0]: https://github.com/newrelic/newrelic-cli/compare/v0.54.1...v0.55.0
+[v0.54.1]: https://github.com/newrelic/newrelic-cli/compare/v0.54.0...v0.54.1
+[v0.54.0]: https://github.com/newrelic/newrelic-cli/compare/v0.53.3...v0.54.0
+[v0.53.3]: https://github.com/newrelic/newrelic-cli/compare/v0.53.2...v0.53.3
+[v0.53.2]: https://github.com/newrelic/newrelic-cli/compare/v0.53.1...v0.53.2
+[v0.53.1]: https://github.com/newrelic/newrelic-cli/compare/v0.53.0...v0.53.1
+[v0.53.0]: https://github.com/newrelic/newrelic-cli/compare/v0.52.8...v0.53.0
+[v0.52.8]: https://github.com/newrelic/newrelic-cli/compare/v0.52.7...v0.52.8
+[v0.52.7]: https://github.com/newrelic/newrelic-cli/compare/v0.52.6...v0.52.7
+[v0.52.6]: https://github.com/newrelic/newrelic-cli/compare/v0.52.5...v0.52.6
+[v0.52.5]: https://github.com/newrelic/newrelic-cli/compare/v0.52.4...v0.52.5
+[v0.52.4]: https://github.com/newrelic/newrelic-cli/compare/v0.52.3...v0.52.4
+[v0.52.3]: https://github.com/newrelic/newrelic-cli/compare/v0.52.2...v0.52.3
+[v0.52.2]: https://github.com/newrelic/newrelic-cli/compare/v0.52.1...v0.52.2
+[v0.52.1]: https://github.com/newrelic/newrelic-cli/compare/v0.52.0...v0.52.1
+[v0.52.0]: https://github.com/newrelic/newrelic-cli/compare/v0.51.4...v0.52.0
+[v0.51.4]: https://github.com/newrelic/newrelic-cli/compare/v0.51.3...v0.51.4
+[v0.51.3]: https://github.com/newrelic/newrelic-cli/compare/v0.51.2...v0.51.3
+[v0.51.2]: https://github.com/newrelic/newrelic-cli/compare/v0.51.1...v0.51.2
+[v0.51.1]: https://github.com/newrelic/newrelic-cli/compare/v0.51.0...v0.51.1
+[v0.51.0]: https://github.com/newrelic/newrelic-cli/compare/v0.50.14...v0.51.0
+[v0.50.14]: https://github.com/newrelic/newrelic-cli/compare/v0.50.13...v0.50.14
+[v0.50.13]: https://github.com/newrelic/newrelic-cli/compare/v0.50.12...v0.50.13
+[v0.50.12]: https://github.com/newrelic/newrelic-cli/compare/v0.50.11...v0.50.12
+[v0.50.11]: https://github.com/newrelic/newrelic-cli/compare/v0.50.10...v0.50.11
+[v0.50.10]: https://github.com/newrelic/newrelic-cli/compare/v0.50.9...v0.50.10
+[v0.50.9]: https://github.com/newrelic/newrelic-cli/compare/v0.50.8...v0.50.9
+[v0.50.8]: https://github.com/newrelic/newrelic-cli/compare/v0.50.7...v0.50.8
+[v0.50.7]: https://github.com/newrelic/newrelic-cli/compare/v0.50.6...v0.50.7
+[v0.50.6]: https://github.com/newrelic/newrelic-cli/compare/v0.50.5...v0.50.6
+[v0.50.5]: https://github.com/newrelic/newrelic-cli/compare/v0.50.4...v0.50.5
+[v0.50.4]: https://github.com/newrelic/newrelic-cli/compare/v0.50.3...v0.50.4
+[v0.50.3]: https://github.com/newrelic/newrelic-cli/compare/v0.50.2...v0.50.3
+[v0.50.2]: https://github.com/newrelic/newrelic-cli/compare/v0.50.1...v0.50.2
+[v0.50.1]: https://github.com/newrelic/newrelic-cli/compare/v0.50.0...v0.50.1
+[v0.50.0]: https://github.com/newrelic/newrelic-cli/compare/v0.49.13...v0.50.0
+[v0.49.13]: https://github.com/newrelic/newrelic-cli/compare/v0.49.12...v0.49.13
+[v0.49.12]: https://github.com/newrelic/newrelic-cli/compare/v0.49.11...v0.49.12
+[v0.49.11]: https://github.com/newrelic/newrelic-cli/compare/v0.49.10...v0.49.11
+[v0.49.10]: https://github.com/newrelic/newrelic-cli/compare/v0.49.9...v0.49.10
+[v0.49.9]: https://github.com/newrelic/newrelic-cli/compare/v0.49.8...v0.49.9
+[v0.49.8]: https://github.com/newrelic/newrelic-cli/compare/v0.49.7...v0.49.8
+[v0.49.7]: https://github.com/newrelic/newrelic-cli/compare/v0.49.6...v0.49.7
+[v0.49.6]: https://github.com/newrelic/newrelic-cli/compare/v0.49.5...v0.49.6
+[v0.49.5]: https://github.com/newrelic/newrelic-cli/compare/v0.49.4...v0.49.5
+[v0.49.4]: https://github.com/newrelic/newrelic-cli/compare/v0.49.3...v0.49.4
+[v0.49.3]: https://github.com/newrelic/newrelic-cli/compare/v0.49.2...v0.49.3
+[v0.49.2]: https://github.com/newrelic/newrelic-cli/compare/v0.49.1...v0.49.2
+[v0.49.1]: https://github.com/newrelic/newrelic-cli/compare/v0.49.0...v0.49.1
+[v0.49.0]: https://github.com/newrelic/newrelic-cli/compare/v0.48.2...v0.49.0
+[v0.48.2]: https://github.com/newrelic/newrelic-cli/compare/v0.48.1...v0.48.2
+[v0.48.1]: https://github.com/newrelic/newrelic-cli/compare/v0.48.0...v0.48.1
+[v0.48.0]: https://github.com/newrelic/newrelic-cli/compare/v0.47.1...v0.48.0
+[v0.47.1]: https://github.com/newrelic/newrelic-cli/compare/v0.47.0...v0.47.1
+[v0.47.0]: https://github.com/newrelic/newrelic-cli/compare/v0.46.4...v0.47.0
+[v0.46.4]: https://github.com/newrelic/newrelic-cli/compare/v0.46.3...v0.46.4
+[v0.46.3]: https://github.com/newrelic/newrelic-cli/compare/v0.46.2...v0.46.3
+[v0.46.2]: https://github.com/newrelic/newrelic-cli/compare/v0.46.1...v0.46.2
+[v0.46.1]: https://github.com/newrelic/newrelic-cli/compare/v0.46.0...v0.46.1
+[v0.46.0]: https://github.com/newrelic/newrelic-cli/compare/v0.45.2...v0.46.0
+[v0.45.2]: https://github.com/newrelic/newrelic-cli/compare/v0.45.1...v0.45.2
+[v0.45.1]: https://github.com/newrelic/newrelic-cli/compare/v0.45.0...v0.45.1
+[v0.45.0]: https://github.com/newrelic/newrelic-cli/compare/v0.44.10...v0.45.0
+[v0.44.10]: https://github.com/newrelic/newrelic-cli/compare/v0.44.9...v0.44.10
+[v0.44.9]: https://github.com/newrelic/newrelic-cli/compare/v0.44.8...v0.44.9
+[v0.44.8]: https://github.com/newrelic/newrelic-cli/compare/v0.44.7...v0.44.8
+[v0.44.7]: https://github.com/newrelic/newrelic-cli/compare/v0.44.6...v0.44.7
+[v0.44.6]: https://github.com/newrelic/newrelic-cli/compare/v0.44.5...v0.44.6
+[v0.44.5]: https://github.com/newrelic/newrelic-cli/compare/v0.44.4...v0.44.5
+[v0.44.4]: https://github.com/newrelic/newrelic-cli/compare/v0.44.3...v0.44.4
+[v0.44.3]: https://github.com/newrelic/newrelic-cli/compare/v0.44.2...v0.44.3
+[v0.44.2]: https://github.com/newrelic/newrelic-cli/compare/v0.44.1...v0.44.2
+[v0.44.1]: https://github.com/newrelic/newrelic-cli/compare/v0.44.0...v0.44.1
+[v0.44.0]: https://github.com/newrelic/newrelic-cli/compare/v0.43.5...v0.44.0
+[v0.43.5]: https://github.com/newrelic/newrelic-cli/compare/v0.43.4...v0.43.5
+[v0.43.4]: https://github.com/newrelic/newrelic-cli/compare/v0.43.3...v0.43.4
+[v0.43.3]: https://github.com/newrelic/newrelic-cli/compare/v0.43.2...v0.43.3
+[v0.43.2]: https://github.com/newrelic/newrelic-cli/compare/v0.43.1...v0.43.2
+[v0.43.1]: https://github.com/newrelic/newrelic-cli/compare/v0.43.0...v0.43.1
+[v0.43.0]: https://github.com/newrelic/newrelic-cli/compare/v0.42.2...v0.43.0
+[v0.42.2]: https://github.com/newrelic/newrelic-cli/compare/v0.42.1...v0.42.2
+[v0.42.1]: https://github.com/newrelic/newrelic-cli/compare/v0.42.0...v0.42.1
+[v0.42.0]: https://github.com/newrelic/newrelic-cli/compare/v0.41.31...v0.42.0
+[v0.41.31]: https://github.com/newrelic/newrelic-cli/compare/v0.41.30...v0.41.31
+[v0.41.30]: https://github.com/newrelic/newrelic-cli/compare/v0.41.29...v0.41.30
+[v0.41.29]: https://github.com/newrelic/newrelic-cli/compare/v0.41.28...v0.41.29
+[v0.41.28]: https://github.com/newrelic/newrelic-cli/compare/v0.41.27...v0.41.28
+[v0.41.27]: https://github.com/newrelic/newrelic-cli/compare/v0.41.26...v0.41.27
+[v0.41.26]: https://github.com/newrelic/newrelic-cli/compare/v0.41.25...v0.41.26
+[v0.41.25]: https://github.com/newrelic/newrelic-cli/compare/v0.41.24...v0.41.25
+[v0.41.24]: https://github.com/newrelic/newrelic-cli/compare/v0.41.23...v0.41.24
+[v0.41.23]: https://github.com/newrelic/newrelic-cli/compare/v0.41.22...v0.41.23
+[v0.41.22]: https://github.com/newrelic/newrelic-cli/compare/v0.41.21...v0.41.22
+[v0.41.21]: https://github.com/newrelic/newrelic-cli/compare/v0.41.20...v0.41.21
+[v0.41.20]: https://github.com/newrelic/newrelic-cli/compare/v0.41.19...v0.41.20
+[v0.41.19]: https://github.com/newrelic/newrelic-cli/compare/v0.41.18...v0.41.19
+[v0.41.18]: https://github.com/newrelic/newrelic-cli/compare/v0.41.17...v0.41.18
+[v0.41.17]: https://github.com/newrelic/newrelic-cli/compare/v0.41.16...v0.41.17
+[v0.41.16]: https://github.com/newrelic/newrelic-cli/compare/v0.41.15...v0.41.16
+[v0.41.15]: https://github.com/newrelic/newrelic-cli/compare/v0.41.14...v0.41.15
+[v0.41.14]: https://github.com/newrelic/newrelic-cli/compare/v0.41.13...v0.41.14
+[v0.41.13]: https://github.com/newrelic/newrelic-cli/compare/v0.41.12...v0.41.13
+[v0.41.12]: https://github.com/newrelic/newrelic-cli/compare/v0.41.11...v0.41.12
+[v0.41.11]: https://github.com/newrelic/newrelic-cli/compare/v0.41.10...v0.41.11
+[v0.41.10]: https://github.com/newrelic/newrelic-cli/compare/v0.41.9...v0.41.10
+[v0.41.9]: https://github.com/newrelic/newrelic-cli/compare/v0.41.8...v0.41.9
+[v0.41.8]: https://github.com/newrelic/newrelic-cli/compare/v0.41.7...v0.41.8
+[v0.41.7]: https://github.com/newrelic/newrelic-cli/compare/v0.41.6...v0.41.7
+[v0.41.6]: https://github.com/newrelic/newrelic-cli/compare/v0.41.5...v0.41.6
+[v0.41.5]: https://github.com/newrelic/newrelic-cli/compare/v0.41.4...v0.41.5
+[v0.41.4]: https://github.com/newrelic/newrelic-cli/compare/v0.41.3...v0.41.4
+[v0.41.3]: https://github.com/newrelic/newrelic-cli/compare/v0.41.2...v0.41.3
+[v0.41.2]: https://github.com/newrelic/newrelic-cli/compare/v0.41.1...v0.41.2
+[v0.41.1]: https://github.com/newrelic/newrelic-cli/compare/v0.41.0...v0.41.1
+[v0.41.0]: https://github.com/newrelic/newrelic-cli/compare/v0.40.4...v0.41.0
+[v0.40.4]: https://github.com/newrelic/newrelic-cli/compare/v0.40.3...v0.40.4
+[v0.40.3]: https://github.com/newrelic/newrelic-cli/compare/v0.40.2...v0.40.3
+[v0.40.2]: https://github.com/newrelic/newrelic-cli/compare/v0.40.1...v0.40.2
+[v0.40.1]: https://github.com/newrelic/newrelic-cli/compare/v0.40.0...v0.40.1
+[v0.40.0]: https://github.com/newrelic/newrelic-cli/compare/v0.39.2...v0.40.0
+[v0.39.2]: https://github.com/newrelic/newrelic-cli/compare/v0.39.1...v0.39.2
+[v0.39.1]: https://github.com/newrelic/newrelic-cli/compare/v0.39.0...v0.39.1
+[v0.39.0]: https://github.com/newrelic/newrelic-cli/compare/v0.38.0...v0.39.0
+[v0.38.0]: https://github.com/newrelic/newrelic-cli/compare/v0.37.19...v0.38.0
+[v0.37.19]: https://github.com/newrelic/newrelic-cli/compare/v0.37.18...v0.37.19
+[v0.37.18]: https://github.com/newrelic/newrelic-cli/compare/v0.37.17...v0.37.18
+[v0.37.17]: https://github.com/newrelic/newrelic-cli/compare/v0.37.16...v0.37.17
+[v0.37.16]: https://github.com/newrelic/newrelic-cli/compare/v0.37.15...v0.37.16
+[v0.37.15]: https://github.com/newrelic/newrelic-cli/compare/v0.37.14...v0.37.15
+[v0.37.14]: https://github.com/newrelic/newrelic-cli/compare/v0.37.13...v0.37.14
+[v0.37.13]: https://github.com/newrelic/newrelic-cli/compare/v0.37.12...v0.37.13
+[v0.37.12]: https://github.com/newrelic/newrelic-cli/compare/v0.37.11...v0.37.12
+[v0.37.11]: https://github.com/newrelic/newrelic-cli/compare/v0.37.10...v0.37.11
+[v0.37.10]: https://github.com/newrelic/newrelic-cli/compare/v0.37.9...v0.37.10
+[v0.37.9]: https://github.com/newrelic/newrelic-cli/compare/v0.37.8...v0.37.9
+[v0.37.8]: https://github.com/newrelic/newrelic-cli/compare/v0.37.7...v0.37.8
+[v0.37.7]: https://github.com/newrelic/newrelic-cli/compare/v0.37.6...v0.37.7
+[v0.37.6]: https://github.com/newrelic/newrelic-cli/compare/v0.37.5...v0.37.6
+[v0.37.5]: https://github.com/newrelic/newrelic-cli/compare/v0.37.4...v0.37.5
+[v0.37.4]: https://github.com/newrelic/newrelic-cli/compare/v0.37.3...v0.37.4
+[v0.37.3]: https://github.com/newrelic/newrelic-cli/compare/v0.37.2...v0.37.3
+[v0.37.2]: https://github.com/newrelic/newrelic-cli/compare/v0.37.1...v0.37.2
+[v0.37.1]: https://github.com/newrelic/newrelic-cli/compare/v0.37.0...v0.37.1
+[v0.37.0]: https://github.com/newrelic/newrelic-cli/compare/v0.36.30...v0.37.0
+[v0.36.30]: https://github.com/newrelic/newrelic-cli/compare/v0.36.29...v0.36.30
+[v0.36.29]: https://github.com/newrelic/newrelic-cli/compare/v0.36.28...v0.36.29
+[v0.36.28]: https://github.com/newrelic/newrelic-cli/compare/v0.36.27...v0.36.28
+[v0.36.27]: https://github.com/newrelic/newrelic-cli/compare/v0.36.26...v0.36.27
+[v0.36.26]: https://github.com/newrelic/newrelic-cli/compare/v0.36.25...v0.36.26
+[v0.36.25]: https://github.com/newrelic/newrelic-cli/compare/v0.36.24...v0.36.25
+[v0.36.24]: https://github.com/newrelic/newrelic-cli/compare/v0.36.23...v0.36.24
+[v0.36.23]: https://github.com/newrelic/newrelic-cli/compare/v0.36.22...v0.36.23
+[v0.36.22]: https://github.com/newrelic/newrelic-cli/compare/v0.36.21...v0.36.22
+[v0.36.21]: https://github.com/newrelic/newrelic-cli/compare/v0.36.20...v0.36.21
+[v0.36.20]: https://github.com/newrelic/newrelic-cli/compare/v0.36.19...v0.36.20
+[v0.36.19]: https://github.com/newrelic/newrelic-cli/compare/v0.36.18...v0.36.19
+[v0.36.18]: https://github.com/newrelic/newrelic-cli/compare/v0.36.17...v0.36.18
+[v0.36.17]: https://github.com/newrelic/newrelic-cli/compare/v0.36.16...v0.36.17
+[v0.36.16]: https://github.com/newrelic/newrelic-cli/compare/v0.36.15...v0.36.16
+[v0.36.15]: https://github.com/newrelic/newrelic-cli/compare/v0.36.14...v0.36.15
+[v0.36.14]: https://github.com/newrelic/newrelic-cli/compare/v0.36.13...v0.36.14
+[v0.36.13]: https://github.com/newrelic/newrelic-cli/compare/v0.36.12...v0.36.13
+[v0.36.12]: https://github.com/newrelic/newrelic-cli/compare/v0.36.11...v0.36.12
+[v0.36.11]: https://github.com/newrelic/newrelic-cli/compare/v0.36.10...v0.36.11
+[v0.36.10]: https://github.com/newrelic/newrelic-cli/compare/v0.36.9...v0.36.10
+[v0.36.9]: https://github.com/newrelic/newrelic-cli/compare/v0.36.8...v0.36.9
+[v0.36.8]: https://github.com/newrelic/newrelic-cli/compare/v0.36.7...v0.36.8
+[v0.36.7]: https://github.com/newrelic/newrelic-cli/compare/v0.36.6...v0.36.7
+[v0.36.6]: https://github.com/newrelic/newrelic-cli/compare/v0.36.5...v0.36.6
+[v0.36.5]: https://github.com/newrelic/newrelic-cli/compare/v0.36.4...v0.36.5
+[v0.36.4]: https://github.com/newrelic/newrelic-cli/compare/v0.36.3...v0.36.4
+[v0.36.3]: https://github.com/newrelic/newrelic-cli/compare/v0.36.2...v0.36.3
+[v0.36.2]: https://github.com/newrelic/newrelic-cli/compare/v0.36.1...v0.36.2
+[v0.36.1]: https://github.com/newrelic/newrelic-cli/compare/v0.36.0...v0.36.1
+[v0.36.0]: https://github.com/newrelic/newrelic-cli/compare/v0.35.2...v0.36.0
+[v0.35.2]: https://github.com/newrelic/newrelic-cli/compare/v0.35.1...v0.35.2
+[v0.35.1]: https://github.com/newrelic/newrelic-cli/compare/v0.35.0...v0.35.1
+[v0.35.0]: https://github.com/newrelic/newrelic-cli/compare/v0.34.39...v0.35.0
+[v0.34.39]: https://github.com/newrelic/newrelic-cli/compare/v0.34.38...v0.34.39
+[v0.34.38]: https://github.com/newrelic/newrelic-cli/compare/v0.34.37...v0.34.38
+[v0.34.37]: https://github.com/newrelic/newrelic-cli/compare/v0.34.36...v0.34.37
+[v0.34.36]: https://github.com/newrelic/newrelic-cli/compare/v0.34.35...v0.34.36
+[v0.34.35]: https://github.com/newrelic/newrelic-cli/compare/v0.34.34...v0.34.35
+[v0.34.34]: https://github.com/newrelic/newrelic-cli/compare/v0.34.33...v0.34.34
+[v0.34.33]: https://github.com/newrelic/newrelic-cli/compare/v0.34.32...v0.34.33
+[v0.34.32]: https://github.com/newrelic/newrelic-cli/compare/v0.34.31...v0.34.32
+[v0.34.31]: https://github.com/newrelic/newrelic-cli/compare/v0.34.30...v0.34.31
+[v0.34.30]: https://github.com/newrelic/newrelic-cli/compare/v0.34.29...v0.34.30
+[v0.34.29]: https://github.com/newrelic/newrelic-cli/compare/v0.34.28...v0.34.29
+[v0.34.28]: https://github.com/newrelic/newrelic-cli/compare/v0.34.27...v0.34.28
+[v0.34.27]: https://github.com/newrelic/newrelic-cli/compare/v0.34.26...v0.34.27
+[v0.34.26]: https://github.com/newrelic/newrelic-cli/compare/v0.34.25...v0.34.26
+[v0.34.25]: https://github.com/newrelic/newrelic-cli/compare/v0.34.24...v0.34.25
+[v0.34.24]: https://github.com/newrelic/newrelic-cli/compare/v0.34.23...v0.34.24
+[v0.34.23]: https://github.com/newrelic/newrelic-cli/compare/v0.34.22...v0.34.23
+[v0.34.22]: https://github.com/newrelic/newrelic-cli/compare/v0.34.21...v0.34.22
+[v0.34.21]: https://github.com/newrelic/newrelic-cli/compare/v0.34.20...v0.34.21
+[v0.34.20]: https://github.com/newrelic/newrelic-cli/compare/v0.34.19...v0.34.20
+[v0.34.19]: https://github.com/newrelic/newrelic-cli/compare/v0.34.18...v0.34.19
+[v0.34.18]: https://github.com/newrelic/newrelic-cli/compare/v0.34.17...v0.34.18
+[v0.34.17]: https://github.com/newrelic/newrelic-cli/compare/v0.34.16...v0.34.17
+[v0.34.16]: https://github.com/newrelic/newrelic-cli/compare/v0.34.15...v0.34.16
+[v0.34.15]: https://github.com/newrelic/newrelic-cli/compare/v0.34.14...v0.34.15
+[v0.34.14]: https://github.com/newrelic/newrelic-cli/compare/v0.34.13...v0.34.14
+[v0.34.13]: https://github.com/newrelic/newrelic-cli/compare/v0.34.12...v0.34.13
+[v0.34.12]: https://github.com/newrelic/newrelic-cli/compare/v0.34.11...v0.34.12
+[v0.34.11]: https://github.com/newrelic/newrelic-cli/compare/v0.34.10...v0.34.11
+[v0.34.10]: https://github.com/newrelic/newrelic-cli/compare/v0.34.9...v0.34.10
+[v0.34.9]: https://github.com/newrelic/newrelic-cli/compare/v0.34.8...v0.34.9
+[v0.34.8]: https://github.com/newrelic/newrelic-cli/compare/v0.34.7...v0.34.8
+[v0.34.7]: https://github.com/newrelic/newrelic-cli/compare/v0.34.6...v0.34.7
+[v0.34.6]: https://github.com/newrelic/newrelic-cli/compare/v0.34.5...v0.34.6
+[v0.34.5]: https://github.com/newrelic/newrelic-cli/compare/v0.34.4...v0.34.5
+[v0.34.4]: https://github.com/newrelic/newrelic-cli/compare/v0.34.3...v0.34.4
+[v0.34.3]: https://github.com/newrelic/newrelic-cli/compare/v0.34.2...v0.34.3
+[v0.34.2]: https://github.com/newrelic/newrelic-cli/compare/v0.34.1...v0.34.2
+[v0.34.1]: https://github.com/newrelic/newrelic-cli/compare/v0.34.0...v0.34.1
+[v0.34.0]: https://github.com/newrelic/newrelic-cli/compare/v0.33.1...v0.34.0
+[v0.33.1]: https://github.com/newrelic/newrelic-cli/compare/v0.33.0...v0.33.1
+[v0.33.0]: https://github.com/newrelic/newrelic-cli/compare/v0.32.6...v0.33.0
+[v0.32.6]: https://github.com/newrelic/newrelic-cli/compare/v0.32.5...v0.32.6
+[v0.32.5]: https://github.com/newrelic/newrelic-cli/compare/v0.32.4...v0.32.5
+[v0.32.4]: https://github.com/newrelic/newrelic-cli/compare/v0.32.3...v0.32.4
+[v0.32.3]: https://github.com/newrelic/newrelic-cli/compare/v0.32.2...v0.32.3
+[v0.32.2]: https://github.com/newrelic/newrelic-cli/compare/v0.32.1...v0.32.2
+[v0.32.1]: https://github.com/newrelic/newrelic-cli/compare/v0.32.0...v0.32.1
+[v0.32.0]: https://github.com/newrelic/newrelic-cli/compare/v0.31.4...v0.32.0
+[v0.31.4]: https://github.com/newrelic/newrelic-cli/compare/v0.31.3...v0.31.4
+[v0.31.3]: https://github.com/newrelic/newrelic-cli/compare/v0.31.2...v0.31.3
+[v0.31.2]: https://github.com/newrelic/newrelic-cli/compare/v0.31.1...v0.31.2
+[v0.31.1]: https://github.com/newrelic/newrelic-cli/compare/v0.31.0...v0.31.1
+[v0.31.0]: https://github.com/newrelic/newrelic-cli/compare/v0.30.5...v0.31.0
+[v0.30.5]: https://github.com/newrelic/newrelic-cli/compare/v0.30.4...v0.30.5
+[v0.30.4]: https://github.com/newrelic/newrelic-cli/compare/v0.30.3...v0.30.4
+[v0.30.3]: https://github.com/newrelic/newrelic-cli/compare/v0.30.2...v0.30.3
+[v0.30.2]: https://github.com/newrelic/newrelic-cli/compare/v0.30.1...v0.30.2
+[v0.30.1]: https://github.com/newrelic/newrelic-cli/compare/v0.30.0...v0.30.1
+[v0.30.0]: https://github.com/newrelic/newrelic-cli/compare/v0.29.5...v0.30.0
+[v0.29.5]: https://github.com/newrelic/newrelic-cli/compare/v0.29.4...v0.29.5
+[v0.29.4]: https://github.com/newrelic/newrelic-cli/compare/v0.29.3...v0.29.4
+[v0.29.3]: https://github.com/newrelic/newrelic-cli/compare/v0.29.2...v0.29.3
+[v0.29.2]: https://github.com/newrelic/newrelic-cli/compare/v0.29.1...v0.29.2
+[v0.29.1]: https://github.com/newrelic/newrelic-cli/compare/v0.29.0...v0.29.1
+[v0.29.0]: https://github.com/newrelic/newrelic-cli/compare/v0.28.14...v0.29.0
+[v0.28.14]: https://github.com/newrelic/newrelic-cli/compare/v0.28.13...v0.28.14
+[v0.28.13]: https://github.com/newrelic/newrelic-cli/compare/v0.28.12...v0.28.13
+[v0.28.12]: https://github.com/newrelic/newrelic-cli/compare/v0.28.11...v0.28.12
+[v0.28.11]: https://github.com/newrelic/newrelic-cli/compare/v0.28.10...v0.28.11
+[v0.28.10]: https://github.com/newrelic/newrelic-cli/compare/v0.28.9...v0.28.10
+[v0.28.9]: https://github.com/newrelic/newrelic-cli/compare/v0.28.8...v0.28.9
+[v0.28.8]: https://github.com/newrelic/newrelic-cli/compare/v0.28.7...v0.28.8
+[v0.28.7]: https://github.com/newrelic/newrelic-cli/compare/v0.28.6...v0.28.7
+[v0.28.6]: https://github.com/newrelic/newrelic-cli/compare/v0.28.5...v0.28.6
+[v0.28.5]: https://github.com/newrelic/newrelic-cli/compare/v0.28.4...v0.28.5
+[v0.28.4]: https://github.com/newrelic/newrelic-cli/compare/v0.28.3...v0.28.4
+[v0.28.3]: https://github.com/newrelic/newrelic-cli/compare/v0.28.2...v0.28.3
+[v0.28.2]: https://github.com/newrelic/newrelic-cli/compare/v0.28.1...v0.28.2
+[v0.28.1]: https://github.com/newrelic/newrelic-cli/compare/v0.28.0...v0.28.1
+[v0.28.0]: https://github.com/newrelic/newrelic-cli/compare/v0.27.5...v0.28.0
+[v0.27.5]: https://github.com/newrelic/newrelic-cli/compare/v0.27.4...v0.27.5
+[v0.27.4]: https://github.com/newrelic/newrelic-cli/compare/v0.27.3...v0.27.4
+[v0.27.3]: https://github.com/newrelic/newrelic-cli/compare/v0.27.2...v0.27.3
+[v0.27.2]: https://github.com/newrelic/newrelic-cli/compare/v0.27.1...v0.27.2
+[v0.27.1]: https://github.com/newrelic/newrelic-cli/compare/v0.27.0...v0.27.1
+[v0.27.0]: https://github.com/newrelic/newrelic-cli/compare/v0.26.2...v0.27.0
+[v0.26.2]: https://github.com/newrelic/newrelic-cli/compare/v0.26.1...v0.26.2
+[v0.26.1]: https://github.com/newrelic/newrelic-cli/compare/v0.26.0...v0.26.1
+[v0.26.0]: https://github.com/newrelic/newrelic-cli/compare/v0.25.0...v0.26.0
+[v0.25.0]: https://github.com/newrelic/newrelic-cli/compare/v0.24.1...v0.25.0
+[v0.24.1]: https://github.com/newrelic/newrelic-cli/compare/v0.24.0...v0.24.1
+[v0.24.0]: https://github.com/newrelic/newrelic-cli/compare/v0.23.2...v0.24.0
+[v0.23.2]: https://github.com/newrelic/newrelic-cli/compare/v0.23.1...v0.23.2
+[v0.23.1]: https://github.com/newrelic/newrelic-cli/compare/v0.23.0...v0.23.1
+[v0.23.0]: https://github.com/newrelic/newrelic-cli/compare/v0.22.0...v0.23.0
+[v0.22.0]: https://github.com/newrelic/newrelic-cli/compare/v0.21.1...v0.22.0
+[v0.21.1]: https://github.com/newrelic/newrelic-cli/compare/v0.21.0...v0.21.1
+[v0.21.0]: https://github.com/newrelic/newrelic-cli/compare/v0.20.28...v0.21.0
+[v0.20.28]: https://github.com/newrelic/newrelic-cli/compare/v0.20.7...v0.20.28
+[v0.20.7]: https://github.com/newrelic/newrelic-cli/compare/v0.20.6...v0.20.7
+[v0.20.6]: https://github.com/newrelic/newrelic-cli/compare/v0.20.5...v0.20.6
+[v0.20.5]: https://github.com/newrelic/newrelic-cli/compare/v0.20.4...v0.20.5
+[v0.20.4]: https://github.com/newrelic/newrelic-cli/compare/v0.20.3...v0.20.4
+[v0.20.3]: https://github.com/newrelic/newrelic-cli/compare/v0.20.2...v0.20.3
+[v0.20.2]: https://github.com/newrelic/newrelic-cli/compare/v0.20.1...v0.20.2
+[v0.20.1]: https://github.com/newrelic/newrelic-cli/compare/v0.20.0...v0.20.1
+[v0.20.0]: https://github.com/newrelic/newrelic-cli/compare/v0.19.2...v0.20.0
+[v0.19.2]: https://github.com/newrelic/newrelic-cli/compare/v0.19.1...v0.19.2
+[v0.19.1]: https://github.com/newrelic/newrelic-cli/compare/v0.19.0...v0.19.1
+[v0.19.0]: https://github.com/newrelic/newrelic-cli/compare/v0.18.32...v0.19.0
+[v0.18.32]: https://github.com/newrelic/newrelic-cli/compare/v0.18.31...v0.18.32
+[v0.18.31]: https://github.com/newrelic/newrelic-cli/compare/v0.18.30...v0.18.31
+[v0.18.30]: https://github.com/newrelic/newrelic-cli/compare/v0.18.29...v0.18.30
+[v0.18.29]: https://github.com/newrelic/newrelic-cli/compare/v0.18.28...v0.18.29
+[v0.18.28]: https://github.com/newrelic/newrelic-cli/compare/v0.18.27...v0.18.28
+[v0.18.27]: https://github.com/newrelic/newrelic-cli/compare/v0.18.26...v0.18.27
+[v0.18.26]: https://github.com/newrelic/newrelic-cli/compare/v0.18.25...v0.18.26
+[v0.18.25]: https://github.com/newrelic/newrelic-cli/compare/v0.18.24...v0.18.25
+[v0.18.24]: https://github.com/newrelic/newrelic-cli/compare/v0.18.23...v0.18.24
+[v0.18.23]: https://github.com/newrelic/newrelic-cli/compare/v0.18.22...v0.18.23
+[v0.18.22]: https://github.com/newrelic/newrelic-cli/compare/v0.18.21...v0.18.22
+[v0.18.21]: https://github.com/newrelic/newrelic-cli/compare/v0.18.20...v0.18.21
+[v0.18.20]: https://github.com/newrelic/newrelic-cli/compare/v0.18.19...v0.18.20
+[v0.18.19]: https://github.com/newrelic/newrelic-cli/compare/v0.18.18...v0.18.19
+[v0.18.18]: https://github.com/newrelic/newrelic-cli/compare/v0.18.17...v0.18.18
+[v0.18.17]: https://github.com/newrelic/newrelic-cli/compare/v0.18.16...v0.18.17
+[v0.18.16]: https://github.com/newrelic/newrelic-cli/compare/v0.18.15...v0.18.16
+[v0.18.15]: https://github.com/newrelic/newrelic-cli/compare/v0.18.14...v0.18.15
+[v0.18.14]: https://github.com/newrelic/newrelic-cli/compare/v0.18.13...v0.18.14
+[v0.18.13]: https://github.com/newrelic/newrelic-cli/compare/v0.18.12...v0.18.13
+[v0.18.12]: https://github.com/newrelic/newrelic-cli/compare/v0.18.11...v0.18.12
+[v0.18.11]: https://github.com/newrelic/newrelic-cli/compare/v0.18.10...v0.18.11
+[v0.18.10]: https://github.com/newrelic/newrelic-cli/compare/v0.18.9...v0.18.10
+[v0.18.9]: https://github.com/newrelic/newrelic-cli/compare/v0.18.8...v0.18.9
+[v0.18.8]: https://github.com/newrelic/newrelic-cli/compare/v0.18.7...v0.18.8
+[v0.18.7]: https://github.com/newrelic/newrelic-cli/compare/v0.18.6...v0.18.7
+[v0.18.6]: https://github.com/newrelic/newrelic-cli/compare/v0.18.5...v0.18.6
+[v0.18.5]: https://github.com/newrelic/newrelic-cli/compare/v0.18.4...v0.18.5
+[v0.18.4]: https://github.com/newrelic/newrelic-cli/compare/v0.18.3...v0.18.4
+[v0.18.3]: https://github.com/newrelic/newrelic-cli/compare/v0.18.2...v0.18.3
+[v0.18.2]: https://github.com/newrelic/newrelic-cli/compare/v0.18.1...v0.18.2
+[v0.18.1]: https://github.com/newrelic/newrelic-cli/compare/v0.18.0...v0.18.1
+[v0.18.0]: https://github.com/newrelic/newrelic-cli/compare/v0.17.1...v0.18.0
+[v0.17.1]: https://github.com/newrelic/newrelic-cli/compare/v0.17.0...v0.17.1
+[v0.17.0]: https://github.com/newrelic/newrelic-cli/compare/v0.16.0...v0.17.0
+[v0.16.0]: https://github.com/newrelic/newrelic-cli/compare/v0.15.2...v0.16.0
+[v0.15.2]: https://github.com/newrelic/newrelic-cli/compare/v0.15.1...v0.15.2
+[v0.15.1]: https://github.com/newrelic/newrelic-cli/compare/v0.15.0...v0.15.1
+[v0.15.0]: https://github.com/newrelic/newrelic-cli/compare/v0.14.1...v0.15.0
+[v0.14.1]: https://github.com/newrelic/newrelic-cli/compare/v0.14.0...v0.14.1
+[v0.14.0]: https://github.com/newrelic/newrelic-cli/compare/v0.13.0...v0.14.0
+[v0.13.0]: https://github.com/newrelic/newrelic-cli/compare/v0.12.0...v0.13.0
+[v0.12.0]: https://github.com/newrelic/newrelic-cli/compare/v0.11.0...v0.12.0
+[v0.11.0]: https://github.com/newrelic/newrelic-cli/compare/v0.10.0...v0.11.0
+[v0.10.0]: https://github.com/newrelic/newrelic-cli/compare/v0.9.0...v0.10.0
+[v0.9.0]: https://github.com/newrelic/newrelic-cli/compare/v0.8.12...v0.9.0
+[v0.8.12]: https://github.com/newrelic/newrelic-cli/compare/v0.8.11...v0.8.12
+[v0.8.11]: https://github.com/newrelic/newrelic-cli/compare/v0.8.5...v0.8.11
+[v0.8.5]: https://github.com/newrelic/newrelic-cli/compare/v0.8.4...v0.8.5
+[v0.8.4]: https://github.com/newrelic/newrelic-cli/compare/v0.8.3...v0.8.4
+[v0.8.3]: https://github.com/newrelic/newrelic-cli/compare/v0.8.2...v0.8.3
+[v0.8.2]: https://github.com/newrelic/newrelic-cli/compare/v0.8.1...v0.8.2
+[v0.8.1]: https://github.com/newrelic/newrelic-cli/compare/v0.8.0...v0.8.1
+[v0.8.0]: https://github.com/newrelic/newrelic-cli/compare/v0.7.0...v0.8.0
+[v0.7.0]: https://github.com/newrelic/newrelic-cli/compare/v0.6.2...v0.7.0
+[v0.6.2]: https://github.com/newrelic/newrelic-cli/compare/v0.6.2-test...v0.6.2
+[v0.6.2-test]: https://github.com/newrelic/newrelic-cli/compare/v0.6.1...v0.6.2-test
+[v0.6.1]: https://github.com/newrelic/newrelic-cli/compare/v0.6.0...v0.6.1
+[v0.6.0]: https://github.com/newrelic/newrelic-cli/compare/v0.5.0...v0.6.0
+[v0.5.0]: https://github.com/newrelic/newrelic-cli/compare/v0.4.1...v0.5.0
+[v0.4.1]: https://github.com/newrelic/newrelic-cli/compare/v0.4.0...v0.4.1
+[v0.4.0]: https://github.com/newrelic/newrelic-cli/compare/v0.3.0...v0.4.0
+[v0.3.0]: https://github.com/newrelic/newrelic-cli/compare/v0.2.3...v0.3.0
+[v0.2.3]: https://github.com/newrelic/newrelic-cli/compare/v0.2.2...v0.2.3
+[v0.2.2]: https://github.com/newrelic/newrelic-cli/compare/v0.2.1...v0.2.2
+[v0.2.1]: https://github.com/newrelic/newrelic-cli/compare/v0.2.0...v0.2.1
+[v0.2.0]: https://github.com/newrelic/newrelic-cli/compare/v0.1.0...v0.2.0
