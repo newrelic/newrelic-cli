@@ -1,5 +1,7 @@
+<a name="v0.67.6"></a>
+## [v0.67.6] - 0001-01-01
 <a name="v0.67.5"></a>
-## [v0.67.5] - 2023-04-21
+## [v0.67.5] - 2023-04-24
 ### Bug Fixes
 - **apm:** code correction to refactor error handling in apm 'search' ([#1452](https://github.com/newrelic/newrelic-cli/issues/1452))
 - **dashboard:** addition of 'zero' to the dashboard HCL parser utility ([#1450](https://github.com/newrelic/newrelic-cli/issues/1450))
@@ -1971,7 +1973,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.67.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.67.6...HEAD
+[v0.67.6]: https://github.com/newrelic/newrelic-cli/compare/v0.67.5...v0.67.6
 [v0.67.5]: https://github.com/newrelic/newrelic-cli/compare/v0.67.4...v0.67.5
 [v0.67.4]: https://github.com/newrelic/newrelic-cli/compare/v0.67.3...v0.67.4
 [v0.67.3]: https://github.com/newrelic/newrelic-cli/compare/v0.67.2...v0.67.3
