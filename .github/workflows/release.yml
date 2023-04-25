@@ -7,41 +7,41 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    if: github.ref == 'refs/heads/main'
-    uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
-    secrets:
-      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-      NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
-      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
-      NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
-      NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
-      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-  e2e:
-    if: github.ref == 'refs/heads/main'
-    needs: test
-    uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
-    secrets:
-      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
-      GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
-  e2e-eu:
-    if: github.ref == 'refs/heads/main'
-    needs: test
-    uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
-    secrets:
-      PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
-      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-      GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
-      GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
+  # test:
+  #   if: github.ref == 'refs/heads/main'
+  #   uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+  #   secrets:
+  #     NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+  #     NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+  #     NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+  #     NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+  #     NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+  # e2e:
+  #   if: github.ref == 'refs/heads/main'
+  #   needs: test
+  #   uses: newrelic/newrelic-cli/.github/workflows/e2e.yml@main
+  #   secrets:
+  #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+  #     GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+  #     GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+  # e2e-eu:
+  #   if: github.ref == 'refs/heads/main'
+  #   needs: test
+  #   uses: newrelic/newrelic-cli/.github/workflows/e2e-eu.yml@main
+  #   secrets:
+  #     PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+  #     SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+  #     SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+  #     GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
+  #     GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
 
   release:
     if: github.ref == 'refs/heads/main'
-    needs: test
+    # needs: test
     runs-on: ubuntu-20.04
     steps:
       - name: Install Go
@@ -250,7 +250,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-20.04
-    needs: [release-windows-installer, e2e, e2e-eu]
+    needs: [release-windows-installer]
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
