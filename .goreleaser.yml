@@ -57,7 +57,7 @@ signs:
     args:
       [
         "-u",
-        "developer-toolkit-team@newrelic.com",
+        "0x45D9336A95D92291",
         "--output",
         "${signature}",
         "--detach-sign",
