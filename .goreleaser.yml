@@ -57,7 +57,7 @@ signs:
     args:
       [
         "-u",
-        "0x506374F90B679E2E",
+        "92ADA76A30A3F1FD",
         "--output",
         "${signature}",
         "--detach-sign",
