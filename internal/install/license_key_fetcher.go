@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -30,13 +31,15 @@ func NewServiceLicenseKeyFetcher(client recipes.NerdGraphClient) LicenseKeyFetch
 }
 
 func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string, error) {
-
 	if f.LicenseKey != "" {
 		return f.LicenseKey, nil
 	}
 
 	accountID := configAPI.GetActiveProfileAccountID()
-	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName())
+
+	maxTimeoutSecs := 300 // 5 minutes
+	maxRetries := maxTimeoutSecs / config.DefaultPostRetryDelaySec
+	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName(), &maxRetries)
 	if err != nil {
 		return "", err
 	}
