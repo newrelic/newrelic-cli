@@ -295,7 +295,7 @@ func init() {
 func fetchLicenseKey() func() (string, error) {
 	accountID := configAPI.GetProfileInt(config.FlagProfileName, config.AccountID)
 	return func() (string, error) {
-		maxReties := config.DefaultPostMaxRetries
-		return client.FetchLicenseKey(accountID, config.FlagProfileName, &maxReties)
+		maxTimeoutSeconds := config.DefaultPostMaxTimeoutSecs
+		return client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	}
 }

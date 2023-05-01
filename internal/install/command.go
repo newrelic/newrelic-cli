@@ -98,9 +98,8 @@ func assertProfileIsValid() error {
 		return fmt.Errorf("region is required")
 	}
 
-	maxTimeoutSecs := 300 // 5 minutes
-	maxRetries := maxTimeoutSecs / config.DefaultPostRetryDelaySec
-	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxRetries)
+	maxTimeoutSeconds := 300 // 5 minutes
+	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
 		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
 	}

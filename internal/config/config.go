@@ -27,8 +27,9 @@ const (
 	CredentialsFileName    = "credentials.json"
 	DefaultPluginDir       = "plugins"
 
-	DefaultPostRetryDelaySec = 5
-	DefaultPostMaxRetries    = 20
+	DefaultPostRetryDelaySec  = 5
+	DefaultPostMaxRetries     = 20
+	DefaultPostMaxTimeoutSecs = 120 // 2 minutes
 )
 
 var (

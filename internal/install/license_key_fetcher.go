@@ -14,17 +14,24 @@ import (
 
 // relies on the Nerdgraph service
 type ServiceLicenseKeyFetcher struct {
-	client     recipes.NerdGraphClient
-	LicenseKey string
+	client            recipes.NerdGraphClient
+	maxTimeoutSeconds int
+	LicenseKey        string
 }
 
 type LicenseKeyFetcher interface {
 	FetchLicenseKey(context.Context) (string, error)
 }
 
-func NewServiceLicenseKeyFetcher(client recipes.NerdGraphClient) LicenseKeyFetcher {
+func NewServiceLicenseKeyFetcher(client recipes.NerdGraphClient, maxTimeoutSeconds *int) LicenseKeyFetcher {
+	maxTimeoutSecs := config.DefaultPostMaxTimeoutSecs
+	if maxTimeoutSeconds != nil {
+		maxTimeoutSecs = *maxTimeoutSeconds
+	}
+
 	f := ServiceLicenseKeyFetcher{
-		client: client,
+		client:            client,
+		maxTimeoutSeconds: maxTimeoutSecs,
 	}
 
 	return &f
@@ -36,10 +43,7 @@ func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string,
 	}
 
 	accountID := configAPI.GetActiveProfileAccountID()
-
-	maxTimeoutSecs := 300 // 5 minutes
-	maxRetries := maxTimeoutSecs / config.DefaultPostRetryDelaySec
-	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName(), &maxRetries)
+	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName(), &f.maxTimeoutSeconds)
 	if err != nil {
 		return "", err
 	}

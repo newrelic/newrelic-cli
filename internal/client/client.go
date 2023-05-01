@@ -62,7 +62,7 @@ func RequireClient(cmd *cobra.Command, args []string) {
 	}
 }
 
-func FetchLicenseKey(accountID int, profileName string, maxRetries *int) (string, error) {
+func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) (string, error) {
 	var client *newrelic.NewRelic
 	var err error
 	if profileName == "" {
@@ -84,11 +84,12 @@ func FetchLicenseKey(accountID int, profileName string, maxRetries *int) (string
 		return nil
 	}
 
-	retries := config.DefaultPostMaxRetries
-	if maxRetries != nil {
-		retries = *maxRetries
+	maxTimeoutSecs := config.DefaultPostMaxTimeoutSecs
+	if maxTimeoutSeconds != nil {
+		maxTimeoutSecs = *maxTimeoutSeconds
 	}
 
+	retries := maxTimeoutSecs / config.DefaultPostRetryDelaySec
 	r := utils.NewRetry(retries, (config.DefaultPostRetryDelaySec * 1000), retryFunc)
 	retryCtx := r.ExecWithRetries(utils.SignalCtx)
 

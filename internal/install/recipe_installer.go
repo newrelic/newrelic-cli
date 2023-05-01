@@ -77,7 +77,10 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
-	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph)
+
+	maxTimeoutSeconds := 300 // 5 minutes
+	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph, &maxTimeoutSeconds)
+
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ic, ers, slg)
 
