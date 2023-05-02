@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -78,7 +79,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
 
-	maxTimeoutSeconds := 300 // 5 minutes
+	maxTimeoutSeconds := config.DefaultPostMaxTimeoutSecs
 	lkf := NewServiceLicenseKeyFetcher(&nrClient.NerdGraph, &maxTimeoutSeconds)
 
 	slg := execution.NewPlatformLinkGenerator()

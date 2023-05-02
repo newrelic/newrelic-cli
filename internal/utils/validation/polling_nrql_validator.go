@@ -21,16 +21,16 @@ const (
 // PollingNRQLValidator polls NRDB to assert data is being reported for the given query.
 type PollingNRQLValidator struct {
 	MaxAttempts          int
-	IntervalMilliSeconds int
+	IntervalMilliseconds int
 	client               utils.NRDBClient
 }
 
 // NewPollingNRQLValidator returns a new instance of PollingNRQLValidator.
-func NewPollingNRQLValidator(c utils.NRDBClient) *PollingNRQLValidator {
+func NewPollingNRQLValidator(c utils.NRDBClient, maxTimeoutSeconds int) *PollingNRQLValidator {
 	v := PollingNRQLValidator{
 		client:               c,
-		MaxAttempts:          DefaultMaxAttempts,
-		IntervalMilliSeconds: DefaultIntervalSeconds * 1000,
+		MaxAttempts:          maxTimeoutSeconds / DefaultIntervalSeconds,
+		IntervalMilliseconds: DefaultIntervalSeconds * 1000,
 	}
 
 	return &v
@@ -38,7 +38,7 @@ func NewPollingNRQLValidator(c utils.NRDBClient) *PollingNRQLValidator {
 
 // Validate polls NRDB to assert data is being reported for the given query.
 func (m *PollingNRQLValidator) Validate(ctx context.Context, query string) (string, error) {
-	ticker := time.NewTicker(time.Duration(m.IntervalMilliSeconds) * time.Millisecond)
+	ticker := time.NewTicker(time.Duration(m.IntervalMilliseconds) * time.Millisecond)
 	defer ticker.Stop()
 
 	entityGUID, err := m.tryValidate(ctx, query)
@@ -90,7 +90,7 @@ func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (s
 		return errors.New("no count found in results")
 	}
 
-	r := utils.NewRetry(m.MaxAttempts, m.IntervalMilliSeconds, validatorFunc)
+	r := utils.NewRetry(m.MaxAttempts, m.IntervalMilliseconds, validatorFunc)
 	retryCtx := r.ExecWithRetries(ctx)
 
 	if !retryCtx.Success {

@@ -73,7 +73,7 @@ func TestValidate_PassAfterNAttempts(t *testing.T) {
 	c := NewMockNRDBClient()
 	v := NewPollingRecipeValidator(c)
 	v.MaxAttempts = 5
-	v.IntervalMilliSeconds = 1
+	v.IntervalMilliseconds = 1
 
 	c.ReturnResultsAfterNAttempts(emptyResults, nonEmptyResults, 5)
 
@@ -92,7 +92,7 @@ func TestValidate_FailAfterNAttempts(t *testing.T) {
 	c := NewMockNRDBClient()
 	v := NewPollingRecipeValidator(c)
 	v.MaxAttempts = 3
-	v.IntervalMilliSeconds = 1
+	v.IntervalMilliseconds = 1
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
@@ -112,7 +112,7 @@ func TestValidate_FailAfterMaxAttempts(t *testing.T) {
 
 	v := NewPollingRecipeValidator(c)
 	v.MaxAttempts = 1
-	v.IntervalMilliSeconds = 1
+	v.IntervalMilliseconds = 1
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
@@ -131,7 +131,7 @@ func TestValidate_FailIfContextDone(t *testing.T) {
 
 	v := NewPollingRecipeValidator(c)
 	v.MaxAttempts = 2
-	v.IntervalMilliSeconds = 1
+	v.IntervalMilliseconds = 1
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}
@@ -153,7 +153,7 @@ func TestValidate_QueryError(t *testing.T) {
 
 	v := NewPollingRecipeValidator(c)
 	v.MaxAttempts = 2
-	v.IntervalMilliSeconds = 1
+	v.IntervalMilliseconds = 1
 
 	r := types.OpenInstallationRecipe{}
 	m := types.DiscoveryManifest{}

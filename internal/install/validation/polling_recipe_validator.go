@@ -5,6 +5,7 @@ import (
 	"context"
 	"html/template"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	utilsValidation "github.com/newrelic/newrelic-cli/internal/utils/validation"
@@ -21,7 +22,7 @@ type PollingRecipeValidator struct {
 // NewPollingRecipeValidator returns a new instance of PollingRecipeValidator.
 func NewPollingRecipeValidator(c utils.NRDBClient) *PollingRecipeValidator {
 	v := PollingRecipeValidator{
-		PollingNRQLValidator: *utilsValidation.NewPollingNRQLValidator(c),
+		PollingNRQLValidator: *utilsValidation.NewPollingNRQLValidator(c, config.DefaultPostMaxTimeoutSecs),
 	}
 
 	return &v

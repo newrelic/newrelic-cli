@@ -19,8 +19,7 @@ import (
 )
 
 const (
-	validationEventType          = "NrIntegrationError"
-	DefaultMaxValidationAttempts = 20
+	validationEventType = "NrIntegrationError"
 )
 
 type ConfigValidator struct {
@@ -38,14 +37,13 @@ type ValidationTracerEvent struct {
 }
 
 func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
-	v := validation.NewPollingNRQLValidator(&client.Nrdb)
-	v.MaxAttempts = DefaultMaxValidationAttempts
+	v := validation.NewPollingNRQLValidator(&client.Nrdb, config.DefaultPostMaxTimeoutSecs)
 
 	return &ConfigValidator{
 		client:               client,
 		PollingNRQLValidator: v,
 		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
-		PostMaxRetries:       config.DefaultPostMaxRetries,
+		PostMaxRetries:       config.DefaultPostMaxTimeoutSecs / config.DefaultPostRetryDelaySec,
 	}
 }
 

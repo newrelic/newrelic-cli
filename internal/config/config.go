@@ -29,7 +29,7 @@ const (
 
 	DefaultPostRetryDelaySec  = 5
 	DefaultPostMaxRetries     = 20
-	DefaultPostMaxTimeoutSecs = 120 // 2 minutes
+	DefaultPostMaxTimeoutSecs = 300 // 5 minutes
 )
 
 var (
