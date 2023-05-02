@@ -46,7 +46,7 @@ var Command = &cobra.Command{
 			return nil
 		}
 
-		err := assertProfileIsValid()
+		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
 		if err != nil {
 			log.Fatal(err)
 			return nil
@@ -84,7 +84,7 @@ var Command = &cobra.Command{
 	},
 }
 
-func assertProfileIsValid() error {
+func assertProfileIsValid(maxTimeoutSeconds int) error {
 	accountID := configAPI.GetActiveProfileAccountID()
 	if accountID == 0 {
 		return fmt.Errorf("accountID is required")
@@ -98,7 +98,7 @@ func assertProfileIsValid() error {
 		return fmt.Errorf("region is required")
 	}
 
-	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName)
+	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
 		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
 	}

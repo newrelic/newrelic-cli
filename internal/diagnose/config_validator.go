@@ -45,7 +45,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 		client:               client,
 		PollingNRQLValidator: v,
 		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
-		PostMaxRetries:       config.DefaultPostMaxRetries,
+		PostMaxRetries:       config.DefaultMaxTimeoutSeconds / config.DefaultPostRetryDelaySec,
 	}
 }
 

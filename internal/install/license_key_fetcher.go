@@ -7,36 +7,34 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 // relies on the Nerdgraph service
 type ServiceLicenseKeyFetcher struct {
-	client     recipes.NerdGraphClient
-	LicenseKey string
+	maxTimeoutSeconds int
+	LicenseKey        string
 }
 
 type LicenseKeyFetcher interface {
 	FetchLicenseKey(context.Context) (string, error)
 }
 
-func NewServiceLicenseKeyFetcher(client recipes.NerdGraphClient) LicenseKeyFetcher {
+func NewServiceLicenseKeyFetcher(maxTimeoutSeconds int) LicenseKeyFetcher {
 	f := ServiceLicenseKeyFetcher{
-		client: client,
+		maxTimeoutSeconds: maxTimeoutSeconds,
 	}
 
 	return &f
 }
 
 func (f *ServiceLicenseKeyFetcher) FetchLicenseKey(ctx context.Context) (string, error) {
-
 	if f.LicenseKey != "" {
 		return f.LicenseKey, nil
 	}
 
 	accountID := configAPI.GetActiveProfileAccountID()
-	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName())
+	licenseKey, err := client.FetchLicenseKey(accountID, configAPI.GetActiveProfileName(), &f.maxTimeoutSeconds)
 	if err != nil {
 		return "", err
 	}

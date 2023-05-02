@@ -12,6 +12,8 @@ import (
 )
 
 func TestInstallCommand(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, "install", Command.Name())
 
 	testcobra.CheckCobraMetadata(t, Command)
