@@ -79,6 +79,7 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
         run: |
