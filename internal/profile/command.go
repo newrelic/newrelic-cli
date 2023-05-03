@@ -295,6 +295,7 @@ func init() {
 func fetchLicenseKey() func() (string, error) {
 	accountID := configAPI.GetProfileInt(config.FlagProfileName, config.AccountID)
 	return func() (string, error) {
-		return client.FetchLicenseKey(accountID, config.FlagProfileName)
+		maxTimeoutSeconds := config.DefaultMaxTimeoutSeconds
+		return client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	}
 }

@@ -62,7 +62,10 @@ func RequireClient(cmd *cobra.Command, args []string) {
 	}
 }
 
-func FetchLicenseKey(accountID int, profileName string) (string, error) {
+// FetchLicenseKey attempts to fetch and return a customer's license key.
+// If the initial request to fetch a license key fails, we retry the request
+// for a maximum time duration per config.DefaultMaxTimeoutSeconds.
+func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) (string, error) {
 	var client *newrelic.NewRelic
 	var err error
 	if profileName == "" {
@@ -84,7 +87,15 @@ func FetchLicenseKey(accountID int, profileName string) (string, error) {
 		return nil
 	}
 
-	r := utils.NewRetry(config.DefaultPostMaxRetries, (config.DefaultPostRetryDelaySec * 1000), retryFunc)
+	maxTimeoutSecs := config.DefaultMaxTimeoutSeconds
+	if maxTimeoutSeconds != nil {
+		maxTimeoutSecs = *maxTimeoutSeconds
+	}
+
+	retries := maxTimeoutSecs / config.DefaultPostRetryDelaySec
+	retryDelay := config.DefaultPostRetryDelaySec * 1000
+
+	r := utils.NewRetry(retries, retryDelay, retryFunc)
 	retryCtx := r.ExecWithRetries(utils.SignalCtx)
 
 	if !retryCtx.Success {
