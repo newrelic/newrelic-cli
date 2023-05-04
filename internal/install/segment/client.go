@@ -10,13 +10,13 @@ import (
 )
 
 const (
-  EmptyAccountID = -1
-  eventName = "VirtuosoCLIInstall"
+	EmptyAccountID = -1
+	eventName      = "VirtuosoCLIInstall"
 )
+
 var (
 	embedded embed.FS
 )
-
 
 type Segment struct {
 	analytics.Client
@@ -34,6 +34,7 @@ func New() *Segment {
 	}
 
 	client := analytics.New(writeKey)
+	log.Info("segmen initialized")
 
 	return &Segment{client}
 }
@@ -59,6 +60,7 @@ func (client *Segment) Track(accountID int, event Event) {
 	})
 
 	if err != nil {
+		log.Warnf("segmen track error %v", err)
 		return
 	}
 }
@@ -76,21 +78,21 @@ func toMap(f interface{}) map[string]interface{} {
 }
 
 type Event struct {
-  Message string
+	Message string
 }
 
 func NewEvent(msg string) Event {
-  return Event{
-    Message: msg,
-  }
+	return Event{
+		Message: msg,
+	}
 }
 
-func getWriteKey() (string, error){
-  data, err := embedded.ReadFile("files/events.src")
+func getWriteKey() (string, error) {
+	data, err := embedded.ReadFile("files/events.src")
 	if err != nil {
-    return "", err
+		return "", err
 	}
 	key := string(data)
 
-  return key, nil
+	return key, nil
 }

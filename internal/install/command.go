@@ -42,34 +42,34 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-    sg := segment.New()
-    sg.Track(segment.EmptyAccountID, segment.NewEvent("New Relic CLI Install Started"))
+		sg := segment.New()
+		sg.Track(segment.EmptyAccountID, segment.NewEvent("New Relic CLI Install Started"))
 
 		if err := checkNetwork(client.NRClient); err != nil {
-      sg.Track(segment.EmptyAccountID, segment.NewEvent(err.Error()))
+			sg.Track(segment.EmptyAccountID, segment.NewEvent(err.Error()))
 			log.Fatal(err)
 			return nil
 		}
 
 		accountID, err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
 		if err != nil {
-      sg.Track(accountID, segment.NewEvent(err.Error()))
+			sg.Track(accountID, segment.NewEvent(err.Error()))
 			log.Fatal(err)
 			return nil
 		}
 
-    sg.Track(segment.EmptyAccountID, segment.NewEvent("New Relic CLI Install LicenseKey found"))
+		sg.Track(segment.EmptyAccountID, segment.NewEvent("New Relic CLI Install LicenseKey found"))
 
-    // Reinitialize client, overriding fetched values
-    c, err := client.NewClient(configAPI.GetActiveProfileName())
-    if err != nil {
-      // An error was encountered initializing the client.  This may not be a
-      // problem since many commands don't require the use of an initialized client
-      log.Debugf("error initializing client: %s", err)
-      sg.Track(accountID, segment.NewEvent(err.Error()))
-    }
+		// Reinitialize client, overriding fetched values
+		c, err := client.NewClient(configAPI.GetActiveProfileName())
+		if err != nil {
+			// An error was encountered initializing the client.  This may not be a
+			// problem since many commands don't require the use of an initialized client
+			log.Debugf("error initializing client: %s", err)
+			sg.Track(accountID, segment.NewEvent(err.Error()))
+		}
 
-    client.NRClient = c
+		client.NRClient = c
 
 		i := NewRecipeInstaller(ic, client.NRClient)
 
@@ -119,7 +119,7 @@ func assertProfileIsValid(maxTimeoutSeconds int) (int, error) {
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
-    return accountID, fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+		return accountID, fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
