@@ -38,7 +38,7 @@ func New() *Segment {
 	return &Segment{client}
 }
 
-func (client *Segment) Track(accountID int, event SegmentEvent) {
+func (client *Segment) Track(accountID int, event Event) {
 
 	if client == nil {
 		return
@@ -75,18 +75,18 @@ func toMap(f interface{}) map[string]interface{} {
 	return resultMap
 }
 
-type SegmentEvent struct {
+type Event struct {
   Message string
 }
 
-func NewEvent(msg string) SegmentEvent {
-  return SegmentEvent{
+func NewEvent(msg string) Event {
+  return Event{
     Message: msg,
   }
 }
 
 func getWriteKey() (string, error){
-  data, err := embedded.ReadFile(fmt.Sprint("files/events.src"))
+  data, err := embedded.ReadFile("files/events.src")
 	if err != nil {
     return "", err
 	}

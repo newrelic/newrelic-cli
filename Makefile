@@ -32,6 +32,7 @@ include build/compile.mk
 include build/deps.mk
 include build/docker.mk
 include build/document.mk
+include build/events.mk
 include build/generate.mk
 include build/lint.mk
 include build/package.mk
