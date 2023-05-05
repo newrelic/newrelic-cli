@@ -3,16 +3,36 @@ package segment
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/segmentio/analytics-go.v3"
 )
 
 const (
-	EmptyAccountID = -1
-	eventName      = "VirtuosoCLIInstall"
+	eventName = "VirtuosoCLIInstall"
 )
+
+type EventType string
+
+var EventTypes = struct {
+	InstallStarted          EventType
+	AccountIDMissing        EventType
+	APIKeyMissing           EventType
+	RegionMissing           EventType
+	UnableToConnect         EventType
+	UnableToFetchLicenseKey EventType
+	AbleToFetchLicenseKey   EventType
+	UnableToOverrideClient  EventType
+}{
+	InstallStarted:          "InstallStarted",
+	AccountIDMissing:        "AccountIDMissing",
+	APIKeyMissing:           "APIKeyMissing",
+	RegionMissing:           "RegionMissing",
+	UnableToConnect:         "UnableToConnect",
+	UnableToFetchLicenseKey: "UnableToFetchLicenseKey",
+	AbleToFetchLicenseKey:   "AbleToFetchLicenseKey",
+	UnableToOverrideClient:  "UnableToOverrideClient",
+}
 
 var (
 	embedded embed.FS
@@ -34,7 +54,7 @@ func New() *Segment {
 	}
 
 	client := analytics.New(writeKey)
-	log.Info("segmen initialized")
+	log.Info("segment initialized")
 
 	return &Segment{client}
 }
@@ -47,11 +67,10 @@ func (client *Segment) Track(accountID int, event Event) {
 
 	properties := toMap(event)
 
-	properties["category"] = "NewRelic-CLI"
+	properties["category"] = "newrelic-cli"
 	properties["accountId"] = accountID
 
 	err := client.Enqueue(analytics.Track{
-		UserId:     fmt.Sprintf("%d", accountID),
 		Event:      eventName,
 		Properties: properties,
 		Integrations: map[string]interface{}{
@@ -78,12 +97,14 @@ func toMap(f interface{}) map[string]interface{} {
 }
 
 type Event struct {
-	Message string
+	Type   EventType
+	Detail string
 }
 
-func NewEvent(msg string) Event {
+func NewEvent(event EventType, detail string) Event {
 	return Event{
-		Message: msg,
+		event,
+		detail,
 	}
 }
 

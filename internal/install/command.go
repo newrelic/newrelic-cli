@@ -43,30 +43,21 @@ var Command = &cobra.Command{
 		config.InitFileLogger(logLevel)
 
 		sg := segment.New()
-		sg.Track(segment.EmptyAccountID, segment.NewEvent("New Relic CLI Install Started"))
 
-		if err := checkNetwork(client.NRClient); err != nil {
-			sg.Track(segment.EmptyAccountID, segment.NewEvent(err.Error()))
-			log.Fatal(err)
-			return nil
-		}
-
-		accountID, err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
+		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds, sg)
 		if err != nil {
-			sg.Track(accountID, segment.NewEvent(err.Error()))
 			log.Fatal(err)
 			return nil
 		}
-
-		sg.Track(segment.EmptyAccountID, segment.NewEvent("New Relic CLI Install LicenseKey found"))
 
 		// Reinitialize client, overriding fetched values
 		c, err := client.NewClient(configAPI.GetActiveProfileName())
 		if err != nil {
 			// An error was encountered initializing the client.  This may not be a
 			// problem since many commands don't require the use of an initialized client
+			accountID := configAPI.GetActiveProfileAccountID()
 			log.Debugf("error initializing client: %s", err)
-			sg.Track(accountID, segment.NewEvent(err.Error()))
+			sg.Track(accountID, segment.NewEvent(segment.EventTypes.UnableToOverrideClient, err.Error()))
 		}
 
 		client.NRClient = c
@@ -103,31 +94,44 @@ var Command = &cobra.Command{
 	},
 }
 
-func assertProfileIsValid(maxTimeoutSeconds int) (int, error) {
+func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
+
 	accountID := configAPI.GetActiveProfileAccountID()
+	sg.Track(accountID, segment.NewEvent(segment.EventTypes.InstallStarted, ""))
+
 	if accountID == 0 {
-		return accountID, fmt.Errorf("accountID is required")
+		sg.Track(accountID, segment.NewEvent(segment.EventTypes.AccountIDMissing, ""))
+		return fmt.Errorf("accountID is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.APIKey) == "" {
-		return accountID, fmt.Errorf("API key is required")
+		sg.Track(accountID, segment.NewEvent(segment.EventTypes.APIKeyMissing, ""))
+		return fmt.Errorf("API key is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.Region) == "" {
-		return accountID, fmt.Errorf("region is required")
+		sg.Track(accountID, segment.NewEvent(segment.EventTypes.RegionMissing, ""))
+		return fmt.Errorf("region is required")
+	}
+
+	if err := checkNetwork(client.NRClient); err != nil {
+		sg.Track(accountID, segment.NewEvent(segment.EventTypes.UnableToConnect, err.Error()))
+		return err
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
-		return accountID, fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+		sg.Track(accountID, segment.NewEvent(segment.EventTypes.UnableToFetchLicenseKey, err.Error()))
+		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}
+	sg.Track(accountID, segment.NewEvent(segment.EventTypes.AbleToFetchLicenseKey, ""))
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
 	}
 
-	return accountID, nil
+	return nil
 }
 
 func init() {
