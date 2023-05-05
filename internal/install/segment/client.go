@@ -3,6 +3,7 @@ package segment
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/segmentio/analytics-go.v3"
@@ -71,6 +72,7 @@ func (client *Segment) Track(accountID int, event Event) {
 	properties["accountId"] = accountID
 
 	err := client.Enqueue(analytics.Track{
+		UserId:     fmt.Sprintf("%d", accountID),
 		Event:      eventName,
 		Properties: properties,
 		Integrations: map[string]interface{}{
