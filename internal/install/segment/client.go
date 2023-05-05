@@ -1,16 +1,11 @@
 package segment
 
 import (
-	"embed"
 	"encoding/json"
 	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/segmentio/analytics-go.v3"
-)
-
-const (
-	eventName = "VirtuosoCLIInstall"
 )
 
 type EventType string
@@ -22,7 +17,7 @@ var EventTypes = struct {
 	RegionMissing           EventType
 	UnableToConnect         EventType
 	UnableToFetchLicenseKey EventType
-	AbleToFetchLicenseKey   EventType
+	LicenseKeyFetchedOk     EventType
 	UnableToOverrideClient  EventType
 }{
 	InstallStarted:          "InstallStarted",
@@ -31,32 +26,21 @@ var EventTypes = struct {
 	RegionMissing:           "RegionMissing",
 	UnableToConnect:         "UnableToConnect",
 	UnableToFetchLicenseKey: "UnableToFetchLicenseKey",
-	AbleToFetchLicenseKey:   "AbleToFetchLicenseKey",
+	LicenseKeyFetchedOk:     "LicenseKeyFetchedOk",
 	UnableToOverrideClient:  "UnableToOverrideClient",
 }
-
-var (
-	embedded embed.FS
-)
 
 type Segment struct {
 	analytics.Client
 }
 
-func New() *Segment {
-	writeKey, err := getWriteKey()
-	if err != nil {
-		log.Warnf("segment: error reading write key, cannot write to segment %v", err)
-		return nil
-	}
+func New(writeKey string) *Segment {
 	if writeKey == "" {
-		log.Warn("segment: write key is empty, cannot write to segment")
+		log.Debug("segment: write key is empty, cannot write to segment")
 		return nil
 	}
 
 	client := analytics.New(writeKey)
-	log.Info("segment initialized")
-
 	return &Segment{client}
 }
 
@@ -73,7 +57,7 @@ func (client *Segment) Track(accountID int, event Event) {
 
 	err := client.Enqueue(analytics.Track{
 		UserId:     fmt.Sprintf("%d", accountID),
-		Event:      eventName,
+		Event:      "VirtuosoCLIInstall",
 		Properties: properties,
 		Integrations: map[string]interface{}{
 			"All": true,
@@ -108,14 +92,4 @@ func NewEvent(event EventType, detail string) Event {
 		event,
 		detail,
 	}
-}
-
-func getWriteKey() (string, error) {
-	data, err := embedded.ReadFile("files/events.src")
-	if err != nil {
-		return "", err
-	}
-	key := string(data)
-
-	return key, nil
 }

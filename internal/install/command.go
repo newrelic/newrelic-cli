@@ -1,6 +1,7 @@
 package install
 
 import (
+	"embed"
 	"fmt"
 	"os"
 
@@ -42,7 +43,7 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		sg := segment.New()
+		sg := initSegment()
 
 		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds, sg)
 		if err != nil {
@@ -94,6 +95,17 @@ var Command = &cobra.Command{
 	},
 }
 
+func initSegment() *segment.Segment {
+
+	writeKey, err := getWriteKey()
+	if err != nil {
+		log.Debug("segment: error reading write key, cannot write to segment", err)
+		return nil
+	}
+
+	return segment.New(writeKey)
+}
+
 func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
 
 	accountID := configAPI.GetActiveProfileAccountID()
@@ -124,7 +136,7 @@ func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
 		sg.Track(accountID, segment.NewEvent(segment.EventTypes.UnableToFetchLicenseKey, err.Error()))
 		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}
-	sg.Track(accountID, segment.NewEvent(segment.EventTypes.AbleToFetchLicenseKey, ""))
+	sg.Track(accountID, segment.NewEvent(segment.EventTypes.LicenseKeyFetchedOk, ""))
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
@@ -132,6 +144,17 @@ func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
 	}
 
 	return nil
+}
+
+func getWriteKey() (string, error) {
+	var embedded embed.FS
+	data, err := embedded.ReadFile("files/events.src")
+	if err != nil {
+		return "", err
+	}
+	key := string(data)
+
+	return key, nil
 }
 
 func init() {
