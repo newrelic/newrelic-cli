@@ -32,19 +32,21 @@ var EventTypes = struct {
 
 type Segment struct {
 	analytics.Client
+	accountID int
+	region    string
 }
 
-func New(writeKey string) *Segment {
+func New(writeKey string, accountID int, region string) *Segment {
 	if writeKey == "" {
 		log.Debug("segment: write key is empty, cannot write to segment")
 		return nil
 	}
 
 	client := analytics.New(writeKey)
-	return &Segment{client}
+	return &Segment{client, accountID, region}
 }
 
-func (client *Segment) Track(accountID int, event Event) {
+func (client *Segment) Track(event Event) {
 
 	if client == nil {
 		return
@@ -53,10 +55,11 @@ func (client *Segment) Track(accountID int, event Event) {
 	properties := toMap(event)
 
 	properties["category"] = "newrelic-cli"
-	properties["accountId"] = accountID
+	properties["accountId"] = client.accountID
+	properties["region"] = client.region
 
 	err := client.Enqueue(analytics.Track{
-		UserId:     fmt.Sprintf("%d", accountID),
+		UserId:     fmt.Sprintf("%d", client.accountID),
 		Event:      "VirtuosoCLIInstall",
 		Properties: properties,
 		Integrations: map[string]interface{}{
