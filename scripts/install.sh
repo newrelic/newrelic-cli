@@ -10,8 +10,6 @@
 
 set -o errexit
 
-echo "Starting installation."
-
 # Determine release filename. This can be expanded with CPU arch in the future.
 if [ "$(uname)" == "Linux" ]; then
     OS="Linux"

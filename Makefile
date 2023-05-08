@@ -24,7 +24,7 @@ build: git-hooks check-version clean lint test-unit cover-report compile
 build-ci: check-version clean lint test compile-only
 
 # All clean commands
-clean: cover-clean compile-clean release-clean recipes-clean
+clean: cover-clean compile-clean release-clean recipes-clean events-clean
 
 # Import fragments
 include build/chocolatey.mk
@@ -32,6 +32,7 @@ include build/compile.mk
 include build/deps.mk
 include build/docker.mk
 include build/document.mk
+include build/events.mk
 include build/generate.mk
 include build/lint.mk
 include build/package.mk

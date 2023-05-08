@@ -10,6 +10,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
@@ -41,16 +43,24 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		if err := checkNetwork(client.NRClient); err != nil {
-			log.Fatal(err)
-			return nil
-		}
+		sg := initSegment()
 
-		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
+		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds, sg)
 		if err != nil {
 			log.Fatal(err)
 			return nil
 		}
+
+		// Reinitialize client, overriding fetched values
+		c, err := client.NewClient(configAPI.GetActiveProfileName())
+		if err != nil {
+			// An error was encountered initializing the client.  This may not be a
+			// problem since many commands don't require the use of an initialized client
+			log.Debugf("error initializing client: %s", err)
+			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
+		}
+
+		client.NRClient = c
 
 		i := NewRecipeInstaller(ic, client.NRClient)
 
@@ -84,38 +94,55 @@ var Command = &cobra.Command{
 	},
 }
 
-func assertProfileIsValid(maxTimeoutSeconds int) error {
+func initSegment() *segment.Segment {
 	accountID := configAPI.GetActiveProfileAccountID()
+	region := configAPI.GetActiveProfileString(config.Region)
+	isProxyConfigured := IsProxyConfigured()
+	writeKey, err := recipes.NewEmbeddedRecipeFetcher().GetSegmentWriteKey()
+	if err != nil {
+		log.Debug("segment: error reading write key, cannot write to segment", err)
+		return nil
+	}
+
+	return segment.New(writeKey, accountID, region, isProxyConfigured)
+}
+
+func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
+
+	accountID := configAPI.GetActiveProfileAccountID()
+	sg.Track(segment.EventTypes.InstallStarted)
+
 	if accountID == 0 {
+		sg.Track(segment.EventTypes.AccountIDMissing)
 		return fmt.Errorf("accountID is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.APIKey) == "" {
+		sg.Track(segment.EventTypes.APIKeyMissing)
 		return fmt.Errorf("API key is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.Region) == "" {
+		sg.Track(segment.EventTypes.RegionMissing)
 		return fmt.Errorf("region is required")
+	}
+
+	if err := checkNetwork(client.NRClient); err != nil {
+		sg.Track(segment.EventTypes.UnableToConnect)
+		return err
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
-		return fmt.Errorf("could not fetch license key for account %d: %s", accountID, err)
+		sg.TrackInfo(segment.EventTypes.UnableToFetchLicenseKey, segment.NewEventInfo(err.Error()))
+		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}
+	sg.Track(segment.EventTypes.LicenseKeyFetchedOk)
+
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
 	}
-
-	// Reinitialize client, overriding fetched values
-	c, err := client.NewClient(configAPI.GetActiveProfileName())
-	if err != nil {
-		// An error was encountered initializing the client.  This may not be a
-		// problem since many commands don't require the use of an initialized client
-		log.Debugf("error initializing client: %s", err)
-	}
-
-	client.NRClient = c
 
 	return nil
 }
