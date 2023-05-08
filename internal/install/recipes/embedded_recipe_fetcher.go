@@ -68,7 +68,7 @@ func (f *EmbeddedRecipeFetcher) GetSegmentWriteKey() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	key := string(data)
+	key := strings.TrimSpace(string(data))
 	return key, nil
 }
 

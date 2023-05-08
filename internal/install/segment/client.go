@@ -52,7 +52,7 @@ func newInternal(client analytics.Client, accountID int, region string, isProxyC
 }
 
 func (client *Segment) Track(eventName EventType) *analytics.Track {
-	return client.TrackInfo(eventName, nil)
+	return client.TrackInfo(eventName, NewEventInfo(""))
 }
 
 func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *analytics.Track {
@@ -70,7 +70,7 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 
 	t := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
-		Event:      "newrelic-cli",
+		Event:      "newrelic_cli",
 		Properties: properties,
 		Integrations: map[string]interface{}{
 			"All": true,
@@ -105,8 +105,8 @@ type EventInfo struct {
 	Detail string
 }
 
-func NewEventInfo(detail string) *EventInfo {
-	return &EventInfo{
+func NewEventInfo(detail string) EventInfo {
+	return EventInfo{
 		Detail: detail,
 	}
 }
