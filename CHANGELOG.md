@@ -1,3 +1,8 @@
+<a name="v0.68.0"></a>
+## [v0.68.0] - 2023-05-08
+### Features
+- **install:** add event tracking with segment ([#1458](https://github.com/newrelic/newrelic-cli/issues/1458))
+
 <a name="v0.67.27"></a>
 ## [v0.67.27] - 2023-05-03
 <a name="v0.67.26"></a>
@@ -2015,7 +2020,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.67.27...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.0...HEAD
+[v0.68.0]: https://github.com/newrelic/newrelic-cli/compare/v0.67.27...v0.68.0
 [v0.67.27]: https://github.com/newrelic/newrelic-cli/compare/v0.67.26...v0.67.27
 [v0.67.26]: https://github.com/newrelic/newrelic-cli/compare/v0.67.25...v0.67.26
 [v0.67.25]: https://github.com/newrelic/newrelic-cli/compare/v0.67.24...v0.67.25
