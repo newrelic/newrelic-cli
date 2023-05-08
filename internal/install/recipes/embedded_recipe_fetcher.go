@@ -62,6 +62,16 @@ func (f *EmbeddedRecipeFetcher) FetchLibraryVersion(ctx context.Context) string 
 	return ""
 }
 
+func (f *EmbeddedRecipeFetcher) GetSegmentWriteKey() (string, error) {
+	embeddedEventsPath := "events.src"
+	data, err := EmbeddedFS.ReadFile(embeddedRecipesPath + "/" + embeddedEventsPath)
+	if err != nil {
+		return "", err
+	}
+	key := string(data)
+	return key, nil
+}
+
 func (f *EmbeddedRecipeFetcher) getLibraryVersion(data []byte) string {
 	sVersion := string(data)
 	sVersion = strings.Trim(sVersion, "v")
