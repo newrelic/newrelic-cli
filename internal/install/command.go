@@ -95,16 +95,16 @@ var Command = &cobra.Command{
 }
 
 func initSegment() *segment.Segment {
-
 	accountID := configAPI.GetActiveProfileAccountID()
 	region := configAPI.GetActiveProfileString(config.Region)
+	isProxyConfigured := IsProxyConfigured()
 	writeKey, err := getWriteKey()
 	if err != nil {
 		log.Debug("segment: error reading write key, cannot write to segment", err)
 		return nil
 	}
 
-	return segment.New(writeKey, accountID, region)
+	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
 func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {

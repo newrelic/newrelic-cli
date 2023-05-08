@@ -735,14 +735,11 @@ func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
 func checkNetwork(nrClient *newrelic.NewRelic) error {
 	err := nrClient.TestEndpoints()
 	if err != nil {
-
-		proxyConfig := httpproxy.FromEnvironment()
-
-		log.Debugf("proxyConfig: %+v", proxyConfig)
-		if proxyConfig.HTTPProxy != "" || proxyConfig.HTTPSProxy != "" || proxyConfig.NoProxy != "" {
+		if IsProxyConfigured() {
 			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
 			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
 			log.Warn("Current proxy config:")
+			proxyConfig := httpproxy.FromEnvironment()
 			log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
 			log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
 			log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
@@ -752,7 +749,6 @@ func checkNetwork(nrClient *newrelic.NewRelic) error {
 		}
 		log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
 		log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
-
 	}
 
 	return err
