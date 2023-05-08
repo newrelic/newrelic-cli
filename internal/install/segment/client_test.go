@@ -44,7 +44,7 @@ func TestClientShouldTrack(t *testing.T) {
 	assert.Equal(t, region, tResult.Properties["region"])
 	assert.Equal(t, EventTypes.APIKeyMissing, tResult.Properties["eventName"])
 	assert.Equal(t, false, tResult.Properties["isProxyConfigured"])
-	assert.Equal(t, "newrelic-cli", tResult.Event)
+	assert.Equal(t, "newrelic_cli", tResult.Event)
 }
 
 func TestClientShouldTrackInfo(t *testing.T) {

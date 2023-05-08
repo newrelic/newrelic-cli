@@ -66,6 +66,7 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 	properties["accountId"] = client.accountID
 	properties["region"] = client.region
 	properties["eventName"] = eventName
+	properties["category"] = "newrelic-cli"
 	properties["isProxyConfigured"] = client.isProxyConfigured
 
 	t := analytics.Track{
@@ -105,8 +106,8 @@ type EventInfo struct {
 	Detail string
 }
 
-func NewEventInfo(detail string) EventInfo {
-	return EventInfo{
+func NewEventInfo(detail string) *EventInfo {
+	return &EventInfo{
 		Detail: detail,
 	}
 }
