@@ -10,8 +10,6 @@
 
 set -o errexit
 
-echo "Starting installation."
-
 # Determine release filename. This can be expanded with CPU arch in the future.
 if [ "$(uname)" == "Linux" ]; then
     OS="Linux"
@@ -105,6 +103,8 @@ else
     chmod +x "$DESTDIR/newrelic"
     chown root:0 "$DESTDIR/newrelic"
 fi
+
+echo "Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notices"
 
 # Delete the working directory when the install was successful.
 rm -r "$SCRATCH"
