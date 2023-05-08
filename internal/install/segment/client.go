@@ -50,39 +50,42 @@ func newInternal(client analytics.Client, accountID int, region string) *Segment
 	return &Segment{client, accountID, region}
 }
 
-func (client *Segment) Track(eventName EventType) {
-	client.TrackInfo(eventName, nil)
+func (client *Segment) Track(eventName EventType) *analytics.Track {
+	return client.TrackInfo(eventName, nil)
 }
 
-func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) {
+func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *analytics.Track {
 
 	if client == nil {
-		return
+		return nil
 	}
 
 	properties := toMap(eventInfo)
 
-	properties["category"] = "newrelic-cli"
 	properties["accountId"] = client.accountID
 	properties["region"] = client.region
+	properties["eventName"] = eventName
 
-	err := client.Enqueue(analytics.Track{
+  t := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
-		Event:      string(eventName),
+		Event:      "newrelic-cli" ,
 		Properties: properties,
 		Integrations: map[string]interface{}{
 			"All": true,
-		},
-	})
+		},}
+
+	err := client.Enqueue(t)
 
 	if err != nil {
-		log.Warnf("segmen track error %v", err)
-		return
+		log.Debugf("segment track error %v", err)
+		return nil
 	}
+
+  return &t
 }
 
 func toMap(f interface{}) map[string]interface{} {
-	var resultMap map[string]interface{}
+  resultMap := make(map[string]interface{})
 
 	if f != nil {
 		jsonMap, _ := json.Marshal(f)
