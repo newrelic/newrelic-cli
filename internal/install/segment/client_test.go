@@ -28,7 +28,7 @@ func TestClientShouldInit(t *testing.T) {
   accoundID := 12345;
   region := "STAGING"
 
-  c := newInternal(mc, accoundID, region)
+  c := newInternal(mc, accoundID, region, false)
   assert.NotNil(t, c, "Segment client should create, and not return nil")
 }
 
@@ -37,7 +37,7 @@ func TestClientShouldTrack(t *testing.T) {
   accoundID := 12345;
   region := "STAGING"
 
-  c := newInternal(mc, accoundID, region)
+  c := newInternal(mc, accoundID, region, false)
   tResult := c.Track(EventTypes.APIKeyMissing)
   userId, _ := strconv.Atoi(tResult.UserId)
 
@@ -45,6 +45,7 @@ func TestClientShouldTrack(t *testing.T) {
   assert.Equal(t, accoundID, userId)
   assert.Equal(t, region, tResult.Properties["region"])
   assert.Equal(t, EventTypes.APIKeyMissing , tResult.Properties["eventName"])
+  assert.Equal(t, false , tResult.Properties["isProxyConfigured"])
   assert.Equal(t, "newrelic-cli" , tResult.Event)
 }
 
@@ -55,7 +56,7 @@ func TestClientShouldTrackInfo(t *testing.T) {
 
   ei := NewEventInfo("hello world")
 
-  c := newInternal(mc, accoundID, region)
+  c := newInternal(mc, accoundID, region, false)
   tResult := c.TrackInfo(EventTypes.APIKeyMissing, ei)
 
   assert.Equal(t, 1, mc.EnqueueCallCount,  "Segment should call enqueue one time when track one time")

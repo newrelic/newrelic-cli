@@ -32,22 +32,23 @@ var EventTypes = struct {
 
 type Segment struct {
 	analytics.Client
-	accountID int
-	region    string
+	accountID         int
+	region            string
+	isProxyConfigured bool
 }
 
-func New(writeKey string, accountID int, region string) *Segment {
+func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
 	if writeKey == "" {
 		log.Debug("segment: write key is empty, cannot write to segment")
 		return nil
 	}
 
 	client := analytics.New(writeKey)
-	return newInternal(client, accountID, region)
+	return newInternal(client, accountID, region, isProxyConfigured)
 }
 
-func newInternal(client analytics.Client, accountID int, region string) *Segment {
-	return &Segment{client, accountID, region}
+func newInternal(client analytics.Client, accountID int, region string, isProxyConfigured bool) *Segment {
+	return &Segment{client, accountID, region, isProxyConfigured}
 }
 
 func (client *Segment) Track(eventName EventType) *analytics.Track {
@@ -65,6 +66,7 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 	properties["accountId"] = client.accountID
 	properties["region"] = client.region
 	properties["eventName"] = eventName
+	properties["isProxyConfigured"] = client.isProxyConfigured
 
   t := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
