@@ -18,6 +18,7 @@ jobs:
       NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
       SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
       SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
   e2e:
     if: github.ref == 'refs/heads/main'
     needs: test
@@ -28,6 +29,7 @@ jobs:
       SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
       GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
       GIT_DEPLOYER_DOCKER_USER_CONFIG: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG }}
+      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
   e2e-eu:
     if: github.ref == 'refs/heads/main'
     needs: test
@@ -38,6 +40,7 @@ jobs:
       SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
       GIT_DEPLOYER_CANADA_AWS_PEM: ${{ secrets.GIT_DEPLOYER_CANADA_AWS_PEM }}
       GIT_DEPLOYER_DOCKER_USER_CONFIG_EU: ${{ secrets.GIT_DEPLOYER_DOCKER_USER_CONFIG_EU }}
+      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
 
   release:
     if: github.ref == 'refs/heads/main'
