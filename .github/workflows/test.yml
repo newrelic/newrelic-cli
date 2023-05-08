@@ -22,6 +22,8 @@ on:
         required: true
       SPLIT_STAGING_KEY:
         required: true
+      SEGMENT_WRITE_KEY:
+        required: true
 
 jobs:
   lint:
@@ -116,3 +118,4 @@ jobs:
           NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
           SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
           SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
