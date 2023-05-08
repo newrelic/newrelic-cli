@@ -194,6 +194,7 @@ func (i *RecipeInstall) Install() error {
 |_| \_|\___| \_/\_/   |_| \_\___|_|_|\___|
 
 Welcome to New Relic. Let's set up full stack observability for your environment.
+Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notices
 	`)
 	fmt.Println()
 

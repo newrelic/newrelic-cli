@@ -104,7 +104,5 @@ else
     chown root:0 "$DESTDIR/newrelic"
 fi
 
-echo "Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notices"
-
 # Delete the working directory when the install was successful.
 rm -r "$SCRATCH"
