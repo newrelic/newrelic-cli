@@ -43,16 +43,24 @@ func New(writeKey string, accountID int, region string) *Segment {
 	}
 
 	client := analytics.New(writeKey)
+	return newInternal(client, accountID, region)
+}
+
+func newInternal(client analytics.Client, accountID int, region string) *Segment {
 	return &Segment{client, accountID, region}
 }
 
-func (client *Segment) Track(event Event) {
+func (client *Segment) Track(eventName EventType) {
+	client.TrackInfo(eventName, nil)
+}
+
+func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) {
 
 	if client == nil {
 		return
 	}
 
-	properties := toMap(event)
+	properties := toMap(eventInfo)
 
 	properties["category"] = "newrelic-cli"
 	properties["accountId"] = client.accountID
@@ -60,7 +68,7 @@ func (client *Segment) Track(event Event) {
 
 	err := client.Enqueue(analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
-		Event:      "VirtuosoCLIInstall",
+		Event:      string(eventName),
 		Properties: properties,
 		Integrations: map[string]interface{}{
 			"All": true,
@@ -76,23 +84,23 @@ func (client *Segment) Track(event Event) {
 func toMap(f interface{}) map[string]interface{} {
 	var resultMap map[string]interface{}
 
-	jsonMap, _ := json.Marshal(f)
-	err := json.Unmarshal(jsonMap, &resultMap)
-	if err != nil {
-		return nil
+	if f != nil {
+		jsonMap, _ := json.Marshal(f)
+		err := json.Unmarshal(jsonMap, &resultMap)
+		if err != nil {
+			return nil
+		}
 	}
 
 	return resultMap
 }
 
-type Event struct {
-	Type   EventType
+type EventInfo struct {
 	Detail string
 }
 
-func NewEvent(event EventType, detail string) Event {
-	return Event{
-		event,
-		detail,
+func NewEventInfo(detail string) *EventInfo {
+	return &EventInfo{
+		Detail: detail,
 	}
 }

@@ -57,7 +57,7 @@ var Command = &cobra.Command{
 			// An error was encountered initializing the client.  This may not be a
 			// problem since many commands don't require the use of an initialized client
 			log.Debugf("error initializing client: %s", err)
-			sg.Track(segment.NewEvent(segment.EventTypes.UnableToOverrideClient, err.Error()))
+			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
 		}
 
 		client.NRClient = c
@@ -110,34 +110,34 @@ func initSegment() *segment.Segment {
 func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
 
 	accountID := configAPI.GetActiveProfileAccountID()
-	sg.Track(segment.NewEvent(segment.EventTypes.InstallStarted, ""))
+	sg.Track(segment.EventTypes.InstallStarted)
 
 	if accountID == 0 {
-		sg.Track(segment.NewEvent(segment.EventTypes.AccountIDMissing, ""))
+		sg.Track(segment.EventTypes.AccountIDMissing)
 		return fmt.Errorf("accountID is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.APIKey) == "" {
-		sg.Track(segment.NewEvent(segment.EventTypes.APIKeyMissing, ""))
+		sg.Track(segment.EventTypes.APIKeyMissing)
 		return fmt.Errorf("API key is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.Region) == "" {
-		sg.Track(segment.NewEvent(segment.EventTypes.RegionMissing, ""))
+		sg.Track(segment.EventTypes.RegionMissing)
 		return fmt.Errorf("region is required")
 	}
 
 	if err := checkNetwork(client.NRClient); err != nil {
-		sg.Track(segment.NewEvent(segment.EventTypes.UnableToConnect, err.Error()))
+		sg.Track(segment.EventTypes.UnableToConnect)
 		return err
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
-		sg.Track(segment.NewEvent(segment.EventTypes.UnableToFetchLicenseKey, err.Error()))
+		sg.TrackInfo(segment.EventTypes.UnableToFetchLicenseKey, segment.NewEventInfo(err.Error()))
 		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}
-	sg.Track(segment.NewEvent(segment.EventTypes.LicenseKeyFetchedOk, ""))
+	sg.Track(segment.EventTypes.LicenseKeyFetchedOk)
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
