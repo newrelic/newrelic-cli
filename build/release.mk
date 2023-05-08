@@ -24,7 +24,7 @@ release-publish: clean tools docker-login release-notes recipes events
 	$(REL_CMD) release --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE)
 
 # Local Snapshot
-snapshot: clean tools recipes
+snapshot: clean tools recipes events
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]: Creating release via $(REL_CMD)"
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]:   THIS WILL NOT BE PUBLISHED!"
 	@$(REL_CMD) --skip-publish --snapshot
