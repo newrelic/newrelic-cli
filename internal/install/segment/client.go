@@ -68,13 +68,13 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 	properties["eventName"] = eventName
 	properties["isProxyConfigured"] = client.isProxyConfigured
 
-  t := analytics.Track{
+	t := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
-		Event:      "newrelic-cli" ,
+		Event:      "newrelic-cli",
 		Properties: properties,
 		Integrations: map[string]interface{}{
 			"All": true,
-		},}
+		}}
 
 	err := client.Enqueue(t)
 
@@ -83,11 +83,11 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 		return nil
 	}
 
-  return &t
+	return &t
 }
 
 func toMap(f interface{}) map[string]interface{} {
-  resultMap := make(map[string]interface{})
+	resultMap := make(map[string]interface{})
 
 	if f != nil {
 		jsonMap, _ := json.Marshal(f)
