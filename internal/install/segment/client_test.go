@@ -37,10 +37,10 @@ func TestClientShouldTrack(t *testing.T) {
 
 	c := newInternal(mc, accoundID, region, false)
 	tResult := c.Track(EventTypes.APIKeyMissing)
-	userId, _ := strconv.Atoi(tResult.UserId)
+	userID, _ := strconv.Atoi(tResult.UserId)
 
 	assert.Equal(t, 1, mc.EnqueueCallCount, "Segment should call enqueue one time when track one time")
-	assert.Equal(t, accoundID, userId)
+	assert.Equal(t, accoundID, userID)
 	assert.Equal(t, region, tResult.Properties["region"])
 	assert.Equal(t, EventTypes.APIKeyMissing, tResult.Properties["eventName"])
 	assert.Equal(t, false, tResult.Properties["isProxyConfigured"])
