@@ -82,6 +82,7 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 		log.Debugf("segment track error %v", err)
 		return nil
 	}
+	log.Debugf("segment tracked %s", eventName)
 
 	return &t
 }

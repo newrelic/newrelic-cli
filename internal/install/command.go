@@ -1,7 +1,6 @@
 package install
 
 import (
-	"embed"
 	"fmt"
 	"os"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -98,7 +98,7 @@ func initSegment() *segment.Segment {
 	accountID := configAPI.GetActiveProfileAccountID()
 	region := configAPI.GetActiveProfileString(config.Region)
 	isProxyConfigured := IsProxyConfigured()
-	writeKey, err := getWriteKey()
+	writeKey, err := recipes.NewEmbeddedEventsFetcher().GetWriteKey()
 	if err != nil {
 		log.Debug("segment: error reading write key, cannot write to segment", err)
 		return nil
@@ -145,17 +145,6 @@ func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
 	}
 
 	return nil
-}
-
-func getWriteKey() (string, error) {
-	var embedded embed.FS
-	data, err := embedded.ReadFile("files/events.src")
-	if err != nil {
-		return "", err
-	}
-	key := string(data)
-
-	return key, nil
 }
 
 func init() {
