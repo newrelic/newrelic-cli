@@ -64,59 +64,59 @@ signs:
         "${artifact}",
       ]
 
-dockers:
-  - dockerfile: build/package/Dockerfile
-    image_templates:
-      - "newrelic/cli:{{ .Tag }}"
-      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
-      - "newrelic/cli:latest"
-    build_flag_templates:
-      - "--pull"
-      - "--label=repository=http://github.com/newrelic/newrelic-cli"
-      - "--label=homepage=https://developer.newrelic.com/"
-      - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
+# dockers:
+#   - dockerfile: build/package/Dockerfile
+#     image_templates:
+#       - "newrelic/cli:{{ .Tag }}"
+#       - "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
+#       - "newrelic/cli:latest"
+#     build_flag_templates:
+#       - "--pull"
+#       - "--label=repository=http://github.com/newrelic/newrelic-cli"
+#       - "--label=homepage=https://developer.newrelic.com/"
+#       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
 
 # Uses git-chglog output from release flow
 changelog:
   skip: false
 
-snapcrafts:
-  - id: newrelic
-    builds:
-      - newrelic
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
-    name: newrelic-cli
-    publish: true
-    summary: A project to consolidate some tools New Relic offers for managing resources.
-    description: |
-      The New Relic CLI is an officially supported command line interface for New
-      Relic, released as part of the Developer Toolkit.
+# snapcrafts:
+#   - id: newrelic
+#     builds:
+#       - newrelic
+#     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+#     replacements:
+#       darwin: Darwin
+#       linux: Linux
+#       windows: Windows
+#       386: i386
+#       amd64: x86_64
+#     name: newrelic-cli
+#     publish: true
+#     summary: A project to consolidate some tools New Relic offers for managing resources.
+#     description: |
+#       The New Relic CLI is an officially supported command line interface for New
+#       Relic, released as part of the Developer Toolkit.
 
-    # A guardrail to prevent you from releasing a snap to all your users before
-    # it is ready.
-    # `devel` will let you release only to the `edge` and `beta` channels in the
-    # store. `stable` will let you release also to the `candidate` and `stable`
-    # channels. More info about channels here:
-    # https://snapcraft.io/docs/reference/channels
-    grade: stable
-    confinement: strict
-    license: Apache-2.0
-    base: core18
-    apps:
-      # The name of the app must be the same name as the binary built or the snapcraft name.
-      newrelic:
-        # If your app requires extra permissions to work outside of its default
-        # confined space, declare them here.
-        # You can read the documentation about the available plugs and the
-        # things they allow:
-        # https://snapcraft.io/docs/reference/interfaces.
-        plugs: ["home", "network"]
+#     # A guardrail to prevent you from releasing a snap to all your users before
+#     # it is ready.
+#     # `devel` will let you release only to the `edge` and `beta` channels in the
+#     # store. `stable` will let you release also to the `candidate` and `stable`
+#     # channels. More info about channels here:
+#     # https://snapcraft.io/docs/reference/channels
+#     grade: stable
+#     confinement: strict
+#     license: Apache-2.0
+#     base: core18
+#     apps:
+#       # The name of the app must be the same name as the binary built or the snapcraft name.
+#       newrelic:
+#         # If your app requires extra permissions to work outside of its default
+#         # confined space, declare them here.
+#         # You can read the documentation about the available plugs and the
+#         # things they allow:
+#         # https://snapcraft.io/docs/reference/interfaces.
+#         plugs: ["home", "network"]
 
 scoop:
   bucket:
