@@ -64,17 +64,17 @@ signs:
         "${artifact}",
       ]
 
-dockers:
-  - dockerfile: build/package/Dockerfile
-    image_templates:
-      - "newrelic/cli:{{ .Tag }}"
-      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
-      - "newrelic/cli:latest"
-    build_flag_templates:
-      - "--pull"
-      - "--label=repository=http://github.com/newrelic/newrelic-cli"
-      - "--label=homepage=https://developer.newrelic.com/"
-      - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
+# dockers:
+#   - dockerfile: build/package/Dockerfile
+#     image_templates:
+#       - "newrelic/cli:{{ .Tag }}"
+#       - "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
+#       - "newrelic/cli:latest"
+#     build_flag_templates:
+#       - "--pull"
+#       - "--label=repository=http://github.com/newrelic/newrelic-cli"
+#       - "--label=homepage=https://developer.newrelic.com/"
+#       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
 
 # Uses git-chglog output from release flow
 changelog:
