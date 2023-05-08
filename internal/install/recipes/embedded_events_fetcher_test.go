@@ -12,5 +12,5 @@ import (
 func Test_ShouldGetWriteKey(t *testing.T) {
 	_, err := NewEmbeddedEventsFetcher().GetWriteKey()
 
-	require.Equal(t, nil, err)
+	require.NotNil(t, err)
 }

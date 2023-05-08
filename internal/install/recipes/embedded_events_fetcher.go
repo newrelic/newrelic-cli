@@ -1,7 +1,7 @@
 package recipes
 
 const (
-	embeddedEventsPath = "files/events.src"
+	embeddedEventsPath = embeddedRecipesPath + "events.src"
 )
 
 type EmbeddedEventsFetcher struct{}
