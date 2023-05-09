@@ -27,6 +27,8 @@ var (
 	tags         []string
 )
 
+const segmentFlushWaitInSec = 5
+
 // Command represents the install command.
 var Command = &cobra.Command{
 	Use:    "install",
@@ -57,8 +59,8 @@ var Command = &cobra.Command{
 			// problem since many commands don't require the use of an initialized client			sg := initSegment()
 			sg := initSegment()
 			defer func() {
-				time.Sleep(5 * time.Second)
-			  sg.Close()
+				time.Sleep(segmentFlushWaitInSec * time.Second)
+				sg.Close()
 			}()
 			log.Debugf("error initializing client: %s", err)
 			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
@@ -115,8 +117,8 @@ func assertProfileIsValid(maxTimeoutSeconds int) error {
 
 	sg := initSegment()
 	defer func() {
-		time.Sleep(5 * time.Second)
-	  sg.Close()
+		time.Sleep(segmentFlushWaitInSec * time.Second)
+		sg.Close()
 	}()
 
 	accountID := configAPI.GetActiveProfileAccountID()
