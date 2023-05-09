@@ -26,10 +26,7 @@ DOCKERFILE=$1
 # Check if we have the open install repo locally
 if [ ! -d "tmp/" ]
 then
-    mkdir tmp/ || true
-    pushd tmp
-    git clone git@github.com:newrelic/open-install-library.git
-    popd
+    make recipes
 fi
 
 # Copy open install files
