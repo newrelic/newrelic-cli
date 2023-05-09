@@ -27,6 +27,8 @@ var (
 	tags         []string
 )
 
+// Unable to force segement to flush, required to wait for internal loop to run
+// TODO: Revisit in the future, prefer not forcing user to wait when not needed
 const segmentFlushWaitInSec = 5
 
 // Command represents the install command.
@@ -115,9 +117,13 @@ func initSegment() *segment.Segment {
 
 func assertProfileIsValid(maxTimeoutSeconds int) error {
 
+	errorOccured := false
+
 	sg := initSegment()
 	defer func() {
-		time.Sleep(segmentFlushWaitInSec * time.Second)
+		if errorOccured {
+			time.Sleep(segmentFlushWaitInSec * time.Second)
+		}
 		sg.Close()
 	}()
 
@@ -125,27 +131,32 @@ func assertProfileIsValid(maxTimeoutSeconds int) error {
 	sg.Track(segment.EventTypes.InstallStarted)
 
 	if accountID == 0 {
+		errorOccured = true
 		sg.Track(segment.EventTypes.AccountIDMissing)
 		return fmt.Errorf("accountID is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.APIKey) == "" {
+		errorOccured = true
 		sg.Track(segment.EventTypes.APIKeyMissing)
 		return fmt.Errorf("API key is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.Region) == "" {
+		errorOccured = true
 		sg.Track(segment.EventTypes.RegionMissing)
 		return fmt.Errorf("region is required")
 	}
 
 	if err := checkNetwork(client.NRClient); err != nil {
+		errorOccured = true
 		sg.Track(segment.EventTypes.UnableToConnect)
 		return err
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
+		errorOccured = true
 		sg.TrackInfo(segment.EventTypes.UnableToFetchLicenseKey, segment.NewEventInfo(err.Error()))
 		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}
