@@ -3,6 +3,7 @@ package install
 import (
 	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -43,9 +44,8 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		sg := initSegment()
+		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
 
-		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds, sg)
 		if err != nil {
 			log.Fatal(err)
 			return nil
@@ -56,6 +56,11 @@ var Command = &cobra.Command{
 		if err != nil {
 			// An error was encountered initializing the client.  This may not be a
 			// problem since many commands don't require the use of an initialized client
+			sg := initSegment()
+			defer func() {
+				defer sg.Close()
+				time.Sleep(5 * time.Second)
+			}()
 			log.Debugf("error initializing client: %s", err)
 			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
 		}
@@ -107,7 +112,13 @@ func initSegment() *segment.Segment {
 	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
-func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
+func assertProfileIsValid(maxTimeoutSeconds int) error {
+
+	sg := initSegment()
+	defer func() {
+		defer sg.Close()
+		time.Sleep(5 * time.Second)
+	}()
 
 	accountID := configAPI.GetActiveProfileAccountID()
 	sg.Track(segment.EventTypes.InstallStarted)
