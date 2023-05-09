@@ -1,3 +1,8 @@
+<a name="v0.68.3"></a>
+## [v0.68.3] - 2023-05-09
+### Bug Fixes
+- **install:** segment flushing issue ([#1463](https://github.com/newrelic/newrelic-cli/issues/1463))
+
 <a name="v0.68.2"></a>
 ## [v0.68.2] - 2023-05-08
 <a name="v0.68.1"></a>
@@ -2024,7 +2029,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.3...HEAD
+[v0.68.3]: https://github.com/newrelic/newrelic-cli/compare/v0.68.2...v0.68.3
 [v0.68.2]: https://github.com/newrelic/newrelic-cli/compare/v0.68.1...v0.68.2
 [v0.68.1]: https://github.com/newrelic/newrelic-cli/compare/v0.68.0...v0.68.1
 [v0.68.0]: https://github.com/newrelic/newrelic-cli/compare/v0.67.27...v0.68.0
