@@ -57,8 +57,8 @@ var Command = &cobra.Command{
 			// problem since many commands don't require the use of an initialized client			sg := initSegment()
 			sg := initSegment()
 			defer func() {
-				defer sg.Close()
 				time.Sleep(5 * time.Second)
+			  sg.Close()
 			}()
 			log.Debugf("error initializing client: %s", err)
 			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
@@ -115,8 +115,8 @@ func assertProfileIsValid(maxTimeoutSeconds int) error {
 
 	sg := initSegment()
 	defer func() {
-		defer sg.Close()
 		time.Sleep(5 * time.Second)
+	  sg.Close()
 	}()
 
 	accountID := configAPI.GetActiveProfileAccountID()
