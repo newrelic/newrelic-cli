@@ -3,6 +3,7 @@ package install
 import (
 	"fmt"
 	"os"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -26,6 +27,10 @@ var (
 	tags         []string
 )
 
+// Unable to force segement to flush, required to wait for internal loop to run
+// TODO: Revisit in the future, prefer not forcing user to wait when not needed
+const segmentFlushWaitInSec = 5
+
 // Command represents the install command.
 var Command = &cobra.Command{
 	Use:    "install",
@@ -43,9 +48,7 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		sg := initSegment()
-
-		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds, sg)
+		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
 		if err != nil {
 			log.Fatal(err)
 			return nil
@@ -55,7 +58,12 @@ var Command = &cobra.Command{
 		c, err := client.NewClient(configAPI.GetActiveProfileName())
 		if err != nil {
 			// An error was encountered initializing the client.  This may not be a
-			// problem since many commands don't require the use of an initialized client
+			// problem since many commands don't require the use of an initialized client			sg := initSegment()
+			sg := initSegment()
+			defer func() {
+				time.Sleep(segmentFlushWaitInSec * time.Second)
+				sg.Close()
+			}()
 			log.Debugf("error initializing client: %s", err)
 			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
 		}
@@ -107,33 +115,48 @@ func initSegment() *segment.Segment {
 	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
-func assertProfileIsValid(maxTimeoutSeconds int, sg *segment.Segment) error {
+func assertProfileIsValid(maxTimeoutSeconds int) error {
+
+	errorOccured := false
+
+	sg := initSegment()
+	defer func() {
+		if errorOccured {
+			time.Sleep(segmentFlushWaitInSec * time.Second)
+		}
+		sg.Close()
+	}()
 
 	accountID := configAPI.GetActiveProfileAccountID()
 	sg.Track(segment.EventTypes.InstallStarted)
 
 	if accountID == 0 {
+		errorOccured = true
 		sg.Track(segment.EventTypes.AccountIDMissing)
 		return fmt.Errorf("accountID is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.APIKey) == "" {
+		errorOccured = true
 		sg.Track(segment.EventTypes.APIKeyMissing)
 		return fmt.Errorf("API key is required")
 	}
 
 	if configAPI.GetActiveProfileString(config.Region) == "" {
+		errorOccured = true
 		sg.Track(segment.EventTypes.RegionMissing)
 		return fmt.Errorf("region is required")
 	}
 
 	if err := checkNetwork(client.NRClient); err != nil {
+		errorOccured = true
 		sg.Track(segment.EventTypes.UnableToConnect)
 		return err
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
+		errorOccured = true
 		sg.TrackInfo(segment.EventTypes.UnableToFetchLicenseKey, segment.NewEventInfo(err.Error()))
 		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 	}

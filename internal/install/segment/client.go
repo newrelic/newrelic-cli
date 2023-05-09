@@ -3,6 +3,7 @@ package segment
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/segmentio/analytics-go.v3"
@@ -43,7 +44,15 @@ func New(writeKey string, accountID int, region string, isProxyConfigured bool) 
 		return nil
 	}
 
-	client := analytics.New(writeKey)
+	client, err := analytics.NewWithConfig(writeKey, analytics.Config{
+		Interval:  1 * time.Second,
+		BatchSize: 1,
+	})
+
+	if err != nil {
+		log.Debugf("segment init error: %v", err)
+		return nil
+	}
 	return newInternal(client, accountID, region, isProxyConfigured)
 }
 
