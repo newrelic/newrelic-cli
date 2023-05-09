@@ -43,7 +43,14 @@ func New(writeKey string, accountID int, region string, isProxyConfigured bool) 
 		return nil
 	}
 
-	client := analytics.New(writeKey)
+	client, err := analytics.NewWithConfig(writeKey, analytics.Config{
+		BatchSize: 1,
+	})
+
+	if err != nil {
+		log.Debugf("segment init error: %v", err)
+		return nil
+	}
 	return newInternal(client, accountID, region, isProxyConfigured)
 }
 
