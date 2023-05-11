@@ -15,6 +15,7 @@ import (
 	"github.com/fatih/color"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 
@@ -141,7 +142,7 @@ const downloadURL = "https://download.newrelic.com/nrdiag/nrdiag_latest.zip"
 func PrintPaymentRequiredErrorMessage() {
 	fmt.Println()
 	fmt.Println(color.YellowString("! Data limit exceeded"))
-	fmt.Println(PaymentRequiredExceptionMessage)
+	fmt.Println(types.PaymentRequiredExceptionMessage)
 	fmt.Printf("\n  %s  %s", color.GreenString(ux.IconArrowRight), execution.GetAccountPlanManagementURL())
 	fmt.Print("\n\n")
 }

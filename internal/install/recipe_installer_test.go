@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
-	"github.com/newrelic/newrelic-cli/internal/diagnose"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -20,6 +19,13 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
+
+func TestMain(m *testing.M) {
+	os.Setenv("NEW_RELIC_API_KEY", "apiKeyOverride")
+	os.Setenv("NEW_RELIC_LICENSE_KEY", "licenseKeyOverride")
+	os.Setenv("NEW_RELIC_REGION", "regionOverride")
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "67890")
+}
 
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
 	var expected error
@@ -54,7 +60,7 @@ func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
 }
 
 func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
-	expected := diagnose.ConnectionError{
+	expected := types.ConnectionError{
 		Err: errors.New("Connection Failed"),
 	}
 
@@ -63,7 +69,7 @@ func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
 
 	actual := recipeInstall.Install()
 	assert.Error(t, actual)
-	assert.IsType(t, diagnose.ConnectionError{}, actual)
+	assert.IsType(t, types.ConnectionError{}, actual)
 	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
 	assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
 }
@@ -501,6 +507,7 @@ func TestInstallWhenInstallIsCancelled(t *testing.T) {
 }
 
 func TestInstallWhenInstallIsUnsupported(t *testing.T) {
+
 	expected := &types.UnsupportedOperatingSystemError{Err: errors.New("Unsupported")}
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),

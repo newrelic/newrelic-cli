@@ -11,6 +11,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
@@ -59,7 +60,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	i, err := host.InfoWithContext(ctx)
 	if err != nil {
 		log.Debug(err)
-		return ErrDiscovery
+		return types.NewDetailError(types.EventTypes.UnableToDiscover, types.ErrDiscovery.Error())
 	}
 
 	evt := ValidationTracerEvent{
@@ -77,7 +78,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 				return e
 			}
 
-			return ErrPostEvent
+			return types.NewDetailError(types.EventTypes.UnableToPostData, err.Error())
 		}
 
 		return nil
@@ -87,7 +88,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	retryCtx := r.ExecWithRetries(ctx)
 
 	if !retryCtx.Success {
-		return retryCtx.MostRecentError()
+		return types.NewDetailError(types.EventTypes.InvalidIngestKey, retryCtx.MostRecentError().Error())
 	}
 
 	query := fmt.Sprintf(`
@@ -100,7 +101,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 
 	if _, err = c.PollingNRQLValidator.Validate(ctx, query); err != nil {
 		log.Debug(err)
-		err = ErrValidation
+		return types.NewDetailError(types.EventTypes.UnableToLocatePostedData, types.ErrValidation.Error()+" "+err.Error())
 	}
 
 	return err
@@ -135,7 +136,7 @@ func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
 
 	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
 	if err != nil {
-		return fmt.Errorf(ErrConnectionStringFormat, err)
+		return types.NewDetailError(types.EventTypes.UnableToConnect, fmt.Sprintf(types.ErrConnectionStringFormat, err))
 	}
 
 	for _, k := range licenseKeys {
@@ -144,5 +145,5 @@ func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
 		}
 	}
 
-	return ErrLicenseKey
+	return types.NewDetailError(types.EventTypes.InvalidIngestKey, types.ErrLicenseKey.Error())
 }
