@@ -55,6 +55,9 @@ func (r SegmentReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r SegmentReporter) InstallComplete(status *InstallStatus) error {
+	if r.sg == nil {
+		return nil
+	}
 
 	if status.Error.Message != "" {
 		et, ok := types.TryParseEventType(status.Error.Message)
@@ -78,6 +81,9 @@ func (r SegmentReporter) InstallCanceled(status *InstallStatus) error {
 }
 
 func (r SegmentReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
+	if r.sg == nil {
+		return nil
+	}
 	r.sg.Track(types.EventTypes.LicenseKeyFetchedOk)
 	return nil
 }

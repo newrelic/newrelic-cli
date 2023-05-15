@@ -51,6 +51,7 @@ var Command = &cobra.Command{
 		if detailErr != nil {
 			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
 			sg.TrackInfo(ei)
+			sg.Close()
 			log.Fatal(detailErr)
 		}
 
@@ -58,10 +59,11 @@ var Command = &cobra.Command{
 		c, _ := client.NewClient(configAPI.GetActiveProfileName())
 		client.NRClient = c
 
-		i := NewRecipeInstaller(ic, c)
+		i := NewRecipeInstaller(ic, c, sg)
 
 		// Run the install.
 		if err := i.Install(); err != nil {
+			defer sg.Close()
 			if err == types.ErrInterrupt {
 				return nil
 			}

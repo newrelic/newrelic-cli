@@ -11,6 +11,12 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
+const (
+	// Unable to force segement to flush, required to wait for internal loop to run
+	// TODO: Revisit in the future, prefer not forcing user to wait when not needed
+	segmentFlushWait = 5 * time.Second
+)
+
 type Segment struct {
 	analytics.Client
 	accountID         int
@@ -49,6 +55,7 @@ func (client *Segment) Close() {
 	if client == nil {
 		return
 	}
+	time.Sleep(segmentFlushWait)
 	client.Client.Close()
 }
 

@@ -27,9 +27,6 @@ import (
 
 const (
 	validationTimeout = 5 * time.Minute
-	// Unable to force segement to flush, required to wait for internal loop to run
-	// TODO: Revisit in the future, prefer not forcing user to wait when not needed
-	segmentFlushWait = 5 * time.Second
 )
 
 var infraAgentEntityKey string
@@ -55,12 +52,11 @@ type RecipeInstall struct {
 	progressIndicator      ux.ProgressIndicator
 	recipeDetectorFactory  func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector
 	processEvaluator       recipes.ProcessEvaluatorInterface
-	segment                *segment.Segment
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
+func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, sg *segment.Segment) *RecipeInstall {
 	var recipeFetcher recipes.RecipeFetcher
 
 	if ic.LocalRecipes != "" {
@@ -80,6 +76,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
+		execution.NewSegmentReporter(sg),
 	}
 	lkf := NewServiceLicenseKeyFetcher(config.DefaultMaxTimeoutSeconds)
 	slg := execution.NewPlatformLinkGenerator()
@@ -206,12 +203,6 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 		"RecipePathsProvided": i.RecipePathsProvided(),
 		"RecipeNamesProvided": i.RecipeNamesProvided(),
 	}).Debug("context summary")
-
-	// Clean up segment after install
-	defer func() {
-		time.Sleep(segmentFlushWait)
-		i.segment.Close()
-	}()
 
 	if i.RecipeNamesProvided() {
 		i.status.SetTargetedInstall(i.RecipeNames)
