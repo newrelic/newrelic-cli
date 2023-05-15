@@ -223,14 +223,4 @@ func NewDetailError(eventName EventType, details string) *DetailError {
 
 func (e *DetailError) Error() string {
 	return e.Details
-	// switch e.EventName {
-	//   case EventTypes.AccountIDMissing:
-	//     return fmt.Sprint("accountID is required")
-	//   case EventTypes.APIKeyMissing:
-	//     return fmt.Sprint("API key is required")
-	//   case EventTypes.AccountIDMissing:
-	//     return fmt.Sprint("region is required")
-	//   case EventTypes.UnableToConnect:
-	//     return e.Details
-	// }
 }

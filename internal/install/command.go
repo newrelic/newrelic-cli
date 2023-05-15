@@ -150,6 +150,11 @@ func validateProfile(maxTimeoutSeconds int) *types.DetailError {
 }
 
 func checkNetwork() error {
+
+	if client.NRClient == nil {
+		return nil
+	}
+
 	err := client.NRClient.TestEndpoints()
 	if err != nil {
 		if IsProxyConfigured() {

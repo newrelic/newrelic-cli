@@ -23,7 +23,6 @@ type Segment struct {
 	region            string
 	installID         string
 	isProxyConfigured bool
-	LastEvent         types.EventType
 }
 
 func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
@@ -37,11 +36,11 @@ func New(writeKey string, accountID int, region string, isProxyConfigured bool) 
 		log.Debugf("segment init error: %v", err)
 	}
 
-	return newInternal(client, accountID, region, isProxyConfigured)
+	return NewWithClient(client, accountID, region, isProxyConfigured)
 }
 
-func newInternal(client analytics.Client, accountID int, region string, isProxyConfigured bool) *Segment {
-	return &Segment{client, accountID, region, "", isProxyConfigured, types.EventTypes.Other}
+func NewWithClient(client analytics.Client, accountID int, region string, isProxyConfigured bool) *Segment {
+	return &Segment{client, accountID, region, "", isProxyConfigured}
 }
 
 func (client *Segment) SetInstallID(i string) {
@@ -96,7 +95,6 @@ func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 		return nil
 	}
 	log.Debugf("segment tracked %s", eventInfo.EventName)
-	client.LastEvent = eventInfo.EventName
 
 	return &t
 }

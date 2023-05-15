@@ -20,13 +20,6 @@ import (
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
-func TestMain(m *testing.M) {
-	os.Setenv("NEW_RELIC_API_KEY", "apiKeyOverride")
-	os.Setenv("NEW_RELIC_LICENSE_KEY", "licenseKeyOverride")
-	os.Setenv("NEW_RELIC_REGION", "regionOverride")
-	os.Setenv("NEW_RELIC_ACCOUNT_ID", "67890")
-}
-
 func TestConnectToPlatformShouldSuccess(t *testing.T) {
 	var expected error
 	pi := ux.NewSpinnerProgressIndicator()

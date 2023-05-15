@@ -81,6 +81,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 	lkf := NewServiceLicenseKeyFetcher(config.DefaultMaxTimeoutSeconds)
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ic, ers, slg)
+	sg.SetInstallID(statusRollup.InstallID)
 
 	d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
