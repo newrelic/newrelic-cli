@@ -43,7 +43,7 @@ func TestClientShouldTrackInfo(t *testing.T) {
 	accoundID := 12345
 	region := "STAGING"
 
-	ei := NewEventInfo(types.EventTypes.Other, "hello world")
+	ei := NewEventInfo(types.EventTypes.OtherError, "hello world")
 
 	c := NewWithClient(mc, accoundID, region, true)
 	tResult := c.TrackInfo(ei)

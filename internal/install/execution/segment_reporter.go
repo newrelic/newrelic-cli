@@ -66,12 +66,27 @@ func (r SegmentReporter) InstallComplete(status *InstallStatus) error {
 			r.sg.TrackInfo(ei)
 		} else {
 			// If unclassified error, the detail would just be the error
-			ei := segment.NewEventInfo(types.EventTypes.Other, status.Error.Message)
+			ei := segment.NewEventInfo(types.EventTypes.OtherError, status.Error.Message+" "+status.Error.Details)
 			r.sg.TrackInfo(ei)
 		}
 	}
 
-	r.sg.Track(types.EventTypes.InstallCompleted)
+	m := make(map[string]int)
+	for _, s := range status.Statuses {
+		k := string("count" + s.Status)
+		if v, ok := m[k]; ok {
+			m[k] = v + 1
+		} else {
+			m[k] = 1
+		}
+	}
+
+	ei := segment.NewEventInfo(types.EventTypes.InstallCompleted, "")
+	for key, v := range m {
+		ei.WithAdditionalInfo(key, v)
+	}
+
+	r.sg.TrackInfo(ei)
 	return nil
 }
 

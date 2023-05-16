@@ -34,7 +34,7 @@ var EventTypes = struct {
 	InvalidIngestKey           EventType
 	UnableToDiscover           EventType
 	NrIntegrationPollingErrror EventType
-	Other                      EventType
+	OtherError                 EventType
 	UnableToLocatePostedData   EventType
 }{
 	InstallStarted:             "InstallStarted",
@@ -51,7 +51,7 @@ var EventTypes = struct {
 	InvalidIngestKey:           "InvalidIngestKey",
 	UnableToDiscover:           "UnableToDiscover",
 	NrIntegrationPollingErrror: "NrIntegrationPollingErrror",
-	Other:                      "Other",
+	OtherError:                 "OtherError",
 }
 
 func TryParseEventType(e string) (EventType, bool) {

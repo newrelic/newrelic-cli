@@ -103,6 +103,6 @@ func TestSegmentReporter_InstallCompletedShouldReportOther(t *testing.T) {
 	previousMessage := c.MessageQueued[len(c.MessageQueued)-2]
 
 	require.NoError(t, err)
-	require.Equal(t, types.EventTypes.Other, previousMessage.Properties["eventName"])
-	require.Equal(t, "unregonized error", previousMessage.Properties["Detail"])
+	require.Equal(t, types.EventTypes.OtherError, previousMessage.Properties["eventName"])
+	require.Equal(t, "unregonized error some detail", previousMessage.Properties["Detail"])
 }

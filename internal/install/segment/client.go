@@ -80,6 +80,10 @@ func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 	properties["category"] = "newrelic-cli"
 	properties["isProxyConfigured"] = client.isProxyConfigured
 
+	for k, v := range eventInfo.AdditionalInfo {
+		properties[k] = v
+	}
+
 	t := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
 		Event:      "newrelic_cli",
@@ -114,13 +118,19 @@ func toMap(f interface{}) map[string]interface{} {
 }
 
 type EventInfo struct {
-	EventName types.EventType
-	Detail    string
+	EventName      types.EventType
+	Detail         string
+	AdditionalInfo map[string]interface{} `json:"-"`
 }
 
 func NewEventInfo(eventType types.EventType, detail string) *EventInfo {
 	return &EventInfo{
 		eventType,
 		detail,
+		make(map[string]interface{}),
 	}
+}
+
+func (e *EventInfo) WithAdditionalInfo(k string, v interface{}) {
+	e.AdditionalInfo[k] = v
 }
