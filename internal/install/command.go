@@ -115,46 +115,52 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 	accountID := configAPI.GetActiveProfileAccountID()
 	APIKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
-	hasError := false
+	errorOccured := false
 	var detailErr *types.DetailError
 
+	defer func() {
+		if errorOccured {
+			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
+			sg.TrackInfo(ei)
+			sg.Close()
+		}
+	}()
+
 	if accountID == 0 {
-		hasError = true
+		errorOccured = true
 		detailErr = types.NewDetailError(types.EventTypes.AccountIDMissing, "account ID is required")
+		return detailErr
 	}
 
 	if APIKey == "" {
-		hasError = true
+		errorOccured = true
 		detailErr = types.NewDetailError(types.EventTypes.APIKeyMissing, "API key is required")
+		return detailErr
 	}
 
 	if region == "" {
-		hasError = true
+		errorOccured = true
 		detailErr = types.NewDetailError(types.EventTypes.RegionMissing, "region is required")
+		return detailErr
 	}
 
 	if err := checkNetwork(); err != nil {
-		hasError = true
+		errorOccured = true
 		detailErr = types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
+		return detailErr
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
-		hasError = true
+		errorOccured = true
 		details := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 		detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, details)
+		return detailErr
 	}
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
-	}
-
-	if hasError {
-		ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
-		sg.TrackInfo(ei)
-		sg.Close()
-		return detailErr
 	}
 
 	return nil

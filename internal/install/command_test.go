@@ -25,7 +25,7 @@ func TestCommandValiProfile(t *testing.T) {
 	region := os.Getenv("NEW_RELIC_REGION")
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
-	err := validateProfile(5)
+	err := validateProfile(5, nil)
 	assert.Error(t, err)
 	assert.Equal(t, types.EventTypes.AccountIDMissing, err.EventName)
 
@@ -36,7 +36,7 @@ func TestCommandValiProfile(t *testing.T) {
 	}
 
 	os.Setenv("NEW_RELIC_API_KEY", "")
-	err = validateProfile(5)
+	err = validateProfile(5, nil)
 	assert.Equal(t, types.EventTypes.APIKeyMissing, err.EventName)
 	if apiKey == "" {
 		os.Setenv("NEW_RELIC_API_KEY", "67890")
@@ -45,7 +45,7 @@ func TestCommandValiProfile(t *testing.T) {
 	}
 
 	os.Setenv("NEW_RELIC_REGION", "")
-	err = validateProfile(5)
+	err = validateProfile(5, nil)
 	assert.Equal(t, types.EventTypes.RegionMissing, err.EventName)
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", accountID)
