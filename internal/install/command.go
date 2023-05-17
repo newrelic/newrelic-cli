@@ -45,13 +45,11 @@ var Command = &cobra.Command{
 		config.InitFileLogger(logLevel)
 
 		sg := initSegment()
+		defer sg.Close()
 		sg.Track(types.EventTypes.InstallStarted)
-		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds)
+		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
 
 		if detailErr != nil {
-			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
-			sg.TrackInfo(ei)
-			sg.Close()
 			log.Fatal(detailErr)
 		}
 
@@ -63,7 +61,6 @@ var Command = &cobra.Command{
 
 		// Run the install.
 		if err := i.Install(); err != nil {
-			defer sg.Close()
 			if err == types.ErrInterrupt {
 				return nil
 			}
@@ -114,36 +111,50 @@ func initSegment() *segment.Segment {
 	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
-func validateProfile(maxTimeoutSeconds int) *types.DetailError {
+func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailError {
 	accountID := configAPI.GetActiveProfileAccountID()
 	APIKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
+	hasError := false
+	var detailErr *types.DetailError
 
 	if accountID == 0 {
-		return types.NewDetailError(types.EventTypes.AccountIDMissing, "account ID is required")
+		hasError = true
+		detailErr = types.NewDetailError(types.EventTypes.AccountIDMissing, "account ID is required")
 	}
 
 	if APIKey == "" {
-		return types.NewDetailError(types.EventTypes.APIKeyMissing, "API key is required")
+		hasError = true
+		detailErr = types.NewDetailError(types.EventTypes.APIKeyMissing, "API key is required")
 	}
 
 	if region == "" {
-		return types.NewDetailError(types.EventTypes.RegionMissing, "region is required")
+		hasError = true
+		detailErr = types.NewDetailError(types.EventTypes.RegionMissing, "region is required")
 	}
 
 	if err := checkNetwork(); err != nil {
-		return types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
+		hasError = true
+		detailErr = types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
+		hasError = true
 		details := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
-		return types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, details)
+		detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, details)
 	}
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
+	}
+
+	if hasError {
+		ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
+		sg.TrackInfo(ei)
+		sg.Close()
+		return detailErr
 	}
 
 	return nil

@@ -31,6 +31,7 @@ var EventTypes = struct {
 	UnableToOverrideClient     EventType
 	UnableToPostData           EventType
 	InstallCompleted           EventType
+	InstallCancelled           EventType
 	InvalidIngestKey           EventType
 	UnableToDiscover           EventType
 	NrIntegrationPollingErrror EventType
@@ -47,6 +48,7 @@ var EventTypes = struct {
 	UnableToPostData:           "UnableToPostData",
 	UnableToLocatePostedData:   "UnableToLocatePostedData",
 	InstallCompleted:           "InstallCompleted",
+	InstallCancelled:           "InstallCancelled",
 	UnableToOverrideClient:     "UnableToOverrideClient",
 	InvalidIngestKey:           "InvalidIngestKey",
 	UnableToDiscover:           "UnableToDiscover",

@@ -71,6 +71,18 @@ func (r SegmentReporter) InstallComplete(status *InstallStatus) error {
 		}
 	}
 
+	ei := buildInstallCompleteEvent(status, types.EventTypes.InstallCompleted)
+	r.sg.TrackInfo(ei)
+	return nil
+}
+
+func (r SegmentReporter) InstallCanceled(status *InstallStatus) error {
+	ei := buildInstallCompleteEvent(status, types.EventTypes.InstallCancelled)
+	r.sg.TrackInfo(ei)
+	return nil
+}
+
+func buildInstallCompleteEvent(status *InstallStatus, et types.EventType) *segment.EventInfo {
 	m := make(map[string]int)
 	for _, s := range status.Statuses {
 		k := string("count" + s.Status)
@@ -81,18 +93,11 @@ func (r SegmentReporter) InstallComplete(status *InstallStatus) error {
 		}
 	}
 
-	ei := segment.NewEventInfo(types.EventTypes.InstallCompleted, "")
+	ei := segment.NewEventInfo(et, "")
 	for key, v := range m {
 		ei.WithAdditionalInfo(key, v)
 	}
-
-	r.sg.TrackInfo(ei)
-	return nil
-}
-
-func (r SegmentReporter) InstallCanceled(status *InstallStatus) error {
-
-	return nil
+	return ei
 }
 
 func (r SegmentReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {

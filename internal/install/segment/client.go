@@ -27,14 +27,7 @@ type Segment struct {
 
 func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
 
-	client, err := analytics.NewWithConfig(writeKey, analytics.Config{
-		Interval:  1 * time.Second,
-		BatchSize: 1,
-	})
-
-	if err != nil {
-		log.Debugf("segment init error: %v", err)
-	}
+	client := analytics.New(writeKey)
 
 	return NewWithClient(client, accountID, region, isProxyConfigured)
 }
