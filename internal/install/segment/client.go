@@ -28,8 +28,7 @@ type Segment struct {
 func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
 
 	client, err := analytics.NewWithConfig(writeKey, analytics.Config{
-		Interval:  1 * time.Second,
-		BatchSize: 1,
+		Verbose: true,
 	})
 
 	if err != nil {

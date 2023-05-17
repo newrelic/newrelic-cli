@@ -45,13 +45,11 @@ var Command = &cobra.Command{
 		config.InitFileLogger(logLevel)
 
 		sg := initSegment()
+		defer sg.Close()
 		sg.Track(types.EventTypes.InstallStarted)
-		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds)
+		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
 
 		if detailErr != nil {
-			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
-			sg.TrackInfo(ei)
-			sg.Close()
 			log.Fatal(detailErr)
 		}
 
@@ -63,7 +61,6 @@ var Command = &cobra.Command{
 
 		// Run the install.
 		if err := i.Install(); err != nil {
-			defer sg.Close()
 			if err == types.ErrInterrupt {
 				return nil
 			}
@@ -114,7 +111,7 @@ func initSegment() *segment.Segment {
 	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
-func validateProfile(maxTimeoutSeconds int) *types.DetailError {
+func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailError {
 	accountID := configAPI.GetActiveProfileAccountID()
 	APIKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
@@ -138,6 +135,10 @@ func validateProfile(maxTimeoutSeconds int) *types.DetailError {
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
 		details := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+		ei := segment.NewEventInfo(types.EventTypes.UnableToFetchLicenseKey, details)
+		sg.TrackInfo(ei)
+		sg.Close()
+
 		return types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, details)
 	}
 
