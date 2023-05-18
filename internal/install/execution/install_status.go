@@ -443,6 +443,11 @@ func (s *InstallStatus) completed(err error) {
 			s.CLIVersion = cli.Version()
 		}
 
+		if e, ok := err.(*types.DetailError); ok {
+			statusError.Message = string(e.EventName)
+			statusError.Details = e.Details
+		}
+
 		if e, ok := err.(types.GoTaskError); ok {
 			statusError.TaskPath = e.TaskPath()
 		}

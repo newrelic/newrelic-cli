@@ -7,64 +7,58 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/segmentio/analytics-go.v3"
+
+	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-type EventType string
-
-var EventTypes = struct {
-	InstallStarted          EventType
-	AccountIDMissing        EventType
-	APIKeyMissing           EventType
-	RegionMissing           EventType
-	UnableToConnect         EventType
-	UnableToFetchLicenseKey EventType
-	LicenseKeyFetchedOk     EventType
-	UnableToOverrideClient  EventType
-}{
-	InstallStarted:          "InstallStarted",
-	AccountIDMissing:        "AccountIDMissing",
-	APIKeyMissing:           "APIKeyMissing",
-	RegionMissing:           "RegionMissing",
-	UnableToConnect:         "UnableToConnect",
-	UnableToFetchLicenseKey: "UnableToFetchLicenseKey",
-	LicenseKeyFetchedOk:     "LicenseKeyFetchedOk",
-	UnableToOverrideClient:  "UnableToOverrideClient",
-}
+const (
+	// Unable to force segement to flush, required to wait for internal loop to run
+	// TODO: Revisit in the future, prefer not forcing user to wait when not needed
+	segmentFlushWait = 5 * time.Second
+)
 
 type Segment struct {
 	analytics.Client
 	accountID         int
 	region            string
+	installID         string
 	isProxyConfigured bool
 }
 
 func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
-	if writeKey == "" {
-		log.Debug("segment: write key is empty, cannot write to segment")
+
+	client := analytics.New(writeKey)
+
+	return NewWithClient(client, accountID, region, isProxyConfigured)
+}
+
+func NewWithClient(client analytics.Client, accountID int, region string, isProxyConfigured bool) *Segment {
+	return &Segment{client, accountID, region, "", isProxyConfigured}
+}
+
+func (client *Segment) SetInstallID(i string) {
+	if client == nil {
+		return
+	}
+	client.installID = i
+}
+
+func (client *Segment) Close() {
+	if client == nil {
+		return
+	}
+	time.Sleep(segmentFlushWait)
+	client.Client.Close()
+}
+
+func (client *Segment) Track(eventName types.EventType) *analytics.Track {
+	if client == nil {
 		return nil
 	}
-
-	client, err := analytics.NewWithConfig(writeKey, analytics.Config{
-		Interval:  1 * time.Second,
-		BatchSize: 1,
-	})
-
-	if err != nil {
-		log.Debugf("segment init error: %v", err)
-		return nil
-	}
-	return newInternal(client, accountID, region, isProxyConfigured)
+	return client.TrackInfo(NewEventInfo(eventName, ""))
 }
 
-func newInternal(client analytics.Client, accountID int, region string, isProxyConfigured bool) *Segment {
-	return &Segment{client, accountID, region, isProxyConfigured}
-}
-
-func (client *Segment) Track(eventName EventType) *analytics.Track {
-	return client.TrackInfo(eventName, NewEventInfo(""))
-}
-
-func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *analytics.Track {
+func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 
 	if client == nil {
 		return nil
@@ -74,9 +68,14 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 
 	properties["accountId"] = client.accountID
 	properties["region"] = client.region
-	properties["eventName"] = eventName
+	properties["installID"] = client.installID
+	properties["eventName"] = eventInfo.EventName
 	properties["category"] = "newrelic-cli"
 	properties["isProxyConfigured"] = client.isProxyConfigured
+
+	for k, v := range eventInfo.AdditionalInfo {
+		properties[k] = v
+	}
 
 	t := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
@@ -92,7 +91,7 @@ func (client *Segment) TrackInfo(eventName EventType, eventInfo interface{}) *an
 		log.Debugf("segment track error %v", err)
 		return nil
 	}
-	log.Debugf("segment tracked %s", eventName)
+	log.Debugf("segment tracked %s", eventInfo.EventName)
 
 	return &t
 }
@@ -112,11 +111,19 @@ func toMap(f interface{}) map[string]interface{} {
 }
 
 type EventInfo struct {
-	Detail string
+	EventName      types.EventType
+	Detail         string
+	AdditionalInfo map[string]interface{} `json:"-"`
 }
 
-func NewEventInfo(detail string) *EventInfo {
+func NewEventInfo(eventType types.EventType, detail string) *EventInfo {
 	return &EventInfo{
-		Detail: detail,
+		eventType,
+		detail,
+		make(map[string]interface{}),
 	}
+}
+
+func (e *EventInfo) WithAdditionalInfo(k string, v interface{}) {
+	e.AdditionalInfo[k] = v
 }

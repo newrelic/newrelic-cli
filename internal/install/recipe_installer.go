@@ -11,14 +11,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"golang.org/x/net/http/httpproxy"
-
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
+	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
@@ -57,7 +56,7 @@ type RecipeInstall struct {
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
+func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, sg *segment.Segment) *RecipeInstall {
 	var recipeFetcher recipes.RecipeFetcher
 
 	if ic.LocalRecipes != "" {
@@ -77,10 +76,12 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
+		execution.NewSegmentReporter(sg),
 	}
 	lkf := NewServiceLicenseKeyFetcher(config.DefaultMaxTimeoutSeconds)
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ic, ers, slg)
+	sg.SetInstallID(statusRollup.InstallID)
 
 	d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
@@ -229,7 +230,7 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 
 	err = i.connectToPlatform()
 	if err != nil {
-		i.status.InstallComplete(diagnose.ConnectionError{Err: err})
+		i.status.InstallComplete(err)
 		return err
 	}
 
@@ -731,26 +732,4 @@ func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
 		i.recipeLogForwarder.SendLogsToNewRelic(recipeName, i.recipeExecutor.GetRecipeOutput())
 		i.progressIndicator.Success("Complete!")
 	}
-}
-
-func checkNetwork(nrClient *newrelic.NewRelic) error {
-	err := nrClient.TestEndpoints()
-	if err != nil {
-		if IsProxyConfigured() {
-			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
-			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
-			log.Warn("Current proxy config:")
-			proxyConfig := httpproxy.FromEnvironment()
-			log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
-			log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
-			log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
-		} else {
-			log.Warn("Failed to connect to the New Relic platform.")
-			log.Warn("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again.")
-		}
-		log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
-		log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
-	}
-
-	return err
 }

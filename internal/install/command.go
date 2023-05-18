@@ -3,10 +3,10 @@ package install
 import (
 	"fmt"
 	"os"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
@@ -27,10 +27,6 @@ var (
 	tags         []string
 )
 
-// Unable to force segement to flush, required to wait for internal loop to run
-// TODO: Revisit in the future, prefer not forcing user to wait when not needed
-const segmentFlushWaitInSec = 5
-
 // Command represents the install command.
 var Command = &cobra.Command{
 	Use:    "install",
@@ -48,29 +44,20 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		err := assertProfileIsValid(config.DefaultMaxTimeoutSeconds)
-		if err != nil {
-			log.Fatal(err)
-			return nil
+		sg := initSegment()
+		defer sg.Close()
+		sg.Track(types.EventTypes.InstallStarted)
+		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
+
+		if detailErr != nil {
+			log.Fatal(detailErr)
 		}
 
 		// Reinitialize client, overriding fetched values
-		c, err := client.NewClient(configAPI.GetActiveProfileName())
-		if err != nil {
-			// An error was encountered initializing the client.  This may not be a
-			// problem since many commands don't require the use of an initialized client			sg := initSegment()
-			sg := initSegment()
-			defer func() {
-				time.Sleep(segmentFlushWaitInSec * time.Second)
-				sg.Close()
-			}()
-			log.Debugf("error initializing client: %s", err)
-			sg.TrackInfo(segment.EventTypes.UnableToOverrideClient, segment.NewEventInfo(err.Error()))
-		}
-
+		c, _ := client.NewClient(configAPI.GetActiveProfileName())
 		client.NRClient = c
 
-		i := NewRecipeInstaller(ic, client.NRClient)
+		i := NewRecipeInstaller(ic, c, sg)
 
 		// Run the install.
 		if err := i.Install(); err != nil {
@@ -102,6 +89,15 @@ var Command = &cobra.Command{
 	},
 }
 
+func init() {
+	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
+	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
+	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
+	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
+	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
+	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
+}
+
 func initSegment() *segment.Segment {
 	accountID := configAPI.GetActiveProfileAccountID()
 	region := configAPI.GetActiveProfileString(config.Region)
@@ -115,52 +111,52 @@ func initSegment() *segment.Segment {
 	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
-func assertProfileIsValid(maxTimeoutSeconds int) error {
-
+func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailError {
+	accountID := configAPI.GetActiveProfileAccountID()
+	APIKey := configAPI.GetActiveProfileString(config.APIKey)
+	region := configAPI.GetActiveProfileString(config.Region)
 	errorOccured := false
+	var detailErr *types.DetailError
 
-	sg := initSegment()
 	defer func() {
 		if errorOccured {
-			time.Sleep(segmentFlushWaitInSec * time.Second)
+			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
+			sg.TrackInfo(ei)
+			sg.Close()
 		}
-		sg.Close()
 	}()
-
-	accountID := configAPI.GetActiveProfileAccountID()
-	sg.Track(segment.EventTypes.InstallStarted)
 
 	if accountID == 0 {
 		errorOccured = true
-		sg.Track(segment.EventTypes.AccountIDMissing)
-		return fmt.Errorf("accountID is required")
+		detailErr = types.NewDetailError(types.EventTypes.AccountIDMissing, "account ID is required")
+		return detailErr
 	}
 
-	if configAPI.GetActiveProfileString(config.APIKey) == "" {
+	if APIKey == "" {
 		errorOccured = true
-		sg.Track(segment.EventTypes.APIKeyMissing)
-		return fmt.Errorf("API key is required")
+		detailErr = types.NewDetailError(types.EventTypes.APIKeyMissing, "API key is required")
+		return detailErr
 	}
 
-	if configAPI.GetActiveProfileString(config.Region) == "" {
+	if region == "" {
 		errorOccured = true
-		sg.Track(segment.EventTypes.RegionMissing)
-		return fmt.Errorf("region is required")
+		detailErr = types.NewDetailError(types.EventTypes.RegionMissing, "region is required")
+		return detailErr
 	}
 
-	if err := checkNetwork(client.NRClient); err != nil {
+	if err := checkNetwork(); err != nil {
 		errorOccured = true
-		sg.Track(segment.EventTypes.UnableToConnect)
-		return err
+		detailErr = types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
+		return detailErr
 	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
 		errorOccured = true
-		sg.TrackInfo(segment.EventTypes.UnableToFetchLicenseKey, segment.NewEventInfo(err.Error()))
-		return fmt.Errorf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+		details := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+		detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, details)
+		return detailErr
 	}
-	sg.Track(segment.EventTypes.LicenseKeyFetchedOk)
 
 	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
@@ -170,11 +166,29 @@ func assertProfileIsValid(maxTimeoutSeconds int) error {
 	return nil
 }
 
-func init() {
-	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
-	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
-	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
-	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
-	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
-	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
+func checkNetwork() error {
+
+	if client.NRClient == nil {
+		return nil
+	}
+
+	err := client.NRClient.TestEndpoints()
+	if err != nil {
+		if IsProxyConfigured() {
+			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
+			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
+			log.Warn("Current proxy config:")
+			proxyConfig := httpproxy.FromEnvironment()
+			log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
+			log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
+			log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
+		} else {
+			log.Warn("Failed to connect to the New Relic platform.")
+			log.Warn("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again.")
+		}
+		log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
+		log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
+	}
+
+	return err
 }
