@@ -121,6 +121,19 @@ func TestSegmentReporter_InstallCompletedShouldReportOther(t *testing.T) {
 	// require.Equal(t, "unregonized error some detail", previousMessage.Properties["Detail"])
 }
 
+func TestSegmentReporter_ShouldNoOp(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
+
+	r := NewSegmentReporter(nil)
+	require.NotNil(t, r)
+
+	slg := NewMockPlatformLinkGenerator()
+	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
+
+	err := r.InstallStarted(status)
+	require.NoError(t, err)
+}
+
 func initSegmentMockServer() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)

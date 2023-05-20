@@ -1,6 +1,8 @@
 package execution
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
@@ -10,55 +12,55 @@ type SegmentReporter struct {
 }
 
 func NewSegmentReporter(sg *segment.Segment) *SegmentReporter {
+	if sg == nil {
+		log.Debugf("Segment reporter init with no-op")
+		sg = segment.NewNoOp()
+	}
 	r := SegmentReporter{sg}
 	return &r
 }
 
-func (r SegmentReporter) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeDetected(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeFailed(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeInstalling(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeInstalled(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeSkipped(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeRecommended(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
+func (r *SegmentReporter) RecipesSelected(status *InstallStatus, recipes []types.OpenInstallationRecipe) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeAvailable(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeAvailable(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeCanceled(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) InstallStarted(status *InstallStatus) error {
+func (r *SegmentReporter) InstallStarted(status *InstallStatus) error {
 	return nil
 }
 
-func (r SegmentReporter) InstallComplete(status *InstallStatus) error {
-	if r.sg == nil {
-		return nil
-	}
-
+func (r *SegmentReporter) InstallComplete(status *InstallStatus) error {
 	if status.Error.Message != "" {
 		et, ok := types.TryParseEventType(status.Error.Message)
 		if ok {
@@ -76,7 +78,7 @@ func (r SegmentReporter) InstallComplete(status *InstallStatus) error {
 	return nil
 }
 
-func (r SegmentReporter) InstallCanceled(status *InstallStatus) error {
+func (r *SegmentReporter) InstallCanceled(status *InstallStatus) error {
 	ei := buildInstallCompleteEvent(status, types.EventTypes.InstallCancelled)
 	r.sg.TrackInfo(ei)
 	return nil
@@ -100,18 +102,15 @@ func buildInstallCompleteEvent(status *InstallStatus, et types.EventType) *segme
 	return ei
 }
 
-func (r SegmentReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
-	if r.sg == nil {
-		return nil
-	}
+func (r *SegmentReporter) DiscoveryComplete(status *InstallStatus, dm types.DiscoveryManifest) error {
 	r.sg.Track(types.EventTypes.LicenseKeyFetchedOk)
 	return nil
 }
 
-func (r SegmentReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
+func (r *SegmentReporter) RecipeUnsupported(status *InstallStatus, event RecipeStatusEvent) error {
 	return nil
 }
 
-func (r SegmentReporter) UpdateRequired(status *InstallStatus) error {
+func (r *SegmentReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
 }

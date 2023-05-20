@@ -29,21 +29,19 @@ func New(writeKey string, accountID int, region string, isProxyConfigured bool) 
 	return NewWithURL("https://api.segment.io/v1/track", writeKey, accountID, region, isProxyConfigured)
 }
 
+func NewNoOp() *Segment {
+	return New("", 0, "", false)
+}
+
 func NewWithURL(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
 	return &Segment{url, &http.Client{}, accountID, region, "", isProxyConfigured, writeKey}
 }
 
 func (client *Segment) SetInstallID(i string) {
-	if client == nil {
-		return
-	}
 	client.installID = i
 }
 
 func (client *Segment) Track(eventName types.EventType) *analytics.Track {
-	if client == nil {
-		return nil
-	}
 	return client.TrackInfo(NewEventInfo(eventName, ""))
 }
 
