@@ -13,25 +13,25 @@ import (
 func TestClientShouldInit(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
+	baseURL := server.URL
 	accoundID := 12345
 	region := "STAGING"
 	writeKey := "secretWriteKey"
 
-	c := NewWithUrl(baseUrl, writeKey, accoundID, region, false)
+	c := NewWithUrl(baseURL, writeKey, accoundID, region, false)
 	assert.NotNil(t, c, "Segment client should create, and not return nil")
 }
 
 func TestClientShouldTrack(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
+	baseURL := server.URL
 	accoundID := 12345
 	region := "STAGING"
 	writeKey := "secretWriteKey"
 	installID := "installID123"
 
-	c := NewWithUrl(baseUrl, writeKey, accoundID, region, true)
+	c := NewWithUrl(baseURL, writeKey, accoundID, region, true)
 	c.SetInstallID(installID)
 	tResult := c.Track(types.EventTypes.APIKeyMissing)
 	userID, _ := strconv.Atoi(tResult.UserId)
@@ -47,14 +47,14 @@ func TestClientShouldTrack(t *testing.T) {
 func TestClientShouldTrackInfo(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
+	baseURL := server.URL
 	accoundID := 12345
 	region := "STAGING"
 	writeKey := "secretWriteKey"
 
 	ei := NewEventInfo(types.EventTypes.OtherError, "hello world")
 
-	c := NewWithUrl(baseUrl, writeKey, accoundID, region, true)
+	c := NewWithUrl(baseURL, writeKey, accoundID, region, true)
 	tResult := c.TrackInfo(ei)
 
 	assert.Equal(t, "hello world", tResult.Properties["Detail"])

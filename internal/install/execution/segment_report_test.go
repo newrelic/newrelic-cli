@@ -21,8 +21,8 @@ func TestSegmentReporter_InstallStartedShouldHaveNoError(t *testing.T) {
 
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
-	c := segment.NewWithUrl(baseUrl, writeKey, accoundID, region, isProxy)
+	baseURL := server.URL
+	c := segment.NewWithUrl(baseURL, writeKey, accoundID, region, isProxy)
 	r := NewSegmentReporter(c)
 	require.NotNil(t, r)
 
@@ -41,8 +41,8 @@ func TestSegmentReporter_WithNilSegmentClientShouldThrowNoError(t *testing.T) {
 
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
-	c := segment.NewWithUrl(baseUrl, writeKey, accoundID, region, isProxy)
+	baseURL := server.URL
+	c := segment.NewWithUrl(baseURL, writeKey, accoundID, region, isProxy)
 
 	r := NewSegmentReporter(c)
 	require.NotNil(t, r)
@@ -63,8 +63,8 @@ func TestSegmentReporter_InstallCompletedShouldReport(t *testing.T) {
 
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
-	c := segment.NewWithUrl(baseUrl, writeKey, accoundID, region, isProxy)
+	baseURL := server.URL
+	c := segment.NewWithUrl(baseURL, writeKey, accoundID, region, isProxy)
 	r := NewSegmentReporter(c)
 	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
@@ -102,8 +102,8 @@ func TestSegmentReporter_InstallCompletedShouldReportOther(t *testing.T) {
 
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseUrl := server.URL
-	c := segment.NewWithUrl(baseUrl, writeKey, accoundID, region, isProxy)
+	baseURL := server.URL
+	c := segment.NewWithUrl(baseURL, writeKey, accoundID, region, isProxy)
 	r := NewSegmentReporter(c)
 	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
