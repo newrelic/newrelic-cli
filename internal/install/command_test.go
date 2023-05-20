@@ -34,7 +34,7 @@ func TestCommandValiProfile(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
 	baseURL := server.URL
-	c := segment.NewWithUrl(baseURL, writeKey, getAccountIdAsInt(accountID), region, isProxy)
+	c := segment.NewWithURL(baseURL, writeKey, getAccountIDAsInt(accountID), region, isProxy)
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
 	err := validateProfile(5, c)
@@ -73,7 +73,7 @@ func initSegmentMockServer() *httptest.Server {
 	return server
 }
 
-func getAccountIdAsInt(accountId string) int {
-	i, _ := strconv.Atoi(accountId)
+func getAccountIDAsInt(accountID string) int {
+	i, _ := strconv.Atoi(accountID)
 	return i
 }

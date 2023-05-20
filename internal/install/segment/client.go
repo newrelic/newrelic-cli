@@ -9,9 +9,10 @@ import (
 
 	"gopkg.in/segmentio/analytics-go.v3"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	log "github.com/sirupsen/logrus"
 )
 
 type Segment struct {
@@ -25,10 +26,10 @@ type Segment struct {
 }
 
 func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
-	return NewWithUrl("https://api.segment.io/v1/track", writeKey, accountID, region, isProxyConfigured)
+	return NewWithURL("https://api.segment.io/v1/track", writeKey, accountID, region, isProxyConfigured)
 }
 
-func NewWithUrl(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
+func NewWithURL(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
 	return &Segment{url, &http.Client{}, accountID, region, "", isProxyConfigured, writeKey}
 }
 
@@ -47,6 +48,9 @@ func (client *Segment) Track(eventName types.EventType) *analytics.Track {
 }
 
 func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
+	if client.writeKey == "" {
+		return nil
+	}
 
 	properties := toMap(eventInfo)
 
