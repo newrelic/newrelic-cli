@@ -75,6 +75,22 @@ func TestClientShouldNotTrackWhenNoWriteKey(t *testing.T) {
 	assert.Nil(t, result, "should do nothing when no writeKey")
 }
 
+func TestClientShouldNotErrorOnRequest(t *testing.T) {
+	server := initSegmentMockServer()
+	defer server.Close()
+	baseURL := "not a valid URL"
+	accoundID := 12345
+	region := "STAGING"
+	writeKey := "secretWriteKey"
+
+	ei := NewEventInfo(types.EventTypes.OtherError, "hello world")
+
+	c := NewWithURL(baseURL, writeKey, accoundID, region, true)
+	tResult := c.TrackInfo(ei)
+
+	assert.Nil(t, tResult, "http error should not track and panic")
+}
+
 func initSegmentMockServer() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)

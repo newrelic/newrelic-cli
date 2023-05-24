@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"fmt"
 
@@ -34,7 +35,10 @@ func NewNoOp() *Segment {
 }
 
 func NewWithURL(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
-	return &Segment{url, &http.Client{}, accountID, region, "", isProxyConfigured, writeKey}
+	timeout := 5 * time.Second
+	return &Segment{url, &http.Client{
+		Timeout: timeout,
+	}, accountID, region, "", isProxyConfigured, writeKey}
 }
 
 func (client *Segment) SetInstallID(i string) {
