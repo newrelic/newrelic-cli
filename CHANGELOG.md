@@ -1,5 +1,10 @@
+<a name="v0.68.8"></a>
+## [v0.68.8] - 2023-05-24
+### Bug Fixes
+- **install:** swap segment client to use http api ([#1467](https://github.com/newrelic/newrelic-cli/issues/1467))
+
 <a name="v0.68.7"></a>
-## [v0.68.7] - 0001-01-01
+## [v0.68.7] - 2023-05-18
 <a name="v0.68.6"></a>
 ## [v0.68.6] - 2023-05-18
 <a name="v0.68.5"></a>
@@ -2037,7 +2042,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.8...HEAD
+[v0.68.8]: https://github.com/newrelic/newrelic-cli/compare/v0.68.7...v0.68.8
 [v0.68.7]: https://github.com/newrelic/newrelic-cli/compare/v0.68.6...v0.68.7
 [v0.68.6]: https://github.com/newrelic/newrelic-cli/compare/v0.68.5...v0.68.6
 [v0.68.5]: https://github.com/newrelic/newrelic-cli/compare/v0.68.4...v0.68.5
