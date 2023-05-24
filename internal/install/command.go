@@ -45,7 +45,6 @@ var Command = &cobra.Command{
 		config.InitFileLogger(logLevel)
 
 		sg := initSegment()
-		defer sg.Close()
 		sg.Track(types.EventTypes.InstallStarted)
 		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
 
@@ -122,7 +121,6 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 		if errorOccured {
 			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
 			sg.TrackInfo(ei)
-			sg.Close()
 		}
 	}()
 

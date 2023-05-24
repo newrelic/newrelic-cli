@@ -1,66 +1,56 @@
 package segment
 
 import (
+	"bytes"
 	"encoding/json"
-	"fmt"
+	"net/http"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"fmt"
+
 	"gopkg.in/segmentio/analytics-go.v3"
 
-	"github.com/newrelic/newrelic-cli/internal/install/types"
-)
+	log "github.com/sirupsen/logrus"
 
-const (
-	// Unable to force segement to flush, required to wait for internal loop to run
-	// TODO: Revisit in the future, prefer not forcing user to wait when not needed
-	segmentFlushWait = 5 * time.Second
+	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 type Segment struct {
-	analytics.Client
+	url               string
+	httpClient        *http.Client
 	accountID         int
 	region            string
 	installID         string
 	isProxyConfigured bool
+	writeKey          string
 }
 
 func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
-
-	client := analytics.New(writeKey)
-
-	return NewWithClient(client, accountID, region, isProxyConfigured)
+	return NewWithURL("https://api.segment.io/v1/track", writeKey, accountID, region, isProxyConfigured)
 }
 
-func NewWithClient(client analytics.Client, accountID int, region string, isProxyConfigured bool) *Segment {
-	return &Segment{client, accountID, region, "", isProxyConfigured}
+func NewNoOp() *Segment {
+	return New("", 0, "", false)
+}
+
+func NewWithURL(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
+	timeout := 5 * time.Second
+	return &Segment{url, &http.Client{
+		Timeout: timeout,
+	}, accountID, region, "", isProxyConfigured, writeKey}
 }
 
 func (client *Segment) SetInstallID(i string) {
-	if client == nil {
-		return
-	}
 	client.installID = i
 }
 
-func (client *Segment) Close() {
-	if client == nil {
-		return
-	}
-	time.Sleep(segmentFlushWait)
-	client.Client.Close()
-}
-
 func (client *Segment) Track(eventName types.EventType) *analytics.Track {
-	if client == nil {
-		return nil
-	}
 	return client.TrackInfo(NewEventInfo(eventName, ""))
 }
 
 func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
-
-	if client == nil {
+	if client.writeKey == "" {
 		return nil
 	}
 
@@ -77,7 +67,7 @@ func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 		properties[k] = v
 	}
 
-	t := analytics.Track{
+	item := analytics.Track{
 		UserId:     fmt.Sprintf("%d", client.accountID),
 		Event:      "newrelic_cli",
 		Properties: properties,
@@ -85,7 +75,28 @@ func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 			"All": true,
 		}}
 
-	err := client.Enqueue(t)
+	jsonData, err := json.Marshal(item)
+	if err != nil {
+		log.Debugf("segment track error %v", err)
+		return nil
+	}
+
+	request, err := http.NewRequest("POST", client.url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Debugf("segment track error %v", err)
+		return nil
+	}
+
+	encoded := encodeSegmentWriteKey(client.writeKey)
+	authToken := fmt.Sprintf("Basic %s", encoded)
+	request.Header.Set("Authorization", authToken)
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	response, err := client.httpClient.Do(request)
+	if err != nil {
+		log.Debugf("segment track error %v", err)
+		return nil
+	}
+	defer response.Body.Close()
 
 	if err != nil {
 		log.Debugf("segment track error %v", err)
@@ -93,7 +104,13 @@ func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 	}
 	log.Debugf("segment tracked %s", eventInfo.EventName)
 
-	return &t
+	return &item
+}
+
+func encodeSegmentWriteKey(writeKey string) string {
+	format := fmt.Sprintf("%s:", writeKey)
+	encoded := utils.Base64Encode(format)
+	return encoded
 }
 
 func toMap(f interface{}) map[string]interface{} {
