@@ -168,6 +168,33 @@ func TestInstallGuidedShouldNotSkipCoreInstall(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe2 Installed")
 }
+func TestInstallGuidedShouldSkipOTEL(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.OTELRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Infra Installed")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r2.Recipe.Name], "OTEL Installed")
+}
 
 func TestInstallGuidedCoreShouldStopOnError(t *testing.T) {
 	installErr := errors.New("Install Error")
@@ -226,6 +253,29 @@ func TestInstallTargetedInstallShouldInstallWithRecomendataion(t *testing.T) {
 	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
 	assert.Equal(t, 1, statusReporter.ReportRecommended[r2.Recipe.Name], "Recipe2 Recommended")
+}
+
+func TestInstallTargetedShouldNotSkipOTEL(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.OTELRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(types.OTELRecipeName).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+	err := recipeInstall.Install()
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "OTEL Installed")
 }
 
 func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
