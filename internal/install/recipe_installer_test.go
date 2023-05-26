@@ -721,6 +721,66 @@ func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
 	}
 }
 
+func TestGuidedInstallShouldNotHaveRecommendationss(t *testing.T) {
+	avaliableRecipes := recipes.RecipeDetectionResults{
+		&recipes.RecipeDetectionResult{
+			Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+			Status: execution.RecipeStatusTypes.AVAILABLE,
+		},
+	}
+
+	ri := NewRecipeInstallBuilder().Build()
+	recommendations := ri.getRecipeRecommendations(avaliableRecipes)
+
+	assert.Empty(t, recommendations, "Guided install should return no recommendations")
+}
+
+func TestTargetInstallShouldHaveRecommendationss(t *testing.T) {
+	avaliableRecipes := recipes.RecipeDetectionResults{
+		&recipes.RecipeDetectionResult{
+			Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+			Status: execution.RecipeStatusTypes.AVAILABLE,
+		},
+		&recipes.RecipeDetectionResult{
+			Recipe: recipes.NewRecipeBuilder().Name("recipe2").Build(),
+			Status: execution.RecipeStatusTypes.AVAILABLE,
+		},
+		&recipes.RecipeDetectionResult{
+			Recipe: recipes.NewRecipeBuilder().Name("recipe3").Build(),
+			Status: execution.RecipeStatusTypes.AVAILABLE,
+		},
+		&recipes.RecipeDetectionResult{
+			Recipe: recipes.NewRecipeBuilder().Name("recipe4").Build(),
+			Status: execution.RecipeStatusTypes.AVAILABLE,
+		},
+	}
+	ri := NewRecipeInstallBuilder().WithTargetRecipeName("target-recipe").
+		WithRecipeStatus(
+			&execution.RecipeStatus{
+				Name:   "recipe1",
+				Status: execution.RecipeStatusTypes.AVAILABLE,
+			},
+			&execution.RecipeStatus{
+				Name:   "recipe2",
+				Status: execution.RecipeStatusTypes.FAILED,
+			},
+			&execution.RecipeStatus{
+				Name:   "recipe3",
+				Status: execution.RecipeStatusTypes.INSTALLED,
+			},
+			&execution.RecipeStatus{
+				Name:   "recipe4",
+				Status: execution.RecipeStatusTypes.CANCELED,
+			},
+		).Build()
+
+	recommendations := ri.getRecipeRecommendations(avaliableRecipes)
+
+	assert.NotEmpty(t, recommendations, "Should return some recommendations")
+	assert.Equal(t, 1, len(recommendations), "Should return one recommendations")
+	assert.Equal(t, "recipe1", recommendations[0].Recipe.Name, "Should return one recommendations")
+}
+
 func captureLoggingOutput(f func()) string {
 	var buf bytes.Buffer
 	existingLogger := config.Logger

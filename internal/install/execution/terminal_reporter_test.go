@@ -163,18 +163,26 @@ func TestTerminalStatusReporter_ShouldNotIncludeDetectedRecipeInSummary(t *testi
 		DisplayName: "Test Recipe Detected",
 		Status:      RecipeStatusTypes.DETECTED,
 	}
+	recipeCanceled := &RecipeStatus{
+		Name:        "test-recipe-canceld",
+		DisplayName: "Test Recipe Canceled",
+		Status:      RecipeStatusTypes.CANCELED,
+	}
 
 	status.Statuses = []*RecipeStatus{
 		recipeInstalled,
 		recipeDetected,
+		recipeCanceled,
 	}
 
 	expected := []*RecipeStatus{
 		recipeInstalled,
+		recipeCanceled,
 	}
 
 	recipesToSummarize := r.getRecipesStatusesForInstallationSummary(status)
 
 	require.Equal(t, len(expected), len(recipesToSummarize))
 	require.Equal(t, expected[0].Name, recipesToSummarize[0].Name)
+	require.Equal(t, expected[1].Name, recipesToSummarize[1].Name)
 }

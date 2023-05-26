@@ -79,9 +79,6 @@ func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.CANCELED) {
-		return nil
-	}
 
 	linkToData := ""
 	if status.PlatformLinkGenerator != nil {
@@ -176,6 +173,10 @@ func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) 
 
 		if s.Status == RecipeStatusTypes.FAILED {
 			statusSuffix = color.YellowString("incomplete")
+		}
+
+		if s.Status == RecipeStatusTypes.CANCELED {
+			statusSuffix = color.YellowString(statusSuffix)
 		}
 
 		if s.Status == RecipeStatusTypes.UNSUPPORTED {
