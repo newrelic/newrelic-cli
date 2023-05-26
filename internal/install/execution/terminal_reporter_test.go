@@ -1,9 +1,8 @@
-//go:build unit
-// +build unit
-
 package execution
 
 import (
+	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -185,4 +184,41 @@ func TestTerminalStatusReporter_ShouldNotIncludeDetectedRecipeInSummary(t *testi
 	require.Equal(t, len(expected), len(recipesToSummarize))
 	require.Equal(t, expected[0].Name, recipesToSummarize[0].Name)
 	require.Equal(t, expected[1].Name, recipesToSummarize[1].Name)
+}
+
+func TestPrintInstallationSummaryShouldPrint(t *testing.T) {
+
+	r := NewTerminalStatusReporter()
+	var output bytes.Buffer
+
+	status := &InstallStatus{}
+	recipeInstalled := &RecipeStatus{
+		Name:        "test-recipe-installed",
+		DisplayName: "Test Recipe Installed",
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+	recipeDetected := &RecipeStatus{
+		Name:        "test-recipe-detected",
+		DisplayName: "Test Recipe Detected",
+		Status:      RecipeStatusTypes.DETECTED,
+	}
+	recipeCanceled := &RecipeStatus{
+		Name:        "test-recipe-canceld",
+		DisplayName: "Test Recipe Canceled",
+		Status:      RecipeStatusTypes.CANCELED,
+	}
+
+	status.Statuses = []*RecipeStatus{
+		recipeInstalled,
+		recipeDetected,
+		recipeCanceled,
+	}
+
+	r.printInstallationSummary(&output, status)
+	s := output.String()
+	fmt.Print(s)
+
+	require.Contains(t, s, "Test Recipe Installed  (installed)")
+	require.NotContains(t, s, "Detected")
+	require.Contains(t, s, "Test Recipe Canceled  (canceled)")
 }
