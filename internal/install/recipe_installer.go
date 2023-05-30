@@ -312,6 +312,17 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return err
 	}
 
+	isTargetedInstall := i.RecipeNamesProvided() && len(i.RecipeNames) > 0
+	if !isTargetedInstall {
+		availableRecipesMinusExclusions := recipes.RecipeDetectionResults{}
+		for _, ar := range availableRecipes {
+			if ar.Recipe.Name != types.OTELRecipeName {
+				availableRecipesMinusExclusions = append(availableRecipesMinusExclusions, ar)
+			}
+		}
+		availableRecipes = availableRecipesMinusExclusions
+	}
+
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
 
 	if len(availableRecipes) == 0 && !i.RecipeNamesProvided() {
