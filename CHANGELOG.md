@@ -1,3 +1,9 @@
+<a name="v0.68.11"></a>
+## [v0.68.11] - 2023-05-30
+### Bug Fixes
+- **install:** Segment complete report and nil error when segment file missing ([#1472](https://github.com/newrelic/newrelic-cli/issues/1472))
+- **install:** Incorrect final recipe status if cancel during target install ([#1471](https://github.com/newrelic/newrelic-cli/issues/1471))
+
 <a name="v0.68.10"></a>
 ## [v0.68.10] - 2023-05-24
 <a name="v0.68.9"></a>
@@ -2046,7 +2052,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.10...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.11...HEAD
+[v0.68.11]: https://github.com/newrelic/newrelic-cli/compare/v0.68.10...v0.68.11
 [v0.68.10]: https://github.com/newrelic/newrelic-cli/compare/v0.68.9...v0.68.10
 [v0.68.9]: https://github.com/newrelic/newrelic-cli/compare/v0.68.8...v0.68.9
 [v0.68.8]: https://github.com/newrelic/newrelic-cli/compare/v0.68.7...v0.68.8
