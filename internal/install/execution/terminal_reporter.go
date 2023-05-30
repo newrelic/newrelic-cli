@@ -2,6 +2,8 @@ package execution
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/fatih/color"
@@ -79,9 +81,6 @@ func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
-	if status.hasAnyRecipeStatus(RecipeStatusTypes.CANCELED) {
-		return nil
-	}
 
 	linkToData := ""
 	if status.PlatformLinkGenerator != nil {
@@ -99,7 +98,7 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 		fmt.Println("  --------------------")
 		fmt.Println("  Installation Summary")
 		fmt.Println("")
-		r.printInstallationSummary(status)
+		r.printInstallationSummary(os.Stdout, status)
 
 		msg := "View your data at the link below:\n"
 		followInstructionsMsg := "Follow the instructions at the URL below to complete the installation process."
@@ -164,7 +163,7 @@ func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 	}
 }
 
-func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) {
+func (r TerminalStatusReporter) printInstallationSummary(w io.Writer, status *InstallStatus) {
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statusesToDisplay {
@@ -178,11 +177,15 @@ func (r TerminalStatusReporter) printInstallationSummary(status *InstallStatus) 
 			statusSuffix = color.YellowString("incomplete")
 		}
 
+		if s.Status == RecipeStatusTypes.CANCELED {
+			statusSuffix = color.YellowString(statusSuffix)
+		}
+
 		if s.Status == RecipeStatusTypes.UNSUPPORTED {
 			statusSuffix = color.RedString(statusSuffix)
 		}
 
-		fmt.Printf("  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
+		fmt.Fprintf(w, "  %s  %s  (%s)  \n", StatusIconMap[s.Status], s.DisplayName, statusSuffix)
 	}
 }
 

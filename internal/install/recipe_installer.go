@@ -382,8 +382,9 @@ func (i *RecipeInstall) getRecipeRecommendations(availableRecipes recipes.Recipe
 			installed := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.INSTALLED)
 			failed := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.FAILED)
 			unsupported := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.UNSUPPORTED)
+			canceled := i.status.RecipeHasStatus(recipeName, execution.RecipeStatusTypes.CANCELED)
 
-			if installed || failed || unsupported {
+			if installed || failed || unsupported || canceled {
 				continue
 			}
 			e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
@@ -715,6 +716,7 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		case err := <-errorChan:
 			if errors.Is(err, types.ErrInterrupt) {
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
+				i.status.RecipeCanceled(execution.RecipeStatusEvent{Recipe: *r})
 			} else {
 				// progressIndicator has already been called; we need to finish i.e. message about logs being sent
 				// and actually post logs to NR if the user has opted-in

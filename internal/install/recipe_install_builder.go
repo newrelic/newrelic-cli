@@ -73,8 +73,10 @@ func (rib *RecipeInstallBuilder) WithFetchRecipesVal(fetchRecipesVal []*types.Op
 	return rib
 }
 
-func (rib *RecipeInstallBuilder) WithRecipeDetectionResult(detectionResult *recipes.RecipeDetectionResult) *RecipeInstallBuilder {
-	rib.recipeDetector.AddRecipeDetectionResult(detectionResult)
+func (rib *RecipeInstallBuilder) WithRecipeDetectionResult(detectionResults ...*recipes.RecipeDetectionResult) *RecipeInstallBuilder {
+	for _, detectionResult := range detectionResults {
+		rib.recipeDetector.AddRecipeDetectionResult(detectionResult)
+	}
 	return rib
 }
 
@@ -92,6 +94,11 @@ func (rib *RecipeInstallBuilder) WithConfigValidatorError(err error) *RecipeInst
 
 func (rib *RecipeInstallBuilder) WithDiscovererError(err error) *RecipeInstallBuilder {
 	rib.discoverer.Error = err
+	return rib
+}
+
+func (rib *RecipeInstallBuilder) WithRecipeStatus(rss ...*execution.RecipeStatus) *RecipeInstallBuilder {
+	rib.status.Statuses = append(rib.status.Statuses, rss...)
 	return rib
 }
 
