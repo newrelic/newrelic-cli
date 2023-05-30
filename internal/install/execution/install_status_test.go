@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package execution
 
 import (
@@ -189,11 +186,16 @@ func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	recipeCanceled := types.OpenInstallationRecipe{Name: "installing"}
 	canceledRecipeEvent := RecipeStatusEvent{Recipe: recipeCanceled, EntityGUID: "erroredGUID"}
 
+	recipeUnsupporteded := types.OpenInstallationRecipe{Name: "unsupported"}
+	unsupportRecipeEvent := RecipeStatusEvent{Recipe: recipeUnsupporteded, EntityGUID: "erroredGUID"}
+
 	s.RecipeAvailable(NewRecipeStatusEvent(&recipeInstalled))
 	s.RecipeInstalling(canceledRecipeEvent)
+	s.RecipeDetected(installedRecipeEvent)
 	s.RecipeInstalled(installedRecipeEvent)
 	s.RecipeSkipped(skippedRecipeEvent)
 	s.RecipeFailed(erroredRecipeEvent)
+	s.RecipeUnsupported(unsupportRecipeEvent)
 
 	s.InstallCanceled()
 
@@ -201,6 +203,11 @@ func TestInstallStatus_multipleRecipeStatuses(t *testing.T) {
 	require.True(t, s.HasSkippedRecipes)
 	require.True(t, s.HasCanceledRecipes)
 	require.True(t, s.HasFailedRecipes)
+	require.Equal(t, 1, len(s.Installed), "Install count")
+	require.Equal(t, 1, len(s.Skipped), "Skipped count")
+	require.Equal(t, 1, len(s.Detected), "Detected count")
+	require.Equal(t, 1, len(s.Canceled), "Canceled count")
+	require.Equal(t, 1, len(s.Unsupported), "Unsupported count")
 }
 
 func TestStatus_HTTPSProxy(t *testing.T) {

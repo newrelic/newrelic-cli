@@ -104,7 +104,7 @@ func initSegment() *segment.Segment {
 	writeKey, err := recipes.NewEmbeddedRecipeFetcher().GetSegmentWriteKey()
 	if err != nil {
 		log.Debug("segment: error reading write key, cannot write to segment", err)
-		return nil
+		return segment.NewNoOp()
 	}
 
 	return segment.New(writeKey, accountID, region, isProxyConfigured)

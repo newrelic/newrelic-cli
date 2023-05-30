@@ -85,20 +85,14 @@ func (r *SegmentReporter) InstallCanceled(status *InstallStatus) error {
 }
 
 func buildInstallCompleteEvent(status *InstallStatus, et types.EventType) *segment.EventInfo {
-	m := make(map[string]int)
-	for _, s := range status.Statuses {
-		k := string("count" + s.Status)
-		if v, ok := m[k]; ok {
-			m[k] = v + 1
-		} else {
-			m[k] = 1
-		}
-	}
 
 	ei := segment.NewEventInfo(et, "")
-	for key, v := range m {
-		ei.WithAdditionalInfo(key, v)
-	}
+	ei.WithAdditionalInfo("countDetected", len(status.Detected))
+	ei.WithAdditionalInfo("countSkipped", len(status.Skipped))
+	ei.WithAdditionalInfo("countCanceled", len(status.Canceled))
+	ei.WithAdditionalInfo("countFailed", len(status.Failed))
+	ei.WithAdditionalInfo("countInstalled", len(status.Installed))
+	ei.WithAdditionalInfo("countUnsupported", len(status.Unsupported))
 	return ei
 }
 

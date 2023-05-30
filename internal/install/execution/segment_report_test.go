@@ -134,6 +134,26 @@ func TestSegmentReporter_ShouldNoOp(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSegmentReporter_ShouldBuildCompleteEvent(t *testing.T) {
+	is := InstallStatus{}
+	is.Detected = append(is.Detected, &RecipeStatus{})
+	is.Skipped = append(is.Skipped, &RecipeStatus{})
+	is.Skipped = append(is.Skipped, &RecipeStatus{})
+	is.Canceled = append(is.Canceled, &RecipeStatus{})
+	is.Canceled = append(is.Canceled, &RecipeStatus{})
+	is.Canceled = append(is.Canceled, &RecipeStatus{})
+	is.Failed = append(is.Failed, &RecipeStatus{})
+	is.Installed = append(is.Installed, &RecipeStatus{})
+
+	ei := buildInstallCompleteEvent(&is, types.EventTypes.InstallCompleted)
+	require.Equal(t, 1, ei.AdditionalInfo["countDetected"], "Detect count")
+	require.Equal(t, 2, ei.AdditionalInfo["countSkipped"], "Skipped count")
+	require.Equal(t, 3, ei.AdditionalInfo["countCanceled"], "Canceled count")
+	require.Equal(t, 1, ei.AdditionalInfo["countFailed"], "Failed count")
+	require.Equal(t, 1, ei.AdditionalInfo["countInstalled"], "Installed count")
+	require.Equal(t, 0, ei.AdditionalInfo["countUnsupported"], "Unsupported count")
+}
+
 func initSegmentMockServer() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
