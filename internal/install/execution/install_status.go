@@ -32,10 +32,12 @@ type InstallStatus struct {
 	HasSkippedRecipes     bool                    `json:"hasSkippedRecipes"`
 	HasFailedRecipes      bool                    `json:"hasFailedRecipes"`
 	HasUnsupportedRecipes bool                    `json:"hasUnsupportedRecipes"`
+	Detected              []*RecipeStatus         `json:"recipesDetected"`
 	Skipped               []*RecipeStatus         `json:"recipesSkipped"`
 	Canceled              []*RecipeStatus         `json:"recipesCanceled"`
 	Failed                []*RecipeStatus         `json:"recipesFailed"`
 	Installed             []*RecipeStatus         `json:"recipesInstalled"`
+	Unsupported           []*RecipeStatus         `json:"recipesUnsupported"`
 	RedirectURL           string                  `json:"redirectUrl"`
 	HTTPSProxy            string                  `json:"httpsProxy"`
 	UpdateRequired        bool                    `json:"updateRequired"`
@@ -129,6 +131,12 @@ func (s *InstallStatus) DiscoveryComplete(dm types.DiscoveryManifest) {
 // the process match and the pre-install steps of recipe execution.
 func (s *InstallStatus) RecipeDetected(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.DETECTED)
+	s.Detected = append(s.Detected, &RecipeStatus{
+		Name:        event.Recipe.Name,
+		DisplayName: event.Recipe.DisplayName,
+		Status:      RecipeStatusTypes.DETECTED,
+	})
+
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeDetected(s, event); err != nil {
 			log.Debugf("Could not report recipe execution status: %s", err)
@@ -211,6 +219,11 @@ func (s *InstallStatus) RecipeSkipped(event RecipeStatusEvent) {
 
 func (s *InstallStatus) RecipeUnsupported(event RecipeStatusEvent) {
 	s.withRecipeEvent(event, RecipeStatusTypes.UNSUPPORTED)
+	s.Unsupported = append(s.Unsupported, &RecipeStatus{
+		Name:        event.Recipe.Name,
+		DisplayName: event.Recipe.DisplayName,
+		Status:      RecipeStatusTypes.UNSUPPORTED,
+	})
 
 	for _, r := range s.statusSubscriber {
 		if err := r.RecipeUnsupported(s, event); err != nil {
