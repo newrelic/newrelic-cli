@@ -88,6 +88,13 @@ jobs:
         run: |
           git config --global user.name ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}
           git config --global user.email ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}
+          # Creating the Snapcraft directories ahead of the snapshot is a workaround
+          # to deal with a race condition with parallel builds between distros.
+          #
+          # https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+          make snapshot
 
           ./scripts/release.sh
 
@@ -116,20 +123,6 @@ jobs:
           VERSION=$(ls dist/*Windows_x86_64.zip | cut -d_ -f2)
           rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
           zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip dist/newrelic_windows_amd64_v1/newrelic.exe
-
-      - name: Checkout newrelic-forks/homebrew-core
-        uses: actions/checkout@v3
-        with:
-          repository: newrelic-forks/homebrew-core
-          path: homebrew-core
-          token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-
-      - name: Create homebrew-core pull request
-        shell: bash
-        run: ./scripts/brew_formula_pull_request.sh
-        env:
-          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
-          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
 
       - name: Install aws cli
         run: |

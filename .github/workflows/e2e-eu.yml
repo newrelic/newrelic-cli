@@ -53,21 +53,6 @@ jobs:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
         run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
 
-      - name: Compile all distros
-        continue-on-error: true
-        env:
-          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
-        # Creating the Snapcraft directories ahead of the snapshot is a workaround
-        # to deal with a race condition with parallel builds between distros.
-        #
-        # https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
-        run: |
-          mkdir -p $HOME/.cache/snapcraft/download
-          mkdir -p $HOME/.cache/snapcraft/stage-packages
-          make snapshot
-
       # Inject newrelic cli path to any of the smoke tests
       - name: Add newrelic cli path to smoke tests
         id: add-newrelic-cli-path-smoke-tests
