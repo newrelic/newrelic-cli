@@ -44,6 +44,7 @@ jobs:
 
   release:
     if: github.ref == 'refs/heads/main'
+    name: Release
     needs: test
     runs-on: ubuntu-20.04
     env:
@@ -93,7 +94,9 @@ jobs:
 
           make release-publish
 
-      - uses: actions/upload-artifact@v3
+      # Note the uploaded binary is downloaded and used in the release-windows-installer job
+      - name: Upload Windows binary to GitHub
+        uses: actions/upload-artifact@v3
         with:
           name: windows-binary
           path: dist/newrelic_windows_amd64_v1/newrelic.exe
@@ -117,26 +120,12 @@ jobs:
           rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
           zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip dist/newrelic_windows_amd64_v1/newrelic.exe
 
-      - name: Checkout newrelic-forks/homebrew-core
-        uses: actions/checkout@v3
-        with:
-          repository: newrelic-forks/homebrew-core
-          path: homebrew-core
-          token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-
-      - name: Create homebrew-core pull request
-        shell: bash
-        run: ./scripts/brew_formula_pull_request.sh
-        env:
-          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
-          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
-
       - name: Install aws cli
         run: |
           sudo apt-get update -y
           sudo apt-get install awscli -y
 
-      - name: Write config 1
+      - name: Write AWS config 1
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/credentials
@@ -146,7 +135,7 @@ jobs:
             aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           write-mode: overwrite
 
-      - name: Write config 2
+      - name: Write AWS config 2
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/config
@@ -157,15 +146,16 @@ jobs:
             source_profile = virtuoso_user
           write-mode: overwrite
 
-      - name: Upload install script
+      - name: Upload Unix based install script to AWS
         id: upload-install-script
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
 
-      - id: get-latest-tag
+      - name: Get latest tag
+        id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
 
-      - name: Upload release artifacts
+      - name: Upload release artifacts to AWS
         id: upload-release-artifacts
         run: |
           aws s3 cp --recursive --exclude "*" --include "newrelic-cli_*.txt" --include "newrelic-cli_*.sig" --include "newrelic-cli_*.zip" --include "newrelic-cli_*.gz" --include "newrelic-cli_*.rpm" --include "newrelic-cli_*.deb" --include "newrelic_*" ./dist s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/ --profile virtuoso
@@ -175,84 +165,25 @@ jobs:
           rm -rf /home/runner/.aws/credentials
           rm -rf /home/runner/.aws/config
 
+  create-homebrew-release:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/release-homebrew.yml@main
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+
   release-windows-installer:
-    runs-on: windows-2022
-    needs: release
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.3
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: windows-binary
-          path: .\dist\newrelic_windows_amd64_v1
-
-      - name: Compile installer
-        run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
-
-      - name: Create PFX certificate
-        id: create-pfx
-        env:
-          PFX_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
-        run: |
-          $pfxPath = Join-Path -Path $env:RUNNER_TEMP -ChildPath "cert.pfx";
-          $encodedBytes = [System.Convert]::FromBase64String($env:PFX_CONTENT);
-          Set-Content $pfxPath -Value $encodedBytes -AsByteStream;
-          Write-Output "::set-output name=PFX_PATH::$pfxPath";
-
-      - name: Sign installer
-        env:
-          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
-          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
-        working-directory: .\build\package\msi\NewRelicCLIInstaller
-        run: .\SignMSI.cmd
-
-      - name: Sign install script
-        env:
-          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
-          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
-        working-directory: .\
-        run: .\build\package\msi\NewRelicCLIInstaller\SignPS1.cmd
-
-      - name: Delete PFX certificate
-        env:
-          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
-        run: |
-          Remove-Item -Path $env:PFX_PATH;
-
-      - name: Get latest release upload URL
-        id: get-latest-release-upload-url
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
-
-      - name: Upload Windows installer
-        id: upload-windows-installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-          asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
-          asset_name: NewRelicCLIInstaller.msi
-          asset_content_type: application/octet-stream
-
-      - name: Upload windows install script
-        id: upload-windows-install-script
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-          asset_path: .\scripts\install.ps1
-          asset_name: install.ps1
-          asset_content_type: application/octet-stream
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@main
+    secrets:
+      PFX_BASE64_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+      PFX_CERT_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
   publish:
+    name: Publish Windows Release
     runs-on: ubuntu-20.04
     needs: [release-windows-installer]
     steps:
@@ -288,7 +219,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install awscli -y
 
-      - name: Write config 1
+      - name: Write AWS config 1
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/credentials
@@ -298,7 +229,7 @@ jobs:
             aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           write-mode: overwrite
 
-      - name: Write config 2
+      - name: Write AWS config 2
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: /home/runner/.aws/config
@@ -309,7 +240,8 @@ jobs:
             source_profile = virtuoso_user
           write-mode: overwrite
 
-      - id: get-latest-tag
+      - name: Get latest tag
+        id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
 
       - name: Fetch Github Release Asset - NewRelicCLIInstaller.msi
@@ -330,7 +262,7 @@ jobs:
           target: "./scripts/install.ps1"
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Upload install script to AWS S3
+      - name: Upload Windows install script to AWS S3
         id: upload-install-script-windows
         run: |
           aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
@@ -342,7 +274,7 @@ jobs:
 
       - name: Create currentVersion.txt
         id: create-current-version
-        uses: "finnp/create-file-action@master"
+        uses: "finnp/create-file-action@v1"
         env:
           FILE_NAME: "currentVersion.txt"
           FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
