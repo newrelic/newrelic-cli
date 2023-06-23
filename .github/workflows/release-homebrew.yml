@@ -1,0 +1,47 @@
+name: Release - Homebrew
+
+permissions: write-all
+
+# Release workflow calls this workflow
+on:
+  workflow_call:
+    secrets:
+      RELEASE_TOKEN:
+        required: true
+      DEV_TOOLKIT_TOKEN:
+        required: true
+
+jobs:
+  release-homebrew:
+    name: Create Homebrew Release
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.x
+
+      - name: Add GOBIN to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # Needed for release notes
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: Checkout newrelic-forks/homebrew-core
+        uses: actions/checkout@v3
+        with:
+          repository: newrelic-forks/homebrew-core
+          path: homebrew-core
+          token: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+
+      - name: Create homebrew-core pull request
+        shell: bash
+        run: ./scripts/brew_formula_pull_request.sh
+        env:
+          GH_USER_EMAIL: developer-toolkit-team@newrelic.com
+          GH_USER_NAME: 'New Relic Developer Toolkit Bot'
