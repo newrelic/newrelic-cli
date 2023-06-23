@@ -1,0 +1,94 @@
+name: Release - Windows Installer
+
+permissions: write-all
+
+# Release workflow calls this workflow
+on:
+  workflow_call:
+    secrets:
+      RELEASE_TOKEN:
+        required: true
+      PFX_BASE64_CONTENT:
+        required: true
+      PFX_CERT_PASSWORD:
+        required: true
+
+jobs:
+  release-windows-installer:
+    name: Create Windows Release
+    runs-on: windows-2022
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.3
+
+      - name: Download Windows binary
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-binary
+          path: .\dist\newrelic_windows_amd64_v1
+
+      - name: Compile installer
+        run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
+
+      - name: Create PFX certificate
+        id: create-pfx
+        env:
+          PFX_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+        run: |
+          $pfxPath = Join-Path -Path $env:RUNNER_TEMP -ChildPath "cert.pfx";
+          $encodedBytes = [System.Convert]::FromBase64String($env:PFX_CONTENT);
+          Set-Content $pfxPath -Value $encodedBytes -AsByteStream;
+          Write-Output "::set-output name=PFX_PATH::$pfxPath";
+
+      - name: Sign installer
+        env:
+          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
+        working-directory: .\build\package\msi\NewRelicCLIInstaller
+        run: .\SignMSI.cmd
+
+      - name: Sign install script
+        env:
+          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
+        working-directory: .\
+        run: .\build\package\msi\NewRelicCLIInstaller\SignPS1.cmd
+
+      - name: Delete PFX certificate
+        env:
+          PFX_PATH: ${{ steps.create-pfx.outputs.PFX_PATH }}
+        run: |
+          Remove-Item -Path $env:PFX_PATH;
+
+      - name: Get latest release upload URL
+        id: get-latest-release-upload-url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+
+      - name: Upload Windows installer
+        id: upload-windows-installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+          asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
+          asset_name: NewRelicCLIInstaller.msi
+          asset_content_type: application/octet-stream
+
+      - name: Upload windows install script
+        id: upload-windows-install-script
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+          asset_path: .\scripts\install.ps1
+          asset_name: install.ps1
+          asset_content_type: application/octet-stream
+
