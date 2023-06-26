@@ -167,7 +167,7 @@ jobs:
 
   create-homebrew-release:
     if: github.ref == 'refs/heads/main'
-    needs: test
+    needs: release
     uses: newrelic/newrelic-cli/.github/workflows/release-homebrew.yml@main
     secrets:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -175,7 +175,7 @@ jobs:
 
   release-windows-installer:
     if: github.ref == 'refs/heads/main'
-    needs: test
+    needs: release
     uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@main
     secrets:
       PFX_BASE64_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
@@ -183,115 +183,15 @@ jobs:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
 
   publish:
-    name: Publish Windows Release
-    runs-on: ubuntu-20.04
-    needs: [release-windows-installer]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ secrets.RELEASE_TOKEN }}
+    if: github.ref == 'refs/heads/main'
+    needs: release
+    uses: newrelic/newrelic-cli/.github/workflows/release-publish-windows.yml@main
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
-      - name: Output latest tag
-        id: latest-tag
-        run: |
-          tag=$(git describe --tags --abbrev=0)
-
-          echo " "
-          echo "Latest tag - before: ${tag}"
-          echo " "
-
-          git fetch origin
-          git fetch --tags
-
-          latestTag=$(git describe --tags --abbrev=0)
-
-          echo " "
-          echo "Latest tag - after:  ${latestTag}"
-          echo " "
-
-          echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
-
-      - name: Install aws cli
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install awscli -y
-
-      - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.2
-        with:
-          path: /home/runner/.aws/credentials
-          contents:  |
-            [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          write-mode: overwrite
-
-      - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.2
-        with:
-          path: /home/runner/.aws/config
-          contents:  |
-            [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
-            region = ${{ secrets.AWS_DEFAULT_REGION }}
-            source_profile = virtuoso_user
-          write-mode: overwrite
-
-      - name: Get latest tag
-        id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
-
-      - name: Fetch Github Release Asset - NewRelicCLIInstaller.msi
-        uses: dsaltares/fetch-gh-release-asset@0.06
-        with:
-          repo: "newrelic/newrelic-cli"
-          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
-          file: "NewRelicCLIInstaller.msi"
-          target: "NewRelicCLIInstaller.msi"
-          token: ${{ secrets.RELEASE_TOKEN }}
-
-      - name: Fetch Github Release Asset - install.ps1
-        uses: dsaltares/fetch-gh-release-asset@0.06
-        with:
-          repo: "newrelic/newrelic-cli"
-          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
-          file: "install.ps1"
-          target: "./scripts/install.ps1"
-          token: ${{ secrets.RELEASE_TOKEN }}
-
-      - name: Upload Windows install script to AWS S3
-        id: upload-install-script-windows
-        run: |
-          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
-
-      - name: Upload Windows MSI
-        id: upload-windows-msi
-        run: |
-          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi --profile virtuoso
-
-      - name: Create currentVersion.txt
-        id: create-current-version
-        uses: "finnp/create-file-action@v1"
-        env:
-          FILE_NAME: "currentVersion.txt"
-          FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
-
-      - name: Upload currentVersion.txt
-        id: upload-current-version
-        run: |
-          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso --cache-control no-cache
-
-      - name: Upload chocolatey package
-        shell: bash
-        continue-on-error: true
-        run: make chocolatey-publish
-        env:
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-
-      - name: Cleanup configs
-        run: |
-          rm -rf /home/runner/.aws/credentials
-          rm -rf /home/runner/.aws/config
