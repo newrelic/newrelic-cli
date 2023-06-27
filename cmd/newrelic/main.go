@@ -1,13 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
 	// Commands
+
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/newrelic/newrelic-cli/internal/agent"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
@@ -62,6 +67,35 @@ func init() {
 }
 
 func main() {
+	// Load New Relic agent
+	app, err := newrelic.NewApplication(
+		newrelic.ConfigAppName("New Relic CLI"),
+		newrelic.ConfigLicense(os.Getenv("NEW_RELIC_LICENSE_KEY")),
+		newrelic.ConfigAppLogForwardingEnabled(false),
+		newrelic.ConfigDistributedTracerEnabled(false),
+		newrelic.ConfigAppLogMetricsEnabled(false),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// // Wait for app to connect to New Relic
+	if err := app.WaitForConnection(10 * time.Second); nil != err {
+		fmt.Println(err)
+	}
+	defer app.Shutdown(10 * time.Second)
+
+	// Quick hack to clean up command line arguments
+	command := []string{}
+	for _, item := range os.Args[1:] {
+		if item[0] != '-' {
+			command = append(command, item)
+		}
+	}
+
+	txn := app.StartTransaction(strings.Join(command, " "))
+	defer txn.End()
+
 	if err := Execute(); err != nil {
 		if err != flag.ErrHelp {
 			log.Fatal(err)
