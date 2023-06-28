@@ -93,7 +93,10 @@ func main() {
 		}
 	}
 
-	txn := app.StartTransaction(strings.Join(command, " "))
+	txn := app.StartTransaction(
+		strings.Join(command, " "),
+		newrelic.WithoutCodeLevelMetrics(),
+	)
 	defer txn.End()
 
 	if err := Execute(); err != nil {
