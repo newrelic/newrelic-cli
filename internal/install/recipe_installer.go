@@ -341,6 +341,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 			Err: fmt.Errorf("no recipes found supporting this system"),
 		}
 	}
+	defer execution.UpdateRhapsody(i.status)
 
 	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
@@ -356,10 +357,6 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}
 
 	i.reportRecipeRecommendations(availableRecipes)
-
-	if err := execution.UpdateRhapsody(i.status); err != nil {
-		return err
-	}
 
 	log.Debugf("Done installing.")
 	return nil
