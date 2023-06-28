@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"reflect"
-	"strconv"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -47,45 +45,19 @@ var cmdDo = &cobra.Command{
 			}
 		}
 
-		// Validate flags
-		err = setFlagsFromFile(cmd, cmdInputs.Flags)
+		err = SetFlagsFromFile(cmd, cmdInputs.Flags)
 		if err != nil {
 			return err
 		}
 
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("\n Command - flag from file (guid):  %+v", guid)
-		fmt.Printf("\n Command - flag from file (other): %+v \n\n", otherFlag)
-	},
+	RunE: runDoCommandE,
 }
 
-// setFlagsFromFile sets the command flag values based on the provided input file contents.
-// If also ensures the provided flags from an input file match the expected flags and their respective types.
-// Nonexistent flags will result in an error. Incorrect types will result in an error.
-func setFlagsFromFile(cmd *cobra.Command, flagsFromFile map[string]interface{}) error {
-	flagSet := cmd.Flags()
-	for k, v := range flagsFromFile {
-		// Ensure flag exists for the command
-		flag := flagSet.Lookup(k)
-		if flag == nil {
-			return fmt.Errorf("error: Invalid flag `%s` provided for command `%s`  ", k, cmd.Name())
-		}
-
-		// Ensure correct type
-		flagType := flag.Value.Type()
-		if reflect.TypeOf(v).String() != flag.Value.Type() {
-			return fmt.Errorf("error: Invalid value `%v` for flag `%s` provided for command `%s`. Must be of type %s", v, k, cmd.Name(), flagType)
-		}
-
-		switch t := flag.Value.Type(); t {
-		case "string":
-			flagSet.Set(k, v.(string))
-		case "int":
-			flagSet.Set(k, strconv.Itoa(v.(int)))
-		}
-	}
+func runDoCommandE(cmd *cobra.Command, args []string) error {
+	fmt.Printf("\n Command - flag from file (guid):  %+v", guid)
+	fmt.Printf("\n Command - flag from file (other): %+v \n\n", otherFlag)
 
 	return nil
 }

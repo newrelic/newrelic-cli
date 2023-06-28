@@ -18,9 +18,12 @@ import (
 )
 
 var (
-	statusFilter string
-	monitorName  string
-	monitorID    string
+	statusFilter                       string
+	monitorName                        string
+	monitorID                          string
+	syntheticsMonitorGUID              string
+	syntheticsMonitorLocationID        string
+	syntheticsMonitorRunFlagsInputFile string
 )
 
 // Command represents the synthetics command
@@ -181,4 +184,11 @@ func init() {
 
 	cmdMonSearch.Flags().StringVarP(&monitorName, "name", "n", "", "search for results matching the given Synthetics monitor name")
 	cmdMon.AddCommand(cmdMonSearch)
+
+	cmdMonitorRun.Flags().StringVarP(&syntheticsMonitorGUID, "guid", "g", "", "The monitor GUID for which to run the monitor check.")
+	cmdMonitorRun.Flags().StringVarP(&syntheticsMonitorLocationID, "locationId", "l", "", "The monitor location ID for which to run the monitor check.")
+	cmdMonitorRun.MarkFlagRequired("guid")
+	cmdMonitorRun.MarkFlagRequired("locationId")
+	cmdMon.AddCommand(cmdMonitorRun)
+
 }
