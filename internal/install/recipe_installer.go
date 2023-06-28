@@ -77,6 +77,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 		execution.NewSegmentReporter(sg),
+		// execution.NewRhapsodyReporter(),
 	}
 	lkf := NewServiceLicenseKeyFetcher(config.DefaultMaxTimeoutSeconds)
 	slg := execution.NewPlatformLinkGenerator()
@@ -355,6 +356,10 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}
 
 	i.reportRecipeRecommendations(availableRecipes)
+
+	if err := execution.UpdateRhapsody(i.status); err != nil {
+		return err
+	}
 
 	log.Debugf("Done installing.")
 	return nil
