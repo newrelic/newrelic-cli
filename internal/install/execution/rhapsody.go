@@ -80,10 +80,10 @@ func UpdateRhapsody(s *InstallStatus) error {
 		return fmt.Errorf("must set RHAPSODY_ATTEMPT_ID")
 	}
 
-	items := make([]InstallItem, len(s.Detected))
-	for i, detected := range s.Detected {
+	items := make([]InstallItem, len(s.Statuses))
+	for i, status := range s.Statuses {
 		items[i] = InstallItem{
-			RecipeName: detected.Name,
+			RecipeName: status.Name,
 		}
 	}
 	// create items

@@ -8,7 +8,7 @@ import (
 
 func TestUpdateRhapsody(t *testing.T) {
 	s1 := NewInstallStatus(types.InstallerContext{}, nil, nil)
-	s1.Detected = append(s1.Detected, &RecipeStatus{Name: "infrastructure-agent-installer", Status: RecipeStatusTypes.INSTALLED}, &RecipeStatus{Name: "logs-integration", Status: RecipeStatusTypes.INSTALLED})
+	s1.Statuses = append(s1.Statuses, &RecipeStatus{Name: "infrastructure-agent-installer", Status: RecipeStatusTypes.INSTALLED}, &RecipeStatus{Name: "logs-integration", Status: RecipeStatusTypes.INSTALLED})
 	tests := []struct {
 		name    string
 		s       *InstallStatus
