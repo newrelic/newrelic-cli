@@ -25,12 +25,6 @@ var cmdDo = &cobra.Command{
 	Long:    `Testing json file as arguments to a command`,
 	Example: `newrelic do --file=./path/to/file`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-
-		// TODO
-		// If command flags are provided inline as well as an input file for flags,
-		// the inline flags will take precendence and the input file flags will be ignored.
-		// Provide a warning message, but return nil and continue command execution in Run().
-
 		inputFile, err := ioutil.ReadFile(inputFile)
 		if err != nil {
 			return fmt.Errorf("YAML err %+v ", err)
@@ -44,6 +38,11 @@ var cmdDo = &cobra.Command{
 				return fmt.Errorf("error parsing input file %+v ", err)
 			}
 		}
+
+		// TODO
+		// If command flags are provided inline as well as an input file for flags,
+		// the inline flags will take precendence and the input file flags will be ignored.
+		// Provide a warning message, but return nil and continue command execution in Run().
 
 		err = SetFlagsFromFile(cmd, cmdInputs.Flags)
 		if err != nil {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/synthetics"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -61,5 +62,22 @@ The get command queues a manual request to execute a monitor check from the spec
 
 func execCmdMonitorRunE(cmd *cobra.Command, args []string) error {
 	// TODO: Wire up the client
+
+	fmt.Print("\n****************************\n")
+	fmt.Printf("\n execCmdMonitorRunE - guid:  %+v \n", syntheticsMonitorGUID)
+
+	result, err := client.NRClient.Synthetics.SyntheticsRunMonitorWithContext(
+		utils.SignalCtx,
+		synthetics.EntityGUID(syntheticsMonitorGUID),
+		"AWS_US_WEST_2",
+	)
+	utils.LogIfFatal(err)
+
+	fmt.Printf("\n execCmdMonitorRunE - result:  %+v \n", result.Errors)
+
+	// utils.LogIfFatal(output.Print(result))
+
+	fmt.Print("\n****************************\n")
+
 	return nil
 }
