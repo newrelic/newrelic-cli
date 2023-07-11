@@ -2,16 +2,10 @@ name: Release - Windows Installer
 
 permissions: write-all
 
-# Release workflow calls this workflow
 on:
-  workflow_call:
-    secrets:
-      RELEASE_TOKEN:
-        required: true
-      PFX_BASE64_CONTENT:
-        required: true
-      PFX_CERT_PASSWORD:
-        required: true
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
 
 jobs:
   release-windows-installer:

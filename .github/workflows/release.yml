@@ -120,7 +120,7 @@ jobs:
           rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
           zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip dist/newrelic_windows_amd64_v1/newrelic.exe
 
-      - name: Install aws cli
+      - name: Install AWS CLI
         run: |
           sudo apt-get update -y
           sudo apt-get install awscli -y
@@ -164,34 +164,4 @@ jobs:
         run: |
           rm -rf /home/runner/.aws/credentials
           rm -rf /home/runner/.aws/config
-
-  create-homebrew-release:
-    if: github.ref == 'refs/heads/main'
-    needs: release
-    uses: newrelic/newrelic-cli/.github/workflows/release-homebrew.yml@main
-    secrets:
-      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-
-  release-windows-installer:
-    if: github.ref == 'refs/heads/main'
-    needs: release
-    uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@main
-    secrets:
-      PFX_BASE64_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
-      PFX_CERT_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
-      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-
-  publish:
-    if: github.ref == 'refs/heads/main'
-    needs: release
-    uses: newrelic/newrelic-cli/.github/workflows/release-publish-windows.yml@main
-    secrets:
-      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
-      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
