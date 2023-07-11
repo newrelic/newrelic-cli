@@ -4,7 +4,7 @@ permissions: write-all
 
 on:
   workflow_run:
-    workflows: ["Release"]
+    workflows: ["Create Windows Release"]
     types: [completed]
 
 jobs:
