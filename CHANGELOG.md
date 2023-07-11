@@ -1,5 +1,10 @@
+<a name="v0.68.20"></a>
+## [v0.68.20] - 2023-07-11
+### Bug Fixes
+- **nrql:** addition of a command to retrieve nrql droprules ([#1476](https://github.com/newrelic/newrelic-cli/issues/1476))
+
 <a name="v0.68.19"></a>
-## [v0.68.19] - 2023-06-26
+## [v0.68.19] - 2023-07-10
 <a name="v0.68.18"></a>
 ## [v0.68.18] - 2023-06-22
 <a name="v0.68.17"></a>
@@ -2071,7 +2076,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.19...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.20...HEAD
+[v0.68.20]: https://github.com/newrelic/newrelic-cli/compare/v0.68.19...v0.68.20
 [v0.68.19]: https://github.com/newrelic/newrelic-cli/compare/v0.68.18...v0.68.19
 [v0.68.18]: https://github.com/newrelic/newrelic-cli/compare/v0.68.17...v0.68.18
 [v0.68.17]: https://github.com/newrelic/newrelic-cli/compare/v0.68.16...v0.68.17
