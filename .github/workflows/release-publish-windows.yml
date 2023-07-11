@@ -112,7 +112,7 @@ jobs:
 
       - name: Create currentVersion.txt
         id: create-current-version
-        uses: "finnp/create-file-action@v1"
+        uses: "finnp/create-file-action@master"
         env:
           FILE_NAME: "currentVersion.txt"
           FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
