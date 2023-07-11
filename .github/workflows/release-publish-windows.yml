@@ -3,9 +3,22 @@ name: Release - Homebrew
 permissions: write-all
 
 on:
-  workflow_run:
-    workflows: ["Create Windows Release"]
-    types: [completed]
+  workflow_call:
+    secrets:
+      RELEASE_TOKEN:
+        required: true
+      DEV_TOOLKIT_TOKEN:
+        required: true
+      CHOCOLATEY_API_KEY:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_ROLE_ARN:
+        required: true
+      AWS_DEFAULT_REGION:
+        required: true
 
 jobs:
   release-windows:
