@@ -2,14 +2,10 @@ name: Release - Homebrew
 
 permissions: write-all
 
-# Release workflow calls this workflow
 on:
-  workflow_call:
-    secrets:
-      RELEASE_TOKEN:
-        required: true
-      DEV_TOOLKIT_TOKEN:
-        required: true
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
 
 jobs:
   release-homebrew:

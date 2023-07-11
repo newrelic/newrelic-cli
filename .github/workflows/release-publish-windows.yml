@@ -2,24 +2,10 @@ name: Release - Homebrew
 
 permissions: write-all
 
-# Release workflow calls this workflow
 on:
-  workflow_call:
-    secrets:
-      RELEASE_TOKEN:
-        required: true
-      DEV_TOOLKIT_TOKEN:
-        required: true
-      CHOCOLATEY_API_KEY:
-        required: true
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
-      AWS_ROLE_ARN:
-        required: true
-      AWS_DEFAULT_REGION:
-        required: true
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
 
 jobs:
   release-windows:
