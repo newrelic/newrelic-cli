@@ -19,7 +19,6 @@ type RecipeInstallBuilder struct {
 	status             *execution.InstallStatus
 	mockOsValidator    *discovery.MockOsValidator
 	manifestValidator  *discovery.ManifestValidator
-	licenseKeyFetcher  *MockLicenseKeyFetcher
 	shouldInstallCore  func() bool
 	installerContext   types.InstallerContext
 	recipeLogForwarder *execution.MockRecipeLogForwarder
@@ -50,7 +49,6 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	rib.manifestValidator = discovery.NewMockManifestValidator(rib.mockOsValidator)
 	// Default to not skip core
 	rib.shouldInstallCore = func() bool { return true }
-	rib.licenseKeyFetcher = NewMockLicenseKeyFetcher()
 	rib.recipeLogForwarder = execution.NewMockRecipeLogForwarder()
 	rib.recipeVarProvider = execution.NewMockRecipeVarProvider()
 	rib.recipeVarProvider.Vars = map[string]string{}
@@ -76,13 +74,6 @@ func (rib *RecipeInstallBuilder) WithFetchRecipesVal(fetchRecipesVal []*types.Op
 func (rib *RecipeInstallBuilder) WithRecipeDetectionResult(detectionResults ...*recipes.RecipeDetectionResult) *RecipeInstallBuilder {
 	for _, detectionResult := range detectionResults {
 		rib.recipeDetector.AddRecipeDetectionResult(detectionResult)
-	}
-	return rib
-}
-
-func (rib *RecipeInstallBuilder) WithLicenseKeyFetchResult(result error) *RecipeInstallBuilder {
-	rib.licenseKeyFetcher.FetchLicenseKeyFunc = func(ctx context.Context) (string, error) {
-		return "", result
 	}
 	return rib
 }
@@ -185,7 +176,6 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	}
 	recipeInstall.shouldInstallCore = rib.shouldInstallCore
 	recipeInstall.InstallerContext = rib.installerContext
-	recipeInstall.licenseKeyFetcher = rib.licenseKeyFetcher
 	recipeInstall.recipeLogForwarder = rib.recipeLogForwarder
 	recipeInstall.recipeVarPreparer = rib.recipeVarProvider
 	recipeInstall.recipeExecutor = rib.recipeExecutor

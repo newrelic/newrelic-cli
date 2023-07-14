@@ -13,6 +13,6 @@ func NewMockRecipeVarProvider() *MockRecipeVarProvider {
 	return &MockRecipeVarProvider{}
 }
 
-func (rvp *MockRecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
+func (rvp *MockRecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool) (types.RecipeVars, error) {
 	return rvp.Vars, rvp.Error
 }

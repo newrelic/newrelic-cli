@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/config"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
 )
 
 func TestClientFetchLicenseKey(t *testing.T) {
@@ -29,4 +30,46 @@ func TestClientFetchLicenseKey(t *testing.T) {
 	result, err := FetchLicenseKey(acctID, "default", &maxTimeoutSeconds)
 	require.NoError(t, err)
 	require.NotNil(t, result)
+}
+
+func TestClientGetLicenseKey(t *testing.T) {
+
+	keys := []apiaccess.APIKey{
+		{
+			APIAccessKey: apiaccess.APIAccessKey{
+				Key:       "key1",
+				CreatedAt: "1",
+			},
+		},
+		{
+			APIAccessKey: apiaccess.APIAccessKey{
+				Key:       "key2",
+				CreatedAt: "2",
+			},
+		},
+	}
+
+	key := getLicenseKey(keys)
+
+	require.Equal(t, "key1", key, "Get License Key should return earlist if no prefer key name")
+
+	keys = append(keys, apiaccess.APIKey{
+		APIAccessKey: apiaccess.APIAccessKey{
+			Key:       "preferKey1",
+			CreatedAt: "3",
+			Name:      PreferedIngestKeyName,
+		},
+	})
+
+	keys = append(keys, apiaccess.APIKey{
+		APIAccessKey: apiaccess.APIAccessKey{
+			Key:       "preferKey2",
+			CreatedAt: "4",
+			Name:      PreferedIngestKeyName,
+		},
+	})
+
+	key = getLicenseKey(keys)
+
+	require.Equal(t, "preferKey1", key, "Get License Key should return earlist key with prefer key name")
 }

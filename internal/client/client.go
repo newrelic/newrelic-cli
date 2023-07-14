@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 
@@ -22,6 +23,10 @@ import (
 var (
 	NRClient    *newrelic.NewRelic
 	serviceName = "newrelic-cli"
+)
+
+const (
+	PreferedIngestKeyName = "Installer Ingest License Key"
 )
 
 // NewClient initializes the New Relic client.
@@ -119,9 +124,30 @@ func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accou
 		return "", err
 	}
 
-	if len(keys) > 0 {
-		return keys[0].Key, nil
+	key := getLicenseKey(keys)
+	if key != "" {
+		return key, nil
 	}
 
 	return "", types.ErrorFetchingLicenseKey
+}
+
+// Use oldest ingest licence key, otherwise, use default
+func getLicenseKey(keys []apiaccess.APIKey) string {
+	key := ""
+	if len(keys) > 0 {
+		sort.Slice(keys, func(i, j int) bool {
+			return keys[i].CreatedAt < keys[j].CreatedAt
+		})
+
+		key = keys[0].Key
+		for _, k := range keys {
+			if k.Name == PreferedIngestKeyName {
+				key = k.Key
+				break
+			}
+		}
+	}
+
+	return key
 }
