@@ -10,9 +10,65 @@ on:
     types: [requested]
 
 jobs:
-  validate-all:
-    name: Validate All
+  get-test-definition-files:
+    name: Get Test Definition Files
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-test-definition-files.outputs.result }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          repository: newrelic/open-install-library
+          path: open-install-library
+
+      - name: Get Test Definition Files
+        id: get-test-definition-files
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const fs = require("fs");
+            const fsp = fs.promises;
+            const path = require("path");
+
+            // readdir recursive directory search
+            const { readdir } = fsp;
+            async function getFiles(dir) {
+              const dirents = await readdir(dir, { withFileTypes: true });
+              const files = await Promise.all(
+                dirents.map((dirent) => {
+                  const res = path.join(dir, dirent.name);
+                  return dirent.isDirectory() ? getFiles(res) : res;
+                })
+              );
+              return Array.prototype.concat(...files);
+            }
+
+            const testDefinitions = await getFiles(`${process.env.GITHUB_WORKSPACE}/open-install-library/test/definitions/smoke`);
+
+            const outputTestFilesMap = testDefinitions
+              .map((testDefinitionFile) => {
+                return {
+                  testDefinitionFile,
+                  testDisplayName: testDefinitionFile.split("/").pop(),
+                };
+              });
+            const output = {
+              include: outputTestFilesMap,
+            };
+            console.log(output);
+            return output;
+
+  validate:
+    name: ${{ matrix.testDisplayName }}
+    needs: [get-test-definition-files]
+    if: ${{ fromJSON(needs.get-test-definition-files.outputs.matrix).include[0] }} # Avoids empty matrix validation error
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.get-test-definition-files.outputs.matrix) }}
+      fail-fast: false
+    env:
+      MATRIX: ${{ toJSON(matrix) }}
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
@@ -63,6 +119,8 @@ jobs:
         id: add-newrelic-cli-path-smoke-tests
         uses: actions/github-script@v6
         continue-on-error: false
+        env:
+          TEST_DEFINITION_FILE: ${{ matrix.testDefinitionFile }}
         with:
           script: |
             const fs = require('fs');
@@ -94,61 +152,53 @@ jobs:
               throw new Error(`The newrelic cli windows source does NOT exist ${newrelic_cli_windows_source_path}`);
             }
 
-            async function getFiles(dir) {
-              const dirents = await readdir(dir, { withFileTypes: true });
-              const files = await Promise.all(dirents.map((dirent) => {
-                const res = path.join(dir, dirent.name);
-                return dirent.isDirectory() ? getFiles(res) : res;
-              }));
-              return Array.prototype.concat(...files);
+            // Get testDefinitionFile from MATRIX env var
+            const testDefinitionFile = process.env.TEST_DEFINITION_FILE;
+            console.log(`Detected Deploy Config: ${JSON.stringify(testDefinitionFile, null, 2)}`)
+
+            const jsonData = require(testDefinitionFile);
+            var isUpdated = false
+            var isWindows = false
+            var isArm64 = false
+
+            if (jsonData.resources) {
+              jsonData.resources.forEach(resource => {
+                if (resource.is_windows) {
+                  isWindows = true;
+                }
+                if (!!resource.ami_name && resource.ami_name.toLowerCase().includes("arm64")) {
+                  isArm64 = true;
+                }
+              });
             }
-            const testFiles = await getFiles(`${process.env.GITHUB_WORKSPACE}/open-install-library/test/definitions/smoke`);
-            console.log(`Detected Test Files: ${JSON.stringify(testFiles, null, 2)}`);
 
-            testFiles.forEach(testFile => {
-              const jsonData = require(testFile);
-              var isUpdated = false
-              var isWindows = false
-              var isArm64 = false
-
-              if (jsonData.resources) {
-                jsonData.resources.forEach(resource => {
-                  if (resource.is_windows) {
-                    isWindows = true;
-                  }
-                  if (!!resource.ami_name && resource.ami_name.toLowerCase().includes("arm64")) {
-                    isArm64 = true;
+            if (jsonData.instrumentations) {
+              if (jsonData.instrumentations.resources) {
+                jsonData.instrumentations.resources.forEach(resource => {
+                  if (resource.params) {
+                    isUpdated = true;
+                    resource.params.newrelic_cli_path = `${newrelic_cli_linux_amd64_docker_path}`;
+                    if (isWindows) {
+                      resource.params.newrelic_cli_path = `${newrelic_cli_windows_docker_path}`;
+                    }
+                    else if (isArm64) {
+                      resource.params.newrelic_cli_path = `${newrelic_cli_linux_arm64_docker_path}`;
+                    }
                   }
                 });
               }
+            }
 
-              if (jsonData.instrumentations) {
-                if (jsonData.instrumentations.resources) {
-                  jsonData.instrumentations.resources.forEach(resource => {
-                    if (resource.params) {
-                      isUpdated = true;
-                      resource.params.newrelic_cli_path = `${newrelic_cli_linux_amd64_docker_path}`;
-                      if (isWindows) {
-                        resource.params.newrelic_cli_path = `${newrelic_cli_windows_docker_path}`;
-                      }
-                      else if (isArm64) {
-                        resource.params.newrelic_cli_path = `${newrelic_cli_linux_arm64_docker_path}`;
-                      }
-                    }
-                  });
-                }
-              }
+            if (isUpdated) {
+              // Write file back to workspace
+              let jsonContent = JSON.stringify(jsonData, null, 2);
+              console.log("Updated Deploy Config File: ", testDefinitionFile);
+              console.log("Deploy Config content: ", jsonContent);
+              const outputPath = `${testDefinitionFile}`;
+              fs.writeFileSync(outputPath, jsonContent);
+            }
 
-              if (isUpdated) {
-                // Write file back to workspace
-                let jsonContent = JSON.stringify(jsonData, null, 2);
-                console.log("Updated Deploy Config File: ", testFile);
-                console.log("Deploy Config content: ", jsonContent);
-                fs.writeFileSync(testFile, jsonContent);
-              }
-            });
-
-            return null;
+            return testDefinitionFile;
 
       - name: Write AWS Certificate to File
         env:
@@ -171,10 +221,35 @@ jobs:
           docker images ghcr.io/newrelic/deployer:latest
 
       - name: Run deployer
+        id: deployerRun
         run: |
+          set -e
+          testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDisplayName')
+          echo $testDefinitionFile
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest batch.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke -s 20 -m deploy -l debug
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -l debug
+          echo ::set-output name=exit_status::$?
+
+      - name: Teardown any previous deployment
+        if: always()
+        id: cleanupResources
+        continue-on-error: true
+        run: |
+          testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDisplayName')
+          echo $testDefinitionFile
+          docker run \
+            -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
+            -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -t
+          echo ::set-output name=exit_status::$?
+
+      - name: Report any error
+        if: steps.deployerRun.outputs.exit_status != 0
+        run: exit 1
+
