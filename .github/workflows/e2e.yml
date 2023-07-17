@@ -152,11 +152,11 @@ jobs:
               throw new Error(`The newrelic cli windows source does NOT exist ${newrelic_cli_windows_source_path}`);
             }
 
-            // Get testDefinitonFile from MATRIX env var
+            // Get testDefinitionFile from MATRIX env var
             const testDefinitionFile = process.env.TEST_DEFINITION_FILE;
             console.log(`Detected Deploy Config: ${JSON.stringify(testDefinitionFile, null, 2)}`)
 
-            const jsonData = require(testDefinitonFile);
+            const jsonData = require(testDefinitionFile);
             var isUpdated = false
             var isWindows = false
             var isArm64 = false
@@ -192,13 +192,13 @@ jobs:
             if (isUpdated) {
               // Write file back to workspace
               let jsonContent = JSON.stringify(jsonData, null, 2);
-              console.log("Updated Deploy Config File: ", testDefinitonFile);
+              console.log("Updated Deploy Config File: ", testDefinitionFile);
               console.log("Deploy Config content: ", jsonContent);
-              const outputPath = `${process.env.GITHUB_WORKSPACE}/${testDefinitionFile}`;
+              const outputPath = `${testDefinitionFile}`;
               fs.writeFileSync(outputPath, jsonContent);
             }
 
-            return testDefinitonFile
+            return testDefinitionFile;
 
       - name: Write AWS Certificate to File
         env:
@@ -221,16 +221,17 @@ jobs:
           docker images ghcr.io/newrelic/deployer:latest
 
       - name: Run deployer
+        id: deployerRun
         run: |
           set -e
-          testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDefinitionFile')
+          testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDisplayName')
           echo $testDefinitionFile
           docker run -i\
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d $testDefinitionFile -l debug
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -l debug
           echo ::set-output name=exit_status::$?
 
       - name: Teardown any previous deployment
@@ -238,9 +239,17 @@ jobs:
         id: cleanupResources
         continue-on-error: true
         run: |
-          testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDefinitionFile')
+          testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDisplayName')
           echo $testDefinitionFile
           docker run \
             -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
-            -v ${{ github.workspace }}/test/:/mnt/deployer/test/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d $testDefinitionFile -t
+            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
+            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
+            -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
+            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -l debug
+          echo ::set-output name=exit_status::$?
+
+      - name: Report any error
+        if: steps.deployerRun.outputs.exit_status != 0
+        run: exit 1
+
