@@ -9,6 +9,7 @@ on:
     workflows: ["Release"]
     types: [requested]
 
+
 jobs:
   validate-all:
     name: Validate All

@@ -43,6 +43,7 @@ jobs:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
         run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
 
+
       - name: Compile all distros
         continue-on-error: true
         env:
