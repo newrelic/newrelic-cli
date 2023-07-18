@@ -71,7 +71,7 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 		Install: string(installYamlBytes),
 	}
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, m.OS, v["OS"])
 	require.Contains(t, m.Platform, v["Platform"])
@@ -84,14 +84,16 @@ func TestRecipeVarProvider_Basic(t *testing.T) {
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 
 	os.Setenv(EnvInstallCustomAttributes, "test:123,bad")
-	v, err = e.Prepare(m, r, false, "testLicenseKey")
+	v, err = e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Equal(t, "custom_attributes:\n  test: \"123\"\n", v["NRIA_CUSTOM_ATTRIBUTES"])
 
 	os.Setenv(EnvNriaCustomAttributes, "{\"owning_team\":\"virtuoso\"}")
-	v, err = e.Prepare(m, r, false, "testLicenseKey")
+	os.Setenv("NEW_RELIC_LICENSE_KEY", "my_license")
+	v, err = e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Equal(t, "custom_attributes:\n  owning_team: virtuoso\n  test: \"123\"\n", v["NRIA_CUSTOM_ATTRIBUTES"])
+	require.Equal(t, "my_license", v["NEW_RELIC_LICENSE_KEY"])
 }
 
 func TestRecipeVarProvider_UserInputVars(t *testing.T) {
@@ -156,7 +158,7 @@ func TestRecipeVarProvider_UserInputVars(t *testing.T) {
 		InputVars: inputVars,
 	}
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, m.OS, v["OS"])
 	require.Contains(t, m.Platform, v["Platform"])
@@ -175,7 +177,7 @@ func TestRecipeVarProvider_UserInputVars(t *testing.T) {
 		InputVars: inputVars,
 	}
 
-	v, err = e.Prepare(m, r, true, "testLicenseKey")
+	v, err = e.Prepare(m, r, true)
 	require.NoError(t, err)
 	require.Contains(t, "123", v["a-default"])
 }
@@ -243,7 +245,7 @@ func TestRecipeVarProvider_CommandLineEnvarsDirectlyPassedToRecipeContext(t *tes
 	clusterName := "sweet-cluster-name"
 	os.Setenv("NR_CLI_CLUSTERNAME", clusterName)
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, v["OS"], m.OS)
 	assert.Contains(t, m.Platform, v["Platform"])
@@ -314,7 +316,7 @@ func TestRecipeVarProvider_CommandLineTagsPassedFormattedToRecipeContext(t *test
 	expectedCliTags := "some:tag;another:something;nr_deployed_by:unit_test"
 	os.Setenv(EnvInstallCustomAttributes, cliTags)
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, v["OS"], m.OS)
 	assert.Contains(t, m.Platform, v["Platform"])
@@ -462,7 +464,7 @@ func TestRecipeVarProvider_OverrideDownloadURL(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://another.download.newrelic.com/")
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, "https://another.download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
@@ -526,7 +528,7 @@ func TestRecipeVarProvider_AllowInfraStaging(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-staging.s3.amazonaws.com/")
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, "https://nr-downloads-ohai-staging.s3.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
@@ -590,7 +592,7 @@ func TestRecipeVarProvider_AllowInfraTesting(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-testing.s3.amazonaws.com/")
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, "https://nr-downloads-ohai-testing.s3.amazonaws.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
@@ -654,7 +656,7 @@ func TestRecipeVarProvider_DisallowUnknownInfraTesting(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "https://nr-downloads-ohai-unknown.s3.amazonaws.com/")
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
@@ -718,7 +720,7 @@ func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotHttps(t *testing.T) {
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "http://another.download.newrelic.com/")
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }
@@ -782,7 +784,7 @@ func TestRecipeVarProvider_OverrideDownloadURL_RefusedNotNewRelic(t *testing.T) 
 	// Test for NEW_RELIC_DOWNLOAD_URL
 	os.Setenv("NEW_RELIC_DOWNLOAD_URL", "http://github.com/")
 
-	v, err := e.Prepare(m, r, false, "testLicenseKey")
+	v, err := e.Prepare(m, r, false)
 	require.NoError(t, err)
 	require.Contains(t, "https://download.newrelic.com/", v["NEW_RELIC_DOWNLOAD_URL"])
 }

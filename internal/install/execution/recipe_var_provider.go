@@ -2,7 +2,6 @@ package execution
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -39,7 +38,7 @@ func NewRecipeVarProvider() *RecipeVarProvider {
 	return &RecipeVarProvider{}
 }
 
-func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error) {
+func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool) (types.RecipeVars, error) {
 	log.WithFields(log.Fields{
 		"name": r.Name,
 	}).Debug("preparing recipe")
@@ -50,7 +49,7 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 
 	systemInfoResult := varsFromSystemInfo(m)
 
-	profileResult, err := varsFromProfile(licenseKey)
+	profileResult, err := varsFromProfile()
 	if err != nil {
 		return types.RecipeVars{}, err
 	}
@@ -77,18 +76,14 @@ func (re *RecipeVarProvider) Prepare(m types.DiscoveryManifest, r types.OpenInst
 	return vars, nil
 }
 
-func varsFromProfile(licenseKey string) (types.RecipeVars, error) {
+func varsFromProfile() (types.RecipeVars, error) {
 	accountID := configAPI.GetActiveProfileString(config.AccountID)
 	apiKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
 
-	if licenseKey == "" {
-		return types.RecipeVars{}, errors.New("license key not found")
-	}
-
 	vars := make(types.RecipeVars)
 
-	vars["NEW_RELIC_LICENSE_KEY"] = licenseKey
+	vars["NEW_RELIC_LICENSE_KEY"] = os.Getenv("NEW_RELIC_LICENSE_KEY")
 	vars["NEW_RELIC_ACCOUNT_ID"] = accountID
 	vars["NEW_RELIC_API_KEY"] = apiKey
 	vars["NEW_RELIC_REGION"] = region
