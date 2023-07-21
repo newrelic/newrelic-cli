@@ -6,8 +6,9 @@ package nrql
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/testcobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
 func TestDropRulesQuery(t *testing.T) {

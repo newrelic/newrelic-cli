@@ -156,10 +156,8 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 		return detailErr
 	}
 
-	if licenseKey != configAPI.GetActiveProfileString(config.LicenseKey) {
-		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
-		log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
-	}
+	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
+	log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
 
 	return nil
 }

@@ -48,7 +48,7 @@ type AgentValidator interface {
 }
 
 type RecipeVarPreparer interface {
-	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool, licenseKey string) (types.RecipeVars, error)
+	Prepare(m types.DiscoveryManifest, r types.OpenInstallationRecipe, assumeYes bool) (types.RecipeVars, error)
 }
 
 // RecipeInstaller wrapper responsible for performing recipe validation, installation, and reporting install status
