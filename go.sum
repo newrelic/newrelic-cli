@@ -131,10 +131,8 @@ github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrk
 github.com/mitchellh/hashstructure/v2 v2.0.2 h1:vGKWl0YJqUNxE8d+h8f6NJLcCJrgbhC4NcD46KavDd4=
 github.com/mitchellh/hashstructure/v2 v2.0.2/go.mod h1:MG3aRVU/N29oo/V/IhBX8GR/zz4kQkprJgF2EVszyDE=
 github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGgCcyj8cs=
-github.com/newrelic/newrelic-client-go/v2 v2.12.0 h1:w1gCmKkQqQtG/z4HNDs/5dT2lQAssMaJamTH+Vo2P8Y=
-github.com/newrelic/newrelic-client-go/v2 v2.12.0/go.mod h1:xDZ6IDWI6fpl7MhTI4Hk75alJLAIfXzOt/rINEolxhQ=
-github.com/newrelic/newrelic-client-go/v2 v2.19.6 h1:nKMVor/8ujdF37dipVzk+Tq13Mv3bEfGDDSW63C8PY0=
-github.com/newrelic/newrelic-client-go/v2 v2.19.6/go.mod h1:VPWTvEfKvnTZLunAC7fiW33y4e0srznNfN5HJH2cOp8=
+github.com/newrelic/newrelic-client-go/v2 v2.20.0 h1:87aHvOCnv8MeZL6pm4VptjZKFxatmQq//35onHGBVic=
+github.com/newrelic/newrelic-client-go/v2 v2.20.0/go.mod h1:VPWTvEfKvnTZLunAC7fiW33y4e0srznNfN5HJH2cOp8=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
