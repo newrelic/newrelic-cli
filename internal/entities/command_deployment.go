@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -17,6 +19,7 @@ import (
 )
 
 var (
+	attribute      string
 	changelog      string
 	commit         string
 	deepLink       string
@@ -60,8 +63,15 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
+		customAttributes, err := parseAttributes(attribute)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		params.Changelog = changelog
 		params.Commit = commit
+		params.CustomAttributes = customAttributes
 		params.DeepLink = deepLink
 		params.DeploymentType = changetracking.ChangeTrackingDeploymentType(deploymentType)
 		params.Description = description
@@ -87,6 +97,7 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVarP(&version, "version", "v", "", "the version of the deployed software, for example, something like v1.1. version is required.")
 	utils.LogIfError(cmdEntityDeploymentCreate.MarkFlagRequired("version"))
 
+	cmdEntityDeploymentCreate.Flags().StringVar(&attribute, "attribute", "", "(EARLY ACCESS) a comma separated list of key:value attributes to apply to the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&changelog, "changelog", "", "a URL for the changelog or list of changes if not linkable")
 	cmdEntityDeploymentCreate.Flags().StringVar(&commit, "commit", "", "the commit identifier, for example, a Git commit SHA")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
@@ -95,4 +106,26 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVar(&groupID, "groupId", "", "string that can be used to correlate two or more events")
 	cmdEntityDeploymentCreate.Flags().Int64VarP(&timestamp, "timestamp", "t", 0, "the start time of the deployment, the number of milliseconds since the Unix epoch, defaults to now")
 	cmdEntityDeploymentCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
+}
+
+func parseAttributes(a string) (*map[string]string, error) {
+	attributeMap := make(map[string]string)
+
+	if a == "" {
+		return nil, nil
+	}
+
+	attributes := strings.Split(a, ",")
+
+	for _, v := range attributes {
+		pair := strings.Split(v, ":")
+
+		if len(pair) != 2 {
+			return nil, errors.New("invalid format, please use comma separated key-value pairs (--attribute key1,value1:key2,value2)")
+		}
+
+		attributeMap[pair[0]] = pair[1]
+	}
+
+	return &attributeMap, nil
 }
