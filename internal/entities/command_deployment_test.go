@@ -29,7 +29,7 @@ func TestParseAttributesSingleKeyValue(t *testing.T) {
 	var want = map[string]string{
 		"key": "value",
 	}
-	var errWant error = nil
+	var errWant error
 
 	got, errGot := parseAttributes(a)
 
@@ -44,7 +44,7 @@ func TestParseAttributesTwoKeyValues(t *testing.T) {
 		"key":  "value",
 		"key2": "value2",
 	}
-	var errWant error = nil
+	var errWant error
 
 	got, errGot := parseAttributes(a)
 
@@ -80,7 +80,7 @@ func TestParseAttributesEmptyString(t *testing.T) {
 	a := ""
 
 	want := nilPointerMapStringString()
-	var errWant error = nil
+	var errWant error
 
 	got, errGot := parseAttributes(a)
 
