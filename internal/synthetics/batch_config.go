@@ -32,3 +32,18 @@ type Configuration struct {
 		BatchName string `yaml:"batchName"`
 	} `yaml:"config"`
 }
+
+type Test struct {
+	Id          string `json:"id"`
+	BatchID     string `json:"batchId"`
+	MonitorID   string `json:"monitorId"`
+	MonitorGUID string `json:"monitorGuid"`
+	MonitorName string `json:"monitorName"`
+	Result      string `json:"result"`
+}
+
+type Root struct {
+	Tests  []Test                 `json:"tests"`
+	Config map[string]interface{} `json:"config"`
+	Status string                 `json:"status"`
+}

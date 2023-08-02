@@ -1,7 +1,15 @@
 package synthetics
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/synthetics"
@@ -9,11 +17,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/mock"
 	"gopkg.in/yaml.v3"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strings"
 )
 
 // MockClient is a mock implementation of the HTTPClient interface using testify/mock.
@@ -30,6 +33,8 @@ func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 var (
 	batchFile string
 )
+
+var scenario = 1
 
 // Command represents the synthetics command
 var cmdRun = &cobra.Command{
@@ -106,45 +111,88 @@ var cmdRun = &cobra.Command{
 		}
 
 		utils.LogIfFatal(output.Print(results))
-		//TODO:
-		// fetchStatus
-		// batchID <- result from 1st API
-		// MOCK it
-		// response => validate status and loop
-		// printing loop + spinner
-		// print the status after every poll
-		// checks status of each monitor
+
+		batchID := "36488dff-9a8a-4358-8ef2-e73da3c118e0"
+		apiTimeout := time.Minute * 5
+
+		start := time.Now()
+		i := 0
+		for {
+			if time.Since(start) > apiTimeout {
+				fmt.Println("Halting execution : reached timeout.")
+				break
+			}
+
+			i++
+
+			//result, err := functionInClientGo(automatedTestResultQueryInput{batchID: batchID})
+			root := fakeAutomatedTestResultQuery(batchID, i)
+			//if err != nil {
+			//	return fmt.Errorf("Some error")
+			//}
+
+			if root.Status == "TIMED_OUT" || root.Status == "PASSED" || root.Status == "FAILED" {
+				fmt.Printf("Execution stopped - Status: %s\n", root.Status)
+				fakePrintMonitorStatus(root)
+				break
+			} else if root.Status == "IN_PROGRESS" {
+				fmt.Println("Status still IN_PROGRESS, calling API again in 15 seconds")
+				fakePrintMonitorStatus(root)
+				fmt.Println()
+				time.Sleep(time.Second * 15)
+			} else {
+				fmt.Printf("Unexpected status: %s\n", root.Status)
+				break
+			}
+		}
+
 	},
 }
 
-//var comRunBatch = &cobra.Command{
-//	Use: "run",
-//	Short: "Run the New Relic synthetics monitors in a batch",
-//	Example: `newrelic synthetics run --batchFile "<yml-file>"`,
-//	//TODO: Start working on the mocking the json
-//	Run: func(cmd *cobra.Command, args []string){
-//		var results *synthetics.Monitor
-//		var err error
-//
-//		if batchFile != "" {
-//			results, err = client.NRClient.Synthetics.GetMonitor(monitorID)
-//			utils.LogIfFatal(err)
-//		} else {
-//			utils.LogIfError(cmd.Help())
-//			log.Fatal(" --batchFile <ymlFile> is required")
-//		}
-//
-//		utils.LogIfFatal(output.Print(results))
-//		//TODO:
-//		// fetchStatus
-//		// batchID <- result from 1st API
-//		// MOCK it
-//		// response => validate status and loop
-//			// printing loop + spinner
-//			// print the status after every poll
-//				// checks status of each monitor
-//	},
-//}
+func fakeAutomatedTestResultQuery(batchID string, index int) (r Root) {
+	directory := fmt.Sprintf("mock_json/Scenario %d", scenario)
+	filePath := fmt.Sprintf("%s/response_%d.json", directory, index)
+	jsonFile, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer jsonFile.Close()
+
+	byteValue, err := ioutil.ReadAll(jsonFile)
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	var root Root
+	if err := json.Unmarshal(byteValue, &root); err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return
+	}
+
+	return root
+}
+
+func fakePrintMonitorStatus(root Root) {
+	countSuccess := 0
+	countFailure := 0
+	countProgress := 0
+	tests := root.Tests
+
+	for _, test := range tests {
+		if test.Result == "SUCCESS" {
+			countSuccess++
+		} else if test.Result == "FAILED" {
+			countFailure++
+		} else if test.Result == "IN_PROGRESS" || test.Result == "" {
+			countProgress++
+		}
+	}
+
+	fmt.Println("Successful Tests: ", countSuccess)
+	fmt.Println("Failed Tests: ", countFailure)
+}
 
 func init() {
 
