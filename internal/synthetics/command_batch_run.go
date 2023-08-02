@@ -34,7 +34,7 @@ var (
 	batchFile string
 )
 
-var scenario = 1
+var scenario = 2
 
 // Command represents the synthetics command
 var cmdRun = &cobra.Command{
@@ -62,12 +62,13 @@ var cmdRun = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println("xxxxxxxxxxx")
-			fmt.Println(batchFile)
-			fmt.Println(config.Monitors)
+			//fmt.Println(batchFile)
+			//fmt.Println(config.Monitors)
+
 			for _, monitor := range config.Monitors {
 				apiURL := "https://example.com/api"
 				requestBody := fmt.Sprintf(`{"guid": "%s", "isBlocking": %v}`, monitor.GUID, monitor.Config.IsBlocking)
+				fmt.Println(requestBody)
 
 				// Create the request
 				req, err := http.NewRequest("POST", apiURL, strings.NewReader(requestBody))
@@ -98,8 +99,8 @@ var cmdRun = &cobra.Command{
 					}
 				}(resp.Body)
 
-				fmt.Println("Printing response")
-				fmt.Println(resp)
+				// fmt.Println("Printing response")
+				// fmt.Println(resp)
 			}
 
 			// TODO: replace with a mock function
@@ -150,7 +151,7 @@ var cmdRun = &cobra.Command{
 }
 
 func fakeAutomatedTestResultQuery(batchID string, index int) (r Root) {
-	directory := fmt.Sprintf("mock_json/Scenario %d", scenario)
+	directory := fmt.Sprintf("internal/synthetics/mock_json/Scenario %d", scenario)
 	filePath := fmt.Sprintf("%s/response_%d.json", directory, index)
 	jsonFile, err := os.Open(filePath)
 	if err != nil {
