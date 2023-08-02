@@ -1,0 +1,35 @@
+---
+monitors:
+  - guid: guid1
+    config:
+      overrides:
+        secureCredential:
+          - key: TARGETKEY1
+            overrideKey: OVERRIDEKEY1
+        location: LOCALHOST
+      isBlocking: true
+  - guid: guid2
+    config:
+      overrides:
+        secureCredential:
+          - key: TARGETKEY2
+            overrideKey: OVERRIDEKEY2
+        location: LOCALHOST
+      isBlocking: false
+  - guid: guid3
+    config:
+      isBlocking: true
+  - guid: guid4
+    config:
+      isBlocking: false
+  - tagSearch:
+      - name: name
+        value: jef
+      - name: region
+        value: EU
+config:
+  branch: sample/test-branch
+  commit: samplecommitAD325493GSH
+  platform: sampleplatform
+  deepLink: https://sample.com
+  batchName: Sample Batch Name
