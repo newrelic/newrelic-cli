@@ -7,11 +7,25 @@ import (
 	"github.com/newrelic/newrelic-client-go/v2/pkg/synthetics"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/mock"
 	"gopkg.in/yaml.v3"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 )
+
+// MockClient is a mock implementation of the HTTPClient interface using testify/mock.
+type MockClient struct {
+	mock.Mock
+}
+
+// Do is the mocked version of the http.Client Do method.
+func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
+	args := m.Called(req)
+	return args.Get(0).(*http.Response), args.Error(1)
+}
 
 var (
 	batchFile string
@@ -29,6 +43,10 @@ var cmdRun = &cobra.Command{
 		var results *synthetics.Monitor
 		// Config holds the value of the YML
 		var config Configuration
+
+		// Create the mock HTTP client
+		mockClient := &MockClient{}
+
 		if batchFile != "" {
 			// YAML file input Unmarshall from a file
 			content, err := os.ReadFile(batchFile)
@@ -43,20 +61,40 @@ var cmdRun = &cobra.Command{
 			fmt.Println(batchFile)
 			fmt.Println(config.Monitors)
 			for _, monitor := range config.Monitors {
-
+				apiURL := "https://example.com/api"
 				requestBody := fmt.Sprintf(`{"guid": "%s", "isBlocking": %v}`, monitor.GUID, monitor.Config.IsBlocking)
 
-				// Perform the API call here
-				f := utils.CreateMockHTTPDoFunc(response, 200, nil)
-				resp, err := http.Post(apiURL, "application/json", strings.NewReader(requestBody))
+				// Create the request
+				req, err := http.NewRequest("POST", apiURL, strings.NewReader(requestBody))
+				if err != nil {
+					fmt.Println("Error creating request:", err)
+					return
+				}
+
+				// Expect a response for the request
+				expectedResponse := &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       ioutil.NopCloser(strings.NewReader(`{"status": "success", "message": "Mock response from API"}`)),
+				}
+
+				mockClient.On("Do", req).Return(expectedResponse, nil)
+
+				// Perform the API call using the mockClient
+				resp, err := mockClient.Do(req)
 				if err != nil {
 					fmt.Println("API call error:", err)
 					return
 				}
 
-				defer resp.Body.Close()
-				// Handle the response as needed
-				// ...
+				defer func(Body io.ReadCloser) {
+					err := Body.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}(resp.Body)
+
+				fmt.Println("Printing response")
+				fmt.Println(resp)
 			}
 
 			// TODO: replace with a mock function
