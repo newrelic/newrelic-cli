@@ -121,7 +121,7 @@ func parseCustomAttributes(a string) (*map[string]string, error) {
 		pair := strings.Split(v, ":")
 
 		if len(pair) != 2 {
-			return nil, errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1,value1:key2,value2)")
+			return nil, errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1:value1,key2:value2)")
 		}
 
 		customAttributeMap[pair[0]] = pair[1]
