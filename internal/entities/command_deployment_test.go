@@ -24,21 +24,26 @@ func TestEntityDeploymentCreate(t *testing.T) {
 }
 
 func TestParseAttributesSingleKeyValue(t *testing.T) {
-	a := "key:value"
+	a := []string{
+		"key:value",
+	}
 
 	var want = map[string]string{
 		"key": "value",
 	}
 	var errWant error
 
-	got, errGot := parseCustomAttributes(a)
+	got, errGot := parseCustomAttributes(&a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, *got)
 }
 
 func TestParseAttributesTwoKeyValues(t *testing.T) {
-	a := "key:value,key2:value2"
+	a := []string{
+		"key:value",
+		"key2:value2",
+	}
 
 	var want = map[string]string{
 		"key":  "value",
@@ -46,43 +51,47 @@ func TestParseAttributesTwoKeyValues(t *testing.T) {
 	}
 	var errWant error
 
-	got, errGot := parseCustomAttributes(a)
+	got, errGot := parseCustomAttributes(&a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, *got)
 }
 
 func TestParseAttributesKeyNoValue(t *testing.T) {
-	a := "key"
+	a := []string{
+		"key",
+	}
 
 	want := nilPointerMapStringString()
 	errWant := errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1:value1,key2:value2)")
 
-	got, errGot := parseCustomAttributes(a)
+	got, errGot := parseCustomAttributes(&a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, got)
 }
 
 func TestParseAttributesTooManyColons(t *testing.T) {
-	a := "key:value:extra"
+	a := []string{
+		"key:value:extra",
+	}
 
 	want := nilPointerMapStringString()
 	errWant := errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1:value1,key2:value2)")
 
-	got, errGot := parseCustomAttributes(a)
+	got, errGot := parseCustomAttributes(&a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, got)
 }
 
-func TestParseAttributesEmptyString(t *testing.T) {
-	a := ""
+func TestParseAttributesEmptyStringSlice(t *testing.T) {
+	a := []string{}
 
 	want := nilPointerMapStringString()
 	var errWant error
 
-	got, errGot := parseCustomAttributes(a)
+	got, errGot := parseCustomAttributes(&a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, got)
