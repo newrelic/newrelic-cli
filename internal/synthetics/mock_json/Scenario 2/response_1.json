@@ -1,0 +1,88 @@
+{
+    "config": {
+        "batchName": "Test Batch Name",
+        "branch": "random/test-branch",
+        "commit": "thecommitshaAD325493GSH",
+        "deepLink": "https://vertasvalbit.com",
+        "platform": "exampleplatform",
+        "repository": "sample-repository"
+    },
+    "status": "IN_PROGRESS",
+    "tests": [
+        {
+            "automatedTestMonitorConfig": {
+                "isBlocking": true,
+                "overrides": {
+                    "secureCredential": {
+                        "key": "TARGETKEY",
+                        "overrideKey": "OVERRIDEKEY"
+                    },
+                    "location": "LOCALHOST"
+                }
+            },
+            "batchId": "36488dff-9a8a-4358-8ef2-e73da3c118e0",
+            "duration": 100,
+            "error": "",
+            "id": "6cd8e447-7af6-4885-9749-4029f7c5a9b6",
+            "location": "AWS_US_EAST_1",
+            "locationLabel": "Washington DC",
+            "monitorGuid": "MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTYy",
+            "monitorId": "8bb289b9-8dc7-4f3e-b759-3cb84ed3ae62",
+            "monitorName": "Test Monitor 1",
+            "result": "IN_PROGRESS",
+            "resultsUrl": "https://theresultsurl.com",
+            "type": "SCRIPT_API",
+            "typeLabel": "Scripted Api"
+        },
+        {
+            "automatedTestMonitorConfig": {
+                "isBlocking": false,
+                "overrides": {
+                    "secureCredential": {
+                        "key": "TARGETKEY",
+                        "overrideKey": "OVERRIDEKEY"
+                    },
+                    "location": "LOCALHOST"
+                }
+            },
+            "batchId": "36488dff-9a8a-4358-8ef2-e73da3c118e0",
+            "duration": 100,
+            "error": "",
+            "id": "102d76ea-6b80-4aab-93b1-43fdf779afc5",
+            "location": "AWS_US_EAST_1",
+            "locationLabel": "Washington DC",
+            "monitorGuid": "MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTZZ",
+            "monitorId": "f30a1a3f-9c7e-48b3-8dfb-c78164a14979",
+            "monitorName": "Test Monitor 2",
+            "result": "IN_PROGRESS",
+            "resultsUrl": "https://theresultsurl.com",
+            "type": "SCRIPT_API",
+            "typeLabel": "Scripted Api"
+        },
+        {
+            "automatedTestMonitorConfig": {
+                "isBlocking": false,
+                "overrides": {
+                    "secureCredential": {
+                        "key": "TARGETKEY",
+                        "overrideKey": "OVERRIDEKEY"
+                    },
+                    "location": "LOCALHOST"
+                }
+            },
+            "batchId": "36488dff-9a8a-4358-8ef2-e73da3c118e0",
+            "duration": 100,
+            "error": "",
+            "id": "1b3cb04e-5c1e-4613-b864-656eb19b991f",
+            "location": "AWS_US_EAST_1",
+            "locationLabel": "Washington DC",
+            "monitorGuid": "MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTWW",
+            "monitorId": "61a02139-eda5-47ee-aaaa-1fca1e6ed43f",
+            "monitorName": "Test Monitor 3",
+            "result": "SUCCESS",
+            "resultsUrl": "https://theresultsurl.com",
+            "type": "SCRIPT_API",
+            "typeLabel": "Scripted Api"
+        }
+    ]
+}
