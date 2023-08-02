@@ -19,16 +19,16 @@ import (
 )
 
 var (
-	attribute      string
-	changelog      string
-	commit         string
-	deepLink       string
-	deploymentType string
-	description    string
-	groupID        string
-	timestamp      int64
-	user           string
-	version        string
+	changelog       string
+	commit          string
+	customAttribute string
+	deepLink        string
+	deploymentType  string
+	description     string
+	groupID         string
+	timestamp       int64
+	user            string
+	version         string
 )
 
 var cmdEntityDeployment = &cobra.Command{
@@ -63,7 +63,7 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		customAttributes, err := parseAttributes(attribute)
+		customAttributes, err := parseCustomAttributes(customAttribute)
 
 		if err != nil {
 			log.Fatal(err)
@@ -97,9 +97,9 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVarP(&version, "version", "v", "", "the version of the deployed software, for example, something like v1.1. version is required.")
 	utils.LogIfError(cmdEntityDeploymentCreate.MarkFlagRequired("version"))
 
-	cmdEntityDeploymentCreate.Flags().StringVar(&attribute, "attribute", "", "(EARLY ACCESS) a comma separated list of key:value attributes to apply to the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&changelog, "changelog", "", "a URL for the changelog or list of changes if not linkable")
 	cmdEntityDeploymentCreate.Flags().StringVar(&commit, "commit", "", "the commit identifier, for example, a Git commit SHA")
+	cmdEntityDeploymentCreate.Flags().StringVar(&customAttribute, "customAttribute", "", "(EARLY ACCESS) a comma separated list of key:value custom attributes to apply to the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deploymentType, "deploymentType", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
 	cmdEntityDeploymentCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
@@ -108,24 +108,24 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
 }
 
-func parseAttributes(a string) (*map[string]string, error) {
-	attributeMap := make(map[string]string)
+func parseCustomAttributes(a string) (*map[string]string, error) {
+	customAttributeMap := make(map[string]string)
 
 	if a == "" {
 		return nil, nil
 	}
 
-	attributes := strings.Split(a, ",")
+	customAttributeSlice := strings.Split(a, ",")
 
-	for _, v := range attributes {
+	for _, v := range customAttributeSlice {
 		pair := strings.Split(v, ":")
 
 		if len(pair) != 2 {
-			return nil, errors.New("invalid format, please use comma separated key-value pairs (--attribute key1,value1:key2,value2)")
+			return nil, errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1,value1:key2,value2)")
 		}
 
-		attributeMap[pair[0]] = pair[1]
+		customAttributeMap[pair[0]] = pair[1]
 	}
 
-	return &attributeMap, nil
+	return &customAttributeMap, nil
 }

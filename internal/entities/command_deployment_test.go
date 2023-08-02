@@ -31,7 +31,7 @@ func TestParseAttributesSingleKeyValue(t *testing.T) {
 	}
 	var errWant error
 
-	got, errGot := parseAttributes(a)
+	got, errGot := parseCustomAttributes(a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, *got)
@@ -46,7 +46,7 @@ func TestParseAttributesTwoKeyValues(t *testing.T) {
 	}
 	var errWant error
 
-	got, errGot := parseAttributes(a)
+	got, errGot := parseCustomAttributes(a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, *got)
@@ -56,9 +56,9 @@ func TestParseAttributesKeyNoValue(t *testing.T) {
 	a := "key"
 
 	want := nilPointerMapStringString()
-	errWant := errors.New("invalid format, please use comma separated key-value pairs (--attribute key1,value1:key2,value2)")
+	errWant := errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1,value1:key2,value2)")
 
-	got, errGot := parseAttributes(a)
+	got, errGot := parseCustomAttributes(a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, got)
@@ -68,9 +68,9 @@ func TestParseAttributesTooManyColons(t *testing.T) {
 	a := "key:value:extra"
 
 	want := nilPointerMapStringString()
-	errWant := errors.New("invalid format, please use comma separated key-value pairs (--attribute key1,value1:key2,value2)")
+	errWant := errors.New("invalid format, please use comma separated key-value pairs (--customAttribute key1,value1:key2,value2)")
 
-	got, errGot := parseAttributes(a)
+	got, errGot := parseCustomAttributes(a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, got)
@@ -82,7 +82,7 @@ func TestParseAttributesEmptyString(t *testing.T) {
 	want := nilPointerMapStringString()
 	var errWant error
 
-	got, errGot := parseAttributes(a)
+	got, errGot := parseCustomAttributes(a)
 
 	assert.Equal(t, errWant, errGot)
 	assert.Equal(t, want, got)
