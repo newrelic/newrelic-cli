@@ -21,7 +21,7 @@ import (
 var (
 	changelog       string
 	commit          string
-	customAttribute string
+	customAttribute []string
 	deepLink        string
 	deploymentType  string
 	description     string
@@ -48,7 +48,7 @@ var cmdEntityDeploymentCreate = &cobra.Command{
 
 The deployment command marks a change for a New Relic entity
 	`,
-	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'",
+	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --customAttribute test1:123,test2:456 --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := changetracking.ChangeTrackingDeploymentInput{}
@@ -63,7 +63,7 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		customAttributes, err := parseCustomAttributes(customAttribute)
+		customAttributes, err := parseCustomAttributes(&customAttribute)
 
 		if err != nil {
 			log.Fatal(err)
@@ -99,7 +99,7 @@ func init() {
 
 	cmdEntityDeploymentCreate.Flags().StringVar(&changelog, "changelog", "", "a URL for the changelog or list of changes if not linkable")
 	cmdEntityDeploymentCreate.Flags().StringVar(&commit, "commit", "", "the commit identifier, for example, a Git commit SHA")
-	cmdEntityDeploymentCreate.Flags().StringVar(&customAttribute, "customAttribute", "", "(EARLY ACCESS) a comma separated list of key:value custom attributes to apply to the deployment")
+	cmdEntityDeploymentCreate.Flags().StringSliceVar(&customAttribute, "customAttribute", []string{}, "(EARLY ACCESS) a comma separated list of key:value custom attributes to apply to the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deploymentType, "deploymentType", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
 	cmdEntityDeploymentCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
@@ -108,16 +108,14 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
 }
 
-func parseCustomAttributes(a string) (*map[string]string, error) {
+func parseCustomAttributes(a *[]string) (*map[string]string, error) {
 	customAttributeMap := make(map[string]string)
 
-	if a == "" {
+	if len(*a) < 1 {
 		return nil, nil
 	}
 
-	customAttributeSlice := strings.Split(a, ",")
-
-	for _, v := range customAttributeSlice {
+	for _, v := range *a {
 		pair := strings.Split(v, ":")
 
 		if len(pair) != 2 {
