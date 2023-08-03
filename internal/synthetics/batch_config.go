@@ -15,25 +15,19 @@ type SecureCredential struct {
 }
 
 type MonitorConfig struct {
-	Overrides  []SecureCredential `yaml:"secureCredential"`
-	Location   string             `yaml:"location"`
+	Overrides  []SecureCredential `yaml:"secureCredential, omitempty"`
+	Location   string             `yaml:"location, omitempty"`
 	IsBlocking bool               `yaml:"isBlocking"`
 }
 
 type Monitor struct {
 	GUID   string        `yaml:"guid"`
-	Config MonitorConfig `yaml:"config"`
-}
-
-type TagSearch struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
+	Config MonitorConfig `yaml:"config, omitempty"`
 }
 
 type Configuration struct {
-	Monitors  []Monitor   `yaml:"monitors"`
-	TagSearch []TagSearch `yaml:"tagSearch"`
-	Config    struct {
+	Monitors []Monitor `yaml:"monitors"`
+	Config   struct {
 		Branch    string `yaml:"branch"`
 		Commit    string `yaml:"commit"`
 		Platform  string `yaml:"platform"`
