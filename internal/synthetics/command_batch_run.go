@@ -3,10 +3,12 @@ package synthetics
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"io/ioutil"
 	"os"
 	"time"
 
+	_ "github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	log "github.com/sirupsen/logrus"
@@ -31,7 +33,8 @@ var cmdRun = &cobra.Command{
 	Long:    "Interact with New Relic Synthetics batch monitors",
 	Run: func(cmd *cobra.Command, args []string) {
 		var mockbatchID string
-
+		//progressIndicator := ux.NewSpinnerProgressIndicator()
+		progressIndicator := ux.NewSpinner()
 		// Config holds values unmarshalled from the YAML file
 		var config Configuration
 
@@ -87,6 +90,7 @@ var cmdRun = &cobra.Command{
 		// To be changed to 30 seconds in the real implementation, as suggested by the Synthetics team
 		pollingInterval := time.Second * 15
 
+		progressIndicator.Start("Fetching the status of the batch\n")
 		start := time.Now()
 
 		// This variable has been used to track iterations of mock API calls for easier file opening of mock JSON files.
@@ -99,7 +103,9 @@ var cmdRun = &cobra.Command{
 			// A timeout in the CLI may not be needed, based on recent suggestions received, as the API
 			// returns a TIMED_OUT status if one or more job(s) in the batch consume > 10 minutes.
 			if time.Since(start) > apiTimeout {
-				fmt.Println("Halting execution : reached timeout.")
+				fmt.Println("---------------------------")
+				progressIndicator.Fail("Halting execution : reached timeout.")
+				fmt.Println("---------------------------")
 				break
 			}
 
@@ -123,19 +129,19 @@ var cmdRun = &cobra.Command{
 				fmt.Println()
 				time.Sleep(pollingInterval)
 			case string(AutomatedTestResultsStatusTimedOut):
-				fmt.Printf("Execution stopped - Status: %s\n", root.Status)
 				printMonitorStatus(root)
+				progressIndicator.Canceled("Execution stopped - Status: " + root.Status + "\n")
 				os.Exit(int(AutomatedTestResultsExitStatusTimedOut))
 			case string(AutomatedTestResultsStatusFailure):
-				fmt.Printf("Execution stopped - Status: %s\n", root.Status)
+				progressIndicator.Fail("Execution stopped - Status: " + root.Status + "\n")
 				printMonitorStatus(root)
 				os.Exit(int(AutomatedTestResultsExitStatusFailure))
 			case string(AutomatedTestResultsStatusPassed):
-				fmt.Printf("Execution stopped - Status: %s\n", root.Status)
+				progressIndicator.Success("Execution stopped - Status: " + root.Status + "\n")
 				printMonitorStatus(root)
 				os.Exit(int(AutomatedTestResultsExitStatusSuccess))
 			default:
-				fmt.Printf("Unexpected status: %s\n", root.Status)
+				progressIndicator.Fail("Unexpected status: " + root.Status + "\n")
 				os.Exit(int(AutomatedTestResultsExitStatusUnknown))
 			}
 		}
@@ -177,7 +183,7 @@ func getAutomatedTestResultsMockResponse(batchID string, index int) (r Root) {
 
 	var root Root
 	if err := json.Unmarshal(byteValue, &root); err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
+		fmt.Println("Error unmarshalling JSON:", err)
 		return
 	}
 

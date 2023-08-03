@@ -15,14 +15,14 @@ type SecureCredential struct {
 }
 
 type MonitorConfig struct {
-	Overrides  []SecureCredential `yaml:"secureCredential, omitempty"`
-	Location   string             `yaml:"location, omitempty"`
+	Overrides  []SecureCredential `yaml:"secureCredential,omitempty"`
+	Location   string             `yaml:"location,omitempty"`
 	IsBlocking bool               `yaml:"isBlocking"`
 }
 
 type Monitor struct {
 	GUID   string        `yaml:"guid"`
-	Config MonitorConfig `yaml:"config, omitempty"`
+	Config MonitorConfig `yaml:"config,omitempty"`
 }
 
 type Configuration struct {
