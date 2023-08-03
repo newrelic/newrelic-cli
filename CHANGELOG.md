@@ -1,5 +1,11 @@
+<a name="v0.69.0"></a>
+## [v0.69.0] - 2023-08-03
+### Features
+- custom attributes via stringslicevar ([#1496](https://github.com/newrelic/newrelic-cli/issues/1496))
+- entity deployment customattributes ([#1492](https://github.com/newrelic/newrelic-cli/issues/1492))
+
 <a name="v0.68.25"></a>
-## [v0.68.25] - 2023-07-24
+## [v0.68.25] - 2023-07-31
 <a name="v0.68.24"></a>
 ## [v0.68.24] - 2023-07-24
 <a name="v0.68.23"></a>
@@ -2086,7 +2092,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.68.25...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.69.0...HEAD
+[v0.69.0]: https://github.com/newrelic/newrelic-cli/compare/v0.68.25...v0.69.0
 [v0.68.25]: https://github.com/newrelic/newrelic-cli/compare/v0.68.24...v0.68.25
 [v0.68.24]: https://github.com/newrelic/newrelic-cli/compare/v0.68.23...v0.68.24
 [v0.68.23]: https://github.com/newrelic/newrelic-cli/compare/v0.68.22...v0.68.23
