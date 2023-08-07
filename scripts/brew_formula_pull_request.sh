@@ -44,26 +44,18 @@ git remote add upstream https://github.com/Homebrew/homebrew-core.git
 # List our remotes for CI clarity
 git remote -v
 
-# Need to fetch so we have the upstream/master branch locally
+# Ensure we're on the master branch of newrelic-forks/homebrew-core
+git checkout master
+
+# Need to fetch upstream so we have the upstream/master branch locally
 git fetch upstream
 
 # Ensure our local master branch is up to date with the
-# latest code from Homebrew/homebrew-core.
-# Abort the rebase if encounter merge conflicts.
-git rebase upstream/master
+# latest code from upstream Homebrew/homebrew-core
+git reset --hard upstream/master
 
-exitCode=$?
-
-if [ $exitCode -ne 0 ]; then
-  echo " "
-  echo "Failed to rebase on top of upstream/master likely due to a merge conflict."
-  echo "Please rebase the homebrew pull request locally and fix any conflicts before merging."
-  echo " "
-
-  git rebase --abort
-
-  exit $exitCode
-fi
+# Ensure our fork is up to date with upstream/master as well
+git push origin master -f
 
 homebrew_formula_file='Formula/newrelic-cli.rb'
 tmp_formula_file='Formula/newrelic-cli.rb.tmp'
