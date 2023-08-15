@@ -11,6 +11,7 @@ type RecipeBuilder struct {
 	id                  string
 	name                string
 	requireAtDiscovery  string
+	TargetInstallOnly   bool
 	goTaskInstallScript string
 	processMatches      []string
 	targets             []types.OpenInstallationRecipeInstallTarget
@@ -39,6 +40,11 @@ func (b *RecipeBuilder) Name(name string) *RecipeBuilder {
 
 func (b *RecipeBuilder) WithPreInstallScript(script string) *RecipeBuilder {
 	b.requireAtDiscovery = script
+	return b
+}
+
+func (b *RecipeBuilder) WithRecipeTargetedOnly(shouldInclude bool) *RecipeBuilder {
+	b.TargetInstallOnly = shouldInclude
 	return b
 }
 
@@ -89,7 +95,7 @@ func (b *RecipeBuilder) InstallGoTaskScript(script string) *RecipeBuilder {
 }
 
 func (b *RecipeBuilder) InstallShell(script string) *RecipeBuilder {
-	var goTaskWrap = fmt.Sprintf(`
+	goTaskWrap := fmt.Sprintf(`
 version: '3'
 tasks:
   default:
@@ -115,7 +121,8 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 		ID:   b.id,
 		Name: b.name,
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery: b.requireAtDiscovery,
+			RequireAtDiscovery:  b.requireAtDiscovery,
+			TargetedInstallOnly: b.TargetInstallOnly,
 		},
 		Install: b.goTaskInstallScript,
 	}

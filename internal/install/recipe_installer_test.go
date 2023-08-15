@@ -168,14 +168,15 @@ func TestInstallGuidedShouldNotSkipCoreInstall(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe2 Installed")
 }
+
 func TestInstallGuidedShouldSkipOTEL(t *testing.T) {
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
 		Status: execution.RecipeStatusTypes.AVAILABLE,
 	}
 	r2 := &recipes.RecipeDetectionResult{
-		Recipe: recipes.NewRecipeBuilder().Name(types.OTELRecipeName).Build(),
-		Status: execution.RecipeStatusTypes.AVAILABLE,
+		Recipe: recipes.NewRecipeBuilder().Name("OTEL").WithRecipeTargetedOnly(true).Build(),
+		Status: execution.RecipeStatusTypes.NULL,
 	}
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
@@ -257,11 +258,11 @@ func TestInstallTargetedInstallShouldInstallWithRecomendataion(t *testing.T) {
 
 func TestInstallTargetedShouldNotSkipOTEL(t *testing.T) {
 	r := &recipes.RecipeDetectionResult{
-		Recipe: recipes.NewRecipeBuilder().Name(types.OTELRecipeName).Build(),
+		Recipe: recipes.NewRecipeBuilder().Name("OTEL").Build(),
 		Status: execution.RecipeStatusTypes.AVAILABLE,
 	}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(types.OTELRecipeName).WithStatusReporter(statusReporter).Build()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName("OTEL").WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
 	err := recipeInstall.Install()
 
@@ -534,7 +535,6 @@ func TestInstallWhenInstallIsCancelled(t *testing.T) {
 }
 
 func TestInstallWhenInstallIsUnsupported(t *testing.T) {
-
 	expected := &types.UnsupportedOperatingSystemError{Err: errors.New("Unsupported")}
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name("Other").Build(),
@@ -555,7 +555,6 @@ func TestInstallWhenInstallIsUnsupported(t *testing.T) {
 	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
 	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
 	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
-
 }
 
 func TestExecuteAndValidateWithProgressWhenInstallWithNoValidationMethod(t *testing.T) {

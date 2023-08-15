@@ -197,6 +197,8 @@ type OpenInstallationPreInstallConfiguration struct {
 	Prompt string `json:"prompt,omitempty"`
 	// Script block to be executed during system discovery, a successful exit status will mark the recipe for execution
 	RequireAtDiscovery string `json:"requireAtDiscovery,omitempty"`
+	// False if omit, exclude recipe unless is targeted
+	TargetedInstallOnly bool `json:"TargetedInstallOnly,omitempty"`
 }
 
 // OpenInstallationProcessDetailInput - Process details

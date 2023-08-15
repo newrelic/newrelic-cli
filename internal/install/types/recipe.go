@@ -12,12 +12,9 @@ const (
 	InfraAgentRecipeName = "infrastructure-agent-installer"
 	LoggingRecipeName    = "logs-integration"
 	GoldenRecipeName     = "alerts-golden-signal"
-	OTELRecipeName       = "newrelic-opentelemetry-collector"
 )
 
-var (
-	RecipeVariables = map[string]string{}
-)
+var RecipeVariables = map[string]string{}
 
 // RecipeVars is used to pass dynamic data to recipes and go-task.
 type RecipeVars map[string]string

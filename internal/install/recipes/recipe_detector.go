@@ -49,19 +49,20 @@ type RecipeDetector struct {
 	scriptEvaluator  DetectionStatusProvider
 	context          context.Context
 	repo             Finder
+	installerContext *types.InstallerContext
 }
 
-func NewRecipeDetector(contex context.Context, repo *RecipeRepository, peval ProcessEvaluatorInterface) *RecipeDetector {
+func NewRecipeDetector(contex context.Context, repo *RecipeRepository, peval ProcessEvaluatorInterface, ic *types.InstallerContext) *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: peval,
 		scriptEvaluator:  NewScriptEvaluator(),
 		context:          contex,
 		repo:             repo,
+		installerContext: ic,
 	}
 }
 
 func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDetectionResults, error) {
-
 	availableRecipes := RecipeDetectionResults{}
 	unavailableRecipes := RecipeDetectionResults{}
 	recipes, err := dt.repo.FindAll()
@@ -85,6 +86,16 @@ func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDe
 
 func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *RecipeDetectionResult {
 	start := time.Now()
+
+	if recipe.PreInstall.TargetedInstallOnly && !dt.installerContext.IsRecipeTargeted(recipe.Name) {
+		durationMs := time.Since(start).Milliseconds()
+		return &RecipeDetectionResult{
+			recipe,
+			execution.RecipeStatusTypes.NULL,
+			durationMs,
+		}
+	}
+
 	status := dt.processEvaluator.DetectionStatus(dt.context, recipe)
 	durationMs := time.Since(start).Milliseconds()
 

@@ -48,7 +48,7 @@ type RecipeInstall struct {
 	bundlerFactory         func(ctx context.Context, availableRecipes recipes.RecipeDetectionResults) RecipeBundler
 	bundleInstallerFactory func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller
 	progressIndicator      ux.ProgressIndicator
-	recipeDetectorFactory  func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector
+	recipeDetectorFactory  func(ctx context.Context, repo *recipes.RecipeRepository, ic *types.InstallerContext) RecipeStatusDetector
 	processEvaluator       recipes.ProcessEvaluatorInterface
 }
 
@@ -118,8 +118,8 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 	i.bundleInstallerFactory = func(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) RecipeBundleInstaller {
 		return NewBundleInstaller(ctx, manifest, recipeInstallerInterface, statusReporter)
 	}
-	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
-		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator)
+	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository, ic *types.InstallerContext) RecipeStatusDetector {
+		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator, ic)
 	}
 	return &i
 }
@@ -284,7 +284,6 @@ func (i *RecipeInstall) connectToPlatform() error {
 }
 
 func (i *RecipeInstall) install(ctx context.Context) error {
-
 	installLibraryVersion := i.recipeFetcher.FetchLibraryVersion(ctx)
 	log.Debugf("Using open-install-library version %s", installLibraryVersion)
 	i.status.SetVersions(installLibraryVersion)
@@ -302,30 +301,10 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	i.printStartInstallingMessage(repo)
 
-	recipeDetector := i.recipeDetectorFactory(ctx, repo)
+	recipeDetector := i.recipeDetectorFactory(ctx, repo, &i.InstallerContext)
 	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
 	if err != nil {
 		return err
-	}
-
-	isTargetedInstall := i.RecipeNamesProvided() && len(i.RecipeNames) > 0
-	isTargetingOTEL := false
-
-	for _, r := range i.RecipeNames {
-		if r == types.OTELRecipeName {
-			isTargetingOTEL = true
-			break
-		}
-	}
-
-	if !isTargetedInstall || !isTargetingOTEL {
-		availableRecipesMinusExclusions := recipes.RecipeDetectionResults{}
-		for _, ar := range availableRecipes {
-			if ar.Recipe.Name != types.OTELRecipeName {
-				availableRecipesMinusExclusions = append(availableRecipesMinusExclusions, ar)
-			}
-		}
-		availableRecipes = availableRecipesMinusExclusions
 	}
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
@@ -368,8 +347,8 @@ func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeReposito
 }
 
 func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDetectionResults,
-	unavailableRecipes recipes.RecipeDetectionResults) {
-
+	unavailableRecipes recipes.RecipeDetectionResults,
+) {
 	for _, d := range unavailableRecipes {
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(d.Status, e)
@@ -420,7 +399,6 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 }
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
-
 	var additionalBundle *recipes.Bundle
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
@@ -447,7 +425,6 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 }
 
 func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller) error {
-
 	if i.shouldInstallCore() {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)
@@ -706,7 +683,6 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 		}
 
 		entityGUID, err := i.executeAndValidate(ctx, m, r, vars, assumeYes)
-
 		if err != nil {
 			errorChan <- err
 			return
