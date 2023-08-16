@@ -175,7 +175,9 @@ func TestInstallGuidedShouldSkipOTEL(t *testing.T) {
 		Status: execution.RecipeStatusTypes.AVAILABLE,
 	}
 	r2 := &recipes.RecipeDetectionResult{
-		Recipe: recipes.NewRecipeBuilder().Name("OTEL").WithRecipeTargetedOnly(true).Build(),
+		Recipe: recipes.NewRecipeBuilder().Name("OTEL").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{
+			types.OpenInstallationDiscoveryModeTypes.TARGETED,
+		}).Build(),
 		Status: execution.RecipeStatusTypes.NULL,
 	}
 	statusReporter := execution.NewMockStatusReporter()

@@ -11,7 +11,7 @@ type RecipeBuilder struct {
 	id                  string
 	name                string
 	requireAtDiscovery  string
-	TargetInstallOnly   bool
+	DiscoveryMode       []types.OpenInstallationDiscoveryMode
 	goTaskInstallScript string
 	processMatches      []string
 	targets             []types.OpenInstallationRecipeInstallTarget
@@ -25,6 +25,10 @@ func NewRecipeBuilder() *RecipeBuilder {
 		id:   "id1",
 		name: "recipe1",
 		vars: make(map[string]string),
+		DiscoveryMode: []types.OpenInstallationDiscoveryMode{
+			types.OpenInstallationDiscoveryModeTypes.GUIDED,
+			types.OpenInstallationDiscoveryModeTypes.TARGETED,
+		},
 	}
 }
 
@@ -43,8 +47,8 @@ func (b *RecipeBuilder) WithPreInstallScript(script string) *RecipeBuilder {
 	return b
 }
 
-func (b *RecipeBuilder) WithRecipeTargetedOnly(shouldInclude bool) *RecipeBuilder {
-	b.TargetInstallOnly = shouldInclude
+func (b *RecipeBuilder) WithDiscoveryMode(discoveryMode []types.OpenInstallationDiscoveryMode) *RecipeBuilder {
+	b.DiscoveryMode = discoveryMode
 	return b
 }
 
@@ -121,8 +125,8 @@ func (b *RecipeBuilder) Build() *types.OpenInstallationRecipe {
 		ID:   b.id,
 		Name: b.name,
 		PreInstall: types.OpenInstallationPreInstallConfiguration{
-			RequireAtDiscovery:  b.requireAtDiscovery,
-			TargetedInstallOnly: b.TargetInstallOnly,
+			RequireAtDiscovery: b.requireAtDiscovery,
+			DiscoveryMode:      b.DiscoveryMode,
 		},
 		Install: b.goTaskInstallScript,
 	}

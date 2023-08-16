@@ -100,7 +100,7 @@ func TestDetectionResultsShouldSortByRecipeName(t *testing.T) {
 }
 
 func TestRecipeDetectorShouldExcludeIfNotTargeted(t *testing.T) {
-	recipe := NewRecipeBuilder().WithRecipeTargetedOnly(true).Build()
+	recipe := NewRecipeBuilder().WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
 
 	b := NewRecipeDetectorTestBuilder()
 	b.WithProcessEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
@@ -116,7 +116,7 @@ func TestRecipeDetectorShouldExcludeIfNotTargeted(t *testing.T) {
 }
 
 func TestRecipeDetectorShouldIncludeIfTargeted(t *testing.T) {
-	recipe := NewRecipeBuilder().Name("R1").WithRecipeTargetedOnly(true).Build()
+	recipe := NewRecipeBuilder().Name("R1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
 
 	b := NewRecipeDetectorTestBuilder()
 	b.WithProcessEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
@@ -132,6 +132,22 @@ func TestRecipeDetectorShouldIncludeIfTargeted(t *testing.T) {
 
 	require.True(t, ok)
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual.Status)
+}
+
+func TestRecipeDetectorShouldDiscover(t *testing.T) {
+	recipe := NewRecipeBuilder().Build()
+	b := NewRecipeDetectorTestBuilder()
+	b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{
+		"R1",
+	}})
+	detector := b.Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when attribute is omittd")
+
+	recipe = NewRecipeBuilder().Name("C1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+	require.False(t, detector.shouldDiscover(recipe), "Should not discover when targeted only and not targeted during install")
+
+	recipe = NewRecipeBuilder().Name("R1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted only and not targeted during install")
 }
 
 type MockRecipesFinder struct {

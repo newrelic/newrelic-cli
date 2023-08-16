@@ -195,11 +195,32 @@ func expandPreInstall(recipe map[string]interface{}) OpenInstallationPreInstallC
 	}
 
 	return OpenInstallationPreInstallConfiguration{
-		Info:                toStringByFieldName("info", infoOut),
-		Prompt:              toStringByFieldName("prompt", infoOut),
-		RequireAtDiscovery:  toStringByFieldName("requireAtDiscovery", infoOut),
-		TargetedInstallOnly: toBoolByFieldName("targetedInstallOnly", infoOut),
+		Info:               toStringByFieldName("info", infoOut),
+		Prompt:             toStringByFieldName("prompt", infoOut),
+		RequireAtDiscovery: toStringByFieldName("requireAtDiscovery", infoOut),
+		DiscoveryMode:      expandDiscoveryMode(infoOut),
 	}
+}
+
+func expandDiscoveryMode(pi map[string]interface{}) []OpenInstallationDiscoveryMode {
+	v, ok := pi["discoveryMode"]
+	if !ok {
+		return []OpenInstallationDiscoveryMode{
+			OpenInstallationDiscoveryModeTypes.GUIDED,
+			OpenInstallationDiscoveryModeTypes.TARGETED,
+		}
+	}
+
+	dmIn := v.([]interface{})
+	dmOut := make([]OpenInstallationDiscoveryMode, 0)
+
+	for _, m := range dmIn {
+		if m, ok := ValidDiscoveryModes[strings.ToUpper(m.(string))]; ok {
+			dmOut = append(dmOut, m)
+		}
+	}
+
+	return dmOut
 }
 
 func expandPostInstall(recipe map[string]interface{}) OpenInstallationPostInstallConfiguration {

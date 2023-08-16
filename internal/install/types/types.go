@@ -135,6 +135,22 @@ var OpenInstallationTargetTypeTypes = struct {
 	SERVERLESS: "SERVERLESS",
 }
 
+type OpenInstallationDiscoveryMode string
+
+var ValidDiscoveryModes = map[string]OpenInstallationDiscoveryMode{
+	"GUIDED":   OpenInstallationDiscoveryModeTypes.GUIDED,
+	"TARGETED": OpenInstallationDiscoveryModeTypes.TARGETED,
+}
+
+var OpenInstallationDiscoveryModeTypes = struct {
+	GUIDED     OpenInstallationDiscoveryMode
+	TARGETED   OpenInstallationDiscoveryMode
+	FromString map[string]OpenInstallationDiscoveryMode
+}{
+	GUIDED:   "GUIDED",
+	TARGETED: "TARGETED",
+}
+
 // OpenInstallationAttributes - Custom event data attributes
 type OpenInstallationAttributes struct {
 	// Built-in parsing rulesets
@@ -197,8 +213,8 @@ type OpenInstallationPreInstallConfiguration struct {
 	Prompt string `json:"prompt,omitempty"`
 	// Script block to be executed during system discovery, a successful exit status will mark the recipe for execution
 	RequireAtDiscovery string `json:"requireAtDiscovery,omitempty"`
-	// False if omit, exclude recipe unless is targeted
-	TargetedInstallOnly bool `json:"TargetedInstallOnly,omitempty"`
+	// Possible values, guided, targeted. Both are included if omitted.
+	DiscoveryMode []OpenInstallationDiscoveryMode `json:"discoveryMode,omitempty"`
 }
 
 // OpenInstallationProcessDetailInput - Process details
