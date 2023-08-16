@@ -74,3 +74,10 @@ const (
 	AutomatedTestResultsStatusTimedOut   AutomatedTestResultsStatus = "TIMED_OUT"
 	AutomatedTestResultsStatusInProgress AutomatedTestResultsStatus = "IN_PROGRESS"
 )
+
+var TestResultExitCodes = map[AutomatedTestResultsStatus]AutomatedTestResultsExitStatus{
+	AutomatedTestResultsStatusPassed:     AutomatedTestResultsExitStatusSuccess,
+	AutomatedTestResultsStatusFailure:    AutomatedTestResultsExitStatusFailure,
+	AutomatedTestResultsStatusTimedOut:   AutomatedTestResultsExitStatusTimedOut,
+	AutomatedTestResultsStatusInProgress: AutomatedTestResultsExitStatusUnknown,
+}
