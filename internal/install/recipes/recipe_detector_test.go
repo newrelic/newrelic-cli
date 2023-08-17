@@ -147,7 +147,13 @@ func TestRecipeDetectorShouldDiscover(t *testing.T) {
 	require.False(t, detector.shouldDiscover(recipe), "Should not discover when targeted only and not targeted during install")
 
 	recipe = NewRecipeBuilder().Name("R1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
-	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted only and not targeted during install")
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted only and targeted during install")
+
+	recipe = NewRecipeBuilder().Name("C1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.GUIDED}).Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when guided mode")
+
+	recipe = NewRecipeBuilder().Name("C1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.GUIDED, types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted, and guided mode")
 }
 
 type MockRecipesFinder struct {
