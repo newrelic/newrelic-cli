@@ -93,8 +93,9 @@ var cmdRun = &cobra.Command{
 		// This is expected to be received in the response of syntheticsStartAutomatedTest.
 		// ----------------------------------------------------------------------------------
 
-		progressIndicator.Start("Fetching the status of the batch\n")
-		start := time.Now()
+		progressIndicator.Start("Fetching the status of tests in the batch....\n")
+
+		// start := time.Now()
 
 		// This variable has been used to track iterations of mock API calls for easier file opening of mock JSON files.
 		// This may be discarded along with its usages after the API calling function is used.
@@ -105,12 +106,14 @@ var cmdRun = &cobra.Command{
 
 			// A timeout in the CLI may not be needed, based on recent suggestions received, as the API
 			// returns a TIMED_OUT status if one or more job(s) in the batch consume > 10 minutes.
-			if time.Since(start) > apiTimeout {
-				fmt.Println("---------------------------")
-				progressIndicator.Fail("Halting execution : reached timeout.")
-				fmt.Println("---------------------------")
-				break
-			}
+			// Update: Timeout is not needed.
+
+			//if time.Since(start) > apiTimeout {
+			//	fmt.Println("---------------------------")
+			//	progressIndicator.Fail("Halting execution : reached timeout.")
+			//	fmt.Println("---------------------------")
+			//	break
+			//}
 
 			i++
 
@@ -178,25 +181,31 @@ func getAutomatedTestResultsMockResponse(batchID string, index int) (r Root) {
 	return root
 }
 
-// printMonitorStatus is called every 15 seconds to print the status of individual monitors
-func printMonitorStatus(root Root) {
+// getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
+func getMonitorTestsSummary(root Root) (string, string) {
 	countSuccess := 0
 	countFailure := 0
 	countProgress := 0
 	tests := root.Tests
 
+	var summaryMessage string
+	var resultMessage string
+
 	for _, test := range tests {
 		if test.Result == "SUCCESS" {
 			countSuccess++
+			resultMessage += fmt.Sprintf("\n - Success: %s (%s)", test.MonitorID, test.MonitorName)
 		} else if test.Result == "FAILED" {
 			countFailure++
+			resultMessage += fmt.Sprintf("\n - Failed: %s (%s)", test.MonitorID, test.MonitorName)
 		} else if test.Result == "IN_PROGRESS" || test.Result == "" {
 			countProgress++
+			resultMessage += fmt.Sprintf("\n - In Progress: %s (%s)", test.MonitorID, test.MonitorName)
 		}
 	}
 
-	fmt.Println("Successful Tests: ", countSuccess)
-	fmt.Println("Failed Tests: ", countFailure)
+	summaryMessage = fmt.Sprintf("%d succeeded; %d failed; %d in progress.", countSuccess, countFailure, countProgress)
+	return summaryMessage, resultMessage
 }
 
 // runSynthetics batches and call
@@ -227,26 +236,35 @@ func runSynthetics(guids []string) string {
 //   - exitStatus: The AutomatedTestResultsExitStatus corresponding to the given root.Status.
 //
 // In the case of AutomatedTestResultsStatusInProgress, the function prints an
-// information message, calls the printMonitorStatus function, and waits for
+// information message, calls the getMonitorTestsSummary function, and waits for
 // the specified pollingInterval before the next API call.
 //
 // In the cases of AutomatedTestResultsStatusTimedOut, AutomatedTestResultsStatusFailure,
 // and AutomatedTestResultsStatusPassed, the function prints the execution result,
-// calls the printMonitorStatus function, and exits the program with the
+// calls the getMonitorTestsSummary function, and exits the program with the
 // corresponding exit status code.
 func handleStatus(root Root, exitStatus AutomatedTestResultsExitStatus) {
 	switch root.Status {
 	case string(AutomatedTestResultsStatusInProgress):
 		fmt.Println("Status still IN_PROGRESS, calling API again in 15 seconds")
-		printMonitorStatus(root)
+		summary, result := getMonitorTestsSummary(root)
+		fmt.Printf("Summary : %s\n", summary)
+		fmt.Println(result)
+		fmt.Println()
 		fmt.Println()
 		time.Sleep(pollingInterval)
 	case string(AutomatedTestResultsStatusTimedOut), string(AutomatedTestResultsStatusFailure), string(AutomatedTestResultsStatusPassed):
-		progressIndicator.Success("Execution stopped - Status: " + root.Status + "\n")
-		printMonitorStatus(root)
+		progressIndicator.Success("Execution stopped - Status: " + root.Status)
+		fmt.Println("Execution stopped - Status: " + root.Status + "\n")
+		summary, result := getMonitorTestsSummary(root)
+		fmt.Printf("Summary : %s\n", summary)
+		fmt.Println(result)
+		fmt.Println()
+		fmt.Println()
 		os.Exit(int(exitStatus))
 	default:
-		progressIndicator.Fail("Unexpected status: " + root.Status + "\n")
+		progressIndicator.Fail("Unexpected status: " + root.Status)
+		fmt.Println("Unexpected status: " + root.Status + "\n")
 		os.Exit(int(AutomatedTestResultsExitStatusUnknown))
 	}
 }
