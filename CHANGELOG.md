@@ -1,3 +1,8 @@
+<a name="v0.70.0"></a>
+## [v0.70.0] - 2023-08-21
+### Features
+- Add support for DiscoveryMode Schema Update ([#1502](https://github.com/newrelic/newrelic-cli/issues/1502))
+
 <a name="v0.69.0"></a>
 ## [v0.69.0] - 2023-08-03
 ### Features
@@ -2092,7 +2097,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.69.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.70.0...HEAD
+[v0.70.0]: https://github.com/newrelic/newrelic-cli/compare/v0.69.0...v0.70.0
 [v0.69.0]: https://github.com/newrelic/newrelic-cli/compare/v0.68.25...v0.69.0
 [v0.68.25]: https://github.com/newrelic/newrelic-cli/compare/v0.68.24...v0.68.25
 [v0.68.24]: https://github.com/newrelic/newrelic-cli/compare/v0.68.23...v0.68.24
