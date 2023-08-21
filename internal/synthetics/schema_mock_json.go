@@ -9,19 +9,56 @@ package synthetics
 // Following are the datatypes needed to unmarshal the
 // mock JSON response of the query automatedTestResults
 
-type Test struct {
-	ID          string `json:"id"`
-	BatchID     string `json:"batchId"`
-	MonitorID   string `json:"monitorId"`
-	MonitorGUID string `json:"monitorGuid"`
-	MonitorName string `json:"monitorName"`
-	Result      string `json:"result"`
+type ResultantDomain struct {
+	Domain   string `json:"domain"`
+	Override string `json:"override"`
 }
 
-type Root struct {
-	Tests  []Test                 `json:"tests"`
-	Config map[string]interface{} `json:"config"`
-	Status string                 `json:"status"`
+type ResultantSecureCredential struct {
+	Key         string `json:"key"`
+	OverrideKey string `json:"overrideKey"`
+}
+
+type ResultantOverrides struct {
+	Domain           ResultantDomain           `json:"domain"`
+	Location         string                    `json:"location"`
+	SecureCredential ResultantSecureCredential `json:"secureCredential"`
+	StartingUrl      string                    `json:"startingUrl"`
+}
+
+type AutomatedTestMonitorConfig struct {
+	IsBlocking bool               `json:"isBlocking"`
+	Overrides  ResultantOverrides `json:"overrides"`
+}
+
+type Test struct {
+	AutomatedTestMonitorConfig AutomatedTestMonitorConfig `json:"automatedTestMonitorConfig"`
+	BatchId                    string                     `json:"batchId"`
+	Duration                   int                        `json:"duration"`
+	Error                      string                     `json:"error"`
+	Id                         string                     `json:"id"`
+	Location                   string                     `json:"location"`
+	LocationLabel              string                     `json:"locationLabel"`
+	MonitorGuid                string                     `json:"monitorGuid"`
+	MonitorId                  string                     `json:"monitorId"`
+	MonitorName                string                     `json:"monitorName"`
+	Result                     string                     `json:"result"`
+	ResultsUrl                 string                     `json:"resultsUrl"`
+	Type                       string                     `json:"type"`
+	TypeLabel                  string                     `json:"typeLabel"`
+}
+
+type AutomatedTestResult struct {
+	Config struct {
+		BatchName  string `json:"batchName"`
+		Branch     string `json:"branch"`
+		Commit     string `json:"commit"`
+		DeepLink   string `json:"deepLink"`
+		Platform   string `json:"platform"`
+		Repository string `json:"repository"`
+	} `json:"config"`
+	Status string `json:"status"`
+	Tests  []Test `json:"tests"`
 }
 
 // Following are datatypes which are good to have to substitute

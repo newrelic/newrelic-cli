@@ -69,6 +69,7 @@ var cmdRun = &cobra.Command{
 
 			} else if guid != nil {
 				// do nothing, as guid is already populated with --guid arguments given in the command
+				scenario = 1
 			}
 
 			// ----------------------------------------------------------------------------------
@@ -151,7 +152,7 @@ func init() {
 }
 
 // getAutomatedTestResultsMockResponse is called to retrieve the mock JSON response of the automatedTestResults query
-func getAutomatedTestResultsMockResponse(batchID string, index int) (r Root) {
+func getAutomatedTestResultsMockResponse(batchID string, index int) (r AutomatedTestResult) {
 	directory := fmt.Sprintf("internal/synthetics/mock_json/Scenario %d", scenario)
 	filePath := fmt.Sprintf("%s/response_%d.json", directory, index)
 	jsonFile, err := os.Open(filePath)
@@ -172,7 +173,7 @@ func getAutomatedTestResultsMockResponse(batchID string, index int) (r Root) {
 		return
 	}
 
-	var root Root
+	var root AutomatedTestResult
 	if err := json.Unmarshal(byteValue, &root); err != nil {
 		fmt.Println("Error unmarshalling JSON:", err)
 		return
@@ -182,7 +183,7 @@ func getAutomatedTestResultsMockResponse(batchID string, index int) (r Root) {
 }
 
 // getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
-func getMonitorTestsSummary(root Root) (string, string) {
+func getMonitorTestsSummary(root AutomatedTestResult) (string, string) {
 	countSuccess := 0
 	countFailure := 0
 	countProgress := 0
@@ -194,13 +195,22 @@ func getMonitorTestsSummary(root Root) (string, string) {
 	for _, test := range tests {
 		if test.Result == "SUCCESS" {
 			countSuccess++
-			resultMessage += fmt.Sprintf("\n - Success: %s (%s)", test.MonitorID, test.MonitorName)
+			resultMessage += fmt.Sprintf("\n - Success: %s (%s)", test.MonitorId, test.MonitorName)
 		} else if test.Result == "FAILED" {
 			countFailure++
-			resultMessage += fmt.Sprintf("\n - Failed: %s (%s)", test.MonitorID, test.MonitorName)
+			messageSubstring := ""
+			if test.AutomatedTestMonitorConfig.IsBlocking == true {
+				messageSubstring += fmt.Sprintf("(%s - Blocking)", test.MonitorName)
+			} else if test.AutomatedTestMonitorConfig.IsBlocking == false {
+				messageSubstring += fmt.Sprintf("(%s - Non-Blocking)", test.MonitorName)
+			} else {
+				messageSubstring += fmt.Sprintf("(%s)", test.MonitorName)
+			}
+
+			resultMessage += fmt.Sprintf("\n - Failed: %s %s", test.MonitorId, messageSubstring)
 		} else if test.Result == "IN_PROGRESS" || test.Result == "" {
 			countProgress++
-			resultMessage += fmt.Sprintf("\n - In Progress: %s (%s)", test.MonitorID, test.MonitorName)
+			resultMessage += fmt.Sprintf("\n - In Progress: %s (%s)", test.MonitorId, test.MonitorName)
 		}
 	}
 
@@ -243,28 +253,28 @@ func runSynthetics(guids []string) string {
 // and AutomatedTestResultsStatusPassed, the function prints the execution result,
 // calls the getMonitorTestsSummary function, and exits the program with the
 // corresponding exit status code.
-func handleStatus(root Root, exitStatus AutomatedTestResultsExitStatus) {
+func handleStatus(root AutomatedTestResult, exitStatus AutomatedTestResultsExitStatus) {
 	switch root.Status {
 	case string(AutomatedTestResultsStatusInProgress):
-		fmt.Println("Status still IN_PROGRESS, calling API again in 15 seconds")
+		fmt.Println("\nStatus Received: IN_PROGRESS - re-calling the API in 15 seconds to fetch updated status...")
 		summary, result := getMonitorTestsSummary(root)
-		fmt.Printf("Summary : %s\n", summary)
+		fmt.Printf("Summary: %s\n", summary)
 		fmt.Println(result)
 		fmt.Println()
 		fmt.Println()
 		time.Sleep(pollingInterval)
 	case string(AutomatedTestResultsStatusTimedOut), string(AutomatedTestResultsStatusFailure), string(AutomatedTestResultsStatusPassed):
-		progressIndicator.Success("Execution stopped - Status: " + root.Status)
-		fmt.Println("Execution stopped - Status: " + root.Status + "\n")
+		progressIndicator.Success("Execution stopped - Status: " + root.Status + "\n")
+		fmt.Println("\nStatus Received: " + root.Status + " - Execution halted.")
 		summary, result := getMonitorTestsSummary(root)
-		fmt.Printf("Summary : %s\n", summary)
+		fmt.Printf("Summary: %s\n", summary)
 		fmt.Println(result)
 		fmt.Println()
 		fmt.Println()
 		os.Exit(int(exitStatus))
 	default:
 		progressIndicator.Fail("Unexpected status: " + root.Status)
-		fmt.Println("Unexpected status: " + root.Status + "\n")
+		fmt.Println("\nStatus Received: " + root.Status + " - Exiting due to unexpected status.")
 		os.Exit(int(AutomatedTestResultsExitStatusUnknown))
 	}
 }

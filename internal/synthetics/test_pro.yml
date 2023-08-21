@@ -17,7 +17,7 @@ tests:
           key: KEY1
           overrideKey: OVERRIDE-KEY1
         startingUrl: https://test-starting-url.com
-    monitorGuid: MTE4MzM3MTh8U1lOVEh8TU9OSVRPUnwzMTRmMWEyZS0xNWI0LTQ0MDgtYjNhNi1kMDNiYzQ1YmY4NDA
+    monitorGuid: MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTYy
   - config:
       isBlocking: false
       overrides:
@@ -29,4 +29,16 @@ tests:
           key: KEY2
           overrideKey: OVERRIDE-KEY2
         startingUrl: https://test-starting-url.com
-    monitorGuid: MTE4MzM3MTh8U1lOVEh8TU9OSVRPUnxjZTYxM2UxMi0zZDY3LTQxMDMtOTY0ZC03YzAxYzRhNmExMjE
+    monitorGuid: MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTZZ
+  - config:
+      isBlocking: false
+      overrides:
+        domain:
+          domain: sample-domain
+          override: sample-domain-override
+        location: LOCALHOST
+        secureCredential:
+          key: KEY2
+          overrideKey: OVERRIDE-KEY2
+        startingUrl: https://test-starting-url.com
+    monitorGuid: MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTWW
