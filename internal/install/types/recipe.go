@@ -12,12 +12,9 @@ const (
 	InfraAgentRecipeName = "infrastructure-agent-installer"
 	LoggingRecipeName    = "logs-integration"
 	GoldenRecipeName     = "alerts-golden-signal"
-	OTELRecipeName       = "newrelic-opentelemetry-collector"
 )
 
-var (
-	RecipeVariables = map[string]string{}
-)
+var RecipeVariables = map[string]string{}
 
 // RecipeVars is used to pass dynamic data to recipes and go-task.
 type RecipeVars map[string]string
@@ -201,7 +198,29 @@ func expandPreInstall(recipe map[string]interface{}) OpenInstallationPreInstallC
 		Info:               toStringByFieldName("info", infoOut),
 		Prompt:             toStringByFieldName("prompt", infoOut),
 		RequireAtDiscovery: toStringByFieldName("requireAtDiscovery", infoOut),
+		DiscoveryMode:      expandDiscoveryMode(infoOut),
 	}
+}
+
+func expandDiscoveryMode(pi map[string]interface{}) []OpenInstallationDiscoveryMode {
+	v, ok := pi["discoveryMode"]
+	if !ok {
+		return []OpenInstallationDiscoveryMode{
+			OpenInstallationDiscoveryModeTypes.GUIDED,
+			OpenInstallationDiscoveryModeTypes.TARGETED,
+		}
+	}
+
+	dmIn := v.([]interface{})
+	dmOut := make([]OpenInstallationDiscoveryMode, 0)
+
+	for _, m := range dmIn {
+		if m, ok := ValidDiscoveryModes[strings.ToUpper(m.(string))]; ok {
+			dmOut = append(dmOut, m)
+		}
+	}
+
+	return dmOut
 }
 
 func expandPostInstall(recipe map[string]interface{}) OpenInstallationPostInstallConfiguration {

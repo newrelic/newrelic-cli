@@ -30,7 +30,15 @@ func (i *InstallerContext) RecipePathsProvided() bool {
 
 func (i *InstallerContext) RecipeNamesProvided() bool {
 	return len(i.RecipeNames) > 0
+}
 
+func (i *InstallerContext) IsRecipeTargeted(name string) bool {
+	for _, r := range i.RecipeNames {
+		if r == name {
+			return true
+		}
+	}
+	return false
 }
 
 func (i *InstallerContext) SetTags(tags []string) {

@@ -15,6 +15,14 @@ func TestRecipeNamesProvided(t *testing.T) {
 	require.True(t, ic.RecipeNamesProvided())
 }
 
+func TestIsRecipeTargeted(t *testing.T) {
+	ic := InstallerContext{}
+	ic.RecipeNames = []string{"testName"}
+
+	require.True(t, ic.IsRecipeTargeted("testName"))
+	require.False(t, ic.IsRecipeTargeted("badName"))
+}
+
 func TestRecipePathsProvided(t *testing.T) {
 	ic := InstallerContext{}
 	require.False(t, ic.RecipePathsProvided())
