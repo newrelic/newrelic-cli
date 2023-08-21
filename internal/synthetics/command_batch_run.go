@@ -43,11 +43,12 @@ var cmdRun = &cobra.Command{
 		var mockbatchID string
 
 		// Config holds values unmarshalled from the YAML file
-		var config Configuration
+		var config StartAutomatedTestInput
 
 		if batchFile != "" || len(guid) != 0 {
 			if batchFile != "" {
 				// Unmarshal YAML file to get monitors and their properties
+				// content, err := os.ReadFile(batchFile)
 				content, err := os.ReadFile(batchFile)
 				if err != nil {
 					log.Fatal(err)
@@ -57,13 +58,13 @@ var cmdRun = &cobra.Command{
 					log.Fatal(err)
 				}
 
-				for _, monitor := range config.Monitors {
-					requestBody := fmt.Sprintf(`{"guid": "%s", "isBlocking": %v}`, monitor.GUID, monitor.Config.IsBlocking)
+				for _, test := range config.Tests {
+					requestBody := fmt.Sprintf(`{"guid": "%s", "isBlocking": %v}`, test.MonitorGuid, test.Config.IsBlocking)
 					fmt.Println(requestBody)
 
 					// appending GUIDs from the YAML to []guid as the arguments --guid and --batchFile
 					// are mutually exclusive - so the same variable can hold guids from the YAML.
-					guid = append(guid, monitor.GUID)
+					guid = append(guid, test.MonitorGuid)
 				}
 
 			} else if guid != nil {

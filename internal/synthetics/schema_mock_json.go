@@ -7,36 +7,6 @@ package synthetics
 // ----------------------------------------------------------------------------------
 
 // Following are the datatypes needed to unmarshal the
-// the input YAML file so as to send a request to the syntheticsStartAutomatedTest mutation
-
-type SecureCredential struct {
-	Key         string `yaml:"key"`
-	OverrideKey string `yaml:"overrideKey"`
-}
-
-type MonitorConfig struct {
-	Overrides  []SecureCredential `yaml:"secureCredential,omitempty"`
-	Location   string             `yaml:"location,omitempty"`
-	IsBlocking bool               `yaml:"isBlocking"`
-}
-
-type Monitor struct {
-	GUID   string        `yaml:"guid"`
-	Config MonitorConfig `yaml:"config,omitempty"`
-}
-
-type Configuration struct {
-	Monitors []Monitor `yaml:"monitors"`
-	Config   struct {
-		Branch    string `yaml:"branch"`
-		Commit    string `yaml:"commit"`
-		Platform  string `yaml:"platform"`
-		DeepLink  string `yaml:"deepLink"`
-		BatchName string `yaml:"batchName"`
-	} `yaml:"config"`
-}
-
-// Following are the datatypes needed to unmarshal the
 // mock JSON response of the query automatedTestResults
 
 type Test struct {
