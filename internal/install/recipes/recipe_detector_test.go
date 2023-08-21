@@ -180,6 +180,7 @@ func NewRecipeDetectorTestBuilder() *RecipeDetectorTestBuilder {
 		processEvaluator: NewMockRecipeEvaluator(),
 		scriptEvaluator:  NewMockRecipeEvaluator(),
 		recipesFinder:    &MockRecipesFinder{},
+		installContext:   &types.InstallerContext{},
 	}
 }
 

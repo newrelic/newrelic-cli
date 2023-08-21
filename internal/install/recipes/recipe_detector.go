@@ -85,15 +85,6 @@ func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDe
 }
 
 func (dt *RecipeDetector) shouldDiscover(recipe *types.OpenInstallationRecipe) bool {
-	// both modes, targeted and guided
-	if len(recipe.PreInstall.DiscoveryMode) >= 2 {
-		return true
-	}
-
-	if len(recipe.PreInstall.DiscoveryMode) == 0 {
-		return false
-	}
-
 	isTargeted := dt.installerContext.IsRecipeTargeted(recipe.Name)
 	if len(recipe.PreInstall.DiscoveryMode) == 1 &&
 		(recipe.PreInstall.DiscoveryMode[0] == types.OpenInstallationDiscoveryModeTypes.TARGETED) {
