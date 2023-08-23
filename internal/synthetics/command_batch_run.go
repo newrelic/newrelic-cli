@@ -80,18 +80,22 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 		//SyntheticsAutomatedTestStatus - AutomatedTestResultsStatus
 
 		log.Println(root.Status, " is the current status")
-		output.Print(root.Tests)
-		// status, monitor guid, name ,is blocking 
-		
-		// exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
-
-		// if !ok {
-		// 	exitStatus = handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
-		// } else {
-		// 	exitStatus = handleStatus(*root, exitStatus)
+		// if format == range of args
+		// output.Print(root.Tests)
+		// else {
+		// 	printtable
 		// }
+		// status, monitor guid, name ,is blocking 
 
-		// fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, exitStatus)
+		exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
+
+		if !ok {
+			exitStatus = handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
+		} else {
+			exitStatus = handleStatus(*root, exitStatus)
+		}
+
+		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, exitStatus)
 		os.Stdout.Sync() // Force flush the standard output buffer
 		if monitorCount == len(root.Tests) {
 			break
@@ -102,24 +106,24 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 
 // getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
 func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
-	results := map[string]map[string]string{
-		"SUCCESS": {},
-		"FAILED":  {},
-		"PENDING": {},
-	}
+	// results := map[string]map[string]string{
+	// 	"SUCCESS": {},
+	// 	"FAILED":  {},
+	// 	"PENDING": {},
+	// }
+    results := map[string][]synthetics.SyntheticsAutomatedTestJobResult{}
 
 	for _, test := range root.Tests {
 		if test.Result == "" {
 			test.Result = "PENDING"
 		}
 
-		message := fmt.Sprintf("%s (%s)", test.MonitorId, test.MonitorName)
-		if test.Result == "FAILED" && test.AutomatedTestMonitorConfig.IsBlocking {
-			message = fmt.Sprintf("%s (Blocking)", test.MonitorName)
-		}
+		// message := fmt.Sprintf("%s (%s)", test.MonitorId, test.MonitorName)
+		// if test.Result == "FAILED" && test.AutomatedTestMonitorConfig.IsBlocking {
+		// 	message = fmt.Sprintf("%s (Blocking)", test.MonitorName)
+		// }
 
-		results[string(test.Result)][test.MonitorId] = message
-
+		results[string(test.Result)] = append(results[string(test.Result)], test)
 	}
 
 	summaryMessage := fmt.Sprintf("%d succeeded; %d failed; %d in progress.",
@@ -127,11 +131,22 @@ func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (stri
 
 	tableData := make([][]string, 0)
 
-	for status, messages := range results {
-		for _, message := range messages {
-			tableData = append(tableData, []string{status, message})
-		}
-	}
+	// for status, messages := range results {
+	// 	for _, message := range messages {
+	// 		tableData = append(tableData, []string{status, message})
+	// 	}
+	// }
+
+    for status, tests := range results {
+        for _, test := range tests {
+            tableData = append(tableData, []string{
+                status,
+                test.MonitorName,
+                string(test.MonitorId),
+                fmt.Sprintf("%t", test.AutomatedTestMonitorConfig.IsBlocking),
+            })
+        }
+    }
 
 	return summaryMessage, tableData
 }
@@ -161,7 +176,7 @@ func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus Auto
 
 func printResultTable(tableData [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Status", "Monitor"})
+	table.SetHeader([]string{"Status", "Monitor Name", "Monitor GUID", "Is Blocking"})
 	table.SetBorder(true) // Set to false to hide the outer border
 	table.SetAutoWrapText(false)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
