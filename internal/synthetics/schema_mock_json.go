@@ -71,6 +71,7 @@ const (
 	AutomatedTestResultsExitStatusFailure  AutomatedTestResultsExitStatus = 1
 	AutomatedTestResultsExitStatusTimedOut AutomatedTestResultsExitStatus = 3
 	AutomatedTestResultsExitStatusUnknown  AutomatedTestResultsExitStatus = 2
+	AutomatedTestResultsExitStatusInProgress AutomatedTestResultsExitStatus = -1
 )
 
 type AutomatedTestResultsStatus string

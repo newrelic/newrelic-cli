@@ -3,10 +3,10 @@ package synthetics
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -20,7 +20,7 @@ import (
 var (
 	batchFile         string
 	guid              []string
-	pollingInterval   = time.Second * 30
+	pollingInterval   = time.Second * 5
 	progressIndicator = ux.NewSpinner()
 )
 
@@ -36,16 +36,11 @@ var cmdRun = &cobra.Command{
 			err          error
 			testsBatchID string
 		)
+		accountID := configAPI.GetActiveProfileAccountID()
 		if batchFile != "" || len(guid) != 0 {
-			if batchFile != "" {
-				config, err = readYML(batchFile)
-				if err != nil {
-					log.Fatal(err)
-				}
-			} else if guid != nil {
-				// TODO:this is to be tested
-				config = createConfigUsingGUIDs(guid)
-				log.Println(config)
+			config, err = prepareConfig()
+			if err != nil {
+				log.Fatal(err)
 			}
 			testsBatchID = runSynthetics(config)
 
@@ -55,13 +50,12 @@ var cmdRun = &cobra.Command{
 
 		output.Printf("Generated Batch ID: %s", testsBatchID)
 
-		progressIndicator.Start("Fetching the status of tests in the batch....\n")
+		handleStatusLoop(accountID, testsBatchID)
 
 		// An infinite loop
 		for {
-			x := os.Getenv("NEW_RELIC_ACCOUNT_ID")
-			y, _ := strconv.Atoi(x)
-			root, err := client.NRClient.Synthetics.GetAutomatedTestResult(y, testsBatchID)
+			progressIndicator.Start("Fetching the status of tests in the batch....")
+			root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -88,42 +82,68 @@ func init() {
 
 }
 
-// getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
-func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
-    results := map[string]map[string]string{
-        "SUCCESS":     {},
-        "FAILED":      {},
-        "IN_PROGRESS": {},
-    }
+func handleStatusLoop(accountID int, testsBatchID string) {
+	// An infinite loop
+	ticker := time.NewTicker(pollingInterval)
+	for range ticker.C {
+		progressIndicator.Start("Fetching the status of tests in the batch....")
+		root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
+		progressIndicator.Stop()
 
-    for _, test := range root.Tests {
-        if test.Result == "" {
-            test.Result = "IN_PROGRESS"
-        }
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        message := fmt.Sprintf("%s (%s)", test.MonitorId, test.MonitorName)
-        if test.Result == "FAILED" && test.AutomatedTestMonitorConfig.IsBlocking {
-            message = fmt.Sprintf("%s (Blocking)", test.MonitorName)
-        }
+		exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
 
-        results[string(test.Result)][test.MonitorId] = message
-    }
+		if !ok {
+			exitStatus = handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
+		} else {
+			exitStatus = handleStatus(*root, exitStatus)
+		}
 
-    summaryMessage := fmt.Sprintf("%d succeeded; %d failed; %d in progress.",
-        len(results["SUCCESS"]), len(results["FAILED"]), len(results["IN_PROGRESS"]))
+		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, exitStatus)
+		os.Stdout.Sync() // Force flush the standard output buffer
 
-    tableData := make([][]string, 0)
-
-    for status, messages := range results {
-        for _, message := range messages {
-            tableData = append(tableData, []string{status, message})
-        }
-    }
-
-    return summaryMessage, tableData
+	}
 }
 
-func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus AutomatedTestResultsExitStatus) {
+// getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
+func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
+	results := map[string]map[string]string{
+		"SUCCESS":     {},
+		"FAILED":      {},
+		"IN_PROGRESS": {},
+	}
+
+	for _, test := range root.Tests {
+		if test.Result == "" {
+			test.Result = "IN_PROGRESS"
+		}
+
+		message := fmt.Sprintf("%s (%s)", test.MonitorId, test.MonitorName)
+		if test.Result == "FAILED" && test.AutomatedTestMonitorConfig.IsBlocking {
+			message = fmt.Sprintf("%s (Blocking)", test.MonitorName)
+		}
+
+		results[string(test.Result)][test.MonitorId] = message
+	}
+
+	summaryMessage := fmt.Sprintf("%d succeeded; %d failed; %d in progress.",
+		len(results["SUCCESS"]), len(results["FAILED"]), len(results["IN_PROGRESS"]))
+
+	tableData := make([][]string, 0)
+
+	for status, messages := range results {
+		for _, message := range messages {
+			tableData = append(tableData, []string{status, message})
+		}
+	}
+
+	return summaryMessage, tableData
+}
+
+func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus AutomatedTestResultsExitStatus) AutomatedTestResultsExitStatus {
 	retrievedStatus := string(root.Status)
 	switch string(retrievedStatus) {
 	case string(AutomatedTestResultsStatusInProgress):
@@ -131,31 +151,52 @@ func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus Auto
 		summary, tableData := getMonitorTestsSummary(root)
 		fmt.Printf("Summary: %s\n", summary)
 		printResultTable(tableData)
-		fmt.Println()
-		fmt.Println()
-		time.Sleep(pollingInterval)
+		return AutomatedTestResultsExitStatusInProgress
 	case string(AutomatedTestResultsStatusTimedOut), string(AutomatedTestResultsStatusFailure), string(AutomatedTestResultsStatusPassed):
 		progressIndicator.Success("Execution stopped - Status: " + retrievedStatus + "\n")
 		fmt.Println("\nStatus Received: " + root.Status + " - Execution halted.")
 		summary, tableData := getMonitorTestsSummary(root)
 		fmt.Printf("Summary: %s\n", summary)
 		printResultTable(tableData)
-		fmt.Println()
-		fmt.Println()
-		os.Exit(int(exitStatus))
+		return exitStatus
 	default:
 		progressIndicator.Fail("Unexpected status: " + retrievedStatus)
 		fmt.Println("\nStatus Received: " + root.Status + " - Exiting due to unexpected status.")
-		os.Exit(int(AutomatedTestResultsExitStatusUnknown))
+		return AutomatedTestResultsExitStatusUnknown
 	}
+}
+
+func printResultTable(tableData [][]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Status", "Monitor"})
+	table.SetBorder(true) // Set to false to hide the outer border
+	table.SetAutoWrapText(false)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetCenterSeparator("+")
+	table.SetColumnSeparator("|")
+	table.SetRowSeparator("-")
+
+	for _, row := range tableData {
+		table.Append(row)
+	}
+
+	table.Render()
 }
 
 // Clean Code
 
+func prepareConfig() (SyntheticsStartAutomatedTestInput, error) {
+	if batchFile != "" {
+		return readYML(batchFile)
+	} else if len(guid) != 0 {
+		return createConfigUsingGUIDs(guid), nil
+	}
+	return SyntheticsStartAutomatedTestInput{}, fmt.Errorf("Invalid arguments")
+}
+
 func readYML(batchFile string) (SyntheticsStartAutomatedTestInput, error) {
 	var config SyntheticsStartAutomatedTestInput
-	// Unmarshal YAML file to get monitors and their properties
-	// content, err := os.ReadFile(batchFile)
+
 	content, err := os.ReadFile(batchFile)
 	if err != nil {
 		return config, err
@@ -184,11 +225,11 @@ func createConfigUsingGUIDs(guids []string) SyntheticsStartAutomatedTestInput {
 
 // runSynthetics batches and call
 func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
-	// log.Println("Batching the following monitors:")
-	// for _, test := range config.Tests {
-	// 	log.Println("-", test.MonitorGUID)
-	// }
-	progressIndicator.Start("Batching the monitors\n")
+	log.Println("Batching the following monitors:")
+	for _, test := range config.Tests {
+		log.Println("-", test.MonitorGUID)
+	}
+	progressIndicator.Start("Batching the monitors")
 
 	result, err := client.NRClient.Synthetics.SyntheticsStartAutomatedTest(config.Config, config.Tests)
 	if err != nil {
@@ -196,21 +237,4 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	}
 	progressIndicator.Stop()
 	return result.BatchId
-}
-
-func printResultTable(tableData [][]string) {
-    table := tablewriter.NewWriter(os.Stdout)
-    table.SetHeader([]string{"Status", "Monitor"})
-    table.SetBorder(true) // Set to false to hide the outer border
-    table.SetAutoWrapText(false)
-    table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-    table.SetCenterSeparator("+")
-    table.SetColumnSeparator("|")
-    table.SetRowSeparator("-")
-
-    for _, row := range tableData {
-        table.Append(row)
-    }
-
-    table.Render()
 }
