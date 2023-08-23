@@ -20,8 +20,9 @@ import (
 var (
 	batchFile         string
 	guid              []string
-	pollingInterval   = time.Second * 5
+	pollingInterval   = time.Second * 30
 	progressIndicator = ux.NewSpinner()
+	monitorCount      int
 )
 
 var cmdRun = &cobra.Command{
@@ -52,23 +53,6 @@ var cmdRun = &cobra.Command{
 
 		handleStatusLoop(accountID, testsBatchID)
 
-		// An infinite loop
-		for {
-			progressIndicator.Start("Fetching the status of tests in the batch....")
-			root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
-			if !ok {
-				handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
-			} else {
-				handleStatus(*root, exitStatus)
-			}
-
-		}
-
 	},
 }
 
@@ -93,17 +77,25 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		//SyntheticsAutomatedTestStatus - AutomatedTestResultsStatus
 
-		exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
+		log.Println(root.Status, " is the current status")
+		output.Print(root.Tests)
+		// status, monitor guid, name ,is blocking 
+		
+		// exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
 
-		if !ok {
-			exitStatus = handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
-		} else {
-			exitStatus = handleStatus(*root, exitStatus)
-		}
+		// if !ok {
+		// 	exitStatus = handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
+		// } else {
+		// 	exitStatus = handleStatus(*root, exitStatus)
+		// }
 
-		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, exitStatus)
+		// fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, exitStatus)
 		os.Stdout.Sync() // Force flush the standard output buffer
+		if monitorCount == len(root.Tests) {
+			break
+		}
 
 	}
 }
@@ -111,14 +103,14 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 // getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
 func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
 	results := map[string]map[string]string{
-		"SUCCESS":     {},
-		"FAILED":      {},
-		"IN_PROGRESS": {},
+		"SUCCESS": {},
+		"FAILED":  {},
+		"PENDING": {},
 	}
 
 	for _, test := range root.Tests {
 		if test.Result == "" {
-			test.Result = "IN_PROGRESS"
+			test.Result = "PENDING"
 		}
 
 		message := fmt.Sprintf("%s (%s)", test.MonitorId, test.MonitorName)
@@ -127,10 +119,11 @@ func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (stri
 		}
 
 		results[string(test.Result)][test.MonitorId] = message
+
 	}
 
 	summaryMessage := fmt.Sprintf("%d succeeded; %d failed; %d in progress.",
-		len(results["SUCCESS"]), len(results["FAILED"]), len(results["IN_PROGRESS"]))
+		len(results["SUCCESS"]), len(results["FAILED"]), len(results["PENDING"]))
 
 	tableData := make([][]string, 0)
 
@@ -228,6 +221,7 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	log.Println("Batching the following monitors:")
 	for _, test := range config.Tests {
 		log.Println("-", test.MonitorGUID)
+		monitorCount++
 	}
 	progressIndicator.Start("Batching the monitors")
 

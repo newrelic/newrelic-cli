@@ -6,39 +6,47 @@ config:
   platform: test-platform
   repository: sample-repository
 tests:
+#minitor that timesout - 3 mins
   - config:
-      isBlocking: true
-#      overrides:
-#        domain:
-#          domain: sample-domain
-#          override: sample-domain-override
-#        location: LOCALHOST
-#        secureCredential:
-#          key: KEY1
-#          overrideKey: OVERRIDE-KEY1
-#        startingUrl: https://test-starting-url.com
-    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDk0MmUwOTQ4LTBhYjEtNGExOS04MTc3LTMyODgyNTllNGNjNg
+    isBlocking: false
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDU3Y2UzMTdhLWVmMmMtNGY5NS05ODU2LTA5N2EzOGIyYWY1NA
+#monitor that fails
   - config:
-      isBlocking: false
-#      overrides:
-#        domain:
-#          domain: sample-domain
-#          override: sample-domain-override
-#        location: LOCALHOST
-#        secureCredential:
-#          key: KEY2
-#          overrideKey: OVERRIDE-KEY2
-#        startingUrl: https://test-starting-url.com
-    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfGRjMzNkNDA5LWY3Y2QtNDczMy1hYzhjLWY5MDBmMmU3ZTY3NA
-  - config:
-      isBlocking: false
-#      overrides:
-#        domain:
-#          domain: sample-domain
-#          override: sample-domain-override
-#        location: LOCALHOST
-#        secureCredential:
-#          key: KEY2
-#          overrideKey: OVERRIDE-KEY2
-#        startingUrl: https://test-starting-url.com
-    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDEyYjVjNmE4LTMzMWYtNDYwOS05MjZlLWNhNmFkYjhmYjZhZg
+    isBlocking: false
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDNmZmIyYTRmLTQ1OWQtNDljMi04NWRmLTcyNmU4NmEzZDc3Mw
+#   - config:
+#       isBlocking: false
+# #      overrides:
+# #        domain:
+# #          domain: sample-domain
+# #          override: sample-domain-override
+# #        location: LOCALHOST
+# #        secureCredential:
+# #          key: KEY1
+# #          overrideKey: OVERRIDE-KEY1
+# #        startingUrl: https://test-starting-url.com
+#     monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDk0MmUwOTQ4LTBhYjEtNGExOS04MTc3LTMyODgyNTllNGNjNg
+#   - config:
+#       isBlocking: false
+# #      overrides:
+# #        domain:
+# #          domain: sample-domain
+# #          override: sample-domain-override
+# #        location: LOCALHOST
+# #        secureCredential:
+# #          key: KEY2
+# #          overrideKey: OVERRIDE-KEY2
+# #        startingUrl: https://test-starting-url.com
+#     monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfGRjMzNkNDA5LWY3Y2QtNDczMy1hYzhjLWY5MDBmMmU3ZTY3NA
+#   - config:
+#       isBlocking: false
+# #      overrides:
+# #        domain:
+# #          domain: sample-domain
+# #          override: sample-domain-override
+# #        location: LOCALHOST
+# #        secureCredential:
+# #          key: KEY2
+# #          overrideKey: OVERRIDE-KEY2
+# #        startingUrl: https://test-starting-url.com
+#     monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDEyYjVjNmE4LTMzMWYtNDYwOS05MjZlLWNhNmFkYjhmYjZhZg
