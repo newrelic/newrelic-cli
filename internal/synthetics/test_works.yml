@@ -17,9 +17,9 @@ tests:
 #          key: KEY1
 #          overrideKey: OVERRIDE-KEY1
 #        startingUrl: https://test-starting-url.com
-    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDk0MmUwOTQ4LTBhYjEtNGExOS04MTc3LTMyODgyNTllNGNjNg
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDE2ODNhNjg4LWQ0MGYtNDQ4OS1iMjJiLWFiZjkwZmMxOTBiMw
   - config:
-      isBlocking: false
+      isBlocking: true
 #      overrides:
 #        domain:
 #          domain: sample-domain
@@ -30,8 +30,8 @@ tests:
 #          overrideKey: OVERRIDE-KEY2
 #        startingUrl: https://test-starting-url.com
     monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfGRjMzNkNDA5LWY3Y2QtNDczMy1hYzhjLWY5MDBmMmU3ZTY3NA
-  - config:
-      isBlocking: false
+#  - config:
+#      isBlocking: false
 #      overrides:
 #        domain:
 #          domain: sample-domain
@@ -41,4 +41,4 @@ tests:
 #          key: KEY2
 #          overrideKey: OVERRIDE-KEY2
 #        startingUrl: https://test-starting-url.com
-    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDEyYjVjNmE4LTMzMWYtNDYwOS05MjZlLWNhNmFkYjhmYjZhZg
+#    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDEyYjVjNmE4LTMzMWYtNDYwOS05MjZlLWNhNmFkYjhmYjZhZg
