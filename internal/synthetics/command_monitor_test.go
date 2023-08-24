@@ -38,3 +38,10 @@ func TestSyntheticsMonitorList(t *testing.T) {
 	testcobra.CheckCobraMetadata(t, cmdMonList)
 	testcobra.CheckCobraRequiredFlags(t, cmdMonList, []string{})
 }
+
+func TestSyntheticsMonitorRun(t *testing.T) {
+	assert.Equal(t, "monitor", cmdRun.Name())
+
+	testcobra.CheckCobraMetadata(t, cmdRun)
+	testcobra.CheckCobraRequiredFlags(t, cmdRun, []string{})
+}

@@ -45,17 +45,17 @@ var cmdRun = &cobra.Command{
 			if err != nil {
 				log.Fatal(err)
 			}
-			testsBatchID = runSynthetics(config)
 
-		} else {
-			utils.LogIfError(cmd.Help())
-		}
-
+		testsBatchID = runSynthetics(config)
 		output.Printf("Generated Batch ID: %s", testsBatchID)
 
 		// can be ignore if there is no initial tick by the ticker
 		time.Sleep(nrdbLatency)
 		handleStatusLoop(accountID, testsBatchID)
+
+		} else {
+			utils.LogIfError(cmd.Help())
+		}
 
 	},
 }
@@ -191,7 +191,7 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 		countMonitors++
 	}
 
-	if (countMonitors==0){
+	if countMonitors == 0 {
 		log.Fatal("Enter valid GUID / Please check the YML file")
 	}
 	progressIndicator.Start("Batching the monitors")
