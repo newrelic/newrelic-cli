@@ -2,60 +2,49 @@ package synthetics
 
 import "github.com/newrelic/newrelic-client-go/v2/pkg/synthetics"
 
-// ----------------------------------------------------------------------------------
-// After the API is out and is drawn into newrelic-client-go, all of the below
-// datatypes will exist there (as fetched by Tutone), which functions in the CLI
-// would call.
-// ----------------------------------------------------------------------------------
-
-// Following are the datatypes needed to unmarshal the
-// input YAML file to send a request to the syntheticsStartAutomatedTest mutation
-// (updated schema based on changes made to the Product API)
-
-//type Config struct {
-//	BatchName  string `yaml:"batchName"`
-//	Branch     string `yaml:"branch"`
-//	Commit     string `yaml:"commit"`
-//	DeepLink   string `yaml:"deepLink"`
-//	Platform   string `yaml:"platform"`
-//	Repository string `yaml:"repository"`
-//}
-//
-//type Domain struct {
-//	Domain   string `yaml:"domain"`
-//	Override string `yaml:"override"`
-//}
-//
-//type SecureCredential struct {
-//	Key         string `yaml:"key"`
-//	OverrideKey string `yaml:"overrideKey"`
-//}
-//
-//type Overrides struct {
-//	Domain           Domain           `yaml:"domain"`
-//	Location         string           `yaml:"location"`
-//	SecureCredential SecureCredential `yaml:"secureCredential"`
-//	StartingUrl      string           `yaml:"startingUrl"`
-//}
-//
-//type TestConfig struct {
-//	IsBlocking bool      `yaml:"isBlocking"`
-//	Overrides  Overrides `yaml:"overrides"`
-//}
-//
-//// SchemaTest (renamed to "SchemaTest" as "Test" already exists in the Mock JSON schema)
-//type SchemaTest struct {
-//	MonitorGuid string     `yaml:"monitorGuid"`
-//	Config      TestConfig `yaml:"config"`
-//}
-//
-//type StartAutomatedTestInput struct {
-//	Config Config       `yaml:"config"`
-//	Tests  []SchemaTest `yaml:"tests"`
-//}
-
 // a wrapper structure for the input to be sent to syntheticsStartAutomatedTest
 type SyntheticsStartAutomatedTestInput struct {
 	Config synthetics.SyntheticsAutomatedTestConfigInput    `json:"config,omitempty"`
 	Tests  []synthetics.SyntheticsAutomatedTestMonitorInput `json:"tests,omitempty"`
 }
+
+
+var TestResultExitCodes = map[synthetics.SyntheticsAutomatedTestStatus]*int{
+	synthetics.SyntheticsAutomatedTestStatusTypes.FAILED:      intPtr(1),
+	synthetics.SyntheticsAutomatedTestStatusTypes.PASSED:      intPtr(0),
+	synthetics.SyntheticsAutomatedTestStatusTypes.TIMEOUT:     intPtr(3),
+
+}
+
+func intPtr(value int) *int {
+	return &value
+}
+
+// Following are datatypes which are good to have to substitute
+// the use of numbers as exit codes
+
+// type AutomatedTestResultsExitStatus int
+
+// const (
+// 	AutomatedTestResultsExitStatusSuccess  AutomatedTestResultsExitStatus = 0
+// 	AutomatedTestResultsExitStatusFailure  AutomatedTestResultsExitStatus = 1
+// 	AutomatedTestResultsExitStatusTimedOut AutomatedTestResultsExitStatus = 3
+// 	AutomatedTestResultsExitStatusUnknown  AutomatedTestResultsExitStatus = 2
+// 	AutomatedTestResultsExitStatusInProgress AutomatedTestResultsExitStatus = -1
+// )
+
+// type AutomatedTestResultsStatus string
+
+// const (
+// 	AutomatedTestResultsStatusPassed     AutomatedTestResultsStatus = "PASSED"
+// 	AutomatedTestResultsStatusFailure    AutomatedTestResultsStatus = "FAILED"
+// 	AutomatedTestResultsStatusTimedOut   AutomatedTestResultsStatus = "TIMED_OUT"
+// 	AutomatedTestResultsStatusInProgress AutomatedTestResultsStatus = "IN_PROGRESS"
+// )
+
+// var TestResultExitCodes = map[AutomatedTestResultsStatus]AutomatedTestResultsExitStatus{
+// 	AutomatedTestResultsStatusPassed:     AutomatedTestResultsExitStatusSuccess,
+// 	AutomatedTestResultsStatusFailure:    AutomatedTestResultsExitStatusFailure,
+// 	AutomatedTestResultsStatusTimedOut:   AutomatedTestResultsExitStatusTimedOut,
+// 	AutomatedTestResultsStatusInProgress: AutomatedTestResultsExitStatusUnknown,
+// }

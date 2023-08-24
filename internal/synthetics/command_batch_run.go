@@ -5,13 +5,14 @@ import (
 	"os"
 	"time"
 
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/newrelic/newrelic-cli/internal/client"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/synthetics"
-	"github.com/olekukonko/tablewriter"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -22,7 +23,6 @@ var (
 	guid              []string
 	pollingInterval   = time.Second * 30
 	progressIndicator = ux.NewSpinner()
-	monitorCount      int
 	nrdbLatency       = time.Second * 5
 )
 
@@ -52,6 +52,7 @@ var cmdRun = &cobra.Command{
 
 		output.Printf("Generated Batch ID: %s", testsBatchID)
 
+		// can be ignore if there is no initial tick by the ticker
 		time.Sleep(nrdbLatency)
 		handleStatusLoop(accountID, testsBatchID)
 
@@ -76,7 +77,6 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 
 	for progressIndicator.Start("Fetching the status of tests in the batch...."); true; <-ticker.C {
 
-		// progressIndicator.Start("Fetching the status of tests in the batch....")
 		root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
 		progressIndicator.Stop()
 
@@ -84,21 +84,25 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 			log.Fatal(err)
 		}
 
-		log.Println(root.Status, " is the current status")
-
-		exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
+		exitStatus, ok := TestResultExitCodes[(root.Status)]
 
 		if !ok {
-			exitStatus = handleStatus(*root, AutomatedTestResultsExitStatusUnknown)
+			log.Fatal("Unknow Error")
 		} else {
-			exitStatus = handleStatus(*root, exitStatus)
+			handleStatus(*root, exitStatus)
 		}
 
-		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, exitStatus)
+		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, *exitStatus)
+
+		// Printing using the table
+
 		os.Stdout.Sync() // Force flush the standard output buffer
-		if monitorCount == len(root.Tests) {
+
+		// exit out if the status is not in progress
+		if root.Status != "IN_PROGRESS" {
 			break
 		}
+		progressIndicator.Start("Fetching the status of tests in the batch....")
 
 	}
 
@@ -135,44 +139,31 @@ func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (stri
 	return summaryMessage, tableData
 }
 
-func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus AutomatedTestResultsExitStatus) AutomatedTestResultsExitStatus {
-	retrievedStatus := string(root.Status)
-	switch string(retrievedStatus) {
-	case string(AutomatedTestResultsStatusInProgress):
-		fmt.Println("\nStatus Received: IN_PROGRESS - re-calling the API in 15 seconds to fetch updated status...")
-		summary, tableData := getMonitorTestsSummary(root)
-		fmt.Printf("Summary: %s\n", summary)
-		printResultTable(tableData)
-		return AutomatedTestResultsExitStatusInProgress
-	case string(AutomatedTestResultsStatusTimedOut), string(AutomatedTestResultsStatusFailure), string(AutomatedTestResultsStatusPassed):
-		progressIndicator.Success("Execution stopped - Status: " + retrievedStatus + "\n")
-		fmt.Println("\nStatus Received: " + root.Status + " - Execution halted.")
-		summary, tableData := getMonitorTestsSummary(root)
-		fmt.Printf("Summary: %s\n", summary)
-		printResultTable(tableData)
-		return exitStatus
-	default:
-		progressIndicator.Fail("Unexpected status: " + retrievedStatus)
-		fmt.Println("\nStatus Received: " + root.Status + " - Exiting due to unexpected status.")
-		return AutomatedTestResultsExitStatusUnknown
-	}
-}
-
-func printResultTable(tableData [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Status", "Monitor Name", "Monitor GUID", "Is Blocking"})
-	table.SetBorder(true) // Set to false to hide the outer border
-	table.SetAutoWrapText(false)
-	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-	table.SetCenterSeparator("+")
-	table.SetColumnSeparator("|")
-	table.SetRowSeparator("-")
-
-	for _, row := range tableData {
-		table.Append(row)
-	}
-
-	table.Render()
+func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus *int) {
+	fmt.Println("Status Received: ", root.Status, " ")
+	summary, tableData := getMonitorTestsSummary(root)
+	fmt.Printf("Summary: %s\n", summary)
+	printResultTable(tableData)
+	// retrievedStatus := string(root.Status)
+	// switch string(retrievedStatus) {
+	// case string(AutomatedTestResultsStatusInProgress):
+	// 	fmt.Println("\nStatus Received: IN_PROGRESS - re-calling the API in 15 seconds to fetch updated status...")
+	// 	summary, tableData := getMonitorTestsSummary(root)
+	// 	fmt.Printf("Summary: %s\n", summary)
+	// 	printResultTable(tableData)
+	// 	return AutomatedTestResultsExitStatusInProgress
+	// case string(AutomatedTestResultsStatusTimedOut), string(AutomatedTestResultsStatusFailure), string(AutomatedTestResultsStatusPassed):
+	// 	progressIndicator.Success("Execution stopped - Status: " + retrievedStatus + "\n")
+	// 	fmt.Println("\nStatus Received: " + root.Status + " - Execution halted.")
+	// 	summary, tableData := getMonitorTestsSummary(root)
+	// 	fmt.Printf("Summary: %s\n", summary)
+	// 	printResultTable(tableData)
+	// 	return exitStatus
+	// default:
+	// 	progressIndicator.Fail("Unexpected status: " + retrievedStatus)
+	// 	fmt.Println("\nStatus Received: " + root.Status + " - Exiting due to unexpected status.")
+	// 	return AutomatedTestResultsExitStatusUnknown
+	// }
 }
 
 // Clean Code
@@ -220,7 +211,6 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	log.Println("Batching the following monitors:")
 	for _, test := range config.Tests {
 		log.Println("-", test.MonitorGUID)
-		monitorCount++
 	}
 	progressIndicator.Start("Batching the monitors")
 
@@ -231,4 +221,71 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	}
 
 	return result.BatchId
+}
+
+type Output struct {
+	terminalWidth int
+}
+
+func printResultTable(tableData [][]string) {
+	o := &Output{terminalWidth: 100}
+
+	tw := o.newTableWriter()
+	tw.Style().Name = "nr-syn-cli-table"
+	// Add the header
+	tw.AppendHeader(table.Row{"Status", "Monitor Name", "Monitor GUID", "Is Blocking"})
+
+	// Add the rows
+	for _, row := range tableData {
+		tw.AppendRow(stringSliceToRow(row))
+	}
+
+	// Render the table
+	tw.Render()
+}
+
+func stringSliceToRow(slice []string) table.Row {
+	row := make(table.Row, len(slice))
+	for i, v := range slice {
+		row[i] = v
+	}
+	return row
+}
+
+func (o *Output) newTableWriter() table.Writer {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetAllowedRowLength(o.terminalWidth)
+
+	t.SetStyle(table.StyleRounded)
+	t.SetStyle(table.Style{
+		Name: "nr-cli-table",
+		//Box:  table.StyleBoxRounded,
+		Box: table.BoxStyle{
+			MiddleHorizontal: "-",
+			MiddleSeparator:  " ",
+			MiddleVertical:   " ",
+		},
+		Color: table.ColorOptions{
+			Header: text.Colors{text.Bold},
+		},
+		Options: table.Options{
+			DrawBorder:      false,
+			SeparateColumns: true,
+			SeparateHeader:  true,
+		},
+	})
+	t.SetStyle(table.Style{
+		Name: "nr-syn-cli-table",
+		Box:  table.StyleBoxRounded,
+		Color: table.ColorOptions{
+			Header: text.Colors{text.Bold},
+		},
+		Options: table.Options{
+			DrawBorder:      true,
+			SeparateColumns: true,
+			SeparateHeader:  true,
+		},
+	})
+	return t
 }
