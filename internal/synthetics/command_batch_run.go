@@ -69,7 +69,8 @@ func init() {
 func handleStatusLoop(accountID int, testsBatchID string) {
 	// An infinite loop
 	ticker := time.NewTicker(pollingInterval)
-	for range ticker.C {
+	defer ticker.Stop()
+	for ; true; <-ticker.C {
 		progressIndicator.Start("Fetching the status of tests in the batch....")
 		root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
 		progressIndicator.Stop()
@@ -85,7 +86,7 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 		// else {
 		// 	printtable
 		// }
-		// status, monitor guid, name ,is blocking 
+		// status, monitor guid, name ,is blocking
 
 		exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
 
@@ -111,7 +112,7 @@ func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (stri
 	// 	"FAILED":  {},
 	// 	"PENDING": {},
 	// }
-    results := map[string][]synthetics.SyntheticsAutomatedTestJobResult{}
+	results := map[string][]synthetics.SyntheticsAutomatedTestJobResult{}
 
 	for _, test := range root.Tests {
 		if test.Result == "" {
@@ -137,16 +138,16 @@ func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (stri
 	// 	}
 	// }
 
-    for status, tests := range results {
-        for _, test := range tests {
-            tableData = append(tableData, []string{
-                status,
-                test.MonitorName,
-                string(test.MonitorId),
-                fmt.Sprintf("%t", test.AutomatedTestMonitorConfig.IsBlocking),
-            })
-        }
-    }
+	for status, tests := range results {
+		for _, test := range tests {
+			tableData = append(tableData, []string{
+				status,
+				test.MonitorName,
+				string(test.MonitorId),
+				fmt.Sprintf("%t", test.AutomatedTestMonitorConfig.IsBlocking),
+			})
+		}
+	}
 
 	return summaryMessage, tableData
 }
