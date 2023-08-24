@@ -7,9 +7,9 @@ config:
   repository: sample-repository
 tests:
 #minitor that timesout - 3 mins
-  - config:
-    isBlocking: false
-    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDU3Y2UzMTdhLWVmMmMtNGY5NS05ODU2LTA5N2EzOGIyYWY1NA
+  # - config:
+  #   isBlocking: false
+  #   monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDU3Y2UzMTdhLWVmMmMtNGY5NS05ODU2LTA5N2EzOGIyYWY1NA
 #monitor that fails
   - config:
     isBlocking: false

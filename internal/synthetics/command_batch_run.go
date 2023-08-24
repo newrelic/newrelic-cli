@@ -23,6 +23,7 @@ var (
 	pollingInterval   = time.Second * 30
 	progressIndicator = ux.NewSpinner()
 	monitorCount      int
+	nrdbLatency       = time.Second * 5
 )
 
 var cmdRun = &cobra.Command{
@@ -51,6 +52,7 @@ var cmdRun = &cobra.Command{
 
 		output.Printf("Generated Batch ID: %s", testsBatchID)
 
+		time.Sleep(nrdbLatency)
 		handleStatusLoop(accountID, testsBatchID)
 
 	},
@@ -70,8 +72,8 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 	// An infinite loop
 	ticker := time.NewTicker(pollingInterval)
 	defer ticker.Stop()
-	for ; true; <-ticker.C {
-		progressIndicator.Start("Fetching the status of tests in the batch....")
+	for progressIndicator.Start("Fetching the status of tests in the batch...."); true; <-ticker.C {
+
 		root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
 		progressIndicator.Stop()
 
@@ -107,22 +109,12 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 
 // getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
 func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
-	// results := map[string]map[string]string{
-	// 	"SUCCESS": {},
-	// 	"FAILED":  {},
-	// 	"PENDING": {},
-	// }
 	results := map[string][]synthetics.SyntheticsAutomatedTestJobResult{}
 
 	for _, test := range root.Tests {
 		if test.Result == "" {
 			test.Result = "PENDING"
 		}
-
-		// message := fmt.Sprintf("%s (%s)", test.MonitorId, test.MonitorName)
-		// if test.Result == "FAILED" && test.AutomatedTestMonitorConfig.IsBlocking {
-		// 	message = fmt.Sprintf("%s (Blocking)", test.MonitorName)
-		// }
 
 		results[string(test.Result)] = append(results[string(test.Result)], test)
 	}
@@ -131,12 +123,6 @@ func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (stri
 		len(results["SUCCESS"]), len(results["FAILED"]), len(results["PENDING"]))
 
 	tableData := make([][]string, 0)
-
-	// for status, messages := range results {
-	// 	for _, message := range messages {
-	// 		tableData = append(tableData, []string{status, message})
-	// 	}
-	// }
 
 	for status, tests := range results {
 		for _, test := range tests {
