@@ -24,6 +24,7 @@ var (
 	pollingInterval   = time.Second * 30
 	progressIndicator = ux.NewSpinner()
 	nrdbLatency       = time.Second * 5
+	countMonitors     int
 )
 
 var cmdRun = &cobra.Command{
@@ -187,6 +188,11 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	log.Println("Batching the following monitors:")
 	for _, test := range config.Tests {
 		log.Println("-", test.MonitorGUID)
+		countMonitors++
+	}
+
+	if (countMonitors==0){
+		log.Fatal("Enter valid GUID / Please check the YML file")
 	}
 	progressIndicator.Start("Batching the monitors")
 
