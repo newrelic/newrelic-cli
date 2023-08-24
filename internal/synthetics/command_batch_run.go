@@ -71,24 +71,20 @@ func init() {
 func handleStatusLoop(accountID int, testsBatchID string) {
 	// An infinite loop
 	ticker := time.NewTicker(pollingInterval)
+
 	defer ticker.Stop()
+
 	for progressIndicator.Start("Fetching the status of tests in the batch...."); true; <-ticker.C {
 
+		// progressIndicator.Start("Fetching the status of tests in the batch....")
 		root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
 		progressIndicator.Stop()
 
 		if err != nil {
 			log.Fatal(err)
 		}
-		//SyntheticsAutomatedTestStatus - AutomatedTestResultsStatus
 
 		log.Println(root.Status, " is the current status")
-		// if format == range of args
-		// output.Print(root.Tests)
-		// else {
-		// 	printtable
-		// }
-		// status, monitor guid, name ,is blocking
 
 		exitStatus, ok := TestResultExitCodes[AutomatedTestResultsStatus(root.Status)]
 
@@ -105,6 +101,7 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 		}
 
 	}
+
 }
 
 // getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
@@ -228,9 +225,10 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	progressIndicator.Start("Batching the monitors")
 
 	result, err := client.NRClient.Synthetics.SyntheticsStartAutomatedTest(config.Config, config.Tests)
+	progressIndicator.Stop()
 	if err != nil {
 		utils.LogIfFatal(err)
 	}
-	progressIndicator.Stop()
+
 	return result.BatchId
 }
