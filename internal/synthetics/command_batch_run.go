@@ -84,7 +84,7 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 			log.Fatal(err)
 		}
 
-		exitStatus, ok := TestResultExitCodes[(root.Status)]
+		exitStatus, ok := globalResultExitCodes[(root.Status)]
 
 		if !ok {
 			log.Fatal("Unknow Error")
@@ -93,8 +93,6 @@ func handleStatusLoop(accountID int, testsBatchID string) {
 		}
 
 		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, *exitStatus)
-
-		// Printing using the table
 
 		os.Stdout.Sync() // Force flush the standard output buffer
 
@@ -144,29 +142,7 @@ func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus *int
 	summary, tableData := getMonitorTestsSummary(root)
 	fmt.Printf("Summary: %s\n", summary)
 	printResultTable(tableData)
-	// retrievedStatus := string(root.Status)
-	// switch string(retrievedStatus) {
-	// case string(AutomatedTestResultsStatusInProgress):
-	// 	fmt.Println("\nStatus Received: IN_PROGRESS - re-calling the API in 15 seconds to fetch updated status...")
-	// 	summary, tableData := getMonitorTestsSummary(root)
-	// 	fmt.Printf("Summary: %s\n", summary)
-	// 	printResultTable(tableData)
-	// 	return AutomatedTestResultsExitStatusInProgress
-	// case string(AutomatedTestResultsStatusTimedOut), string(AutomatedTestResultsStatusFailure), string(AutomatedTestResultsStatusPassed):
-	// 	progressIndicator.Success("Execution stopped - Status: " + retrievedStatus + "\n")
-	// 	fmt.Println("\nStatus Received: " + root.Status + " - Execution halted.")
-	// 	summary, tableData := getMonitorTestsSummary(root)
-	// 	fmt.Printf("Summary: %s\n", summary)
-	// 	printResultTable(tableData)
-	// 	return exitStatus
-	// default:
-	// 	progressIndicator.Fail("Unexpected status: " + retrievedStatus)
-	// 	fmt.Println("\nStatus Received: " + root.Status + " - Exiting due to unexpected status.")
-	// 	return AutomatedTestResultsExitStatusUnknown
-	// }
 }
-
-// Clean Code
 
 func prepareConfig() (SyntheticsStartAutomatedTestInput, error) {
 	if batchFile != "" {
