@@ -143,6 +143,7 @@ var cmdRun = &cobra.Command{
 			if error != nil {
 				log.Fatal(error)
 			}
+			log.Println(root)
 			// root := getAutomatedTestResultsMockResponse(testsBatchID, i)
 			// ----------------------------------------------------------------------------------
 			// ORIGINAL FUNCTION : Call the method from go-client that would send a request to the
