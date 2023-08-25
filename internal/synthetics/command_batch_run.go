@@ -201,7 +201,7 @@ func getMonitorTestsSummary(batchResult synthetics.SyntheticsAutomatedTestResult
 			tableData = append(tableData, []string{
 				status,
 				test.MonitorName,
-				string(test.MonitorId),
+				string(test.MonitorGUID),
 				fmt.Sprintf("%t", test.AutomatedTestMonitorConfig.IsBlocking),
 			})
 		}
