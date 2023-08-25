@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/newrelic/newrelic-cli/internal/client"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
@@ -41,17 +39,17 @@ var cmdRun = &cobra.Command{
 		)
 		accountID := configAPI.GetActiveProfileAccountID()
 		if batchFile != "" || len(guid) != 0 {
-			config, err = prepareConfig()
+			config, err = parseConfiguration()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-		testsBatchID = runSynthetics(config)
-		output.Printf("Generated Batch ID: %s", testsBatchID)
+			testsBatchID = createAutomatedTestBatch(config)
+			output.Printf("Generated Batch ID: %s", testsBatchID)
 
-		// can be ignore if there is no initial tick by the ticker
-		time.Sleep(nrdbLatency)
-		handleStatusLoop(accountID, testsBatchID)
+			// can be ignored if there is no initial tick by the ticker
+			time.Sleep(nrdbLatency)
+			getAutomatedTestResults(accountID, testsBatchID)
 
 		} else {
 			utils.LogIfError(cmd.Help())
@@ -60,6 +58,7 @@ var cmdRun = &cobra.Command{
 	},
 }
 
+// Definition of the command
 func init() {
 	cmdRun.Flags().StringVarP(&batchFile, "batchFile", "b", "", "Input the YML file to batch and run the monitors")
 	cmdRun.Flags().StringSliceVarP(&guid, "guid", "g", nil, "Batch the monitors using their guids and run the automated test")
@@ -67,94 +66,21 @@ func init() {
 
 	// MarkFlagsMutuallyExclusive allows one flag at once be invoked
 	cmdRun.MarkFlagsMutuallyExclusive("batchFile", "guid")
-
 }
 
-func handleStatusLoop(accountID int, testsBatchID string) {
-	// An infinite loop
-	ticker := time.NewTicker(pollingInterval)
-
-	defer ticker.Stop()
-
-	for progressIndicator.Start("Fetching the status of tests in the batch...."); true; <-ticker.C {
-
-		root, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
-		progressIndicator.Stop()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		exitStatus, ok := globalResultExitCodes[(root.Status)]
-
-		if !ok {
-			log.Fatal("Unknow Error")
-		} else {
-			handleStatus(*root, exitStatus)
-		}
-
-		fmt.Printf("Current Status: %s, Exit Status: %d\n", root.Status, *exitStatus)
-
-		os.Stdout.Sync() // Force flush the standard output buffer
-
-		// exit out if the status is not in progress
-		if root.Status != "IN_PROGRESS" {
-			break
-		}
-		progressIndicator.Start("Fetching the status of tests in the batch....")
-
-	}
-
-}
-
-// getMonitorTestsSummary is called every 15 seconds to print the status of individual monitors
-func getMonitorTestsSummary(root synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
-	results := map[string][]synthetics.SyntheticsAutomatedTestJobResult{}
-
-	for _, test := range root.Tests {
-		if test.Result == "" {
-			test.Result = "PENDING"
-		}
-
-		results[string(test.Result)] = append(results[string(test.Result)], test)
-	}
-
-	summaryMessage := fmt.Sprintf("%d succeeded; %d failed; %d in progress.",
-		len(results["SUCCESS"]), len(results["FAILED"]), len(results["PENDING"]))
-
-	tableData := make([][]string, 0)
-
-	for status, tests := range results {
-		for _, test := range tests {
-			tableData = append(tableData, []string{
-				status,
-				test.MonitorName,
-				string(test.MonitorId),
-				fmt.Sprintf("%t", test.AutomatedTestMonitorConfig.IsBlocking),
-			})
-		}
-	}
-
-	return summaryMessage, tableData
-}
-
-func handleStatus(root synthetics.SyntheticsAutomatedTestResult, exitStatus *int) {
-	fmt.Println("Status Received: ", root.Status, " ")
-	summary, tableData := getMonitorTestsSummary(root)
-	fmt.Printf("Summary: %s\n", summary)
-	printResultTable(tableData)
-}
-
-func prepareConfig() (SyntheticsStartAutomatedTestInput, error) {
+// parseConfiguration helps parse the inputs given to this command, based on the format specified (YAML or command line GUIDs)
+func parseConfiguration() (SyntheticsStartAutomatedTestInput, error) {
 	if batchFile != "" {
-		return readYML(batchFile)
+		return createConfigurationUsingYAML(batchFile)
 	} else if len(guid) != 0 {
-		return createConfigUsingGUIDs(guid), nil
+		return createConfigurationUsingGUIDs(guid), nil
 	}
 	return SyntheticsStartAutomatedTestInput{}, fmt.Errorf("Invalid arguments")
 }
 
-func readYML(batchFile string) (SyntheticsStartAutomatedTestInput, error) {
+// createConfigurationUsingYAML unmarshals the specified YAML file into an object that can be used
+// to send a create batch request to NerdGraph
+func createConfigurationUsingYAML(batchFile string) (SyntheticsStartAutomatedTestInput, error) {
 	var config SyntheticsStartAutomatedTestInput
 
 	content, err := os.ReadFile(batchFile)
@@ -170,7 +96,9 @@ func readYML(batchFile string) (SyntheticsStartAutomatedTestInput, error) {
 	return config, nil
 }
 
-func createConfigUsingGUIDs(guids []string) SyntheticsStartAutomatedTestInput {
+// createConfigurationUsingGUIDs obtains GUIDs specified in command line arguments and restructures them into an object
+// that can be used to send a create batch request to NerdGraph
+func createConfigurationUsingGUIDs(guids []string) SyntheticsStartAutomatedTestInput {
 	var tests []synthetics.SyntheticsAutomatedTestMonitorInput
 	for _, id := range guids {
 		tests = append(tests, synthetics.SyntheticsAutomatedTestMonitorInput{
@@ -183,18 +111,18 @@ func createConfigUsingGUIDs(guids []string) SyntheticsStartAutomatedTestInput {
 	}
 }
 
-// runSynthetics batches and call
-func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
-	log.Println("Batching the following monitors:")
+// createAutomatedTestBatch performs an API call to create a batch with the specified configuration and tests
+func createAutomatedTestBatch(config SyntheticsStartAutomatedTestInput) string {
+	log.Println("Creating a batch comprising the following monitors:")
 	for _, test := range config.Tests {
 		log.Println("-", test.MonitorGUID)
 		countMonitors++
 	}
 
 	if countMonitors == 0 {
-		log.Fatal("Enter valid GUID / Please check the YML file")
+		log.Fatal("No valid monitors found in the input specified. Please check the input provided.")
 	}
-	progressIndicator.Start("Batching the monitors")
+	progressIndicator.Start("Sending a request to create the batch:")
 
 	result, err := client.NRClient.Synthetics.SyntheticsStartAutomatedTest(config.Config, config.Tests)
 	progressIndicator.Stop()
@@ -205,69 +133,79 @@ func runSynthetics(config SyntheticsStartAutomatedTestInput) string {
 	return result.BatchId
 }
 
-type Output struct {
-	terminalWidth int
+// getAutomatedTestResults performs an API call at regular intervals of time (when the pollingInterval has elapsed)
+// to fetch the consolidated status of the batch, and the results of monitors the batch comprises
+func getAutomatedTestResults(accountID int, testsBatchID string) {
+	// An infinite loop
+	ticker := time.NewTicker(pollingInterval)
+	defer ticker.Stop()
+
+	for progressIndicator.Start("Fetching the status of tests in the batch...."); true; <-ticker.C {
+		batchResult, err := client.NRClient.Synthetics.GetAutomatedTestResult(accountID, testsBatchID)
+		progressIndicator.Stop()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		exitStatus, ok := globalResultExitCodes[(batchResult.Status)]
+		if !ok {
+			log.Fatal("Unknown Error")
+		} else {
+			renderMonitorTestsSummary(*batchResult, exitStatus)
+		}
+
+		fmt.Printf("Current Status: %s, Exit Status: %d\n", batchResult.Status, *exitStatus)
+
+		// Force flush the standard output buffer
+		os.Stdout.Sync()
+
+		// exit, if the status is not IN_PROGRESS
+		if batchResult.Status != synthetics.SyntheticsAutomatedTestStatusTypes.IN_PROGRESS {
+			break
+		}
+		progressIndicator.Start("Fetching the status of tests in the batch....")
+	}
 }
 
-func printResultTable(tableData [][]string) {
-	o := &Output{terminalWidth: 100}
+// renderMonitorTestsSummary reads through the results of monitors fetched, restructures and renders these results accordingly
+func renderMonitorTestsSummary(batchResult synthetics.SyntheticsAutomatedTestResult, exitStatus *int) {
+	fmt.Println("Status Received: ", batchResult.Status, " ")
+	summary, tableData := getMonitorTestsSummary(batchResult)
+	fmt.Printf("Summary: %s\n", summary)
+	printResultTable(tableData)
+}
 
-	tw := o.newTableWriter()
-	tw.Style().Name = "nr-syn-cli-table"
-	// Add the header
-	tw.AppendHeader(table.Row{"Status", "Monitor Name", "Monitor GUID", "Is Blocking"})
+// getMonitorTestsSummary reads through the results of monitors fetched and populates them to a table with details
+// of each monitor, to print these results to the terminal
+func getMonitorTestsSummary(batchResult synthetics.SyntheticsAutomatedTestResult) (string, [][]string) {
+	results := map[string][]synthetics.SyntheticsAutomatedTestJobResult{}
 
-	// Add the rows
-	for _, row := range tableData {
-		tw.AppendRow(stringSliceToRow(row))
+	for _, test := range batchResult.Tests {
+		if test.Result == "" {
+			test.Result = synthetics.SyntheticsJobStatusTypes.PENDING
+		}
+
+		results[string(test.Result)] = append(results[string(test.Result)], test)
 	}
 
-	// Render the table
-	tw.Render()
-}
+	summaryMessage := fmt.Sprintf("%d succeeded; %d failed; %d in progress.",
+		len(results[string(synthetics.SyntheticsJobStatusTypes.SUCCESS)]),
+		len(results[string(synthetics.SyntheticsJobStatusTypes.FAILED)]),
+		len(results[string(synthetics.SyntheticsJobStatusTypes.PENDING)]))
 
-func stringSliceToRow(slice []string) table.Row {
-	row := make(table.Row, len(slice))
-	for i, v := range slice {
-		row[i] = v
+	tableData := make([][]string, 0)
+
+	for status, tests := range results {
+		for _, test := range tests {
+			tableData = append(tableData, []string{
+				status,
+				test.MonitorName,
+				string(test.MonitorId),
+				fmt.Sprintf("%t", test.AutomatedTestMonitorConfig.IsBlocking),
+			})
+		}
 	}
-	return row
-}
 
-func (o *Output) newTableWriter() table.Writer {
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.SetAllowedRowLength(o.terminalWidth)
-
-	t.SetStyle(table.StyleRounded)
-	t.SetStyle(table.Style{
-		Name: "nr-cli-table",
-		//Box:  table.StyleBoxRounded,
-		Box: table.BoxStyle{
-			MiddleHorizontal: "-",
-			MiddleSeparator:  " ",
-			MiddleVertical:   " ",
-		},
-		Color: table.ColorOptions{
-			Header: text.Colors{text.Bold},
-		},
-		Options: table.Options{
-			DrawBorder:      false,
-			SeparateColumns: true,
-			SeparateHeader:  true,
-		},
-	})
-	t.SetStyle(table.Style{
-		Name: "nr-syn-cli-table",
-		Box:  table.StyleBoxRounded,
-		Color: table.ColorOptions{
-			Header: text.Colors{text.Bold},
-		},
-		Options: table.Options{
-			DrawBorder:      true,
-			SeparateColumns: true,
-			SeparateHeader:  true,
-		},
-	})
-	return t
+	return summaryMessage, tableData
 }

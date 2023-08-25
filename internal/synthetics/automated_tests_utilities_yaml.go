@@ -8,12 +8,10 @@ type SyntheticsStartAutomatedTestInput struct {
 	Tests  []synthetics.SyntheticsAutomatedTestMonitorInput `json:"tests,omitempty"`
 }
 
-
 var globalResultExitCodes = map[synthetics.SyntheticsAutomatedTestStatus]*int{
-	synthetics.SyntheticsAutomatedTestStatusTypes.FAILED:      intPtr(1),
-	synthetics.SyntheticsAutomatedTestStatusTypes.PASSED:      intPtr(0),
-	synthetics.SyntheticsAutomatedTestStatusTypes.TIMEOUT:     intPtr(3),
-
+	synthetics.SyntheticsAutomatedTestStatusTypes.FAILED:  intPtr(1),
+	synthetics.SyntheticsAutomatedTestStatusTypes.PASSED:  intPtr(0),
+	synthetics.SyntheticsAutomatedTestStatusTypes.TIMEOUT: intPtr(3),
 }
 
 func intPtr(value int) *int {
