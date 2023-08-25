@@ -1,26 +1,56 @@
-monitors:
-  - guid: MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTYy
-    config:
-      overrides:
-        secureCredential:
-          - key: TARGETKEY1
-            overrideKey: OVERRIDEKEY1
-        location: LOCALHOST
-      isBlocking: true
-  - guid: MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTZz
-    config:
-      overrides:
-        secureCredential:
-          - key: TARGETKEY2
-            overrideKey: OVERRIDEKEY2
-        location: LOCALHOST
-      isBlocking: false
-  - guid: MTIzfFNZTlRIfE1PTklUT1J8OGJiMjg5YjktOGRjNy00ZjNlLWI3NTktM2NiODRlZDNhZTWw
-    config:
-      isBlocking: false
 config:
-  branch: sample/test-branch
-  commit: samplecommitAD325493GSH
-  platform: sampleplatform
-  deepLink: 'https://sample.com'
-  batchName: Sample Batch Name
+  batchName: Test Batch Name
+  branch: sample-branch
+  commit: f749615d0e3f37d6d9f1ebf5a707359448fd644b
+  deepLink: https://test-site.com
+  platform: test-platform
+  repository: sample-repository
+tests:
+  - config:
+      isBlocking: true
+    #      overrides:
+    #        domain:
+    #          domain: sample-domain
+    #          override: sample-domain-override
+    #        location: LOCALHOST
+    #        secureCredential:
+    #          key: KEY1
+    #          overrideKey: OVERRIDE-KEY1
+    #        startingUrl: https://test-starting-url.com
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfGE0MTk2MzRhLWRhNzgtNGQzNC1hN2NmLTBmMDE1MjQyYjA2OQ
+  - config:
+      isBlocking: false
+    #      overrides:
+    #        domain:
+    #          domain: sample-domain
+    #          override: sample-domain-override
+    #        location: LOCALHOST
+    #        secureCredential:
+    #          key: KEY2
+    #          overrideKey: OVERRIDE-KEY2
+    #        startingUrl: https://test-starting-url.com
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDA1YjVkZDQ4LTJlNzQtNDhjMi05OTQ0LTdkYTU2YTc3NmMyYw
+  - config:
+      isBlocking: true
+    #      overrides:
+    #        domain:
+    #          domain: sample-domain
+    #          override: sample-domain-override
+    #        location: LOCALHOST
+    #        secureCredential:
+    #          key: KEY2
+    #          overrideKey: OVERRIDE-KEY2
+    #        startingUrl: https://test-starting-url.com
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDljMmUwMzAxLTBiNWMtNGZmMy05M2JhLTE4ODg5MGVkMzEzYg
+  - config:
+      isBlocking: true
+    #      overrides:
+    #        domain:
+    #          domain: sample-domain
+    #          override: sample-domain-override
+    #        location: LOCALHOST
+    #        secureCredential:
+    #          key: KEY2
+    #          overrideKey: OVERRIDE-KEY2
+    #        startingUrl: https://test-starting-url.com
+    monitorGuid: MjUyMDUyOHxTWU5USHxNT05JVE9SfDQwYTNlMWM2LTZkMDUtNDYzNS04ZjM3LWVkYzJlN2MyZTFhNQ
