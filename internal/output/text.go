@@ -199,6 +199,18 @@ func (o *Output) newTableWriter() table.Writer {
 
 	t.SetStyle(table.StyleRounded)
 	t.SetStyle(table.Style{
+		Name: "nr-syn-cli-table",
+		Box:  table.StyleBoxRounded,
+		Color: table.ColorOptions{
+			Header: text.Colors{text.Bold},
+		},
+		Options: table.Options{
+			DrawBorder:      true,
+			SeparateColumns: true,
+			SeparateHeader:  true,
+		},
+	})
+	t.SetStyle(table.Style{
 		Name: "nr-cli-table",
 		//Box:  table.StyleBoxRounded,
 		Box: table.BoxStyle{
@@ -215,21 +227,13 @@ func (o *Output) newTableWriter() table.Writer {
 			SeparateHeader:  true,
 		},
 	})
-	t.SetStyle(table.Style{
-		Name: "nr-syn-cli-table",
-		Box:  table.StyleBoxRounded,
-		Color: table.ColorOptions{
-			Header: text.Colors{text.Bold},
-		},
-		Options: table.Options{
-			DrawBorder:      true,
-			SeparateColumns: true,
-			SeparateHeader:  true,
-		},
-	})
+
 	return t
 }
 
+
+// PrintResultTable prints the New Relic Synthetic Atuomated tests
+// in a tabular format by default
 func PrintResultTable(tableData [][]string) {
 	o := &Output{terminalWidth: 200}
 
