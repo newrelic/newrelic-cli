@@ -26,11 +26,21 @@ var (
 )
 
 var cmdRun = &cobra.Command{
-	Use: "run",
-	//TODO: Find the Precise description.
-	Short:   "Interact with New Relic Synthetics batch monitors",
-	Example: "newrelic synthetics run --help",
-	Long:    "Interact with New Relic Synthetics batch monitors",
+	Use:     "run",
+	Example: "newrelic synthetics run --batchFile filename.yml",
+	Short:   "Start an automated testing job on a batch of synthetic monitors",
+	Long: `Start an automated testing job on a batch of synthetic monitors
+
+The run command helps start an automated testing job by creating a batch, comprising the specified monitors and their
+specifications (such as overrides), and subsequently, keeps fetching the status of the batch at periodic intervals of
+time, until the status of the batch, which reflects the consolidated status of all monitors in the batch, is either
+success, failure or timed out. 
+
+The command may be used with the following flags (the arguments --batchFile and --guid are mutually exclusive).
+
+newrelic synthetics run --batchFile filename.yml
+newrelic synthetics run --guid <guid1> --guid <guid2>
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			config       SyntheticsStartAutomatedTestInput
@@ -60,8 +70,8 @@ var cmdRun = &cobra.Command{
 
 // Definition of the command
 func init() {
-	cmdRun.Flags().StringVarP(&batchFile, "batchFile", "b", "", "Input the YML file to batch and run the monitors")
-	cmdRun.Flags().StringSliceVarP(&guid, "guid", "g", nil, "Batch the monitors using their guids and run the automated test")
+	cmdRun.Flags().StringVarP(&batchFile, "batchFile", "b", "", "Path to the YAML file comprising GUIDs of monitors and associated configuration")
+	cmdRun.Flags().StringSliceVarP(&guid, "guid", "g", nil, "List of GUIDs of monitors to include in the batch and run automated tests on")
 	Command.AddCommand(cmdRun)
 
 	// MarkFlagsMutuallyExclusive allows one flag at once be invoked
@@ -75,7 +85,7 @@ func parseConfiguration() (SyntheticsStartAutomatedTestInput, error) {
 	} else if len(guid) != 0 {
 		return createConfigurationUsingGUIDs(guid), nil
 	}
-	return SyntheticsStartAutomatedTestInput{}, fmt.Errorf("Invalid arguments")
+	return SyntheticsStartAutomatedTestInput{}, fmt.Errorf("invalid arguments")
 }
 
 // createConfigurationUsingYAML unmarshals the specified YAML file into an object that can be used
