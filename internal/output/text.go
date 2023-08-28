@@ -224,7 +224,18 @@ func (o *Output) syntheticNewTableWriter() table.Writer {
 	t.SetOutputMirror(os.Stdout)
 	t.SetAllowedRowLength(o.terminalWidth)
 
-	t.SetStyle(table.StyleRounded)
+	t.SetStyle(table.Style{
+		Name: "nr-syn-cli-table",
+		Box:  table.StyleBoxRounded,
+		Color: table.ColorOptions{
+			Header: text.Colors{text.Bold},
+		},
+		Options: table.Options{
+			DrawBorder:      true,
+			SeparateColumns: true,
+			SeparateHeader:  true,
+		},
+	})
 
 	return t
 }
