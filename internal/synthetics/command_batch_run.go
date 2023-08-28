@@ -150,19 +150,19 @@ func getAutomatedTestResults(accountID int, testsBatchID string) {
 
 		exitStatus, ok := globalResultExitCodes[(batchResult.Status)]
 		if !ok {
-			log.Fatal("Unknown Error")
-		} else {
-			renderMonitorTestsSummary(*batchResult, exitStatus)
+			if batchResult.Status != synthetics.SyntheticsAutomatedTestStatusTypes.IN_PROGRESS {
+				log.Fatal("Unknown Error")
+			}
 		}
 
-		fmt.Printf("Current Status: %s, Exit Status: %d\n", batchResult.Status, *exitStatus)
+		renderMonitorTestsSummary(*batchResult, exitStatus)
 
 		// Force flush the standard output buffer
 		os.Stdout.Sync()
 
 		// exit, if the status is not IN_PROGRESS
 		if batchResult.Status != synthetics.SyntheticsAutomatedTestStatusTypes.IN_PROGRESS {
-			break
+			os.Exit(*exitStatus)
 		}
 		progressIndicator.Start("Fetching the status of tests in the batch....")
 	}
@@ -173,7 +173,16 @@ func renderMonitorTestsSummary(batchResult synthetics.SyntheticsAutomatedTestRes
 	fmt.Println("Status Received: ", batchResult.Status, " ")
 	summary, tableData := getMonitorTestsSummary(batchResult)
 	fmt.Printf("Summary: %s\n", summary)
-	printResultTable(tableData)
+	if len(tableData) > 0 {
+		output.PrintResultTable(tableData)
+	}
+
+	batchResultMessage := fmt.Sprintf("Current Status: %s", batchResult.Status)
+	if batchResult.Status != synthetics.SyntheticsAutomatedTestStatusTypes.IN_PROGRESS {
+		exitStatusMessage := fmt.Sprintf("Exit Status: %d\n", *exitStatus)
+		batchResultMessage = fmt.Sprintf("%s, %s", batchResultMessage, exitStatusMessage)
+	}
+	fmt.Println(batchResultMessage)
 }
 
 // getMonitorTestsSummary reads through the results of monitors fetched and populates them to a table with details
