@@ -1,6 +1,3 @@
-//go:build unit
-// +build unit
-
 package types
 
 import (
@@ -28,7 +25,6 @@ func TestToStringByFieldName(t *testing.T) {
 }
 
 func Test_shouldDisplayShortString(t *testing.T) {
-
 	recipe := OpenInstallationRecipe{
 		Name:           "test-recipe",
 		DisplayName:    "my verbose looking recipe name",
@@ -49,7 +45,6 @@ func Test_shouldDisplayShortString(t *testing.T) {
 }
 
 func Test_shouldDisplayShortStringMultipleTargets(t *testing.T) {
-
 	recipe := OpenInstallationRecipe{
 		Name:           "test-recipe",
 		DisplayName:    "my verbose looking recipe name",
@@ -76,4 +71,45 @@ func Test_shouldDisplayShortStringMultipleTargets(t *testing.T) {
 	require.True(t, strings.Contains(output, "test-recipe"))
 	require.True(t, strings.Contains(output, "darwin/amazon/2/x86"))
 	require.True(t, strings.Contains(output, "linux/redhat/8/arm"))
+}
+
+func Test_shouldExpandPreInstall(t *testing.T) {
+	m := make(map[string]interface{})
+	mm := make(map[interface{}]interface{})
+	m["preInstall"] = mm
+	mm["info"] = "A"
+	mm["prompt"] = "B"
+	mm["requireAtDiscovery"] = "C"
+
+	c := expandPreInstall(m)
+	require.Equal(t, "A", c.Info, "Preinstall info should equal")
+	require.Equal(t, "B", c.Prompt, "Preinstall prompt should equal")
+	require.Equal(t, "C", c.RequireAtDiscovery, "Preinstall requiredAtDiscovery should equal")
+}
+
+func Test_shouldExpandDiscoveryMode(t *testing.T) {
+	m := make(map[string]interface{})
+	dm := expandDiscoveryMode(m)
+
+	require.Equal(t, 2, len(dm), "Omit discovery mode should return both guided and targeted")
+	require.Equal(t, OpenInstallationDiscoveryModeTypes.GUIDED, dm[0], "Omit discovery mode should return both guided and targeted")
+	require.Equal(t, OpenInstallationDiscoveryModeTypes.TARGETED, dm[1], "Omit discovery mode should return both guided and targeted")
+
+	m["discoveryMode"] = []interface{}{"guided"}
+	dm = expandDiscoveryMode(m)
+	require.Equal(t, 1, len(dm), "Omit discovery mode should return both guided and targeted")
+	require.Equal(t, OpenInstallationDiscoveryModeTypes.GUIDED, dm[0], "Only guided mode")
+
+	m["discoveryMode"] = []interface{}{"targeted"}
+	dm = expandDiscoveryMode(m)
+	require.Equal(t, 1, len(dm), "Omit discovery mode should return both guided and targeted")
+	require.Equal(t, OpenInstallationDiscoveryModeTypes.TARGETED, dm[0], "Only target mode")
+
+	m["discoveryMode"] = []interface{}{"badMode"}
+	dm = expandDiscoveryMode(m)
+	require.Equal(t, 0, len(dm), "Bad value should return nothing")
+
+	m["discoveryMode"] = []interface{}{"badMode", "guided"}
+	dm = expandDiscoveryMode(m)
+	require.Equal(t, 1, len(dm), "One good value should be parsed")
 }

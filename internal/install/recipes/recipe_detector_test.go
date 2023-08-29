@@ -99,6 +99,63 @@ func TestDetectionResultsShouldSortByRecipeName(t *testing.T) {
 	require.Equal(t, detections[1].Recipe.Name, "b")
 }
 
+func TestRecipeDetectorShouldExcludeIfNotTargeted(t *testing.T) {
+	recipe := NewRecipeBuilder().WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithInstallContext(&types.InstallerContext{})
+	detector := b.Build()
+
+	_, ua, _ := detector.GetDetectedRecipes()
+	actual, ok := ua.GetRecipeDetection(recipe.Name)
+
+	require.True(t, ok)
+	require.Equal(t, execution.RecipeStatusTypes.NULL, actual.Status)
+}
+
+func TestRecipeDetectorShouldIncludeIfTargeted(t *testing.T) {
+	recipe := NewRecipeBuilder().Name("R1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	b.WithProcessEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{
+		"R1",
+		"D1",
+	}})
+	detector := b.Build()
+
+	a, _, _ := detector.GetDetectedRecipes()
+	actual, ok := a.GetRecipeDetection(recipe.Name)
+
+	require.True(t, ok)
+	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, actual.Status)
+}
+
+func TestRecipeDetectorShouldDiscover(t *testing.T) {
+	recipe := NewRecipeBuilder().Build()
+	b := NewRecipeDetectorTestBuilder()
+	b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{
+		"R1",
+	}})
+	detector := b.Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when attribute is omittd")
+
+	recipe = NewRecipeBuilder().Name("C1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+	require.False(t, detector.shouldDiscover(recipe), "Should not discover when targeted only and not targeted during install")
+
+	recipe = NewRecipeBuilder().Name("R1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted only and targeted during install")
+
+	recipe = NewRecipeBuilder().Name("C1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.GUIDED}).Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when guided mode")
+
+	recipe = NewRecipeBuilder().Name("C1").WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{types.OpenInstallationDiscoveryModeTypes.GUIDED, types.OpenInstallationDiscoveryModeTypes.TARGETED}).Build()
+	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted, and guided mode")
+}
+
 type MockRecipesFinder struct {
 	recipes []*types.OpenInstallationRecipe
 	err     error
@@ -115,6 +172,7 @@ type RecipeDetectorTestBuilder struct {
 	processEvaluator *MockRecipeEvaluator
 	scriptEvaluator  *MockRecipeEvaluator
 	recipesFinder    *MockRecipesFinder
+	installContext   *types.InstallerContext
 }
 
 func NewRecipeDetectorTestBuilder() *RecipeDetectorTestBuilder {
@@ -122,11 +180,17 @@ func NewRecipeDetectorTestBuilder() *RecipeDetectorTestBuilder {
 		processEvaluator: NewMockRecipeEvaluator(),
 		scriptEvaluator:  NewMockRecipeEvaluator(),
 		recipesFinder:    &MockRecipesFinder{},
+		installContext:   &types.InstallerContext{},
 	}
 }
 
 func (b *RecipeDetectorTestBuilder) WithRecipesFinderError(err error) *RecipeDetectorTestBuilder {
 	b.recipesFinder.err = err
+	return b
+}
+
+func (b *RecipeDetectorTestBuilder) WithInstallContext(ic *types.InstallerContext) *RecipeDetectorTestBuilder {
+	b.installContext = ic
 	return b
 }
 
@@ -148,5 +212,6 @@ func (b *RecipeDetectorTestBuilder) Build() *RecipeDetector {
 		repo:             b.recipesFinder,
 		processEvaluator: b.processEvaluator,
 		scriptEvaluator:  b.scriptEvaluator,
+		installerContext: b.installContext,
 	}
 }

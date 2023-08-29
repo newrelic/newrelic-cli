@@ -49,19 +49,20 @@ type RecipeDetector struct {
 	scriptEvaluator  DetectionStatusProvider
 	context          context.Context
 	repo             Finder
+	installerContext *types.InstallerContext
 }
 
-func NewRecipeDetector(contex context.Context, repo *RecipeRepository, peval ProcessEvaluatorInterface) *RecipeDetector {
+func NewRecipeDetector(contex context.Context, repo *RecipeRepository, peval ProcessEvaluatorInterface, ic *types.InstallerContext) *RecipeDetector {
 	return &RecipeDetector{
 		processEvaluator: peval,
 		scriptEvaluator:  NewScriptEvaluator(),
 		context:          contex,
 		repo:             repo,
+		installerContext: ic,
 	}
 }
 
 func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDetectionResults, error) {
-
 	availableRecipes := RecipeDetectionResults{}
 	unavailableRecipes := RecipeDetectionResults{}
 	recipes, err := dt.repo.FindAll()
@@ -83,8 +84,28 @@ func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDe
 	return availableRecipes, unavailableRecipes, nil
 }
 
+func (dt *RecipeDetector) shouldDiscover(recipe *types.OpenInstallationRecipe) bool {
+	isTargeted := dt.installerContext.IsRecipeTargeted(recipe.Name)
+	if len(recipe.PreInstall.DiscoveryMode) == 1 &&
+		(recipe.PreInstall.DiscoveryMode[0] == types.OpenInstallationDiscoveryModeTypes.TARGETED) {
+		return isTargeted
+	}
+
+	return true
+}
+
 func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *RecipeDetectionResult {
 	start := time.Now()
+
+	if !dt.shouldDiscover(recipe) {
+		durationMs := time.Since(start).Milliseconds()
+		return &RecipeDetectionResult{
+			recipe,
+			execution.RecipeStatusTypes.NULL,
+			durationMs,
+		}
+	}
+
 	status := dt.processEvaluator.DetectionStatus(dt.context, recipe)
 	durationMs := time.Since(start).Milliseconds()
 

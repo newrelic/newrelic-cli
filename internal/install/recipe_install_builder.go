@@ -182,7 +182,7 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall.progressIndicator = rib.progressIndicator
 	recipeInstall.agentValidator = rib.agentValidator
 	recipeInstall.recipeValidator = rib.recipeValidator
-	recipeInstall.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository) RecipeStatusDetector {
+	recipeInstall.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository, ic *types.InstallerContext) RecipeStatusDetector {
 		return rib.recipeDetector
 	}
 	mockProcessEvaluator := recipes.NewMockProcessEvaluator()
