@@ -39,7 +39,7 @@ func TestSyntheticsMonitorList(t *testing.T) {
 }
 
 func TestSyntheticsMonitorRun(t *testing.T) {
-	assert.Equal(t, "monitor", cmdRun.Name())
+	assert.Equal(t, "run", cmdRun.Name())
 
 	testcobra.CheckCobraMetadata(t, cmdRun)
 	testcobra.CheckCobraRequiredFlags(t, cmdRun, []string{})
