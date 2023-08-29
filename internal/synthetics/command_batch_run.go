@@ -43,7 +43,7 @@ newrelic synthetics run --guid <guid1> --guid <guid2>
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
-			config       SyntheticsStartAutomatedTestInput
+			config       StartAutomatedTestInput
 			err          error
 			testsBatchID string
 		)
@@ -79,19 +79,19 @@ func init() {
 }
 
 // parseConfiguration helps parse the inputs given to this command, based on the format specified (YAML or command line GUIDs)
-func parseConfiguration() (SyntheticsStartAutomatedTestInput, error) {
+func parseConfiguration() (StartAutomatedTestInput, error) {
 	if batchFile != "" {
 		return createConfigurationUsingYAML(batchFile)
 	} else if len(guid) != 0 {
 		return createConfigurationUsingGUIDs(guid), nil
 	}
-	return SyntheticsStartAutomatedTestInput{}, fmt.Errorf("invalid arguments")
+	return StartAutomatedTestInput{}, fmt.Errorf("invalid arguments")
 }
 
 // createConfigurationUsingYAML unmarshals the specified YAML file into an object that can be used
 // to send a create batch request to NerdGraph
-func createConfigurationUsingYAML(batchFile string) (SyntheticsStartAutomatedTestInput, error) {
-	var config SyntheticsStartAutomatedTestInput
+func createConfigurationUsingYAML(batchFile string) (StartAutomatedTestInput, error) {
+	var config StartAutomatedTestInput
 
 	content, err := os.ReadFile(batchFile)
 	if err != nil {
@@ -108,7 +108,7 @@ func createConfigurationUsingYAML(batchFile string) (SyntheticsStartAutomatedTes
 
 // createConfigurationUsingGUIDs obtains GUIDs specified in command line arguments and restructures them into an object
 // that can be used to send a create batch request to NerdGraph
-func createConfigurationUsingGUIDs(guids []string) SyntheticsStartAutomatedTestInput {
+func createConfigurationUsingGUIDs(guids []string) StartAutomatedTestInput {
 	var tests []synthetics.SyntheticsAutomatedTestMonitorInput
 	for _, id := range guids {
 		tests = append(tests, synthetics.SyntheticsAutomatedTestMonitorInput{
@@ -116,13 +116,13 @@ func createConfigurationUsingGUIDs(guids []string) SyntheticsStartAutomatedTestI
 		})
 	}
 
-	return SyntheticsStartAutomatedTestInput{
+	return StartAutomatedTestInput{
 		Tests: tests,
 	}
 }
 
 // createAutomatedTestBatch performs an API call to create a batch with the specified configuration and tests
-func createAutomatedTestBatch(config SyntheticsStartAutomatedTestInput) string {
+func createAutomatedTestBatch(config StartAutomatedTestInput) string {
 	log.Println("Creating a batch comprising the following monitors:")
 	for _, test := range config.Tests {
 		log.Println("-", test.MonitorGUID)

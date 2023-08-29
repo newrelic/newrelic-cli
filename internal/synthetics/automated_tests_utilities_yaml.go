@@ -3,7 +3,7 @@ package synthetics
 import "github.com/newrelic/newrelic-client-go/v2/pkg/synthetics"
 
 // a wrapper structure for the input to be sent to syntheticsStartAutomatedTest
-type SyntheticsStartAutomatedTestInput struct {
+type StartAutomatedTestInput struct {
 	Config synthetics.SyntheticsAutomatedTestConfigInput    `json:"config,omitempty"`
 	Tests  []synthetics.SyntheticsAutomatedTestMonitorInput `json:"tests,omitempty"`
 }
