@@ -218,3 +218,51 @@ func (o *Output) newTableWriter() table.Writer {
 
 	return t
 }
+
+func (o *Output) syntheticNewTableWriter() table.Writer {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetAllowedRowLength(o.terminalWidth)
+
+	t.SetStyle(table.Style{
+		Name: "nr-syn-cli-table",
+		Box:  table.StyleBoxRounded,
+		Color: table.ColorOptions{
+			Header: text.Colors{text.Bold},
+		},
+		Options: table.Options{
+			DrawBorder:      true,
+			SeparateColumns: true,
+			SeparateHeader:  true,
+		},
+	})
+
+	return t
+}
+
+// PrintResultTable prints the New Relic Synthetic Atuomated tests
+// in a tabular format by default
+func PrintResultTable(tableData [][]string) {
+	o := &Output{terminalWidth: 200}
+
+	tw := o.syntheticNewTableWriter()
+
+	// Add the header
+	tw.AppendHeader(table.Row{"Status", "Monitor Name", "Monitor GUID", "isBlocking"})
+
+	// Add the rows
+	for _, row := range tableData {
+		tw.AppendRow(stringSliceToRow(row))
+	}
+
+	// Render the table
+	tw.Render()
+}
+
+func stringSliceToRow(slice []string) table.Row {
+	row := make(table.Row, len(slice))
+	for i, v := range slice {
+		row[i] = v
+	}
+	return row
+}

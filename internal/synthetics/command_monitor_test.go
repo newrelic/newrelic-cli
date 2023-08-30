@@ -6,9 +6,8 @@ package synthetics
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSyntheticsMonitor(t *testing.T) {
@@ -37,4 +36,11 @@ func TestSyntheticsMonitorList(t *testing.T) {
 
 	testcobra.CheckCobraMetadata(t, cmdMonList)
 	testcobra.CheckCobraRequiredFlags(t, cmdMonList, []string{})
+}
+
+func TestSyntheticsMonitorRun(t *testing.T) {
+	assert.Equal(t, "run", cmdRun.Name())
+
+	testcobra.CheckCobraMetadata(t, cmdRun)
+	testcobra.CheckCobraRequiredFlags(t, cmdRun, []string{})
 }
