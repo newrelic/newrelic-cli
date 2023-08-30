@@ -1,3 +1,8 @@
+<a name="v0.71.0"></a>
+## [v0.71.0] - 2023-08-30
+### Features
+- **synthetics:** addition of a command to run automated tests on monitors ([#1508](https://github.com/newrelic/newrelic-cli/issues/1508))
+
 <a name="v0.70.0"></a>
 ## [v0.70.0] - 2023-08-21
 ### Features
@@ -2097,7 +2102,8 @@
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.70.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.71.0...HEAD
+[v0.71.0]: https://github.com/newrelic/newrelic-cli/compare/v0.70.0...v0.71.0
 [v0.70.0]: https://github.com/newrelic/newrelic-cli/compare/v0.69.0...v0.70.0
 [v0.69.0]: https://github.com/newrelic/newrelic-cli/compare/v0.68.25...v0.69.0
 [v0.68.25]: https://github.com/newrelic/newrelic-cli/compare/v0.68.24...v0.68.25
