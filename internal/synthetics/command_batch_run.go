@@ -22,7 +22,6 @@ var (
 	pollingInterval   = time.Second * 30
 	progressIndicator = ux.NewSpinner()
 	nrdbLatency       = time.Second * 5
-	countMonitors     int
 )
 
 var cmdRun = &cobra.Command{
@@ -123,16 +122,10 @@ func createConfigurationUsingGUIDs(guids []string) StartAutomatedTestInput {
 
 // createAutomatedTestBatch performs an API call to create a batch with the specified configuration and tests
 func createAutomatedTestBatch(config StartAutomatedTestInput) string {
-	log.Println("Creating a batch comprising the following monitors:")
-	for _, test := range config.Tests {
-		log.Println("-", test.MonitorGUID)
-		countMonitors++
-	}
-
-	if countMonitors == 0 {
+	if len(config.Tests) == 0 {
 		log.Fatal("No valid monitors found in the input specified. Please check the input provided.")
 	}
-	progressIndicator.Start("Sending a request to create the batch:")
+	progressIndicator.Start("Sending a request to create a batch with the specified monitors...")
 
 	result, err := client.NRClient.Synthetics.SyntheticsStartAutomatedTest(config.Config, config.Tests)
 	progressIndicator.Stop()
@@ -180,19 +173,17 @@ func getAutomatedTestResults(accountID int, testsBatchID string) {
 
 // renderMonitorTestsSummary reads through the results of monitors fetched, restructures and renders these results accordingly
 func renderMonitorTestsSummary(batchResult synthetics.SyntheticsAutomatedTestResult, exitStatus *int) {
-	fmt.Println("Status Received: ", batchResult.Status, " ")
+	fmt.Println("Status: ", batchResult.Status, " ")
 	summary, tableData := getMonitorTestsSummary(batchResult)
 	fmt.Printf("Summary: %s\n", summary)
 	if len(tableData) > 0 {
 		output.PrintResultTable(tableData)
 	}
 
-	batchResultMessage := fmt.Sprintf("Current Status: %s", batchResult.Status)
 	if batchResult.Status != synthetics.SyntheticsAutomatedTestStatusTypes.IN_PROGRESS {
 		exitStatusMessage := fmt.Sprintf("Exit Status: %d\n", *exitStatus)
-		batchResultMessage = fmt.Sprintf("%s, %s", batchResultMessage, exitStatusMessage)
+		fmt.Println(exitStatusMessage)
 	}
-	fmt.Println(batchResultMessage)
 }
 
 // getMonitorTestsSummary reads through the results of monitors fetched and populates them to a table with details
