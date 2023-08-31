@@ -264,6 +264,8 @@ type OpenInstallationRecipe struct {
 	ValidationNRQL NRQL `json:"validationNrql,omitempty"`
 	// validation url to validate with infra health endpoint
 	ValidationURL string `json:"validationUrl,omitempty"`
+	// integration name to validate with local validation
+	ValidationIntegration string `json:"validationIntegration,omitempty"`
 }
 
 // OpenInstallationRecipeInputVariable - Recipe input variable prompts displayed to the user prior to execution
