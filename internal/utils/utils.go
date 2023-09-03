@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -184,4 +185,33 @@ func IsAbsoluteURL(rawURL string) bool {
 func IsExitStatusCode(exitCode int, err error) bool {
 	exitCodeString := fmt.Sprintf("exit status %d", exitCode)
 	return strings.Contains(err.Error(), exitCodeString)
+}
+
+// SetFlagsFromFile sets the command flag values based on the provided input file contents.
+// If also ensures the provided flags from an input file match the expected flags and their respective types.
+// Nonexistent flags will result in an error. Incorrect types will result in an error.
+func SetFlagsFromFile(cmd *cobra.Command, flagsFromFile map[string]interface{}) error {
+	flagSet := cmd.Flags()
+	for k, v := range flagsFromFile {
+		// Ensure flag exists for the command
+		flag := flagSet.Lookup(k)
+		if flag == nil {
+			return fmt.Errorf("error: Invalid flag `%s` provided for command `%s`  ", k, cmd.Name())
+		}
+
+		// Ensure correct type
+		flagType := flag.Value.Type()
+		if reflect.TypeOf(v).String() != flag.Value.Type() {
+			return fmt.Errorf("error: Invalid value `%v` for flag `%s` provided for command `%s`. Must be of type %s", v, k, cmd.Name(), flagType)
+		}
+
+		switch t := flag.Value.Type(); t {
+		case "string":
+			flagSet.Set(k, v.(string))
+		case "int":
+			flagSet.Set(k, strconv.Itoa(v.(int)))
+		}
+	}
+
+	return nil
 }
