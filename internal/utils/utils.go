@@ -8,14 +8,15 @@ import (
 	"os"
 	"os/signal"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/mitchellh/go-homedir"
-
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 )
 
 var (
@@ -184,4 +185,22 @@ func IsAbsoluteURL(rawURL string) bool {
 func IsExitStatusCode(exitCode int, err error) bool {
 	exitCodeString := fmt.Sprintf("exit status %d", exitCode)
 	return strings.Contains(err.Error(), exitCodeString)
+}
+
+func IsValidUserAPIKeyFormat(key string) bool {
+	validUserAPIKeyPrefixes := []string{"NRAK", "NRAA"}
+	prefix, keyString, found := strings.Cut(key, "-")
+
+	// If no hyphen was found, we don't have a user API key.
+	if !found {
+		return false
+	}
+
+	if !slices.Contains(validUserAPIKeyPrefixes, prefix) {
+		return false
+	}
+
+	var isAlphanumeric = regexp.MustCompile("^[a-zA-Z0-9_]*$").MatchString(keyString)
+
+	return isAlphanumeric
 }
