@@ -1,3 +1,5 @@
+//go:build unit
+
 package install
 
 import (
@@ -22,8 +24,7 @@ func TestInstallCommand(t *testing.T) {
 	testcobra.CheckCobraMetadata(t, Command)
 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
 }
-func TestCommandValiProfile(t *testing.T) {
-
+func TestCommandValidProfile(t *testing.T) {
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	region := os.Getenv("NEW_RELIC_REGION")
@@ -50,11 +51,20 @@ func TestCommandValiProfile(t *testing.T) {
 	os.Setenv("NEW_RELIC_API_KEY", "")
 	err = validateProfile(5, c)
 	assert.Equal(t, types.EventTypes.APIKeyMissing, err.EventName)
+
+	os.Setenv("NEW_RELIC_API_KEY", "67890")
+	err = validateProfile(5, c)
+	assert.Equal(t, types.EventTypes.InvalidUserAPIKeyFormat, err.EventName)
+
 	if apiKey == "" {
-		os.Setenv("NEW_RELIC_API_KEY", "67890")
+		os.Setenv("NEW_RELIC_API_KEY", "NRAK-67890")
 	} else {
 		os.Setenv("NEW_RELIC_API_KEY", apiKey)
 	}
+
+	os.Setenv("NEW_RELIC_REGION", "au")
+	err = validateProfile(5, c)
+	assert.Equal(t, types.EventTypes.InvalidRegion, err.EventName)
 
 	os.Setenv("NEW_RELIC_REGION", "")
 	err = validateProfile(5, c)
