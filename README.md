@@ -206,7 +206,7 @@ are used to construct or destroy an item, respectively.
 
 ### Requirements
 
-- Go 1.18+
+- Go 1.19+
 - GNU Make
 - git
 
