@@ -76,9 +76,9 @@ func ValidateIntegration(integrationName string) (string, error) {
 // given configPath, returning a configType{} containing the
 // defined integrations and their respective environments.
 // Returns an empty configType{} and an error if:
-// - The file does not exist
-// - The file can not be read
-// - The file cannot be unmarshalled to a configType{}
+// 1.) The file does not exist
+// 2.) The file can not be read
+// 3.) The file cannot be unmarshalled to a configType{}
 func readConfig(configPath string) (configType, error) {
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
 		return configType{}, err
