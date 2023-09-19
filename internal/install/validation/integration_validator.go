@@ -64,9 +64,9 @@ func ValidateIntegration(integrationName string) (string, error) {
 			stderr := e.String()
 
 			if stderr != "" {
-				stderr := strings.TrimSpace(stderr)
+				s := strings.TrimSpace(stderr)
 
-				return "", fmt.Errorf("%w: %s", err, stderr)
+				return "", fmt.Errorf("%w: %s", err, s)
 			}
 
 			return "", err
