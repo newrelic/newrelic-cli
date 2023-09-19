@@ -24,10 +24,8 @@ type configType struct {
 // Validate an integration using its <integrationName>-config.yml
 // by iterating over the defined integrations and running the
 // integration command with its defined environment variables.
-
 // <integrationName>-config.yml is determined to be valid if every
 // defined integration exits without error (exits with exit code 0).
-
 // The <integrationName>-config.yml is located in the
 // default configuration directory, which may vary by GOOS.
 func ValidateIntegration(integrationName string) (string, error) {
@@ -77,7 +75,6 @@ func ValidateIntegration(integrationName string) (string, error) {
 // Reads and unmarshals an <integrationName>-config.yml from the
 // given configPath, returning a configType{} containing the
 // defined integrations and their respective environments.
-
 // Returns an empty configType{} and an error if:
 // - The file does not exist
 // - The file can not be read
