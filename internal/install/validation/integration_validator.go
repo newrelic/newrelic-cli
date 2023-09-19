@@ -21,6 +21,17 @@ type configType struct {
 	Integrations []integrationType `yaml:"integrations"`
 }
 
+/*
+  Validate an integration using its <integrationName>-config.yml
+  by iterating over the defined integrations and running the
+  integration command with its defined environment variables.
+
+  <integrationName>-config.yml is determined to be valid if every
+  defined integration exits without error (exits with exit code 0).
+
+  The <integrationName>-config.yml is located in the
+  default configuration directory, which may vary by GOOS.
+*/
 func ValidateIntegration(integrationName string) (string, error) {
 	configBasename := fmt.Sprintf("%s-config.yml", integrationName)
 
@@ -65,6 +76,16 @@ func ValidateIntegration(integrationName string) (string, error) {
 	return "", nil
 }
 
+/*
+  Reads and unmarshals an <integrationName>-config.yml from the
+  given configPath, returning a configType{} containing the
+  defined integrations and their respective environments.
+
+  Returns an empty configType{} and an error if:
+  - The file does not exist
+  - The file can not be read
+  - The file cannot be unmarshalled to a configType{}
+*/
 func readConfig(configPath string) (configType, error) {
 	if _, err := os.Stat(configPath); errors.Is(err, os.ErrNotExist) {
 		return configType{}, err
