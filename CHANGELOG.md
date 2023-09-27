@@ -1,3 +1,8 @@
+<a name="v0.72.0"></a>
+## [v0.72.0] - 2023-09-27
+### Features
+- **install:** validate user API key format ([#1510](https://github.com/newrelic/newrelic-cli/issues/1510))
+
 <a name="v0.71.0"></a>
 ## [v0.71.0] - 2023-08-30
 ### Features
@@ -1813,38 +1818,38 @@
 ## [v0.8.11] - 2021-01-08
 ### Bug Fixes
 - duplicitous task running
-- **build:** update changelog action for improved standards
 - **build:** skip go generate as part of build process
+- **build:** update changelog action for improved standards
 - **config:** ensure compatible case with nr1
-- **config:** remove extra comment
 - **config:** compatible case with any loglevel value
+- **config:** remove extra comment
 - **diagnostics:** update download URL
-- **install:** avoid duplicate installs for logging and infra
-- **install:** avoid prompting when user has specified a named recipe
-- **install:** capture task output and print only when debug logging
 - **install:** avoid nil pointer and extra matches for service results
+- **install:** update logMatch type to list
+- **install:** capture task output and print only when debug logging
+- **install:** fix few lint issues
 - **install:** update recipe spec to support displayName
 - **install:** ensure secret input is hidden
 - **install:** skip account-based link if default profile does not exist
 - **install:** fixes for end to end flow
 - **install:** tidy up the permissions on new files
 - **install:** replace package ID with default value
-- **install:** print newline after banner
+- **install:** create default log folder if not exists
 - **install:** ignore region string case when checking profile
 - **install:** reduce sudo requirement of install.sh
 - **install:** detect and warn for empty NRQL validation
-- **install:** set better default value when running automatic
+- **install:** include displayName in request and recipe constructor
 - **install:** let dead processes stay dead
 - **install:** use string type for ID returned from the API
-- **install:** update logMatch type to list
+- **install:** avoid prompting when user has specified a named recipe
 - **install:** update logMatch type to list
 - **install:** wire up all installContext fields
-- **install:** include displayName in request and recipe constructor
+- **install:** avoid duplicate installs for logging and infra
 - **install:** fix meltMatch struct to match spec
-- **install:** fix few lint issues
-- **install:** skip linting maligned struct
 - **install:** return error when default value is needed and not provided
-- **install:** create default log folder if not exists
+- **install:** print newline after banner
+- **install:** skip linting maligned struct
+- **install:** set better default value when running automatic
 - **internal/diagnose:** download udpates via https!
 - **linting:** remove unused function
 - **output:** Fix FormatText to do more than just tables
@@ -1859,29 +1864,29 @@
 - **readme:** include installation notes for Chocolatey users
 
 ### Features
-- add a command for posting custom events
 - release edge command
+- add a command for posting custom events
 - **apiaccess:** add generated apiAccess commands (prerelease)
 - **config:** Add config option to show Pre-Release Features (resolves [#274](https://github.com/newrelic/newrelic-cli/issues/274))
-- **edge:** add infinite tracing support
 - **edge:** mark as pre-release
-- **install:** implement a mock server for process-based task selection
+- **edge:** add infinite tracing support
 - **install:** wire up process discovery with cloned nri-process-discovery code
-- **install:** sketching out recipe validation
-- **install:** fetch recipes from recipe service
+- **install:** implement a mock server for process-based task selection
 - **install:** prompt for variable input
+- **install:** fetch recipes from recipe service
 - **install:** add -y flag
-- **internal/diagnose:** add minimal command line options
+- **install:** sketching out recipe validation
 - **internal/diagnose:** lint command; break out commands & helpers
+- **internal/diagnose:** add minimal command line options
 - **nerdgraph:** implement tutone-generated mutation command alertsPolicyCreate
 - **newrelic:** integrate with nrdiag (prototype)
 - **nrql:** Add NRQL Query and History commands
 - **output:** Add text output formatter to general package
 - **profiles:** create a profile automatically if it's possible
-- **release:** [#45](https://github.com/newrelic/newrelic-cli/issues/45) add support for command chaining
-- **release:** update master branch with latest code from upstream
 - **release:** attempt to automate syncing our homebrew-core fork with upstream
 - **release:** add step to update newrelic-forks/homebrew-core with latest from upstream homebrew-code
+- **release:** update master branch with latest code from upstream
+- **release:** [#45](https://github.com/newrelic/newrelic-cli/issues/45) add support for command chaining
 - **reporting:** add junit reporting
 
 <a name="v0.8.5"></a>
@@ -1947,12 +1952,12 @@
 - **ci:** chmod +x the brew PR script
 - **ci:** update the snap app name to match the binary
 - **ci:** revert snapcraft binary name
+- **ci:** update the snap name to match the binary
 - **ci:** upgrade snapcraft grade
 - **ci:** add a step to install snapcraft
 - **ci:** wire snapcraft token into publish step
 - **ci:** wire docker creds into publish step
 - **ci:** fix yaml indentation
-- **ci:** update the snap name to match the binary
 
 ### Features
 - **ci:** automate updating of homebrew formula
@@ -1994,12 +1999,12 @@
 ### Features
 - **docs:** Add auto-generated CLI documentation
 - **docs:** Add cobra generated documentation command (hidden)
+- **workloads:** add a command to list workloads
+- **workloads:** add a command to get a workload
 - **workloads:** add a command to duplicate workloads
 - **workloads:** add a command to update workloads
 - **workloads:** add a command to delete workloads
 - **workloads:** add a command to create workloads
-- **workloads:** add a command to list workloads
-- **workloads:** add a command to get a workload
 
 <a name="v0.4.1"></a>
 ## [v0.4.1] - 2020-03-11
@@ -2081,28 +2086,29 @@
 - **entities:** include some examples and longer help
 
 ### Features
-- **apm:** implement apm deployment marker retrieval
 - **apm:** implement apm deployment create/delete
+- **apm:** implement apm deployment marker retrieval
 - **build:** Add docker handling to make system (build/clean/run)
 - **build:** Create basic Dockerfile
 - **completion:** include completion command for shell completion
-- **config:** Add basic config loading
 - **config:** write config file if none exists
+- **config:** Add basic config loading
 - **config:** add remaining config methods
 - **config:** add list method
 - **config:** Add log level configuration
-- **credentials:** implement initial credential management
-- **credentials:** set default profile if adding one for the first time
 - **credentials:** allow overriding api keys via env vars
-- **entities:** add ability to filter entities search by entity type, tag, alert severity, domain, and reporting
-- **entities:** add entity tag retrieval
-- **entities:** implement entities tag and tag value deletion
+- **credentials:** set default profile if adding one for the first time
+- **credentials:** implement initial credential management
 - **entities:** implement add/replace tags
+- **entities:** implement entities tag and tag value deletion
+- **entities:** add entity tag retrieval
+- **entities:** add ability to filter entities search by entity type, tag, alert severity, domain, and reporting
 - **entities:** add entity search
-- **profile:** Enable reading of profiles and use Region/APIKey from default profile
 - **profile:** Add listing of profiles to command
+- **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.71.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.72.0...HEAD
+[v0.72.0]: https://github.com/newrelic/newrelic-cli/compare/v0.71.0...v0.72.0
 [v0.71.0]: https://github.com/newrelic/newrelic-cli/compare/v0.70.0...v0.71.0
 [v0.70.0]: https://github.com/newrelic/newrelic-cli/compare/v0.69.0...v0.70.0
 [v0.69.0]: https://github.com/newrelic/newrelic-cli/compare/v0.68.25...v0.69.0
