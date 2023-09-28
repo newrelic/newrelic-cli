@@ -1,3 +1,5 @@
+//go:build unit
+
 package utils
 
 import (
@@ -101,4 +103,23 @@ func TestLogIfFatal(t *testing.T) {
 		LogIfFatal(c.param)
 		require.Equal(t, c.expectFatal, fatal)
 	}
+}
+
+func TestIsValidUserAPIKeyFormat_Valid(t *testing.T) {
+	result := IsValidUserAPIKeyFormat("NRAK-ABCDEBFGJIJKLMNOPQRSTUVWXYZ")
+	assert.True(t, result)
+}
+
+func TestIsValidUserAPIKeyFormat_Invalid(t *testing.T) {
+	// Invalid prefix
+	result := IsValidUserAPIKeyFormat("NRBR-ABCDEBFGJIJKLMNOPQRSTUVWXYZ")
+	assert.False(t, result)
+
+	// A license key is not a valid User API key (note, this is not a real license key)
+	result = IsValidUserAPIKeyFormat("4321abcsksd344ndlsdm20231mwd21230md12cbsdhk2")
+	assert.False(t, result)
+
+	// Special characters are invaid after the prefix hyphen
+	result = IsValidUserAPIKeyFormat("NRAK-@$%^!")
+	assert.False(t, result)
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
+	nrRegion "github.com/newrelic/newrelic-client-go/v2/pkg/region"
 )
 
 var (
@@ -46,9 +47,10 @@ var Command = &cobra.Command{
 
 		sg := initSegment()
 		sg.Track(types.EventTypes.InstallStarted)
-		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
 
+		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
 		if detailErr != nil {
+			sg.Track(detailErr.EventName)
 			log.Fatal(detailErr)
 		}
 
@@ -126,19 +128,31 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 
 	if accountID == 0 {
 		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.AccountIDMissing, "account ID is required")
+		detailErr = types.NewDetailError(types.EventTypes.AccountIDMissing, "Account ID is required.")
 		return detailErr
 	}
 
 	if APIKey == "" {
 		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.APIKeyMissing, "API key is required")
+		detailErr = types.NewDetailError(types.EventTypes.APIKeyMissing, "User API key is required.")
+		return detailErr
+	}
+
+	if !utils.IsValidUserAPIKeyFormat(APIKey) {
+		errorOccured = true
+		detailErr = types.NewDetailError(types.EventTypes.InvalidUserAPIKeyFormat, `Invalid user API key format detected. Please provide a valid user API key. User API keys usually have a prefix of "NRAK-" or "NRAA-".`)
 		return detailErr
 	}
 
 	if region == "" {
 		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.RegionMissing, "region is required")
+		detailErr = types.NewDetailError(types.EventTypes.RegionMissing, "Region is required.")
+		return detailErr
+	}
+
+	if _, err := nrRegion.Parse(region); err != nil {
+		errorOccured = true
+		detailErr = types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US" or "EU".`)
 		return detailErr
 	}
 

@@ -37,6 +37,8 @@ var EventTypes = struct {
 	NrIntegrationPollingErrror EventType
 	OtherError                 EventType
 	UnableToLocatePostedData   EventType
+	InvalidUserAPIKeyFormat    EventType
+	InvalidRegion              EventType
 }{
 	InstallStarted:             "InstallStarted",
 	AccountIDMissing:           "AccountIDMissing",
@@ -54,6 +56,8 @@ var EventTypes = struct {
 	UnableToDiscover:           "UnableToDiscover",
 	NrIntegrationPollingErrror: "NrIntegrationPollingErrror",
 	OtherError:                 "OtherError",
+	InvalidUserAPIKeyFormat:    "InvalidUserAPIKeyFormat",
+	InvalidRegion:              "InvalidRegion",
 }
 
 func TryParseEventType(e string) (EventType, bool) {
@@ -84,7 +88,12 @@ func TryParseEventType(e string) (EventType, bool) {
 		return EventTypes.UnableToDiscover, true
 	case "NrIntegrationPollingErrror":
 		return EventTypes.NrIntegrationPollingErrror, true
+	case "InvalidUserAPIKeyFormat":
+		return EventTypes.InvalidUserAPIKeyFormat, true
+	case "InvalidRegion":
+		return EventTypes.InvalidRegion, true
 	}
+
 	return "", false
 }
 
