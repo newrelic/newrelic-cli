@@ -3,7 +3,6 @@ package validation
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -84,7 +83,7 @@ func readConfig(configPath string) (configType, error) {
 		return configType{}, err
 	}
 
-	b, err := ioutil.ReadFile(configPath)
+	b, err := os.ReadFile(configPath)
 
 	if err != nil {
 		return configType{}, err
