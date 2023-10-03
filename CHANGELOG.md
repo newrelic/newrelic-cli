@@ -1,5 +1,10 @@
+<a name="v0.73.0"></a>
+## [v0.73.0] - 2023-10-03
+### Features
+- **install:** local validation for OHI installations ([#1516](https://github.com/newrelic/newrelic-cli/issues/1516))
+
 <a name="v0.72.3"></a>
-## [v0.72.3] - 2023-09-29
+## [v0.72.3] - 2023-10-02
 <a name="v0.72.2"></a>
 ## [v0.72.2] - 2023-09-29
 <a name="v0.72.1"></a>
@@ -2113,7 +2118,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.72.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.0...HEAD
+[v0.73.0]: https://github.com/newrelic/newrelic-cli/compare/v0.72.3...v0.73.0
 [v0.72.3]: https://github.com/newrelic/newrelic-cli/compare/v0.72.2...v0.72.3
 [v0.72.2]: https://github.com/newrelic/newrelic-cli/compare/v0.72.1...v0.72.2
 [v0.72.1]: https://github.com/newrelic/newrelic-cli/compare/v0.72.0...v0.72.1
