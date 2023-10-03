@@ -77,6 +77,10 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 		r.ValidationURL = v.(string)
 	}
 
+	if v, ok := recipe["validationIntegration"]; ok {
+		r.ValidationIntegration = v.(string)
+	}
+
 	return err
 }
 

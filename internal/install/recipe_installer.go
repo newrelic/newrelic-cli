@@ -620,13 +620,22 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 		log.Debugf("no validationUrl defined, skipping")
 	}
 
-	// Add NRQL validation if configured
-	if r.ValidationNRQL != "" {
+	hasValidationIntegration := r.ValidationIntegration != ""
+	hasValidationNRQL := r.ValidationNRQL != ""
+
+	// Add either Integration Validation or NRQL Validation if configured
+	if hasValidationIntegration {
+		integrationName := r.ValidationIntegration
+
+		validationFuncs = append(validationFuncs, func() (string, error) {
+			return validation.ValidateIntegration(integrationName)
+		})
+	} else if hasValidationNRQL {
 		validationFuncs = append(validationFuncs, func() (string, error) {
 			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r, vars)
 		})
 	} else {
-		log.Debugf("no validationNRQL defined, skipping")
+		log.Debugf("no validationIntegration or validationNRQL defined, skipping")
 	}
 
 	if len(validationFuncs) == 0 {
