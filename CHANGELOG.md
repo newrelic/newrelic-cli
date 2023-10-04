@@ -1,3 +1,5 @@
+<a name="v0.73.1"></a>
+## [v0.73.1] - 2023-10-03
 <a name="v0.73.0"></a>
 ## [v0.73.0] - 2023-10-03
 ### Features
@@ -2118,7 +2120,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.1...HEAD
+[v0.73.1]: https://github.com/newrelic/newrelic-cli/compare/v0.73.0...v0.73.1
 [v0.73.0]: https://github.com/newrelic/newrelic-cli/compare/v0.72.3...v0.73.0
 [v0.72.3]: https://github.com/newrelic/newrelic-cli/compare/v0.72.2...v0.72.3
 [v0.72.2]: https://github.com/newrelic/newrelic-cli/compare/v0.72.1...v0.72.2
