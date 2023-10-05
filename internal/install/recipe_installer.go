@@ -630,7 +630,9 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 		validationFuncs = append(validationFuncs, func() (string, error) {
 			return validation.ValidateIntegration(integrationName)
 		})
-	} else if hasValidationNRQL {
+	}
+
+	if hasValidationNRQL {
 		validationFuncs = append(validationFuncs, func() (string, error) {
 			return i.recipeValidator.ValidateRecipe(timeoutCtx, *m, *r, vars)
 		})
