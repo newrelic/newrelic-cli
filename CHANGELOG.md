@@ -1,5 +1,10 @@
+<a name="v0.73.4"></a>
+## [v0.73.4] - 2023-10-06
+### Bug Fixes
+- Validation nrql backup functionality ([#1519](https://github.com/newrelic/newrelic-cli/issues/1519))
+
 <a name="v0.73.3"></a>
-## [v0.73.3] - 2023-10-04
+## [v0.73.3] - 2023-10-05
 <a name="v0.73.2"></a>
 ## [v0.73.2] - 2023-10-04
 <a name="v0.73.1"></a>
@@ -2124,7 +2129,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.4...HEAD
+[v0.73.4]: https://github.com/newrelic/newrelic-cli/compare/v0.73.3...v0.73.4
 [v0.73.3]: https://github.com/newrelic/newrelic-cli/compare/v0.73.2...v0.73.3
 [v0.73.2]: https://github.com/newrelic/newrelic-cli/compare/v0.73.1...v0.73.2
 [v0.73.1]: https://github.com/newrelic/newrelic-cli/compare/v0.73.0...v0.73.1
