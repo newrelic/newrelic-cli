@@ -6,8 +6,9 @@ package synthetics
 import (
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/testcobra"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
 func TestSyntheticsMonitor(t *testing.T) {
