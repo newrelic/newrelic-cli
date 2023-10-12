@@ -1,3 +1,8 @@
+<a name="v0.73.5"></a>
+## [v0.73.5] - 2023-10-12
+### Bug Fixes
+- **install:** remove duplicate tracking event and simplify error message ([#1521](https://github.com/newrelic/newrelic-cli/issues/1521))
+
 <a name="v0.73.4"></a>
 ## [v0.73.4] - 2023-10-06
 ### Bug Fixes
@@ -2129,7 +2134,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.5...HEAD
+[v0.73.5]: https://github.com/newrelic/newrelic-cli/compare/v0.73.4...v0.73.5
 [v0.73.4]: https://github.com/newrelic/newrelic-cli/compare/v0.73.3...v0.73.4
 [v0.73.3]: https://github.com/newrelic/newrelic-cli/compare/v0.73.2...v0.73.3
 [v0.73.2]: https://github.com/newrelic/newrelic-cli/compare/v0.73.1...v0.73.2
