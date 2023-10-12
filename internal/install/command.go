@@ -50,7 +50,6 @@ var Command = &cobra.Command{
 
 		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
 		if detailErr != nil {
-			sg.Track(detailErr.EventName)
 			log.Fatal(detailErr)
 		}
 
@@ -165,8 +164,9 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
 		errorOccured = true
-		details := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
-		detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, details)
+		message := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+		log.Debug(message)
+		detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
 		return detailErr
 	}
 
