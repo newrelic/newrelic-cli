@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/caarlos0/svu v1.9.0
 	github.com/client9/misspell v0.3.4
-	github.com/git-chglog/git-chglog v0.15.2
+	github.com/git-chglog/git-chglog v0.15.4
 	github.com/golangci/golangci-lint v1.50.1
 	github.com/goreleaser/goreleaser v1.15.2
 	github.com/llorllale/go-gitlint v0.0.0-20210608233938-d6303cc52cc5
@@ -143,7 +143,7 @@ require (
 	github.com/esimonov/ifshort v1.0.4 // indirect
 	github.com/ettle/strcase v0.1.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.14.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/firefart/nonamedreturns v1.0.4 // indirect
@@ -341,7 +341,7 @@ require (
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.5 // indirect
-	github.com/urfave/cli/v2 v2.23.7 // indirect
+	github.com/urfave/cli/v2 v2.24.3 // indirect
 	github.com/uudashr/gocognit v1.0.6 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1 // indirect
