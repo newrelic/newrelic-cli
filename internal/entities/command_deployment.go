@@ -3,6 +3,7 @@ package entities
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -43,6 +44,8 @@ The deployment command manages deployments for a New Relic entity. Use --help fo
 	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
 }
 
+var cmdEntityDeploymentCreateExample = fmt.Sprintf("newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --customAttribute test1:123,test2:456 --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp %v --user 'jenkins-bot'", time.Now().Unix())
+
 var cmdEntityDeploymentCreate = &cobra.Command{
 	Use:   "create",
 	Short: "Create a New Relic entity deployment marker",
@@ -50,7 +53,7 @@ var cmdEntityDeploymentCreate = &cobra.Command{
 
 The deployment command marks a change for a New Relic entity
 	`,
-	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --customAttribute test1:123,test2:456 --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'",
+	Example: cmdEntityDeploymentCreateExample,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := changetracking.ChangeTrackingDeploymentInput{}
