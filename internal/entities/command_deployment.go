@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -19,16 +21,17 @@ import (
 )
 
 var (
-	changelog       string
-	commit          string
-	customAttribute []string
-	deepLink        string
-	deploymentType  string
-	description     string
-	groupID         string
-	timestamp       int64
-	user            string
-	version         string
+	changelog        string
+	commit           string
+	customAttribute  []string
+	customAttributez string
+	deepLink         string
+	deploymentType   string
+	description      string
+	groupID          string
+	timestamp        int64
+	user             string
+	version          string
 )
 
 var cmdEntityDeployment = &cobra.Command{
@@ -63,15 +66,26 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		customAttributes, err := parseCustomAttributes(&customAttribute)
+		// customAttributes, err := parseCustomAttributes(&customAttribute)
 
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+
+		customAttrs := make(map[string]interface{})
+
+		err := json.Unmarshal([]byte(customAttributez), &customAttrs)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		fmt.Print("\n****************************\n")
+		fmt.Printf("\n customAttrs:  %+v \n", customAttrs)
+		fmt.Print("\n****************************\n")
+
 		params.Changelog = changelog
 		params.Commit = commit
-		params.CustomAttributes = customAttributes
+		params.CustomAttributes = &customAttrs
 		params.DeepLink = deepLink
 		params.DeploymentType = changetracking.ChangeTrackingDeploymentType(deploymentType)
 		params.Description = description
@@ -106,6 +120,7 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVar(&groupID, "groupId", "", "string that can be used to correlate two or more events")
 	cmdEntityDeploymentCreate.Flags().Int64VarP(&timestamp, "timestamp", "t", 0, "the start time of the deployment, the number of milliseconds since the Unix epoch, defaults to now")
 	cmdEntityDeploymentCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
+	cmdEntityDeploymentCreate.Flags().StringVar(&customAttributez, "customAttributes", "", "(EARLY ACCESS)")
 }
 
 func parseCustomAttributes(a *[]string) (*map[string]string, error) {
