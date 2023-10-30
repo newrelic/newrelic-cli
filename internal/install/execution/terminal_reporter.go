@@ -81,7 +81,6 @@ func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
-
 	linkToData := ""
 	if status.PlatformLinkGenerator != nil {
 		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
@@ -151,7 +150,7 @@ func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statusesToDisplay {
-		if s.Status == RecipeStatusTypes.INSTALLED && s.Name == types.LoggingRecipeName {
+		if s.Status == RecipeStatusTypes.INSTALLED && (s.Name == types.LoggingRecipeName || s.Name == types.LoggingSuperAgentRecipeName) {
 			linkToLogging = status.PlatformLinkGenerator.GenerateLoggingLink(status.HostEntityGUID())
 		}
 	}

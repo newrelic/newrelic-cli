@@ -186,6 +186,17 @@ func TestRecipeRepository_ShouldEnrichLogRecipe(t *testing.T) {
 	require.Equal(t, exist, true)
 }
 
+func TestRecipeRepository_ShouldEnrichSuperAgentLogRecipe(t *testing.T) {
+	Setup()
+	givenCachedRecipeOs("log1", types.LoggingSuperAgentRecipeName, types.OpenInstallationOperatingSystemTypes.LINUX)
+	discoveryManifest.OS = "linux"
+
+	repository.FindRecipeByName(types.LoggingSuperAgentRecipeName)
+
+	_, exist := types.RecipeVariables["NR_DISCOVERED_LOG_FILES"]
+	require.Equal(t, exist, true)
+}
+
 func TestRecipeRepository_matchRecipeCriteria_Basic(t *testing.T) {
 	Setup()
 	discoveryManifest.Platform = "linux"

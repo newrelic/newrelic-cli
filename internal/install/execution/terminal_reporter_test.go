@@ -99,13 +99,19 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 		Name:        types.LoggingRecipeName,
 		Status:      RecipeStatusTypes.INSTALLED,
 	}
+	loggingSuperAgentRecipeStatus := &RecipeStatus{
+		DisplayName: "Logs integration",
+		Name:        types.LoggingSuperAgentRecipeName,
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
 
 	status.Statuses = append(status.Statuses, loggingRecipeStatus)
+	status.Statuses = append(status.Statuses, loggingSuperAgentRecipeStatus)
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
 	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
-	require.Equal(t, 1, g.GenerateLoggingLinkCallCount)
+	require.Equal(t, 2, g.GenerateLoggingLinkCallCount)
 }
 
 func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
@@ -187,7 +193,6 @@ func TestTerminalStatusReporter_ShouldNotIncludeDetectedRecipeInSummary(t *testi
 }
 
 func TestPrintInstallationSummaryShouldPrint(t *testing.T) {
-
 	r := NewTerminalStatusReporter()
 	var output bytes.Buffer
 
