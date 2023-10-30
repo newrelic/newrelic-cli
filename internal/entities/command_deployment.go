@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -19,16 +21,17 @@ import (
 )
 
 var (
-	changelog       string
-	commit          string
-	customAttribute []string
-	deepLink        string
-	deploymentType  string
-	description     string
-	groupID         string
-	timestamp       int64
-	user            string
-	version         string
+	changelog        string
+	commit           string
+	customAttribute  []string
+	customAttributes string
+	deepLink         string
+	deploymentType   string
+	description      string
+	groupID          string
+	timestamp        int64
+	user             string
+	version          string
 )
 
 var cmdEntityDeployment = &cobra.Command{
@@ -41,6 +44,8 @@ The deployment command manages deployments for a New Relic entity. Use --help fo
 	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
 }
 
+var cmdEntityDeploymentCreateExample = fmt.Sprintf(`newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --customAttributes '{"region": "east", "env": "staging"}' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
+
 var cmdEntityDeploymentCreate = &cobra.Command{
 	Use:   "create",
 	Short: "Create a New Relic entity deployment marker",
@@ -48,7 +53,7 @@ var cmdEntityDeploymentCreate = &cobra.Command{
 
 The deployment command marks a change for a New Relic entity
 	`,
-	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --customAttribute test1:123,test2:456 --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'",
+	Example: cmdEntityDeploymentCreateExample,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := changetracking.ChangeTrackingDeploymentInput{}
@@ -63,15 +68,20 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		customAttributes, err := parseCustomAttributes(&customAttribute)
-
-		if err != nil {
-			log.Fatal(err)
+		var (
+			attrs map[string]interface{}
+			err   error
+		)
+		if len(customAttribute) > 0 || customAttributes != "" {
+			attrs, err = getCustomAttributes(customAttribute, customAttributes)
+			if err != nil {
+				log.Fatal(err)
+			}
+			params.CustomAttributes = attrs
 		}
 
 		params.Changelog = changelog
 		params.Commit = commit
-		params.CustomAttributes = customAttributes
 		params.DeepLink = deepLink
 		params.DeploymentType = changetracking.ChangeTrackingDeploymentType(deploymentType)
 		params.Description = description
@@ -80,7 +90,11 @@ The deployment command marks a change for a New Relic entity
 		params.User = user
 		params.Version = version
 
-		result, err := client.NRClient.ChangeTracking.ChangeTrackingCreateDeploymentWithContext(utils.SignalCtx, params)
+		result, err := client.NRClient.ChangeTracking.ChangeTrackingCreateDeploymentWithContext(
+			utils.SignalCtx,
+			changetracking.ChangeTrackingDataHandlingRules{ValidationFlags: []changetracking.ChangeTrackingValidationFlag{changetracking.ChangeTrackingValidationFlagTypes.FAIL_ON_FIELD_LENGTH}},
+			params,
+		)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(result))
@@ -100,6 +114,8 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVar(&changelog, "changelog", "", "a URL for the changelog or list of changes if not linkable")
 	cmdEntityDeploymentCreate.Flags().StringVar(&commit, "commit", "", "the commit identifier, for example, a Git commit SHA")
 	cmdEntityDeploymentCreate.Flags().StringSliceVar(&customAttribute, "customAttribute", []string{}, "(EARLY ACCESS) a comma separated list of key:value custom attributes to apply to the deployment")
+	_ = cmdEntityDeploymentCreate.Flags().MarkDeprecated("customAttribute", "please use 'customAttributes'")
+	cmdEntityDeploymentCreate.Flags().StringVar(&customAttributes, "customAttributes", "", "(EARLY ACCESS) key-value pairs of custom attributes in JSON format to apply to the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deploymentType, "deploymentType", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
 	cmdEntityDeploymentCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
@@ -108,12 +124,12 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringVarP(&user, "user", "u", "", "username of the deployer or bot")
 }
 
-func parseCustomAttributes(a *[]string) (*map[string]string, error) {
-	customAttributeMap := make(map[string]string)
-
+func parseCustomAttributes(a *[]string) (*map[string]interface{}, error) {
 	if len(*a) < 1 {
 		return nil, nil
 	}
+
+	customAttributeMap := make(map[string]interface{})
 
 	for _, v := range *a {
 		pair := strings.Split(v, ":")
@@ -126,4 +142,24 @@ func parseCustomAttributes(a *[]string) (*map[string]string, error) {
 	}
 
 	return &customAttributeMap, nil
+}
+
+func getCustomAttributes(a []string, b string) (map[string]interface{}, error) {
+	var result *map[string]interface{}
+	if len(a) > 0 && b == "" {
+		attrsMap, err := parseCustomAttributes(&a)
+		if err != nil {
+			return nil, errors.New("unable to parse custom attributes")
+		}
+		result = attrsMap
+	}
+	if b != "" {
+		var attrsJSON *map[string]interface{}
+		err := json.Unmarshal([]byte(b), &attrsJSON)
+		if err != nil {
+			return nil, errors.New("unable to unmarshal custom attributes")
+		}
+		result = attrsJSON
+	}
+	return *result, nil
 }
