@@ -1,5 +1,11 @@
+<a name="v0.74.0"></a>
+## [v0.74.0] - 2023-10-30
+### Features
+- Add attributes parameter to juint reporter command ([#1525](https://github.com/newrelic/newrelic-cli/issues/1525))
+- **entities:** Support custom attributes JSON ([#1526](https://github.com/newrelic/newrelic-cli/issues/1526))
+
 <a name="v0.73.6"></a>
-## [v0.73.6] - 2023-10-13
+## [v0.73.6] - 2023-10-26
 <a name="v0.73.5"></a>
 ## [v0.73.5] - 2023-10-12
 ### Bug Fixes
@@ -2136,7 +2142,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.74.0...HEAD
+[v0.74.0]: https://github.com/newrelic/newrelic-cli/compare/v0.73.6...v0.74.0
 [v0.73.6]: https://github.com/newrelic/newrelic-cli/compare/v0.73.5...v0.73.6
 [v0.73.5]: https://github.com/newrelic/newrelic-cli/compare/v0.73.4...v0.73.5
 [v0.73.4]: https://github.com/newrelic/newrelic-cli/compare/v0.73.3...v0.73.4
