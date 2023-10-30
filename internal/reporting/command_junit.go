@@ -120,7 +120,7 @@ func createTestRunEvent(testRunID uuid.UUID, suite junit.Suite, test junit.Test,
 func init() {
 	Command.AddCommand(cmdJUnit)
 	cmdJUnit.Flags().StringVarP(&path, "path", "p", "", "the path to a JUnit-formatted test results file")
-	cmdJUnit.Flags().StringVarP(&attributes, "attributes", "", "{}", "any custom attributes to include")
+	cmdJUnit.Flags().StringVarP(&attributes, "attributes", "", "{}", "any custom attributes to include in JSON format")
 	cmdJUnit.Flags().BoolVarP(&outputEvents, "output", "o", false, "output generated custom events to stdout")
 	cmdJUnit.Flags().BoolVar(&dryRun, "dryRun", false, "suppress posting custom events to NRDB")
 	utils.LogIfError(cmdJUnit.MarkFlagRequired("path"))
