@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	InfraAgentRecipeName = "infrastructure-agent-installer"
-	LoggingRecipeName    = "logs-integration"
-	GoldenRecipeName     = "alerts-golden-signal"
+	InfraAgentRecipeName        = "infrastructure-agent-installer"
+	LoggingRecipeName           = "logs-integration"
+	LoggingSuperAgentRecipeName = "logs-integration-super-agent"
+	GoldenRecipeName            = "alerts-golden-signal"
 )
 
 var RecipeVariables = map[string]string{}
