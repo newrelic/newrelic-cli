@@ -1,3 +1,11 @@
+<a name="v0.75.0"></a>
+## [v0.75.0] - 2023-10-30
+### Bug Fixes
+- Revert "feat(entities): Support custom attributes JSON ([#1526](https://github.com/newrelic/newrelic-cli/issues/1526))" ([#1529](https://github.com/newrelic/newrelic-cli/issues/1529))
+
+### Features
+- Add super-agent logging support ([#1528](https://github.com/newrelic/newrelic-cli/issues/1528))
+
 <a name="v0.74.0"></a>
 ## [v0.74.0] - 2023-10-30
 ### Features
@@ -2142,7 +2150,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.74.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.75.0...HEAD
+[v0.75.0]: https://github.com/newrelic/newrelic-cli/compare/v0.74.0...v0.75.0
 [v0.74.0]: https://github.com/newrelic/newrelic-cli/compare/v0.73.6...v0.74.0
 [v0.73.6]: https://github.com/newrelic/newrelic-cli/compare/v0.73.5...v0.73.6
 [v0.73.5]: https://github.com/newrelic/newrelic-cli/compare/v0.73.4...v0.73.5
