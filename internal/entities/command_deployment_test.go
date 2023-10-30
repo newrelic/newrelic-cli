@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"encoding/json"
 	"errors"
 	"testing"
 
@@ -29,78 +28,8 @@ func TestParseAttributesSingleKeyValue(t *testing.T) {
 		"key:value",
 	}
 
-	var want = map[string]interface{}{
+	var want = map[string]string{
 		"key": "value",
-	}
-	var errWant error
-
-	got, errGot := parseCustomAttributes(&a)
-
-	assert.Equal(t, errWant, errGot)
-	assert.Equal(t, want, *got)
-}
-
-func TestParseAttributesSingleIntegerKeyValue(t *testing.T) {
-	a := []string{
-		"a:1",
-	}
-
-	var want = map[string]interface{}{
-		"a": "1",
-	}
-	var errWant error
-
-	got, errGot := parseCustomAttributes(&a)
-
-	assert.Equal(t, errWant, errGot)
-	assert.Equal(t, want, *got)
-}
-
-func TestParseAttributesSingleFloatingKeyValue(t *testing.T) {
-	a := []string{
-		"a:1.5",
-	}
-
-	var want = map[string]interface{}{
-		"a": "1.5",
-	}
-	var errWant error
-
-	got, errGot := parseCustomAttributes(&a)
-
-	assert.Equal(t, errWant, errGot)
-	assert.Equal(t, want, *got)
-}
-
-func TestParseAttributesSingleBooleanKeyValue(t *testing.T) {
-	a := []string{
-		"a:true",
-	}
-
-	var want = map[string]interface{}{
-		"a": "true",
-	}
-	var errWant error
-
-	got, errGot := parseCustomAttributes(&a)
-
-	assert.Equal(t, errWant, errGot)
-	assert.Equal(t, want, *got)
-}
-
-func TestParseAttributesMultipleTypesKeyValues(t *testing.T) {
-	a := []string{
-		"a:true",
-		"b:1",
-		"c:1.5",
-		`d:"value"`,
-	}
-
-	var want = map[string]interface{}{
-		"a": "true",
-		"b": "1",
-		"c": "1.5",
-		"d": `"value"`,
 	}
 	var errWant error
 
@@ -116,7 +45,7 @@ func TestParseAttributesTwoKeyValues(t *testing.T) {
 		"key2:value2",
 	}
 
-	var want = map[string]interface{}{
+	var want = map[string]string{
 		"key":  "value",
 		"key2": "value2",
 	}
@@ -168,40 +97,6 @@ func TestParseAttributesEmptyStringSlice(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func nilPointerMapStringString() *map[string]interface{} {
+func nilPointerMapStringString() *map[string]string {
 	return nil
-}
-
-func TestReturningMapOverStringIfBothCustomAttributesFlagsAreInadvertentlyUsedSimultaneously(t *testing.T) {
-	a := []string{"a:true"}
-	b := ""
-	var want = map[string]interface{}{"a": "true"}
-
-	got, _ := getCustomAttributes(a, b)
-	assert.Equal(t, want, got)
-}
-
-func TestReturningJsonOverStringIfBothCustomAttributesFlagsAreInadvertentlyUsedSimultaneously(t *testing.T) {
-	a := []string{"a:1", "b:2"}
-	b := `{"a":"true"}`
-
-	want := make(map[string]interface{})
-	_ = json.Unmarshal([]byte(b), &want)
-
-	got, _ := getCustomAttributes(a, b)
-
-	assert.Equal(t, want, got)
-}
-
-func TestIncorrectlyFormattedCustomAttributesStringPairFailsWithUnableToParse(t *testing.T) {
-	a := []string{"a::1"}
-	_, err := getCustomAttributes(a, "")
-	assert.Equal(t, "unable to parse custom attributes", err.Error())
-}
-
-func TestIncorrectlyFormattedCustomAttributesJSONStringFailsWithUnableToUnmarshal(t *testing.T) {
-	a := []string{}
-	b := `{"a":"1}`
-	_, err := getCustomAttributes(a, b)
-	assert.Equal(t, "unable to unmarshal custom attributes", err.Error())
 }
