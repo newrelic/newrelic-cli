@@ -1,7 +1,8 @@
 package reporting
 
 import (
-	"io/ioutil"
+	"encoding/json"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/joshdk/go-junit"
@@ -19,6 +20,7 @@ const junitEventType = "TestRun"
 
 var (
 	path         string
+	attributes   string
 	dryRun       bool
 	outputEvents bool
 )
@@ -29,7 +31,7 @@ var cmdJUnit = &cobra.Command{
 	Long: `Send JUnit test run results to New Relic
 
 `,
-	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml`,
+	Example: `newrelic reporting junit --accountId 12345678 --path unit.xml --attributes '{"sha": 12345}'`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		accountID := configAPI.RequireActiveProfileAccountID()
@@ -43,7 +45,7 @@ var cmdJUnit = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		xml, err := ioutil.ReadFile(path)
+		xml, err := os.ReadFile(path)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -53,11 +55,18 @@ var cmdJUnit = &cobra.Command{
 			log.Fatalf("failed to ingest JUnit xml %v", err)
 		}
 
+		var a map[string]interface{}
+
+		err = json.Unmarshal([]byte(attributes), &a)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		events := []map[string]interface{}{}
 
 		for _, suite := range suites {
 			for _, test := range suite.Tests {
-				events = append(events, createTestRunEvent(id, suite, test))
+				events = append(events, createTestRunEvent(id, suite, test, a))
 			}
 		}
 
@@ -77,7 +86,7 @@ var cmdJUnit = &cobra.Command{
 	},
 }
 
-func createTestRunEvent(testRunID uuid.UUID, suite junit.Suite, test junit.Test) map[string]interface{} {
+func createTestRunEvent(testRunID uuid.UUID, suite junit.Suite, test junit.Test, attributes map[string]interface{}) map[string]interface{} {
 	e := map[string]interface{}{}
 	e["eventType"] = junitEventType
 	e["id"] = testRunID.String()
@@ -100,12 +109,18 @@ func createTestRunEvent(testRunID uuid.UUID, suite junit.Suite, test junit.Test)
 		e[key] = value
 	}
 
+	for key, value := range attributes {
+		e[key] = value
+
+	}
+
 	return e
 }
 
 func init() {
 	Command.AddCommand(cmdJUnit)
 	cmdJUnit.Flags().StringVarP(&path, "path", "p", "", "the path to a JUnit-formatted test results file")
+	cmdJUnit.Flags().StringVarP(&attributes, "attributes", "", "{}", "any custom attributes to include in JSON format")
 	cmdJUnit.Flags().BoolVarP(&outputEvents, "output", "o", false, "output generated custom events to stdout")
 	cmdJUnit.Flags().BoolVar(&dryRun, "dryRun", false, "suppress posting custom events to NRDB")
 	utils.LogIfError(cmdJUnit.MarkFlagRequired("path"))
