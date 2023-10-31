@@ -1,3 +1,5 @@
+<a name="v0.75.1"></a>
+## [v0.75.1] - 2023-10-30
 <a name="v0.75.0"></a>
 ## [v0.75.0] - 2023-10-30
 ### Bug Fixes
@@ -2150,7 +2152,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.75.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.75.1...HEAD
+[v0.75.1]: https://github.com/newrelic/newrelic-cli/compare/v0.75.0...v0.75.1
 [v0.75.0]: https://github.com/newrelic/newrelic-cli/compare/v0.74.0...v0.75.0
 [v0.74.0]: https://github.com/newrelic/newrelic-cli/compare/v0.73.6...v0.74.0
 [v0.73.6]: https://github.com/newrelic/newrelic-cli/compare/v0.73.5...v0.73.6
