@@ -68,15 +68,16 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		attrs, err := getCustomAttributes(customAttribute, customAttributes)
-		if err != nil {
-			log.Fatal(err)
-		}
-		switch t := attrs.(type) {
-		case *map[string]interface{}:
-			params.CustomAttributes = *t
-		case map[string]interface{}:
-			params.CustomAttributes = t
+		var (
+			attrs map[string]interface{}
+			err   error
+		)
+		if len(customAttribute) > 0 || customAttributes != "" {
+			attrs, err = getCustomAttributes(customAttribute, customAttributes)
+			if err != nil {
+				log.Fatal(err)
+			}
+			params.CustomAttributes = attrs
 		}
 
 		params.Changelog = changelog
@@ -143,22 +144,22 @@ func parseCustomAttributes(a *[]string) (*map[string]interface{}, error) {
 	return &customAttributeMap, nil
 }
 
-func getCustomAttributes(a []string, b string) (interface{}, error) {
-	var result interface{}
+func getCustomAttributes(a []string, b string) (map[string]interface{}, error) {
+	var result *map[string]interface{}
 	if len(a) > 0 && b == "" {
 		attrsMap, err := parseCustomAttributes(&a)
 		if err != nil {
 			return nil, errors.New("unable to parse custom attributes")
 		}
-		result = *attrsMap
+		result = attrsMap
 	}
 	if b != "" {
-		attrsJSON := make(map[string]interface{})
+		var attrsJSON *map[string]interface{}
 		err := json.Unmarshal([]byte(b), &attrsJSON)
 		if err != nil {
 			return nil, errors.New("unable to unmarshal custom attributes")
 		}
 		result = attrsJSON
 	}
-	return result, nil
+	return *result, nil
 }
