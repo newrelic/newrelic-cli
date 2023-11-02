@@ -28,8 +28,78 @@ func TestParseAttributesSingleKeyValue(t *testing.T) {
 		"key:value",
 	}
 
-	var want = map[string]string{
+	var want = map[string]interface{}{
 		"key": "value",
+	}
+	var errWant error
+
+	got, errGot := parseCustomAttributes(&a)
+
+	assert.Equal(t, errWant, errGot)
+	assert.Equal(t, want, *got)
+}
+
+func TestParseAttributesSingleIntegerKeyValue(t *testing.T) {
+	a := []string{
+		"a:1",
+	}
+
+	var want = map[string]interface{}{
+		"a": "1",
+	}
+	var errWant error
+
+	got, errGot := parseCustomAttributes(&a)
+
+	assert.Equal(t, errWant, errGot)
+	assert.Equal(t, want, *got)
+}
+
+func TestParseAttributesSingleFloatingKeyValue(t *testing.T) {
+	a := []string{
+		"a:1.5",
+	}
+
+	var want = map[string]interface{}{
+		"a": "1.5",
+	}
+	var errWant error
+
+	got, errGot := parseCustomAttributes(&a)
+
+	assert.Equal(t, errWant, errGot)
+	assert.Equal(t, want, *got)
+}
+
+func TestParseAttributesSingleBooleanKeyValue(t *testing.T) {
+	a := []string{
+		"a:true",
+	}
+
+	var want = map[string]interface{}{
+		"a": "true",
+	}
+	var errWant error
+
+	got, errGot := parseCustomAttributes(&a)
+
+	assert.Equal(t, errWant, errGot)
+	assert.Equal(t, want, *got)
+}
+
+func TestParseAttributesMultipleTypesKeyValues(t *testing.T) {
+	a := []string{
+		"a:true",
+		"b:1",
+		"c:1.5",
+		`d:"value"`,
+	}
+
+	var want = map[string]interface{}{
+		"a": "true",
+		"b": "1",
+		"c": "1.5",
+		"d": `"value"`,
 	}
 	var errWant error
 
@@ -45,7 +115,7 @@ func TestParseAttributesTwoKeyValues(t *testing.T) {
 		"key2:value2",
 	}
 
-	var want = map[string]string{
+	var want = map[string]interface{}{
 		"key":  "value",
 		"key2": "value2",
 	}
@@ -97,6 +167,6 @@ func TestParseAttributesEmptyStringSlice(t *testing.T) {
 	assert.Equal(t, want, got)
 }
 
-func nilPointerMapStringString() *map[string]string {
+func nilPointerMapStringString() *map[string]interface{} {
 	return nil
 }
