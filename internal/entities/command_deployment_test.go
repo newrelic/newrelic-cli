@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -169,4 +170,38 @@ func TestParseAttributesEmptyStringSlice(t *testing.T) {
 
 func nilPointerMapStringString() *map[string]interface{} {
 	return nil
+}
+
+func TestReturningMapOverStringIfBothCustomAttributesFlagsAreInadvertentlyUsedSimultaneously(t *testing.T) {
+	a := []string{"a:true"}
+	b := ""
+	var want = map[string]interface{}{"a": "true"}
+
+	got, _ := getCustomAttributes(a, b)
+	assert.Equal(t, want, got)
+}
+
+func TestReturningJsonOverStringIfBothCustomAttributesFlagsAreInadvertentlyUsedSimultaneously(t *testing.T) {
+	a := []string{"a:1", "b:2"}
+	b := `{"a":"true"}`
+
+	want := make(map[string]interface{})
+	_ = json.Unmarshal([]byte(b), &want)
+
+	got, _ := getCustomAttributes(a, b)
+
+	assert.Equal(t, want, got)
+}
+
+func TestIncorrectlyFormattedCustomAttributesStringPairFailsWithUnableToParse(t *testing.T) {
+	a := []string{"a::1"}
+	_, err := getCustomAttributes(a, "")
+	assert.Equal(t, "unable to parse custom attributes", err.Error())
+}
+
+func TestIncorrectlyFormattedCustomAttributesJSONStringFailsWithUnableToUnmarshal(t *testing.T) {
+	a := []string{}
+	b := `{"a":"1}`
+	_, err := getCustomAttributes(a, b)
+	assert.Equal(t, "unable to unmarshal custom attributes", err.Error())
 }
