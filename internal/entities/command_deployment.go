@@ -68,14 +68,15 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		// If both used, prefer to use 'customAttributes' (plural) as 'customAttribute' (singular) is mark as deprecated
-		if customAttribute != nil && customAttributes == "" {
+		// If both are simultaneously used, prefer to use 'customAttributes' (plural) as 'customAttribute' (singular) is mark as deprecated
+		if len(customAttribute) > 0 && customAttributes == "" {
 			customAttribute, err := parseCustomAttributes(&customAttribute)
 			if err != nil {
 				log.Fatal(err)
 			}
 			params.CustomAttributes = *customAttribute
-		} else {
+		}
+		if customAttributes != "" {
 			attrs := make(map[string]interface{})
 			err := json.Unmarshal([]byte(customAttributes), &attrs)
 			if err != nil {
