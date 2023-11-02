@@ -63,15 +63,8 @@ The deployment command marks a change for a New Relic entity
 			log.Fatal("--version cannot be empty")
 		}
 
-		customAttributes, err := parseCustomAttributes(&customAttribute)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		params.Changelog = changelog
 		params.Commit = commit
-		params.CustomAttributes = customAttributes
 		params.DeepLink = deepLink
 		params.DeploymentType = changetracking.ChangeTrackingDeploymentType(deploymentType)
 		params.Description = description
@@ -80,7 +73,7 @@ The deployment command marks a change for a New Relic entity
 		params.User = user
 		params.Version = version
 
-		result, err := client.NRClient.ChangeTracking.ChangeTrackingCreateDeploymentWithContext(utils.SignalCtx, params)
+		result, err := client.NRClient.ChangeTracking.ChangeTrackingCreateDeploymentWithContext(utils.SignalCtx, changetracking.ChangeTrackingDataHandlingRules{}, params)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(result))
