@@ -44,7 +44,7 @@ The deployment command manages deployments for a New Relic entity. Use --help fo
 	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
 }
 
-var cmdEntityDeploymentCreateExample = fmt.Sprintf(`newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --customAttributes '{"region": "east", "env": "staging"}' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
+var cmdEntityDeploymentCreateExample = fmt.Sprintf(`newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
 
 var cmdEntityDeploymentCreate = &cobra.Command{
 	Use:   "create",
