@@ -116,6 +116,7 @@ func init() {
 	cmdEntityDeploymentCreate.Flags().StringSliceVar(&customAttribute, "customAttribute", []string{}, "(EARLY ACCESS) a comma separated list of key:value custom attributes to apply to the deployment")
 	_ = cmdEntityDeploymentCreate.Flags().MarkDeprecated("customAttribute", "please use 'customAttributes'")
 	cmdEntityDeploymentCreate.Flags().StringVar(&customAttributes, "customAttributes", "", "(EARLY ACCESS) key-value pairs of custom attributes in JSON format to apply to the deployment")
+	_ = cmdEntityDeploymentCreate.Flags().MarkHidden("customAttributes")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deepLink, "deepLink", "", "a link back to the system generating the deployment")
 	cmdEntityDeploymentCreate.Flags().StringVar(&deploymentType, "deploymentType", "", "type of deployment, one of BASIC, BLUE_GREEN, CANARY, OTHER, ROLLING or SHADOW")
 	cmdEntityDeploymentCreate.Flags().StringVar(&description, "description", "", "a description of the deployment")
