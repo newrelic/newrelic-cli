@@ -1,5 +1,10 @@
+<a name="v0.76.0"></a>
+## [v0.76.0] - 2023-11-08
+### Features
+- **entities:** Support custom attributes JSON (2) ([#1531](https://github.com/newrelic/newrelic-cli/issues/1531))
+
 <a name="v0.75.2"></a>
-## [v0.75.2] - 2023-10-31
+## [v0.75.2] - 2023-11-07
 <a name="v0.75.1"></a>
 ## [v0.75.1] - 2023-10-31
 <a name="v0.75.0"></a>
@@ -2154,7 +2159,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.75.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.76.0...HEAD
+[v0.76.0]: https://github.com/newrelic/newrelic-cli/compare/v0.75.2...v0.76.0
 [v0.75.2]: https://github.com/newrelic/newrelic-cli/compare/v0.75.1...v0.75.2
 [v0.75.1]: https://github.com/newrelic/newrelic-cli/compare/v0.75.0...v0.75.1
 [v0.75.0]: https://github.com/newrelic/newrelic-cli/compare/v0.74.0...v0.75.0
