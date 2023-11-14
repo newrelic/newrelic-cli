@@ -1,3 +1,32 @@
+<a name="v0.76.2"></a>
+## [v0.76.2] - 2023-11-13
+<a name="v0.76.1"></a>
+## [v0.76.1] - 2023-11-13
+<a name="v0.76.0"></a>
+## [v0.76.0] - 2023-11-08
+### Features
+- **entities:** Support custom attributes JSON (2) ([#1531](https://github.com/newrelic/newrelic-cli/issues/1531))
+
+<a name="v0.75.2"></a>
+## [v0.75.2] - 2023-11-07
+<a name="v0.75.1"></a>
+## [v0.75.1] - 2023-10-31
+<a name="v0.75.0"></a>
+## [v0.75.0] - 2023-10-30
+### Bug Fixes
+- Revert "feat(entities): Support custom attributes JSON ([#1526](https://github.com/newrelic/newrelic-cli/issues/1526))" ([#1529](https://github.com/newrelic/newrelic-cli/issues/1529))
+
+### Features
+- Add super-agent logging support ([#1528](https://github.com/newrelic/newrelic-cli/issues/1528))
+
+<a name="v0.74.0"></a>
+## [v0.74.0] - 2023-10-30
+### Features
+- Add attributes parameter to juint reporter command ([#1525](https://github.com/newrelic/newrelic-cli/issues/1525))
+- **entities:** Support custom attributes JSON ([#1526](https://github.com/newrelic/newrelic-cli/issues/1526))
+
+<a name="v0.73.6"></a>
+## [v0.73.6] - 2023-10-26
 <a name="v0.73.5"></a>
 ## [v0.73.5] - 2023-10-12
 ### Bug Fixes
@@ -2134,7 +2163,15 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.73.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.76.2...HEAD
+[v0.76.2]: https://github.com/newrelic/newrelic-cli/compare/v0.76.1...v0.76.2
+[v0.76.1]: https://github.com/newrelic/newrelic-cli/compare/v0.76.0...v0.76.1
+[v0.76.0]: https://github.com/newrelic/newrelic-cli/compare/v0.75.2...v0.76.0
+[v0.75.2]: https://github.com/newrelic/newrelic-cli/compare/v0.75.1...v0.75.2
+[v0.75.1]: https://github.com/newrelic/newrelic-cli/compare/v0.75.0...v0.75.1
+[v0.75.0]: https://github.com/newrelic/newrelic-cli/compare/v0.74.0...v0.75.0
+[v0.74.0]: https://github.com/newrelic/newrelic-cli/compare/v0.73.6...v0.74.0
+[v0.73.6]: https://github.com/newrelic/newrelic-cli/compare/v0.73.5...v0.73.6
 [v0.73.5]: https://github.com/newrelic/newrelic-cli/compare/v0.73.4...v0.73.5
 [v0.73.4]: https://github.com/newrelic/newrelic-cli/compare/v0.73.3...v0.73.4
 [v0.73.3]: https://github.com/newrelic/newrelic-cli/compare/v0.73.2...v0.73.3

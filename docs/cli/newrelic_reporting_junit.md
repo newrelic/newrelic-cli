@@ -15,16 +15,17 @@ newrelic reporting junit [flags]
 ### Examples
 
 ```
-newrelic reporting junit --accountId 12345678 --path unit.xml
+newrelic reporting junit --accountId 12345678 --path unit.xml --attributes '{"sha": 12345}'
 ```
 
 ### Options
 
 ```
-      --dryRun        suppress posting custom events to NRDB
-  -h, --help          help for junit
-  -o, --output        output generated custom events to stdout
-  -p, --path string   the path to a JUnit-formatted test results file
+      --dryRun              suppress posting custom events to NRDB
+  -h, --help                help for junit
+  -o, --output              output generated custom events to stdout
+  -p, --path string         the path to a JUnit-formatted test results file
+      --attributes string   any custom attributes to include in JSON format
 ```
 
 ### Options inherited from parent commands

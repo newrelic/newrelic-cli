@@ -42,6 +42,7 @@ type recipeMatch struct {
 func NewRecipeRepository(loaderFunc func() ([]*types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest) *RecipeRepository {
 	return newRecipeRepository(loaderFunc, manifest, NewLogMatchFinder())
 }
+
 func newRecipeRepository(loaderFunc func() ([]*types.OpenInstallationRecipe, error), manifest *types.DiscoveryManifest, logMatchFinder LogMatchFinderDefinition) *RecipeRepository {
 	rr := RecipeRepository{
 		RecipeLoaderFunc:  loaderFunc,
@@ -71,7 +72,6 @@ func (rf *RecipeRepository) FindRecipeByName(name string) *types.OpenInstallatio
 }
 
 func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallationRecipe) []*types.OpenInstallationRecipe {
-
 	results := []*types.OpenInstallationRecipe{}
 
 	recipes, err := rf.FindAll()
@@ -99,9 +99,8 @@ func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallati
 
 // Enriching recipe
 func (rf *RecipeRepository) enrichLogRecipe() {
-
 	for _, recipe := range rf.filteredRecipes {
-		if recipe.Name == types.LoggingRecipeName {
+		if recipe.Name == types.LoggingRecipeName || recipe.Name == types.LoggingSuperAgentRecipeName {
 			logMatches := rf.logMatchFinder.GetPaths(utils.SignalCtx, rf.filteredRecipes)
 
 			var discoveredLogFilesString string
