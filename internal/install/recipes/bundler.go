@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var coreRecipeMap = map[string]bool{
@@ -60,7 +61,14 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 	for _, r := range recipes {
 		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
-			bundleRecipe := b.getBundleRecipeWithDependencies(d.Recipe)
+			var bundleRecipe *BundleRecipe
+			// OHIs with dual infra/super dependency: if super-agent is targeted, remove infrastructure-agent
+			if utils.StringInSlice(types.SuperAgentRecipeName, recipes) {
+				bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe, types.InfraAgentRecipeName)
+			} else {
+				// OHIs with dual infra/super dependency: if super-agent is not targeted, remove super-agent
+				bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe, types.SuperAgentRecipeName)
+			}
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
@@ -71,7 +79,7 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	return bundle
 }
 
-func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe) *BundleRecipe {
+func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe, depException string) *BundleRecipe {
 	if br, ok := b.cachedBundleRecipes[recipe.Name]; ok {
 		return br
 	}
@@ -80,9 +88,28 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 		Recipe: recipe,
 	}
 
+	// For OHIs with dual infrastructure-agent/super-agent dependencies, remove the one not needed:
+	//	if super-agent is targeted, infrastructure-agent is removed
+	//	if super-agent is not targeted, super-agent is removed
+	if recipe.IsOhi() && utils.StringInSlice(types.InfraAgentRecipeName, recipe.Dependencies) && utils.StringInSlice(types.SuperAgentRecipeName, recipe.Dependencies) && depException != "" {
+		var newDeps []string
+		for _, d := range recipe.Dependencies {
+			if d == depException {
+				continue
+			}
+			newDeps = append(newDeps, d)
+		}
+		recipe.Dependencies = newDeps
+	}
+
 	for _, d := range recipe.Dependencies {
 		if dt, ok := b.AvailableRecipes.GetRecipeDetection(d); ok {
-			dr := b.getBundleRecipeWithDependencies(dt.Recipe)
+			var dr *BundleRecipe
+			if depException == "" {
+				dr = b.getBundleRecipeWithDependencies(dt.Recipe, "")
+			} else {
+				dr = b.getBundleRecipeWithDependencies(dt.Recipe, depException)
+			}
 			if dr != nil {
 				bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
 				continue
