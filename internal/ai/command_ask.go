@@ -12,10 +12,11 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
-const ASK_NR_AI_URL = "https://ask-nr-ai.staging-service.nr-ops.net/chat-completion"
+const AskNRAIURL = "https://ask-nr-ai.staging-service.nr-ops.net/chat-completion"
 
 var (
 	question string
@@ -28,7 +29,7 @@ type Data struct {
 
 type Message struct {
 	Role    string `json:"role"`
-	Content string `json:"content""`
+	Content string `json:"content"`
 }
 
 var cmdAsk = &cobra.Command{
@@ -58,14 +59,14 @@ var cmdAsk = &cobra.Command{
 			},
 		})
 
-		req, err := http.NewRequest(http.MethodPost, ASK_NR_AI_URL, bytes.NewBuffer(reqBody))
+		req, err := http.NewRequest(http.MethodPost, AskNRAIURL, bytes.NewBuffer(reqBody))
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		req.Header.Add("Content-Type", "application/json")
 		req.Header.Add("api-key", apiKey)
-		req.Header.Add("x-account-id", string(accountID))
+		req.Header.Add("x-account-id", strconv.Itoa(accountID))
 
 		resp, err := client.Do(req)
 		if err != nil {
