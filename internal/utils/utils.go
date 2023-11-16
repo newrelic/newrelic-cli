@@ -204,3 +204,12 @@ func IsValidUserAPIKeyFormat(key string) bool {
 
 	return isAlphanumeric
 }
+
+func RemoveFromSlice(slice []string, s string) []string {
+	for i, elem := range slice {
+		if elem == s {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}

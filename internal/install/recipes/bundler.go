@@ -92,14 +92,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	//	if super-agent is targeted, infrastructure-agent is removed
 	//	if super-agent is not targeted, super-agent is removed
 	if recipe.IsOhi() && utils.StringInSlice(types.InfraAgentRecipeName, recipe.Dependencies) && utils.StringInSlice(types.SuperAgentRecipeName, recipe.Dependencies) && depException != "" {
-		var newDeps []string
-		for _, d := range recipe.Dependencies {
-			if d == depException {
-				continue
-			}
-			newDeps = append(newDeps, d)
-		}
-		recipe.Dependencies = newDeps
+		recipe.Dependencies = utils.RemoveFromSlice(recipe.Dependencies, depException)
 	}
 
 	for _, d := range recipe.Dependencies {
