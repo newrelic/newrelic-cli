@@ -4,6 +4,7 @@ package utils
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
@@ -122,4 +123,29 @@ func TestIsValidUserAPIKeyFormat_Invalid(t *testing.T) {
 	// Special characters are invaid after the prefix hyphen
 	result = IsValidUserAPIKeyFormat("NRAK-@$%^!")
 	assert.False(t, result)
+}
+
+func TestRemoveFromSliceWorks(t *testing.T) {
+	type test struct {
+		input  []string
+		remove string
+		want   []string
+	}
+	tests := []test{
+		{input: []string{"a", "b", "c"}, remove: "c", want: []string{"a", "b"}},
+		{input: []string{"a", "b", "c"}, remove: "b", want: []string{"a", "c"}},
+		{input: []string{"a", "b"}, remove: "a", want: []string{"b"}},
+		{input: []string{"a", "b"}, remove: "b", want: []string{"a"}},
+		{input: []string{"a"}, remove: "a", want: []string{}},
+		{input: []string{}, remove: "a", want: []string{}},
+		{input: []string{}, remove: "", want: []string{}},
+		{input: nil, remove: "a", want: nil},
+	}
+
+	for _, tc := range tests {
+		got := RemoveFromSlice(tc.input, tc.remove)
+		if !reflect.DeepEqual(tc.want, got) {
+			t.Fatalf("expected: %v, got: %v", tc.want, got)
+		}
+	}
 }

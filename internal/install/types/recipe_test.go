@@ -113,3 +113,10 @@ func Test_shouldExpandDiscoveryMode(t *testing.T) {
 	dm = expandDiscoveryMode(m)
 	require.Equal(t, 1, len(dm), "One good value should be parsed")
 }
+
+func TestOhiKeywordInRecipeWorks(t *testing.T) {
+	r := OpenInstallationRecipe{}
+	r.Keywords = []string{"ohi"}
+
+	require.Equal(t, r.IsOhi(), true)
+}
