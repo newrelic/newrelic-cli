@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/newrelic/newrelic-cli/internal/ai"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -38,6 +39,7 @@ var (
 func init() {
 	// Bind imported sub-commands
 	Command.AddCommand(agent.Command)
+	Command.AddCommand(ai.Command)
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(synthetics.Command)
 	Command.AddCommand(apm.Command)
