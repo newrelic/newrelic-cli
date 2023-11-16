@@ -319,11 +319,9 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
 
-	if !i.IsRecipeTargeted(types.SuperAgentRecipeName) {
-		cbErr := i.installCoreBundle(bundler, bundleInstaller)
-		if cbErr != nil {
-			return cbErr
-		}
+	cbErr := i.installCoreBundle(bundler, bundleInstaller)
+	if cbErr != nil {
+		return cbErr
 	}
 
 	abErr := i.installAdditionalBundle(bundler, bundleInstaller, repo)
