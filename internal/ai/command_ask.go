@@ -3,11 +3,11 @@ package ai
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/briandowns/spinner"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/pterm/pterm"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"io"
@@ -93,7 +93,7 @@ var cmdAsk = &cobra.Command{
 		}
 
 		for _, m := range data.Messages {
-			pterm.DefaultCenter.Println(m.Content)
+			fmt.Println(m.Content)
 		}
 	},
 }
