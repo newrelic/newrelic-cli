@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -276,4 +277,50 @@ func withAvailableRecipe(bundler *Bundler, recipeName string, status execution.R
 		Status: status,
 		Recipe: recipe,
 	})
+}
+
+func TestDualDependencyWithFalseyValueReturnsEmptyAndFalse(t *testing.T) {
+	dep, ok := getDualDependency([]string{})
+
+	require.Equal(t, dep, "")
+	require.Equal(t, ok, false)
+}
+
+func TestCorrectDualDependencyPasses(t *testing.T) {
+	dualDep := "infra || super"
+	dep, ok := getDualDependency([]string{"a", "b", dualDep})
+
+	require.Equal(t, dep, dualDep)
+	require.Equal(t, ok, true)
+}
+
+func TestIncorrectDualDependencyReturnsFalsy(t *testing.T) {
+	dualDep := "infra && super"
+	dep, ok := getDualDependency([]string{"a", "b", dualDep})
+
+	require.Equal(t, dep, "")
+	require.Equal(t, ok, false)
+}
+
+func TestUpdateDependencyReturnsFirstDualDependencyThatIsInTargetedRecipes(t *testing.T) {
+	type test struct {
+		dualDep string
+		recipes []string
+		want    []string
+	}
+
+	tests := []test{
+		{dualDep: "infra || super", recipes: []string{"super", "mysql", "logging"}, want: []string{"super"}},
+		{dualDep: "super || infra", recipes: []string{"super", "mysql", "logging"}, want: []string{"super"}},
+		{dualDep: "super || infra", recipes: []string{"mysql", "infra", "logging"}, want: []string{"infra"}},
+		{dualDep: "super || infra", recipes: []string{"mysql", "infra", "super"}, want: []string{"super"}},
+		{dualDep: "infra || super", recipes: []string{"mysql", "infra", "super"}, want: []string{"infra"}},
+	}
+
+	for _, tc := range tests {
+		got := updateDependency(tc.dualDep, tc.recipes)
+		if !reflect.DeepEqual(tc.want, got) {
+			t.Fatalf("expected: %v, got: %v", tc.want, got)
+		}
+	}
 }
