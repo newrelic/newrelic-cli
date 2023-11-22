@@ -2,10 +2,13 @@ package recipes
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var coreRecipeMap = map[string]bool{
@@ -60,7 +63,16 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 	for _, r := range recipes {
 		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
-			bundleRecipe := b.getBundleRecipeWithDependencies(d.Recipe)
+			var bundleRecipe *BundleRecipe
+			if dualDep, ok := getDualDependency(d.Recipe.Dependencies); ok {
+				dep := updateDependency(dualDep, recipes)
+				if dep != nil {
+					d.Recipe.Dependencies = dep
+				} else {
+					log.Debugf("could not process update for dual dependency: %s", dualDep)
+				}
+			}
+			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
@@ -107,4 +119,38 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 
 	b.cachedBundleRecipes[recipe.Name] = nil
 	return nil
+}
+
+func getDualDependency(deps []string) (string, bool) {
+	if len(deps) == 0 {
+		return "", false
+	}
+
+	const dualRecipeDependencyRegex = `^.+\|\|.+$` // e.g.: infrastructure-agent-installer || super-agent
+	r, _ := regexp.Compile(dualRecipeDependencyRegex)
+
+	// Not yet considering the unlikely case of dealing with more than one recipe dependency line coming in the 'a || b' form
+	for _, dep := range deps {
+		if r.MatchString(dep) {
+			return dep, true
+		}
+	}
+
+	return "", false
+}
+
+func updateDependency(dualDep string, recipes []string) []string {
+	var deps []string
+
+	for _, dep := range strings.Split(dualDep, `||`) {
+		dep = strings.TrimSpace(dep)
+		if utils.StringInSlice(dep, recipes) {
+			deps = []string{dep}
+			break
+		} else {
+			deps = []string{types.InfraAgentRecipeName}
+		}
+	}
+
+	return deps
 }
