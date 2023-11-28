@@ -245,8 +245,9 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 
 	select {
 	case <-ctx.Done():
-		i.status.InstallCanceled()
-		return nil
+		err := ctx.Err()
+		i.status.InstallComplete(err)
+		return err
 	case err = <-errChan:
 		if errors.Is(err, types.ErrInterrupt) {
 			i.status.InstallCanceled()
