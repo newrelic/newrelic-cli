@@ -280,7 +280,7 @@ func withAvailableRecipe(bundler *Bundler, recipeName string, status execution.R
 }
 
 func TestDualDependencyWithFalseyValueReturnsEmptyAndFalse(t *testing.T) {
-	dep, ok := getDualDependency([]string{})
+	dep, ok := detectDependencies([]string{})
 
 	require.Equal(t, dep, "")
 	require.Equal(t, ok, false)
@@ -288,7 +288,7 @@ func TestDualDependencyWithFalseyValueReturnsEmptyAndFalse(t *testing.T) {
 
 func TestCorrectDualDependencyPasses(t *testing.T) {
 	dualDep := "infra || super"
-	dep, ok := getDualDependency([]string{"a", "b", dualDep})
+	dep, ok := detectDependencies([]string{"a", "b", dualDep})
 
 	require.Equal(t, dep, dualDep)
 	require.Equal(t, ok, true)
@@ -296,7 +296,7 @@ func TestCorrectDualDependencyPasses(t *testing.T) {
 
 func TestIncorrectDualDependencyReturnsFalsy(t *testing.T) {
 	dualDep := "infra && super"
-	dep, ok := getDualDependency([]string{"a", "b", dualDep})
+	dep, ok := detectDependencies([]string{"a", "b", dualDep})
 
 	require.Equal(t, dep, "")
 	require.Equal(t, ok, false)
