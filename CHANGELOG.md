@@ -1,5 +1,10 @@
+<a name="v0.77.0"></a>
+## [v0.77.0] - 2023-12-11
+### Features
+- **install:** add super-agent as infra-agent substitute dependency ([#1536](https://github.com/newrelic/newrelic-cli/issues/1536))
+
 <a name="v0.76.4"></a>
-## [v0.76.4] - 2023-12-04
+## [v0.76.4] - 2023-12-07
 ### Bug Fixes
 - **install:** Add complete install status for user-canceled execution ([#1537](https://github.com/newrelic/newrelic-cli/issues/1537))
 
@@ -2170,7 +2175,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.76.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.77.0...HEAD
+[v0.77.0]: https://github.com/newrelic/newrelic-cli/compare/v0.76.4...v0.77.0
 [v0.76.4]: https://github.com/newrelic/newrelic-cli/compare/v0.76.3...v0.76.4
 [v0.76.3]: https://github.com/newrelic/newrelic-cli/compare/v0.76.2...v0.76.3
 [v0.76.2]: https://github.com/newrelic/newrelic-cli/compare/v0.76.1...v0.76.2
