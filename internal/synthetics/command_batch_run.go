@@ -102,6 +102,19 @@ func createConfigurationUsingYAML(batchFile string) (StartAutomatedTestInput, er
 		return config, err
 	}
 
+	// Detect YAML file tests whose 'isBlocking' key is absent
+	indexes, err := getTestsMissingIsBlockingInConfig(content)
+	if err != nil {
+		return config, err
+	}
+
+	// YAML file's tests with 'isBlocking' absent default to 'isBlocking: true' to match Synthetics API's default
+	if len(indexes) > 0 {
+		for _, v := range indexes {
+			config.Tests[v].Config.IsBlocking = true
+		}
+	}
+
 	utils.LogIfFatal(err)
 	return config, nil
 }
@@ -112,6 +125,9 @@ func createConfigurationUsingGUIDs(guids []string) StartAutomatedTestInput {
 	var tests []synthetics.SyntheticsAutomatedTestMonitorInput
 	for _, id := range guids {
 		tests = append(tests, synthetics.SyntheticsAutomatedTestMonitorInput{
+			Config: synthetics.SyntheticsAutomatedTestMonitorConfigInput{
+				IsBlocking: true, // Matches default value in Synthetics API
+			},
 			MonitorGUID: synthetics.EntityGUID(id),
 		})
 	}
@@ -219,4 +235,34 @@ func getMonitorTestsSummary(batchResult synthetics.SyntheticsAutomatedTestResult
 	}
 
 	return summaryMessage, tableData
+}
+
+// getTestsMissingIsBlockingInConfig parses monitors tests configurations YAML in order to detect
+// if any of them is missing the 'isBlocking' config key
+func getTestsMissingIsBlockingInConfig(data []byte) ([]int, error) {
+	type Data struct {
+		Tests []struct {
+			monitorGUID string `yaml:"monitorGuid"`
+			Config      struct {
+				IsBlocking string `yaml:"isBlocking"`
+			}
+		} `yaml:"tests"`
+	}
+
+	var d Data
+
+	err := yaml.Unmarshal(data, &d)
+	if err != nil {
+		return nil, err
+	}
+
+	c := make([]int, 0)
+
+	for i := range d.Tests {
+		if d.Tests[i].Config.IsBlocking == "" {
+			c = append(c, i)
+		}
+	}
+
+	return c, nil
 }
