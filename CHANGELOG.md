@@ -1,3 +1,10 @@
+<a name="v0.78.1"></a>
+## [v0.78.1] - 2023-12-19
+<a name="v0.78.0"></a>
+## [v0.78.0] - 2023-12-19
+### Features
+- **synth:** Update default isBlocking behavior ([#1538](https://github.com/newrelic/newrelic-cli/issues/1538))
+
 <a name="v0.77.0"></a>
 ## [v0.77.0] - 2023-12-11
 ### Features
@@ -2175,7 +2182,9 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.77.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.78.1...HEAD
+[v0.78.1]: https://github.com/newrelic/newrelic-cli/compare/v0.78.0...v0.78.1
+[v0.78.0]: https://github.com/newrelic/newrelic-cli/compare/v0.77.0...v0.78.0
 [v0.77.0]: https://github.com/newrelic/newrelic-cli/compare/v0.76.4...v0.77.0
 [v0.76.4]: https://github.com/newrelic/newrelic-cli/compare/v0.76.3...v0.76.4
 [v0.76.3]: https://github.com/newrelic/newrelic-cli/compare/v0.76.2...v0.76.3
