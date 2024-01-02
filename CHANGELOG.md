@@ -1,3 +1,26 @@
+<a name="v0.78.1"></a>
+## [v0.78.1] - 2023-12-19
+<a name="v0.78.0"></a>
+## [v0.78.0] - 2023-12-19
+### Features
+- **synth:** Update default isBlocking behavior ([#1538](https://github.com/newrelic/newrelic-cli/issues/1538))
+
+<a name="v0.77.0"></a>
+## [v0.77.0] - 2023-12-11
+### Features
+- **install:** add super-agent as infra-agent substitute dependency ([#1536](https://github.com/newrelic/newrelic-cli/issues/1536))
+
+<a name="v0.76.4"></a>
+## [v0.76.4] - 2023-12-07
+### Bug Fixes
+- **install:** Add complete install status for user-canceled execution ([#1537](https://github.com/newrelic/newrelic-cli/issues/1537))
+
+<a name="v0.76.3"></a>
+## [v0.76.3] - 2023-11-15
+<a name="v0.76.2"></a>
+## [v0.76.2] - 2023-11-14
+<a name="v0.76.1"></a>
+## [v0.76.1] - 2023-11-13
 <a name="v0.76.0"></a>
 ## [v0.76.0] - 2023-11-08
 ### Features
@@ -2159,7 +2182,14 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.76.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.78.1...HEAD
+[v0.78.1]: https://github.com/newrelic/newrelic-cli/compare/v0.78.0...v0.78.1
+[v0.78.0]: https://github.com/newrelic/newrelic-cli/compare/v0.77.0...v0.78.0
+[v0.77.0]: https://github.com/newrelic/newrelic-cli/compare/v0.76.4...v0.77.0
+[v0.76.4]: https://github.com/newrelic/newrelic-cli/compare/v0.76.3...v0.76.4
+[v0.76.3]: https://github.com/newrelic/newrelic-cli/compare/v0.76.2...v0.76.3
+[v0.76.2]: https://github.com/newrelic/newrelic-cli/compare/v0.76.1...v0.76.2
+[v0.76.1]: https://github.com/newrelic/newrelic-cli/compare/v0.76.0...v0.76.1
 [v0.76.0]: https://github.com/newrelic/newrelic-cli/compare/v0.75.2...v0.76.0
 [v0.75.2]: https://github.com/newrelic/newrelic-cli/compare/v0.75.1...v0.75.2
 [v0.75.1]: https://github.com/newrelic/newrelic-cli/compare/v0.75.0...v0.75.1

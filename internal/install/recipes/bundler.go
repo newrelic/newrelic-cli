@@ -2,10 +2,13 @@ package recipes
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 var coreRecipeMap = map[string]bool{
@@ -60,7 +63,16 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 	for _, r := range recipes {
 		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
-			bundleRecipe := b.getBundleRecipeWithDependencies(d.Recipe)
+			var bundleRecipe *BundleRecipe
+			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
+				dep := updateDependency(dualDep, recipes)
+				if dep != nil {
+					d.Recipe.Dependencies = dep
+				} else {
+					log.Debugf("could not process update for dual dependency: %s", dualDep)
+				}
+			}
+			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
@@ -107,4 +119,51 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 
 	b.cachedBundleRecipes[recipe.Name] = nil
 	return nil
+}
+
+// detectDependencies evaluates if a recipe's dependency comes in the form 'recipe-a || recipe-b' and
+// if detected it returns that dependency line content along with a 'true' found value.
+func detectDependencies(deps []string) (string, bool) {
+	if len(deps) == 0 {
+		return "", false
+	}
+
+	const dualRecipeDependencyRegex = `^.+\|\|.+$` // e.g.: infrastructure-agent-installer || super-agent
+	r, _ := regexp.Compile(dualRecipeDependencyRegex)
+
+	// Not yet considering the unlikely case of dealing with more than one recipe dependency line coming in the 'recipe-a || recipe-b' form
+	for _, dep := range deps {
+		if r.MatchString(dep) {
+			return dep, true
+		}
+	}
+
+	return "", false
+}
+
+// updateDependency updates a recipe's dependency with the first one of the form 'recipe-a || recipe-b' that is found in the targeted
+// recipes (e.g.: newrelic install -n recipe-a,recipe-c). If none of the recipe's dependency in the form 'recipe-a || recipe-b' are found
+// in the targeted recipes, the first one of those in that same form 'recipe-a || recipe-b' is used. The final result is that recipe's
+// dependency will change from the form 'recipe-a || recipe-b' to, for example, 'recipe-a' only.
+func updateDependency(dualDep string, recipes []string) []string {
+	var (
+		deps      []string
+		splitDeps = strings.Split(dualDep, `||`)
+	)
+
+	if len(splitDeps) <= 1 {
+		return nil
+	}
+
+	for _, dep := range splitDeps {
+		dep = strings.TrimSpace(dep)
+		if utils.StringInSlice(dep, recipes) {
+			deps = []string{dep}
+			break
+		} else {
+			deps = []string{strings.TrimSpace(splitDeps[0])} // Defaults to first one of 'recipe-a || recipe-b'
+		}
+	}
+
+	return deps
 }
