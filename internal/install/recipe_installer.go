@@ -71,7 +71,6 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 	ff := recipes.NewRecipeFileFetcher([]string{})
 	lf := execution.NewRecipeLogForwarder()
 	ers := []execution.StatusSubscriber{
-		execution.NewNerdStorageStatusReporter(&nrClient.NerdStorage),
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 		execution.NewSegmentReporter(sg),
