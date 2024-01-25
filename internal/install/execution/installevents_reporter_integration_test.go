@@ -13,7 +13,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/config"
-	"github.com/newrelic/newrelic-client-go/v2/pkg/workloads"
 )
 
 func TestInstallEventsReporter_Basic(t *testing.T) {
@@ -52,14 +51,4 @@ func TestInstallEventsReporter_Basic(t *testing.T) {
 
 	err = r.RecipeInstalled(status, evt)
 	require.NoError(t, err)
-}
-
-func createEntity(t *testing.T, accountID int, c *newrelic.NewRelic) string {
-	i := workloads.WorkloadCreateInput{
-		Name: "testEntity",
-	}
-	e, err := c.Workloads.WorkloadCreate(accountID, i)
-	require.NoError(t, err)
-
-	return string(e.GUID)
 }
