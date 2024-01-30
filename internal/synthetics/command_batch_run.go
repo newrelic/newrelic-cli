@@ -34,13 +34,14 @@ var cmdRun = &cobra.Command{
 The run command helps start an automated testing job by creating a batch, comprising the specified monitors and their
 specifications (such as overrides), and subsequently, keeps fetching the status of the batch at periodic intervals of
 time, until the status of the batch, which reflects the consolidated status of all monitors in the batch, is either
-success, failure or timed out. 
+success, failure or timed out.
 
 The command may be used with the following flags (the arguments --batchFile and --guid are mutually exclusive).
 
 newrelic synthetics run --batchFile filename.yml
 newrelic synthetics run --guid <guid1> --guid <guid2>
 `,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		var (
 			config       StartAutomatedTestInput
