@@ -58,7 +58,7 @@ goimports: deps
 
 lint-commit: deps
 	@echo "=== $(PROJECT_NAME) === [ lint-commit      ]: Checking that commit messages are properly formatted ($(COMMIT_LINT_CMD))..."
-	@$(COMMIT_LINT_CMD)
+	@$(COMMIT_LINT_CMD) --message=$(COMMIT_MSG_FILE)
 
 golangci: deps
 	@echo "=== $(PROJECT_NAME) === [ golangci-lint    ]: Linting using $(GOLINTER) ($(COMMIT_LINT_CMD))..."
