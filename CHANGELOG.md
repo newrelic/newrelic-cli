@@ -1,5 +1,7 @@
+<a name="v0.78.6"></a>
+## [v0.78.6] - 2024-02-01
 <a name="v0.78.5"></a>
-## [v0.78.5] - 2024-01-30
+## [v0.78.5] - 2024-01-31
 ### Bug Fixes
 - Prevent panic in 'synthetics run' when client not initialized
 
@@ -2193,7 +2195,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.78.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.78.6...HEAD
+[v0.78.6]: https://github.com/newrelic/newrelic-cli/compare/v0.78.5...v0.78.6
 [v0.78.5]: https://github.com/newrelic/newrelic-cli/compare/v0.78.4...v0.78.5
 [v0.78.4]: https://github.com/newrelic/newrelic-cli/compare/v0.78.3...v0.78.4
 [v0.78.3]: https://github.com/newrelic/newrelic-cli/compare/v0.78.2...v0.78.3
