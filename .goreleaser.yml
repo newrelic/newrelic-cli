@@ -8,7 +8,7 @@ env:
 before:
   hooks:
     - go mod download
-    - pwd
+    - go get github.com/josephspurrier/goversioninfo/cmd/goversioninfo
     - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
     - sh -c "scripts/win_metadata.sh $MAJOR $MINOR $PATCH"
     - go generate cmd/newrelic/main.go
