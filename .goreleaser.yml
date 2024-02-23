@@ -41,7 +41,7 @@ builds:
         -X github.com/newrelic/newrelic-cli/internal/cli.version={{.Version}}
 
     hooks:
-      post: scripts/win_metadata_files_remove.sh
+      post: sh -c "scripts/win_metadata_files_remove.sh"
 
 release:
   name_template: "{{.ProjectName}} v{{.Version}}"
