@@ -72,6 +72,8 @@ jobs:
           mkdir -p $HOME/.cache/snapcraft/stage-packages
           make snapshot
 
+          ./scripts/win_metadata_files_remove.sh
+
           ./scripts/release.sh
 
           make release-publish
