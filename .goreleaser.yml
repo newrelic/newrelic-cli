@@ -10,7 +10,7 @@ before:
     - go mod download
     - pwd
     - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
-    - ./scripts/win_metadata.sh $MAJOR $MINOR $PATCH
+    - scripts/win_metadata.sh $MAJOR $MINOR $PATCH
     - go generate cmd/newrelic/main.go
 
 builds:
