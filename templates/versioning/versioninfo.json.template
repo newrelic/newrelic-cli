@@ -1,0 +1,42 @@
+{
+	"FixedFileInfo":
+	{
+		"FileVersion": {
+			"Major": {CLIMajorVersion},
+			"Minor": {CLIMinorVersion},
+			"Patch": {CLIPatchVersion}
+		},
+		"ProductVersion": {
+			"Major": {CLIMajorVersion},
+			"Minor": {CLIMinorVersion},
+			"Patch": {CLIPatchVersion}
+		},
+		"FileFlagsMask": "3f",
+		"FileFlags ": "00",
+		"FileOS": "040004",
+		"FileType": "01",
+		"FileSubType": "00"
+	},
+	"StringFileInfo":
+	{
+		"Comments": "(c) {Year} New Relic, Inc.",
+		"CompanyName": "New Relic, Inc.",
+		"FileDescription": "New Relic CLI",
+		"FileVersion": "{CLIMajorVersion}.{CLIMinorVersion}.{CLIPatchVersion}",
+		"InternalName": "newrelic",
+		"LegalCopyright": "(c) {Year} New Relic, Inc.",
+		"LegalTrademarks": "",
+		"OriginalFilename": "newrelic.exe",
+		"PrivateBuild": "",
+		"ProductName": "New Relic CLI",
+		"ProductVersion": "{CLIMajorVersion}.{CLIMinorVersion}.{CLIPatchVersion}",
+		"SpecialBuild": ""
+	},
+	"VarFileInfo":
+	{
+		"Translation": {
+			"LangID": "0409",
+			"CharsetID": "04B0"
+		}
+	}
+}
