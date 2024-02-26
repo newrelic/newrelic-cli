@@ -1,10 +1,10 @@
 # Prepares the 'versioninfo.json' file inside the 'cmd/newrelic/' folder so that the
 #'go generate cmd/newrelic/main.go' command in the goreleaser 'before' hook grabs it
-# to create the 'resource.syso' file which is needed to embed versioning information
+# to create the 'resource_windows.syso' file which is needed to embed versioning information
 # into the resulting Windows OS 'newrelic.exe' binary.
 
 VERSION_FILE=cmd/newrelic/versioninfo.json
-SYSO_FILE=cmd/newrelic/resource.syso
+SYSO_FILE=cmd/newrelic/resource_windows.syso
 TPL_FILE=templates/versioning/versioninfo.json.template
 YEAR=$(date +%Y)
 

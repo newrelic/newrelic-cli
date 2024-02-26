@@ -12,7 +12,6 @@ before:
     - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
     - sh -c "scripts/win_metadata.sh $MAJOR $MINOR $PATCH"
     - go generate cmd/newrelic/main.go
-    - mv cmd/newrelic/resource.syso cmd/newrelic/resource_windows.syso
 
 builds:
   - id: newrelic
