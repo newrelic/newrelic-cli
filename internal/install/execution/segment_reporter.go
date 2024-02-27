@@ -3,8 +3,8 @@ package execution
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 )
 
 type SegmentReporter struct {

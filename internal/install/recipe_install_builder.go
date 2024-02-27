@@ -7,10 +7,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
-	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 )
 
 type RecipeInstallBuilder struct {
