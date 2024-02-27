@@ -12,6 +12,7 @@ before:
     - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
     - sh -c "scripts/win_metadata.sh $MAJOR $MINOR $PATCH"
     - go generate cmd/newrelic/main.go
+    - git diff
 
 builds:
   - id: newrelic
