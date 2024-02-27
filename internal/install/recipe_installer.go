@@ -50,6 +50,7 @@ type RecipeInstall struct {
 	progressIndicator      ux.ProgressIndicator
 	recipeDetectorFactory  func(ctx context.Context, repo *recipes.RecipeRepository, ic *types.InstallerContext) RecipeStatusDetector
 	processEvaluator       recipes.ProcessEvaluatorInterface
+	segment                *segment.Segment
 }
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
@@ -102,6 +103,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 		agentValidator:     av,
 		progressIndicator:  ux.NewSpinnerProgressIndicator(),
 		processEvaluator:   recipes.NewProcessEvaluator(),
+		segment:            sg,
 	}
 
 	i.InstallerContext = ic
@@ -271,6 +273,7 @@ func (i *RecipeInstall) connectToPlatform() error {
 		loaderChan <- nil
 	}()
 
+	i.segment.Track("ConnectingToPlatformStarted")
 	i.progressIndicator.Start("Connecting to New Relic Platform")
 
 	loaded := <-loaderChan
@@ -280,6 +283,8 @@ func (i *RecipeInstall) connectToPlatform() error {
 	} else {
 		i.progressIndicator.Fail("Connecting to New Relic Platform")
 	}
+
+	i.segment.Track("ConnectingToPlatformCompleted")
 	return loaded
 }
 
