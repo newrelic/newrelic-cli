@@ -280,11 +280,11 @@ func (i *RecipeInstall) connectToPlatform() error {
 
 	if loaded == nil {
 		i.progressIndicator.Success("Connecting to New Relic Platform")
+		i.segment.Track("ConnectingToPlatformSucceeded")
 	} else {
 		i.progressIndicator.Fail("Connecting to New Relic Platform")
+		i.segment.Track("ConnectingToPlatformFailed")
 	}
-
-	i.segment.Track("ConnectingToPlatformCompleted")
 	return loaded
 }
 
