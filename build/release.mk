@@ -21,13 +21,13 @@ release-clean:
 release-publish: clean tools docker-login release-notes recipes events
 	@echo "=== $(PROJECT_NAME) === [ release-publish  ]: Publishing release via $(REL_CMD)"
 	@cat $(SRCDIR)/tmp/$(RELEASE_NOTES_FILE) || true
-	$(REL_CMD) release --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE) --verbose
+	$(REL_CMD) release --release-notes=$(SRCDIR)/tmp/$(RELEASE_NOTES_FILE) --debug
 
 # Local Snapshot
 snapshot: clean tools recipes events
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]: Creating release via $(REL_CMD)"
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]:   THIS WILL NOT BE PUBLISHED!"
-	@$(REL_CMD) --skip-publish --snapshot
+	@$(REL_CMD) --skip-publish --snapshot --debug
 
 release-homebrew:
 ifeq ($(HOMEBREW_GITHUB_API_TOKEN), "")
