@@ -1,8 +1,17 @@
 project_name: newrelic-cli
 
+env:
+  - MAJOR={{ .Major }}
+  - MINOR={{ .Minor }}
+  - PATCH={{ .Patch }}
+
 before:
   hooks:
     - go mod download
+    - go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
+    - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
+    - sh -c "scripts/win_metadata.sh $MAJOR $MINOR $PATCH"
+    - go generate cmd/newrelic/main.go
 
 builds:
   - id: newrelic
