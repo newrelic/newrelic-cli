@@ -11,6 +11,7 @@ before:
     - sh -c "scripts/win_metadata.sh $VERSION"
     - go generate cmd/newrelic/main.go
     - git diff
+    - cat cmd/newrelic/versioninfo.json
 
 builds:
   - id: newrelic
