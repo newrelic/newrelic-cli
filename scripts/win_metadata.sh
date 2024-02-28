@@ -7,7 +7,10 @@ VERSION_FILE=cmd/newrelic/versioninfo.json
 SYSO_FILE=cmd/newrelic/resource_windows.syso
 TPL_FILE=templates/versioning/versioninfo.json.template
 
-# Get semver values. $VERSION is defined in goreleaser's global 'env'
+# $VERSION is defined in goreleaser's global 'env'
+VERSION=$1
+
+# Get semver values.
 MAJOR=$(echo $VERSION | cut -d'.' -f1)
 MINOR=$(echo $VERSION | cut -d'.' -f2)
 PATCH=$(echo $VERSION | cut -d'.' -f3)
