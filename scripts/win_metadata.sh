@@ -7,7 +7,7 @@ VERSION_FILE=cmd/newrelic/versioninfo.json
 SYSO_FILE=cmd/newrelic/resource_windows.syso
 TPL_FILE=templates/versioning/versioninfo.json.template
 
-VERSION=$(git describe --tags --always --abbrev=0 | sed -e '/^v/s/^v\(.*\)$$/\1/g' | sed 's/v//g')
+VERSION=$(git describe --tags --abbrev=0 | sed 's/v//g')
 echo "VERSION: $VERSION"
 
 # Get semver values.
