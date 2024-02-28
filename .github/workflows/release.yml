@@ -75,11 +75,16 @@ jobs:
           mkdir -p $HOME/.cache/snapcraft/stage-packages
           make snapshot
 
-          ./scripts/win_metadata_files_remove.sh
-
           ./scripts/release.sh
 
+          chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
+          ./scripts/win_metadata.sh
+          go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
+          go generate cmd/newrelic/main.go
+
           make release-publish
+
+          ./scripts/win_metadata_files_remove.sh
 
       # Note the uploaded binary is downloaded and used in the release-windows-installer job
       - name: Upload Windows binary to GitHub

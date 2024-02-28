@@ -7,7 +7,6 @@ VERSION_FILE=cmd/newrelic/versioninfo.json
 SYSO_FILE=cmd/newrelic/resource_windows.syso
 TPL_FILE=templates/versioning/versioninfo.json.template
 
-git fetch --tags
 VERSION=$(git describe --tags --abbrev=0 | sed 's/v//g')
 echo "VERSION: $VERSION"
 
