@@ -1,7 +1,7 @@
 project_name: newrelic-cli
 
 env:
-  - VERSION={{ .Tag }}
+  - VERSION={{ .Version }}
 
 before:
   hooks:
