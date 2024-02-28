@@ -84,8 +84,6 @@ jobs:
 
           make release-publish
 
-          ./scripts/win_metadata_files_remove.sh
-
       # Note the uploaded binary is downloaded and used in the release-windows-installer job
       - name: Upload Windows binary to GitHub
         uses: actions/upload-artifact@v3
