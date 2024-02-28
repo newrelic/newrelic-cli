@@ -1,7 +1,7 @@
 project_name: newrelic-cli
 
 env:
-  - VERSION=$(git describe --tags --always --abbrev=0 | sed -e '/^v/s/^v\(.*\)$$/\1/g' | sed 's/v//g')
+  - VERSION={{ .Tag }}
 
 before:
   hooks:

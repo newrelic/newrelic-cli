@@ -9,6 +9,7 @@ TPL_FILE=templates/versioning/versioninfo.json.template
 
 # $VERSION is defined in goreleaser's global 'env'
 VERSION=$1
+echo "VERSION: $VERSION"
 
 # Get semver values.
 MAJOR=$(echo $VERSION | cut -d'.' -f1)
