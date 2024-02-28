@@ -5,7 +5,7 @@ before:
     - go mod download
     - go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
     - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
-    - export VERSION=$(git describe --tags --always --abbrev=0 | sed -e '/^v/s/^v\(.*\)$$/\1/g' | sed 's/v//g')
+    - VERSION=$(git describe --tags --always --abbrev=0 | sed -e '/^v/s/^v\(.*\)$$/\1/g' | sed 's/v//g')
     - sh -c "scripts/win_metadata.sh $VERSION"
     - cat cmd/newrelic/versioninfo.json
     - go generate cmd/newrelic/main.go
