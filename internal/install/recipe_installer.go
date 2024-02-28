@@ -83,7 +83,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 	d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
 	v := validation.NewPollingRecipeValidator(&nrClient.Nrdb)
-	cv := diagnose.NewConfigValidator(nrClient)
+	cv := diagnose.NewConfigValidator(nrClient, sg)
 	p := ux.NewPromptUIPrompter()
 	rvp := execution.NewRecipeVarProvider()
 	av := validation.NewAgentValidator()
@@ -275,16 +275,23 @@ func (i *RecipeInstall) connectToPlatform() error {
 
 	i.segment.Track("ConnectingToPlatformStarted")
 	i.progressIndicator.Start("Connecting to New Relic Platform")
+	start := time.Now()
 
 	loaded := <-loaderChan
 
+	durationMs := time.Since(start).Milliseconds()
+	ei := segment.NewEventInfo("ConnectingToPlatformComplete", "")
+	ei.WithAdditionalInfo("durationMs", durationMs)
+
 	if loaded == nil {
 		i.progressIndicator.Success("Connecting to New Relic Platform")
-		i.segment.Track("ConnectingToPlatformSucceeded")
+		ei.WithAdditionalInfo("success", true)
 	} else {
 		i.progressIndicator.Fail("Connecting to New Relic Platform")
-		i.segment.Track("ConnectingToPlatformFailed")
+		ei.WithAdditionalInfo("success", false)
 	}
+
+	i.segment.TrackInfo(ei)
 	return loaded
 }
 

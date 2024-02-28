@@ -3,6 +3,7 @@ package diagnose
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
@@ -29,6 +31,7 @@ type ConfigValidator struct {
 	*validation.PollingNRQLValidator
 	PostRetryDelaySec int
 	PostMaxRetries    int
+	segment           *segment.Segment
 }
 
 type ValidationTracerEvent struct {
@@ -38,7 +41,7 @@ type ValidationTracerEvent struct {
 	GUID      string `json:"guid"`
 }
 
-func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
+func NewConfigValidator(client *newrelic.NewRelic, sg *segment.Segment) *ConfigValidator {
 	v := validation.NewPollingNRQLValidator(&client.Nrdb)
 	v.MaxAttempts = DefaultMaxValidationAttempts
 
@@ -47,6 +50,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 		PollingNRQLValidator: v,
 		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
 		PostMaxRetries:       config.DefaultMaxTimeoutSeconds / config.DefaultPostRetryDelaySec,
+		segment:              sg,
 	}
 }
 
@@ -99,7 +103,18 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	SINCE 10 MINUTES AGO
 	`, evt.EventType, evt.Hostname, evt.GUID)
 
-	if _, err = c.PollingNRQLValidator.Validate(ctx, query); err != nil {
+	c.segment.Track("ValidateNrqlStart")
+	start := time.Now()
+
+	_, err = c.PollingNRQLValidator.Validate(ctx, query)
+
+	durationMs := time.Since(start).Milliseconds()
+	ei := segment.NewEventInfo("ValidateNrqlEnd", "")
+	ei.WithAdditionalInfo("durationMs", durationMs)
+	ei.WithAdditionalInfo("hasError", err != nil)
+	c.segment.TrackInfo(ei)
+
+	if err != nil {
 		log.Debug(err)
 		return types.NewDetailError(types.EventTypes.UnableToLocatePostedData, types.ErrValidation.Error()+" "+err.Error())
 	}
