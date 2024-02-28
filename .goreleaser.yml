@@ -1,18 +1,17 @@
 project_name: newrelic-cli
 
 env:
-  - MAJOR={{ .Major }}
-  - MINOR={{ .Minor }}
-  - PATCH={{ .Patch }}
+  - VERSION=$(git describe --tags --always --abbrev=0 | sed -e '/^v/s/^v\(.*\)$$/\1/g' | sed 's/v//g')
 
 before:
   hooks:
     - go mod download
     - go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
     - chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
-    - sh -c "scripts/win_metadata.sh $MAJOR $MINOR $PATCH"
+    - sh -c "scripts/win_metadata.sh"
     - go generate cmd/newrelic/main.go
     - git diff
+    - echo "VERSION: $VERSION"
 
 builds:
   - id: newrelic
