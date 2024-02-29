@@ -6,6 +6,15 @@
 VERSION_FILE=cmd/newrelic/versioninfo.json
 SYSO_FILE=cmd/newrelic/resource_windows.syso
 TPL_FILE=templates/versioning/versioninfo.json.template
+
+VERSION=$(git describe --tags --abbrev=0 | sed 's/v//g')
+echo "VERSION: $VERSION"
+
+# Get semver values.
+MAJOR=$(echo $VERSION | cut -d'.' -f1)
+MINOR=$(echo $VERSION | cut -d'.' -f2)
+PATCH=$(echo $VERSION | cut -d'.' -f3)
+
 YEAR=$(date +%Y)
 
 if [ -f $VERSION_FILE ]; then
@@ -18,7 +27,7 @@ fi
 
 cp $TPL_FILE $VERSION_FILE
 
-sed -i "s/{CLIMajorVersion}/$1/g" $VERSION_FILE
-sed -i "s/{CLIMinorVersion}/$2/g" $VERSION_FILE
-sed -i "s/{CLIPatchVersion}/$3/g" $VERSION_FILE
+sed -i "s/{CLIMajorVersion}/$MAJOR/g" $VERSION_FILE
+sed -i "s/{CLIMinorVersion}/$MINOR/g" $VERSION_FILE
+sed -i "s/{CLIPatchVersion}/$PATCH/g" $VERSION_FILE
 sed -i "s/{Year}/$YEAR/g" $VERSION_FILE
