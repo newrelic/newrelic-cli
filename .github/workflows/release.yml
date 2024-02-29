@@ -78,8 +78,13 @@ jobs:
           ./scripts/release.sh
 
           chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
+
+          # creates the `versioninfo.json` file with version info for the Windows binary
           ./scripts/win_metadata.sh
           go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@latest
+
+          # Invokes 'goversioninfo' and uses the 'goversion directive' inside 'main.go' to create 'resource_windows.syso'
+          # that 'goreleaser' will need in its build step
           go generate cmd/newrelic/main.go
 
           make release-publish
