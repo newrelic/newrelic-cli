@@ -20,3 +20,7 @@ Dockerfile
 # Embedded recipe files
 internal/install/recipes/files/**/*
 !internal/install/recipes/files/.keep
+
+# Windows Binary Metadata
+cmd/newrelic/resource_windows.syso
+cmd/newrelic/versioninfo.json
