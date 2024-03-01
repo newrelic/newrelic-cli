@@ -16,7 +16,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.22.2
+	github.com/newrelic/newrelic-client-go/v2 v2.26.1
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.23.9
 	github.com/sirupsen/logrus v1.9.0
@@ -36,7 +36,6 @@ require (
 )
 
 require (
-	github.com/akavel/rsrc v0.10.2 // indirect
 	github.com/bits-and-blooms/bitset v1.3.1 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.3.1 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
@@ -53,7 +52,6 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
-	github.com/josephspurrier/goversioninfo v1.4.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

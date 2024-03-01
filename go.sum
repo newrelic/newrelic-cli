@@ -4,8 +4,6 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63nhn5WAunQHLTznkw5W8b1Xc0dNjp83s=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
-github.com/akavel/rsrc v0.10.2 h1:Zxm8V5eI1hW4gGaYsJQUhxpjkENuG91ki8B4zCrvEsw=
-github.com/akavel/rsrc v0.10.2/go.mod h1:uLoCtb9J+EyAqh+26kdrTgmzRBFPGOolLWKpdxkKq+c=
 github.com/bits-and-blooms/bitset v1.3.1 h1:y+qrlmq3XsWi+xZqSaueaE8ry8Y127iMxlMfqcK8p0g=
 github.com/bits-and-blooms/bitset v1.3.1/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bits-and-blooms/bloom/v3 v3.3.1 h1:K2+A19bXT8gJR5mU7y+1yW6hsKfNCjcP2uNfLFKncjQ=
@@ -30,7 +28,7 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f/go.mod h1:cuUVRXasLTGF7a8hSLbxyZXjz+1KgoB3wDUb6vlszIc=
-github.com/elazarl/goproxy v0.0.0-20220417044921-416226498f94 h1:VIy7cdK7ufs7ctpTFkXJHm1uP3dJSnCGSPysEICB1so=
+github.com/elazarl/goproxy v0.0.0-20230731152917-f99041a5c027 h1:1L0aalTpPz7YlMxETKpmQoWMBkeiuorElZIXoNmgiPE=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/fatih/color v1.14.1 h1:qfhVLaG5s+nCROl1zJsZRxFeYrHLqWroPOQ8BWiNb4w=
@@ -95,8 +93,6 @@ github.com/jedib0t/go-pretty/v6 v6.4.4 h1:N+gz6UngBPF4M288kiMURPHELDMIhF/Em35aYu
 github.com/jedib0t/go-pretty/v6 v6.4.4/go.mod h1:MgmISkTWDSFu0xOqiZ0mKNntMQ2mDgOcwOkwBEkMDJI=
 github.com/joho/godotenv v1.4.0 h1:3l4+N6zfMWnkbPEXKng2o2/MR5mSwTrBih4ZEkkz1lg=
 github.com/joho/godotenv v1.4.0/go.mod h1:f4LDr5Voq0i2e/R5DDNOoa2zzDfwtkZa6DnEwAbqwq4=
-github.com/josephspurrier/goversioninfo v1.4.0 h1:Puhl12NSHUSALHSuzYwPYQkqa2E1+7SrtAPJorKK0C8=
-github.com/josephspurrier/goversioninfo v1.4.0/go.mod h1:JWzv5rKQr+MmW+LvM412ToT/IkYDZjaclF2pKDss8IY=
 github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d h1:lcSbmPJf3b19MTZtGDLI6Y2Jnk3VBDT8UG/8IVCEMxA=
 github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d/go.mod h1:TiiV0PqkaNfFXjEiyjWM3XXrhVyCa1K4Zfga6W52ung=
 github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 h1:Z9n2FFNUXsshfwJMBgNA0RU6/i7WVaAegv3PtuIHPMs=
@@ -135,8 +131,8 @@ github.com/mitchellh/hashstructure/v2 v2.0.2/go.mod h1:MG3aRVU/N29oo/V/IhBX8GR/z
 github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGgCcyj8cs=
 github.com/newrelic-forks/task/v3 v3.11.0 h1:8Gwo33tMTqQkWlekCChbCZqf0nrXI85UqVeIgXk73L0=
 github.com/newrelic-forks/task/v3 v3.11.0/go.mod h1:rzfFpA7kl0CsL44ZQd2F2Hic5xOb2m03N6Y2lUjdNo4=
-github.com/newrelic/newrelic-client-go/v2 v2.22.2 h1:pznYtGp9NG8iTV1EZn7NlrlP2lFaYrAJRZ3JdD4WIVg=
-github.com/newrelic/newrelic-client-go/v2 v2.22.2/go.mod h1:VPWTvEfKvnTZLunAC7fiW33y4e0srznNfN5HJH2cOp8=
+github.com/newrelic/newrelic-client-go/v2 v2.26.1 h1:InjKaaCKO+BrYceSWStUDlBCWkyBaYmYdIt6HUtBS4k=
+github.com/newrelic/newrelic-client-go/v2 v2.26.1/go.mod h1:SO5KJuFJ/+l3lT8nOdNLTrcE9FoZ4m60kechCVb+1N4=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
