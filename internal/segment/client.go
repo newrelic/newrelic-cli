@@ -28,7 +28,7 @@ var (
 )
 
 const (
-	apiUrl       = "https://api.segment.io/v1/track"
+	apiURL       = "https://api.segment.io/v1/track"
 	embeddedFile = "files/segment.src"
 )
 
@@ -52,7 +52,7 @@ func Init() *Segment {
 		return NewNoOp()
 	}
 
-	return New(apiUrl, writeKey, accountID, region, isProxyConfigured)
+	return New(apiURL, writeKey, accountID, region, isProxyConfigured)
 }
 
 func New(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
