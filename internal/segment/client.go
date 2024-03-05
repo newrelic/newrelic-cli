@@ -2,18 +2,34 @@ package segment
 
 import (
 	"bytes"
+	"embed"
+	_ "embed"
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"fmt"
 
+	"golang.org/x/net/http/httpproxy"
 	"gopkg.in/segmentio/analytics-go.v3"
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+)
+
+var (
+	//go:embed files/*
+	EmbeddedFS embed.FS
+)
+
+const (
+	apiUrl       = "https://api.segment.io/v1/track"
+	embeddedFile = "files/segment.src"
 )
 
 type Segment struct {
@@ -26,19 +42,44 @@ type Segment struct {
 	writeKey          string
 }
 
-func New(writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
-	return NewWithURL("https://api.segment.io/v1/track", writeKey, accountID, region, isProxyConfigured)
+func Init() *Segment {
+	accountID := configAPI.GetActiveProfileAccountID()
+	region := configAPI.GetActiveProfileString(config.Region)
+	isProxyConfigured := isProxyConfigured()
+	writeKey, err := GetSegmentWriteKey()
+	if err != nil {
+		log.Debug("error reading write key, cannot write to segment", err)
+		return NewNoOp()
+	}
+
+	return New(apiUrl, writeKey, accountID, region, isProxyConfigured)
 }
 
-func NewNoOp() *Segment {
-	return New("", 0, "", false)
-}
-
-func NewWithURL(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
+func New(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
 	timeout := 5 * time.Second
 	return &Segment{url, &http.Client{
 		Timeout: timeout,
 	}, accountID, region, "", isProxyConfigured, writeKey}
+}
+
+func NewNoOp() *Segment {
+	return New("", "", 0, "", false)
+}
+
+// func New(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
+// 	timeout := 5 * time.Second
+// 	return &Segment{url, &http.Client{
+// 		Timeout: timeout,
+// 	}, accountID, region, "", isProxyConfigured, writeKey}
+// }
+
+func GetSegmentWriteKey() (string, error) {
+	data, err := EmbeddedFS.ReadFile(embeddedFile)
+	if err != nil {
+		return "", err
+	}
+	key := strings.TrimSpace(string(data))
+	return key, nil
 }
 
 func (client *Segment) SetInstallID(i string) {
@@ -97,11 +138,6 @@ func (client *Segment) TrackInfo(eventInfo *EventInfo) *analytics.Track {
 		return nil
 	}
 	defer response.Body.Close()
-
-	if err != nil {
-		log.Debugf("segment track error %v", err)
-		return nil
-	}
 	log.Debugf("segment tracked %s", eventInfo.EventName)
 
 	return &item
@@ -143,4 +179,9 @@ func NewEventInfo(eventType types.EventType, detail string) *EventInfo {
 
 func (e *EventInfo) WithAdditionalInfo(k string, v interface{}) {
 	e.AdditionalInfo[k] = v
+}
+
+func isProxyConfigured() bool {
+	proxyConfig := httpproxy.FromEnvironment()
+	return proxyConfig.HTTPProxy != "" || proxyConfig.HTTPSProxy != "" || proxyConfig.NoProxy != ""
 }

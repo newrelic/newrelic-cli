@@ -2,7 +2,7 @@
 #
 # Makefile fragment for events actions
 #
-EMBEDDED_EVENTS_PATH         ?= internal/install/recipes/files/events.src
+EMBEDDED_EVENTS_PATH         ?= internal/segment/files/segment.src
 
 events: events-clean events-init
 

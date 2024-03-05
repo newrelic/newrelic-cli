@@ -18,8 +18,7 @@ data to the New Relic platform and verifying that it has been received.`,
 	Example: "\tnewrelic diagnose validate",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		sg := initSegment()
-		v := NewConfigValidator(client.NRClient, sg)
+		v := NewConfigValidator(client.NRClient)
 
 		log.Printf("Sending tracer event to New Relic.")
 		err := v.Validate(utils.SignalCtx)

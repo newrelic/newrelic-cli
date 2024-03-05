@@ -10,7 +10,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
-	"github.com/newrelic/newrelic-cli/internal/segment"
 )
 
 type RecipeInstallBuilder struct {
@@ -30,7 +29,6 @@ type RecipeInstallBuilder struct {
 	recipeValidator    *validation.MockRecipeValidator
 	recipeDetector     *MockRecipeDetector
 	processes          []types.GenericProcess
-	segment            *segment.Segment
 }
 
 func NewRecipeInstallBuilder() *RecipeInstallBuilder {
@@ -59,7 +57,6 @@ func NewRecipeInstallBuilder() *RecipeInstallBuilder {
 	rib.agentValidator = &validation.MockAgentValidator{}
 	rib.recipeValidator = &validation.MockRecipeValidator{}
 	rib.recipeDetector = &MockRecipeDetector{}
-	rib.segment = segment.NewNoOp()
 
 	return rib
 }
@@ -164,11 +161,6 @@ func (rib *RecipeInstallBuilder) WithRunningProcess(cmd string, name string) *Re
 	return rib
 }
 
-func (rib *RecipeInstallBuilder) WithSegmentClient(sg *segment.Segment) *RecipeInstallBuilder {
-	rib.segment = sg
-	return rib
-}
-
 func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	recipeInstall := &RecipeInstall{}
 	recipeInstall.discoverer = rib.discoverer
@@ -196,7 +188,6 @@ func (rib *RecipeInstallBuilder) Build() *RecipeInstall {
 	mockProcessEvaluator := recipes.NewMockProcessEvaluator()
 	mockProcessEvaluator.WithProcesses(rib.processes)
 	recipeInstall.processEvaluator = mockProcessEvaluator
-	recipeInstall.segment = rib.segment
 
 	return recipeInstall
 }

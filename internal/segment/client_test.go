@@ -19,7 +19,7 @@ func TestClientShouldInit(t *testing.T) {
 	region := "STAGING"
 	writeKey := "secretWriteKey"
 
-	c := NewWithURL(baseURL, writeKey, accoundID, region, false)
+	c := New(baseURL, writeKey, accoundID, region, false)
 	assert.NotNil(t, c, "Segment client should create, and not return nil")
 }
 
@@ -32,7 +32,7 @@ func TestClientShouldTrack(t *testing.T) {
 	writeKey := "secretWriteKey"
 	installID := "installID123"
 
-	c := NewWithURL(baseURL, writeKey, accoundID, region, true)
+	c := New(baseURL, writeKey, accoundID, region, true)
 	c.SetInstallID(installID)
 	tResult := c.Track(types.EventTypes.APIKeyMissing)
 	userID, _ := strconv.Atoi(tResult.UserId)
@@ -55,7 +55,7 @@ func TestClientShouldTrackInfo(t *testing.T) {
 
 	ei := NewEventInfo(types.EventTypes.OtherError, "hello world")
 
-	c := NewWithURL(baseURL, writeKey, accoundID, region, true)
+	c := New(baseURL, writeKey, accoundID, region, true)
 	tResult := c.TrackInfo(ei)
 
 	assert.Equal(t, "hello world", tResult.Properties["Detail"])
@@ -69,7 +69,7 @@ func TestClientShouldNotTrackWhenNoWriteKey(t *testing.T) {
 	region := "STAGING"
 	writeKey := ""
 
-	c := NewWithURL(baseURL, writeKey, accoundID, region, true)
+	c := New(baseURL, writeKey, accoundID, region, true)
 	result := c.Track(types.EventTypes.InstallStarted)
 
 	assert.Nil(t, result, "should do nothing when no writeKey")
@@ -85,7 +85,7 @@ func TestClientShouldNotErrorOnRequest(t *testing.T) {
 
 	ei := NewEventInfo(types.EventTypes.OtherError, "hello world")
 
-	c := NewWithURL(baseURL, writeKey, accoundID, region, true)
+	c := New(baseURL, writeKey, accoundID, region, true)
 	tResult := c.TrackInfo(ei)
 
 	assert.Nil(t, tResult, "http error should not track and panic")

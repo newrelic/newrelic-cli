@@ -26,12 +26,13 @@ const (
 	DefaultMaxValidationAttempts = 20
 )
 
+var sg = segment.Init()
+
 type ConfigValidator struct {
 	client *newrelic.NewRelic
 	*validation.PollingNRQLValidator
 	PostRetryDelaySec int
 	PostMaxRetries    int
-	segment           *segment.Segment
 }
 
 type ValidationTracerEvent struct {
@@ -41,7 +42,7 @@ type ValidationTracerEvent struct {
 	GUID      string `json:"guid"`
 }
 
-func NewConfigValidator(client *newrelic.NewRelic, sg *segment.Segment) *ConfigValidator {
+func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 	v := validation.NewPollingNRQLValidator(&client.Nrdb)
 	v.MaxAttempts = DefaultMaxValidationAttempts
 
@@ -50,7 +51,6 @@ func NewConfigValidator(client *newrelic.NewRelic, sg *segment.Segment) *ConfigV
 		PollingNRQLValidator: v,
 		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
 		PostMaxRetries:       config.DefaultMaxTimeoutSeconds / config.DefaultPostRetryDelaySec,
-		segment:              sg,
 	}
 }
 
@@ -103,16 +103,16 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	SINCE 10 MINUTES AGO
 	`, evt.EventType, evt.Hostname, evt.GUID)
 
-	c.segment.Track("ValidateNrqlStart")
+	sg.Track("ValidateNrqlStart")
+
 	start := time.Now()
-
 	_, err = c.PollingNRQLValidator.Validate(ctx, query)
-
 	durationMs := time.Since(start).Milliseconds()
+
 	ei := segment.NewEventInfo("ValidateNrqlEnd", "")
 	ei.WithAdditionalInfo("durationMs", durationMs)
 	ei.WithAdditionalInfo("hasError", err != nil)
-	c.segment.TrackInfo(ei)
+	sg.TrackInfo(ei)
 
 	if err != nil {
 		log.Debug(err)
