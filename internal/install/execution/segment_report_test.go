@@ -8,8 +8,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 )
 
 func TestSegmentReporter_InstallStartedShouldHaveNoError(t *testing.T) {
@@ -22,7 +22,7 @@ func TestSegmentReporter_InstallStartedShouldHaveNoError(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
 	baseURL := server.URL
-	c := segment.NewWithURL(baseURL, writeKey, accoundID, region, isProxy)
+	c := segment.New(baseURL, writeKey, accoundID, region, isProxy)
 	r := NewSegmentReporter(c)
 	require.NotNil(t, r)
 
@@ -42,7 +42,7 @@ func TestSegmentReporter_WithNilSegmentClientShouldThrowNoError(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
 	baseURL := server.URL
-	c := segment.NewWithURL(baseURL, writeKey, accoundID, region, isProxy)
+	c := segment.New(baseURL, writeKey, accoundID, region, isProxy)
 
 	r := NewSegmentReporter(c)
 	require.NotNil(t, r)
@@ -64,7 +64,7 @@ func TestSegmentReporter_InstallCompletedShouldReport(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
 	baseURL := server.URL
-	c := segment.NewWithURL(baseURL, writeKey, accoundID, region, isProxy)
+	c := segment.New(baseURL, writeKey, accoundID, region, isProxy)
 	r := NewSegmentReporter(c)
 	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
@@ -103,7 +103,7 @@ func TestSegmentReporter_InstallCompletedShouldReportOther(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
 	baseURL := server.URL
-	c := segment.NewWithURL(baseURL, writeKey, accoundID, region, isProxy)
+	c := segment.New(baseURL, writeKey, accoundID, region, isProxy)
 	r := NewSegmentReporter(c)
 	slg := NewMockPlatformLinkGenerator()
 	status := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)

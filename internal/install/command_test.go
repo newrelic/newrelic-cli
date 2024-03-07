@@ -11,8 +11,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
@@ -35,7 +35,7 @@ func TestCommandValidProfile(t *testing.T) {
 	server := initSegmentMockServer()
 	defer server.Close()
 	baseURL := server.URL
-	c := segment.NewWithURL(baseURL, writeKey, getAccountIDAsInt(accountID), region, isProxy)
+	c := segment.New(baseURL, writeKey, getAccountIDAsInt(accountID), region, isProxy)
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
 	err := validateProfile(5, c)

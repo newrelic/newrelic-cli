@@ -16,10 +16,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
-	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
@@ -271,15 +271,25 @@ func (i *RecipeInstall) connectToPlatform() error {
 		loaderChan <- nil
 	}()
 
+	sg.Track("ConnectingToPlatformStarted")
 	i.progressIndicator.Start("Connecting to New Relic Platform")
+	start := time.Now()
 
 	loaded := <-loaderChan
 
+	durationMs := time.Since(start).Milliseconds()
+	ei := segment.NewEventInfo("ConnectingToPlatformComplete", "")
+	ei.WithAdditionalInfo("durationMs", durationMs)
+
 	if loaded == nil {
 		i.progressIndicator.Success("Connecting to New Relic Platform")
+		ei.WithAdditionalInfo("success", true)
 	} else {
 		i.progressIndicator.Fail("Connecting to New Relic Platform")
+		ei.WithAdditionalInfo("success", false)
 	}
+
+	sg.TrackInfo(ei)
 	return loaded
 }
 

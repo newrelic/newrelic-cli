@@ -82,6 +82,7 @@ func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
 
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithDiscovererValidatorError(expected).Build()
+
 	actual := recipeInstall.Install()
 
 	assert.Error(t, actual)
@@ -96,6 +97,7 @@ func TestInstallGuidedShouldSkipCoreInstall(t *testing.T) {
 	}
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return false }).WithStatusReporter(statusReporter).Build()
+
 	err := recipeInstall.Install()
 
 	assert.Equal(t, "no recipes were installed", err.Error(), "no recipe installed")
@@ -152,6 +154,7 @@ func TestInstallGuidedShouldNotSkipCoreInstall(t *testing.T) {
 	}
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
+
 	recipeInstall.AssumeYes = true
 	err := recipeInstall.Install()
 
@@ -183,6 +186,7 @@ func TestInstallGuidedShouldSkipOTEL(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.Install()
 
 	assert.NoError(t, err)
@@ -212,6 +216,7 @@ func TestInstallGuidedCoreShouldStopOnError(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).
 		WithStatusReporter(statusReporter).WithRecipeExecutionError(installErr).Build()
+
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
@@ -242,6 +247,7 @@ func TestInstallTargetedInstallShouldInstallWithRecomendataion(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).
 		WithTargetRecipeName("Other").WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.Install()
 
 	assert.NoError(t, err)
@@ -266,6 +272,7 @@ func TestInstallTargetedShouldNotSkipOTEL(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName("OTEL").WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.Install()
 
 	assert.NoError(t, err)
@@ -290,6 +297,7 @@ func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return false }).
 		WithTargetRecipeName(types.InfraAgentRecipeName).WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.Install()
 
 	assert.NoError(t, err)
@@ -309,6 +317,7 @@ func TestInstallTargetedInstallWithoutRecipeShouldNotInstall(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName("Other").WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
@@ -333,6 +342,7 @@ func TestInstallTargetedInstallWithOneUnsupportedOneInstalledShouldError(t *test
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(additionRecipeName).
 		WithStatusReporter(statusReporter).Build()
+
 	err := recipeInstall.install(context.TODO())
 
 	assert.Error(t, err)
@@ -357,6 +367,7 @@ func TestInstallGuidededInstallAdditionalShouldInstall(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithStatusReporter(statusReporter).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.install(context.TODO())
 
 	assert.NoError(t, err, "No error during install")
@@ -444,6 +455,7 @@ func TestInstallWhenRecipeVarProviderError(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	expected := errors.New("Some error")
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeVarValues(nil, expected).WithRecipeDetectionResult(r).Build()
+
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
@@ -545,6 +557,7 @@ func TestInstallWhenInstallIsUnsupported(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithStatusReporter(statusReporter).WithRecipeExecutionError(expected).Build()
 	recipeInstall.AssumeYes = true
+
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
@@ -729,13 +742,16 @@ func TestIsTargetInstallRecipeShouldNotFindTarget(t *testing.T) {
 func TestWhenSingleInstallRunningErrorOnMultiple(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").WithRunningProcess("env=456 newrelic install", "newrelic").Build()
 	err := recipeInstall.Install()
+
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
 }
 
 func TestWhenSingleInstallRunningNoError(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").Build()
+
 	err := recipeInstall.Install()
+
 	if err != nil {
 		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
 	}
@@ -743,14 +759,18 @@ func TestWhenSingleInstallRunningNoError(t *testing.T) {
 
 func TestWhenSingleInstallRunningErrorOnMultipleWindows(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "newrelic.exe").WithRunningProcess("env=456 C:\\path\\newrelic.exe install", "newrelic.exe").Build()
+
 	err := recipeInstall.Install()
+
 	assert.Error(t, err)
 	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
 }
 
 func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "C:\\path\\newrelic.exe").Build()
+
 	err := recipeInstall.Install()
+
 	if err != nil {
 		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
 	}

@@ -11,9 +11,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
-	"github.com/newrelic/newrelic-cli/internal/install/recipes"
-	"github.com/newrelic/newrelic-cli/internal/install/segment"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
+	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 	nrRegion "github.com/newrelic/newrelic-client-go/v2/pkg/region"
@@ -27,6 +26,8 @@ var (
 	testMode     bool
 	tags         []string
 )
+
+var sg = segment.Init()
 
 // Command represents the install command.
 var Command = &cobra.Command{
@@ -45,7 +46,6 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		sg := initSegment()
 		sg.Track(types.EventTypes.InstallStarted)
 
 		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
@@ -96,19 +96,6 @@ func init() {
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
 	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
-}
-
-func initSegment() *segment.Segment {
-	accountID := configAPI.GetActiveProfileAccountID()
-	region := configAPI.GetActiveProfileString(config.Region)
-	isProxyConfigured := IsProxyConfigured()
-	writeKey, err := recipes.NewEmbeddedRecipeFetcher().GetSegmentWriteKey()
-	if err != nil {
-		log.Debug("segment: error reading write key, cannot write to segment", err)
-		return segment.NewNoOp()
-	}
-
-	return segment.New(writeKey, accountID, region, isProxyConfigured)
 }
 
 func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailError {
