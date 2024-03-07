@@ -66,13 +66,6 @@ func NewNoOp() *Segment {
 	return New("", "", 0, "", false)
 }
 
-// func New(url string, writeKey string, accountID int, region string, isProxyConfigured bool) *Segment {
-// 	timeout := 5 * time.Second
-// 	return &Segment{url, &http.Client{
-// 		Timeout: timeout,
-// 	}, accountID, region, "", isProxyConfigured, writeKey}
-// }
-
 func GetSegmentWriteKey() (string, error) {
 	data, err := EmbeddedFS.ReadFile(embeddedFile)
 	if err != nil {
