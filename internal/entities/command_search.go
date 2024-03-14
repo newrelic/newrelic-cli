@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -22,34 +24,38 @@ The search command performs a search for New Relic entities.
 	Example: "newrelic entity search --name <applicationName>",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		params := entities.EntitySearchQueryBuilder{}
 
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
 			utils.LogIfError(cmd.Help())
 			log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
 		}
 
+		entityQueryFieldsReceived := []string{}
+
 		if entityName != "" {
-			params.Name = entityName
+			entityQueryFieldsReceived = append(entityQueryFieldsReceived, fmt.Sprintf("name = '%s'", entityName))
 		}
 
 		if entityType != "" {
-			params.Type = entities.EntitySearchQueryBuilderType(entityType)
+			entityQueryFieldsReceived = append(entityQueryFieldsReceived, fmt.Sprintf("type = '%s'", strings.ToUpper(entityType)))
 		}
 
 		if entityAlertSeverity != "" {
-			params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
+			entityQueryFieldsReceived = append(entityQueryFieldsReceived, fmt.Sprintf("alertSeverity = '%s'", strings.ToUpper(entityAlertSeverity)))
 		}
 
 		if entityDomain != "" {
-			params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
+			entityQueryFieldsReceived = append(entityQueryFieldsReceived, fmt.Sprintf("domain = '%s'", strings.ToUpper(entityDomain)))
 		}
 
 		if entityTag != "" {
 			key, value, err := assembleTagValue(entityTag)
 			utils.LogIfFatal(err)
-
-			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
+			if key == "" && value == "" {
+				log.Info("tag value is empty. Skipping tag.")
+			} else {
+				entityQueryFieldsReceived = append(entityQueryFieldsReceived, fmt.Sprintf("tags.`%s` = '%s'", key, value))
+			}
 		}
 
 		if entityReporting != "" {
@@ -58,15 +64,17 @@ The search command performs a search for New Relic entities.
 			if err != nil {
 				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
 			}
-
-			params.Reporting = reporting
+			entityQueryFieldsReceived = append(entityQueryFieldsReceived, fmt.Sprintf("reporting = '%s'", strconv.FormatBool(reporting)))
 		}
 
-		results, err := client.NRClient.Entities.GetEntitySearchWithContext(
+		query := strings.Join(entityQueryFieldsReceived, " AND ")
+		log.Infof("Query : %s", query)
+		results, err := client.NRClient.Entities.GetEntitySearchByQueryWithContext(
 			utils.SignalCtx,
-			entities.EntitySearchOptions{},
-			"",
-			params,
+			entities.EntitySearchOptions{
+				CaseSensitiveTagMatching: true,
+			},
+			query,
 			[]entities.EntitySearchSortCriteria{},
 		)
 		utils.LogIfFatal(err)
