@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"strconv"
+	"context"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -22,51 +22,19 @@ The search command performs a search for New Relic entities.
 	Example: "newrelic entity search --name <applicationName>",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		params := entities.EntitySearchQueryBuilder{}
-
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
 			utils.LogIfError(cmd.Help())
-			log.Fatal("one of --name, --type, --alert-severity, or --domain are required")
+			log.Fatal("one of --name, --type, --alert-severity, or --domain is required")
 		}
 
-		if entityName != "" {
-			params.Name = entityName
-		}
+		tags := []map[string]string{} // TODO: need to add new argument --entityTags that supports a list of tags
+		query := entities.BuildEntitySearchQuery(entityName, entityDomain, entityType, tags)
 
-		if entityType != "" {
-			params.Type = entities.EntitySearchQueryBuilderType(entityType)
-		}
-
-		if entityAlertSeverity != "" {
-			params.AlertSeverity = entities.EntityAlertSeverity(entityAlertSeverity)
-		}
-
-		if entityDomain != "" {
-			params.Domain = entities.EntitySearchQueryBuilderDomain(entityDomain)
-		}
-
-		if entityTag != "" {
-			key, value, err := assembleTagValue(entityTag)
-			utils.LogIfFatal(err)
-
-			params.Tags = []entities.EntitySearchQueryBuilderTag{{Key: key, Value: value}}
-		}
-
-		if entityReporting != "" {
-			reporting, err := strconv.ParseBool(entityReporting)
-
-			if err != nil {
-				log.Fatalf("invalid value provided for flag --reporting. Must be true or false.")
-			}
-
-			params.Reporting = reporting
-		}
-
-		results, err := client.NRClient.Entities.GetEntitySearchWithContext(
-			utils.SignalCtx,
-			entities.EntitySearchOptions{},
-			"",
-			params,
+		results, err := client.NRClient.Entities.GetEntitySearchByQueryWithContext(context.Background(),
+			entities.EntitySearchOptions{
+				CaseSensitiveTagMatching: false, // TODO: add new flag for this
+			},
+			query,
 			[]entities.EntitySearchSortCriteria{},
 		)
 		utils.LogIfFatal(err)
