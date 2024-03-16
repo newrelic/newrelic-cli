@@ -22,12 +22,14 @@ The search command performs a search for New Relic entities.
 	Example: "newrelic entity search --name <applicationName>",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" {
+		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && entityTags == nil {
 			utils.LogIfError(cmd.Help())
-			log.Fatal("one of --name, --type, --alert-severity, or --domain is required")
+			log.Fatal("one of --name, --type, --alert-severity, --domain, or --tags is required")
 		}
 
-		tags := []map[string]string{} // TODO: need to add new argument --entityTags that supports a list of tags
+		tags, err := entities.ConvertTagsToMap(entityTags)
+		utils.LogIfError(err) // []map[string]string{} // TODO: need to add new argument --entityTags that supports a list of tags
+
 		query := entities.BuildEntitySearchQuery(entityName, entityDomain, entityType, tags)
 
 		results, err := client.NRClient.Entities.GetEntitySearchByQueryWithContext(context.Background(),
@@ -82,4 +84,5 @@ func init() {
 	cmdEntitySearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for entities matching the given entity domain")
 	cmdEntitySearch.Flags().StringVar(&entityTag, "tag", "", "search for entities matching the given entity tag")
 	cmdEntitySearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "filter search results to only return certain fields for each search result")
+	cmdEntitySearch.Flags().StringSliceVar(&entityTags, "tags", []string{}, "the entity tags to include as search parameters in the format tagKey1:tagValue1,tagKey2:tagValue2")
 }
