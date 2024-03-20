@@ -28,3 +28,7 @@ func (pe *MockProcessEvaluator) GetOrLoadProcesses(ctx context.Context) []types.
 func (pe *MockProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType {
 	return execution.RecipeStatusTypes.AVAILABLE
 }
+
+func (pe *MockProcessEvaluator) FindProcess(process string) bool {
+	return false
+}

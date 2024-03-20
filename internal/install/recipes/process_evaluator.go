@@ -8,13 +8,13 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
 
-	//"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 type ProcessEvaluatorInterface interface {
 	GetOrLoadProcesses(ctx context.Context) []types.GenericProcess
 	DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType
+	FindProcess(process string) bool
 }
 
 type ProcessEvaluator struct {
@@ -87,4 +87,14 @@ func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIn
 	}
 
 	return execution.RecipeStatusTypes.AVAILABLE
+}
+
+func (pe *ProcessEvaluator) FindProcess(process string) bool {
+	for _, p := range pe.cachedProcess {
+		name, _ := p.Name()
+		if name == process {
+			return true
+		}
+	}
+	return false
 }

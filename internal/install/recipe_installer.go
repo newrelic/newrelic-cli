@@ -25,7 +25,8 @@ import (
 )
 
 const (
-	validationTimeout = 5 * time.Minute
+	validationTimeout        = 5 * time.Minute
+	SUPER_AGENT_PROCESS_NAME = "newrelic-super-agent"
 )
 
 var infraAgentEntityKey string
@@ -208,6 +209,10 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 		log.Debug(err)
 		return err
 	}
+
+	// Check if super-agent process is already running on host
+	SuperAgentProcessOnHost := i.processEvaluator.FindProcess(SUPER_AGENT_PROCESS_NAME)
+	log.Debugf("super agent running: %t\n", SuperAgentProcessOnHost)
 
 	hostname, _ := os.Hostname()
 	if hostname == "" {
