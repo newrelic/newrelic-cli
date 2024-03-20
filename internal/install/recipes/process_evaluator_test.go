@@ -57,3 +57,21 @@ func GivenProcessEvaluator() *ProcessEvaluator {
 	processEvaluator := newProcessEvaluator(finder, AnyProcesses, false)
 	return processEvaluator
 }
+
+func TestProcessEvaluatorShouldFailFindingNonExistingProcess(t *testing.T) {
+	pe := NewProcessEvaluator()
+	p := NewMockProcess("/bin/process-a", "process-a", 1234)
+	pe.cachedProcess = append(pe.cachedProcess, p)
+
+	found := pe.FindProcess("process-b")
+	require.Equal(t, false, found)
+}
+
+func TestProcessEvaluatorShouldSucceedFindingExistingProcess(t *testing.T) {
+	pe := NewProcessEvaluator()
+	p := NewMockProcess("/bin/process-a", "process-a", 1234)
+	pe.cachedProcess = append(pe.cachedProcess, p)
+
+	found := pe.FindProcess("process-a")
+	require.Equal(t, true, found)
+}
