@@ -211,8 +211,8 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 	}
 
 	// Check if super-agent process is already running on host
-	SuperAgentProcessOnHost := i.processEvaluator.FindProcess(SuperAgentProcessName)
-	log.Debugf("super agent running: %t\n", SuperAgentProcessOnHost)
+	superAgentProcessOnHost := i.processEvaluator.FindProcess(SuperAgentProcessName)
+	log.Debugf("super agent running: %t\n", superAgentProcessOnHost)
 
 	hostname, _ := os.Hostname()
 	if hostname == "" {
