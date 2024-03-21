@@ -12,6 +12,10 @@ import (
 	"github.com/newrelic/newrelic-client-go/v2/pkg/entities"
 )
 
+var (
+	entitySearchCaseSensitive bool
+)
+
 var cmdEntitySearch = &cobra.Command{
 	Use:   "search",
 	Short: "Search for New Relic entities",
@@ -19,7 +23,7 @@ var cmdEntitySearch = &cobra.Command{
 
 The search command performs a search for New Relic entities.
 `,
-	Example: "newrelic entity search --name <applicationName>",
+	Example: "newrelic entity search --name=<applicationName> --type=APM",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && entityTags == nil {
@@ -28,13 +32,22 @@ The search command performs a search for New Relic entities.
 		}
 
 		tags, err := entities.ConvertTagsToMap(entityTags)
-		utils.LogIfError(err) // []map[string]string{} // TODO: need to add new argument --entityTags that supports a list of tags
+		utils.LogIfError(err)
 
-		query := entities.BuildEntitySearchQuery(entityName, entityDomain, entityType, tags)
+		searchParams := entities.EntitySearchParams{
+			Name:            entityName,
+			Domain:          entityDomain,
+			Type:            entityType,
+			AlertSeverity:   entityAlertSeverity,
+			Tags:            tags,
+			IsCaseSensitive: entitySearchCaseSensitive,
+		}
+
+		query := entities.BuildEntitySearchNrqlQuery(searchParams)
 
 		results, err := client.NRClient.Entities.GetEntitySearchByQueryWithContext(context.Background(),
 			entities.EntitySearchOptions{
-				CaseSensitiveTagMatching: false, // TODO: add new flag for this
+				CaseSensitiveTagMatching: entitySearchCaseSensitive,
 			},
 			query,
 			[]entities.EntitySearchSortCriteria{},
@@ -85,4 +98,5 @@ func init() {
 	cmdEntitySearch.Flags().StringVar(&entityTag, "tag", "", "search for entities matching the given entity tag")
 	cmdEntitySearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "filter search results to only return certain fields for each search result")
 	cmdEntitySearch.Flags().StringSliceVar(&entityTags, "tags", []string{}, "the entity tags to include as search parameters in the format tagKey1:tagValue1,tagKey2:tagValue2")
+	cmdEntitySearch.Flags().BoolVar(&entitySearchCaseSensitive, "case-sensitive", false, "whether or not to use a case-sensitive search for the entity name")
 }
