@@ -18,7 +18,9 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.3
@@ -30,7 +32,9 @@ jobs:
           path: .\dist\newrelic_windows_amd64_v1
 
       - name: Compile installer
-        run: msbuild .\build\package\msi\NewRelicCLIInstaller.sln
+        run: |
+          $LATEST_VERSION = git describe --tags --abbrev=0 | ForEach-Object { $_ -replace 'v', '' }
+          msbuild .\build\package\msi\NewRelicCLIInstaller.sln -p:Version=$LATEST_VERSION
 
       - name: Create PFX certificate
         id: create-pfx
@@ -90,4 +94,3 @@ jobs:
           asset_path: .\scripts\install.ps1
           asset_name: install.ps1
           asset_content_type: application/octet-stream
-
