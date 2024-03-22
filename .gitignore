@@ -15,7 +15,6 @@ Release/*
 build/package/chocolatey/tools/LICENSE.txt
 build/package/chocolatey/*.bak
 schema.json
-Dockerfile
 
 # Embedded recipe files
 internal/install/recipes/files/**/*
