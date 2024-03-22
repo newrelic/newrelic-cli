@@ -3,13 +3,15 @@
 RED="\033[0;31m"
 END_COLOR="\033[0m"
 
-echo
-echo "Begin pre-commit hook..."
+commit_types="(chore|docs|feat|fix|refactor|tests?)"
+conventional_commit_regex="^${commit_types}(\([a-z \-]+\))?!?: .+$"
 
-make lint-commit COMMIT_MSG_FILE=$1
+commit_message=$(cat "$1")
 
-exitCode=$?
-if [ $exitCode -ne 0 ]; then
+if [[ "$commit_message" =~ $conventional_commit_regex ]]; then
+   echo -e "Commit message meets Conventional Commit standards..."
+   exit 0
+fi
     echo
     echo "${RED}Commit lint failed. Please update your commit message format. ${END_COLOR}"
     echo "Example commit messages:"
@@ -20,6 +22,5 @@ if [ $exitCode -ne 0 ]; then
     echo "  refactor(scope): add your refactor description here"
     echo "  tests(scope): add your tests description here"
     echo
-fi
 
-exit $exitCode
+exit 1
