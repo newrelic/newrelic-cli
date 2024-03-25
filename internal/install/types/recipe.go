@@ -13,6 +13,7 @@ const (
 	LoggingRecipeName           = "logs-integration"
 	LoggingSuperAgentRecipeName = "logs-integration-super-agent"
 	GoldenRecipeName            = "alerts-golden-signal"
+	SuperAgentRecipeName        = "super-agent"
 )
 
 var RecipeVariables = map[string]string{}
