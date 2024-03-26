@@ -1,15 +1,5 @@
-<a name="v0.79.0"></a>
-## [v0.79.0] - 2024-03-26
-### Bug Fixes
-- **deps:** remove go-gitlint ([#1575](https://github.com/newrelic/newrelic-cli/issues/1575))
-- **msi:** pass latest git tag as version
-
-### Features
-- **install:** Do not simultaneously install infra and super agents ([#1577](https://github.com/newrelic/newrelic-cli/issues/1577))
-- **install:** Detect super-agent is already running on host ([#1572](https://github.com/newrelic/newrelic-cli/issues/1572))
-
 <a name="v0.78.17"></a>
-## [v0.78.17] - 2024-03-07
+## [v0.78.17] - 2024-03-01
 <a name="v0.78.16"></a>
 ## [v0.78.16] - 2024-03-01
 ### Bug Fixes
@@ -2230,8 +2220,7 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.79.0...HEAD
-[v0.79.0]: https://github.com/newrelic/newrelic-cli/compare/v0.78.17...v0.79.0
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.78.17...HEAD
 [v0.78.17]: https://github.com/newrelic/newrelic-cli/compare/v0.78.16...v0.78.17
 [v0.78.16]: https://github.com/newrelic/newrelic-cli/compare/v0.78.15...v0.78.16
 [v0.78.15]: https://github.com/newrelic/newrelic-cli/compare/v0.78.14...v0.78.15
