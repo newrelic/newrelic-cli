@@ -25,20 +25,16 @@ jobs:
       - name: Output latest tag
         id: latest-tag
         run: |
-          tag=$(git describe --tags --abbrev=0)
+          $tag = git describe --tags --abbrev=0
 
-          echo " "
-          echo "Latest tag - before: ${tag}"
-          echo " "
+          Write-Host "Latest tag - before: $tag"
 
           git fetch origin
           git fetch --tags
 
-          latestTag=$(git describe --tags --abbrev=0)
+          $latestTag = git describe --tags --abbrev=0
 
-          echo " "
-          echo "Latest tag - after:  ${latestTag}"
-          echo " "
+          Write-Host "Latest tag - after: $latestTag"
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.3
@@ -52,6 +48,7 @@ jobs:
       - name: Compile installer
         run: |
           $LATEST_VERSION = git describe --tags --abbrev=0 | ForEach-Object { $_ -replace 'v', '' }
+          Write-Host "(Compile installer) Latest version $LATEST_VERSION"
           msbuild .\build\package\msi\NewRelicCLIInstaller.sln -p:Version=$LATEST_VERSION
 
       - name: Create PFX certificate
