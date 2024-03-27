@@ -22,6 +22,24 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Output latest tag
+        id: latest-tag
+        run: |
+          tag=$(git describe --tags --abbrev=0)
+
+          echo " "
+          echo "Latest tag - before: ${tag}"
+          echo " "
+
+          git fetch origin
+          git fetch --tags
+
+          latestTag=$(git describe --tags --abbrev=0)
+
+          echo " "
+          echo "Latest tag - after:  ${latestTag}"
+          echo " "
+
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.3
 
