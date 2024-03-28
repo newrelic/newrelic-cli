@@ -1,3 +1,8 @@
+<a name="v0.81.0"></a>
+## [v0.81.0] - 2024-03-28
+### Features
+- **regression-tests:** adding manually dispatched GHA for EU end-to-end testing
+
 <a name="v0.80.3"></a>
 ## [v0.80.3] - 2024-03-28
 <a name="v0.80.2"></a>
@@ -2242,7 +2247,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.80.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.81.0...HEAD
+[v0.81.0]: https://github.com/newrelic/newrelic-cli/compare/v0.80.3...v0.81.0
 [v0.80.3]: https://github.com/newrelic/newrelic-cli/compare/v0.80.2...v0.80.3
 [v0.80.2]: https://github.com/newrelic/newrelic-cli/compare/v0.80.1...v0.80.2
 [v0.80.1]: https://github.com/newrelic/newrelic-cli/compare/v0.80.0...v0.80.1
