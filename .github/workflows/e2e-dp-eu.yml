@@ -1,0 +1,222 @@
+name: End to end testing (EU) (inactive)
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches: [main]
+#  pull_request:
+#    branches: [main]
+#  workflow_run:
+#    workflows: ["Release"]
+#    types: [requested]
+
+jobs:
+  get-test-definition-files:
+    name: Get Test Definition Files
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.get-test-definition-files.outputs.result }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          repository: newrelic/open-install-library
+          path: open-install-library
+
+      - name: Get Test Definition Files
+        id: get-test-definition-files
+        uses: actions/github-script@v3
+        with:
+          script: |
+            const fs = require("fs");
+            const fsp = fs.promises;
+            const path = require("path");
+
+            // readdir recursive directory search
+            const { readdir } = fsp;
+            async function getFiles(dir) {
+              const dirents = await readdir(dir, { withFileTypes: true });
+              const files = await Promise.all(
+                dirents.map((dirent) => {
+                  const res = path.join(dir, dirent.name);
+                  return dirent.isDirectory() ? getFiles(res) : res;
+                })
+              );
+              return Array.prototype.concat(...files);
+            }
+
+            const testDefinitions = await getFiles(`${process.env.GITHUB_WORKSPACE}/open-install-library/test/definitions-eu/smoke`);
+
+            const outputTestFilesMap = testDefinitions
+              .map((testDefinitionFile) => {
+                return {
+                  testDefinitionFile,
+                  testDisplayName: testDefinitionFile.split("/").pop(),
+                  testDefinitionSuffix: `/test/definitions-eu/smoke/${testDefinitionFile.split("/").pop()}`
+                };
+              });
+            const output = {
+              include: outputTestFilesMap,
+            };
+            console.log(output);
+            return output;
+
+  validate:
+    name: ${{ matrix.testDisplayName }}
+    needs: [get-test-definition-files]
+    if: ${{ fromJSON(needs.get-test-definition-files.outputs.matrix).include[0] }} # Avoids empty matrix validation error
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJSON(needs.get-test-definition-files.outputs.matrix) }}
+      fail-fast: false
+    env:
+      MATRIX: ${{ toJSON(matrix) }}
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19.x
+
+      - name: Add GOBIN to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          repository: newrelic/open-install-library
+          path: open-install-library
+
+      - name: Install Snapcraft
+        uses: samuelmeuli/action-snapcraft@v2
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+      - name: Install PGP private key
+        shell: bash
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+        run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+
+      - name: Compile all distros
+        continue-on-error: true
+        env:
+          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
+          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+        # Creating the Snapcraft directories ahead of the snapshot is a workaround
+        # to deal with a race condition with parallel builds between distros.
+        #
+        # https://github.com/goreleaser/goreleaser/issues/1715#issuecomment-667002748
+        run: |
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+          make snapshot
+
+      # Inject newrelic cli path to any of the smoke tests
+      - name: Add newrelic cli path to smoke tests
+        id: add-newrelic-cli-path-smoke-tests
+        uses: actions/github-script@v6
+        continue-on-error: false
+        env:
+          TEST_DEFINITION_FILE: ${{ matrix.testDefinitionFile }}
+        with:
+          script: |
+            const fs = require('fs');
+            const fsp = fs.promises;
+            const path = require('path');
+
+            // readdir recursive directory search
+            const { resolve } = path;
+            const { readdir } = fsp;
+
+            const newrelic_cli_linux_amd64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_amd64_v1/newrelic`;
+            const newrelic_cli_linux_amd64_docker_path = `/mnt/deployer/dist/newrelic_linux_amd64_v1/newrelic`;
+            console.log(`Using cli linux source path ${newrelic_cli_linux_amd64_source_path}`);
+            if (!fs.existsSync(newrelic_cli_linux_amd64_source_path)) {
+              throw new Error(`The newrelic cli amd64 source does NOT exist ${newrelic_cli_linux_amd64_source_path}`);
+            }
+
+            const newrelic_cli_linux_arm64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_arm64/newrelic`;
+            const newrelic_cli_linux_arm64_docker_path = `/mnt/deployer/dist/newrelic_linux_arm64/newrelic`;
+            console.log(`Using cli linux source path ${newrelic_cli_linux_arm64_source_path}`);
+            if (!fs.existsSync(newrelic_cli_linux_arm64_source_path)) {
+              throw new Error(`The newrelic cli arm64 source does NOT exist ${newrelic_cli_linux_arm64_source_path}`);
+            }
+
+            const newrelic_cli_windows_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_windows_amd64_v1/newrelic.exe`;
+            const newrelic_cli_windows_docker_path = `/mnt/deployer/dist/newrelic_windows_amd64_v1/newrelic.exe`;
+            console.log(`Using cli windows source path ${newrelic_cli_windows_source_path}`);
+            if (!fs.existsSync(newrelic_cli_windows_source_path)) {
+              throw new Error(`The newrelic cli windows source does NOT exist ${newrelic_cli_windows_source_path}`);
+            }
+
+            // Get testDefinitionFile from MATRIX env var
+            const testDefinitionFile = process.env.TEST_DEFINITION_FILE;
+            console.log(`Detected Deploy Config: ${JSON.stringify(testDefinitionFile, null, 2)}`)
+
+            const jsonData = require(testDefinitionFile);
+            var isUpdated = false
+            var isWindows = false
+            var isArm64 = false
+
+            if (jsonData.resources) {
+              jsonData.resources.forEach(resource => {
+                if (resource.is_windows) {
+                  isWindows = true;
+                }
+                if (!!resource.ami_name && resource.ami_name.toLowerCase().includes("arm64")) {
+                  isArm64 = true;
+                }
+              });
+            }
+
+            if (jsonData.instrumentations) {
+              if (jsonData.instrumentations.resources) {
+                jsonData.instrumentations.resources.forEach(resource => {
+                  if (resource.params) {
+                    isUpdated = true;
+                    resource.params.newrelic_cli_path = `${newrelic_cli_linux_amd64_docker_path}`;
+                    if (isWindows) {
+                      resource.params.newrelic_cli_path = `${newrelic_cli_windows_docker_path}`;
+                    }
+                    else if (isArm64) {
+                      resource.params.newrelic_cli_path = `${newrelic_cli_linux_arm64_docker_path}`;
+                    }
+                  }
+                });
+              }
+            }
+
+            if (isUpdated) {
+              // Write file back to workspace
+              let jsonContent = JSON.stringify(jsonData, null, 2);
+              console.log("Updated Deploy Config File: ", testDefinitionFile);
+              console.log("Deploy Config content: ", jsonContent);
+              const outputPath = `${testDefinitionFile}`;
+              fs.writeFileSync(outputPath, jsonContent);
+            }
+
+            return testDefinitionFile;
+
+      - name: Install npm dependencies for deployer test runner
+        working-directory: ${{ github.workspace }}/.github/scripts
+        run: npm install
+
+      - name: Execute test
+        working-directory: ${{ github.workspace }}/.github/scripts
+        run: node main.js
+        env:
+          TEST_DEFINITION_URL: https://raw.githubusercontent.com/newrelic/open-install-library/main${{ matrix.testDefinitionSuffix }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.DEPLOYER_PLATFORM_EU_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DEPLOYER_PLATFORM_EU_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.DEPLOYER_PLATFORM_EU_AWS_REGION }}
+          SQS_URL: ${{ secrets.DEPLOYER_PLATFORM_EU_SQS_URL }}
+          DYNAMO_TABLE: ${{ secrets.DEPLOYER_PLATFORM_EU_DYNAMO_TABLE }}
+
+      - name: Report any error
+        if: steps.deployerRun.outputs.exit_status != 0
+        run: exit 1
