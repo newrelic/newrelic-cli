@@ -47,7 +47,7 @@ jobs:
 
       - name: Compile installer
         run: |
-          $LATEST_VERSION = git git describe --tags $(git rev-list --tags --max-count=1) | ForEach-Object { $_ -replace 'v', '' }
+          $LATEST_VERSION = git describe --tags $(git rev-list --tags --max-count=1) | ForEach-Object { $_ -replace 'v', '' }
           Write-Host "(Compile installer) Latest version $LATEST_VERSION"
           msbuild .\build\package\msi\NewRelicCLIInstaller.sln -p:Version=$LATEST_VERSION
 
