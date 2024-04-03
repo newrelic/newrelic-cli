@@ -23,7 +23,7 @@ var cmdEntitySearch = &cobra.Command{
 
 The search command performs a search for New Relic entities.
 `,
-	Example: "newrelic entity search --name=<applicationName> --type=APM",
+	Example: "newrelic entity search --name=<name> --type=<type> --domain=<domain> --tags=tagKey1:tagValue2,tagKey2:tagValue2",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && entityTags == nil {
@@ -90,13 +90,13 @@ func mapEntities(entities []entities.EntityOutlineInterface, fields []string, fn
 
 func init() {
 	Command.AddCommand(cmdEntitySearch)
-	cmdEntitySearch.Flags().StringVarP(&entityName, "name", "n", "", "search for entities matching the given name")
-	cmdEntitySearch.Flags().StringVarP(&entityType, "type", "t", "", "search for entities matching the given type")
-	cmdEntitySearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "s", "", "search for entities matching the given alert severity type")
-	cmdEntitySearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "search for entities based on whether or not an entity is reporting (true or false)")
-	cmdEntitySearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "search for entities matching the given entity domain")
-	cmdEntitySearch.Flags().StringVar(&entityTag, "tag", "", "search for entities matching the given entity tag")
-	cmdEntitySearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "filter search results to only return certain fields for each search result")
-	cmdEntitySearch.Flags().StringSliceVar(&entityTags, "tags", []string{}, "the entity tags to include as search parameters in the format tagKey1:tagValue1,tagKey2:tagValue2")
-	cmdEntitySearch.Flags().BoolVar(&entitySearchCaseSensitive, "case-sensitive", false, "whether or not to use a case-sensitive search for the entity name")
+	cmdEntitySearch.Flags().StringVarP(&entityName, "name", "n", "", "Search for entities matching the given name")
+	cmdEntitySearch.Flags().StringVarP(&entityType, "type", "t", "", "Search for entities matching the given type")
+	cmdEntitySearch.Flags().StringVarP(&entityDomain, "domain", "d", "", "Search for entities matching the given entity domain")
+	cmdEntitySearch.Flags().StringVarP(&entityAlertSeverity, "alert-severity", "s", "", "Search for entities matching the given alert severity type")
+	cmdEntitySearch.Flags().StringVarP(&entityReporting, "reporting", "r", "", "Search for entities based on whether or not an entity is reporting (true or false)")
+	cmdEntitySearch.Flags().StringVar(&entityTag, "tag", "", "Search for entities matching the given entity tag")
+	cmdEntitySearch.Flags().StringSliceVar(&entityTags, "tags", []string{}, "Entity tags to include as search parameters in the format tagKey1:tagValue1,tagKey2:tagValue2")
+	cmdEntitySearch.Flags().BoolVar(&entitySearchCaseSensitive, "case-sensitive", false, "Flag to enable case-sensitive search for the entity name")
+	cmdEntitySearch.Flags().StringSliceVarP(&entityFields, "fields-filter", "f", []string{}, "Filter search results to only return certain fields for each search result")
 }
