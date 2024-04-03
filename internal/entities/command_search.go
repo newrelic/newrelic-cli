@@ -26,7 +26,7 @@ The search command performs a search for New Relic entities.
 	Example: "newrelic entity search --name=<name> --type=<type> --domain=<domain> --tags=tagKey1:tagValue2,tagKey2:tagValue2",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && entityTags == nil {
+		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && len(entityTags) == 0 {
 			utils.LogIfError(cmd.Help())
 			log.Fatal("one of --name, --type, --alert-severity, --domain, or --tags is required")
 		}
