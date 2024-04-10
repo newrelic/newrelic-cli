@@ -2,6 +2,7 @@ package entities
 
 import (
 	"context"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -26,9 +27,9 @@ The search command performs a search for New Relic entities.
 	Example: "newrelic entity search --name=<name> --type=<type> --domain=<domain> --tags=tagKey1:tagValue2,tagKey2:tagValue2",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && len(entityTags) == 0 {
+		if entityName == "" && entityType == "" && entityAlertSeverity == "" && entityDomain == "" && len(entityTags) == 0 && entityReporting == "" {
 			utils.LogIfError(cmd.Help())
-			log.Fatal("one of --name, --type, --alert-severity, --domain, or --tags is required")
+			log.Fatal("one of --name, --type, --alert-severity, --domain, --reporting, or --tags is required")
 		}
 
 		tags, err := entities.ConvertTagsToMap(entityTags)
@@ -41,6 +42,12 @@ The search command performs a search for New Relic entities.
 			AlertSeverity:   entityAlertSeverity,
 			Tags:            tags,
 			IsCaseSensitive: entitySearchCaseSensitive,
+		}
+
+		if entityReporting != "" {
+			r, err := strconv.ParseBool(entityReporting)
+			utils.LogIfFatal(err)
+			searchParams.IsReporting = &r
 		}
 
 		query := entities.BuildEntitySearchNrqlQuery(searchParams)
