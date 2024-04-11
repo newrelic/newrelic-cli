@@ -45,7 +45,8 @@ The search command performs a search for New Relic entities.
 		}
 
 		if entityReporting != "" {
-			r, err := strconv.ParseBool(entityReporting)
+			var r bool
+			r, err = strconv.ParseBool(entityReporting)
 			utils.LogIfFatal(err)
 			searchParams.IsReporting = &r
 		}
