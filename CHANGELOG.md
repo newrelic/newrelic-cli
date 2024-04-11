@@ -1,3 +1,10 @@
+<a name="v0.82.0"></a>
+## [v0.82.0] - 2024-04-11
+### Features
+- **entities:** implement case-sensitive search option
+- **entities:** allow search with multiple tags
+- **entities:** upgrade entity search to support more entity types and options
+
 <a name="v0.81.0"></a>
 ## [v0.81.0] - 2024-03-28
 ### Features
@@ -2247,7 +2254,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.81.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.82.0...HEAD
+[v0.82.0]: https://github.com/newrelic/newrelic-cli/compare/v0.81.0...v0.82.0
 [v0.81.0]: https://github.com/newrelic/newrelic-cli/compare/v0.80.3...v0.81.0
 [v0.80.3]: https://github.com/newrelic/newrelic-cli/compare/v0.80.2...v0.80.3
 [v0.80.2]: https://github.com/newrelic/newrelic-cli/compare/v0.80.1...v0.80.2
