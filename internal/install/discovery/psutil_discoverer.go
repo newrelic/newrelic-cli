@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -22,6 +23,10 @@ func (p *PSUtilDiscoverer) Discover(ctx context.Context) (*types.DiscoveryManife
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Print("\n****************************\n")
+	fmt.Printf("\n InfoWithContext:  %+v \n", i)
+	fmt.Print("\n****************************\n")
 
 	m := types.DiscoveryManifest{
 		Hostname:        i.Hostname,

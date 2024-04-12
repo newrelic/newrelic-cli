@@ -23,6 +23,11 @@ func NewOsValidator() *OsValidator {
 }
 
 func (v *OsValidator) Validate(m *types.DiscoveryManifest) error {
+
+	fmt.Print("\n****************************\n")
+	fmt.Printf("\n OS Validator:  %+v \n", m)
+	fmt.Print("\n****************************\n")
+
 	if m.OS == "" {
 		return fmt.Errorf(noOperatingSystemDetected)
 	}
@@ -31,5 +36,6 @@ func (v *OsValidator) Validate(m *types.DiscoveryManifest) error {
 		strings.ToLower(m.OS) == "darwin") {
 		return fmt.Errorf(operatingSystemNotSupportedFormat, m.OS)
 	}
+
 	return nil
 }
