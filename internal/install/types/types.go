@@ -38,6 +38,8 @@ var OpenInstallationPlatformTypes = struct {
 	UBUNTU OpenInstallationPlatform
 	// Rocky operating system
 	ROCKY OpenInstallationPlatform
+	// AlmaLinux operating system
+	ALMALINUX OpenInstallationPlatform
 }{
 	// Amazon Linux operating system
 	AMAZON: "AMAZON",
@@ -51,8 +53,10 @@ var OpenInstallationPlatformTypes = struct {
 	SUSE: "SUSE",
 	// Ubuntu operating system
 	UBUNTU: "UBUNTU",
-	// Rocky operating system (CentOS)
+	// Rocky operating system (RedHat)
 	ROCKY: "ROCKY",
+	// AlmaLinux operating system (RedHat)
+	ALMALINUX: "ALMALINUX",
 }
 
 // OpenInstallationPlatformFamily - Operating System distribution family
