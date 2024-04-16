@@ -5,7 +5,7 @@ on: [ workflow_dispatch ]
 jobs:
   createPullRequest:
     runs-on: ubuntu-latest
-    container: golang:1.19-bullseye
+    container: golang:1.22-bullseye
     steps:
       - uses: actions/checkout@v2
 
