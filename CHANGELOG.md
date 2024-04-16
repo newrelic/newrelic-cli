@@ -1,3 +1,9 @@
+<a name="v0.82.1"></a>
+## [v0.82.1] - 2024-04-15
+### Bug Fixes
+- **install:** add AlmaLinux as valid OS platform type
+- **install:** add Rocky as valid OS platform type
+
 <a name="v0.82.0"></a>
 ## [v0.82.0] - 2024-04-11
 ### Features
@@ -2254,7 +2260,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.82.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.82.1...HEAD
+[v0.82.1]: https://github.com/newrelic/newrelic-cli/compare/v0.82.0...v0.82.1
 [v0.82.0]: https://github.com/newrelic/newrelic-cli/compare/v0.81.0...v0.82.0
 [v0.81.0]: https://github.com/newrelic/newrelic-cli/compare/v0.80.3...v0.81.0
 [v0.80.3]: https://github.com/newrelic/newrelic-cli/compare/v0.80.2...v0.80.3
