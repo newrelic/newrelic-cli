@@ -35,11 +35,14 @@ linters-settings:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
     line-length: 150
+  revive:
+    rules:
+      - name: unused-parameter
+        disabled: true
 
 linters:
   disable-all: true
   enable:
-    - deadcode
     - errcheck
     - gocyclo
     - gofmt
@@ -48,11 +51,8 @@ linters:
     - govet
     - ineffassign
     - misspell
-#    - staticcheck
-    - structcheck
     - unconvert
     - unused
-    - varcheck
     - vet
 
 issues:
