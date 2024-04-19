@@ -27,8 +27,8 @@ require (
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
-	golang.org/x/net v0.19.0
-	golang.org/x/term v0.15.0
+	golang.org/x/net v0.23.0
+	golang.org/x/term v0.18.0
 	gopkg.in/segmentio/analytics-go.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
