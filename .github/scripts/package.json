@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@actions/core": "1.2.6",
+    "@actions/core": "1.9.1",
     "@aws-sdk/client-sqs": "3.27.0",
     "@aws-sdk/client-dynamodb": "3.27.0",
     "@aws-sdk/util-dynamodb": "3.27.0",
