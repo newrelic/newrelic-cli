@@ -1,5 +1,10 @@
+<a name="v0.83.0"></a>
+## [v0.83.0] - 2024-04-22
+### Features
+- **build:** upgrade to Go v1.21 :sparkles:
+
 <a name="v0.82.1"></a>
-## [v0.82.1] - 2024-04-15
+## [v0.82.1] - 2024-04-16
 ### Bug Fixes
 - **install:** add AlmaLinux as valid OS platform type
 - **install:** add Rocky as valid OS platform type
@@ -2260,7 +2265,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.82.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.83.0...HEAD
+[v0.83.0]: https://github.com/newrelic/newrelic-cli/compare/v0.82.1...v0.83.0
 [v0.82.1]: https://github.com/newrelic/newrelic-cli/compare/v0.82.0...v0.82.1
 [v0.82.0]: https://github.com/newrelic/newrelic-cli/compare/v0.81.0...v0.82.0
 [v0.81.0]: https://github.com/newrelic/newrelic-cli/compare/v0.80.3...v0.81.0
