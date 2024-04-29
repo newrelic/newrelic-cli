@@ -7,6 +7,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/install"
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -58,6 +60,8 @@ func (b *Bundler) getCoreRecipeNames() []string {
 	return coreRecipeNames
 }
 
+// TODO: Add doc for the following function
+// dependency match - agent running
 func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	bundle := &Bundle{Type: bType}
 
@@ -65,14 +69,22 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
 			var bundleRecipe *BundleRecipe
 			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
-				dep := updateDependency(dualDep, recipes)
+				dep := b.updateDependency(dualDep, recipes)
 				if dep != nil {
 					d.Recipe.Dependencies = dep
 				} else {
 					log.Debugf("could not process update for dual dependency: %s", dualDep)
 				}
 			}
+
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
+
+			for _, g := range bundleRecipe.Dependencies {
+				if g.Recipe.Name == types.SuperAgentRecipeName {
+					log.Debugf("Super agent recipe is detected in the bundle as a dependency for recipe: %s", bundleRecipe.Recipe.Name)
+				}
+			}
+
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
@@ -83,6 +95,10 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	return bundle
 }
 
+// getBundleRecipeWithDependencies retrieves a bundle recipe with its resolved dependencies.
+// Parameters: recipe (types.OpenInstallationRecipe): The OpenInstallationRecipe object representing the bundle recipe.
+// Returns: *BundleRecipe: A pointer to a BundleRecipe object containing the recipe and its resolved dependencies,
+// or nil if there are missing dependencies or errors.
 func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe) *BundleRecipe {
 	if br, ok := b.cachedBundleRecipes[recipe.Name]; ok {
 		return br
@@ -145,10 +161,11 @@ func detectDependencies(deps []string) (string, bool) {
 // recipes (e.g.: newrelic install -n recipe-a,recipe-c). If none of the recipe's dependency in the form 'recipe-a || recipe-b' are found
 // in the targeted recipes, the first one of those in that same form 'recipe-a || recipe-b' is used. The final result is that recipe's
 // dependency will change from the form 'recipe-a || recipe-b' to, for example, 'recipe-a' only.
-func updateDependency(dualDep string, recipes []string) []string {
+func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 	var (
 		deps      []string
 		splitDeps = strings.Split(dualDep, `||`)
+		r         = NewProcessEvaluator()
 	)
 
 	if len(splitDeps) <= 1 {
@@ -157,6 +174,12 @@ func updateDependency(dualDep string, recipes []string) []string {
 
 	for _, dep := range splitDeps {
 		dep = strings.TrimSpace(dep)
+		// TODO: Update the doc
+		if strings.EqualFold(dep, "super-agent") && r.FindProcess(types.SuperAgentProcessName) {
+			deps = []string{"super-agent"}
+			b.cachedBundleRecipes[dep].AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
+			break
+		}
 		if utils.StringInSlice(dep, recipes) {
 			deps = []string{dep}
 			break

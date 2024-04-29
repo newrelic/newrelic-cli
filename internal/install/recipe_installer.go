@@ -25,8 +25,7 @@ import (
 )
 
 const (
-	validationTimeout     = 5 * time.Minute
-	superAgentProcessName = "newrelic-super-agent"
+	validationTimeout = 5 * time.Minute
 )
 
 var infraAgentEntityKey string
@@ -211,7 +210,7 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 	}
 
 	// Check if super-agent process is already running on host
-	superAgentProcessOnHost := i.processEvaluator.FindProcess(superAgentProcessName)
+	superAgentProcessOnHost := i.processEvaluator.FindProcess(types.SuperAgentProcessName)
 	log.Debugf("super agent running: %t\n", superAgentProcessOnHost)
 
 	hostname, _ := os.Hostname()
@@ -333,13 +332,21 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	bundler := i.bundlerFactory(ctx, availableRecipes)
 	bundleInstaller := i.bundleInstallerFactory(ctx, m, i, i.status)
+	var hasSuperAgent bool
+	if i.processEvaluator.FindProcess(types.SuperAgentProcessName) {
+		// TODO: check for the dependecies
+		log.Debugf("super agent process found, skipping CORE")
+		hasSuperAgent = true
+	} else {
+		log.Debugf("Super agent process not found. Proceeding with installation.")
+	}
 
-	cbErr := i.installCoreBundle(bundler, bundleInstaller)
+	cbErr := i.installCoreBundle(bundler, bundleInstaller, hasSuperAgent)
 	if cbErr != nil {
 		return cbErr
 	}
 
-	abErr := i.installAdditionalBundle(bundler, bundleInstaller, repo)
+	abErr := i.installAdditionalBundle(bundler, bundleInstaller, repo, hasSuperAgent)
 	if abErr != nil {
 		return abErr
 	}
@@ -413,8 +420,11 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 	return false
 }
 
-func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
+func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository, hasSuperAgentInstalled bool) error {
 	var additionalBundle *recipes.Bundle
+	if hasSuperAgentInstalled {
+		// FIXME: Provide the logic for the super agent present case
+	}
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
 		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
@@ -439,7 +449,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	return nil
 }
 
-func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller) error {
+func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, hasSuperAgentInstalled bool) error {
 	if i.shouldInstallCore() {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)

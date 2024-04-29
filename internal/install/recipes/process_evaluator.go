@@ -2,7 +2,6 @@ package recipes
 
 import (
 	"context"
-
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 
 	"github.com/shirou/gopsutil/v3/process"
@@ -85,6 +84,10 @@ func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIn
 		log.Tracef("recipe %s is not matching any process", r.Name)
 		return execution.RecipeStatusTypes.NULL
 	}
+	//if pe.FindProcess(install.SuperAgentProcessName){
+	//	log.Debugf("Found super agent running on the host")
+	//	return execution.RecipeStatusTypes.INSTALLED
+	//}
 
 	return execution.RecipeStatusTypes.AVAILABLE
 }

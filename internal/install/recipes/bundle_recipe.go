@@ -27,6 +27,7 @@ func (br *BundleRecipe) AddDetectionStatus(newStatus execution.RecipeStatusType,
 	br.DetectedStatuses = append(br.DetectedStatuses, &DetectedStatusType{Status: newStatus, DurationMs: durationMs})
 }
 
+
 func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	for _, detectedStatus := range br.DetectedStatuses {
 		if detectedStatus.Status == status {
