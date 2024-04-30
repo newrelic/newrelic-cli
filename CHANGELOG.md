@@ -1,3 +1,8 @@
+<a name="v0.84.2"></a>
+## [v0.84.2] - 2024-04-30
+### Bug Fixes
+- **release:** new PFX cert
+
 <a name="v0.84.1"></a>
 ## [v0.84.1] - 2024-04-30
 <a name="v0.84.0"></a>
@@ -2272,7 +2277,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.84.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.84.2...HEAD
+[v0.84.2]: https://github.com/newrelic/newrelic-cli/compare/v0.84.1...v0.84.2
 [v0.84.1]: https://github.com/newrelic/newrelic-cli/compare/v0.84.0...v0.84.1
 [v0.84.0]: https://github.com/newrelic/newrelic-cli/compare/v0.83.0...v0.84.0
 [v0.83.0]: https://github.com/newrelic/newrelic-cli/compare/v0.82.1...v0.83.0
