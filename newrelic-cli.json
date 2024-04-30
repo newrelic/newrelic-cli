@@ -6,7 +6,7 @@
             "bin": [
                 "newrelic.exe"
             ],
-            "hash": "5b1587cac73b7188fc66f8fcd6fe33729b1f63e3983683a1ac677b4d6f4c37aa"
+            "hash": "22f5fe5938ecae5552511e1e28abb5401e28a6bf7e9fe956de322087e537fe24"
         }
     },
     "homepage": "https://github.com/newrelic/newrelic-cli",
