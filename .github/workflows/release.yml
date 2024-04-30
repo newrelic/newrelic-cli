@@ -152,6 +152,18 @@ jobs:
         id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
 
+      - name: Create currentVersion.txt
+        id: create-current-version
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "currentVersion.txt"
+          FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
+
+      - name: Upload currentVersion.txt
+        id: upload-current-version
+        run: |
+          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso --cache-control no-cache
+
       - name: Upload release artifacts to AWS
         id: upload-release-artifacts
         run: |
