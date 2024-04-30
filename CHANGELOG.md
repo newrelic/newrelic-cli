@@ -1,3 +1,8 @@
+<a name="v0.84.0"></a>
+## [v0.84.0] - 2024-04-30
+### Features
+- **build:** upgrade newrelic-client-go to 2.33.0 to fix install issues ([#1601](https://github.com/newrelic/newrelic-cli/issues/1601))
+
 <a name="v0.83.0"></a>
 ## [v0.83.0] - 2024-04-22
 ### Features
@@ -2265,7 +2270,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.83.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.84.0...HEAD
+[v0.84.0]: https://github.com/newrelic/newrelic-cli/compare/v0.83.0...v0.84.0
 [v0.83.0]: https://github.com/newrelic/newrelic-cli/compare/v0.82.1...v0.83.0
 [v0.82.1]: https://github.com/newrelic/newrelic-cli/compare/v0.82.0...v0.82.1
 [v0.82.0]: https://github.com/newrelic/newrelic-cli/compare/v0.81.0...v0.82.0
