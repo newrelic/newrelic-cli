@@ -337,6 +337,9 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		// TODO: check for the dependecies
 		log.Debugf("super agent process found, skipping CORE")
 		hasSuperAgent = true
+		if bun, ok := bundler.(*recipes.Bundler); ok {
+			bun.HasSuper = hasSuperAgent
+		}
 	} else {
 		log.Debugf("Super agent process not found. Proceeding with installation.")
 	}
@@ -422,8 +425,19 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository, hasSuperAgentInstalled bool) error {
 	var additionalBundle *recipes.Bundle
+
 	if hasSuperAgentInstalled {
-		// FIXME: Provide the logic for the super agent present case
+		// recipe name should ont be infra & logs
+		// && i.RecipeNames
+		for _, r := range i.RecipeNames {
+			if r == types.InfraAgentRecipeName || r == types.LoggingRecipeName {
+				log.Infof("Ta ta bye bye ")
+				return nil
+			}
+			if r == types.SuperAgentRecipeName {
+				// FIXME: Provide the logic for the super agent present case
+			}
+		}
 	}
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
@@ -450,7 +464,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 }
 
 func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, hasSuperAgentInstalled bool) error {
-	if i.shouldInstallCore() {
+	if i.shouldInstallCore() && !hasSuperAgentInstalled {
 		coreBundle := bundler.CreateCoreBundle()
 		log.Debugf("Core bundle recipes:%s", coreBundle)
 		err := bundleInstaller.InstallStopOnError(coreBundle, i.AssumeYes)

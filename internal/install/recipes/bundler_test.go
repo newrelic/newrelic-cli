@@ -303,6 +303,7 @@ func TestIncorrectDualDependencyReturnsFalsy(t *testing.T) {
 }
 
 func TestUpdateDependencyReturnsFirstDualDependencyThatIsInTargetedRecipes(t *testing.T) {
+	b := Bundler{}
 	type test struct {
 		dualDep string
 		recipes []string
@@ -318,7 +319,7 @@ func TestUpdateDependencyReturnsFirstDualDependencyThatIsInTargetedRecipes(t *te
 	}
 
 	for _, tc := range tests {
-		got := updateDependency(tc.dualDep, tc.recipes)
+		got := b.updateDependency(tc.dualDep, tc.recipes)
 		if !reflect.DeepEqual(tc.want, got) {
 			t.Fatalf("expected: %v, got: %v", tc.want, got)
 		}
