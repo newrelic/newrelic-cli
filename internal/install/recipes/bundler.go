@@ -2,13 +2,12 @@ package recipes
 
 import (
 	"context"
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"regexp"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install"
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -22,6 +21,7 @@ type Bundler struct {
 	AvailableRecipes    RecipeDetectionResults
 	Context             context.Context
 	cachedBundleRecipes map[string]*BundleRecipe
+	HasSuper            bool
 }
 
 func NewBundler(context context.Context, availableRecipes RecipeDetectionResults) *Bundler {
@@ -29,6 +29,7 @@ func NewBundler(context context.Context, availableRecipes RecipeDetectionResults
 		Context:             context,
 		AvailableRecipes:    availableRecipes,
 		cachedBundleRecipes: make(map[string]*BundleRecipe),
+		HasSuper:            false,
 	}
 }
 
@@ -176,7 +177,8 @@ func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 		dep = strings.TrimSpace(dep)
 		// TODO: Update the doc
 		if strings.EqualFold(dep, "super-agent") && r.FindProcess(types.SuperAgentProcessName) {
-			deps = []string{"super-agent"}
+			deps = []string{}
+			// FIXME: Uncertainity
 			b.cachedBundleRecipes[dep].AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
 			break
 		}
