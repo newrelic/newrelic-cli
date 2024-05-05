@@ -2,7 +2,6 @@ package recipes
 
 import (
 	"context"
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"regexp"
 	"strings"
 
@@ -21,7 +20,7 @@ type Bundler struct {
 	AvailableRecipes    RecipeDetectionResults
 	Context             context.Context
 	cachedBundleRecipes map[string]*BundleRecipe
-	HasSuper            bool
+	HasSuperInstalled   bool
 }
 
 func NewBundler(context context.Context, availableRecipes RecipeDetectionResults) *Bundler {
@@ -29,7 +28,7 @@ func NewBundler(context context.Context, availableRecipes RecipeDetectionResults
 		Context:             context,
 		AvailableRecipes:    availableRecipes,
 		cachedBundleRecipes: make(map[string]*BundleRecipe),
-		HasSuper:            false,
+		HasSuperInstalled:   false,
 	}
 }
 
@@ -71,6 +70,9 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 			var bundleRecipe *BundleRecipe
 			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
 				dep := b.updateDependency(dualDep, recipes)
+				if !utils.StringInSlice(dep[0], recipes) && b.HasSuperInstalled {
+					d.Recipe.Dependencies = nil
+				}
 				if dep != nil {
 					d.Recipe.Dependencies = dep
 				} else {
@@ -79,12 +81,6 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 			}
 
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
-
-			for _, g := range bundleRecipe.Dependencies {
-				if g.Recipe.Name == types.SuperAgentRecipeName {
-					log.Debugf("Super agent recipe is detected in the bundle as a dependency for recipe: %s", bundleRecipe.Recipe.Name)
-				}
-			}
 
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
@@ -164,31 +160,31 @@ func detectDependencies(deps []string) (string, bool) {
 // dependency will change from the form 'recipe-a || recipe-b' to, for example, 'recipe-a' only.
 func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 	var (
-		deps      []string
-		splitDeps = strings.Split(dualDep, `||`)
-		r         = NewProcessEvaluator()
+		splitDeps   = strings.Split(dualDep, `||`)
+		hasSuperDep bool
 	)
 
 	if len(splitDeps) <= 1 {
 		return nil
 	}
+	// TODO: Update the doc
+	for _, dep := range splitDeps {
+		dep = strings.TrimSpace(dep)
+		if dep == types.SuperAgentRecipeName {
+			hasSuperDep = true
+			break
+		}
+	}
+	if hasSuperDep && b.HasSuperInstalled {
+		return []string{types.SuperAgentRecipeName}
+	}
 
 	for _, dep := range splitDeps {
 		dep = strings.TrimSpace(dep)
-		// TODO: Update the doc
-		if strings.EqualFold(dep, "super-agent") && r.FindProcess(types.SuperAgentProcessName) {
-			deps = []string{}
-			// FIXME: Uncertainity
-			b.cachedBundleRecipes[dep].AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
-			break
-		}
 		if utils.StringInSlice(dep, recipes) {
-			deps = []string{dep}
-			break
-		} else {
-			deps = []string{strings.TrimSpace(splitDeps[0])} // Defaults to first one of 'recipe-a || recipe-b'
+			return []string{dep}
 		}
 	}
 
-	return deps
+	return []string{strings.TrimSpace(splitDeps[0])}
 }

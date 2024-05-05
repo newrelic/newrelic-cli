@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"fmt"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 
 	log "github.com/sirupsen/logrus"
 
@@ -105,6 +106,10 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
+		if utils.StringInSlice(types.SuperAgentRecipeName, recipe.Recipe.Dependencies) && recipe.HasStatus(execution.RecipeStatusTypes.INSTALLED) {
+			bi.installedRecipes[recipe.Recipe.Name] = true
+			continue
+		}
 		if bi.installedRecipes[recipe.Recipe.Name] {
 			continue
 		}
