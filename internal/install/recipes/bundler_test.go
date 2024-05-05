@@ -29,6 +29,8 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
 	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
+	// Todo: fix me
+	bundler.HasSuperInstalled = true
 	withAvailableRecipe(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
 	withAvailableRecipe(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
 	withAvailableRecipe(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE, goldenRecipe)
@@ -260,6 +262,7 @@ func newBundler(context context.Context, availableRecipes RecipeDetectionResults
 		Context:             context,
 		AvailableRecipes:    availableRecipes,
 		cachedBundleRecipes: make(map[string]*BundleRecipe),
+		HasSuperInstalled:   false,
 	}
 }
 
@@ -320,6 +323,32 @@ func TestUpdateDependencyReturnsFirstDualDependencyThatIsInTargetedRecipes(t *te
 
 	for _, tc := range tests {
 		got := b.updateDependency(tc.dualDep, tc.recipes)
+		if !reflect.DeepEqual(tc.want, got) {
+			t.Fatalf("expected: %v, got: %v", tc.want, got)
+		}
+	}
+}
+
+func TestUpdateDependencyReturnsSuperAgentDualDependencyThatIsInTargetedRecipes(t *testing.T) {
+	type test struct {
+		dualDep string
+		recipes []string
+		want    []string
+		b       Bundler
+	}
+
+	tests := []test{
+		{dualDep: "infra || super-agent", recipes: []string{"super-agent", "mysql", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: false}},
+		{dualDep: "super-agent || infra", recipes: []string{"super-agent", "mysql", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: false}},
+		{dualDep: "super-agent || infra", recipes: []string{"mysql", "infra", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "super-agent || infra", recipes: []string{"mysql", "infra", "super-agent"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "infra || super-agent", recipes: []string{"mysql", "infra", "super-agent"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "infra || super-agent", recipes: []string{"infra", "mysql", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "infra || super-agent", recipes: []string{"infra", "mysql", "logging"}, want: []string{"infra"}, b: Bundler{HasSuperInstalled: false}},
+	}
+
+	for _, tc := range tests {
+		got := tc.b.updateDependency(tc.dualDep, tc.recipes)
 		if !reflect.DeepEqual(tc.want, got) {
 			t.Fatalf("expected: %v, got: %v", tc.want, got)
 		}
