@@ -422,20 +422,20 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	} else {
 		log.Debugf("Super agent process not found. Proceeding with additional bundle.")
 	}
-	if bundler.(*recipes.Bundler).HasSuperInstalled {
-		// recipe name should not be infra & logs
-		// && i.RecipeNames
-		for _, r := range i.RecipeNames {
-			if r == types.InfraAgentRecipeName || r == types.LoggingRecipeName {
-				fmt.Printf("Super agent process found on the host. Skipping installation.")
-				// todo:
-				return nil
-			}
-			if r == types.SuperAgentRecipeName {
-				// FIXME: Provide the logic for the super agent present case
-			}
-		}
-	}
+	//if bundler.(*recipes.Bundler).HasSuperInstalled {
+	//	// recipe name should not be infra & logs
+	//	// && i.RecipeNames
+	//	for _, r := range i.RecipeNames {
+	//		if r == types.InfraAgentRecipeName || r == types.LoggingRecipeName {
+	//			fmt.Printf("Super agent process found on the host. Skipping installation.")
+	//			// todo:
+	//			return nil
+	//		}
+	//		if r == types.SuperAgentRecipeName {
+	//			// FIXME: Provide the logic for the super agent present case
+	//		}
+	//	}
+	//}
 	// In the above the bundle is not yet created for -n recipe-a, infra , log
 	// so instead create the bundle
 	// have a separate method to deal with the installed super agent
@@ -444,6 +444,15 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	if i.RecipeNamesProvided() {
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
 		// if addtional bundle has super and
+		if bundler.(*recipes.Bundler).HasSuperInstalled {
+			for _, coreRecipe := range bundler.(*recipes.Bundler).GetCoreRecipeNames() {
+				if i, ok := additionalBundle.ContainsName(coreRecipe); ok {
+					additionalBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.UNSUPPORTED, 0)
+				}
+			}
+			log.Debugf("Additional Targeted bundle recipes in queue:%s", additionalBundle)
+		}
+
 		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {

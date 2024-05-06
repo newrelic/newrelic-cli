@@ -34,7 +34,7 @@ func NewBundler(context context.Context, availableRecipes RecipeDetectionResults
 }
 
 func (b *Bundler) CreateCoreBundle() *Bundle {
-	return b.createBundle(b.getCoreRecipeNames(), BundleTypes.CORE)
+	return b.createBundle(b.GetCoreRecipeNames(), BundleTypes.CORE)
 }
 
 func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
@@ -53,7 +53,7 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipes []string) *Bundle {
 	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
 }
 
-func (b *Bundler) getCoreRecipeNames() []string {
+func (b *Bundler) GetCoreRecipeNames() []string {
 	coreRecipeNames := make([]string, 0, len(coreRecipeMap))
 	for k := range coreRecipeMap {
 		coreRecipeNames = append(coreRecipeNames, k)
@@ -80,20 +80,21 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
 
-			for _, recipe := range recipes {
-				for _, dependency := range bundleRecipe.Dependencies {
-					if dependency.Recipe.Name != recipe {
-						log.Debugf("Found dependency %s", dependency.Recipe.Name)
-						for _, brDeps := range bundleRecipe.Dependencies {
-							if brDeps.Recipe.Name == types.SuperAgentRecipeName {
-								brDeps.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
+			if bundleRecipe != nil {
+				for _, recipe := range recipes {
+					// TODo: better to do it after making it as a bundle
+					for _, dependency := range bundleRecipe.Dependencies {
+						if dependency.Recipe.Name != recipe {
+							log.Debugf("Found dependency %s", dependency.Recipe.Name)
+							for _, brDeps := range bundleRecipe.Dependencies {
+								if brDeps.Recipe.Name == types.SuperAgentRecipeName {
+									brDeps.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
+								}
 							}
 						}
 					}
 				}
-			}
 
-			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
 			}
