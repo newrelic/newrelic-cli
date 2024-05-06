@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -70,9 +71,6 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 			var bundleRecipe *BundleRecipe
 			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
 				dep := b.updateDependency(dualDep, recipes)
-				if !utils.StringInSlice(dep[0], recipes) && b.HasSuperInstalled {
-					d.Recipe.Dependencies = nil
-				}
 				if dep != nil {
 					d.Recipe.Dependencies = dep
 				} else {
@@ -81,6 +79,19 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 			}
 
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
+
+			for _, recipe := range recipes {
+				for _, dependency := range bundleRecipe.Dependencies {
+					if dependency.Recipe.Name != recipe {
+						log.Debugf("Found dependency %s", dependency.Recipe.Name)
+						for _, brDeps := range bundleRecipe.Dependencies {
+							if brDeps.Recipe.Name == types.SuperAgentRecipeName {
+								brDeps.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
+							}
+						}
+					}
+				}
+			}
 
 			if bundleRecipe != nil {
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
