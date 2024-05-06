@@ -442,6 +442,8 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	// if the list of the recipes provided in the bundle and super agent installed
 	// mark the status as unsupported || skipped
 	if i.RecipeNamesProvided() {
+		log.Debugf("bundling addtional bundle")
+		log.Debugf("recipes in list %d", len(i.RecipeNames))
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
 		// if addtional bundle has super and
 		if bundler.(*recipes.Bundler).HasSuperInstalled {

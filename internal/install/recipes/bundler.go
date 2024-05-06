@@ -72,6 +72,7 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
 				dep := b.updateDependency(dualDep, recipes)
 				if dep != nil {
+					log.Debugf("Found dual dependency and selected : %s", dep)
 					d.Recipe.Dependencies = dep
 				} else {
 					log.Debugf("could not process update for dual dependency: %s", dualDep)
@@ -130,6 +131,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 			log.Debugf("dependent recipe %s not found, skipping recipe %s", d, recipe.Name)
 		}
 		// A dependency is missing, invalidating the bundle recipe
+		log.Debugf("A dependency is missing, invalidating the bundle recipe %s", recipe.Name)
 		b.cachedBundleRecipes[recipe.Name] = nil
 		return nil
 	}
