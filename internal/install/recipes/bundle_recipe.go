@@ -27,7 +27,6 @@ func (br *BundleRecipe) AddDetectionStatus(newStatus execution.RecipeStatusType,
 	br.DetectedStatuses = append(br.DetectedStatuses, &DetectedStatusType{Status: newStatus, DurationMs: durationMs})
 }
 
-
 func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	for _, detectedStatus := range br.DetectedStatuses {
 		if detectedStatus.Status == status {
@@ -47,9 +46,11 @@ func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
 	}
 	for _, ds := range br.Dependencies {
 		if !ds.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+			log.Debugf("recipe %s is not available dependency for %s", br.Recipe.Name, ds.Recipe.Name)
 			return false
 		}
 	}
+	log.Debugf("all dependencies are available")
 	return true
 }
 

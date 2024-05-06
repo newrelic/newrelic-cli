@@ -138,6 +138,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 		if dt, ok := b.AvailableRecipes.GetRecipeDetection(recipe.Name); ok {
 			bundleRecipe.AddDetectionStatus(dt.Status, dt.DurationMs)
 			b.cachedBundleRecipes[recipe.Name] = bundleRecipe
+			log.Debugf("bundle recipe with dependency %v", bundleRecipe)
 			return bundleRecipe
 		}
 	}
