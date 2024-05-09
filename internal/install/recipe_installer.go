@@ -412,9 +412,13 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 // If the host has super agent installed infra agent and logs agent would be UNSUPPORTED
 // It then installs the additional bundle and reports any unsupported recipes.
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
-	var additionalBundle *recipes.Bundle
+	var (
+		additionalBundle *recipes.Bundle
+		bun              *recipes.Bundler
+		ok               bool
+	)
 	if i.hostHasSuperAgentProcess() {
-		if bun, ok := bundler.(*recipes.Bundler); ok {
+		if bun, ok = bundler.(*recipes.Bundler); ok {
 			bun.HasSuperInstalled = true
 			log.Debugf("Super agent process found. Proceeding with additional bundle.")
 		}
@@ -423,10 +427,10 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	}
 
 	if i.RecipeNamesProvided() {
-		log.Debugf("bundling addtional bundle")
+		log.Debugf("bundling additional bundle")
 		log.Debugf("recipes in list %d", len(i.RecipeNames))
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
-		if bundler.(*recipes.Bundler).HasSuperInstalled {
+		if bun.HasSuperInstalled {
 			for _, coreRecipe := range bundler.(*recipes.Bundler).GetCoreRecipeNames() {
 				if i, ok := additionalBundle.ContainsName(coreRecipe); ok {
 					additionalBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.UNSUPPORTED, 0)
@@ -445,6 +449,11 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
+		if bun.HasSuperInstalled {
+			return &types.UncaughtError{
+				Err: fmt.Errorf("super Agent is installed, preventing the installation of this recipe"),
+			}
+		}
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
