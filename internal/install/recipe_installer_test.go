@@ -353,7 +353,7 @@ func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkippedWhileSuperAgentI
 	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
 	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
 	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
-	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
 	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
 	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
 	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")

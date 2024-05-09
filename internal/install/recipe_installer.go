@@ -409,7 +409,7 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 // installAdditionalBundle installs additional bundles for the given recipes.
 // It checks if the host has a super agent process running, and proceeds with the additional bundle.
 // If the list of recipes is provided, it creates a targeted bundle; otherwise, it creates a guided bundle.
-// If the host has super agent installed infra agent and logs agent would be UNSUPPORTED
+// If the host has super agent installed infra agent and logs agent would be NULL
 // It then installs the additional bundle and reports any unsupported recipes.
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 	var additionalBundle *recipes.Bundle
@@ -429,7 +429,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		if bun.HasSuperInstalled {
 			for _, coreRecipe := range bundler.(*recipes.Bundler).GetCoreRecipeNames() {
 				if i, ok := additionalBundle.ContainsName(coreRecipe); ok {
-					additionalBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.UNSUPPORTED, 0)
+					additionalBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
 				}
 			}
 			log.Debugf("Additional Targeted bundle recipes in queue:%s", additionalBundle)
