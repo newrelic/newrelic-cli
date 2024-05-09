@@ -99,7 +99,7 @@ func TestInstallGuidedShouldSkipCoreInstallWhileSuperAgentIsInstalled(t *testing
 
 	err := recipeInstall.Install()
 
-	assert.Equal(t, "no recipes were installed", err.Error(), "no recipe installed")
+	assert.Equal(t, "super Agent is installed, preventing the installation of this recipe", err.Error())
 	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
 	assert.Equal(t, 0, statusReporter.RecipeAvailableCallCount, "Available Count")
 	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")

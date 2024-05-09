@@ -412,16 +412,12 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 // If the host has super agent installed infra agent and logs agent would be UNSUPPORTED
 // It then installs the additional bundle and reports any unsupported recipes.
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
-	var (
-		additionalBundle *recipes.Bundle
-		bun              *recipes.Bundler
-		ok               bool
-	)
-	if i.hostHasSuperAgentProcess() {
-		if bun, ok = bundler.(*recipes.Bundler); ok {
-			bun.HasSuperInstalled = true
-			log.Debugf("Super agent process found. Proceeding with additional bundle.")
-		}
+	var additionalBundle *recipes.Bundle
+	bun, ok := bundler.(*recipes.Bundler)
+
+	if i.hostHasSuperAgentProcess() && ok {
+		bun.HasSuperInstalled = true
+		log.Debugf("Super agent process found. Proceeding with additional bundle.")
 	} else {
 		log.Debugf("Super agent process not found. Proceeding with additional bundle.")
 	}
