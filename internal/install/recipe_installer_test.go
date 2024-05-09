@@ -8,11 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/newrelic/newrelic-cli/internal/config"
-
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/newrelic/newrelic-cli/internal/config"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -100,7 +99,6 @@ func TestInstallGuidedShouldSkipCoreInstallWhileSuperAgentIsInstalled(t *testing
 
 	err := recipeInstall.Install()
 
-	//fmt.Print(err)
 	assert.Equal(t, "no recipes were installed", err.Error(), "no recipe installed")
 	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
 	assert.Equal(t, 0, statusReporter.RecipeAvailableCallCount, "Available Count")
@@ -335,6 +333,32 @@ func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
 	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
 	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
+}
+
+func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkippedWhileSuperAgentIsInstalled(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return false }).
+		WithTargetRecipeName(types.InfraAgentRecipeName).WithStatusReporter(statusReporter).
+		WithRunningProcess("super-agent-process", types.SuperAgentProcessName).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.Install()
+
+	assert.Equal(t, "no recipes were installed", err.Error())
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 1, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
 }
 
 func TestInstallTargetedInstallWithoutRecipeShouldNotInstall(t *testing.T) {
@@ -775,7 +799,6 @@ func TestWhenSingleInstallRunningNoError(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").Build()
 
 	err := recipeInstall.Install()
-
 	if err != nil {
 		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
 	}
@@ -794,7 +817,6 @@ func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
 	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 C:\\path\\newrelic.exe install", "C:\\path\\newrelic.exe").Build()
 
 	err := recipeInstall.Install()
-
 	if err != nil {
 		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
 	}

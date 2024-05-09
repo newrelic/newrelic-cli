@@ -61,8 +61,8 @@ func (b *Bundler) GetCoreRecipeNames() []string {
 	return coreRecipeNames
 }
 
-// TODO: Add doc for the following function
-// dependency match - agent running
+// createBundle creates a new bundle based on the given recipes and bundle type
+// It iterates over the recipes, detects dependencies, and adds recipes to the bundle
 func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	bundle := &Bundle{Type: bType}
 
@@ -83,14 +83,12 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 			if bundleRecipe != nil {
 				for _, recipe := range recipes {
-					// TODo: better to do it after making it as a bundle
 					for _, dependency := range bundleRecipe.Dependencies {
 						if dependency.Recipe.Name != recipe {
 							log.Debugf("Found dependency %s", dependency.Recipe.Name)
-							for _, brDeps := range bundleRecipe.Dependencies {
-								if brDeps.Recipe.Name == types.SuperAgentRecipeName {
-									brDeps.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
-								}
+							if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
+								log.Debugf("updating the dependency status for %s", dep)
+								dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
 							}
 						}
 					}
@@ -105,10 +103,24 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	return bundle
 }
 
-// getBundleRecipeWithDependencies retrieves a bundle recipe with its resolved dependencies.
-// Parameters: recipe (types.OpenInstallationRecipe): The OpenInstallationRecipe object representing the bundle recipe.
-// Returns: *BundleRecipe: A pointer to a BundleRecipe object containing the recipe and its resolved dependencies,
-// or nil if there are missing dependencies or errors.
+// findRecipeDependency recursively searches for a recipe dependency
+func findRecipeDependency(recipe *BundleRecipe, name string) (*BundleRecipe, bool) {
+	for _, dep := range recipe.Dependencies {
+		if strings.EqualFold(dep.Recipe.Name, name) {
+			return dep, true
+		}
+		found, _ := findRecipeDependency(dep, name)
+		if found != nil {
+			return found, true
+		}
+	}
+	return nil, false
+}
+
+// getBundleRecipeWithDependencies returns a BundleRecipe for the given recipe, including its dependencies.
+// If the recipe is already cached, it is returned immediately. Otherwise, the function recursively
+// fetches the dependencies and builds the BundleRecipe. If any dependencies are missing, the
+// bundle recipe is invalidated and nil is returned.
 func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe) *BundleRecipe {
 	if br, ok := b.cachedBundleRecipes[recipe.Name]; ok {
 		return br
@@ -146,6 +158,7 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 	}
 
 	b.cachedBundleRecipes[recipe.Name] = nil
+	log.Debugf("Returning nil for the recipe: %s", recipe.Name)
 	return nil
 }
 
@@ -172,7 +185,10 @@ func detectDependencies(deps []string) (string, bool) {
 // updateDependency updates a recipe's dependency with the first one of the form 'recipe-a || recipe-b' that is found in the targeted
 // recipes (e.g.: newrelic install -n recipe-a,recipe-c). If none of the recipe's dependency in the form 'recipe-a || recipe-b' are found
 // in the targeted recipes, the first one of those in that same form 'recipe-a || recipe-b' is used. The final result is that recipe's
-// dependency will change from the form 'recipe-a || recipe-b' to, for example, 'recipe-a' only.
+// dependency will change from the form 'recipe-a || recipe-b' to the first recipe in that list, for example, 'recipe-a' only.
+// If the dependency is a super dependency (i.e., '||' is present), and the super dependency is installed, the function will return the super dependency.
+// If the dependency is not a super dependency and is found in the targeted recipes, the function will return that dependency.
+// If the dependency is not a super dependency and is not found in the targeted recipes, the function will return the first part of the dependency.
 func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 	var (
 		splitDeps   = strings.Split(dualDep, `||`)
@@ -182,7 +198,6 @@ func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 	if len(splitDeps) <= 1 {
 		return nil
 	}
-	// TODO: Update the doc
 	for _, dep := range splitDeps {
 		dep = strings.TrimSpace(dep)
 		if dep == types.SuperAgentRecipeName {

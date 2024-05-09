@@ -3,7 +3,7 @@ package install
 import (
 	"context"
 	"fmt"
-	"github.com/newrelic/newrelic-cli/internal/utils"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -27,7 +27,6 @@ type BundleInstaller struct {
 }
 
 func NewBundleInstaller(ctx context.Context, manifest *types.DiscoveryManifest, recipeInstallerInterface RecipeInstaller, statusReporter StatusReporter) *BundleInstaller {
-
 	return &BundleInstaller{
 		ctx:              ctx,
 		manifest:         manifest,
@@ -43,7 +42,6 @@ func NewPrompter() *ux.PromptUIPrompter {
 }
 
 func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes bool) error {
-
 	bi.reportBundleStatus(bundle)
 
 	installableBundleRecipes := bi.getInstallableBundleRecipes(bundle)
@@ -53,7 +51,6 @@ func (bi *BundleInstaller) InstallStopOnError(bundle *recipes.Bundle, assumeYes 
 
 	for _, br := range installableBundleRecipes {
 		err := bi.InstallBundleRecipe(br, assumeYes)
-
 		if err != nil {
 			return err
 		}
@@ -81,7 +78,6 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 		prompter := ux.NewPromptUIPrompter()
 		msg := "Continue installing? "
 		isConfirmed, err := prompter.PromptYesNo(msg)
-
 		if err != nil {
 			log.Debug(err)
 			isConfirmed = false
@@ -106,10 +102,6 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
-		if utils.StringInSlice(types.SuperAgentRecipeName, recipe.Recipe.Dependencies) && recipe.HasStatus(execution.RecipeStatusTypes.INSTALLED) {
-			bi.installedRecipes[recipe.Recipe.Name] = true
-			continue
-		}
 		if bi.installedRecipes[recipe.Recipe.Name] {
 			continue
 		}
@@ -135,6 +127,9 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 	}
 
 	recipeName := bundleRecipe.Recipe.Name
+	if strings.EqualFold(recipeName, types.SuperAgentRecipeName) && bundleRecipe.HasStatus(execution.RecipeStatusTypes.INSTALLED) {
+		return nil
+	}
 	if bi.installedRecipes[bundleRecipe.Recipe.Name] {
 		return nil
 	}
@@ -159,7 +154,7 @@ func (bi *BundleInstaller) getInstallableBundleRecipes(bundle *recipes.Bundle) [
 	var bundleRecipes []*recipes.BundleRecipe
 
 	for _, bundleRecipe := range bundle.BundleRecipes {
-		if !bundleRecipe.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
+		if !bundleRecipe.LastStatus(execution.RecipeStatusTypes.AVAILABLE) {
 			//Skip if not available
 			continue
 		}
