@@ -29,7 +29,6 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
 	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
-	// Todo: fix me
 	bundler.HasSuperInstalled = true
 	withAvailableRecipe(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
 	withAvailableRecipe(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)

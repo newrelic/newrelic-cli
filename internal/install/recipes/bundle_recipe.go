@@ -36,6 +36,13 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
+func (br *BundleRecipe) LastStatus(status execution.RecipeStatusType) bool {
+	if len(br.DetectedStatuses) > 0 {
+		return br.DetectedStatuses[len(br.DetectedStatuses)-1].Status == status
+	}
+	return false
+}
+
 func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
 	for _, depName := range br.Recipe.Dependencies {
 		if br.IsNameInDependencies(depName) {
