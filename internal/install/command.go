@@ -167,6 +167,8 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 
 func checkNetwork() {
 
+	log.Println("Checking if any proxy is configured ...")
+
 	if IsProxyConfigured() {
 		log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
 		log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
