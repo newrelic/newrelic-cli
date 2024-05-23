@@ -10,14 +10,13 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/newrelic/newrelic-client-go/v2/pkg/nrtime"
-
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/changetracking"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/common"
-
-	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/entities"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/nrtime"
 )
 
 var (
@@ -66,6 +65,10 @@ The deployment command marks a change for a New Relic entity
 
 		if version == "" {
 			log.Fatal("--version cannot be empty")
+		}
+
+		if _, err := entities.DecodeEntityGuid(entityGUID); err != nil {
+			log.Fatal(err)
 		}
 
 		var (
