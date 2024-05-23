@@ -31,7 +31,7 @@ var BundleTypes = struct {
 }
 
 func (b *Bundle) AddRecipe(bundleRecipe *BundleRecipe) {
-	if _, ok := b.ContainsName(bundleRecipe.Recipe.Name); ok {
+	if b.ContainsName(bundleRecipe.Recipe.Name) {
 		return
 	}
 	b.BundleRecipes = append(b.BundleRecipes, bundleRecipe)
@@ -45,15 +45,15 @@ func (b *Bundle) IsAdditionalTargeted() bool {
 	return b.Type == BundleTypes.ADDITIONALTARGETED
 }
 
-func (b *Bundle) ContainsName(name string) (int, bool) {
+func (b *Bundle) ContainsName(name string) bool {
 
 	for i := range b.BundleRecipes {
 		if b.BundleRecipes[i].Recipe.Name == name {
-			return i, true
+			return true
 		}
 	}
 
-	return -1, false
+	return false
 }
 
 func (b *Bundle) GetBundleRecipe(name string) *BundleRecipe {

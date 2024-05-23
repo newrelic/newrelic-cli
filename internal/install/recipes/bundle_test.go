@@ -20,10 +20,8 @@ func TestBundle_ShouldAddRecipes(t *testing.T) {
 	}
 
 	bundle.AddRecipe(newRecipe)
-	index, found := bundle.ContainsName(newRecipe.Recipe.Name)
 	require.Equal(t, len(bundle.BundleRecipes), 2)
-	require.Equal(t, true, found)
-	require.Equal(t, 1, index)
+	require.True(t, true, bundle.ContainsName(newRecipe.Recipe.Name))
 }
 
 func TestBundle_ShouldNotUpdateRecipe(t *testing.T) {
@@ -39,9 +37,7 @@ func TestBundle_ShouldNotUpdateRecipe(t *testing.T) {
 	bundle.AddRecipe(bundleRecipe)
 
 	require.Equal(t, len(bundle.BundleRecipes), 1)
-	_, found := bundle.ContainsName(bundleRecipe.Recipe.Name)
-
-	require.Equal(t, true, found)
+	require.Equal(t, true, bundle.ContainsName(bundleRecipe.Recipe.Name))
 }
 
 func TestBundle_ShouldContainRecipeName(t *testing.T) {
@@ -52,9 +48,8 @@ func TestBundle_ShouldContainRecipeName(t *testing.T) {
 			},
 		},
 	}
-	_, found := bundle.ContainsName("recipe1")
 
-	require.Equal(t, true, found)
+	require.Equal(t, true, bundle.ContainsName("recipe1"))
 }
 
 func TestBundle_ShouldNotContainRecipeName(t *testing.T) {
@@ -65,9 +60,8 @@ func TestBundle_ShouldNotContainRecipeName(t *testing.T) {
 			},
 		},
 	}
-	_, found := bundle.ContainsName("some other name")
 
-	require.Equal(t, false, found)
+	require.Equal(t, false, bundle.ContainsName("some other name"))
 }
 
 func TestBundle_ShouldBeGuided(t *testing.T) {
