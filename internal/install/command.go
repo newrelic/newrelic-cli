@@ -170,7 +170,6 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 }
 
 func checkNetwork() error {
-
 	if client.NRClient == nil {
 		return nil
 	}
