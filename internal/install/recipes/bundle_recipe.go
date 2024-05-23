@@ -36,13 +36,6 @@ func (br *BundleRecipe) HasStatus(status execution.RecipeStatusType) bool {
 	return false
 }
 
-func (br *BundleRecipe) LastStatus(status execution.RecipeStatusType) bool {
-	if len(br.DetectedStatuses) > 0 {
-		return br.DetectedStatuses[len(br.DetectedStatuses)-1].Status == status
-	}
-	return false
-}
-
 func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
 	for _, depName := range br.Recipe.Dependencies {
 		if br.IsNameInDependencies(depName) {
@@ -53,11 +46,9 @@ func (br *BundleRecipe) AreAllDependenciesAvailable() bool {
 	}
 	for _, ds := range br.Dependencies {
 		if !ds.HasStatus(execution.RecipeStatusTypes.AVAILABLE) {
-			log.Debugf("recipe %s is not available dependency for %s", br.Recipe.Name, ds.Recipe.Name)
 			return false
 		}
 	}
-	log.Debugf("all dependencies are available")
 	return true
 }
 

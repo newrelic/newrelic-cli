@@ -30,11 +30,5 @@ func (pe *MockProcessEvaluator) DetectionStatus(ctx context.Context, r *types.Op
 }
 
 func (pe *MockProcessEvaluator) FindProcess(process string) bool {
-	for _, p := range pe.processes {
-		name, _ := p.Name()
-		if name == process {
-			return true
-		}
-	}
 	return false
 }

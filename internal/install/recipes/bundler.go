@@ -7,7 +7,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
@@ -21,7 +20,6 @@ type Bundler struct {
 	AvailableRecipes    RecipeDetectionResults
 	Context             context.Context
 	cachedBundleRecipes map[string]*BundleRecipe
-	HasSuperInstalled   bool
 }
 
 func NewBundler(context context.Context, availableRecipes RecipeDetectionResults) *Bundler {
@@ -29,12 +27,11 @@ func NewBundler(context context.Context, availableRecipes RecipeDetectionResults
 		Context:             context,
 		AvailableRecipes:    availableRecipes,
 		cachedBundleRecipes: make(map[string]*BundleRecipe),
-		HasSuperInstalled:   false,
 	}
 }
 
 func (b *Bundler) CreateCoreBundle() *Bundle {
-	return b.createBundle(b.GetCoreRecipeNames(), BundleTypes.CORE)
+	return b.createBundle(b.getCoreRecipeNames(), BundleTypes.CORE)
 }
 
 func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
@@ -53,7 +50,7 @@ func (b *Bundler) CreateAdditionalTargetedBundle(recipes []string) *Bundle {
 	return b.createBundle(recipes, BundleTypes.ADDITIONALTARGETED)
 }
 
-func (b *Bundler) GetCoreRecipeNames() []string {
+func (b *Bundler) getCoreRecipeNames() []string {
 	coreRecipeNames := make([]string, 0, len(coreRecipeMap))
 	for k := range coreRecipeMap {
 		coreRecipeNames = append(coreRecipeNames, k)
@@ -61,8 +58,6 @@ func (b *Bundler) GetCoreRecipeNames() []string {
 	return coreRecipeNames
 }
 
-// createBundle creates a new bundle based on the given recipes and bundle type
-// It iterates over the recipes, detects dependencies, and adds recipes to the bundle
 func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	bundle := &Bundle{Type: bType}
 
@@ -70,30 +65,15 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
 			var bundleRecipe *BundleRecipe
 			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
-				dep := b.updateDependency(dualDep, recipes)
+				dep := updateDependency(dualDep, recipes)
 				if dep != nil {
-					log.Debugf("Found dual dependency and selected : %s", dep)
 					d.Recipe.Dependencies = dep
 				} else {
 					log.Debugf("could not process update for dual dependency: %s", dualDep)
 				}
 			}
-
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
-
 			if bundleRecipe != nil {
-				for _, recipe := range recipes {
-					for _, dependency := range bundleRecipe.Dependencies {
-						if dependency.Recipe.Name != recipe {
-							log.Debugf("Found dependency %s", dependency.Recipe.Name)
-							if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
-								log.Debugf("updating the dependency status for %s", dep)
-								dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
-							}
-						}
-					}
-				}
-
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
 			}
@@ -103,24 +83,6 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	return bundle
 }
 
-// findRecipeDependency recursively searches for a recipe dependency
-func findRecipeDependency(recipe *BundleRecipe, name string) (*BundleRecipe, bool) {
-	for _, dep := range recipe.Dependencies {
-		if strings.EqualFold(dep.Recipe.Name, name) {
-			return dep, true
-		}
-		found, _ := findRecipeDependency(dep, name)
-		if found != nil {
-			return found, true
-		}
-	}
-	return nil, false
-}
-
-// getBundleRecipeWithDependencies returns a BundleRecipe for the given recipe, including its dependencies.
-// If the recipe is already cached, it is returned immediately. Otherwise, the function recursively
-// fetches the dependencies and builds the BundleRecipe. If any dependencies are missing, the
-// bundle recipe is invalidated and nil is returned.
 func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallationRecipe) *BundleRecipe {
 	if br, ok := b.cachedBundleRecipes[recipe.Name]; ok {
 		return br
@@ -143,7 +105,6 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 			log.Debugf("dependent recipe %s not found, skipping recipe %s", d, recipe.Name)
 		}
 		// A dependency is missing, invalidating the bundle recipe
-		log.Debugf("A dependency is missing, invalidating the bundle recipe %s", recipe.Name)
 		b.cachedBundleRecipes[recipe.Name] = nil
 		return nil
 	}
@@ -152,13 +113,11 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 		if dt, ok := b.AvailableRecipes.GetRecipeDetection(recipe.Name); ok {
 			bundleRecipe.AddDetectionStatus(dt.Status, dt.DurationMs)
 			b.cachedBundleRecipes[recipe.Name] = bundleRecipe
-			log.Debugf("bundle recipe with dependency %v", bundleRecipe)
 			return bundleRecipe
 		}
 	}
 
 	b.cachedBundleRecipes[recipe.Name] = nil
-	log.Debugf("Returning nil for the recipe: %s", recipe.Name)
 	return nil
 }
 
@@ -185,36 +144,26 @@ func detectDependencies(deps []string) (string, bool) {
 // updateDependency updates a recipe's dependency with the first one of the form 'recipe-a || recipe-b' that is found in the targeted
 // recipes (e.g.: newrelic install -n recipe-a,recipe-c). If none of the recipe's dependency in the form 'recipe-a || recipe-b' are found
 // in the targeted recipes, the first one of those in that same form 'recipe-a || recipe-b' is used. The final result is that recipe's
-// dependency will change from the form 'recipe-a || recipe-b' to the first recipe in that list, for example, 'recipe-a' only.
-// If the dependency is a super dependency (i.e., '||' is present), and the super dependency is installed, the function will return the super dependency.
-// If the dependency is not a super dependency and is found in the targeted recipes, the function will return that dependency.
-// If the dependency is not a super dependency and is not found in the targeted recipes, the function will return the first part of the dependency.
-func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
+// dependency will change from the form 'recipe-a || recipe-b' to, for example, 'recipe-a' only.
+func updateDependency(dualDep string, recipes []string) []string {
 	var (
-		splitDeps   = strings.Split(dualDep, `||`)
-		hasSuperDep bool
+		deps      []string
+		splitDeps = strings.Split(dualDep, `||`)
 	)
 
 	if len(splitDeps) <= 1 {
 		return nil
 	}
-	for _, dep := range splitDeps {
-		dep = strings.TrimSpace(dep)
-		if dep == types.SuperAgentRecipeName {
-			hasSuperDep = true
-			break
-		}
-	}
-	if hasSuperDep && b.HasSuperInstalled {
-		return []string{types.SuperAgentRecipeName}
-	}
 
 	for _, dep := range splitDeps {
 		dep = strings.TrimSpace(dep)
 		if utils.StringInSlice(dep, recipes) {
-			return []string{dep}
+			deps = []string{dep}
+			break
+		} else {
+			deps = []string{strings.TrimSpace(splitDeps[0])} // Defaults to first one of 'recipe-a || recipe-b'
 		}
 	}
 
-	return []string{strings.TrimSpace(splitDeps[0])}
+	return deps
 }
