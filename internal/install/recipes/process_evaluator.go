@@ -2,7 +2,6 @@ package recipes
 
 import (
 	"context"
-
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 
 	"github.com/shirou/gopsutil/v3/process"

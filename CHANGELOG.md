@@ -1,3 +1,11 @@
+<a name="v0.85.0"></a>
+## [v0.85.0] - 2024-05-23
+### Bug Fixes
+- **change-tracking:** Entity guid validation ([#1605](https://github.com/newrelic/newrelic-cli/issues/1605))
+
+### Features
+- **super-agent:** Skip core bundle if installed ([#1604](https://github.com/newrelic/newrelic-cli/issues/1604))
+
 <a name="v0.84.2"></a>
 ## [v0.84.2] - 2024-04-30
 ### Bug Fixes
@@ -2277,7 +2285,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.84.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.85.0...HEAD
+[v0.85.0]: https://github.com/newrelic/newrelic-cli/compare/v0.84.2...v0.85.0
 [v0.84.2]: https://github.com/newrelic/newrelic-cli/compare/v0.84.1...v0.84.2
 [v0.84.1]: https://github.com/newrelic/newrelic-cli/compare/v0.84.0...v0.84.1
 [v0.84.0]: https://github.com/newrelic/newrelic-cli/compare/v0.83.0...v0.84.0
