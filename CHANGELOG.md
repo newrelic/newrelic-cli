@@ -1,3 +1,11 @@
+<a name="v0.86.0"></a>
+## [v0.86.0] - 2024-05-23
+### Bug Fixes
+- **entity:** Entity guid validation ([#1611](https://github.com/newrelic/newrelic-cli/issues/1611))
+
+### Features
+- **super-agent:** revert changes from feat(super-agent) skip core bundle if installed ([#1604](https://github.com/newrelic/newrelic-cli/issues/1604)) ([#1612](https://github.com/newrelic/newrelic-cli/issues/1612))
+
 <a name="v0.85.0"></a>
 ## [v0.85.0] - 2024-05-23
 ### Bug Fixes
@@ -2285,7 +2293,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.85.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.86.0...HEAD
+[v0.86.0]: https://github.com/newrelic/newrelic-cli/compare/v0.85.0...v0.86.0
 [v0.85.0]: https://github.com/newrelic/newrelic-cli/compare/v0.84.2...v0.85.0
 [v0.84.2]: https://github.com/newrelic/newrelic-cli/compare/v0.84.1...v0.84.2
 [v0.84.1]: https://github.com/newrelic/newrelic-cli/compare/v0.84.0...v0.84.1
