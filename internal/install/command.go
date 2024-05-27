@@ -148,7 +148,11 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 		return detailErr
 	}
 
-	checkNetwork()
+	if err := checkNetwork(); err != nil {
+		errorOccured = true
+		detailErr = types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
+		return detailErr
+	}
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 	if err != nil {
@@ -165,23 +169,29 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 	return nil
 }
 
-func checkNetwork() {
+func checkNetwork() error {
 
-	log.Println("Checking if any proxy is configured ...")
-
-	if IsProxyConfigured() {
-		log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
-		log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
-		log.Warn("Current proxy config:")
-		proxyConfig := httpproxy.FromEnvironment()
-		log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
-		log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
-		log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
-	} else {
-		log.Warn("Failed to connect to the New Relic platform.")
-		log.Warn("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again.")
+	if client.NRClient == nil {
+		return nil
 	}
-	log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
-	log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
 
+	err := client.NRClient.TestEndpoints()
+	if err != nil {
+		if IsProxyConfigured() {
+			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
+			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
+			log.Warn("Current proxy config:")
+			proxyConfig := httpproxy.FromEnvironment()
+			log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
+			log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
+			log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
+		} else {
+			log.Warn("Failed to connect to the New Relic platform.")
+			log.Warn("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again.")
+		}
+		log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
+		log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
+
+	}
+	return err
 }
