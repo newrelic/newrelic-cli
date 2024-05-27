@@ -139,6 +139,8 @@ github.com/newrelic/newrelic-client-go/v2 v2.34.1 h1:/htTJ+sRKK2q3PFNuLURsur2e9N
 github.com/newrelic/newrelic-client-go/v2 v2.34.1/go.mod h1:JCIsx0H/5MPuP9DzOWMFBrfBZ0apc2NZvsk+Q8CFb7k=
 github.com/newrelic/newrelic-client-go/v2 v2.35.0 h1:KunusuCsq/nAYATIUgQZovdAwzZiMMWA49PHsmn4dOc=
 github.com/newrelic/newrelic-client-go/v2 v2.35.0/go.mod h1:JCIsx0H/5MPuP9DzOWMFBrfBZ0apc2NZvsk+Q8CFb7k=
+github.com/newrelic/newrelic-client-go/v2 v2.36.2 h1:Euuoyt/j4DUIyZ2yCtBFjJ49x+Q8iXAadmivMzAQHAE=
+github.com/newrelic/newrelic-client-go/v2 v2.36.2/go.mod h1:JCIsx0H/5MPuP9DzOWMFBrfBZ0apc2NZvsk+Q8CFb7k=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
