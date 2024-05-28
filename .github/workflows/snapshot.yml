@@ -1,8 +1,20 @@
 name: Snapshot
 
+permissions: write-all
+
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+      SPLIT_PROD_KEY:
+        required: true
+      SPLIT_STAGING_KEY:
+        required: true
+      SEGMENT_WRITE_KEY:
+        required: true
 
 jobs:
   snapshot:
