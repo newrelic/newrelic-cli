@@ -86,6 +86,7 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 					for _, dependency := range bundleRecipe.Dependencies {
 						if dependency.Recipe.Name != recipe {
 							log.Debugf("Found dependency %s", dependency.Recipe.Name)
+							// FIX: TEST this``
 							if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
 								log.Debugf("updating the dependency status for %s", dep)
 								dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
@@ -105,12 +106,11 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 // findRecipeDependency recursively searches for a recipe dependency
 func findRecipeDependency(recipe *BundleRecipe, name string) (*BundleRecipe, bool) {
+	if strings.EqualFold(recipe.Recipe.Name, name) {
+		return recipe, true
+	}
 	for _, dep := range recipe.Dependencies {
-		if strings.EqualFold(dep.Recipe.Name, name) {
-			return dep, true
-		}
-		found, _ := findRecipeDependency(dep, name)
-		if found != nil {
+		if found, ok := findRecipeDependency(dep, name); ok {
 			return found, true
 		}
 	}
@@ -147,6 +147,27 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 		b.cachedBundleRecipes[recipe.Name] = nil
 		return nil
 	}
+
+	// FIX: Remov this
+	// for _, d := range recipe.Dependencies {
+	// 	var dr *BundleRecipe
+	// 	if dt, ok := b.AvailableRecipes.GetRecipeDetection(d); ok {
+	// 		dr = b.getBundleRecipeWithDependencies(dt.Recipe)
+	// 	} else if b.HasSuperInstalled && strings.EqualFold(d, types.SuperAgentRecipeName) {
+	// 		bundleRecipe.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
+	// 		dr = b.getBundleRecipeWithDependencies(&types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName})
+	// 	} else {
+	// 		log.Debugf("dependent recipe %s not found, skipping recipe %s", d, recipe.Name)
+	// 	}
+	//
+	// 	if dr == nil {
+	// 		log.Debugf("dependent bundle recipe %s not found, skipping recipe %s", d, recipe.Name)
+	// 		b.cachedBundleRecipes[recipe.Name] = nil
+	// 		return nil
+	// 	}
+	//
+	// 	bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
+	// }
 
 	if bundleRecipe.AreAllDependenciesAvailable() {
 		if dt, ok := b.AvailableRecipes.GetRecipeDetection(recipe.Name); ok {

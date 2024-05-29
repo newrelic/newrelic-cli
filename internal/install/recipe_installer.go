@@ -311,6 +311,16 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	recipeDetector := i.recipeDetectorFactory(ctx, repo, &i.InstallerContext)
 	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
+
+	// FIX: This is for super agent process when found on the host
+	// Check if this is functional
+	if i.hostHasSuperAgentProcess() {
+		availableRecipes = append(availableRecipes, &recipes.RecipeDetectionResult{
+			Recipe:     &types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName},
+			Status:     execution.RecipeStatusTypes.AVAILABLE,
+			DurationMs: 0,
+		})
+	}
 	if err != nil {
 		return err
 	}
@@ -426,6 +436,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		log.Debugf("bundling additional bundle")
 		log.Debugf("recipes in list %d", len(i.RecipeNames))
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+		// FIX: Write tests here
 		if bun.HasSuperInstalled {
 			for _, coreRecipe := range bundler.(*recipes.Bundler).GetCoreRecipeNames() {
 				if i, ok := additionalBundle.ContainsName(coreRecipe); ok {

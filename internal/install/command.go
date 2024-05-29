@@ -1,6 +1,7 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -77,6 +78,11 @@ var Command = &cobra.Command{
 
 			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
 				return e
+			}
+
+			// FIX: its not floated as error
+			if errors.Is(err, errors.New("super Agent is installed, preventing the installation of this recipe")) {
+				return err
 			}
 
 			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
