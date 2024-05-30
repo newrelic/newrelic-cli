@@ -245,3 +245,8 @@ func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 
 	return []string{strings.TrimSpace(splitDeps[0])}
 }
+
+// IsCore checks if a recipe is a core recipe
+func (b *Bundler) IsCore(recipeName string) bool {
+	return coreRecipeMap[recipeName]
+}

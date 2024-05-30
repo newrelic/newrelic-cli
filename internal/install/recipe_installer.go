@@ -438,7 +438,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
 		// FIX: Write tests here
 		if bun.HasSuperInstalled {
-			for _, coreRecipe := range bundler.(*recipes.Bundler).GetCoreRecipeNames() {
+			for _, coreRecipe := range bun.GetCoreRecipeNames() {
 				if i, ok := additionalBundle.ContainsName(coreRecipe); ok {
 					additionalBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
 				}
@@ -456,18 +456,21 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
-		if bun.HasSuperInstalled {
-			return types.NewDetailError(types.EventTypes.OtherError, types.ErrSuperAgent.Error())
+		if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
+			return &types.UncaughtError{
+				Err: fmt.Errorf("one or more selected recipes could not be installed"),
+			}
 		}
+		for _, recipe := range i.RecipeNames {
+			if bun.HasSuperInstalled && bun.IsCore(recipe) {
+				return types.NewDetailError(types.EventTypes.OtherError, types.ErrSuperAgent.Error())
+			}
+		}
+
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
-	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
-		return &types.UncaughtError{
-			Err: fmt.Errorf("one or more selected recipes could not be installed"),
-		}
 	}
-
 	return nil
 }
 
