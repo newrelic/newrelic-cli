@@ -81,6 +81,7 @@ var Command = &cobra.Command{
 			}
 
 			// FIX: its not floated as error
+			// This is showing up in all the scenarios if super agent is present
 			if errors.Is(err, errors.New("super Agent is installed, preventing the installation of this recipe")) {
 				return err
 			}

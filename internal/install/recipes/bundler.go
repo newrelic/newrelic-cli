@@ -81,16 +81,22 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
 
+			// FIX: TEST this
 			if bundleRecipe != nil {
-				for _, recipe := range recipes {
-					for _, dependency := range bundleRecipe.Dependencies {
-						if dependency.Recipe.Name != recipe {
-							log.Debugf("Found dependency %s", dependency.Recipe.Name)
-							// FIX: TEST this``
-							if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
-								log.Debugf("updating the dependency status for %s", dep)
-								dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
-							}
+				for _, dependency := range bundleRecipe.Dependencies {
+					foundInRecipes := false
+					for _, recipe := range recipes {
+						if dependency.Recipe.Name == recipe {
+							foundInRecipes = true
+							break
+						}
+					}
+					if !foundInRecipes {
+						log.Debugf("Found dependency %s", dependency.Recipe.Name)
+						// FIX: TEST this
+						if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
+							log.Debugf("updating the dependency status for %s", dep)
+							dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
 						}
 					}
 				}

@@ -457,9 +457,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
 		if bun.HasSuperInstalled {
-			return &types.UncaughtError{
-				Err: fmt.Errorf("super Agent is installed, preventing the installation of this recipe"),
-			}
+			return types.NewDetailError(types.EventTypes.OtherError, types.ErrSuperAgent.Error())
 		}
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
