@@ -198,7 +198,6 @@ jobs:
 
   snapshot:
     if: github.ref == 'refs/heads/main'
-    needs: snapshot
     uses: newrelic/newrelic-cli/.github/workflows/snapshot.yml@main
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
