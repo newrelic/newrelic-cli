@@ -102,6 +102,9 @@ func (bi *BundleInstaller) InstallContinueOnError(bundle *recipes.Bundle, assume
 
 func (bi *BundleInstaller) reportBundleStatus(bundle *recipes.Bundle) {
 	for _, recipe := range bundle.BundleRecipes {
+		if types.SuperAgentRecipeName == recipe.Recipe.Name && recipe.LastStatus(execution.RecipeStatusTypes.INSTALLED) {
+			continue
+		}
 		if bi.installedRecipes[recipe.Recipe.Name] {
 			continue
 		}
@@ -127,7 +130,6 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 	}
 
 	recipeName := bundleRecipe.Recipe.Name
-	// FIX: TEST below code
 	if strings.EqualFold(recipeName, types.SuperAgentRecipeName) && bundleRecipe.HasStatus(execution.RecipeStatusTypes.INSTALLED) {
 		return nil
 	}

@@ -58,6 +58,16 @@ func TestInstallContinueOnErrorReturnsImmediatelyWhenSuperAgentIsInstalled(t *te
 	test.BundleInstaller.InstallContinueOnError(test.bundle, false)
 
 	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
+	test.mockStatusReporter.AssertNumberOfCalls(t, "ReportStatus", 0)
+}
+
+func TestInstallContinueOnErrorWhenSuperAgentIsAvailable(t *testing.T) {
+	test := createBundleInstallerTest().withPrompterYesNoVal(false).withRecipeInstallerError()
+	test.addRecipeToBundle("super-agent", execution.RecipeStatusTypes.AVAILABLE)
+
+	test.BundleInstaller.InstallContinueOnError(test.bundle, false)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 1)
 	test.mockStatusReporter.AssertNumberOfCalls(t, "ReportStatus", 1)
 }
 
@@ -67,6 +77,15 @@ func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *te
 
 	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
 
+	assert.Equal(t, 0, test.mockPrompter.PromptMultiSelectCallCount)
+}
+
+func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargetedSuperIsInstalled(t *testing.T) {
+	test := createBundleInstallerTest().withRecipeInstallerSuccess()
+	test.addRecipeToBundle(types.SuperAgentRecipeName, execution.RecipeStatusTypes.INSTALLED)
+	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
+
+	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)
 	assert.Equal(t, 0, test.mockPrompter.PromptMultiSelectCallCount)
 }
 

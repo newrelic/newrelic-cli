@@ -41,8 +41,11 @@ func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 	var recipes []string
 
 	for _, d := range b.AvailableRecipes {
+		//FIX: SUPER continue
 		if !coreRecipeMap[d.Recipe.Name] {
-			recipes = append(recipes, d.Recipe.Name)
+			if !strings.EqualFold(d.Recipe.Name, types.SuperAgentRecipeName) {
+				recipes = append(recipes, d.Recipe.Name)
+			}
 		}
 	}
 
@@ -69,6 +72,7 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 	for _, r := range recipes {
 		if d, ok := b.AvailableRecipes.GetRecipeDetection(r); ok {
 			var bundleRecipe *BundleRecipe
+
 			if dualDep, ok := detectDependencies(d.Recipe.Dependencies); ok {
 				dep := b.updateDependency(dualDep, recipes)
 				if dep != nil {
@@ -81,26 +85,29 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
 
-			// FIX: TEST this
 			if bundleRecipe != nil {
-				for _, dependency := range bundleRecipe.Dependencies {
-					foundInRecipes := false
-					for _, recipe := range recipes {
-						if dependency.Recipe.Name == recipe {
-							foundInRecipes = true
-							break
-						}
-					}
-					if !foundInRecipes {
-						log.Debugf("Found dependency %s", dependency.Recipe.Name)
-						// FIX: TEST this
-						if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
-							log.Debugf("updating the dependency status for %s", dep)
-							dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
-						}
-					}
+				//FIX:
+				// Reset super agent if made available
+				// Reset can be done to INSTALLED, NULL
+				// cases
+				//	- OHI dependency => should be silenced if dependency is present and no it the list of recipes
+				//	- Infra
+				//	- Super agent => super is given as input
+				isSuperInput := utils.StringInSlice(types.SuperAgentRecipeName, recipes)
+				if dep, found := findRecipeDependency(bundleRecipe, types.SuperAgentRecipeName); !isSuperInput && found {
+					log.Debugf("updating the dependency status for %s", dep)
+					dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
 				}
-
+				if !isSuperInput && b.HasSuperInstalled {
+					log.Debugf("Super agent found, skipping")
+					superRecipe := &BundleRecipe{
+						Recipe: &types.OpenInstallationRecipe{
+							Name: types.SuperAgentRecipeName,
+						},
+					}
+					superRecipe.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
+					bundle.AddRecipe(superRecipe)
+				}
 				log.Debugf("Adding bundle recipe:%s status:%+v dependencies:%+v", bundleRecipe.Recipe.Name, bundleRecipe.DetectedStatuses, bundleRecipe.Recipe.Dependencies)
 				bundle.AddRecipe(bundleRecipe)
 			}
@@ -109,6 +116,27 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 
 	return bundle
 }
+
+// FIX: Remove this
+// func checkSuper() {
+// 	for _, dependency := range bundleRecipe.Dependencies {
+// 		foundInRecipes := false
+// 		for _, recipe := range recipes {
+// 			if dependency.Recipe.Name == recipe {
+// 				foundInRecipes = true
+// 				break
+// 			}
+// 		}
+// 		if !foundInRecipes {
+// 			log.Debugf("Found dependency %s", dependency.Recipe.Name)
+// 			// FIX: TEST this
+// 			if dep, ok := findRecipeDependency(dependency, types.SuperAgentRecipeName); ok {
+// 				log.Debugf("updating the dependency status for %s", dep)
+// 				dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
+// 			}
+// 		}
+// 	}
+// }
 
 // findRecipeDependency recursively searches for a recipe dependency
 func findRecipeDependency(recipe *BundleRecipe, name string) (*BundleRecipe, bool) {
@@ -153,27 +181,6 @@ func (b *Bundler) getBundleRecipeWithDependencies(recipe *types.OpenInstallation
 		b.cachedBundleRecipes[recipe.Name] = nil
 		return nil
 	}
-
-	// FIX: Remov this
-	// for _, d := range recipe.Dependencies {
-	// 	var dr *BundleRecipe
-	// 	if dt, ok := b.AvailableRecipes.GetRecipeDetection(d); ok {
-	// 		dr = b.getBundleRecipeWithDependencies(dt.Recipe)
-	// 	} else if b.HasSuperInstalled && strings.EqualFold(d, types.SuperAgentRecipeName) {
-	// 		bundleRecipe.AddDetectionStatus(execution.RecipeStatusTypes.AVAILABLE, 0)
-	// 		dr = b.getBundleRecipeWithDependencies(&types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName})
-	// 	} else {
-	// 		log.Debugf("dependent recipe %s not found, skipping recipe %s", d, recipe.Name)
-	// 	}
-	//
-	// 	if dr == nil {
-	// 		log.Debugf("dependent bundle recipe %s not found, skipping recipe %s", d, recipe.Name)
-	// 		b.cachedBundleRecipes[recipe.Name] = nil
-	// 		return nil
-	// 	}
-	//
-	// 	bundleRecipe.Dependencies = append(bundleRecipe.Dependencies, dr)
-	// }
 
 	if bundleRecipe.AreAllDependenciesAvailable() {
 		if dt, ok := b.AvailableRecipes.GetRecipeDetection(recipe.Name); ok {

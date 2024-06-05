@@ -89,19 +89,32 @@ func TestInstallWithInvalidDiscoveryResultReturnsError(t *testing.T) {
 	assert.True(t, strings.Contains(actual.Error(), expected.Error()))
 }
 
+// FIX: add a test for super agent installed on host
+// super agent is present and OHI is trying to be installed
 func TestInstallGuidedShouldSkipCoreInstallWhileSuperAgentIsInstalled(t *testing.T) {
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
 		Status: execution.RecipeStatusTypes.AVAILABLE,
 	}
+	// super agent should be made available
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return true }).WithStatusReporter(statusReporter).WithRunningProcess("super-agent-process", types.SuperAgentProcessName).Build()
+	recipeInstall := NewRecipeInstallBuilder().
+		WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).
+		WithStatusReporter(statusReporter).
+		WithRunningProcess("super-agent-process", types.SuperAgentProcessName).
+		Build()
 
-	err := recipeInstall.Install()
+	err := recipeInstall.install(context.TODO())
+	//FIX:
 
-	assert.Equal(t, "super Agent is installed, preventing the installation of this recipe", err.Error())
-	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
-	assert.Equal(t, 0, statusReporter.RecipeAvailableCallCount, "Available Count")
+	//assert.NoError(t, err)
+	assert.Equal(t, "no recipes were installed", err.Error())
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
 	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
 	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
 	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
@@ -110,6 +123,7 @@ func TestInstallGuidedShouldSkipCoreInstallWhileSuperAgentIsInstalled(t *testing
 	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
 	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe Installed")
 }
 
 func TestInstallGuidedShouldSkipCoreInstall(t *testing.T) {
@@ -225,6 +239,37 @@ func TestInstallGuidedShouldSkipOTEL(t *testing.T) {
 	assert.Equal(t, 0, statusReporter.ReportInstalled[r2.Recipe.Name], "OTEL Installed")
 }
 
+func TestInstallGuidedShouldSkipSuper(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).WithDiscoveryMode([]types.OpenInstallationDiscoveryMode{
+			types.OpenInstallationDiscoveryModeTypes.TARGETED,
+		}).Build(),
+		Status: execution.RecipeStatusTypes.NULL,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.Install()
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Infra Installed")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r2.Recipe.Name], "OTEL Installed")
+}
+
 func TestInstallGuidedCoreShouldStopOnError(t *testing.T) {
 	installErr := errors.New("Install Error")
 	r := &recipes.RecipeDetectionResult{
@@ -310,6 +355,86 @@ func TestInstallTargetedShouldNotSkipOTEL(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "OTEL Installed")
 }
 
+func TestInstallTargetedShouldNotSkipSuper(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(types.SuperAgentRecipeName).WithStatusReporter(statusReporter).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.Install()
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Super Agent Installed")
+}
+
+func TestInstallTargetedShouldNotSkipSuperOnSuperInstalledHost(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(types.SuperAgentRecipeName).WithStatusReporter(statusReporter).
+		WithRunningProcess(types.SuperAgentProcessName, types.SuperAgentProcessName).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.Install()
+
+	assert.NoError(t, err)
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Super Agent Installed")
+}
+
+func TestInstallTargetedShouldNotSkipInfraOnSuperInstalledHost(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	r1 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).WithTargetRecipeName(types.InfraAgentRecipeName).WithStatusReporter(statusReporter).
+		WithRunningProcess(types.SuperAgentProcessName, types.SuperAgentProcessName).WithRecipeDetectionResult(r1).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.Install()
+
+	assert.Equal(t, "super Agent is installed, preventing the installation of this recipe", err.Error())
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 2, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	// 2 times => once with target guided install check and once with additional guided install check
+	assert.Equal(t, 0, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r.Recipe.Name], "Super Agent Installed")
+	assert.Equal(t, 0, statusReporter.ReportInstalled[r1.Recipe.Name], "infra Agent Installed")
+}
+
 func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
@@ -335,13 +460,19 @@ func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkipped(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe1 Installed")
 }
 
-func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkippedWhileSuperAgentIsInstalled(t *testing.T) {
+func TestInstallTargetedInstallShouldNotInstallCoreIfCoreWasSkippedWhileSuperAgentIsInstalled(t *testing.T) {
 	r := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build(),
 		Status: execution.RecipeStatusTypes.AVAILABLE,
 	}
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
 	statusReporter := execution.NewMockStatusReporter()
-	recipeInstall := NewRecipeInstallBuilder().WithRecipeDetectionResult(r).withShouldInstallCore(func() bool { return false }).
+	recipeInstall := NewRecipeInstallBuilder().
+		WithRecipeDetectionResult(r).WithRecipeDetectionResult(r2).
+		withShouldInstallCore(func() bool { return false }).
 		WithTargetRecipeName(types.InfraAgentRecipeName).WithStatusReporter(statusReporter).
 		WithRunningProcess("super-agent-process", types.SuperAgentProcessName).Build()
 	recipeInstall.AssumeYes = true
@@ -349,7 +480,7 @@ func TestInstallTargetedInstallShouldInstallCoreIfCoreWasSkippedWhileSuperAgentI
 	err := recipeInstall.Install()
 
 	assert.Equal(t, "super Agent is installed, preventing the installation of this recipe", err.Error())
-	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
 	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
 	assert.Equal(t, 0, statusReporter.RecipeInstallingCallCount, "Installing Count")
 	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
@@ -429,6 +560,59 @@ func TestInstallGuidededInstallAdditionalShouldInstall(t *testing.T) {
 	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
 	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
+}
+
+func TestInstallSuperInstallAdditionalShouldInstallOnSuperAgentInstalled(t *testing.T) {
+	r := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).
+		WithTargetRecipeName(types.SuperAgentRecipeName).
+		WithRunningProcess("super-agent-process", types.SuperAgentProcessName).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.install(context.TODO())
+
+	assert.NoError(t, err, "No error during install")
+	assert.Equal(t, 1, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 0, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r.Recipe.Name], "Recipe Installed")
+}
+
+func TestInstallOHIAdditionalShouldInstallOnSuperAgentInstalled(t *testing.T) {
+
+	r2 := &recipes.RecipeDetectionResult{
+		Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
+		Status: execution.RecipeStatusTypes.AVAILABLE,
+	}
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).
+		WithTargetRecipeName("recipe1").WithRecipeDetectionResult(r2).
+		WithRunningProcess("super-agent-process", types.SuperAgentProcessName).Build()
+	recipeInstall.AssumeYes = true
+
+	err := recipeInstall.install(context.TODO())
+
+	assert.NoError(t, err, "No error during install")
+	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
+	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstallingCallCount, "Installing Count")
+	assert.Equal(t, 0, statusReporter.RecipeFailedCallCount, "Failed Count")
+	assert.Equal(t, 0, statusReporter.RecipeUnsupportedCallCount, "Unsupported Count")
+	assert.Equal(t, 1, statusReporter.RecipeInstalledCallCount, "InstalledCount")
+	assert.Equal(t, 1, statusReporter.RecipeRecommendedCallCount, "Recommendation Count")
+	assert.Equal(t, 0, statusReporter.RecipeSkippedCallCount, "Skipped Count")
+	assert.Equal(t, 0, statusReporter.RecipeCanceledCallCount, "Cancelled Count")
+	assert.Equal(t, 1, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe Installed")
 }
 
 func TestPromptIfNotLatestCliVersionDoesNotLogMessagesOrErrorWhenVersionsMatch(t *testing.T) {

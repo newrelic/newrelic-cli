@@ -303,26 +303,27 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}
 
 	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
-		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
-		return recipes, err2
+		fetchRecipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
+		return fetchRecipes, err2
 	}, m)
 
 	i.printStartInstallingMessage(repo)
 
 	recipeDetector := i.recipeDetectorFactory(ctx, repo, &i.InstallerContext)
 	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
+	if err != nil {
+		return err
+	}
 
 	// FIX: This is for super agent process when found on the host
 	// Check if this is functional
-	if i.hostHasSuperAgentProcess() {
+	//!i.InstallerContext.IsRecipeTargeted(types.SuperAgentRecipeName)
+	if _, ok := availableRecipes.GetRecipeDetection(types.SuperAgentRecipeName); i.hostHasSuperAgentProcess() && !ok {
 		availableRecipes = append(availableRecipes, &recipes.RecipeDetectionResult{
 			Recipe:     &types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName},
 			Status:     execution.RecipeStatusTypes.AVAILABLE,
 			DurationMs: 0,
 		})
-	}
-	if err != nil {
-		return err
 	}
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
@@ -439,8 +440,8 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		// FIX: Write tests here
 		if bun.HasSuperInstalled {
 			for _, coreRecipe := range bun.GetCoreRecipeNames() {
-				if i, ok := additionalBundle.ContainsName(coreRecipe); ok {
-					additionalBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
+				if depBundle, found := additionalBundle.ContainsName(coreRecipe); found {
+					additionalBundle.BundleRecipes[depBundle].AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
 				}
 			}
 			log.Debugf("Additional Targeted bundle recipes in queue:%s", additionalBundle)
@@ -456,11 +457,6 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
-		if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
-			return &types.UncaughtError{
-				Err: fmt.Errorf("one or more selected recipes could not be installed"),
-			}
-		}
 		for _, recipe := range i.RecipeNames {
 			if bun.HasSuperInstalled && bun.IsCore(recipe) {
 				return types.NewDetailError(types.EventTypes.OtherError, types.ErrSuperAgent.Error())
@@ -471,26 +467,55 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 			Err: fmt.Errorf("no recipes were installed"),
 		}
 	}
+	if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
+		return &types.UncaughtError{
+			Err: fmt.Errorf("one or more selected recipes could not be installed"),
+		}
+	}
+
 	return nil
 }
 
 func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller) error {
+	var (
+		bun *recipes.Bundler
+		ok  bool
+	)
+
 	if i.hostHasSuperAgentProcess() {
-		if bun, ok := bundler.(*recipes.Bundler); ok {
+		if bun, ok = bundler.(*recipes.Bundler); ok {
 			bun.HasSuperInstalled = true
 			log.Debugf("Super agent process found")
 		}
 	} else {
 		log.Debugf("Super agent process not found. Proceeding with installation.")
 	}
-	if i.shouldInstallCore() && !bundler.(*recipes.Bundler).HasSuperInstalled {
+	// FIX: Should allow to create the bundle even if there is SuperAgentRecipeName
+	// creating a bundle check if its core type and say skip / nil
+	// check the created core bundle for nil and say skip
+	// if i.shouldInstallCore() && !bun.HasSuperInstalled {
+	log.Debugf("Status of core skip: %v", i.shouldInstallCore())
+	if i.shouldInstallCore() {
+		log.Debugf("Preparing core bundle")
 		coreBundle := bundler.CreateCoreBundle()
+
+		// FIX: Write tests here
+		if bundler.(*recipes.Bundler).HasSuperInstalled {
+			for _, coreRecipe := range bun.GetCoreRecipeNames() {
+				if i, ok := coreBundle.ContainsName(coreRecipe); ok {
+					coreBundle.BundleRecipes[i].AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
+				}
+			}
+			log.Debugf("Core bundle recipes in queue:%s", coreBundle)
+			log.Debugf("Skipping core bundle")
+		}
 		log.Debugf("Core bundle recipes:%s", coreBundle)
 		err := bundleInstaller.InstallStopOnError(coreBundle, i.AssumeYes)
 		if err != nil {
 			log.Debugf("error installing core bundle:%s", err)
 			return err
 		}
+
 	} else {
 		log.Debugf("Skipping core bundle")
 	}

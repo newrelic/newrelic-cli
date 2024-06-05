@@ -60,11 +60,11 @@ var Command = &cobra.Command{
 
 		i := NewRecipeInstaller(ic, c, sg)
 
-		// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
-		if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
-			log.Debugf("'%s' is targeted, disabling infra/logs core bundle install\n", types.SuperAgentRecipeName)
-			i.shouldInstallCore = func() bool { return false }
-		}
+		//// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
+		//if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
+		//	log.Debugf("'%s' is targeted, disabling infra/logs core bundle install\n", types.SuperAgentRecipeName)
+		//	i.shouldInstallCore = func() bool { return false }
+		//}
 
 		// Run the install.
 		if err := i.Install(); err != nil {
@@ -82,7 +82,7 @@ var Command = &cobra.Command{
 
 			// FIX: its not floated as error
 			// This is showing up in all the scenarios if super agent is present
-			if errors.Is(err, errors.New("super Agent is installed, preventing the installation of this recipe")) {
+			if errors.Is(err, types.ErrSuperAgent) {
 				return err
 			}
 
