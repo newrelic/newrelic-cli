@@ -156,7 +156,6 @@ func (bi *BundleInstaller) InstallBundleRecipe(bundleRecipe *recipes.BundleRecip
 func (bi *BundleInstaller) getInstallableBundleRecipes(bundle *recipes.Bundle) []*recipes.BundleRecipe {
 	var bundleRecipes []*recipes.BundleRecipe
 
-	// FIX: TEST below code
 	for _, bundleRecipe := range bundle.BundleRecipes {
 		if !bundleRecipe.LastStatus(execution.RecipeStatusTypes.AVAILABLE) {
 			// Skip if not available

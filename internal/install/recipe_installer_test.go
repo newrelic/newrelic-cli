@@ -109,9 +109,7 @@ func TestInstallGuidedShouldSkipCoreInstallWhileSuperAgentIsInstalled(t *testing
 		Build()
 
 	err := recipeInstall.install(context.TODO())
-	//FIX:
 
-	//assert.NoError(t, err)
 	assert.Equal(t, "no recipes were installed", err.Error())
 	assert.Equal(t, 2, statusReporter.RecipeDetectedCallCount, "Detection Count")
 	assert.Equal(t, 1, statusReporter.RecipeAvailableCallCount, "Available Count")
@@ -589,7 +587,6 @@ func TestInstallSuperInstallAdditionalShouldInstallOnSuperAgentInstalled(t *test
 }
 
 func TestInstallOHIAdditionalShouldInstallOnSuperAgentInstalled(t *testing.T) {
-
 	r2 := &recipes.RecipeDetectionResult{
 		Recipe: recipes.NewRecipeBuilder().Name("recipe1").Build(),
 		Status: execution.RecipeStatusTypes.AVAILABLE,

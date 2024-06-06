@@ -80,8 +80,6 @@ var Command = &cobra.Command{
 				return e
 			}
 
-			// FIX: its not floated as error
-			// This is showing up in all the scenarios if super agent is present
 			if errors.Is(err, types.ErrSuperAgent) {
 				return err
 			}
