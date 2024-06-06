@@ -1,6 +1,7 @@
 package install
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -59,11 +60,11 @@ var Command = &cobra.Command{
 
 		i := NewRecipeInstaller(ic, c, sg)
 
-		// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
-		if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
-			log.Debugf("'%s' is targeted, disabling infra/logs core bundle install\n", types.SuperAgentRecipeName)
-			i.shouldInstallCore = func() bool { return false }
-		}
+		//// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
+		//if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
+		//	log.Debugf("'%s' is targeted, disabling infra/logs core bundle install\n", types.SuperAgentRecipeName)
+		//	i.shouldInstallCore = func() bool { return false }
+		//}
 
 		// Run the install.
 		if err := i.Install(); err != nil {
@@ -77,6 +78,10 @@ var Command = &cobra.Command{
 
 			if e, ok := err.(*nrErrors.PaymentRequiredError); ok {
 				return e
+			}
+
+			if errors.Is(err, types.ErrSuperAgent) {
+				return err
 			}
 
 			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
@@ -170,7 +175,6 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 }
 
 func checkNetwork() error {
-
 	if client.NRClient == nil {
 		return nil
 	}

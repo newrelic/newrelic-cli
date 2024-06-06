@@ -24,10 +24,7 @@ import (
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
 
-const (
-	validationTimeout     = 5 * time.Minute
-	superAgentProcessName = "newrelic-super-agent"
-)
+const validationTimeout = 5 * time.Minute
 
 var infraAgentEntityKey string
 
@@ -210,10 +207,6 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 		return err
 	}
 
-	// Check if super-agent process is already running on host
-	superAgentProcessOnHost := i.processEvaluator.FindProcess(superAgentProcessName)
-	log.Debugf("super agent running: %t\n", superAgentProcessOnHost)
-
 	hostname, _ := os.Hostname()
 	if hostname == "" {
 		message := "This system is not supported for automatic installation, no host info. Please see our documentation for requirements."
@@ -310,8 +303,8 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	}
 
 	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
-		recipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
-		return recipes, err2
+		fetchRecipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
+		return fetchRecipes, err2
 	}, m)
 
 	i.printStartInstallingMessage(repo)
@@ -320,6 +313,14 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	availableRecipes, unavailableRecipes, err := recipeDetector.GetDetectedRecipes()
 	if err != nil {
 		return err
+	}
+
+	if _, ok := availableRecipes.GetRecipeDetection(types.SuperAgentRecipeName); i.hostHasSuperAgentProcess() && !ok {
+		availableRecipes = append(availableRecipes, &recipes.RecipeDetectionResult{
+			Recipe:     &types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName},
+			Status:     execution.RecipeStatusTypes.AVAILABLE,
+			DurationMs: 0,
+		})
 	}
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
@@ -413,10 +414,46 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 	return false
 }
 
+func (i *RecipeInstall) checkSuper(bundler RecipeBundler) *recipes.Bundler {
+	bun, ok := bundler.(*recipes.Bundler)
+	if i.hostHasSuperAgentProcess() && ok {
+		bun.HasSuperInstalled = true
+		log.Debugf("Super agent process found.")
+	} else {
+		log.Debugf("Super agent process not found.")
+	}
+	log.Debugf("Preparing bundle")
+	return bun
+}
+
+func bundleRecipeProcessing(bundle *recipes.Bundle, bun *recipes.Bundler) {
+	if bun.HasSuperInstalled {
+		for _, coreRecipe := range bun.GetCoreRecipeNames() {
+			if pos, found := bundle.ContainsName(coreRecipe); found {
+				bundle.BundleRecipes[pos].AddDetectionStatus(execution.RecipeStatusTypes.NULL, 0)
+			}
+		}
+		log.Debugf("Bundled recipes in queue:%s", bundle)
+	}
+}
+
+// installAdditionalBundle installs additional bundles for the given recipes.
+// It checks if the host has a super agent process running, and proceeds with the additional bundle.
+// If the list of recipes is provided, it creates a targeted bundle; otherwise, it creates a guided bundle.
+// If the host has super agent installed infra agent and logs agent would be NULL
+// It then installs the additional bundle and reports any unsupported recipes.
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 	var additionalBundle *recipes.Bundle
+
+	bun := i.checkSuper(bundler)
+
 	if i.RecipeNamesProvided() {
+		log.Debugf("bundling additional bundle")
+		log.Debugf("recipes in list %d", len(i.RecipeNames))
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
+
+		bundleRecipeProcessing(additionalBundle, bun)
+
 		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
@@ -427,10 +464,17 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	bundleInstaller.InstallContinueOnError(additionalBundle, i.AssumeYes)
 
 	if bundleInstaller.InstalledRecipesCount() == 0 {
+		for _, recipe := range i.RecipeNames {
+			if bun.HasSuperInstalled && bun.IsCore(recipe) {
+				return types.NewDetailError(types.EventTypes.OtherError, types.ErrSuperAgent.Error())
+			}
+		}
+
 		return &types.UncaughtError{
 			Err: fmt.Errorf("no recipes were installed"),
 		}
-	} else if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
+	}
+	if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
 		return &types.UncaughtError{
 			Err: fmt.Errorf("one or more selected recipes could not be installed"),
 		}
@@ -440,14 +484,23 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 }
 
 func (i *RecipeInstall) installCoreBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller) error {
+	bun := i.checkSuper(bundler)
+
+	log.Debugf("Status of core skip: %v", i.shouldInstallCore())
+
 	if i.shouldInstallCore() {
+		log.Debugf("Preparing core bundle")
 		coreBundle := bundler.CreateCoreBundle()
+
+		bundleRecipeProcessing(coreBundle, bun)
+
 		log.Debugf("Core bundle recipes:%s", coreBundle)
 		err := bundleInstaller.InstallStopOnError(coreBundle, i.AssumeYes)
 		if err != nil {
 			log.Debugf("error installing core bundle:%s", err)
 			return err
 		}
+
 	} else {
 		log.Debugf("Skipping core bundle")
 	}
@@ -748,4 +801,8 @@ func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
 		i.recipeLogForwarder.SendLogsToNewRelic(recipeName, i.recipeExecutor.GetRecipeOutput())
 		i.progressIndicator.Success("Complete!")
 	}
+}
+
+func (i *RecipeInstall) hostHasSuperAgentProcess() bool {
+	return i.processEvaluator.FindProcess(types.SuperAgentProcessName)
 }

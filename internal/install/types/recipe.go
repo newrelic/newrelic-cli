@@ -14,6 +14,7 @@ const (
 	LoggingSuperAgentRecipeName = "logs-integration-super-agent"
 	GoldenRecipeName            = "alerts-golden-signal"
 	SuperAgentRecipeName        = "super-agent"
+	SuperAgentProcessName       = "newrelic-super-agent"
 )
 
 var RecipeVariables = map[string]string{}
