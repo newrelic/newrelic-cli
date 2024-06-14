@@ -4,6 +4,7 @@ import (
 	"context"
 
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/exp/slices"
 
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
@@ -24,7 +25,7 @@ func newScriptEvaluator(executor execution.RecipeExecutor) *ScriptEvaluator {
 	}
 }
 
-func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) (statusResult execution.RecipeStatusType) {
+func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe, recipeNames []string) (statusResult execution.RecipeStatusType) {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -35,6 +36,10 @@ func (se *ScriptEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIns
 
 	if err := se.executor.ExecutePreInstall(ctx, *r, types.RecipeVars{}); err != nil {
 		log.Debugf("recipe %s failed script evaluation %s", r.Name, err)
+
+		if slices.Contains(recipeNames, r.Name) {
+			log.Errorf("Unsupported (%s): Requirements not satisfied:\n- %s", r.DisplayName, err)
+		}
 
 		if utils.IsExitStatusCode(132, err) {
 			statusResult = execution.RecipeStatusTypes.DETECTED

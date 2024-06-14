@@ -13,7 +13,7 @@ import (
 func TestScriptEvaluatorShouldGetAvailable(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
-	status := GivenScriptEvaluator().DetectionStatus(context.Background(), recipe)
+	status := GivenScriptEvaluator().DetectionStatus(context.Background(), recipe, []string{})
 
 	require.Equal(t, execution.RecipeStatusTypes.AVAILABLE, status)
 }
@@ -22,7 +22,7 @@ func TestScriptEvaluatorShouldDetect(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
 	evaluator := GivenScriptEvaluatorError("This is the specific message with exit status 132 special case")
-	status := evaluator.DetectionStatus(context.Background(), recipe)
+	status := evaluator.DetectionStatus(context.Background(), recipe, []string{})
 
 	require.Equal(t, execution.RecipeStatusTypes.DETECTED, status)
 }
@@ -31,7 +31,7 @@ func TestScriptEvaluatorShouldNotDetect(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
 	evaluator := GivenScriptEvaluatorError("something went wrong")
-	status := evaluator.DetectionStatus(context.Background(), recipe)
+	status := evaluator.DetectionStatus(context.Background(), recipe, []string{})
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
@@ -42,7 +42,7 @@ func TestScriptEvaluatorShouldReturnWhenPanic(t *testing.T) {
 	recipeExecutor.ShouldPanic = true
 
 	evaluator := newScriptEvaluator(recipeExecutor)
-	status := evaluator.DetectionStatus(context.Background(), recipe)
+	status := evaluator.DetectionStatus(context.Background(), recipe, []string{})
 
 	require.Equal(t, execution.RecipeStatusTypes.NULL, status)
 }
@@ -62,7 +62,7 @@ func TestScriptEvaluatorShouldBeUnSupported(t *testing.T) {
 	recipe := NewRecipeBuilder().Build()
 
 	evaluator := GivenScriptEvaluatorError("This is the specific message with exit status 131 un-support case")
-	status := evaluator.DetectionStatus(context.Background(), recipe)
+	status := evaluator.DetectionStatus(context.Background(), recipe, []string{})
 
 	require.Equal(t, execution.RecipeStatusTypes.UNSUPPORTED, status)
 }
