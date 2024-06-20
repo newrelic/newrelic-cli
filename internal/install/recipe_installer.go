@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"regexp"
 	"strconv"
@@ -582,6 +583,9 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		// opts in/out of sending cli logs, and this must occur before we build the RecipeStatusEvent to post to NR
 		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
 		i.optInToSendLogsAndUpdateRecipeMetadata(r.Name)
+		// FIX: This should rerun the executed command
+		i.askToReRunInDebugMode()
+
 		se := execution.RecipeStatusEvent{
 			Recipe:   *r,
 			Msg:      msg,
@@ -663,6 +667,24 @@ func (i *RecipeInstall) optInToSendLogsAndUpdateRecipeMetadata(recipeName string
 		i.recipeLogForwarder.SetUserOptedIn(userOptIn)
 		i.recipeExecutor.GetOutput().AddMetadata("SendLogsOptIn", strconv.FormatBool(userOptIn))
 	}
+}
+
+func (i *RecipeInstall) askToReRunInDebugMode() {
+	recipeOutput := i.recipeExecutor.GetRecipeOutput()
+	logCaptureEnabledForRecipe := i.recipeExecutor.GetOutput().IsCapturedCliOutput()
+	if len(recipeOutput) > 0 && logCaptureEnabledForRecipe {
+		i.promptUserToReRun()
+	}
+}
+
+func (i *RecipeInstall) promptUserToReRun() {
+	fmt.Printf("\n%s Installation failed. To help identify the issue, you can re-run the installation command with the --debug flag. This will enable verbose logging and provide more detailed information about each step of the installation process. Use the command newrelic install --debug to start the installation with debug mode enabled.", color.YellowString("\u0021"))
+
+	// NOTE: This is only after Infra is installed on the host. If no infra agent is present then root/.newrelic wouldn't be created
+	if i.processEvaluator.FindProcess(types.InfraAgentProcessName) {
+		fmt.Printf("\n%s For viewing the logs, please navigate to /root/.newrelic/newrelic-cli.log. ", color.YellowString("\u0021"))
+	}
+
 }
 
 type validationFunc func() (string, error)
