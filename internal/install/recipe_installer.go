@@ -351,6 +351,7 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	return nil
 }
 
+// TODO: remove?
 func (i *RecipeInstall) printStartInstallingMessage(repo *recipes.RecipeRepository) {
 	message := "\n\nInstalling New Relic"
 	if i.RecipeNamesProvided() && len(i.RecipeNames) > 0 {

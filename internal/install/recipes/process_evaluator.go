@@ -2,7 +2,10 @@ package recipes
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
+	"golang.org/x/exp/slices"
 
 	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
@@ -12,7 +15,7 @@ import (
 
 type ProcessEvaluatorInterface interface {
 	GetOrLoadProcesses(ctx context.Context) []types.GenericProcess
-	DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType
+	DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe, recipeNames []string) execution.RecipeStatusType
 	FindProcess(process string) bool
 }
 
@@ -73,7 +76,7 @@ func (pe *ProcessEvaluator) GetOrLoadProcesses(ctx context.Context) []types.Gene
 	return pe.processFetcher(ctx)
 }
 
-func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe) execution.RecipeStatusType {
+func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenInstallationRecipe, recipeNames []string) execution.RecipeStatusType {
 	if len(r.ProcessMatch) == 0 {
 		return execution.RecipeStatusTypes.AVAILABLE
 	}
@@ -81,6 +84,12 @@ func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIn
 	processes := pe.GetOrLoadProcesses(ctx)
 	matches := pe.processMatchFinder.FindMatches(ctx, processes, *r)
 	if len(matches) == 0 {
+		if slices.Contains(recipeNames, r.Name) {
+			log.Errorf("Unsupported (%s): Unable to match any of the following processes:\n", r.DisplayName)
+			for _, v := range r.ProcessMatch {
+				fmt.Println("-", v)
+			}
+		}
 		log.Tracef("recipe %s is not matching any process", r.Name)
 		return execution.RecipeStatusTypes.NULL
 	}

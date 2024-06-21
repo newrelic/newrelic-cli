@@ -12,7 +12,7 @@ import (
 )
 
 type DetectionStatusProvider interface {
-	DetectionStatus(context.Context, *types.OpenInstallationRecipe) execution.RecipeStatusType
+	DetectionStatus(context.Context, *types.OpenInstallationRecipe, []string) execution.RecipeStatusType
 }
 
 type RecipeDetectionResult struct {
@@ -106,11 +106,13 @@ func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *Re
 		}
 	}
 
-	status := dt.processEvaluator.DetectionStatus(dt.context, recipe)
+	recipeNames := dt.installerContext.RecipeNames
+
+	status := dt.processEvaluator.DetectionStatus(dt.context, recipe, recipeNames)
 	durationMs := time.Since(start).Milliseconds()
 
 	if status == execution.RecipeStatusTypes.AVAILABLE && recipe.PreInstall.RequireAtDiscovery != "" {
-		status = dt.scriptEvaluator.DetectionStatus(dt.context, recipe)
+		status = dt.scriptEvaluator.DetectionStatus(dt.context, recipe, recipeNames)
 		durationMs = time.Since(start).Milliseconds()
 		log.Debugf("ScriptEvaluation for recipe:%s completed in %dms with status:%s", recipe.Name, durationMs, status)
 	}

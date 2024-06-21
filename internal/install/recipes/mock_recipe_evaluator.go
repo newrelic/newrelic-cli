@@ -21,7 +21,7 @@ func (mre *MockRecipeEvaluator) WithRecipeStatus(recipe *types.OpenInstallationR
 	mre.recipeStatus[recipe.Name] = status
 }
 
-func (mre *MockRecipeEvaluator) DetectionStatus(ctx context.Context, recipe *types.OpenInstallationRecipe) execution.RecipeStatusType {
+func (mre *MockRecipeEvaluator) DetectionStatus(ctx context.Context, recipe *types.OpenInstallationRecipe, recipeNames []string) execution.RecipeStatusType {
 	if status, ok := mre.recipeStatus[recipe.Name]; ok {
 		return status
 	}
