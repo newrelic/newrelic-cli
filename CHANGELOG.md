@@ -1,3 +1,5 @@
+<a name="v0.88.1"></a>
+## [v0.88.1] - 2024-06-21
 <a name="v0.88.0"></a>
 ## [v0.88.0] - 2024-06-21
 ### Features
@@ -2312,7 +2314,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.88.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.88.1...HEAD
+[v0.88.1]: https://github.com/newrelic/newrelic-cli/compare/v0.88.0...v0.88.1
 [v0.88.0]: https://github.com/newrelic/newrelic-cli/compare/v0.87.1...v0.88.0
 [v0.87.1]: https://github.com/newrelic/newrelic-cli/compare/v0.87.0...v0.87.1
 [v0.87.0]: https://github.com/newrelic/newrelic-cli/compare/v0.86.2...v0.87.0
