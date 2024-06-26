@@ -61,7 +61,14 @@ The list command retrieves the workloads for the given account ID.
 				},
 			},
 		}
-		workload, err := client.NRClient.Entities.GetEntitySearchWithContext(utils.SignalCtx, entities.EntitySearchOptions{}, "", builder, nil)
+		workload, err := client.NRClient.Entities.GetEntitySearchWithContext(
+			utils.SignalCtx,
+			entities.EntitySearchOptions{},
+			"",
+			builder,
+			nil,
+			[]entities.SortCriterionWithDirection{},
+		)
 		utils.LogIfFatal(err)
 
 		utils.LogIfFatal(output.Print(workload))

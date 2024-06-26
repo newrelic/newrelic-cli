@@ -159,6 +159,7 @@ The search command performs a query for a Synthetics Monitor by name.
 			"",
 			params,
 			[]entities.EntitySearchSortCriteria{},
+			[]entities.SortCriterionWithDirection{},
 		)
 		if err != nil {
 			utils.LogIfFatal(err)
