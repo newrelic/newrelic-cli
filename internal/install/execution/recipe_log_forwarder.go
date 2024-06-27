@@ -106,7 +106,7 @@ func (lf *RecipeLogForwarder) SendLogsToNewRelic(recipeName string, data []strin
 func (lf *RecipeLogForwarder) buildLogEntryBatch(recipeName string, data []string) {
 	now := time.Now().UnixMilli()
 	for _, line := range data {
-		now++ //using timestamp to retain log sequence
+		now++ // using timestamp to retain log sequence
 		lf.LogEntries = append(lf.LogEntries, LogEntry{map[string]interface{}{"nr-install-recipe": recipeName, "timestamp": now}, "cli-output", line})
 	}
 }
