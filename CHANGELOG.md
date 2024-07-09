@@ -1,3 +1,8 @@
+<a name="v0.89.0"></a>
+## [v0.89.0] - 2024-07-09
+### Features
+- Add supported platform oracle ([#1626](https://github.com/newrelic/newrelic-cli/issues/1626))
+
 <a name="v0.88.2"></a>
 ## [v0.88.2] - 2024-06-27
 ### Bug Fixes
@@ -2319,7 +2324,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.88.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.89.0...HEAD
+[v0.89.0]: https://github.com/newrelic/newrelic-cli/compare/v0.88.2...v0.89.0
 [v0.88.2]: https://github.com/newrelic/newrelic-cli/compare/v0.88.1...v0.88.2
 [v0.88.1]: https://github.com/newrelic/newrelic-cli/compare/v0.88.0...v0.88.1
 [v0.88.0]: https://github.com/newrelic/newrelic-cli/compare/v0.87.1...v0.88.0
