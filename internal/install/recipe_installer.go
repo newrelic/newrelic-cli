@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/fatih/color"
 
 	log "github.com/sirupsen/logrus"
 
