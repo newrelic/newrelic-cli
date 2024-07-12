@@ -612,6 +612,36 @@ func TestInstallOHIAdditionalShouldInstallOnSuperAgentInstalled(t *testing.T) {
 	assert.Equal(t, 1, statusReporter.ReportInstalled[r2.Recipe.Name], "Recipe Installed")
 }
 
+func TestShouldSkipReporting(t *testing.T) {
+	// Target a recipe
+	recipeInstall := NewRecipeInstallBuilder().WithTargetRecipeName("super-agent").Build()
+	// Should this recipe be skipped as a result?
+	b := recipeInstall.shouldSkipReporting("infrastructure-agent-installer")
+	assert.Equal(t, true, b, "Super Agent with Infrastructure Agent targeted")
+
+	recipeInstall = NewRecipeInstallBuilder().WithTargetRecipeName("super-agent").Build()
+	b = recipeInstall.shouldSkipReporting("logs-integration")
+	assert.Equal(t, true, b, "Super Agent Provided")
+
+	recipeInstall = NewRecipeInstallBuilder().WithTargetRecipeName("logs-integration-super-agent").Build()
+	b = recipeInstall.shouldSkipReporting("infrastructure-agent-installer")
+	assert.Equal(t, true, b, "Super Agent Provided")
+
+	recipeInstall = NewRecipeInstallBuilder().WithTargetRecipeName("logs-integration-super-agent").Build()
+	b = recipeInstall.shouldSkipReporting("logs-integration")
+	assert.Equal(t, true, b, "Super Agent Provided")
+
+	// Super Agent / Logs not included -> should return false
+
+	recipeInstall = NewRecipeInstallBuilder().Build()
+	b = recipeInstall.shouldSkipReporting("infrastructure-agent-installer")
+	assert.Equal(t, false, b, "Super Agent Provided")
+
+	recipeInstall = NewRecipeInstallBuilder().Build()
+	b = recipeInstall.shouldSkipReporting("logs-integration")
+	assert.Equal(t, false, b, "Super Agent Provided")
+}
+
 func TestPromptIfNotLatestCliVersionDoesNotLogMessagesOrErrorWhenVersionsMatch(t *testing.T) {
 	getLatestCliVersionReleased = func(ctx context.Context) (string, error) {
 		return "latest-version", nil
