@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/fatih/color"
 
 	log "github.com/sirupsen/logrus"
 
@@ -372,6 +373,10 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 		i.status.ReportStatus(d.Status, e)
 	}
 	for _, d := range availableRecipes {
+		if i.shouldSkipReporting(d.Recipe.Name) {
+			continue
+		}
+
 		e := execution.RecipeStatusEvent{Recipe: *d.Recipe, ValidationDurationMs: d.DurationMs}
 		i.status.ReportStatus(execution.RecipeStatusTypes.DETECTED, e)
 	}
@@ -380,8 +385,27 @@ func (i *RecipeInstall) reportRecipeStatuses(availableRecipes recipes.RecipeDete
 func (i *RecipeInstall) reportRecipeRecommendations(availableRecipes recipes.RecipeDetectionResults) {
 	recipeRecommendations := i.getRecipeRecommendations(availableRecipes)
 	for _, e := range recipeRecommendations {
+		if i.shouldSkipReporting(e.Recipe.Name) {
+			continue
+		}
+
 		i.status.ReportStatus(execution.RecipeStatusTypes.RECOMMENDED, e)
 	}
+}
+
+// Skip reporting for the infra agent if super agent has been targeted.
+// The logs-integration also reports a status for the infra agent
+// and should be skipped as well.
+func (i *RecipeInstall) shouldSkipReporting(name string) bool {
+	if name == "infrastructure-agent-installer" || name == "logs-integration" {
+		for _, v := range i.RecipeNames {
+			if v == "super-agent" || v == "logs-integration-super-agent" {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 // Report recommendations for recipes that are available but have not been attempted to be installed
