@@ -161,7 +161,7 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 	}
 
 	if licenseKey == "" {
-		licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
+		_licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 		if err != nil {
 			errorOccured = true
 			message := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
@@ -169,6 +169,7 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 			detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
 			return detailErr
 		}
+		licenseKey = _licenseKey
 	}
 
 	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
