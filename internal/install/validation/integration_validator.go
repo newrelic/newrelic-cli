@@ -45,6 +45,10 @@ func ValidateIntegration(integrationName string) (string, error) {
 
 		cmd := exec.Command(binPath)
 
+		if integrationName == "mongodb3" {
+			cmd = exec.Command(binPath, "-short_running")
+		}
+
 		for k, v := range integration.Env {
 			env := fmt.Sprintf("%s=%s", k, v)
 
