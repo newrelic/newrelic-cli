@@ -1,5 +1,10 @@
+<a name="v0.90.0"></a>
+## [v0.90.0] - 2024-07-23
+### Features
+- Mongodb local validation ([#1633](https://github.com/newrelic/newrelic-cli/issues/1633))
+
 <a name="v0.89.1"></a>
-## [v0.89.1] - 2024-07-12
+## [v0.89.1] - 2024-07-16
 ### Bug Fixes
 - Skip detection reporting for infra if super ([#1630](https://github.com/newrelic/newrelic-cli/issues/1630))
 
@@ -2329,7 +2334,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.89.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.90.0...HEAD
+[v0.90.0]: https://github.com/newrelic/newrelic-cli/compare/v0.89.1...v0.90.0
 [v0.89.1]: https://github.com/newrelic/newrelic-cli/compare/v0.89.0...v0.89.1
 [v0.89.0]: https://github.com/newrelic/newrelic-cli/compare/v0.88.2...v0.89.0
 [v0.88.2]: https://github.com/newrelic/newrelic-cli/compare/v0.88.1...v0.88.2
