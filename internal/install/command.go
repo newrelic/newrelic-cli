@@ -113,6 +113,7 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 	accountID := configAPI.GetActiveProfileAccountID()
 	APIKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
+	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 	errorOccured := false
 	var detailErr *types.DetailError
 
@@ -159,13 +160,16 @@ func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailEr
 		return detailErr
 	}
 
-	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
-	if err != nil {
-		errorOccured = true
-		message := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
-		log.Debug(message)
-		detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
-		return detailErr
+	if licenseKey == "" {
+		_licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
+		if err != nil {
+			errorOccured = true
+			message := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
+			log.Debug(message)
+			detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
+			return detailErr
+		}
+		licenseKey = _licenseKey
 	}
 
 	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
