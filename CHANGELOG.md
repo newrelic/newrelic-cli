@@ -1,3 +1,8 @@
+<a name="v0.91.0"></a>
+## [v0.91.0] - 2024-07-29
+### Features
+- Use licenseKey if present in configuration ([#1631](https://github.com/newrelic/newrelic-cli/issues/1631))
+
 <a name="v0.90.0"></a>
 ## [v0.90.0] - 2024-07-23
 ### Features
@@ -2334,7 +2339,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.90.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.91.0...HEAD
+[v0.91.0]: https://github.com/newrelic/newrelic-cli/compare/v0.90.0...v0.91.0
 [v0.90.0]: https://github.com/newrelic/newrelic-cli/compare/v0.89.1...v0.90.0
 [v0.89.1]: https://github.com/newrelic/newrelic-cli/compare/v0.89.0...v0.89.1
 [v0.89.0]: https://github.com/newrelic/newrelic-cli/compare/v0.88.2...v0.89.0
