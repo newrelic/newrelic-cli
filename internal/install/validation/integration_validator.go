@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -40,6 +41,10 @@ func ValidateIntegration(integrationName string) (string, error) {
 
 	for _, integration := range config.Integrations {
 		integrationBasename := integration.Name
+
+		if runtime.GOOS == "windows" {
+			integrationBasename += ".exe"
+		}
 
 		binPath := filepath.Join(IntegrationsDirname, integrationBasename)
 
