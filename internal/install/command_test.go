@@ -12,7 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
@@ -29,16 +28,11 @@ func TestCommandValidProfile(t *testing.T) {
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	region := os.Getenv("NEW_RELIC_REGION")
 
-	isProxy := false
-	writeKey := "secretWriteKey"
-
 	server := initSegmentMockServer()
 	defer server.Close()
-	baseURL := server.URL
-	c := segment.New(baseURL, writeKey, getAccountIDAsInt(accountID), region, isProxy)
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
-	err := validateProfile(5, c)
+	err := validateProfile(5)
 	assert.Error(t, err)
 	assert.Equal(t, types.EventTypes.AccountIDMissing, err.EventName)
 
@@ -49,11 +43,11 @@ func TestCommandValidProfile(t *testing.T) {
 	}
 
 	os.Setenv("NEW_RELIC_API_KEY", "")
-	err = validateProfile(5, c)
+	err = validateProfile(5)
 	assert.Equal(t, types.EventTypes.APIKeyMissing, err.EventName)
 
 	os.Setenv("NEW_RELIC_API_KEY", "67890")
-	err = validateProfile(5, c)
+	err = validateProfile(5)
 	assert.Equal(t, types.EventTypes.InvalidUserAPIKeyFormat, err.EventName)
 
 	if apiKey == "" {
@@ -63,11 +57,11 @@ func TestCommandValidProfile(t *testing.T) {
 	}
 
 	os.Setenv("NEW_RELIC_REGION", "au")
-	err = validateProfile(5, c)
+	err = validateProfile(5)
 	assert.Equal(t, types.EventTypes.InvalidRegion, err.EventName)
 
 	os.Setenv("NEW_RELIC_REGION", "")
-	err = validateProfile(5, c)
+	err = validateProfile(5)
 	assert.Equal(t, types.EventTypes.RegionMissing, err.EventName)
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", accountID)

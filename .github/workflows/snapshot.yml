@@ -9,8 +9,6 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
-      SEGMENT_WRITE_KEY:
-        required: true
 
 jobs:
   snapshot:
@@ -48,5 +46,3 @@ jobs:
           cache-from: type=registry,ref=newrelic/cli:latest
           cache-to: type=inline
           tags: newrelic/cli:latest
-        env:
-          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}

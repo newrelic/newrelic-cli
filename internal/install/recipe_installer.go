@@ -21,7 +21,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
-	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
@@ -54,7 +53,7 @@ type RecipeInstall struct {
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, sg *segment.Segment) *RecipeInstall {
+func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
 	var recipeFetcher recipes.RecipeFetcher
 
 	if ic.LocalRecipes != "" {
@@ -73,11 +72,9 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic, 
 	ers := []execution.StatusSubscriber{
 		execution.NewTerminalStatusReporter(),
 		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
-		execution.NewSegmentReporter(sg),
 	}
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ic, ers, slg)
-	sg.SetInstallID(statusRollup.InstallID)
 
 	d := discovery.NewPSUtilDiscoverer()
 	re := execution.NewGoTaskRecipeExecutor()
@@ -271,25 +268,16 @@ func (i *RecipeInstall) connectToPlatform() error {
 		loaderChan <- nil
 	}()
 
-	sg.Track("ConnectingToPlatformStarted")
 	i.progressIndicator.Start("Connecting to New Relic Platform")
-	start := time.Now()
 
 	loaded := <-loaderChan
 
-	durationMs := time.Since(start).Milliseconds()
-	ei := segment.NewEventInfo("ConnectingToPlatformComplete", "")
-	ei.WithAdditionalInfo("durationMs", durationMs)
-
 	if loaded == nil {
 		i.progressIndicator.Success("Connecting to New Relic Platform")
-		ei.WithAdditionalInfo("success", true)
 	} else {
 		i.progressIndicator.Fail("Connecting to New Relic Platform")
-		ei.WithAdditionalInfo("success", false)
 	}
 
-	sg.TrackInfo(ei)
 	return loaded
 }
 

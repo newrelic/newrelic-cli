@@ -3,7 +3,6 @@ package diagnose
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -13,7 +12,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
@@ -25,8 +23,6 @@ const (
 	validationEventType          = "NrIntegrationError"
 	DefaultMaxValidationAttempts = 20
 )
-
-var sg = segment.Init()
 
 type ConfigValidator struct {
 	client *newrelic.NewRelic
@@ -103,16 +99,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 	SINCE 10 MINUTES AGO
 	`, evt.EventType, evt.Hostname, evt.GUID)
 
-	sg.Track("ValidateNrqlStart")
-
-	start := time.Now()
 	_, err = c.PollingNRQLValidator.Validate(ctx, query)
-	durationMs := time.Since(start).Milliseconds()
-
-	ei := segment.NewEventInfo("ValidateNrqlEnd", "")
-	ei.WithAdditionalInfo("durationMs", durationMs)
-	ei.WithAdditionalInfo("hasError", err != nil)
-	sg.TrackInfo(ei)
 
 	if err != nil {
 		log.Debug(err)
