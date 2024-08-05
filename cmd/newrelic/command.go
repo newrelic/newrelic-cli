@@ -10,7 +10,6 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	diagnose "github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/output"
-	"github.com/newrelic/newrelic-cli/internal/split"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
@@ -35,9 +34,6 @@ func initializeCLI(cmd *cobra.Command, args []string) {
 	// Initialize logger
 	logLevel := configAPI.GetLogLevel()
 	config.InitLogger(log.StandardLogger(), logLevel)
-
-	// Initialize feature flag service
-	split.Init()
 
 	// Initialize client
 	if client.NRClient == nil {

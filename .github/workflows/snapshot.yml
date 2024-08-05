@@ -9,10 +9,6 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
-      SPLIT_PROD_KEY:
-        required: true
-      SPLIT_STAGING_KEY:
-        required: true
       SEGMENT_WRITE_KEY:
         required: true
 
@@ -53,6 +49,4 @@ jobs:
           cache-to: type=inline
           tags: newrelic/cli:latest
         env:
-          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
           SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
