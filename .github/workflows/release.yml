@@ -16,9 +16,6 @@ jobs:
       NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
       NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
       NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
-      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
 
   release:
     if: github.ref == 'refs/heads/main'
@@ -61,9 +58,6 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
         run: |
           git config --global user.name ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}
           git config --global user.email ${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}
@@ -202,6 +196,3 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-      SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-      SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}

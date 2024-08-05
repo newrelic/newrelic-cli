@@ -13,7 +13,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
-	"github.com/newrelic/newrelic-cli/internal/segment"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 	nrRegion "github.com/newrelic/newrelic-client-go/v2/pkg/region"
@@ -27,8 +26,6 @@ var (
 	testMode     bool
 	tags         []string
 )
-
-var sg = segment.Init()
 
 // Command represents the install command.
 var Command = &cobra.Command{
@@ -47,9 +44,7 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		sg.Track(types.EventTypes.InstallStarted)
-
-		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds, sg)
+		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds)
 		if detailErr != nil {
 			log.Fatal(detailErr)
 		}
@@ -58,7 +53,7 @@ var Command = &cobra.Command{
 		c, _ := client.NewClient(configAPI.GetActiveProfileName())
 		client.NRClient = c
 
-		i := NewRecipeInstaller(ic, c, sg)
+		i := NewRecipeInstaller(ic, c)
 
 		//// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
 		//if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
@@ -109,65 +104,42 @@ func init() {
 	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
 }
 
-func validateProfile(maxTimeoutSeconds int, sg *segment.Segment) *types.DetailError {
+func validateProfile(maxTimeoutSeconds int) *types.DetailError {
 	accountID := configAPI.GetActiveProfileAccountID()
 	APIKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
-	errorOccured := false
-	var detailErr *types.DetailError
-
-	defer func() {
-		if errorOccured {
-			ei := segment.NewEventInfo(detailErr.EventName, detailErr.Details)
-			sg.TrackInfo(ei)
-		}
-	}()
 
 	if accountID == 0 {
-		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.AccountIDMissing, "Account ID is required.")
-		return detailErr
+		return types.NewDetailError(types.EventTypes.AccountIDMissing, "Account ID is required.")
 	}
 
 	if APIKey == "" {
-		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.APIKeyMissing, "User API key is required.")
-		return detailErr
+		return types.NewDetailError(types.EventTypes.APIKeyMissing, "User API key is required.")
 	}
 
 	if !utils.IsValidUserAPIKeyFormat(APIKey) {
-		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.InvalidUserAPIKeyFormat, `Invalid user API key format detected. Please provide a valid user API key. User API keys usually have a prefix of "NRAK-" or "NRAA-".`)
-		return detailErr
+		return types.NewDetailError(types.EventTypes.InvalidUserAPIKeyFormat, `Invalid user API key format detected. Please provide a valid user API key. User API keys usually have a prefix of "NRAK-" or "NRAA-".`)
 	}
 
 	if region == "" {
-		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.RegionMissing, "Region is required.")
-		return detailErr
+		return types.NewDetailError(types.EventTypes.RegionMissing, "Region is required.")
 	}
 
 	if _, err := nrRegion.Parse(region); err != nil {
-		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US" or "EU".`)
-		return detailErr
+		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US" or "EU".`)
 	}
 
 	if err := checkNetwork(); err != nil {
-		errorOccured = true
-		detailErr = types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
-		return detailErr
+		return types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
 	}
 
 	if licenseKey == "" {
 		_licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 		if err != nil {
-			errorOccured = true
 			message := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
 			log.Debug(message)
-			detailErr = types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
-			return detailErr
+			return types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
 		}
 		licenseKey = _licenseKey
 	}

@@ -101,10 +101,6 @@ jobs:
 
       - name: Compile all distros
         continue-on-error: true
-        env:
-          SPLIT_PROD_KEY: ${{ secrets.SPLIT_PROD_KEY }}
-          SPLIT_STAGING_KEY: ${{ secrets.SPLIT_STAGING_KEY }}
-          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
         # Creating the Snapcraft directories ahead of the snapshot is a workaround
         # to deal with a race condition with parallel builds between distros.
         #
