@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -75,9 +74,4 @@ func initSegmentMockServer() *httptest.Server {
 		_, _ = w.Write([]byte(`[]`))
 	}))
 	return server
-}
-
-func getAccountIDAsInt(accountID string) int {
-	i, _ := strconv.Atoi(accountID)
-	return i
 }

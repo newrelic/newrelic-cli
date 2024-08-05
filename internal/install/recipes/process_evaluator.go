@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"golang.org/x/exp/slices"
+
+	"github.com/newrelic/newrelic-cli/internal/install/execution"
 
 	"github.com/shirou/gopsutil/v3/process"
 	log "github.com/sirupsen/logrus"
