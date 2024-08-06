@@ -44,7 +44,12 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		detailErr := validateProfile(config.DefaultMaxTimeoutSeconds)
+		detailErr := validateProfile()
+		if detailErr != nil {
+			log.Fatal(detailErr)
+		}
+
+		detailErr = fetchLicenseKey()
 		if detailErr != nil {
 			log.Fatal(detailErr)
 		}
@@ -104,21 +109,20 @@ func init() {
 	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
 }
 
-func validateProfile(maxTimeoutSeconds int) *types.DetailError {
+func validateProfile() *types.DetailError {
 	accountID := configAPI.GetActiveProfileAccountID()
-	APIKey := configAPI.GetActiveProfileString(config.APIKey)
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
 	region := configAPI.GetActiveProfileString(config.Region)
-	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 
 	if accountID == 0 {
 		return types.NewDetailError(types.EventTypes.AccountIDMissing, "Account ID is required.")
 	}
 
-	if APIKey == "" {
+	if apiKey == "" {
 		return types.NewDetailError(types.EventTypes.APIKeyMissing, "User API key is required.")
 	}
 
-	if !utils.IsValidUserAPIKeyFormat(APIKey) {
+	if !utils.IsValidUserAPIKeyFormat(apiKey) {
 		return types.NewDetailError(types.EventTypes.InvalidUserAPIKeyFormat, `Invalid user API key format detected. Please provide a valid user API key. User API keys usually have a prefix of "NRAK-" or "NRAA-".`)
 	}
 
@@ -134,19 +138,6 @@ func validateProfile(maxTimeoutSeconds int) *types.DetailError {
 		return types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
 	}
 
-	if licenseKey == "" {
-		_licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
-		if err != nil {
-			message := fmt.Sprintf("could not fetch license key for account %d:, license key: %v %s", accountID, utils.Obfuscate(licenseKey), err)
-			log.Debug(message)
-			return types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, fmt.Sprintf("%s", err))
-		}
-		licenseKey = _licenseKey
-	}
-
-	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
-	log.Debugf("using license key %s", utils.Obfuscate(licenseKey))
-
 	return nil
 }
 
@@ -158,10 +149,11 @@ func checkNetwork() error {
 	err := client.NRClient.TestEndpoints()
 	if err != nil {
 		if IsProxyConfigured() {
+			proxyConfig := httpproxy.FromEnvironment()
+
 			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
 			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
 			log.Warn("Current proxy config:")
-			proxyConfig := httpproxy.FromEnvironment()
 			log.Warnf("  HTTPS_PROXY=%s", proxyConfig.HTTPSProxy)
 			log.Warnf("  HTTP_PROXY=%s", proxyConfig.HTTPProxy)
 			log.Warnf("  NO_PROXY=%s", proxyConfig.NoProxy)
@@ -169,9 +161,63 @@ func checkNetwork() error {
 			log.Warn("Failed to connect to the New Relic platform.")
 			log.Warn("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again.")
 		}
+
 		log.Warn("More information about proxy configuration: https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy")
 		log.Warn("More information about network requirements: https://docs.newrelic.com/docs/new-relic-solutions/get-started/networks/")
 	}
 
 	return err
+}
+
+// Attempt to fetch and set a license key through 3 methods:
+// 1. NEW_RELIC_LICENSE_KEY environment variable,
+// 2. Active profile config.LicenseKey,
+// 3. API call,
+// returns an error if all methods fail.
+func fetchLicenseKey() *types.DetailError {
+	accountID := configAPI.GetActiveProfileAccountID()
+
+	var licenseKey string
+
+	defer func() {
+		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
+		log.Debug("using license key: ", utils.Obfuscate(licenseKey))
+	}()
+
+	// fetch licenseKey from environment
+	licenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
+
+	if utils.IsValidLicenseKeyFormat(licenseKey) {
+		return nil
+	}
+
+	if licenseKey != "" {
+		log.Debug("license key provided via NEW_RELIC_LICENSE_KEY is invalid")
+	}
+
+	// fetch licenseKey from active profile
+	licenseKey = configAPI.GetActiveProfileString(config.LicenseKey)
+
+	if utils.IsValidLicenseKeyFormat(licenseKey) {
+		return nil
+	}
+
+	if licenseKey != "" {
+		log.Debug("license key provided by config is invalid")
+	}
+
+	// fetch licenseKey via API
+	maxTimeoutSeconds := config.DefaultMaxTimeoutSeconds
+
+	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
+
+	if err != nil {
+		err = fmt.Errorf("could not fetch license key for accountID (%d): %s",
+			accountID,
+			err.Error())
+
+		return types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, err.Error())
+	}
+
+	return nil
 }

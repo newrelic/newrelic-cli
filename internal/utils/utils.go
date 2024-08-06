@@ -204,3 +204,22 @@ func IsValidUserAPIKeyFormat(key string) bool {
 
 	return isAlphanumeric
 }
+
+// Returns true if the given license key is valid.
+// A valid license key is 40 characters in length,
+// ends with "NRAL", and has a hexidecimal prefix.
+func IsValidLicenseKeyFormat(licenseKey string) bool {
+	if len(licenseKey) != 40 {
+		return false
+	}
+
+	suffix := "NRAL"
+
+	if !strings.HasSuffix(licenseKey, suffix) {
+		return false
+	}
+
+	prefix := strings.TrimSuffix(licenseKey, suffix)
+
+	return regexp.MustCompile("^[a-fA-F0-9]*$").MatchString(prefix)
+}
