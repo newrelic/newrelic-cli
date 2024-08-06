@@ -207,7 +207,7 @@ func IsValidUserAPIKeyFormat(key string) bool {
 
 // Returns true if the given license key is valid.
 // A valid license key is 40 characters in length,
-// ends with "NRAL", and has a hexidecimal prefix.
+// ends with "NRAL", and has a hexadecimal prefix.
 func IsValidLicenseKeyFormat(licenseKey string) bool {
 	if len(licenseKey) != 40 {
 		return false
