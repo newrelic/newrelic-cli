@@ -189,9 +189,7 @@ func fetchLicenseKey() *types.DetailError {
 
 	if utils.IsValidLicenseKeyFormat(licenseKey) {
 		return nil
-	}
-
-	if licenseKey != "" {
+	} else {
 		log.Debug("license key provided via NEW_RELIC_LICENSE_KEY is invalid")
 	}
 
@@ -200,9 +198,7 @@ func fetchLicenseKey() *types.DetailError {
 
 	if utils.IsValidLicenseKeyFormat(licenseKey) {
 		return nil
-	}
-
-	if licenseKey != "" {
+	} else {
 		log.Debug("license key provided by config is invalid")
 	}
 
