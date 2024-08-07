@@ -123,3 +123,22 @@ func TestIsValidUserAPIKeyFormat_Invalid(t *testing.T) {
 	result = IsValidUserAPIKeyFormat("NRAK-@$%^!")
 	assert.False(t, result)
 }
+
+func TestIsValidLicenseKeyFormat_Valid(t *testing.T) {
+	result := IsValidLicenseKeyFormat("0123456789abcdefABCDEF0123456789abcdNRAL")
+	assert.True(t, result)
+}
+
+func TestIsValidLicenseKeyFormat_Invalid(t *testing.T) {
+	// Invalid length
+	result := IsValidLicenseKeyFormat("0123456789abcefNRAL")
+	assert.False(t, result)
+
+	// Invalid suffix
+	result = IsValidLicenseKeyFormat("0123456789abcdefABCDEF0123456789abcdNRAK")
+	assert.False(t, result)
+
+	// Invalid characters
+	result = IsValidLicenseKeyFormat("0123456789ghijklGHIJKL0123456789ghijNRAL")
+	assert.False(t, result)
+}

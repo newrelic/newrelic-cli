@@ -22,7 +22,7 @@ func TestInstallCommand(t *testing.T) {
 	testcobra.CheckCobraMetadata(t, Command)
 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
 }
-func TestCommandValidProfile(t *testing.T) {
+func TestValidateProfile(t *testing.T) {
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
 	region := os.Getenv("NEW_RELIC_REGION")
@@ -31,7 +31,7 @@ func TestCommandValidProfile(t *testing.T) {
 	defer server.Close()
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", "")
-	err := validateProfile(5)
+	err := validateProfile()
 	assert.Error(t, err)
 	assert.Equal(t, types.EventTypes.AccountIDMissing, err.EventName)
 
@@ -42,11 +42,11 @@ func TestCommandValidProfile(t *testing.T) {
 	}
 
 	os.Setenv("NEW_RELIC_API_KEY", "")
-	err = validateProfile(5)
+	err = validateProfile()
 	assert.Equal(t, types.EventTypes.APIKeyMissing, err.EventName)
 
 	os.Setenv("NEW_RELIC_API_KEY", "67890")
-	err = validateProfile(5)
+	err = validateProfile()
 	assert.Equal(t, types.EventTypes.InvalidUserAPIKeyFormat, err.EventName)
 
 	if apiKey == "" {
@@ -56,16 +56,35 @@ func TestCommandValidProfile(t *testing.T) {
 	}
 
 	os.Setenv("NEW_RELIC_REGION", "au")
-	err = validateProfile(5)
+	err = validateProfile()
 	assert.Equal(t, types.EventTypes.InvalidRegion, err.EventName)
 
 	os.Setenv("NEW_RELIC_REGION", "")
-	err = validateProfile(5)
+	err = validateProfile()
 	assert.Equal(t, types.EventTypes.RegionMissing, err.EventName)
 
 	os.Setenv("NEW_RELIC_ACCOUNT_ID", accountID)
 	os.Setenv("NEW_RELIC_REGION", region)
 	os.Setenv("NEW_RELIC_API_KEY", apiKey)
+}
+
+func TestFetchLicenseKey(t *testing.T) {
+	okCase := func() *types.DetailError { return nil }()
+	// TODO: Error case
+
+	// TODO: From API (mock?)
+
+	// TODO: From profile
+
+	// From environment variable
+	expect := "0123456789abcdefABCDEF0123456789abcdNRAL"
+	os.Setenv("NEW_RELIC_LICENSE_KEY", expect)
+
+	err := fetchLicenseKey()
+	assert.Equal(t, okCase, err)
+
+	actual := os.Getenv("NEW_RELIC_LICENSE_KEY")
+	assert.Equal(t, expect, actual)
 }
 
 func initSegmentMockServer() *httptest.Server {
