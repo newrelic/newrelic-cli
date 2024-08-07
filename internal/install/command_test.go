@@ -70,12 +70,7 @@ func TestValidateProfile(t *testing.T) {
 
 func TestFetchLicenseKey(t *testing.T) {
 	okCase := func() *types.DetailError { return nil }()
-	// Error case
-	// err := fetchLicenseKey()
-	// assert.Equal(t, types.EventTypes.UnableToFetchLicenseKey, err.EventName)
-
-	// licenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
-	// assert.Equal(t, "", licenseKey)
+	// TODO: Error case
 
 	// TODO: From API (mock?)
 

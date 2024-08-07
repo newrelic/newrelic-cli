@@ -210,16 +210,25 @@ func IsValidUserAPIKeyFormat(key string) bool {
 // ends with "NRAL", and has a hexadecimal prefix.
 func IsValidLicenseKeyFormat(licenseKey string) bool {
 	if len(licenseKey) != 40 {
+		log.Debug("license key is invalid length")
 		return false
 	}
 
 	suffix := "NRAL"
 
 	if !strings.HasSuffix(licenseKey, suffix) {
+		log.Debug("license key does not have suffix \"NRAL\"")
 		return false
 	}
 
 	prefix := strings.TrimSuffix(licenseKey, suffix)
 
-	return regexp.MustCompile("^[a-fA-F0-9]*$").MatchString(prefix)
+	hexadecimal := regexp.MustCompile("^[a-fA-F0-9]*$").MatchString(prefix)
+
+	if !hexadecimal {
+		log.Debug("license key is not hexadecimal")
+		return false
+	}
+
+	return true
 }
