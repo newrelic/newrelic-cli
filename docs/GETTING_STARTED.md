@@ -65,12 +65,14 @@ newrelic completion --shell zsh > /usr/local/share/zsh/functions/_newrelic
 The above is ZSH specific, but provides an example of how to store the files on
 disk rather than executing the command each time you start a shell.
 
-### Using an HTTP proxy
+### Proxy configuration
 
-Set the HTTP_PROXY and/or HTTPS_PROXY environment variables if you make use of a HTTP proxy.
+Ensure to set `HTTPS_PROXY` environment variable when using a proxy server.
+
+New Relic CLI supports only HTTPS proxy (not HTTP) due to security concerns.
 
 ```
-HTTP_PROXY=localhost:8888 HTTPS_PROXY=localhost:8888 newrelic diagnose validate
+HTTPS_PROXY=localhost:8888 newrelic diagnose validate
 ```
 
 ### Example Use cases
