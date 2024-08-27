@@ -67,9 +67,9 @@ disk rather than executing the command each time you start a shell.
 
 ### Proxy configuration
 
-Ensure to set `HTTPS_PROXY` environment variable when using a proxy server.
+Please ensure the `HTTPS_PROXY` environment variable is set when using a proxy server.
 
-New Relic CLI supports only HTTPS proxy (not HTTP) due to security concerns.
+New Relic CLI exclusively supports `https` proxy, not `http` for security reasons.
 
 ```
 HTTPS_PROXY=localhost:8888 newrelic diagnose validate
