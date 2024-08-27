@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
@@ -304,7 +303,13 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
+	log.Debug("=============================")
+	log.Debug("Available recipes:")
+	for _, v := range availableRecipes {
+		log.Debug(v.Recipe.Name)
+	}
+	log.Debug("Unavailable recipes:", unavailableRecipes)
+	log.Debug("=============================")
 	if _, ok := availableRecipes.GetRecipeDetection(types.SuperAgentRecipeName); i.hostHasSuperAgentProcess() && !ok {
 		availableRecipes = append(availableRecipes, &recipes.RecipeDetectionResult{
 			Recipe:     &types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName},
@@ -315,6 +320,13 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 
 	i.reportRecipeStatuses(availableRecipes, unavailableRecipes)
 
+	log.Debug("=============================")
+	log.Debug("Available recipes:", availableRecipes)
+	for _, v := range availableRecipes {
+		log.Debug(v.Recipe.Name)
+	}
+	log.Debug("Unavailable recipes:", unavailableRecipes)
+	log.Debug("=============================")
 	if len(availableRecipes) == 0 && !i.RecipeNamesProvided() {
 		fmt.Println("This system is not supported by any available recipes for automatic installation. Please see our documentation for requirements.")
 		return &types.UncaughtError{
@@ -696,7 +708,6 @@ func (i *RecipeInstall) promptUserToReRun() {
 	if i.processEvaluator.FindProcess(types.InfraAgentProcessName) {
 		fmt.Printf("\n%s For viewing the logs, please navigate to /root/.newrelic/newrelic-cli.log. ", color.YellowString("\u0021"))
 	}
-
 }
 
 type validationFunc func() (string, error)

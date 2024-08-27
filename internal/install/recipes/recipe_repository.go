@@ -146,21 +146,43 @@ func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.Disco
 	results := []*types.OpenInstallationRecipe{}
 	matchRecipes := make(map[string][]recipeMatch)
 	hostMap := getHostMap(m)
-
 	log.Debugf("Find all available out of %d recipes for host %+v", len(loadedRecipes), hostMap)
 
 	for _, recipe := range loadedRecipes {
 		matchTargetCount := []int{}
-
+		if recipe.Name == "logs-integration" {
+			log.Debug("++++++")
+		}
 		for _, rit := range recipe.InstallTargets {
 			matchCount := 0
 			for k, v := range getRecipeTargetMap(rit) {
 				if v == "" {
 					continue
 				}
+				// if recipe.Name == "logs-integration" && printable == true {
+				// 	log.Debug("++++++")
+				// 	log.Debug("InstallTargets for logs")
+				// 	for _, c := range recipe.InstallTargets {
+				// 		log.Debug(c)
+				// 	}
+				// 	log.Debug("++++++")
+				// 	printable = false
+				// }
+
+				// if recipe.Name == "infrastructure-agent-installer" && printable == true {
+				// 	log.Debug("++++++")
+				// 	log.Debug("InstallTargets for infrastructure-agent-installer")
+				// 	for _, c := range recipe.InstallTargets {
+				// 		log.Debug(c)
+				// 	}
+				// 	log.Debug("++++++")
+				// }
 				isValueMatching := matchRecipeCriteria(hostMap, k, v)
 				if isValueMatching {
+					// printable = false
+					// if recipe.Name == "logs-integration" || recipe.Name == "logs-integration-super-agent" && printable == true {
 					log.Tracef("matching recipe %s field name %s and value %s using hostMap %+v", recipe.Name, k, v, hostMap)
+					// }
 					matchCount++
 				} else {
 					log.Tracef("recipe %s defines %s=%s but input did not provide a match using hostMap %+v", recipe.Name, k, v, hostMap)
@@ -171,6 +193,15 @@ func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.Disco
 			if matchCount >= 0 {
 				matchTargetCount = append(matchTargetCount, matchCount)
 			}
+			log.Debug("&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+			log.Debug("Current recipe: ", recipe.Name)
+			if recipe.Name == "logs-integration" {
+				log.Debugf("LOGS - Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), (matchTargetCount))
+			}
+
+			if recipe.Name == "infrastructure-agent-installer" {
+				log.Debugf("INFRA - Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), (matchTargetCount))
+			}
 		}
 
 		if len(recipe.InstallTargets) == 0 || len(matchTargetCount) > 0 {
@@ -178,8 +209,13 @@ func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.Disco
 			if len(matchTargetCount) > 0 {
 				maxMatchTargetCount = mathMax(matchTargetCount)
 			}
-			log.Tracef("Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), maxMatchTargetCount)
+			if recipe.Name == "logs-integration" {
+				log.Debugf("DEBUGGGG- Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), maxMatchTargetCount)
+			}
 
+			if recipe.Name == "infrastructure-agent-installer" {
+				log.Debugf("INFRA - Recipe InstallTargetsCount %d and maxMatchCount %d", len(recipe.InstallTargets), maxMatchTargetCount)
+			}
 			match := recipeMatch{
 				recipe:     recipe,
 				matchCount: maxMatchTargetCount,
@@ -187,6 +223,9 @@ func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.Disco
 			if _, ok := matchRecipes[recipe.Name]; !ok {
 				matches := []recipeMatch{match}
 				matchRecipes[recipe.Name] = matches
+				log.Debug("-------------")
+				log.Debug("Recipe match: ")
+				log.Debug(recipe.Name, match.recipe, match.matchCount)
 			} else {
 				matchRecipes[recipe.Name] = append(matchRecipes[recipe.Name], match)
 			}
@@ -200,7 +239,9 @@ func filterRecipes(loadedRecipes []*types.OpenInstallationRecipe, m *types.Disco
 			if len(matches) > 0 {
 				match := findMaxMatch(matches)
 				singleRecipe := match.recipe
-				log.Tracef("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
+				if singleRecipe.Name == "logs-integration" || singleRecipe.Name == "logs-integration-super-agent" {
+					log.Debugf("Add result for recipe name %s with targets %+v", match.recipe, match.recipe.InstallTargets)
+				}
 				key := singleRecipe.GetOrderKey()
 				keys = append(keys, key)
 				unorderedResults[key] = singleRecipe

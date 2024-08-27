@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"sort"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -69,9 +70,12 @@ func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDe
 	if err != nil {
 		return nil, nil, err
 	}
-
 	for _, r := range recipes {
 		dr := dt.detectRecipe(r)
+		if r.Name == "logs-integration" {
+			log.Debug("logs-integration output: ", strings.Contains(r.Name, "logs-integration"))
+			log.Debug("Status of It:", r.InstallTargets)
+		}
 
 		if dr.Status == execution.RecipeStatusTypes.AVAILABLE {
 			availableRecipes = append(availableRecipes, dr)
@@ -97,6 +101,10 @@ func (dt *RecipeDetector) shouldDiscover(recipe *types.OpenInstallationRecipe) b
 func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *RecipeDetectionResult {
 	start := time.Now()
 
+	if recipe.Name == "logs-integration" {
+		log.Debug("log integration installation status:")
+	}
+
 	if !dt.shouldDiscover(recipe) {
 		durationMs := time.Since(start).Milliseconds()
 		return &RecipeDetectionResult{
@@ -115,6 +123,11 @@ func (dt *RecipeDetector) detectRecipe(recipe *types.OpenInstallationRecipe) *Re
 		status = dt.scriptEvaluator.DetectionStatus(dt.context, recipe, recipeNames)
 		durationMs = time.Since(start).Milliseconds()
 		log.Debugf("ScriptEvaluation for recipe:%s completed in %dms with status:%s", recipe.Name, durationMs, status)
+	}
+	if recipe.Name == "logs-integration" {
+		log.Debug("+++++++++++")
+		log.Debugf(string(status))
+		log.Debug("+++++++++++")
 	}
 
 	return &RecipeDetectionResult{
