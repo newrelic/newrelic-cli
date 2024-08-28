@@ -32,6 +32,8 @@ func NewOsVersionValidator(os string, platform string, minMajor int, minMinor in
 }
 
 func (v *OsVersionValidator) Validate(m *types.DiscoveryManifest) error {
+	fmt.Println(m)
+	fmt.Println("------------------------")
 	if v.os != m.OS {
 		return nil
 	}
