@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -147,10 +148,20 @@ func checkNetwork() error {
 	}
 
 	err := client.NRClient.TestEndpoints()
+
+	proxyConfig := httpproxy.FromEnvironment()
+
+	if err == nil {
+		if IsProxyConfigured() {
+			if strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "http") && !strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "https") { 
+				log.Warn("Please ensure the HTTPS_PROXY environment variable is set when using a proxy server.")
+				log.Warn("New Relic CLI exclusively supports https proxy, not http for security reasons.")
+			}
+		}
+	}
+
 	if err != nil {
 		if IsProxyConfigured() {
-			proxyConfig := httpproxy.FromEnvironment()
-
 			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
 			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
 			log.Warn("Current proxy config:")
