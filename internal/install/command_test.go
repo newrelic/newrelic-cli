@@ -4,8 +4,8 @@ package install
 
 import (
 	"net/http"
-	// "net/http/httptest"
-	// "os"
+	"net/http/httptest"
+	"os"
 	"testing"
 	"strings"
 
