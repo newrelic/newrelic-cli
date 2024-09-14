@@ -4,9 +4,10 @@ package install
 
 import (
 	"net/http"
-	"net/http/httptest"
-	"os"
+	// "net/http/httptest"
+	// "os"
 	"testing"
+	"strings"
 
 	"github.com/stretchr/testify/assert"
 
@@ -93,4 +94,31 @@ func initSegmentMockServer() *httptest.Server {
 		_, _ = w.Write([]byte(`[]`))
 	}))
 	return server
+}
+
+
+func TestProxyNetwork(t *testing.T) {
+
+	proxyConfig := struct {
+		HTTPSProxy string
+		HTTPProxy  string
+	}{
+		HTTPSProxy: "http://localhost:3128",
+		HTTPProxy:  "http://localhost:8080",
+	}
+
+	// Validate HTTPSProxy
+	if strings.HasPrefix(proxyConfig.HTTPSProxy, "http://") {
+		t.Log("New Relic CLI exclusively supports https proxy, not http for security reasons.")
+	} else if strings.HasPrefix(proxyConfig.HTTPSProxy, "https://") {
+		// Do nothing
+	} else {
+		t.Log("Invalid proxy provided")
+	}
+
+	// Validate HTTPProxy
+	if strings.HasPrefix(proxyConfig.HTTPProxy, "http://") {
+		t.Log("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again. New Relic CLI exclusively supports https proxy.")
+	}
+
 }
