@@ -467,7 +467,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 		additionalBundle = bundler.CreateAdditionalTargetedBundle(i.RecipeNames)
 
 		bundleRecipeProcessing(additionalBundle, bun)
-
+		log.Debug("Checking for unsupported recipes")
 		i.reportUnsupportedTargetedRecipes(additionalBundle, repo)
 		log.Debugf("Additional Targeted bundle recipes:%s", additionalBundle)
 	} else {
@@ -555,7 +555,7 @@ func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle,
 		if br == nil {
 			recipe := repo.FindRecipeByName(recipeName)
 			if recipe == nil {
-				log.Debug("no recipe found for %s while reporting unsupported status", recipeName)
+				log.Debugf("no recipe found for %s while reporting unsupported status", recipeName)
 				recipe = &types.OpenInstallationRecipe{Name: recipeName, DisplayName: recipeName}
 			}
 			unsupportedEvent := execution.NewRecipeStatusEvent(recipe)
