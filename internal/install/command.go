@@ -153,7 +153,7 @@ func checkNetwork() error {
 
 	if err == nil {
 		if IsProxyConfigured() {
-			if strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "http") && !strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "https") { 
+			if strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "http") && !strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "https") {
 				log.Warn("Please ensure the HTTPS_PROXY environment variable is set when using a proxy server.")
 				log.Warn("New Relic CLI exclusively supports https proxy, not http for security reasons.")
 			}

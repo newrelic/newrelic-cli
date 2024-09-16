@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 
@@ -95,7 +95,6 @@ func initSegmentMockServer() *httptest.Server {
 	}))
 	return server
 }
-
 
 func TestProxyNetwork(t *testing.T) {
 
