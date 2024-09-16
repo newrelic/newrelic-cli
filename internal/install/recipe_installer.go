@@ -555,6 +555,7 @@ func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle,
 		if br == nil {
 			recipe := repo.FindRecipeByName(recipeName)
 			if recipe == nil {
+				log.Debug("no recipe found for %s while reporting unsupported status", recipeName)
 				recipe = &types.OpenInstallationRecipe{Name: recipeName, DisplayName: recipeName}
 			}
 			unsupportedEvent := execution.NewRecipeStatusEvent(recipe)
