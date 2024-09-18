@@ -1,3 +1,8 @@
+<a name="v0.93.8"></a>
+## [v0.93.8] - 2024-09-18
+### Bug Fixes
+- Uninstall previous cli version windows ([#1645](https://github.com/newrelic/newrelic-cli/issues/1645))
+
 <a name="v0.93.7"></a>
 ## [v0.93.7] - 2024-09-17
 ### Bug Fixes
@@ -2373,7 +2378,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.93.8...HEAD
+[v0.93.8]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...v0.93.8
 [v0.93.7]: https://github.com/newrelic/newrelic-cli/compare/v0.93.6...v0.93.7
 [v0.93.6]: https://github.com/newrelic/newrelic-cli/compare/v0.93.5...v0.93.6
 [v0.93.5]: https://github.com/newrelic/newrelic-cli/compare/v0.93.4...v0.93.5
