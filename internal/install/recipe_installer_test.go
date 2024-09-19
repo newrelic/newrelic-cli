@@ -51,20 +51,20 @@ func TestConnectToPlatformShouldReturnPaymentRequiredError(t *testing.T) {
 	assert.IsType(t, &nrErrors.PaymentRequiredError{}, actual)
 }
 
-// func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
-// 	expected := types.ConnectionError{
-// 		Err: errors.New("Connection Failed"),
-// 	}
+func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
+	expected := types.ConnectionError{
+		Err: errors.New("Connection Failed"),
+	}
 
-// 	statusReporter := execution.NewMockStatusReporter()
-// 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithConfigValidatorError(expected).Build()
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithConfigValidatorError(expected).Build()
 
-// 	actual := recipeInstall.Install()
-// 	assert.Error(t, actual)
-// 	assert.IsType(t, types.ConnectionError{}, actual)
-// 	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
-// 	assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
-// }
+	actual := recipeInstall.Install()
+	assert.Error(t, actual)
+	assert.IsType(t, types.ConnectionError{}, actual)
+	assert.Equal(t, 1, statusReporter.InstallCompleteCallCount, "Install Completed")
+	assert.True(t, strings.Contains(statusReporter.InstallCompleteErr.Error(), expected.Error()))
+}
 
 func TestInstallWithFailDiscoveryReturnsError(t *testing.T) {
 	expected := errors.New("Some Discover error")
@@ -873,34 +873,34 @@ func TestExecuteAndValidateRecipeWithAllMethodWithAgentValidatorError(t *testing
 	assert.True(t, strings.Contains(err.Error(), "no validation was successful.  most recent validation error"))
 }
 
-// func TestExecuteAndValidateRecipeWithAllMethodWithRecipeValidationError(t *testing.T) {
-// 	expected := errors.New("Some error")
-// 	recipeInstall := NewRecipeInstallBuilder().WithRecipeValidationError(expected).Build()
-// 	recipe := recipes.NewRecipeBuilder().Name("").Build()
-// 	recipe.ValidationNRQL = "FROM SOMETHING"
+func TestExecuteAndValidateRecipeWithAllMethodWithRecipeValidationError(t *testing.T) {
+	expected := errors.New("Some error")
+	recipeInstall := NewRecipeInstallBuilder().WithRecipeValidationError(expected).Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+	recipe.ValidationNRQL = "FROM SOMETHING"
 
-// 	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil, false)
+	_, err := recipeInstall.validateRecipeViaAllMethods(context.TODO(), recipe, &types.DiscoveryManifest{}, nil, false)
 
-// 	assert.Error(t, err)
-// 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
-// 	assert.True(t, strings.Contains(err.Error(), "no validation was successful.  most recent validation error"))
-// }
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.True(t, strings.Contains(err.Error(), "no validation was successful.  most recent validation error"))
+}
 
-// func TestExecuteAndValidateWithProgressWhenPostValidationFailed(t *testing.T) {
-// 	expected := errors.New("Some error")
-// 	statusReporter := execution.NewMockStatusReporter()
-// 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeValidationError(expected).Build()
-// 	recipe := recipes.NewRecipeBuilder().Name("").Build()
-// 	recipe.ValidationNRQL = "FROM SOMETHING"
+func TestExecuteAndValidateWithProgressWhenPostValidationFailed(t *testing.T) {
+	expected := errors.New("Some error")
+	statusReporter := execution.NewMockStatusReporter()
+	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithRecipeValidationError(expected).Build()
+	recipe := recipes.NewRecipeBuilder().Name("").Build()
+	recipe.ValidationNRQL = "FROM SOMETHING"
 
-// 	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipe, false)
+	_, err := recipeInstall.executeAndValidateWithProgress(context.TODO(), &types.DiscoveryManifest{}, recipe, false)
 
-// 	assert.Error(t, err)
-// 	assert.True(t, strings.Contains(err.Error(), expected.Error()))
-// 	assert.True(t, strings.Contains(err.Error(), "encountered an error while validating receipt of data for"))
-// 	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
-// 	assert.Equal(t, 0, statusReporter.InstallCanceledCallCount)
-// }
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), expected.Error()))
+	assert.True(t, strings.Contains(err.Error(), "encountered an error while validating receipt of data for"))
+	assert.Equal(t, 1, statusReporter.RecipeFailedCallCount)
+	assert.Equal(t, 0, statusReporter.InstallCanceledCallCount)
+}
 
 func TestExecuteAndValidateWithProgressWhenSucceed(t *testing.T) {
 	statusReporter := execution.NewMockStatusReporter()

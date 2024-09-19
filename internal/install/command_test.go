@@ -14,14 +14,14 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
-// func TestInstallCommand(t *testing.T) {
-// 	t.Parallel()
+func TestInstallCommand(t *testing.T) {
+	t.Parallel()
 
-// 	assert.Equal(t, "install", Command.Name())
+	assert.Equal(t, "install", Command.Name())
 
-// 	testcobra.CheckCobraMetadata(t, Command)
-// 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
-// }
+	// testcobra.CheckCobraMetadata(t, Command)
+	// testcobra.CheckCobraRequiredFlags(t, Command, []string{})
+}
 
 func TestValidateProfile(t *testing.T) {
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
