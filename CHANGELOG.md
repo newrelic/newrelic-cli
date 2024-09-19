@@ -1,3 +1,33 @@
+<a name="v0.93.8"></a>
+## [v0.93.8] - 2024-09-18
+### Bug Fixes
+- Uninstall previous cli version windows ([#1645](https://github.com/newrelic/newrelic-cli/issues/1645))
+
+<a name="v0.93.7"></a>
+## [v0.93.7] - 2024-09-17
+### Bug Fixes
+- **proxy-error:** Show warning message for http proxy ([#1643](https://github.com/newrelic/newrelic-cli/issues/1643))
+
+<a name="v0.93.6"></a>
+## [v0.93.6] - 2024-09-09
+<a name="v0.93.5"></a>
+## [v0.93.5] - 2024-09-05
+<a name="v0.93.4"></a>
+## [v0.93.4] - 2024-09-05
+### Documentation Updates
+- **proxy-config:** Update proxy configuration documentation ([#1639](https://github.com/newrelic/newrelic-cli/issues/1639))
+
+<a name="v0.93.3"></a>
+## [v0.93.3] - 2024-08-21
+<a name="v0.93.2"></a>
+## [v0.93.2] - 2024-08-20
+<a name="v0.93.1"></a>
+## [v0.93.1] - 2024-08-12
+<a name="v0.93.0"></a>
+## [v0.93.0] - 2024-08-07
+### Features
+- Env var license key ([#1638](https://github.com/newrelic/newrelic-cli/issues/1638))
+
 <a name="v0.92.1"></a>
 ## [v0.92.1] - 2024-08-05
 <a name="v0.92.0"></a>
@@ -2348,7 +2378,16 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.92.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.93.8...HEAD
+[v0.93.8]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...v0.93.8
+[v0.93.7]: https://github.com/newrelic/newrelic-cli/compare/v0.93.6...v0.93.7
+[v0.93.6]: https://github.com/newrelic/newrelic-cli/compare/v0.93.5...v0.93.6
+[v0.93.5]: https://github.com/newrelic/newrelic-cli/compare/v0.93.4...v0.93.5
+[v0.93.4]: https://github.com/newrelic/newrelic-cli/compare/v0.93.3...v0.93.4
+[v0.93.3]: https://github.com/newrelic/newrelic-cli/compare/v0.93.2...v0.93.3
+[v0.93.2]: https://github.com/newrelic/newrelic-cli/compare/v0.93.1...v0.93.2
+[v0.93.1]: https://github.com/newrelic/newrelic-cli/compare/v0.93.0...v0.93.1
+[v0.93.0]: https://github.com/newrelic/newrelic-cli/compare/v0.92.1...v0.93.0
 [v0.92.1]: https://github.com/newrelic/newrelic-cli/compare/v0.92.0...v0.92.1
 [v0.92.0]: https://github.com/newrelic/newrelic-cli/compare/v0.91.1...v0.92.0
 [v0.91.1]: https://github.com/newrelic/newrelic-cli/compare/v0.91.0...v0.91.1

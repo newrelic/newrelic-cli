@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -52,6 +53,7 @@ var Command = &cobra.Command{
 		}
 
 		detailErr := fetchLicenseKey()
+
 		if detailErr != nil {
 			log.Fatal(detailErr)
 		}
@@ -140,6 +142,18 @@ func checkNetwork() error {
 	}
 
 	err := client.NRClient.TestEndpoints()
+
+	proxyConfig := httpproxy.FromEnvironment()
+
+	if err == nil {
+		if IsProxyConfigured() {
+			if strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "http") && !strings.Contains(strings.ToLower(proxyConfig.HTTPSProxy), "https") {
+				log.Warn("Please ensure the HTTPS_PROXY environment variable is set when using a proxy server.")
+				log.Warn("New Relic CLI exclusively supports https proxy, not http for security reasons.")
+			}
+		}
+	}
+
 	if err != nil {
 		if IsProxyConfigured() {
 			proxyConfig := httpproxy.FromEnvironment()
@@ -203,7 +217,6 @@ func fetchLicenseKey() *types.DetailError {
 	accountID := configAPI.GetActiveProfileAccountID()
 	maxTimeoutSeconds := config.DefaultMaxTimeoutSeconds
 
-	// TODO: LK test this without connectivity...
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
 
 	if err != nil {

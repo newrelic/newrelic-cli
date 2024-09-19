@@ -11,7 +11,7 @@ var (
 	// ErrInterrupt represents a context cancellation.
 	ErrInterrupt              = errors.New("operation canceled")
 	maxTaskPathNesting        = 5
-	ErrConnectionStringFormat = "there was an error connecting to New Relic platform. This is an indication that your firewall or proxy settings do not allow outbound traffic to the New Relic platform. To configure the use of an HTTP proxy, use the HTTP_PROXY and/or HTTPS_PROXY environment variables. For more details visit https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#using-an-http-proxy. Details: %s"
+	ErrConnectionStringFormat = "there was an error connecting to New Relic platform. This is an indication that your firewall or proxy settings do not allow outbound traffic to the New Relic platform. To configure the use of an HTTPS proxy, use the HTTPS_PROXY environment variables. For more details visit https://github.com/newrelic/newrelic-cli/blob/main/docs/GETTING_STARTED.md#proxy-configuration. Details: %s"
 	ErrValidation             = errors.New("there was a failure locating the data that was posted to New Relic. Please try again later or contact New Relic support. For real-time platform status info visit https://status.newrelic.com/")
 	ErrDiscovery              = errors.New("failed to detect your system's hostname. Please contact New Relic support")
 	ErrPostEvent              = errors.New("there was a failure posting data to New Relic. Please try again later or contact New Relic support. For real-time platform status info visit https://status.newrelic.com/")
