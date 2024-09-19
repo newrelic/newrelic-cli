@@ -33,10 +33,6 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	PreRun: client.RequireClient,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: LK somehow the license key is already here?
-		// TODO: LK I am assuming it is due to the client.
-		//fmt.Println("HERE", configAPI.GetActiveProfileString(config.LicenseKey))
-
 		ic := types.InstallerContext{
 			AssumeYes:    assumeYes,
 			LocalRecipes: localRecipes,
