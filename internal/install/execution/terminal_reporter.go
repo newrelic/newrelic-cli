@@ -3,6 +3,7 @@ package execution
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strings"
 
@@ -153,7 +154,9 @@ func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 		isSuperAgentRecipe := s.Name == types.SuperAgentRecipeName || s.Name == types.LoggingSuperAgentRecipeName
 
 		if s.Status == RecipeStatusTypes.INSTALLED && isSuperAgentRecipe {
-			linkToFleet := "https://one.newrelic.com/nr1-core?filters=%28domain%20%3D%20%27NR1%27%20AND%20type%20%3D%20%27FLEET%27%29"
+			linkToFleetRaw := "https://one.newrelic.com/nr1-core?filters=(domain = 'NR1' AND type = 'FLEET')"
+
+			linkToFleet := url.PathEscape(linkToFleetRaw)
 
 			fmt.Println()
 			fmt.Println("View you fleet at the link below")
