@@ -1,3 +1,8 @@
+<a name="v0.94.0"></a>
+## [v0.94.0] - 2024-09-20
+### Features
+- Fleet management link ([#1647](https://github.com/newrelic/newrelic-cli/issues/1647))
+
 <a name="v0.93.8"></a>
 ## [v0.93.8] - 2024-09-18
 ### Bug Fixes
@@ -2378,7 +2383,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.93.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.94.0...HEAD
+[v0.94.0]: https://github.com/newrelic/newrelic-cli/compare/v0.93.8...v0.94.0
 [v0.93.8]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...v0.93.8
 [v0.93.7]: https://github.com/newrelic/newrelic-cli/compare/v0.93.6...v0.93.7
 [v0.93.6]: https://github.com/newrelic/newrelic-cli/compare/v0.93.5...v0.93.6
