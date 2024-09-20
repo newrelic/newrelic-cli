@@ -56,6 +56,10 @@ func TestConnectToPlatformErrorShouldReportConnectionError(t *testing.T) {
 		Err: errors.New("Connection Failed"),
 	}
 
+	t.Setenv("NEW_RELIC_ACCOUNT_ID", "67890")
+	t.Setenv("NEW_RELIC_API_KEY", "NRAK-67890")
+	t.Setenv("NEW_RELIC_REGION", "US")
+
 	statusReporter := execution.NewMockStatusReporter()
 	recipeInstall := NewRecipeInstallBuilder().WithStatusReporter(statusReporter).WithConfigValidatorError(expected).Build()
 
