@@ -3,6 +3,7 @@ package execution
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strings"
 
@@ -114,6 +115,8 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 		r.printLoggingLink(status)
 
+		r.printFleetLink(status)
+
 		fmt.Println()
 		fmt.Println("\n  --------------------")
 		fmt.Println()
@@ -144,13 +147,32 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
 }
 
+func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
+	statuses := r.getRecipesStatusesForInstallationSummary(status)
+
+	for _, s := range statuses {
+		isSuperAgentRecipe := s.Name == types.SuperAgentRecipeName || s.Name == types.LoggingSuperAgentRecipeName
+
+		if s.Status == RecipeStatusTypes.INSTALLED && isSuperAgentRecipe {
+			linkToFleetRaw := "https://one.newrelic.com/nr1-core?filters=(domain = 'NR1' AND type = 'FLEET')"
+
+			linkToFleet := url.PathEscape(linkToFleetRaw)
+
+			fmt.Println()
+			fmt.Println("View you fleet at the link below")
+			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToFleet)
+
+		}
+	}
+}
+
 func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 	linkToLogging := ""
 	loggingMsg := "View your logs at the link below:\n"
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statusesToDisplay {
-		if s.Status == RecipeStatusTypes.INSTALLED && (s.Name == types.LoggingRecipeName || s.Name == types.LoggingSuperAgentRecipeName) {
+		if s.Status == RecipeStatusTypes.INSTALLED && s.Name == types.LoggingRecipeName {
 			linkToLogging = status.PlatformLinkGenerator.GenerateLoggingLink(status.HostEntityGUID())
 		}
 	}

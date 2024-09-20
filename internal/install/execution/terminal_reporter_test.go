@@ -111,7 +111,7 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
 	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
-	require.Equal(t, 2, g.GenerateLoggingLinkCallCount)
+	require.Equal(t, 1, g.GenerateLoggingLinkCallCount)
 }
 
 func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
