@@ -14,6 +14,9 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
+	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -22,7 +25,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
 
 const validationTimeout = 5 * time.Minute
@@ -53,7 +55,9 @@ type RecipeInstall struct {
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
+func NewRecipeInstaller(ic types.InstallerContext) *RecipeInstall {
+	nrClient := client.NRClient
+
 	var recipeFetcher recipes.RecipeFetcher
 
 	if ic.LocalRecipes != "" {
@@ -117,6 +121,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository, ic *types.InstallerContext) RecipeStatusDetector {
 		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator, ic)
 	}
+
 	return &i
 }
 
@@ -220,13 +225,19 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 	errChan := make(chan error)
 	var err error
 
-	err = i.connectToPlatform()
-	if err != nil {
-		i.status.InstallComplete(err)
-		return err
+	// Test connection to platform if accountID and apiKey are provided.
+	accountID := configAPI.GetActiveProfileAccountID()
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
+
+	if accountID != 0 && apiKey != "" {
+		err = i.connectToPlatform()
+		if err != nil {
+			i.status.InstallComplete(err)
+			return err
+		}
 	}
 
-	// If not in a dev environemt, check to see if
+	// If not in a dev environment, check to see if
 	// the installed CLI is up to date.
 	if !cli.IsDevEnvironment() {
 		if err = i.promptIfNotLatestCLIVersion(ctx); err != nil {
@@ -724,7 +735,6 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 	}
 
 	hasValidationIntegration := r.ValidationIntegration != ""
-	hasValidationNRQL := r.ValidationNRQL != ""
 
 	// Add either Integration Validation or NRQL Validation if configured
 	if hasValidationIntegration {
@@ -736,6 +746,8 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 	} else {
 		log.Debugf("no validationIntegration defined, skipping")
 	}
+
+	hasValidationNRQL := r.ValidationNRQL != ""
 
 	if hasValidationNRQL {
 		validationFuncs = append(validationFuncs, func() (string, error) {

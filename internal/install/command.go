@@ -24,7 +24,6 @@ var (
 	localRecipes string
 	recipeNames  []string
 	recipePaths  []string
-	testMode     bool
 	tags         []string
 )
 
@@ -45,21 +44,17 @@ var Command = &cobra.Command{
 		logLevel := configAPI.GetLogLevel()
 		config.InitFileLogger(logLevel)
 
-		detailErr := validateProfile()
+		if err := checkNetwork(); err != nil {
+			return types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
+		}
+
+		detailErr := fetchLicenseKey()
+
 		if detailErr != nil {
 			log.Fatal(detailErr)
 		}
 
-		detailErr = fetchLicenseKey()
-		if detailErr != nil {
-			log.Fatal(detailErr)
-		}
-
-		// Reinitialize client, overriding fetched values
-		c, _ := client.NewClient(configAPI.GetActiveProfileName())
-		client.NRClient = c
-
-		i := NewRecipeInstaller(ic, c)
+		i := NewRecipeInstaller(ic)
 
 		//// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
 		//if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
@@ -104,7 +99,6 @@ var Command = &cobra.Command{
 func init() {
 	Command.Flags().StringSliceVarP(&recipePaths, "recipePath", "c", []string{}, "the path to a recipe file to install")
 	Command.Flags().StringSliceVarP(&recipeNames, "recipe", "n", []string{}, "the name of a recipe to install")
-	Command.Flags().BoolVarP(&testMode, "testMode", "t", false, "fakes operations for UX testing")
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
 	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
@@ -135,10 +129,6 @@ func validateProfile() *types.DetailError {
 		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US" or "EU".`)
 	}
 
-	if err := checkNetwork(); err != nil {
-		return types.NewDetailError(types.EventTypes.UnableToConnect, err.Error())
-	}
-
 	return nil
 }
 
@@ -162,6 +152,8 @@ func checkNetwork() error {
 
 	if err != nil {
 		if IsProxyConfigured() {
+			proxyConfig := httpproxy.FromEnvironment()
+
 			log.Warn("Proxy settings have been configured, but we are still unable to connect to the New Relic platform.")
 			log.Warn("You may need to adjust your proxy environment variables or configure your proxy to allow the specified domain.")
 			log.Warn("Current proxy config:")
@@ -186,34 +178,39 @@ func checkNetwork() error {
 // 3. API call,
 // returns an error if all methods fail.
 func fetchLicenseKey() *types.DetailError {
-	accountID := configAPI.GetActiveProfileAccountID()
-
 	var licenseKey string
 
-	defer func() {
+	setLicenseKey := func(licenseKey string) {
 		os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
+
+		// Reinitialize client, overriding fetched values
+		c, _ := client.NewClient(configAPI.GetActiveProfileName())
+		client.NRClient = c
+
 		log.Debug("using license key: ", utils.Obfuscate(licenseKey))
-	}()
-
-	// fetch licenseKey from environment
-	licenseKey = os.Getenv("NEW_RELIC_LICENSE_KEY")
-
-	if utils.IsValidLicenseKeyFormat(licenseKey) {
-		return nil
-	} else {
-		log.Debug("license key provided via NEW_RELIC_LICENSE_KEY is invalid")
 	}
 
-	// fetch licenseKey from active profile
-	licenseKey = configAPI.GetActiveProfileString(config.LicenseKey)
+	licenseKey = fetchLicenseKeyFromEnvironment()
 
-	if utils.IsValidLicenseKeyFormat(licenseKey) {
+	if licenseKey != "" {
+		setLicenseKey(licenseKey)
 		return nil
-	} else {
-		log.Debug("license key provided by config is invalid")
+	}
+
+	licenseKey = fetchLicenseKeyFromProfile()
+
+	if licenseKey != "" {
+		setLicenseKey(licenseKey)
+		return nil
 	}
 
 	// fetch licenseKey via API
+	detailErr := validateProfile()
+	if detailErr != nil {
+		log.Fatal(detailErr)
+	}
+
+	accountID := configAPI.GetActiveProfileAccountID()
 	maxTimeoutSeconds := config.DefaultMaxTimeoutSeconds
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
@@ -226,5 +223,39 @@ func fetchLicenseKey() *types.DetailError {
 		return types.NewDetailError(types.EventTypes.UnableToFetchLicenseKey, err.Error())
 	}
 
+	setLicenseKey(licenseKey)
 	return nil
+}
+
+func fetchLicenseKeyFromEnvironment() string {
+	licenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
+
+	if licenseKey == "" {
+		return ""
+	}
+
+	if utils.IsValidLicenseKeyFormat(licenseKey) {
+		return licenseKey
+	}
+
+	log.Debug("license key provided via NEW_RELIC_LICENSE_KEY is invalid")
+
+	return ""
+}
+
+func fetchLicenseKeyFromProfile() string {
+	// fetch licenseKey from active profile
+	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
+
+	if licenseKey == "" {
+		return ""
+	}
+
+	if utils.IsValidLicenseKeyFormat(licenseKey) {
+		return licenseKey
+	}
+
+	log.Debug("license key provided by config is invalid")
+
+	return ""
 }

@@ -23,6 +23,7 @@ func TestInstallCommand(t *testing.T) {
 	testcobra.CheckCobraMetadata(t, Command)
 	testcobra.CheckCobraRequiredFlags(t, Command, []string{})
 }
+
 func TestValidateProfile(t *testing.T) {
 	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
 	apiKey := os.Getenv("NEW_RELIC_API_KEY")
