@@ -111,6 +111,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	}
 
 	if err = e.Run(ctx, calls...); err != nil {
+		log.Debugf("go task received this original error during testing the failure (test log): %v", err)
 		log.WithFields(log.Fields{
 			"err": err,
 		}).Debug("Task execution returned error")
