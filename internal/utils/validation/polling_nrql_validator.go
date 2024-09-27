@@ -101,7 +101,7 @@ func (m *PollingNRQLValidator) tryValidate(ctx context.Context, query string) (s
 }
 
 func (m *PollingNRQLValidator) executeQuery(ctx context.Context, query string) ([]nrdb.NRDBResult, error) {
-	accountID := configAPI.RequireActiveProfileAccountID()
+	accountID := configAPI.GetActiveProfileAccountID()
 
 	nrql := nrdb.NRQL(query)
 
