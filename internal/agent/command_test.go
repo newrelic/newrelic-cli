@@ -20,7 +20,7 @@ func TestAgent(t *testing.T) {
 func TestAgentConfig(t *testing.T) {
 	assert.Equal(t, "config", cmdConfig.Name())
 	testcobra.CheckCobraMetadata(t, cmdConfig)
-	testcobra.CheckCobraMetadata(t, cmdConfig)
+	testcobra.CheckCobraRequiredFlags(t, cmdConfigObfuscate, []string{})
 }
 
 func TestAgentConfigObfuscate(t *testing.T) {
@@ -33,4 +33,10 @@ func TestAgentConfigMigrate(t *testing.T) {
 	assert.Equal(t, "migrateV3toV4", cmdMigrateV3toV4.Name())
 	testcobra.CheckCobraMetadata(t, cmdMigrateV3toV4)
 	testcobra.CheckCobraRequiredFlags(t, cmdMigrateV3toV4, []string{})
+}
+
+func TestAgentAgentVersion(t *testing.T) {
+	assert.Equal(t, "version", cmdAgentVersion.Name())
+	testcobra.CheckCobraMetadata(t, cmdAgentVersion)
+	testcobra.CheckCobraRequiredFlags(t, cmdAgentVersion, []string{})
 }

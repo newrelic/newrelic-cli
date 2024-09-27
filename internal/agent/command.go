@@ -1,12 +1,19 @@
 package agent
 
 import (
-	"github.com/spf13/cobra"
+	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/newrelic/newrelic-cli/internal/agent/migrate"
 	"github.com/newrelic/newrelic-cli/internal/agent/obfuscate"
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	ng "github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
+	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var (
@@ -26,6 +33,122 @@ var Command = &cobra.Command{
 	Use:   "agent",
 	Short: "Utilities for New Relic Agents",
 	Long:  `Utilities for New Relic Agents`,
+}
+
+const (
+	ANDROID        = "ANDROID"
+	BROWSER        = "BROWSER"
+	DOTNET         = "DOTNET"
+	ELIXIR         = "ELIXIR"
+	GO             = "GO"
+	INFRASTRUCTURE = "INFRASTRUCTURE"
+	IOS            = "IOS"
+	JAVA           = "JAVA"
+	NODEJS         = "NODEJS"
+	PHP            = "PHP"
+	PYTHON         = "PYTHON"
+	RUBY           = "RUBY"
+	SDK            = "SDK"
+)
+
+func newAgentNameList() []string {
+	return []string{
+		ANDROID,
+		BROWSER,
+		DOTNET,
+		ELIXIR,
+		GO,
+		INFRASTRUCTURE,
+		IOS,
+		JAVA,
+		NODEJS,
+		PHP,
+		PYTHON,
+		RUBY,
+		SDK,
+	}
+}
+
+func isValidAgentName(agentName string) bool {
+	for _, a := range newAgentNameList() {
+		if a == agentName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func agentNameTitleCase(agentName string) string {
+	caser := cases.Title(language.AmericanEnglish)
+
+	switch agentName {
+	case DOTNET:
+		return ".NET"
+	case IOS:
+		return "iOS"
+	case NODEJS:
+		return "Node.js"
+	case SDK:
+		return "SDK"
+	default:
+		return caser.String(agentName)
+	}
+}
+
+var cmdAgentVersion = &cobra.Command{
+	Use:   "version",
+	Short: "Show latest agent versions.",
+	Long: `Show latest agent versions. Valid agent names include:
+android, browser, dotnet, elixir, go, infrastructure, ios, java, nodejs, php, python, ruby, sdk"
+`,
+	Example: "newrelic agent version <agent_name>",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return errors.New("invalid number of arguments")
+		}
+
+		agentName := strings.ToUpper(args[0])
+
+		if !isValidAgentName(agentName) {
+			return fmt.Errorf("invalid agent name: %s, use --help for a list of valid agent names", args[0])
+		}
+
+		return nil
+	},
+	PreRun: client.RequireClient,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		agentName := strings.ToUpper(args[0])
+
+		query := `
+		query CurrentAgentRelease ($agentName: AgentReleasesFilter!) {
+			docs {
+				currentAgentRelease(agentName: $agentName) {
+				    version
+				}
+			}
+		}`
+
+		variables := map[string]interface{}{
+			"agentName": agentName,
+		}
+
+		result, err := client.NRClient.NerdGraph.QueryWithContext(utils.SignalCtx, query, variables)
+
+		if err != nil {
+			return err
+		}
+
+		queryResp := result.(ng.QueryResponse)
+		release := queryResp.Docs.(map[string]interface{})["currentAgentRelease"]
+		version := release.(map[string]interface{})["version"].(string)
+
+		agentNameTitleCase := agentNameTitleCase(agentName)
+
+		fmt.Printf("%s: %s\n", agentNameTitleCase, version)
+
+		return nil
+	},
 }
 
 var cmdConfig = &cobra.Command{
@@ -70,6 +193,8 @@ var cmdMigrateV3toV4 = &cobra.Command{
 func init() {
 
 	Command.AddCommand(cmdConfig)
+
+	Command.AddCommand(cmdAgentVersion)
 
 	cmdConfig.AddCommand(cmdConfigObfuscate)
 
