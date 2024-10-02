@@ -129,6 +129,11 @@ func TestIsValidLicenseKeyFormat_Valid(t *testing.T) {
 	assert.True(t, result)
 }
 
+func TestIsValidLicenseKeyFormat_Valid_EU(t *testing.T) {
+	result := IsValidLicenseKeyFormat("eu01xx6789abcdefABCDEF0123456789abcdNRAL")
+	assert.True(t, result)
+}
+
 func TestIsValidLicenseKeyFormat_Invalid(t *testing.T) {
 	// Invalid length
 	result := IsValidLicenseKeyFormat("0123456789abcefNRAL")
@@ -140,5 +145,9 @@ func TestIsValidLicenseKeyFormat_Invalid(t *testing.T) {
 
 	// Invalid characters
 	result = IsValidLicenseKeyFormat("0123456789ghijklGHIJKL0123456789ghijNRAL")
+	assert.False(t, result)
+
+	// Invalid characters EU
+	result = IsValidLicenseKeyFormat("eu01xx6789ghijklGHIJKL0123456789ghijNRAL")
 	assert.False(t, result)
 }
