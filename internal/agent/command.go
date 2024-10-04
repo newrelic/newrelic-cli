@@ -64,11 +64,9 @@ android, browser, dotnet, elixir, go, infrastructure, ios, java, nodejs, php, py
 			return err
 		}
 
-		fmt.Printf("%+v\n", result)
+		agentNameTitleCase := version.AgentNameTitleCase(agentName)
 
-		// agentNameTitleCase := agentNameTitleCase(agentName)
-
-		// fmt.Printf("%s: %s\n", agentNameTitleCase, version)
+		fmt.Printf("%s: %s\n", agentNameTitleCase, result.Version)
 
 		return nil
 	},
