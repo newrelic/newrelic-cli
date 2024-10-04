@@ -1,12 +1,18 @@
 package agent
 
 import (
-	"github.com/spf13/cobra"
+	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/newrelic/newrelic-cli/internal/agent/migrate"
 	"github.com/newrelic/newrelic-cli/internal/agent/obfuscate"
+	"github.com/newrelic/newrelic-cli/internal/agent/version"
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/agent"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -26,6 +32,44 @@ var Command = &cobra.Command{
 	Use:   "agent",
 	Short: "Utilities for New Relic Agents",
 	Long:  `Utilities for New Relic Agents`,
+}
+
+var cmdAgentVersion = &cobra.Command{
+	Use:   "version",
+	Short: "Show latest agent versions.",
+	Long: `Show latest agent versions. Valid agent names include:
+android, browser, dotnet, elixir, go, infrastructure, ios, java, nodejs, php, python, ruby, sdk"
+`,
+	Example: "newrelic agent version <agent_name>",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return errors.New("invalid number of arguments")
+		}
+
+		agentName := strings.ToUpper(args[0])
+
+		if !version.IsValidAgentName(agentName) {
+			return fmt.Errorf("invalid agent name: %s, use --help for a list of valid agent names", args[0])
+		}
+
+		return nil
+	},
+	PreRun: client.RequireClient,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		agentName := agent.AgentReleasesFilter(strings.ToUpper(args[0]))
+
+		result, err := client.NRClient.Agent.GetCurrentAgentReleaseWithContext(utils.SignalCtx, agentName)
+
+		if err != nil {
+			return err
+		}
+
+		agentNameTitleCase := version.AgentNameTitleCase(agentName)
+
+		fmt.Printf("%s: %s\n", agentNameTitleCase, result.Version)
+
+		return nil
+	},
 }
 
 var cmdConfig = &cobra.Command{
@@ -70,6 +114,8 @@ var cmdMigrateV3toV4 = &cobra.Command{
 func init() {
 
 	Command.AddCommand(cmdConfig)
+
+	Command.AddCommand(cmdAgentVersion)
 
 	cmdConfig.AddCommand(cmdConfigObfuscate)
 
