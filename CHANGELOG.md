@@ -1,5 +1,15 @@
+<a name="v0.94.3"></a>
+## [v0.94.3] - 2024-10-02
+### Bug Fixes
+- Eu license keys ([#1650](https://github.com/newrelic/newrelic-cli/issues/1650))
+
+<a name="v0.94.2"></a>
+## [v0.94.2] - 2024-09-27
+### Bug Fixes
+- License key fatal error ([#1649](https://github.com/newrelic/newrelic-cli/issues/1649))
+
 <a name="v0.94.1"></a>
-## [v0.94.1] - 2024-09-20
+## [v0.94.1] - 2024-09-24
 <a name="v0.94.0"></a>
 ## [v0.94.0] - 2024-09-20
 ### Features
@@ -2385,7 +2395,9 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.94.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.94.3...HEAD
+[v0.94.3]: https://github.com/newrelic/newrelic-cli/compare/v0.94.2...v0.94.3
+[v0.94.2]: https://github.com/newrelic/newrelic-cli/compare/v0.94.1...v0.94.2
 [v0.94.1]: https://github.com/newrelic/newrelic-cli/compare/v0.94.0...v0.94.1
 [v0.94.0]: https://github.com/newrelic/newrelic-cli/compare/v0.93.8...v0.94.0
 [v0.93.8]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...v0.93.8
