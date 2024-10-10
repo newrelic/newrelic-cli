@@ -2,6 +2,8 @@ module github.com/newrelic/newrelic-cli/tools
 
 go 1.22
 
+toolchain go1.22.6
+
 require (
 	github.com/caarlos0/svu v1.9.0
 	github.com/client9/misspell v0.3.4
@@ -241,7 +243,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.5 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
