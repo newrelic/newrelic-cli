@@ -24,7 +24,6 @@ var (
 	progressIndicator = ux.NewSpinner()
 	nrdbLatency       = time.Second * 5
 )
-
 var cmdRun = &cobra.Command{
 	Use:     "run",
 	Example: "newrelic synthetics run --batchFile filename.yml",
