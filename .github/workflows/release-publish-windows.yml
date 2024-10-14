@@ -58,7 +58,7 @@ jobs:
           sudo apt-get install awscli -y
 
       - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: /home/runner/.aws/credentials
           contents:  |
@@ -68,7 +68,7 @@ jobs:
           write-mode: overwrite
 
       - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: /home/runner/.aws/config
           contents:  |
