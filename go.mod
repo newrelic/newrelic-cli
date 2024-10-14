@@ -1,14 +1,14 @@
 module github.com/newrelic/newrelic-cli
 
-go 1.22
+go 1.23.0
 
-toolchain go1.22.6
+toolchain go1.23.2
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/briandowns/spinner v1.21.0
-	github.com/fatih/color v1.14.1
+	github.com/fatih/color v1.16.0
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-task/task/v3 v3.11.0
 	github.com/google/uuid v1.3.0
@@ -43,7 +43,7 @@ require (
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
