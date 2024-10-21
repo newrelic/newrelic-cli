@@ -143,11 +143,15 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 
 		// Catchall error formatting for child process errors
 		if strings.Contains(err.Error(), "exit status") {
-			log.Debug("Full error details: ", stderrCapture.GetFullRecipeOutput())
+			fullRecipeOutput := stdoutCapture.GetFullRecipeOutput()
+			for lineNum, line := range fullRecipeOutput {
+				log.Debugf("line %d: %s\n", lineNum, line)
+			}
 			log.Debug("Error occurred with exit status")
 			var lastStderr string
-			if stderrCapture.LastFullLine == "" && len(stderrCapture.GetFullRecipeOutput()) > 0 {
-				lastStderr = stderrCapture.GetFullRecipeOutput()[len(stderrCapture.GetFullRecipeOutput())-2]
+			if stderrCapture.LastFullLine == "" && len(fullRecipeOutput) > 0 {
+				log.Debug("stderrCapture.LastFullLine is empty")
+				lastStderr = fullRecipeOutput[len(stderrCapture.fullRecipeOutput)-2]
 			} else {
 				lastStderr = stderrCapture.LastFullLine
 			}
