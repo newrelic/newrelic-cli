@@ -147,7 +147,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 			log.Debug("Error occurred with exit status")
 			var lastStderr string
 			if stderrCapture.LastFullLine == "" && len(stderrCapture.GetFullRecipeOutput()) > 0 {
-				lastStderr = stderrCapture.GetFullRecipeOutput()[len(stderrCapture.GetFullRecipeOutput())-1]
+				lastStderr = stderrCapture.GetFullRecipeOutput()[len(stderrCapture.GetFullRecipeOutput())-2]
 			} else {
 				lastStderr = stderrCapture.LastFullLine
 			}
