@@ -144,6 +144,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 		// Catchall error formatting for child process errors
 		if strings.Contains(err.Error(), "exit status") {
 			fullRecipeOutput := stdoutCapture.GetFullRecipeOutput()
+			log.Debugf("Full recipe output: %v", fullRecipeOutput)
 			for lineNum, line := range fullRecipeOutput {
 				log.Debugf("line %d: %s\n", lineNum, line)
 			}
@@ -153,6 +154,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 				log.Debug("stderrCapture.LastFullLine is empty")
 				lastStderr = fullRecipeOutput[len(stderrCapture.fullRecipeOutput)-2]
 			} else {
+				log.Debugf("stderrCapture.LastFullLine is not empty and value is: %s", stderrCapture.LastFullLine)
 				lastStderr = stderrCapture.LastFullLine
 			}
 			log.Debugf("Last stderr line: %s", lastStderr)
