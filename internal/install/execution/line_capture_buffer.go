@@ -34,7 +34,7 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 			}
 
 			c.current = []byte{}
-		} else if string(b) != "" {
+		} else {
 			c.current = append(c.current, b)
 		}
 	}
