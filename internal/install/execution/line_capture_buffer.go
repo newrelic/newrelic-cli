@@ -23,10 +23,13 @@ func NewLineCaptureBuffer(w io.Writer) *LineCaptureBuffer {
 }
 
 func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
+	log.Debugf("LineCaptureBuffer::Write: %s", p)
 	for _, b := range p {
 		if b == '\n' {
 			s := string(c.current)
 			c.fullRecipeOutput = append(c.fullRecipeOutput, s)
+			log.Debugf("LineCaptureBuffer::Write(current): %s", s)
+			log.Debugf("LineCaptureBuffer::Write(fullRecipeOutput): %s", c.fullRecipeOutput)
 
 			if s != "" {
 				log.Debugf(s)
