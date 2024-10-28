@@ -42,7 +42,7 @@ tasks:
 
 func TestExecute_HandleRecipeLastError(t *testing.T) {
 	v := types.RecipeVars{
-		"TEST_VAR": "testValue",
+		"TEST_VAR": "testValue\n \n",
 	}
 	r := types.OpenInstallationRecipe{
 		Name: "test-recipe",
