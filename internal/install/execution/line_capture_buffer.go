@@ -1,9 +1,9 @@
 package execution
 
 import (
-	"io"
-
 	log "github.com/sirupsen/logrus"
+	"io"
+	"strings"
 )
 
 type LineCaptureBuffer struct {
@@ -28,7 +28,7 @@ func (c *LineCaptureBuffer) Write(p []byte) (n int, err error) {
 			s := string(c.current)
 			c.fullRecipeOutput = append(c.fullRecipeOutput, s)
 
-			if s != "" {
+			if strings.TrimSpace(s) != "" {
 				log.Debugf(s)
 				c.LastFullLine = s
 			}
