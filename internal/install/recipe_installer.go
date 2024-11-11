@@ -594,9 +594,10 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 		if e, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
-				Recipe:   *r,
-				Msg:      e.Error(),
-				Metadata: i.recipeExecutor.GetOutput().Metadata(),
+				Recipe:           *r,
+				Msg:              e.Error(),
+				Metadata:         i.recipeExecutor.GetOutput().Metadata(),
+				OptimizedMessage: e.Error(),
 			})
 
 			return "", err
@@ -610,9 +611,10 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		i.askToReRunInDebugMode()
 
 		se := execution.RecipeStatusEvent{
-			Recipe:   *r,
-			Msg:      msg,
-			Metadata: i.recipeExecutor.GetOutput().Metadata(),
+			Recipe:           *r,
+			Msg:              msg,
+			Metadata:         i.recipeExecutor.GetOutput().Metadata(),
+			OptimizedMessage: err.Error(),
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {
@@ -666,6 +668,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 			Msg:                  validationErr.Error(),
 			ValidationDurationMs: validationDurationMs,
 			Metadata:             i.recipeExecutor.GetOutput().Metadata(),
+			OptimizedMessage:     err.Error(),
 		})
 
 		return "", validationErr
@@ -785,7 +788,7 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
 			}
 		case <-timeoutCtx.Done():
-			return "", fmt.Errorf("timed out waiting for validation to succeed")
+			return "", fmt.Errorf("installation validation timed out after %v. please retry the process\n", validationTimeout)
 		}
 	}
 }
