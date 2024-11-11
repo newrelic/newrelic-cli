@@ -1,6 +1,6 @@
 module github.com/newrelic/newrelic-cli/tools
 
-go 1.21
+go 1.22.5
 
 require (
 	github.com/caarlos0/svu v1.9.0
