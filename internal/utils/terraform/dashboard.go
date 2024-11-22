@@ -2,7 +2,6 @@ package terraform
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -183,57 +182,14 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 						writeInterfaceValues(h, "refresh_rate", config.RefreshRate.Frequency) // function to handle different types of refresh rates which cant be handled through struct
 
 						if w.Visualization.ID == "viz.line" {
-							h.WriteBooleanAttribute("y_axis_left_zero", config.YAxisLeft.Zero)
-
-							var widgetLineThreshold DashboardWidgetLineThreshold
-							if err := json.Unmarshal(config.Threshold, &widgetLineThreshold); err != nil {
-								log.Fatal("Error unmarshalling widgetLineThreshold:", err)
-							}
-
-							h.WriteBooleanAttribute("is_label_visible", widgetLineThreshold.IsLabelVisible)
-
-							for _, q := range widgetLineThreshold.Threshold {
-								h.WriteBlock("threshold", []string{}, func() {
-									h.WriteStringAttribute("name", q.Name)
-									h.WriteStringAttribute("severity", q.Severity)
-									h.WriteFloatAttribute("from", q.From)
-									h.WriteFloatAttribute("to", q.To)
-								})
-							}
+							writeLineWidgetAttributes(h, config)
 						}
 						if w.Visualization.ID == "viz.billboard" {
-							var billboardThreshold []DashboardWidgetBillBoardThreshold
-							if err := json.Unmarshal(config.Threshold, &billboardThreshold); err != nil {
-								log.Fatal("Error unmarshalling billboardThreshold:", err)
-							}
-							for _, q := range billboardThreshold {
-								h.WriteFloatAttribute(ThresholdSeverityValues[q.AlertSeverity], q.Value)
-							}
-
-							for _, q := range config.DataFormatters {
-								h.WriteBlock("data_format", []string{}, func() {
-									h.WriteStringAttribute("name", q.Name)
-									h.WriteStringAttribute("type", q.Type)
-									h.WriteStringAttribute("format", q.Format)
-									writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
-								})
-							}
+							writeBillboardWidgetAttributes(h, config)
 						}
 						if w.Visualization.ID == "viz.table" {
-							h.WriteBlock("initial_sorting", []string{}, func() {
-								h.WriteStringAttribute("name", config.InitialSorting.Name)
-								h.WriteStringAttribute("direction", config.InitialSorting.Direction)
-							})
-							for _, q := range config.DataFormatters {
-								h.WriteBlock("data_format", []string{}, func() {
-									h.WriteStringAttribute("name", q.Name)
-									h.WriteStringAttribute("type", q.Type)
-									h.WriteStringAttribute("format", q.Format)
-									writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
-								})
-							}
+							writeTableWidgetAttributes(h, config)
 						}
-
 						if w.Visualization.ID == "viz.bullet" {
 							h.WriteFloatAttribute("limit", config.Limit)
 						}
@@ -331,10 +287,64 @@ func requireValidVisualizationID(id string) {
 	}
 }
 
+func writeLineWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	h.WriteBooleanAttribute("y_axis_left_zero", config.YAxisLeft.Zero)
+	var widgetLineThreshold DashboardWidgetLineThreshold
+	if err := json.Unmarshal(config.Threshold, &widgetLineThreshold); err != nil {
+		log.Fatal("Error unmarshalling widgetLineThreshold:", err)
+	}
+
+	h.WriteBooleanAttribute("is_label_visible", widgetLineThreshold.IsLabelVisible)
+
+	for _, q := range widgetLineThreshold.Threshold {
+		h.WriteBlock("threshold", []string{}, func() {
+			h.WriteStringAttribute("name", q.Name)
+			h.WriteStringAttribute("severity", q.Severity)
+			h.WriteFloatAttribute("from", q.From)
+			h.WriteFloatAttribute("to", q.To)
+		})
+	}
+}
+
+func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	var billboardThreshold []DashboardWidgetBillBoardThreshold
+	if err := json.Unmarshal(config.Threshold, &billboardThreshold); err != nil {
+		log.Fatal("Error unmarshalling billboardThreshold:", err)
+	}
+	for _, q := range billboardThreshold {
+		h.WriteFloatAttribute(ThresholdSeverityValues[q.AlertSeverity], q.Value)
+	}
+
+	for _, q := range config.DataFormatters {
+		h.WriteBlock("data_format", []string{}, func() {
+			h.WriteStringAttribute("name", q.Name)
+			h.WriteStringAttribute("type", q.Type)
+			h.WriteStringAttribute("format", q.Format)
+			writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
+		})
+	}
+}
+
+func writeTableWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	h.WriteBlock("initial_sorting", []string{}, func() {
+		h.WriteStringAttribute("name", config.InitialSorting.Name)
+		h.WriteStringAttribute("direction", config.InitialSorting.Direction)
+	})
+
+	for _, q := range config.DataFormatters {
+		h.WriteBlock("data_format", []string{}, func() {
+			h.WriteStringAttribute("name", q.Name)
+			h.WriteStringAttribute("type", q.Type)
+			h.WriteStringAttribute("format", q.Format)
+			writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
+		})
+	}
+}
+
 func writeInterfaceValues(h *HCLGen, title string, titleValue interface{}) {
 	switch titleValue := titleValue.(type) {
 	case string:
-		h.WriteStringAttribute(title, fmt.Sprintf("%s", titleValue)) // string without quotes
+		h.WriteStringAttribute(title, titleValue) // string without quotes
 	case float64:
 		h.WriteFloatAttribute(title, titleValue) // integer without quotes
 	default:
