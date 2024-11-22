@@ -332,12 +332,12 @@ func requireValidVisualizationID(id string) {
 }
 
 func writeInterfaceValues(h *HCLGen, title string, titleValue interface{}) {
-	switch titleValue.(type) {
+	switch titleValue := titleValue.(type) {
 	case string:
 		h.WriteStringAttribute(title, fmt.Sprintf("%s", titleValue)) // string without quotes
 	case float64:
-		h.WriteFloatAttribute(title, titleValue.(float64)) // integer without quotes
+		h.WriteFloatAttribute(title, titleValue) // integer without quotes
 	default:
-		h.WriteStringAttribute(title, fmt.Sprintf("%s", ""))
+		h.WriteStringAttribute(title, "")
 	}
 }
