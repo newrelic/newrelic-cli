@@ -27,6 +27,10 @@ var (
 		"viz.stacked-bar":         "widget_stacked_bar",
 		"logger.log-table-widget": "widget_log_table",
 	}
+	ThresholdSeverityValues = map[string]string{
+		"CRITICAL": "critical",
+		"WARNING":  "warning",
+	}
 )
 
 type DashboardWidgetRawConfiguration struct {
@@ -34,19 +38,24 @@ type DashboardWidgetRawConfiguration struct {
 	NRQLQueries       []DashboardWidgetNRQLQuery     `json:"nrqlQueries"`
 	LinkedEntityGUIDs []string                       `json:"linkedEntityGuids"`
 	Text              string                         `json:"text"`
+	Limit             float64                        `json:"limit,omitempty"`
 	Facet             DashboardWidgetFacet           `json:"facet,omitempty"`
 	Legend            DashboardWidgetLegend          `json:"legend,omitempty"`
+	Threshold         json.RawMessage                `json:"thresholds,omitempty"`
 	YAxisLeft         DashboardWidgetYAxisLeft       `json:"yAxisLeft,omitempty"`
 	NullValues        DashboardWidgetNullValues      `json:"nullValues,omitempty"`
 	Units             DashboardWidgetUnits           `json:"units,omitempty"`
 	Colors            DashboardWidgetColors          `json:"colors,omitempty"`
 	PlatformOptions   DashboardWidgetPlatformOptions `json:"platformOptions,omitempty"`
+	RefreshRate       DashboardWidgetRefreshRate     `json:"refreshRate,omitempty"`
+	InitialSorting    DashboardWidgetInitialSorting  `json:"initialSorting,omitempty"`
 }
 
 type DataFormatter struct {
 	Name      string      `json:"name"`
 	Precision interface{} `json:"precision"`
 	Type      string      `json:"type"`
+	Format    string      `json:"format"`
 }
 
 type DashboardWidgetFacet struct {
@@ -60,6 +69,23 @@ type DashboardWidgetNRQLQuery struct {
 
 type DashboardWidgetLegend struct {
 	Enabled bool `json:"enabled,omitempty"`
+}
+
+type DashboardWidgetThreshold struct {
+	From     float64 `json:"from,omitempty"`
+	Name     string  `json:"name,omitempty"`
+	Severity string  `json:"severity,omitempty"`
+	To       float64 `json:"to,omitempty"`
+}
+
+type DashboardWidgetLineThreshold struct {
+	IsLabelVisible bool                       `json:"isLabelVisible,omitempty"`
+	Threshold      []DashboardWidgetThreshold `json:"thresholds,omitempty"`
+}
+
+type DashboardWidgetBillBoardThreshold struct {
+	AlertSeverity string  `json:"alertSeverity,omitempty"`
+	Value         float64 `json:"value,omitempty"`
 }
 
 type DashboardWidgetYAxisLeft struct {
@@ -96,8 +122,18 @@ type DashboardWidgetColorOverrides struct {
 	Color      string `json:"color,omitempty"`
 	SeriesName string `json:"seriesName,omitempty"`
 }
+
 type DashboardWidgetPlatformOptions struct {
 	IgnoreTimeRange bool `json:"ignoreTimeRange,omitempty"`
+}
+
+type DashboardWidgetRefreshRate struct {
+	Frequency interface{} `json:"frequency,omitempty"`
+}
+
+type DashboardWidgetInitialSorting struct {
+	Direction string `json:"direction"`
+	Name      string `json:"name"`
 }
 
 func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (string, error) {
@@ -143,9 +179,21 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 						h.WriteBooleanAttribute("ignore_time_range", config.PlatformOptions.IgnoreTimeRange)
 						h.WriteFloatAttribute("y_axis_left_min", config.YAxisLeft.Min)
 						h.WriteFloatAttribute("y_axis_left_max", config.YAxisLeft.Max)
+						writeInterfaceValues(h, "refresh_rate", config.RefreshRate.Frequency) // function to handle different types of refresh rates which cant be handled through struct
+
 						if w.Visualization.ID == "viz.line" {
-							h.WriteBooleanAttribute("y_axis_left_zero", config.YAxisLeft.Zero)
+							writeLineWidgetAttributes(h, config)
 						}
+						if w.Visualization.ID == "viz.billboard" {
+							writeBillboardWidgetAttributes(h, config)
+						}
+						if w.Visualization.ID == "viz.table" {
+							writeTableWidgetAttributes(h, config)
+						}
+						if w.Visualization.ID == "viz.bullet" {
+							h.WriteFloatAttribute("limit", config.Limit)
+						}
+
 						h.WriteBlock("null_values", []string{}, func() {
 							h.WriteStringAttribute("null_value", config.NullValues.NullValue)
 							for _, so := range config.NullValues.SeriesOverrides {
@@ -236,5 +284,70 @@ func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b
 func requireValidVisualizationID(id string) {
 	if widgetTypes[id] == "" {
 		log.Fatalf("unrecognized widget type \"%s\"", id)
+	}
+}
+
+func writeLineWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	h.WriteBooleanAttribute("y_axis_left_zero", config.YAxisLeft.Zero)
+	var widgetLineThreshold DashboardWidgetLineThreshold
+	if err := json.Unmarshal(config.Threshold, &widgetLineThreshold); err != nil {
+		log.Fatal("Error unmarshalling widgetLineThreshold:", err)
+	}
+
+	h.WriteBooleanAttribute("is_label_visible", widgetLineThreshold.IsLabelVisible)
+
+	for _, q := range widgetLineThreshold.Threshold {
+		h.WriteBlock("threshold", []string{}, func() {
+			h.WriteStringAttribute("name", q.Name)
+			h.WriteStringAttribute("severity", q.Severity)
+			h.WriteFloatAttribute("from", q.From)
+			h.WriteFloatAttribute("to", q.To)
+		})
+	}
+}
+
+func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	var billboardThreshold []DashboardWidgetBillBoardThreshold
+	if err := json.Unmarshal(config.Threshold, &billboardThreshold); err != nil {
+		log.Fatal("Error unmarshalling billboardThreshold:", err)
+	}
+	for _, q := range billboardThreshold {
+		h.WriteFloatAttribute(ThresholdSeverityValues[q.AlertSeverity], q.Value)
+	}
+
+	for _, q := range config.DataFormatters {
+		h.WriteBlock("data_format", []string{}, func() {
+			h.WriteStringAttribute("name", q.Name)
+			h.WriteStringAttribute("type", q.Type)
+			h.WriteStringAttribute("format", q.Format)
+			writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
+		})
+	}
+}
+
+func writeTableWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	h.WriteBlock("initial_sorting", []string{}, func() {
+		h.WriteStringAttribute("name", config.InitialSorting.Name)
+		h.WriteStringAttribute("direction", config.InitialSorting.Direction)
+	})
+
+	for _, q := range config.DataFormatters {
+		h.WriteBlock("data_format", []string{}, func() {
+			h.WriteStringAttribute("name", q.Name)
+			h.WriteStringAttribute("type", q.Type)
+			h.WriteStringAttribute("format", q.Format)
+			writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
+		})
+	}
+}
+
+func writeInterfaceValues(h *HCLGen, title string, titleValue interface{}) {
+	switch titleValue := titleValue.(type) {
+	case string:
+		h.WriteStringAttribute(title, titleValue) // string without quotes
+	case float64:
+		h.WriteFloatAttribute(title, titleValue) // integer without quotes
+	default:
+		h.WriteStringAttribute(title, "")
 	}
 }
