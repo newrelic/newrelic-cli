@@ -1,5 +1,10 @@
+<a name="v0.97.2"></a>
+## [v0.97.2] - 2024-12-04
+### Bug Fixes
+- **dashboard:** Updated the Dashboard JSON to HCL Converter Utility with Latest Fields in the Resource ([#1669](https://github.com/newrelic/newrelic-cli/issues/1669))
+
 <a name="v0.97.1"></a>
-## [v0.97.1] - 2024-11-11
+## [v0.97.1] - 2024-11-12
 <a name="v0.97.0"></a>
 ## [v0.97.0] - 2024-11-11
 ### Features
@@ -2418,7 +2423,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...HEAD
+[v0.97.2]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...v0.97.2
 [v0.97.1]: https://github.com/newrelic/newrelic-cli/compare/v0.97.0...v0.97.1
 [v0.97.0]: https://github.com/newrelic/newrelic-cli/compare/v0.96.3...v0.97.0
 [v0.96.3]: https://github.com/newrelic/newrelic-cli/compare/v0.96.2...v0.96.3
