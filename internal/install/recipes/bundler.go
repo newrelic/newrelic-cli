@@ -42,7 +42,7 @@ func (b *Bundler) CreateAdditionalGuidedBundle() *Bundle {
 
 	for _, d := range b.AvailableRecipes {
 		if !coreRecipeMap[d.Recipe.Name] {
-			if !strings.EqualFold(d.Recipe.Name, types.SuperAgentRecipeName) {
+			if !strings.EqualFold(d.Recipe.Name, types.AgentControlRecipeName) {
 				recipes = append(recipes, d.Recipe.Name)
 			}
 		}
@@ -85,16 +85,16 @@ func (b *Bundler) createBundle(recipes []string, bType BundleType) *Bundle {
 			bundleRecipe = b.getBundleRecipeWithDependencies(d.Recipe)
 
 			if bundleRecipe != nil {
-				isSuperAgentTargetedInput := utils.StringInSlice(types.SuperAgentRecipeName, recipes)
-				if dep, found := findRecipeDependency(bundleRecipe, types.SuperAgentRecipeName); !isSuperAgentTargetedInput && found {
+				isAgentControlTargetedInput := utils.StringInSlice(types.AgentControlRecipeName, recipes)
+				if dep, found := findRecipeDependency(bundleRecipe, types.AgentControlRecipeName); !isAgentControlTargetedInput && found {
 					log.Debugf("updating the dependency status for %s", dep)
 					dep.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
 				}
-				if !isSuperAgentTargetedInput && b.HasSuperInstalled {
-					log.Debugf("Super agent found, skipping")
+				if !isAgentControlTargetedInput && b.HasSuperInstalled {
+					log.Debugf("Agent Control found, skipping")
 					superRecipe := &BundleRecipe{
 						Recipe: &types.OpenInstallationRecipe{
-							Name: types.SuperAgentRecipeName,
+							Name: types.AgentControlRecipeName,
 						},
 					}
 					superRecipe.AddDetectionStatus(execution.RecipeStatusTypes.INSTALLED, 0)
@@ -174,7 +174,7 @@ func detectDependencies(deps []string) (string, bool) {
 		return "", false
 	}
 
-	const dualRecipeDependencyRegex = `^.+\|\|.+$` // e.g.: infrastructure-agent-installer || super-agent
+	const dualRecipeDependencyRegex = `^.+\|\|.+$` // e.g.: infrastructure-agent-installer || agent-control
 	r, _ := regexp.Compile(dualRecipeDependencyRegex)
 
 	// Not yet considering the unlikely case of dealing with more than one recipe dependency line coming in the 'recipe-a || recipe-b' form
@@ -205,13 +205,13 @@ func (b *Bundler) updateDependency(dualDep string, recipes []string) []string {
 	}
 	for _, dep := range splitDeps {
 		dep = strings.TrimSpace(dep)
-		if dep == types.SuperAgentRecipeName {
+		if dep == types.AgentControlRecipeName {
 			hasSuperDep = true
 			break
 		}
 	}
 	if hasSuperDep && b.HasSuperInstalled {
-		return []string{types.SuperAgentRecipeName}
+		return []string{types.AgentControlRecipeName}
 	}
 
 	for _, dep := range splitDeps {

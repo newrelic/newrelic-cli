@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	InfraAgentRecipeName        = "infrastructure-agent-installer"
-	LoggingRecipeName           = "logs-integration"
-	LoggingSuperAgentRecipeName = "logs-integration-super-agent"
-	GoldenRecipeName            = "alerts-golden-signal"
-	SuperAgentRecipeName        = "super-agent"
-	SuperAgentProcessName       = "newrelic-super-agent"
-	InfraAgentProcessName       = "newrelic-infra"
+	InfraAgentRecipeName          = "infrastructure-agent-installer"
+	LoggingRecipeName             = "logs-integration"
+	LoggingAgentControlRecipeName = "logs-integration-agent-control"
+	GoldenRecipeName              = "alerts-golden-signal"
+	AgentControlRecipeName        = "agent-control"
+	AgentControlProcessName       = "newrelic-agent-control"
+	InfraAgentProcessName         = "newrelic-infra"
 )
 
 var RecipeVariables = map[string]string{}

@@ -100,7 +100,7 @@ func (rf *RecipeRepository) FindRecipes(excludingRecipes []*types.OpenInstallati
 // Enriching recipe
 func (rf *RecipeRepository) enrichLogRecipe() {
 	for _, recipe := range rf.filteredRecipes {
-		if recipe.Name == types.LoggingRecipeName || recipe.Name == types.LoggingSuperAgentRecipeName {
+		if recipe.Name == types.LoggingRecipeName || recipe.Name == types.LoggingAgentControlRecipeName {
 			logMatches := rf.logMatchFinder.GetPaths(utils.SignalCtx, rf.filteredRecipes)
 
 			var discoveredLogFilesString string

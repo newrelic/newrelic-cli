@@ -51,9 +51,9 @@ func TestInstallContinueOnErrorReturnsImmediatelyWhenNoIsEntered(t *testing.T) {
 	test.mockStatusReporter.AssertNumberOfCalls(t, "ReportStatus", 1)
 }
 
-func TestInstallContinueOnErrorReturnsImmediatelyWhenSuperAgentIsInstalled(t *testing.T) {
+func TestInstallContinueOnErrorReturnsImmediatelyWhenAgentControlIsInstalled(t *testing.T) {
 	test := createBundleInstallerTest().withPrompterYesNoVal(false).withRecipeInstallerError()
-	test.addRecipeToBundle("super-agent", execution.RecipeStatusTypes.INSTALLED)
+	test.addRecipeToBundle("agent-control", execution.RecipeStatusTypes.INSTALLED)
 
 	test.BundleInstaller.InstallContinueOnError(test.bundle, false)
 
@@ -61,9 +61,9 @@ func TestInstallContinueOnErrorReturnsImmediatelyWhenSuperAgentIsInstalled(t *te
 	test.mockStatusReporter.AssertNumberOfCalls(t, "ReportStatus", 0)
 }
 
-func TestInstallContinueOnErrorWhenSuperAgentIsAvailable(t *testing.T) {
+func TestInstallContinueOnErrorWhenAgentControlIsAvailable(t *testing.T) {
 	test := createBundleInstallerTest().withPrompterYesNoVal(false).withRecipeInstallerError()
-	test.addRecipeToBundle("super-agent", execution.RecipeStatusTypes.AVAILABLE)
+	test.addRecipeToBundle("agent-control", execution.RecipeStatusTypes.AVAILABLE)
 
 	test.BundleInstaller.InstallContinueOnError(test.bundle, false)
 
@@ -82,7 +82,7 @@ func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargeted(t *te
 
 func TestInstallContinueOnErrorIgnoresUxPromptIfBundleIsAdditionalTargetedSuperIsInstalled(t *testing.T) {
 	test := createBundleInstallerTest().withRecipeInstallerSuccess()
-	test.addRecipeToBundle(types.SuperAgentRecipeName, execution.RecipeStatusTypes.INSTALLED)
+	test.addRecipeToBundle(types.AgentControlRecipeName, execution.RecipeStatusTypes.INSTALLED)
 	test.BundleInstaller.InstallContinueOnError(test.bundle, true)
 
 	test.mockRecipeInstaller.AssertNumberOfCalls(t, "executeAndValidateWithProgress", 0)

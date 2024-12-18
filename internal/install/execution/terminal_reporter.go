@@ -151,9 +151,9 @@ func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 	statuses := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statuses {
-		isSuperAgentRecipe := s.Name == types.SuperAgentRecipeName || s.Name == types.LoggingSuperAgentRecipeName
+		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
 
-		if s.Status == RecipeStatusTypes.INSTALLED && isSuperAgentRecipe {
+		if s.Status == RecipeStatusTypes.INSTALLED && isAgentControlRecipe {
 			linkToFleetRaw := "https://one.newrelic.com/nr1-core?filters=(domain = 'NR1' AND type = 'FLEET')"
 
 			linkToFleet := url.PathEscape(linkToFleetRaw)
