@@ -1,3 +1,8 @@
+<a name="v0.97.3"></a>
+## [v0.97.3] - 2025-01-07
+### Bug Fixes
+- **agent-control:** rename Super Agent to Agent Control in the CLI ([#1674](https://github.com/newrelic/newrelic-cli/issues/1674))
+
 <a name="v0.97.2"></a>
 ## [v0.97.2] - 2024-12-04
 ### Bug Fixes
@@ -2423,7 +2428,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.3...HEAD
+[v0.97.3]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...v0.97.3
 [v0.97.2]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...v0.97.2
 [v0.97.1]: https://github.com/newrelic/newrelic-cli/compare/v0.97.0...v0.97.1
 [v0.97.0]: https://github.com/newrelic/newrelic-cli/compare/v0.96.3...v0.97.0
