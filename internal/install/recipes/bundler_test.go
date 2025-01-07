@@ -47,17 +47,17 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipes(t *testing.T) {
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
 }
 
-// Super agent is installed but not a dependency
+// Agent Control is installed but not a dependency
 func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipesWithSuper(t *testing.T) {
 	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
 	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
 	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
 	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
-	// Super agent is installed but not a dependency
-	superRecipe := NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build()
+	// Agent Control is installed but not a dependency
+	superRecipe := NewRecipeBuilder().Name(types.AgentControlRecipeName).Build()
 	bundler.HasSuperInstalled = true
-	withAvailableRecipe(bundler, types.SuperAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, superRecipe)
+	withAvailableRecipe(bundler, types.AgentControlRecipeName, execution.RecipeStatusTypes.AVAILABLE, superRecipe)
 
 	withAvailableRecipe(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
 	withAvailableRecipe(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
@@ -79,23 +79,23 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipesWithSuper(t *test
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
 }
 
-// Super agent is installed but is a dependency
+// Agent Control is installed but is a dependency
 func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipesOnHasSuperDependency(t *testing.T) {
 	infraRecipe := NewRecipeBuilder().Name(types.InfraAgentRecipeName).Build()
 	loggingRecipe := NewRecipeBuilder().Name(types.LoggingRecipeName).Build()
 	goldenRecipe := NewRecipeBuilder().Name(types.GoldenRecipeName).Build()
-	superRecipe := NewRecipeBuilder().Name(types.SuperAgentRecipeName).Build()
+	superRecipe := NewRecipeBuilder().Name(types.AgentControlRecipeName).Build()
 	mysqlRecipe := NewRecipeBuilder().Name("mysql").Build()
 	bundler := createTestBundler()
 	bundler.HasSuperInstalled = true
-	mysqlRecipe.Dependencies = []string{types.SuperAgentRecipeName}
+	mysqlRecipe.Dependencies = []string{types.AgentControlRecipeName}
 
 	withAvailableRecipe(bundler, types.InfraAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, infraRecipe)
 	withAvailableRecipe(bundler, types.LoggingRecipeName, execution.RecipeStatusTypes.AVAILABLE, loggingRecipe)
 	withAvailableRecipe(bundler, types.GoldenRecipeName, execution.RecipeStatusTypes.AVAILABLE, goldenRecipe)
 	withAvailableRecipe(bundler, "mysql", execution.RecipeStatusTypes.AVAILABLE, mysqlRecipe)
-	// super agent should be made available
-	withAvailableRecipe(bundler, types.SuperAgentRecipeName, execution.RecipeStatusTypes.AVAILABLE, superRecipe)
+	// agent control should be made available
+	withAvailableRecipe(bundler, types.AgentControlRecipeName, execution.RecipeStatusTypes.AVAILABLE, superRecipe)
 
 	recipeNames := []string{
 		"mysql",
@@ -104,16 +104,16 @@ func TestCreateAdditionalTargetedBundleShouldNotSkipCoreRecipesOnHasSuperDepende
 		types.GoldenRecipeName,
 	}
 	addBundle := bundler.CreateAdditionalTargetedBundle(recipeNames)
-	r := findDependencyByName(addBundle.GetBundleRecipe("mysql"), types.SuperAgentRecipeName)
+	r := findDependencyByName(addBundle.GetBundleRecipe("mysql"), types.AgentControlRecipeName)
 
 	require.Equal(t, 5, len(addBundle.BundleRecipes))
 	require.NotNil(t, findRecipeByName(addBundle, types.InfraAgentRecipeName))
 	require.NotNil(t, findRecipeByName(addBundle, types.LoggingRecipeName))
 	require.NotNil(t, findRecipeByName(addBundle, types.GoldenRecipeName))
 	require.NotNil(t, findRecipeByName(addBundle, "mysql"))
-	require.NotNil(t, findRecipeByName(addBundle, types.SuperAgentRecipeName))
-	require.Equal(t, r.Name, types.SuperAgentRecipeName)
-	// super agent should be installed
+	require.NotNil(t, findRecipeByName(addBundle, types.AgentControlRecipeName))
+	require.Equal(t, r.Name, types.AgentControlRecipeName)
+	// agent control should be installed
 	mysqlBundle := findRecipeByName(addBundle, "mysql")
 	require.Equal(t, 1, len(mysqlBundle.Dependencies))
 	require.True(t, mysqlBundle.Dependencies[0].LastStatus(execution.RecipeStatusTypes.INSTALLED))
@@ -392,7 +392,7 @@ func TestUpdateDependencyReturnsFirstDualDependencyThatIsInTargetedRecipes(t *te
 	}
 }
 
-func TestUpdateDependencyReturnsSuperAgentDualDependencyThatIsInTargetedRecipes(t *testing.T) {
+func TestUpdateDependencyReturnsAgentControlDualDependencyThatIsInTargetedRecipes(t *testing.T) {
 	type test struct {
 		dualDep string
 		recipes []string
@@ -401,13 +401,13 @@ func TestUpdateDependencyReturnsSuperAgentDualDependencyThatIsInTargetedRecipes(
 	}
 
 	tests := []test{
-		{dualDep: "infra || super-agent", recipes: []string{"super-agent", "mysql", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: false}},
-		{dualDep: "super-agent || infra", recipes: []string{"super-agent", "mysql", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: false}},
-		{dualDep: "super-agent || infra", recipes: []string{"mysql", "infra", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
-		{dualDep: "super-agent || infra", recipes: []string{"mysql", "infra", "super-agent"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
-		{dualDep: "infra || super-agent", recipes: []string{"mysql", "infra", "super-agent"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
-		{dualDep: "infra || super-agent", recipes: []string{"infra", "mysql", "logging"}, want: []string{"super-agent"}, b: Bundler{HasSuperInstalled: true}},
-		{dualDep: "infra || super-agent", recipes: []string{"infra", "mysql", "logging"}, want: []string{"infra"}, b: Bundler{HasSuperInstalled: false}},
+		{dualDep: "infra || agent-control", recipes: []string{"agent-control", "mysql", "logging"}, want: []string{"agent-control"}, b: Bundler{HasSuperInstalled: false}},
+		{dualDep: "agent-control || infra", recipes: []string{"agent-control", "mysql", "logging"}, want: []string{"agent-control"}, b: Bundler{HasSuperInstalled: false}},
+		{dualDep: "agent-control || infra", recipes: []string{"mysql", "infra", "logging"}, want: []string{"agent-control"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "agent-control || infra", recipes: []string{"mysql", "infra", "agent-control"}, want: []string{"agent-control"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "infra || agent-control", recipes: []string{"mysql", "infra", "agent-control"}, want: []string{"agent-control"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "infra || agent-control", recipes: []string{"infra", "mysql", "logging"}, want: []string{"agent-control"}, b: Bundler{HasSuperInstalled: true}},
+		{dualDep: "infra || agent-control", recipes: []string{"infra", "mysql", "logging"}, want: []string{"infra"}, b: Bundler{HasSuperInstalled: false}},
 	}
 
 	for _, tc := range tests {
