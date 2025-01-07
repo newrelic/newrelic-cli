@@ -6,7 +6,7 @@ toolchain go1.22.9
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/Masterminds/semver/v3 v3.3.0
+	github.com/Masterminds/semver/v3 v3.3.1
 	github.com/briandowns/spinner v1.21.0
 	github.com/fatih/color v1.16.0
 	github.com/ghodss/yaml v1.0.0
