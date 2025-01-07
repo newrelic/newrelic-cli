@@ -1,7 +1,7 @@
 github.com/AlecAivazis/survey/v2 v2.3.7 h1:6I/u8FvytdGsgonrYsVn2t8t4QiRnh6QSTqkkhIiSjQ=
 github.com/AlecAivazis/survey/v2 v2.3.7/go.mod h1:xUTIdE4KCOIjsBAE1JYsUPoCqYdZ1reCfTwbto0Fduo=
-github.com/Masterminds/semver/v3 v3.3.0 h1:B8LGeaivUe71a5qox1ICM/JLl0NqZSW5CHyL+hmvYS0=
-github.com/Masterminds/semver/v3 v3.3.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
+github.com/Masterminds/semver/v3 v3.3.1 h1:QtNSWtVZ3nBfk8mAOu/B6v7FMJ+NHTIgUPi7rj+4nv4=
+github.com/Masterminds/semver/v3 v3.3.1/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63nhn5WAunQHLTznkw5W8b1Xc0dNjp83s=
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
 github.com/briandowns/spinner v1.21.0 h1:2lVBzf3iZ3cT/ulVXljc4BzlL3yTWZDzsGsamI7si+A=
@@ -99,8 +99,6 @@ github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGg
 github.com/mitchellh/mapstructure v1.4.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/newrelic-forks/task/v3 v3.11.0 h1:8Gwo33tMTqQkWlekCChbCZqf0nrXI85UqVeIgXk73L0=
 github.com/newrelic-forks/task/v3 v3.11.0/go.mod h1:rzfFpA7kl0CsL44ZQd2F2Hic5xOb2m03N6Y2lUjdNo4=
-github.com/newrelic/newrelic-client-go/v2 v2.51.3 h1:Bu/cUs6nfMjQMPBcxxHt4Xm30tKDT7ttYy/XRDsWP6Y=
-github.com/newrelic/newrelic-client-go/v2 v2.51.3/go.mod h1:+RRjI3nDGWT3kLm9Oi3QxpBm70uu8q1upEHBVWCZFpo=
 github.com/newrelic/newrelic-client-go/v2 v2.51.4-0.20241111153946-a221c9e3bd63 h1:r2s0IZ9RuyIopiMZAkx5FgXttYzE3Rv6L34RVxwpgKg=
 github.com/newrelic/newrelic-client-go/v2 v2.51.4-0.20241111153946-a221c9e3bd63/go.mod h1:+RRjI3nDGWT3kLm9Oi3QxpBm70uu8q1upEHBVWCZFpo=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
