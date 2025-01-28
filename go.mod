@@ -1,8 +1,8 @@
 module github.com/newrelic/newrelic-cli
 
-go 1.22
+go 1.22.0
 
-toolchain go1.22.9
+toolchain go1.23.5
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -27,7 +27,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
+	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
 	golang.org/x/net v0.33.0
 	golang.org/x/term v0.27.0
 	golang.org/x/text v0.21.0
