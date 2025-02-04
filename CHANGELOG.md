@@ -1,3 +1,8 @@
+<a name="v0.97.5"></a>
+## [v0.97.5] - 2025-02-04
+### Bug Fixes
+- Bumped windows download artifact version to v4 ([#1684](https://github.com/newrelic/newrelic-cli/issues/1684))
+
 <a name="v0.97.4"></a>
 ## [v0.97.4] - 2025-02-04
 ### Bug Fixes
@@ -2435,7 +2440,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.5...HEAD
+[v0.97.5]: https://github.com/newrelic/newrelic-cli/compare/v0.97.4...v0.97.5
 [v0.97.4]: https://github.com/newrelic/newrelic-cli/compare/v0.97.3...v0.97.4
 [v0.97.3]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...v0.97.3
 [v0.97.2]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...v0.97.2
