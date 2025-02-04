@@ -1,3 +1,10 @@
+<a name="v0.97.4"></a>
+## [v0.97.4] - 2025-02-04
+### Bug Fixes
+- Revert PR [#1677](https://github.com/newrelic/newrelic-cli/issues/1677) causing regression test failure ([#1680](https://github.com/newrelic/newrelic-cli/issues/1680))
+- **dependabot:** Updates to dependencies to fix dependabot alerts ([#1677](https://github.com/newrelic/newrelic-cli/issues/1677))
+- **release:** Bumped windows upload-artifact to v4 ([#1679](https://github.com/newrelic/newrelic-cli/issues/1679))
+
 <a name="v0.97.3"></a>
 ## [v0.97.3] - 2025-01-07
 ### Bug Fixes
@@ -2428,7 +2435,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.4...HEAD
+[v0.97.4]: https://github.com/newrelic/newrelic-cli/compare/v0.97.3...v0.97.4
 [v0.97.3]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...v0.97.3
 [v0.97.2]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...v0.97.2
 [v0.97.1]: https://github.com/newrelic/newrelic-cli/compare/v0.97.0...v0.97.1
