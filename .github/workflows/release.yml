@@ -87,7 +87,7 @@ jobs:
 
       # Note the uploaded binary is downloaded and used in the release-windows-installer job
       - name: Upload Windows binary to GitHub
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-binary
           path: dist/newrelic_windows_amd64_v1/newrelic.exe
