@@ -85,13 +85,6 @@ jobs:
 
           ./scripts/win_metadata_files_remove.sh
 
-      # Note the uploaded binary is downloaded and used in the release-windows-installer job
-      - name: Upload Windows binary to GitHub
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-binary
-          path: dist/newrelic_windows_amd64_v1/newrelic.exe
-
       - name: Sign newrelic.exe
         shell: bash
         env:
@@ -104,6 +97,13 @@ jobs:
           osslsigncode sign -pkcs12 cert.pfx -pass "$PFX_PASSWORD" -h sha256 -t http://timestamp.digicert.com \
             -in dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe -out dist/newrelic_windows_amd64_v1/newrelic.exe
           rm -f cert.pfx dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
+
+      # Note the uploaded binary is downloaded and used in the release-windows-installer job
+      - name: Upload Windows binary to GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binary
+          path: dist/newrelic_windows_amd64_v1/newrelic.exe
 
       - name: Re-do Windows_x86_64.zip
         run: |
