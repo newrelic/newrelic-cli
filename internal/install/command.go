@@ -56,9 +56,9 @@ var Command = &cobra.Command{
 
 		i := NewRecipeInstaller(ic)
 
-		//// Do not install both infra and super agents simultaneously: install only the 'super-agent' if targeted.
-		//if i.IsRecipeTargeted(types.SuperAgentRecipeName) && i.shouldInstallCore() {
-		//	log.Debugf("'%s' is targeted, disabling infra/logs core bundle install\n", types.SuperAgentRecipeName)
+		//// Do not install both infra and agent controls simultaneously: install only the 'agent-control' if targeted.
+		//if i.IsRecipeTargeted(types.AgentControlRecipeName) && i.shouldInstallCore() {
+		//	log.Debugf("'%s' is targeted, disabling infra/logs core bundle install\n", types.AgentControlRecipeName)
 		//	i.shouldInstallCore = func() bool { return false }
 		//}
 
@@ -76,7 +76,7 @@ var Command = &cobra.Command{
 				return e
 			}
 
-			if errors.Is(err, types.ErrSuperAgent) {
+			if errors.Is(err, types.ErrAgentControl) {
 				return err
 			}
 

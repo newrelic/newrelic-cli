@@ -1,3 +1,47 @@
+<a name="v0.97.8"></a>
+## [v0.97.8] - 2025-03-03
+### Bug Fixes
+- Fixed newrelic.exe signature missing issue ([#1686](https://github.com/newrelic/newrelic-cli/issues/1686))
+
+<a name="v0.97.7"></a>
+## [v0.97.7] - 2025-02-12
+<a name="v0.97.6"></a>
+## [v0.97.6] - 2025-02-11
+<a name="v0.97.5"></a>
+## [v0.97.5] - 2025-02-04
+### Bug Fixes
+- Bumped windows download artifact version to v4 ([#1684](https://github.com/newrelic/newrelic-cli/issues/1684))
+
+<a name="v0.97.4"></a>
+## [v0.97.4] - 2025-02-04
+### Bug Fixes
+- Revert PR [#1677](https://github.com/newrelic/newrelic-cli/issues/1677) causing regression test failure ([#1680](https://github.com/newrelic/newrelic-cli/issues/1680))
+- **dependabot:** Updates to dependencies to fix dependabot alerts ([#1677](https://github.com/newrelic/newrelic-cli/issues/1677))
+- **release:** Bumped windows upload-artifact to v4 ([#1679](https://github.com/newrelic/newrelic-cli/issues/1679))
+
+<a name="v0.97.3"></a>
+## [v0.97.3] - 2025-01-07
+### Bug Fixes
+- **agent-control:** rename Super Agent to Agent Control in the CLI ([#1674](https://github.com/newrelic/newrelic-cli/issues/1674))
+
+<a name="v0.97.2"></a>
+## [v0.97.2] - 2024-12-04
+### Bug Fixes
+- **dashboard:** Updated the Dashboard JSON to HCL Converter Utility with Latest Fields in the Resource ([#1669](https://github.com/newrelic/newrelic-cli/issues/1669))
+
+<a name="v0.97.1"></a>
+## [v0.97.1] - 2024-11-12
+<a name="v0.97.0"></a>
+## [v0.97.0] - 2024-11-11
+### Features
+- Add optimized message field to recipe and status events ([#1666](https://github.com/newrelic/newrelic-cli/issues/1666))
+
+<a name="v0.96.3"></a>
+## [v0.96.3] - 2024-10-31
+<a name="v0.96.2"></a>
+## [v0.96.2] - 2024-10-24
+<a name="v0.96.1"></a>
+## [v0.96.1] - 2024-10-21
 <a name="v0.96.0"></a>
 ## [v0.96.0] - 2024-10-07
 ### Features
@@ -2405,7 +2449,19 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.96.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.8...HEAD
+[v0.97.8]: https://github.com/newrelic/newrelic-cli/compare/v0.97.7...v0.97.8
+[v0.97.7]: https://github.com/newrelic/newrelic-cli/compare/v0.97.6...v0.97.7
+[v0.97.6]: https://github.com/newrelic/newrelic-cli/compare/v0.97.5...v0.97.6
+[v0.97.5]: https://github.com/newrelic/newrelic-cli/compare/v0.97.4...v0.97.5
+[v0.97.4]: https://github.com/newrelic/newrelic-cli/compare/v0.97.3...v0.97.4
+[v0.97.3]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...v0.97.3
+[v0.97.2]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...v0.97.2
+[v0.97.1]: https://github.com/newrelic/newrelic-cli/compare/v0.97.0...v0.97.1
+[v0.97.0]: https://github.com/newrelic/newrelic-cli/compare/v0.96.3...v0.97.0
+[v0.96.3]: https://github.com/newrelic/newrelic-cli/compare/v0.96.2...v0.96.3
+[v0.96.2]: https://github.com/newrelic/newrelic-cli/compare/v0.96.1...v0.96.2
+[v0.96.1]: https://github.com/newrelic/newrelic-cli/compare/v0.96.0...v0.96.1
 [v0.96.0]: https://github.com/newrelic/newrelic-cli/compare/v0.95.0...v0.96.0
 [v0.95.0]: https://github.com/newrelic/newrelic-cli/compare/v0.94.3...v0.95.0
 [v0.94.3]: https://github.com/newrelic/newrelic-cli/compare/v0.94.2...v0.94.3

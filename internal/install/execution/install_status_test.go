@@ -37,8 +37,9 @@ func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
 	s := NewInstallStatus(types.InstallerContext{}, []StatusSubscriber{}, slg)
 	r := types.OpenInstallationRecipe{Name: "testRecipe"}
 	e := RecipeStatusEvent{
-		Recipe: r,
-		Msg:    "thing failed for a reason",
+		Recipe:           r,
+		Msg:              "thing failed for a reason",
+		OptimizedMessage: "clean error message",
 	}
 
 	s.Timestamp = 0
@@ -50,6 +51,7 @@ func TestStatusWithRecipeEvent_ErrorMessages(t *testing.T) {
 	require.NotEmpty(t, s.Timestamp)
 	require.Equal(t, s.Statuses[0].Error, s.Error)
 	require.Equal(t, e.Msg, s.Error.Message)
+	require.Equal(t, e.OptimizedMessage, s.Error.OptimizedMessage)
 }
 
 func TestExecutionStatusWithRecipeEvent_RecipeExists(t *testing.T) {
