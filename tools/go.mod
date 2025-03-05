@@ -2,7 +2,7 @@ module github.com/newrelic/newrelic-cli/tools
 
 go 1.22
 
-toolchain go1.22.9
+toolchain go1.24.1
 
 require (
 	github.com/caarlos0/svu v1.9.0
