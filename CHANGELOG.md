@@ -1,3 +1,8 @@
+<a name="v0.97.9"></a>
+## [v0.97.9] - 2025-03-05
+### Bug Fixes
+- **dependabot-alerts:** Updated module github.com/golang-jwt/jwt/v4 to v4.5.1 ([#1690](https://github.com/newrelic/newrelic-cli/issues/1690))
+
 <a name="v0.97.8"></a>
 ## [v0.97.8] - 2025-03-03
 ### Bug Fixes
@@ -2449,7 +2454,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.9...HEAD
+[v0.97.9]: https://github.com/newrelic/newrelic-cli/compare/v0.97.8...v0.97.9
 [v0.97.8]: https://github.com/newrelic/newrelic-cli/compare/v0.97.7...v0.97.8
 [v0.97.7]: https://github.com/newrelic/newrelic-cli/compare/v0.97.6...v0.97.7
 [v0.97.6]: https://github.com/newrelic/newrelic-cli/compare/v0.97.5...v0.97.6
