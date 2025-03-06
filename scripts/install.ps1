@@ -37,10 +37,11 @@ try {
     | % { $_.Name.TrimStart("HKEY_LOCAL_MACHINE\") }
 
     $allKeys = $baseKeys + $wowKeys
-
+	
     $uninstallIds = New-Object System.Collections.ArrayList
     foreach ($key in $allKeys) {
-      $keyData = Get-Item -Path HKLM:\$key
+      $escapedKey = $key -replace '\[', '`[' -replace '\]', '`]'
+      $keyData = Get-Item -Path "HKLM:\$escapedKey"
       $name = $keyData.GetValue("DisplayName")
       if ($name -and $name -match $Match) {
         $keyId = Split-Path $key -Leaf
@@ -67,8 +68,7 @@ try {
     }
   }
 } catch {
-  Write-Host -ForegroundColor Red "We detected you may be running an anti-virus software preventing our installation to continue. Please check your anti-virus software to allow Powershell execution while running this installation."
-  exit 1;
+  throw $_.Exception
 }
 
 msiexec.exe /qn /i $env:TEMP\NewRelicCLIInstaller.msi | Out-Null;
