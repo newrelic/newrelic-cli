@@ -1,8 +1,6 @@
 module github.com/newrelic/newrelic-cli
 
-go 1.22
-
-toolchain go1.22.9
+go 1.23.4
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
