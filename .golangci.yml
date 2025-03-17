@@ -53,8 +53,7 @@ linters:
     - misspell
     - unconvert
     - unused
-    - vet
-    - shadow
+    - govet
 
 issues:
   # disable limits on issue reporting
