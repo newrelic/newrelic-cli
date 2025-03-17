@@ -10,6 +10,8 @@ import (
 	utilsValidation "github.com/newrelic/newrelic-cli/internal/utils/validation"
 )
 
+type contextKey int
+
 // PollingRecipeValidator is an implementation of the RecipeValidator interface
 // that polls NRDB to assert data is being reported for the given recipe.
 type PollingRecipeValidator struct {
