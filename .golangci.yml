@@ -13,7 +13,8 @@ run:
 linters-settings:
   govet:
     # report about shadowed variables
-    check-shadowing: true
+    # check-shadowing: true  
+    shadow: true
   golint:
     # minimal confidence for issues, default is 0.8
     min-confidence: 0.5
@@ -53,7 +54,7 @@ linters:
     - misspell
     - unconvert
     - unused
-    - vet
+    - govet
 
 issues:
   # disable limits on issue reporting
