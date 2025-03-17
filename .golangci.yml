@@ -13,7 +13,7 @@ run:
 linters-settings:
   govet:
     # report about shadowed variables
-    check-shadowing: true
+    # check-shadowing: true  
   golint:
     # minimal confidence for issues, default is 0.8
     min-confidence: 0.5
@@ -54,6 +54,7 @@ linters:
     - unconvert
     - unused
     - vet
+    - shadow
 
 issues:
   # disable limits on issue reporting
