@@ -20,10 +20,9 @@ builds:
       - arm
     goarm:
       - 7
-    ignore: # go-ole is currently 32-bit only.  Remove this when support is added
+    ignore:
       - goos: windows
         goarch: arm
-        goarm: 7
       - goos: windows
         goarch: arm64
 
@@ -38,12 +37,6 @@ archives:
   - id: "default"
     builds:
       - newrelic
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
     format_overrides:
       - goos: windows
         format: zip
@@ -54,15 +47,8 @@ archives:
 
 signs:
   - artifacts: all
-    args:
-      [
-        "-u",
-        "92ADA76A30A3F1FD",
-        "--output",
-        "${signature}",
-        "--detach-sign",
-        "${artifact}",
-      ]
+    signature: "${artifact}.sig"
+    args: ["--detach-sign", "--u", "92ADA76A30A3F1FD", "${artifact}"]
 
 dockers:
   - dockerfile: build/package/Dockerfile
@@ -77,7 +63,7 @@ dockers:
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
       - "--platform=linux/amd64"
-    goarch: amd64
+
   - dockerfile: build/package/Dockerfile
     image_templates:
       - "newrelic/cli:{{ .Tag }}-arm64"
@@ -90,101 +76,28 @@ dockers:
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
       - "--platform=linux/arm64"
-    goarch: arm64
 
 docker_manifests:
   - name_template: "newrelic/cli:{{ .Tag }}"
     image_templates:
       - "newrelic/cli:{{ .Tag }}-amd64"
       - "newrelic/cli:{{ .Tag }}-arm64"
-  - name_template: "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
-    image_templates:
-      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-amd64"
-      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-arm64"
-  - name_template: "newrelic/cli:latest"
-    image_templates:
-      - "newrelic/cli:latest-amd64"
-      - "newrelic/cli:latest-arm64"
 
-# Uses git-chglog output from release flow
 changelog:
   skip: false
-
-# snapcrafts:
-#   - id: newrelic
-#     builds:
-#       - newrelic
-#     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-#     replacements:
-#       darwin: Darwin
-#       linux: Linux
-#       windows: Windows
-#       386: i386
-#       amd64: x86_64
-#     name: newrelic-cli
-#     publish: true
-#     summary: A project to consolidate some tools New Relic offers for managing resources.
-#     description: |
-#       The New Relic CLI is an officially supported command line interface for New
-#       Relic, released as part of the Developer Toolkit.
-
-#     # A guardrail to prevent you from releasing a snap to all your users before
-#     # it is ready.
-#     # `devel` will let you release only to the `edge` and `beta` channels in the
-#     # store. `stable` will let you release also to the `candidate` and `stable`
-#     # channels. More info about channels here:
-#     # https://snapcraft.io/docs/reference/channels
-#     grade: stable
-#     confinement: strict
-#     license: Apache-2.0
-#     base: core18
-#     apps:
-#       # The name of the app must be the same name as the binary built or the snapcraft name.
-#       newrelic:
-#         # If your app requires extra permissions to work outside of its default
-#         # confined space, declare them here.
-#         # You can read the documentation about the available plugs and the
-#         # things they allow:
-#         # https://snapcraft.io/docs/reference/interfaces.
-#         plugs: ["home", "network"]
-
-scoop:
-  bucket:
-    owner: newrelic
-    name: newrelic-cli
-  commit_author:
-    name: nr-developer-toolkit
-    email: developer-toolkit@newrelic.com
-  commit_msg_template: "chore(scoop): update for {{ .ProjectName }} version {{ .Tag }}"
-  homepage: https://github.com/newrelic/newrelic-cli
-  url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-  description: |
-    The New Relic CLI is an officially supported command line interface for New
-    Relic, released as part of the Developer Toolkit.
-  license: Apache-2.0
 
 nfpms:
   - id: newrelic
     package_name: newrelic-cli
-    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     builds:
       - newrelic
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
     vendor: New Relic
     homepage: https://github.com/newrelic/newrelic-cli
     maintainer: opensource@newrelic.com
     description: |
-      The New Relic CLI is an officially supported command line interface for New
-      Relic, released as part of the Developer Toolkit.
+      The New Relic CLI is an officially supported command line interface for New Relic, released as part of the Developer Toolkit.
     license: Apache 2.0
     formats:
       - deb
       - rpm
     bindir: /usr/local/bin
-    epoch: 1
-    release: 1
