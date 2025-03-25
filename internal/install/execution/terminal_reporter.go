@@ -3,7 +3,6 @@ package execution
 import (
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"strings"
 
@@ -148,21 +147,22 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
+	linkToFleet := ""
+	fleetMsg := "View your fleet at the link below:\n"
 	statuses := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statuses {
 		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
 
 		if s.Status == RecipeStatusTypes.INSTALLED && isAgentControlRecipe {
-			linkToFleetRaw := "https://one.newrelic.com/nr1-core?filters=(domain = 'NR1' AND type = 'FLEET')"
-
-			linkToFleet := url.PathEscape(linkToFleetRaw)
-
-			fmt.Println()
-			fmt.Println("View your fleet at the link below")
-			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToFleet)
-
+			linkToFleet = status.PlatformLinkGenerator.GenerateFleetLink(status.HostEntityGUID())
 		}
+	}
+
+	if linkToFleet != "" {
+		fmt.Println("")
+		fmt.Printf("\n  %s", fleetMsg)
+		fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToFleet)
 	}
 }
 

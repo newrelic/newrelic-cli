@@ -47,6 +47,10 @@ func (g *PlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
 	return g.generateLoggingLink(entityGUID)
 }
 
+func (g *PlatformLinkGenerator) GenerateFleetLink(entityGUID string) string {
+	return g.generateFleetLink(entityGUID)
+}
+
 // GenerateRedirectURL creates a URL for the user to navigate to after running
 // through an installation. The URL is displayed in the CLI out as well and is
 // also provided in the nerdstorage document. This provides the user two options
@@ -158,6 +162,19 @@ func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string)
 	}
 
 	return string(stringifiedParam)
+}
+
+func (g *PlatformLinkGenerator) generateFleetLink(_ string) string {
+	longURL := fmt.Sprintf("https://%s/nr1-core?filters=(domain = 'NR1' AND type = 'FLEET')",
+		nrPlatformHostname(),
+	)
+
+	shortURL, err := g.generateShortNewRelicURL(longURL)
+	if err != nil {
+		return longURL
+	}
+
+	return shortURL
 }
 
 // The shortenURL function utilizes a New Relic service to convert
