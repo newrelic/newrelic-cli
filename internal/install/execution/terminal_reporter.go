@@ -159,7 +159,7 @@ func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 			linkToFleet := url.PathEscape(linkToFleetRaw)
 
 			fmt.Println()
-			fmt.Println("View you fleet at the link below")
+			fmt.Println("View your fleet at the link below")
 			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToFleet)
 
 		}
