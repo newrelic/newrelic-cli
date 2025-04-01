@@ -165,7 +165,7 @@ func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string)
 }
 
 func (g *PlatformLinkGenerator) generateFleetLink(_ string) string {
-	longURL := fmt.Sprintf("https://%s/nr1-core?filters=(domain='NR1'ANDtype='FLEET')",
+	longURL := fmt.Sprintf("https://%s/fleet)",
 		nrPlatformHostname(),
 	)
 
