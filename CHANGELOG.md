@@ -1,3 +1,10 @@
+<a name="v0.97.10"></a>
+## [v0.97.10] - 2025-04-02
+### Bug Fixes
+- **agent-control:** Agent control short url fix ([#1702](https://github.com/newrelic/newrelic-cli/issues/1702))
+- **deps:** bump golang.org/x/net from 0.33.0 to 0.36.0 ([#1696](https://github.com/newrelic/newrelic-cli/issues/1696))
+- **script:** Escape square brackets in registry key paths ([#1691](https://github.com/newrelic/newrelic-cli/issues/1691))
+
 <a name="v0.97.9"></a>
 ## [v0.97.9] - 2025-03-05
 ### Bug Fixes
@@ -2454,7 +2461,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.9...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.10...HEAD
+[v0.97.10]: https://github.com/newrelic/newrelic-cli/compare/v0.97.9...v0.97.10
 [v0.97.9]: https://github.com/newrelic/newrelic-cli/compare/v0.97.8...v0.97.9
 [v0.97.8]: https://github.com/newrelic/newrelic-cli/compare/v0.97.7...v0.97.8
 [v0.97.7]: https://github.com/newrelic/newrelic-cli/compare/v0.97.6...v0.97.7
