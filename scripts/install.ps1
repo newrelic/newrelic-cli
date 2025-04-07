@@ -24,10 +24,10 @@ try {
 }
 
 try {
-  function Find-UninstallGuids {
+function Find-UninstallGuids {
     param (
-      [Parameter(Mandatory)]
-      [string]$Match
+        [Parameter(Mandatory)]
+        [string]$Match
     )
 
     $baseKeys = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall `
@@ -37,25 +37,25 @@ try {
     | % { $_.Name.TrimStart("HKEY_LOCAL_MACHINE\") }
 
     $allKeys = $baseKeys + $wowKeys
-	
+
     $uninstallIds = New-Object System.Collections.ArrayList
     foreach ($key in $allKeys) {
-      $escapedKey = $key -replace '\[', '`[' -replace '\]', '`]'
-      $keyData = Get-Item -Path "HKLM:\$escapedKey"
-      $name = $keyData.GetValue("DisplayName")
-      if ($name -and $name -match $Match) {
-        $keyId = Split-Path $key -Leaf
-        $uninstallIds.Add($keyId) | Out-Null
-      }
+        $keyData = Get-Item -LiteralPath "HKLM:\$key" -ErrorAction SilentlyContinue
+        if ($keyData) {
+            $name = $keyData.GetValue("DisplayName")
+            if ($name -and $name -match $Match) {
+                $keyId = Split-Path $key -Leaf
+                $uninstallIds.Add($keyId) | Out-Null
+            }
+        }
     }
 
     if ($uninstallIds.Count -eq 0) {
-      return @()
+        return @()
     }
 
     return $uninstallIds
-  }
-
+}
   $uninstallIds = Find-UninstallGuids -Match "New Relic CLI"
 
   foreach ($uninstallId in $uninstallIds) {
