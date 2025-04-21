@@ -21,7 +21,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     name: Release
     needs: test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
     steps:
