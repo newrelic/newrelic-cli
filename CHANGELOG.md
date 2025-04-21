@@ -1,5 +1,10 @@
+<a name="v0.97.14"></a>
+## [v0.97.14] - 2025-04-21
+### Bug Fixes
+- Updated the ubuntu version in rel ymls ([#1707](https://github.com/newrelic/newrelic-cli/issues/1707))
+
 <a name="v0.97.13"></a>
-## [v0.97.13] - 2025-04-10
+## [v0.97.13] - 2025-04-14
 <a name="v0.97.12"></a>
 ## [v0.97.12] - 2025-04-10
 <a name="v0.97.11"></a>
@@ -2470,7 +2475,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.13...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.14...HEAD
+[v0.97.14]: https://github.com/newrelic/newrelic-cli/compare/v0.97.13...v0.97.14
 [v0.97.13]: https://github.com/newrelic/newrelic-cli/compare/v0.97.12...v0.97.13
 [v0.97.12]: https://github.com/newrelic/newrelic-cli/compare/v0.97.11...v0.97.12
 [v0.97.11]: https://github.com/newrelic/newrelic-cli/compare/v0.97.10...v0.97.11
