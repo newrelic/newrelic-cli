@@ -1,3 +1,8 @@
+<a name="v0.97.16"></a>
+## [v0.97.16] - 2025-04-22
+### Bug Fixes
+- Updated awscli command in rel ymls ([#1708](https://github.com/newrelic/newrelic-cli/issues/1708))
+
 <a name="v0.97.15"></a>
 ## [v0.97.15] - 2025-04-21
 <a name="v0.97.14"></a>
@@ -2477,7 +2482,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.15...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.16...HEAD
+[v0.97.16]: https://github.com/newrelic/newrelic-cli/compare/v0.97.15...v0.97.16
 [v0.97.15]: https://github.com/newrelic/newrelic-cli/compare/v0.97.14...v0.97.15
 [v0.97.14]: https://github.com/newrelic/newrelic-cli/compare/v0.97.13...v0.97.14
 [v0.97.13]: https://github.com/newrelic/newrelic-cli/compare/v0.97.12...v0.97.13
