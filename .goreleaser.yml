@@ -57,7 +57,10 @@ signs:
     args:
       [
         "-u",
-        "92ADA76A30A3F1FD",
+        # GPG Key ID Updated on 29 April 2025 - Expires 27 April 2027
+        "4F9A9B5B96EC30B9",
+        # When the Key ID here is updated, it has to be paired with an update
+        # to the PGP_PRIVATE_KEY attribute consumed by GitHub Workflows
         "--output",
         "${signature}",
         "--detach-sign",
