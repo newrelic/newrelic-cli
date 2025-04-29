@@ -1,3 +1,11 @@
+<a name="v0.98.0"></a>
+## [v0.98.0] - 2025-04-29
+### Bug Fixes
+- **build:** adds updated GPG Key ID ([#1709](https://github.com/newrelic/newrelic-cli/issues/1709))
+
+### Features
+- **nerdgraph:** Add support to output results for mutations in CLI ([#1670](https://github.com/newrelic/newrelic-cli/issues/1670))
+
 <a name="v0.97.18"></a>
 ## [v0.97.18] - 2025-04-23
 <a name="v0.97.17"></a>
@@ -2486,7 +2494,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.18...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.98.0...HEAD
+[v0.98.0]: https://github.com/newrelic/newrelic-cli/compare/v0.97.18...v0.98.0
 [v0.97.18]: https://github.com/newrelic/newrelic-cli/compare/v0.97.17...v0.97.18
 [v0.97.17]: https://github.com/newrelic/newrelic-cli/compare/v0.97.16...v0.97.17
 [v0.97.16]: https://github.com/newrelic/newrelic-cli/compare/v0.97.15...v0.97.16
