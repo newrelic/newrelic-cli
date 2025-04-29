@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/newrelic/newrelic-cli/internal/output"
 	"io/ioutil"
 	"strings"
 
@@ -11,9 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	ng "github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
 )
 
 var (
@@ -86,21 +85,32 @@ keys are the variables to be referenced in the GraphQL query.
 			query = args[0]
 		}
 
-		result, err := client.NRClient.NerdGraph.QueryWithContext(utils.SignalCtx, query, variablesParsed)
+		trimmedQuery := strings.TrimSpace(query)
+		var result interface{}
+
+		// Check if it starts with "actor {" or "mutation {"
+		if strings.HasPrefix(trimmedQuery, "mutation {") {
+			err = client.NRClient.NerdGraph.QueryWithResponseAndContext(utils.SignalCtx, query, variablesParsed, &result)
+		} else {
+			result, err = client.NRClient.NerdGraph.QueryWithContext(utils.SignalCtx, query, variablesParsed)
+		}
+
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		reqBodyBytes := new(bytes.Buffer)
-
 		encoder := json.NewEncoder(reqBodyBytes)
+		err = encoder.Encode(result)
+
+		/* The below variable specific encoding is no more needed we need a common and dynamic interface for the query and mutation related response
 		err = encoder.Encode(ng.QueryResponse{
 			Actor:          result.(ng.QueryResponse).Actor,
 			Docs:           result.(ng.QueryResponse).Docs,
 			RequestContext: result.(ng.QueryResponse).RequestContext,
 		})
+		*/
 		utils.LogIfFatal(err)
-
 		utils.LogIfFatal(output.Print(reqBodyBytes))
 	},
 }
