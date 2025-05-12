@@ -131,7 +131,7 @@ jobs:
             const newrelic_cli_linux_amd64_docker_path = `/mnt/deployer/dist/newrelic_linux_amd64_v1/newrelic`;
             console.log(`Using cli linux source path ${newrelic_cli_linux_amd64_source_path}`);
             
-            const distPath = `/home/runner/work/newrelic-cli`
+            const distPath = `/home/runner/work/newrelic-cli/newrelic-cli`
             if (!fs.existsSync(distPath)) {
               throw new Error(`The dist directory does not exist at ${distPath}`);
             }
