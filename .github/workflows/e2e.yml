@@ -127,11 +127,11 @@ jobs:
             const { resolve } = path;
             const { readdir } = fsp;
 
-            const newrelic_cli_linux_amd64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_x86_64_v1/newrelic`;
+            const newrelic_cli_linux_amd64_source_path = `${process.env.GITHUB_WORKSPACE}/dist/newrelic_linux_amd64_v1/newrelic`;
             const newrelic_cli_linux_amd64_docker_path = `/mnt/deployer/dist/newrelic_linux_amd64_v1/newrelic`;
             console.log(`Using cli linux source path ${newrelic_cli_linux_amd64_source_path}`);
             
-            const distPath = `${process.env.GITHUB_WORKSPACE}/dist`
+            const distPath = `/home/runner/work/newrelic-cli`
             if (!fs.existsSync(distPath)) {
               throw new Error(`The dist directory does not exist at ${distPath}`);
             }
