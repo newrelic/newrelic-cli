@@ -1,3 +1,8 @@
+<a name="v0.98.1"></a>
+## [v0.98.1] - 2025-05-13
+### Bug Fixes
+- **otel:** remove dangling references to otel recipe ([#1714](https://github.com/newrelic/newrelic-cli/issues/1714))
+
 <a name="v0.98.0"></a>
 ## [v0.98.0] - 2025-04-29
 ### Bug Fixes
@@ -2494,7 +2499,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.98.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.98.1...HEAD
+[v0.98.1]: https://github.com/newrelic/newrelic-cli/compare/v0.98.0...v0.98.1
 [v0.98.0]: https://github.com/newrelic/newrelic-cli/compare/v0.97.18...v0.98.0
 [v0.97.18]: https://github.com/newrelic/newrelic-cli/compare/v0.97.17...v0.97.18
 [v0.97.17]: https://github.com/newrelic/newrelic-cli/compare/v0.97.16...v0.97.17
