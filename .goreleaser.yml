@@ -45,7 +45,6 @@ archives:
       - CHANGELOG.md
       - LICENSE
       - README.md
-    rlcp: true
 
 signs:
   - artifacts: all
