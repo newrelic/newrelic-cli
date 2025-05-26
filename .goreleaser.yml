@@ -41,11 +41,11 @@ archives:
     format_overrides:
       - goos: windows
         format: zip
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ title .Os }}_{{ .Arch }}"
     files:
       - CHANGELOG.md
       - LICENSE
       - README.md
-    rlcp: true
 
 signs:
   - artifacts: all
