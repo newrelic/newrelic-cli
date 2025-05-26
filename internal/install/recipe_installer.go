@@ -73,10 +73,18 @@ func NewRecipeInstaller(ic types.InstallerContext) *RecipeInstall {
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
 	lf := execution.NewRecipeLogForwarder()
+
+	// Initialize status subscribers
 	ers := []execution.StatusSubscriber{
 		execution.NewTerminalStatusReporter(),
-		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
+
+	// Only add InstallEventsReporter if an API key is available
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
+	if apiKey != "" {
+		ers = append(ers, execution.NewInstallEventsReporter(&nrClient.InstallEvents))
+	}
+
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ic, ers, slg)
 
@@ -193,7 +201,7 @@ func (i *RecipeInstall) Install() error {
 
 Welcome to New Relic. Let's set up full stack observability for your environment.
 Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notices
-	`)
+    `)
 	fmt.Println()
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
