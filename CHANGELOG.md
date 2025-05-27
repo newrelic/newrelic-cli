@@ -1,5 +1,10 @@
+<a name="v0.98.3"></a>
+## [v0.98.3] - 2025-05-26
+### Bug Fixes
+- Add InstallEventsReporter only if API key is set ([#1720](https://github.com/newrelic/newrelic-cli/issues/1720))
+
 <a name="v0.98.2"></a>
-## [v0.98.2] - 2025-05-13
+## [v0.98.2] - 2025-05-14
 <a name="v0.98.1"></a>
 ## [v0.98.1] - 2025-05-13
 ### Bug Fixes
@@ -2501,7 +2506,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.98.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.98.3...HEAD
+[v0.98.3]: https://github.com/newrelic/newrelic-cli/compare/v0.98.2...v0.98.3
 [v0.98.2]: https://github.com/newrelic/newrelic-cli/compare/v0.98.1...v0.98.2
 [v0.98.1]: https://github.com/newrelic/newrelic-cli/compare/v0.98.0...v0.98.1
 [v0.98.0]: https://github.com/newrelic/newrelic-cli/compare/v0.97.18...v0.98.0
