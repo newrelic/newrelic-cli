@@ -113,8 +113,7 @@ jobs:
 
       - name: Install AWS CLI
         run: |
-          sudo apt-get update -y
-          sudo apt-get install awscli -y
+          sudo snap install aws-cli --classic
 
       - name: Write AWS config 1
         uses: DamianReeves/write-file-action@v1.3

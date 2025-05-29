@@ -1,3 +1,34 @@
+<a name="v0.98.3"></a>
+## [v0.98.3] - 2025-05-26
+### Bug Fixes
+- Add InstallEventsReporter only if API key is set ([#1720](https://github.com/newrelic/newrelic-cli/issues/1720))
+
+<a name="v0.98.2"></a>
+## [v0.98.2] - 2025-05-14
+<a name="v0.98.1"></a>
+## [v0.98.1] - 2025-05-13
+### Bug Fixes
+- **otel:** remove dangling references to otel recipe ([#1714](https://github.com/newrelic/newrelic-cli/issues/1714))
+
+<a name="v0.98.0"></a>
+## [v0.98.0] - 2025-04-29
+### Bug Fixes
+- **build:** adds updated GPG Key ID ([#1709](https://github.com/newrelic/newrelic-cli/issues/1709))
+
+### Features
+- **nerdgraph:** Add support to output results for mutations in CLI ([#1670](https://github.com/newrelic/newrelic-cli/issues/1670))
+
+<a name="v0.97.18"></a>
+## [v0.97.18] - 2025-04-23
+<a name="v0.97.17"></a>
+## [v0.97.17] - 2025-04-23
+<a name="v0.97.16"></a>
+## [v0.97.16] - 2025-04-22
+### Bug Fixes
+- Updated awscli command in rel ymls ([#1708](https://github.com/newrelic/newrelic-cli/issues/1708))
+
+<a name="v0.97.15"></a>
+## [v0.97.15] - 2025-04-21
 <a name="v0.97.14"></a>
 ## [v0.97.14] - 2025-04-21
 ### Bug Fixes
@@ -2475,7 +2506,15 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.97.14...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.98.3...HEAD
+[v0.98.3]: https://github.com/newrelic/newrelic-cli/compare/v0.98.2...v0.98.3
+[v0.98.2]: https://github.com/newrelic/newrelic-cli/compare/v0.98.1...v0.98.2
+[v0.98.1]: https://github.com/newrelic/newrelic-cli/compare/v0.98.0...v0.98.1
+[v0.98.0]: https://github.com/newrelic/newrelic-cli/compare/v0.97.18...v0.98.0
+[v0.97.18]: https://github.com/newrelic/newrelic-cli/compare/v0.97.17...v0.97.18
+[v0.97.17]: https://github.com/newrelic/newrelic-cli/compare/v0.97.16...v0.97.17
+[v0.97.16]: https://github.com/newrelic/newrelic-cli/compare/v0.97.15...v0.97.16
+[v0.97.15]: https://github.com/newrelic/newrelic-cli/compare/v0.97.14...v0.97.15
 [v0.97.14]: https://github.com/newrelic/newrelic-cli/compare/v0.97.13...v0.97.14
 [v0.97.13]: https://github.com/newrelic/newrelic-cli/compare/v0.97.12...v0.97.13
 [v0.97.12]: https://github.com/newrelic/newrelic-cli/compare/v0.97.11...v0.97.12
