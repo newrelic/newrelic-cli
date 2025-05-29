@@ -36,7 +36,7 @@ func processRecipeNames(recipeNames []string) ([]string, error) {
 
 		// Validate the recipe format
 		if len(parts) < 1 || len(parts) > 2 {
-			return nil, errors.New(fmt.Sprintf("Invalid recipe format: %s", recipe))
+			return nil, fmt.Errorf("invalid recipe format: %s", recipe)
 		}
 
 		// Extract the base recipe name
@@ -53,7 +53,7 @@ func processRecipeNames(recipeNames []string) ([]string, error) {
 			// Set the environment variable
 			err := os.Setenv(envVarName, version)
 			if err != nil {
-				return nil, errors.New(fmt.Sprintf("Error setting recipe version to environment variable %s: %v", envVarName, err))
+				return nil, fmt.Errorf("error setting recipe version to environment variable %s: %v", envVarName, err)
 			}
 		}
 	}
