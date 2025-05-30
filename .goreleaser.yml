@@ -38,12 +38,6 @@ archives:
   - id: "default"
     builds:
       - newrelic
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
     format_overrides:
       - goos: windows
         format: zip
@@ -51,6 +45,7 @@ archives:
       - CHANGELOG.md
       - LICENSE
       - README.md
+    rlcp: true
 
 signs:
   - artifacts: all
@@ -169,15 +164,16 @@ scoop:
 nfpms:
   - id: newrelic
     package_name: newrelic-cli
-    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    file_name_template: >-
+      {{- .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end -}}
     builds:
       - newrelic
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
     vendor: New Relic
     homepage: https://github.com/newrelic/newrelic-cli
     maintainer: opensource@newrelic.com
