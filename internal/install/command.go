@@ -34,9 +34,8 @@ func processRecipeNames(recipeNames []string) ([]string, error) {
 	for _, recipe := range recipeNames {
 		parts := strings.Split(recipe, "@")
 
-		// Validate the recipe format
 		if len(parts) < 1 || len(parts) > 2 {
-			return nil, fmt.Errorf("invalid recipe format: %s", recipe)
+			return nil, fmt.Errorf("invalid recipe name format provided: %s", recipe)
 		}
 
 		// Extract the base recipe name
@@ -47,10 +46,8 @@ func processRecipeNames(recipeNames []string) ([]string, error) {
 			recipeName := parts[0]
 			version := parts[1]
 
-			// Convert recipe name to uppercase, replace dashes with underscores, and append _VERSION
 			envVarName := strings.ToUpper(strings.ReplaceAll(recipeName, "-", "_")) + "_VERSION"
 
-			// Set the environment variable
 			err := os.Setenv(envVarName, version)
 			if err != nil {
 				return nil, fmt.Errorf("error setting recipe version to environment variable %s: %v", envVarName, err)
