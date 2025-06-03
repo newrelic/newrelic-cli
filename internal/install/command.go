@@ -27,18 +27,54 @@ var (
 	tags         []string
 )
 
+// processRecipeNames validates, extracts recipe names, and sets environment variables.
+func processRecipeNames(recipeNames []string) ([]string, error) {
+	var extractedNames []string
+
+	for _, recipe := range recipeNames {
+		parts := strings.Split(recipe, "@")
+
+		if len(parts) < 1 || len(parts) > 2 {
+			return nil, fmt.Errorf("invalid recipe name format provided: %s", recipe)
+		}
+
+		// Extract the base recipe name
+		extractedNames = append(extractedNames, parts[0])
+
+		// If version is present, set the environment variable
+		if len(parts) == 2 {
+			recipeName := parts[0]
+			version := parts[1]
+
+			envVarName := strings.ToUpper(strings.ReplaceAll(recipeName, "-", "_")) + "_VERSION"
+
+			err := os.Setenv(envVarName, version)
+			if err != nil {
+				return nil, fmt.Errorf("error setting recipe version to environment variable %s: %v", envVarName, err)
+			}
+		}
+	}
+	return extractedNames, nil
+}
+
 // Command represents the install command.
 var Command = &cobra.Command{
 	Use:    "install",
 	Short:  "Install New Relic.",
 	PreRun: client.RequireClient,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		extractedRecipeNames, err := processRecipeNames(recipeNames)
+		if err != nil {
+			return types.NewDetailError(types.EventTypes.OtherError, err.Error())
+		}
+
 		ic := types.InstallerContext{
 			AssumeYes:    assumeYes,
 			LocalRecipes: localRecipes,
-			RecipeNames:  recipeNames,
+			RecipeNames:  extractedRecipeNames,
 			RecipePaths:  recipePaths,
 		}
+
 		ic.SetTags(tags)
 
 		logLevel := configAPI.GetLogLevel()
