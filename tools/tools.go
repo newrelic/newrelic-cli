@@ -19,7 +19,7 @@ import (
 
 	// build/release.mk
 	_ "github.com/caarlos0/svu"
-	_ "github.com/goreleaser/goreleaser"
+	_ "github.com/goreleaser/goreleaser/v2"
 	_ "github.com/x-motemen/gobump/cmd/gobump"
 
 	// build/test.mk
