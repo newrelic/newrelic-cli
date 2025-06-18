@@ -165,16 +165,7 @@ func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string)
 }
 
 func (g *PlatformLinkGenerator) generateFleetLink(_ string) string {
-	longURL := fmt.Sprintf("https://%s/fleet)",
-		nrPlatformHostname(),
-	)
-
-	shortURL, err := g.generateShortNewRelicURL(longURL)
-	if err != nil {
-		return longURL
-	}
-
-	return shortURL
+	return fmt.Sprintf("https://%s/fleet)", nrPlatformHostname())
 }
 
 // The shortenURL function utilizes a New Relic service to convert
