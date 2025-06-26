@@ -1,5 +1,7 @@
+<a name="v0.99.1"></a>
+## [v0.99.1] - 2025-06-18
 <a name="v0.99.0"></a>
-## [v0.99.0] - 2025-06-09
+## [v0.99.0] - 2025-06-18
 ### Features
 - Add support for using agent rel versions in CLI install cmds ([#1721](https://github.com/newrelic/newrelic-cli/issues/1721))
 
@@ -2513,7 +2515,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.1...HEAD
+[v0.99.1]: https://github.com/newrelic/newrelic-cli/compare/v0.99.0...v0.99.1
 [v0.99.0]: https://github.com/newrelic/newrelic-cli/compare/v0.98.4...v0.99.0
 [v0.98.4]: https://github.com/newrelic/newrelic-cli/compare/v0.98.3...v0.98.4
 [v0.98.3]: https://github.com/newrelic/newrelic-cli/compare/v0.98.2...v0.98.3
