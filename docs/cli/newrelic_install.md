@@ -29,6 +29,18 @@ newrelic install [flags]
       --trace            trace level logging
 ```
 
+### Installing Specific Agent Versions
+
+Install a specific version of the infrastructure agent by appending the version number to the recipe name with `@`. Currently, specific version installation is supported by the infrastructure agent only.
+
+```
+newrelic install -n infrastructure-agent-installer@1.65.0
+```
+
+Without a specified version, the command installs the latest available version. Supported on Linux and Windows hosts only; not available on macOS.
+
+For a list of available versions, see the [Infrastructure agent release notes](https://docs.newrelic.com/docs/release-notes/infrastructure-release-notes/infrastructure-agent-release-notes/).
+
 ### SEE ALSO
 
 - [newrelic](newrelic.md) - The New Relic CLI
