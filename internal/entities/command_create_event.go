@@ -21,7 +21,7 @@ var (
 	eventCategory             string
 	eventType                 string
 	eventDescription          string
-	eventEntityName           string
+	eventSearchQuery          string
 	eventTimestamp            int64
 	eventUser                 string
 	eventGroupID              string
@@ -29,16 +29,49 @@ var (
 	eventCustomAttributes     string
 	eventCustomAttributesFile string
 	eventDataHandlingFlags    []string
+
+	// Deployment fields
+	eventVersion   string
+	eventChangelog string
+	eventCommit    string
+	eventDeepLink  string
+
+	// Feature flag fields
+	eventFeatureFlagId string
 )
 
-var cmdEntityCreateEventExample = fmt.Sprintf(`newrelic entity create-event --entityName <EntityName> --category <DEPLOYMENT> --type <BASIC> --description 'desc' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
+var cmdEntityCreateEventExample = fmt.Sprintf(`newrelic entity create-event --entitySearch <EntitySearch> --category <DEPLOYMENT> --type <BASIC> --description 'desc' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
 
 var CmdEntityCreateEvent = &cobra.Command{
 	Use:   "create-event",
 	Short: "Create a New Relic change tracking event",
 	Long: `Create a New Relic change tracking event.
 
-This command allows you to create a change tracking event for a New Relic entity, including all fields supported by the API.
+This command allows you to create a change tracking event for a New Relic entity, supporting all fields in the Change Tracking API schema.
+
+Required fields:
+  --entitySearch         NRQL entity search query (e.g. name = 'MyService' AND type = 'SERVICE')
+  --category            Category of event (e.g. DEPLOYMENT, FEATURE_FLAG, OPERATIONAL, etc.)
+  --type                Type of event (e.g. BASIC, ROLLBACK, SERVER_REBOOT, etc.)
+
+For DEPLOYMENT events, the following are required/supported:
+  --version             Version of the deployment (required)
+  --changelog           Changelog for the deployment (URL or text)
+  --commit              Commit hash for the deployment
+  --deepLink            Deep link URL for the deployment
+
+For FEATURE_FLAG events, the following are required/supported:
+  --featureFlagId       ID of the feature flag (required)
+
+Other supported fields:
+  --description         Description of the event
+  --user                Username of the actor or bot
+  --groupId             String to correlate two or more events
+  --shortDescription    Short description for the event
+  --customAttributes    Custom attributes in JS object format (e.g. {key1: 'value1', key2: 2})
+  --customAttributesFile Path to a file containing custom attributes, or '-' to read from STDIN
+  --dataHandlingFlags   Array of data handling flags (e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE, FAIL_ON_FIELD_LENGTH, FAIL_ON_REST_API_FAILURES)
+  --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now)
 
 Custom attributes can be provided in three ways:
   1. As a JS object string via --customAttributes (e.g. '{foo: "bar", num: 2, flag: true}')
@@ -68,8 +101,8 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 		if eventType == "" {
 			log.Fatal("--type cannot be empty")
 		}
-		if eventEntityName == "" {
-			log.Fatal("--entityName cannot be empty")
+		if eventSearchQuery == "" {
+			log.Fatal("--entitySearch cannot be empty")
 		}
 
 		params.Description = eventDescription
@@ -77,13 +110,35 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 		params.GroupId = eventGroupID
 		params.ShortDescription = eventShortDescription
 		params.EntitySearch = changetracking.ChangeTrackingEntitySearchInput{
-			Query: fmt.Sprintf("name = '%s'", eventEntityName),
+			Query: eventSearchQuery,
 		}
 		params.CategoryAndTypeData = &changetracking.ChangeTrackingCategoryRelatedInput{
 			Kind: &changetracking.ChangeTrackingCategoryAndTypeInput{
 				Category: eventCategory,
 				Type:     eventType,
 			},
+			CategoryFields: &changetracking.ChangeTrackingCategoryFieldsInput{},
+		}
+		// Set deployment fields if category is DEPLOYMENT
+		if strings.ToUpper(eventCategory) == "DEPLOYMENT" {
+			if eventVersion == "" {
+				log.Fatal("--version is required for DEPLOYMENT events")
+			}
+			params.CategoryAndTypeData.CategoryFields.Deployment = &changetracking.ChangeTrackingDeploymentFieldsInput{
+				Version:   eventVersion,
+				Changelog: eventChangelog,
+				Commit:    eventCommit,
+				DeepLink:  eventDeepLink,
+			}
+		}
+		// Set feature flag fields if category is FEATURE_FLAG
+		if strings.ToUpper(eventCategory) == "FEATURE_FLAG" {
+			if eventFeatureFlagId == "" {
+				log.Fatal("--featureFlagId is required for FEATURE_FLAG events")
+			}
+			params.CategoryAndTypeData.CategoryFields.FeatureFlag = &changetracking.ChangeTrackingFeatureFlagFieldsInput{
+				FeatureFlagId: eventFeatureFlagId,
+			}
 		}
 
 		// Custom Attributes: support --customAttributes, --customAttributesFile, and STDIN
@@ -156,8 +211,8 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 
 func init() {
 	Command.AddCommand(CmdEntityCreateEvent)
-	CmdEntityCreateEvent.Flags().StringVar(&eventEntityName, "entityName", "", "the name of the entity associated with this event. entityName is required.")
-	utils.LogIfError(CmdEntityCreateEvent.MarkFlagRequired("entityName"))
+	CmdEntityCreateEvent.Flags().StringVar(&eventSearchQuery, "entitySearch", "", "the NRQL entity search query for this event. Example: name = 'MyService' AND type = 'SERVICE' (required)")
+	utils.LogIfError(CmdEntityCreateEvent.MarkFlagRequired("entitySearch"))
 
 	CmdEntityCreateEvent.Flags().StringVar(&eventCategory, "category", "", "category of event, e.g., DEPLOYMENT, CONFIG_CHANGE, etc. category is required.")
 	utils.LogIfError(CmdEntityCreateEvent.MarkFlagRequired("category"))
@@ -173,4 +228,13 @@ func init() {
 	CmdEntityCreateEvent.Flags().StringVar(&eventCustomAttributesFile, "customAttributesFile", "", "path to a file containing custom attributes in JS object format, or '-' to read from STDIN")
 	CmdEntityCreateEvent.Flags().StringSliceVar(&eventDataHandlingFlags, "dataHandlingFlags", []string{"FAIL_ON_FIELD_LENGTH"}, "array of data handling flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
 	CmdEntityCreateEvent.Flags().Int64VarP(&eventTimestamp, "timestamp", "t", 0, "the time of the event, the number of milliseconds since the Unix epoch, defaults to now")
+
+	// Deployment fields
+	CmdEntityCreateEvent.Flags().StringVar(&eventVersion, "version", "", "version of the deployment")
+	CmdEntityCreateEvent.Flags().StringVar(&eventChangelog, "changelog", "", "changelog for the deployment")
+	CmdEntityCreateEvent.Flags().StringVar(&eventCommit, "commit", "", "commit hash for the deployment")
+	CmdEntityCreateEvent.Flags().StringVar(&eventDeepLink, "deepLink", "", "deep link URL for the deployment")
+
+	// Feature flag fields
+	CmdEntityCreateEvent.Flags().StringVar(&eventFeatureFlagId, "featureFlagId", "", "ID of the feature flag")
 }
