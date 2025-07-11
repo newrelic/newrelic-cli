@@ -1,5 +1,24 @@
+<a name="v0.99.6"></a>
+## [v0.99.6] - 2025-07-09
+<a name="v0.99.5"></a>
+## [v0.99.5] - 2025-07-09
+<a name="v0.99.4"></a>
+## [v0.99.4] - 2025-07-01
+### Bug Fixes
+- Add CLI docs support for specific infra agent CLI installs ([#1726](https://github.com/newrelic/newrelic-cli/issues/1726))
+- **deps:** update golang version in lieu of recent vulnerabilities detected ([#1728](https://github.com/newrelic/newrelic-cli/issues/1728))
+
+<a name="v0.99.3"></a>
+## [v0.99.3] - 2025-06-26
+### Bug Fixes
+- **deps:** update dependencies in response to a few vulns reported ([#1725](https://github.com/newrelic/newrelic-cli/issues/1725))
+
+<a name="v0.99.2"></a>
+## [v0.99.2] - 2025-06-26
+<a name="v0.99.1"></a>
+## [v0.99.1] - 2025-06-26
 <a name="v0.99.0"></a>
-## [v0.99.0] - 2025-06-09
+## [v0.99.0] - 2025-06-18
 ### Features
 - Add support for using agent rel versions in CLI install cmds ([#1721](https://github.com/newrelic/newrelic-cli/issues/1721))
 
@@ -2513,7 +2532,13 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...HEAD
+[v0.99.6]: https://github.com/newrelic/newrelic-cli/compare/v0.99.5...v0.99.6
+[v0.99.5]: https://github.com/newrelic/newrelic-cli/compare/v0.99.4...v0.99.5
+[v0.99.4]: https://github.com/newrelic/newrelic-cli/compare/v0.99.3...v0.99.4
+[v0.99.3]: https://github.com/newrelic/newrelic-cli/compare/v0.99.2...v0.99.3
+[v0.99.2]: https://github.com/newrelic/newrelic-cli/compare/v0.99.1...v0.99.2
+[v0.99.1]: https://github.com/newrelic/newrelic-cli/compare/v0.99.0...v0.99.1
 [v0.99.0]: https://github.com/newrelic/newrelic-cli/compare/v0.98.4...v0.99.0
 [v0.98.4]: https://github.com/newrelic/newrelic-cli/compare/v0.98.3...v0.98.4
 [v0.98.3]: https://github.com/newrelic/newrelic-cli/compare/v0.98.2...v0.98.3
