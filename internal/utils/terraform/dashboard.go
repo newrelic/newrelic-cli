@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -63,8 +64,9 @@ type DashboardWidgetFacet struct {
 }
 
 type DashboardWidgetNRQLQuery struct {
-	AccountID int    `json:"accountId"`
-	Query     string `json:"query"`
+	AccountID  int    `json:"-"` // For backward compatibility
+	AccountIDs []int  `json:"-"` // To store multiple account IDs
+	Query      string `json:"query"`
 }
 
 type DashboardWidgetLegend struct {
@@ -170,7 +172,11 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 
 						for _, q := range config.NRQLQueries {
 							h.WriteBlock("nrql_query", []string{}, func() {
-								h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
+								if len(q.AccountIDs) > 1 {
+									h.WriteIntArrayAttribute("account_ids", q.AccountIDs)
+								} else {
+									h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
+								}
 								h.WriteMultilineStringAttribute("query", q.Query)
 							})
 						}
@@ -281,6 +287,75 @@ func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b
 	return &c
 }
 
+func (d *DashboardWidgetNRQLQuery) UnmarshalJSON(data []byte) error {
+	// Define a temporary struct to unmarshal the common fields
+	type NRQLQueryTemp struct {
+		Query string `json:"query"`
+	}
+
+	var temp NRQLQueryTemp
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	// Check for accountId (single int)
+	type WithSingleAccount struct {
+		AccountID int `json:"accountId"`
+	}
+	var singleAcc WithSingleAccount
+
+	if err := json.Unmarshal(data, &singleAcc); err == nil && singleAcc.AccountID != 0 {
+		d.AccountID = singleAcc.AccountID
+		d.AccountIDs = []int{singleAcc.AccountID} // Store as an array too
+		d.Query = temp.Query
+		return nil
+	}
+
+	// Check for accountIds (array of ints)
+	type WithMultipleAccounts struct {
+		AccountIDs []int `json:"accountIds"`
+	}
+	var multiAcc WithMultipleAccounts
+
+	if err := json.Unmarshal(data, &multiAcc); err == nil && len(multiAcc.AccountIDs) > 0 {
+		d.AccountIDs = multiAcc.AccountIDs   // Store all account IDs
+		d.AccountID = multiAcc.AccountIDs[0] // Store first one for backward compatibility
+		d.Query = temp.Query
+		return nil
+	}
+
+	// If we get here and have a query, accept it without account ID
+	if temp.Query != "" {
+		d.Query = temp.Query
+		return nil
+	}
+
+	return fmt.Errorf("failed to unmarshal NRQL query: %s", string(data))
+}
+
+type AccountIDs struct {
+	IDs []int
+}
+
+func (a *AccountIDs) UnmarshalJSON(data []byte) error {
+	var singleID int
+	var multipleIDs []int
+
+	// Try unmarshalling as a single ID
+	if err := json.Unmarshal(data, &singleID); err == nil {
+		a.IDs = []int{singleID}
+		return nil
+	}
+
+	// Try unmarshalling as a list of IDs
+	if err := json.Unmarshal(data, &multipleIDs); err == nil {
+		a.IDs = multipleIDs
+		return nil
+	}
+
+	return fmt.Errorf("failed to unmarshal account IDs: %s", string(data))
+}
+
 func requireValidVisualizationID(id string) {
 	if widgetTypes[id] == "" {
 		log.Fatalf("unrecognized widget type \"%s\"", id)
@@ -307,10 +382,16 @@ func writeLineWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguratio
 }
 
 func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+	log.Info("Inside billboardThreshold:", config.Threshold)
+	if len(config.Threshold) == 0 {
+		log.Warnf("Threshold is empty for BillBoard widget")
+		return
+	}
 	var billboardThreshold []DashboardWidgetBillBoardThreshold
 	if err := json.Unmarshal(config.Threshold, &billboardThreshold); err != nil {
 		log.Fatal("Error unmarshalling billboardThreshold:", err)
 	}
+	log.Info("billboardThreshold:", billboardThreshold)
 	for _, q := range billboardThreshold {
 		h.WriteFloatAttribute(ThresholdSeverityValues[q.AlertSeverity], q.Value)
 	}
