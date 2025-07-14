@@ -1,3 +1,5 @@
+<a name="v0.99.7"></a>
+## [v0.99.7] - 2025-07-09
 <a name="v0.99.6"></a>
 ## [v0.99.6] - 2025-07-09
 <a name="v0.99.5"></a>
@@ -2532,7 +2534,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...HEAD
+[v0.99.7]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...v0.99.7
 [v0.99.6]: https://github.com/newrelic/newrelic-cli/compare/v0.99.5...v0.99.6
 [v0.99.5]: https://github.com/newrelic/newrelic-cli/compare/v0.99.4...v0.99.5
 [v0.99.4]: https://github.com/newrelic/newrelic-cli/compare/v0.99.3...v0.99.4
