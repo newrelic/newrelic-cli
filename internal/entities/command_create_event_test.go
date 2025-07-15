@@ -8,9 +8,14 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 )
 
-func TestEntityCreateEventCommand(t *testing.T) {
-	assert.Equal(t, "create-event", CmdEntityCreateEvent.Name())
-	testcobra.CheckCobraMetadata(t, CmdEntityCreateEvent)
-	testcobra.CheckCobraRequiredFlags(t, CmdEntityCreateEvent,
+func TestEntityChangeEventCommand(t *testing.T) {
+	assert.Equal(t, "change-event", CmdEntityChangeEvent.Name())
+	testcobra.CheckCobraMetadata(t, CmdEntityChangeEvent)
+}
+
+func TestEntityChangeEventCreateCommand(t *testing.T) {
+	assert.Equal(t, "create", CmdEntityChangeEventCreate.Name())
+	testcobra.CheckCobraMetadata(t, CmdEntityChangeEventCreate)
+	testcobra.CheckCobraRequiredFlags(t, CmdEntityChangeEventCreate,
 		[]string{"entitySearch", "category", "type"})
 }
