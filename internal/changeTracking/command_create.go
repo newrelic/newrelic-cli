@@ -1,4 +1,4 @@
-package entities
+package changeTracking
 
 import (
 	"fmt"
@@ -40,14 +40,9 @@ var (
 	eventFeatureFlagId string
 )
 
-var cmdEntityChangeEventExample = fmt.Sprintf(`newrelic entity change-event create --entitySearch <EntitySearch> --category <DEPLOYMENT> --type <BASIC> --description 'desc' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
+var cmdChangeTrackingCreateExample = fmt.Sprintf(`newrelic changeTracking create --entitySearch <EntitySearch> --category <DEPLOYMENT> --type <BASIC> --description 'desc' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
 
-var CmdEntityChangeEvent = &cobra.Command{
-	Use:   "change-event",
-	Short: "Manage change tracking events for New Relic entities",
-}
-
-var CmdEntityChangeEventCreate = &cobra.Command{
+var CmdChangeTrackingCreate = &cobra.Command{
 	Use:   "create",
 	Short: "Create a New Relic change tracking event",
 	Long: `Create a New Relic change tracking event.
@@ -81,7 +76,7 @@ Other supported fields:
 Custom attributes can be provided in three ways:
   1. As a JS object string via --customAttributes (e.g. '{foo: "bar", num: 2, flag: true}')
   2. As a JS object file via --customAttributesFile (e.g. --customAttributesFile ./attrs.js)
-  3. From STDIN by passing --customAttributesFile - and piping the JS object (e.g. 'cat attrs.js | newrelic entity change-event create ... --customAttributesFile -')
+  3. From STDIN by passing --customAttributesFile - and piping the JS object (e.g. 'cat attrs.js | newrelic changeTracking create ... --customAttributesFile -')
 
 The JS object format must use unquoted keys and values of type string, boolean, or number. Example: {cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}
 
@@ -89,7 +84,7 @@ Validation is performed before sending to the API. Keys must be valid JS identif
 
 For more information, see: https://docs.newrelic.com/docs/change-tracking/change-tracking-graphql/
 `,
-	Example: cmdEntityChangeEventExample,
+	Example: cmdChangeTrackingCreateExample,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		params := changetracking.ChangeTrackingCreateEventInput{}
@@ -215,32 +210,31 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 }
 
 func init() {
-	Command.AddCommand(CmdEntityChangeEvent)
-	CmdEntityChangeEvent.AddCommand(CmdEntityChangeEventCreate)
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventSearchQuery, "entitySearch", "", "the NRQL entity search query for this event. Example: name = 'MyService' AND type = 'SERVICE' (required)")
-	utils.LogIfError(CmdEntityChangeEventCreate.MarkFlagRequired("entitySearch"))
+	Command.AddCommand(CmdChangeTrackingCreate)
+	CmdChangeTrackingCreate.Flags().StringVar(&eventSearchQuery, "entitySearch", "", "the NRQL entity search query for this event. Example: name = 'MyService' AND type = 'SERVICE' (required)")
+	utils.LogIfError(CmdChangeTrackingCreate.MarkFlagRequired("entitySearch"))
 
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventCategory, "category", "", "category of event, e.g., DEPLOYMENT, CONFIG_CHANGE, etc. category is required.")
-	utils.LogIfError(CmdEntityChangeEventCreate.MarkFlagRequired("category"))
+	CmdChangeTrackingCreate.Flags().StringVar(&eventCategory, "category", "", "category of event, e.g., DEPLOYMENT, CONFIG_CHANGE, etc. category is required.")
+	utils.LogIfError(CmdChangeTrackingCreate.MarkFlagRequired("category"))
 
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventType, "type", "", "type of event, e.g., BASIC, ROLLBACK, etc. type is required.")
-	utils.LogIfError(CmdEntityChangeEventCreate.MarkFlagRequired("type"))
+	CmdChangeTrackingCreate.Flags().StringVar(&eventType, "type", "", "type of event, e.g., BASIC, ROLLBACK, etc. type is required.")
+	utils.LogIfError(CmdChangeTrackingCreate.MarkFlagRequired("type"))
 
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventDescription, "description", "", "a description of the event")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventUser, "user", "", "username of the actor or bot")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventGroupID, "groupId", "", "string that can be used to correlate two or more events")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventShortDescription, "shortDescription", "", "short description for the event")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventCustomAttributes, "customAttributes", "", "custom attributes for the event in JS object format, e.g. {key1: 'value1', key2: 2}")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventCustomAttributesFile, "customAttributesFile", "", "path to a file containing custom attributes in JS object format, or '-' to read from STDIN")
-	CmdEntityChangeEventCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", []string{"FAIL_ON_FIELD_LENGTH"}, "array of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
-	CmdEntityChangeEventCreate.Flags().Int64VarP(&eventTimestamp, "timestamp", "t", 0, "the time of the event, the number of milliseconds since the Unix epoch, defaults to now")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventDescription, "description", "", "a description of the event")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventUser, "user", "", "username of the actor or bot")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventGroupID, "groupId", "", "string that can be used to correlate two or more events")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventShortDescription, "shortDescription", "", "short description for the event")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributes, "customAttributes", "", "custom attributes for the event in JS object format, e.g. {key1: 'value1', key2: 2}")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributesFile, "customAttributesFile", "", "path to a file containing custom attributes in JS object format, or '-' to read from STDIN")
+	CmdChangeTrackingCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", []string{"FAIL_ON_FIELD_LENGTH"}, "array of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
+	CmdChangeTrackingCreate.Flags().Int64VarP(&eventTimestamp, "timestamp", "t", 0, "the time of the event, the number of milliseconds since the Unix epoch, defaults to now")
 
 	// Deployment fields
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventVersion, "version", "", "version of the deployment")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventChangelog, "changelog", "", "changelog for the deployment")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventCommit, "commit", "", "commit hash for the deployment")
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventDeepLink, "deepLink", "", "deep link URL for the deployment")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventVersion, "version", "", "version of the deployment")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventChangelog, "changelog", "", "changelog for the deployment")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventCommit, "commit", "", "commit hash for the deployment")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventDeepLink, "deepLink", "", "deep link URL for the deployment")
 
 	// Feature flag fields
-	CmdEntityChangeEventCreate.Flags().StringVar(&eventFeatureFlagId, "featureFlagId", "", "ID of the feature flag")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventFeatureFlagId, "featureFlagId", "", "ID of the feature flag")
 }
