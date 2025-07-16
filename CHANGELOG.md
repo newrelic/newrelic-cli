@@ -1,5 +1,10 @@
+<a name="v0.99.8"></a>
+## [v0.99.8] - 2025-07-16
+### Bug Fixes
+- **checksum:** Add install.sh and install.ps1 for checksum generation ([#1731](https://github.com/newrelic/newrelic-cli/issues/1731))
+
 <a name="v0.99.7"></a>
-## [v0.99.7] - 2025-07-09
+## [v0.99.7] - 2025-07-14
 <a name="v0.99.6"></a>
 ## [v0.99.6] - 2025-07-09
 <a name="v0.99.5"></a>
@@ -2534,7 +2539,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.8...HEAD
+[v0.99.8]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...v0.99.8
 [v0.99.7]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...v0.99.7
 [v0.99.6]: https://github.com/newrelic/newrelic-cli/compare/v0.99.5...v0.99.6
 [v0.99.5]: https://github.com/newrelic/newrelic-cli/compare/v0.99.4...v0.99.5
