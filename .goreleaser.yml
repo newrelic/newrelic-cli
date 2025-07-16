@@ -38,6 +38,12 @@ release:
       name_template: "install.sh"
     - glob: scripts/install.ps1
       name_template: "install.ps1"
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+  extra_files:
+    - glob: "scripts/install.sh"
+    - glob: "scripts/install.ps1"
 
 archives:
   - id: "default"
