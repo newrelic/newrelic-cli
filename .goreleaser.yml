@@ -33,6 +33,11 @@ builds:
 
 release:
   name_template: "{{.ProjectName}} v{{.Version}}"
+  extra_files:
+    - glob: scripts/install.sh
+      name_template: "install.sh"
+    - glob: scripts/install.ps1
+      name_template: "install.ps1"
 
 archives:
   - id: "default"
