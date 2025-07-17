@@ -1,3 +1,8 @@
+<a name="v0.100.0"></a>
+## [v0.100.0] - 2025-07-16
+### Features
+- **fedora-support:** add fedora support in platform and platformFamily ([#1732](https://github.com/newrelic/newrelic-cli/issues/1732))
+
 <a name="v0.99.8"></a>
 ## [v0.99.8] - 2025-07-16
 ### Bug Fixes
@@ -2539,7 +2544,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.99.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.0...HEAD
+[v0.100.0]: https://github.com/newrelic/newrelic-cli/compare/v0.99.8...v0.100.0
 [v0.99.8]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...v0.99.8
 [v0.99.7]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...v0.99.7
 [v0.99.6]: https://github.com/newrelic/newrelic-cli/compare/v0.99.5...v0.99.6
