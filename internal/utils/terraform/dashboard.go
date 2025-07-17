@@ -172,10 +172,18 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 
 						for _, q := range config.NRQLQueries {
 							h.WriteBlock("nrql_query", []string{}, func() {
-								if len(q.AccountIDs) > 1 {
-									h.WriteIntArrayAttribute("account_ids", q.AccountIDs)
-								} else {
-									h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
+								parts := strings.Split(q.Query, "||SPECIAL_ACCOUNT_ID:")
+								if len(parts) > 1 {
+									specialAccountID := parts[1]
+									q.Query = parts[0]
+									h.WriteStringAttribute("account_id", specialAccountID)
+								} else if len(q.AccountIDs) == 1 {
+									if q.AccountIDs[0] != -1 {
+										h.WriteIntAttribute("account_id", q.AccountIDs[0])
+									}
+								} else if len(q.AccountIDs) > 1 {
+									accountIDsStr := fmt.Sprintf("[%s]", strings.Join(strings.Fields(fmt.Sprint(q.AccountIDs)), ","))
+									h.WriteStringAttribute("account_id", accountIDsStr)
 								}
 								h.WriteMultilineStringAttribute("query", q.Query)
 							})
@@ -288,72 +296,36 @@ func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b
 }
 
 func (d *DashboardWidgetNRQLQuery) UnmarshalJSON(data []byte) error {
-	// Define a temporary struct to unmarshal the common fields
-	type NRQLQueryTemp struct {
-		Query string `json:"query"`
+	var raw struct {
+		Query      string          `json:"query"`
+		AccountID  int             `json:"accountId"`
+		AccountIDs json.RawMessage `json:"accountIds"` // Use RawMessage to check for presence
 	}
 
-	var temp NRQLQueryTemp
-	if err := json.Unmarshal(data, &temp); err != nil {
-		return err
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return fmt.Errorf("failed to unmarshal base NRQL query: %w", err)
+	}
+	d.Query = raw.Query
+
+	if len(raw.AccountIDs) > 0 && string(raw.AccountIDs) != "null" {
+		var multipleIDs []int
+		if err := json.Unmarshal(raw.AccountIDs, &multipleIDs); err == nil && len(multipleIDs) > 0 {
+
+			jsonBytes, _ := json.Marshal(multipleIDs)
+
+			d.Query = d.Query + "||SPECIAL_ACCOUNT_ID:" + string(jsonBytes)
+
+			d.AccountIDs = []int{-1}
+			return nil
+		}
 	}
 
-	// Check for accountId (single int)
-	type WithSingleAccount struct {
-		AccountID int `json:"accountId"`
-	}
-	var singleAcc WithSingleAccount
-
-	if err := json.Unmarshal(data, &singleAcc); err == nil && singleAcc.AccountID != 0 {
-		d.AccountID = singleAcc.AccountID
-		d.AccountIDs = []int{singleAcc.AccountID} // Store as an array too
-		d.Query = temp.Query
+	if raw.AccountID != 0 {
+		d.AccountIDs = []int{raw.AccountID}
 		return nil
 	}
 
-	// Check for accountIds (array of ints)
-	type WithMultipleAccounts struct {
-		AccountIDs []int `json:"accountIds"`
-	}
-	var multiAcc WithMultipleAccounts
-
-	if err := json.Unmarshal(data, &multiAcc); err == nil && len(multiAcc.AccountIDs) > 0 {
-		d.AccountIDs = multiAcc.AccountIDs   // Store all account IDs
-		d.AccountID = multiAcc.AccountIDs[0] // Store first one for backward compatibility
-		d.Query = temp.Query
-		return nil
-	}
-
-	// If we get here and have a query, accept it without account ID
-	if temp.Query != "" {
-		d.Query = temp.Query
-		return nil
-	}
-
-	return fmt.Errorf("failed to unmarshal NRQL query: %s", string(data))
-}
-
-type AccountIDs struct {
-	IDs []int
-}
-
-func (a *AccountIDs) UnmarshalJSON(data []byte) error {
-	var singleID int
-	var multipleIDs []int
-
-	// Try unmarshalling as a single ID
-	if err := json.Unmarshal(data, &singleID); err == nil {
-		a.IDs = []int{singleID}
-		return nil
-	}
-
-	// Try unmarshalling as a list of IDs
-	if err := json.Unmarshal(data, &multipleIDs); err == nil {
-		a.IDs = multipleIDs
-		return nil
-	}
-
-	return fmt.Errorf("failed to unmarshal account IDs: %s", string(data))
+	return nil
 }
 
 func requireValidVisualizationID(id string) {
@@ -382,7 +354,7 @@ func writeLineWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguratio
 }
 
 func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
-	log.Info("Inside billboardThreshold:", config.Threshold)
+
 	if len(config.Threshold) == 0 {
 		log.Warnf("Threshold is empty for BillBoard widget")
 		return
@@ -391,7 +363,6 @@ func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfigu
 	if err := json.Unmarshal(config.Threshold, &billboardThreshold); err != nil {
 		log.Fatal("Error unmarshalling billboardThreshold:", err)
 	}
-	log.Info("billboardThreshold:", billboardThreshold)
 	for _, q := range billboardThreshold {
 		h.WriteFloatAttribute(ThresholdSeverityValues[q.AlertSeverity], q.Value)
 	}
