@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -63,8 +64,9 @@ type DashboardWidgetFacet struct {
 }
 
 type DashboardWidgetNRQLQuery struct {
-	AccountID int    `json:"accountId"`
-	Query     string `json:"query"`
+	AccountID  int    `json:"-"` // For backward compatibility
+	AccountIDs []int  `json:"-"` // To store multiple account IDs
+	Query      string `json:"query"`
 }
 
 type DashboardWidgetLegend struct {
@@ -168,12 +170,8 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 						h.WriteStringSliceAttributeIfNotEmpty("linked_entity_guids", config.LinkedEntityGUIDs)
 						h.WriteMultilineStringAttributeIfNotEmpty("text", config.Text)
 
-						for _, q := range config.NRQLQueries {
-							h.WriteBlock("nrql_query", []string{}, func() {
-								h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
-								h.WriteMultilineStringAttribute("query", q.Query)
-							})
-						}
+						writeNRQLQueries(h, config.NRQLQueries)
+
 						h.WriteBooleanAttribute("facet_show_other_series", config.Facet.ShowOtherSeries)
 						h.WriteBooleanAttribute("legend_enabled", config.Legend.Enabled)
 						h.WriteBooleanAttribute("ignore_time_range", config.PlatformOptions.IgnoreTimeRange)
@@ -270,6 +268,27 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 	return h.String(), nil
 }
 
+func writeNRQLQueries(h *HCLGen, queries []DashboardWidgetNRQLQuery) {
+	for _, q := range queries {
+		h.WriteBlock("nrql_query", []string{}, func() {
+			parts := strings.Split(q.Query, "||SPECIAL_ACCOUNT_ID:")
+			if len(parts) > 1 {
+				specialAccountID := parts[1]
+				q.Query = parts[0]
+				h.WriteStringAttribute("account_id", specialAccountID)
+			} else if len(q.AccountIDs) == 1 {
+				if q.AccountIDs[0] != -1 {
+					h.WriteIntAttribute("account_id", q.AccountIDs[0])
+				}
+			} else if len(q.AccountIDs) > 1 {
+				accountIDsStr := fmt.Sprintf("[%s]", strings.Join(strings.Fields(fmt.Sprint(q.AccountIDs)), ","))
+				h.WriteStringAttribute("account_id", accountIDsStr)
+			}
+			h.WriteMultilineStringAttribute("query", q.Query)
+		})
+	}
+}
+
 func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b []byte) *DashboardWidgetRawConfiguration {
 	var c DashboardWidgetRawConfiguration
 	err := json.Unmarshal(b, &c)
@@ -279,6 +298,39 @@ func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b
 	}
 
 	return &c
+}
+
+func (d *DashboardWidgetNRQLQuery) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Query      string          `json:"query"`
+		AccountID  int             `json:"accountId"`
+		AccountIDs json.RawMessage `json:"accountIds"` // Use RawMessage to check for presence
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return fmt.Errorf("failed to unmarshal base NRQL query: %w", err)
+	}
+	d.Query = raw.Query
+
+	if len(raw.AccountIDs) > 0 && string(raw.AccountIDs) != "null" {
+		var multipleIDs []int
+		if err := json.Unmarshal(raw.AccountIDs, &multipleIDs); err == nil && len(multipleIDs) > 0 {
+
+			jsonBytes, _ := json.Marshal(multipleIDs)
+
+			d.Query = d.Query + "||SPECIAL_ACCOUNT_ID:" + string(jsonBytes)
+
+			d.AccountIDs = []int{-1}
+			return nil
+		}
+	}
+
+	if raw.AccountID != 0 {
+		d.AccountIDs = []int{raw.AccountID}
+		return nil
+	}
+
+	return nil
 }
 
 func requireValidVisualizationID(id string) {
@@ -307,6 +359,11 @@ func writeLineWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguratio
 }
 
 func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
+
+	if len(config.Threshold) == 0 {
+		log.Warnf("Threshold is empty for BillBoard widget")
+		return
+	}
 	var billboardThreshold []DashboardWidgetBillBoardThreshold
 	if err := json.Unmarshal(config.Threshold, &billboardThreshold); err != nil {
 		log.Fatal("Error unmarshalling billboardThreshold:", err)
