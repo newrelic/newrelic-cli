@@ -1,5 +1,10 @@
+<a name="v0.100.1"></a>
+## [v0.100.1] - 2025-07-17
+### Bug Fixes
+- **checksum:** Add checksum generation in main checksum file ([#1734](https://github.com/newrelic/newrelic-cli/issues/1734))
+
 <a name="v0.100.0"></a>
-## [v0.100.0] - 2025-07-16
+## [v0.100.0] - 2025-07-17
 ### Features
 - **fedora-support:** add fedora support in platform and platformFamily ([#1732](https://github.com/newrelic/newrelic-cli/issues/1732))
 
@@ -2544,7 +2549,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.1...HEAD
+[v0.100.1]: https://github.com/newrelic/newrelic-cli/compare/v0.100.0...v0.100.1
 [v0.100.0]: https://github.com/newrelic/newrelic-cli/compare/v0.99.8...v0.100.0
 [v0.99.8]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...v0.99.8
 [v0.99.7]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...v0.99.7
