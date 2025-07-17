@@ -1,3 +1,8 @@
+<a name="v0.100.2"></a>
+## [v0.100.2] - 2025-07-17
+### Bug Fixes
+- **checksum:** Remove the Manuel install.ps1 upload ([#1736](https://github.com/newrelic/newrelic-cli/issues/1736))
+
 <a name="v0.100.1"></a>
 ## [v0.100.1] - 2025-07-17
 ### Bug Fixes
@@ -2549,7 +2554,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.2...HEAD
+[v0.100.2]: https://github.com/newrelic/newrelic-cli/compare/v0.100.1...v0.100.2
 [v0.100.1]: https://github.com/newrelic/newrelic-cli/compare/v0.100.0...v0.100.1
 [v0.100.0]: https://github.com/newrelic/newrelic-cli/compare/v0.99.8...v0.100.0
 [v0.99.8]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...v0.99.8
