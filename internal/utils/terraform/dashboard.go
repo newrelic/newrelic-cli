@@ -170,24 +170,8 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 						h.WriteStringSliceAttributeIfNotEmpty("linked_entity_guids", config.LinkedEntityGUIDs)
 						h.WriteMultilineStringAttributeIfNotEmpty("text", config.Text)
 
-						for _, q := range config.NRQLQueries {
-							h.WriteBlock("nrql_query", []string{}, func() {
-								parts := strings.Split(q.Query, "||SPECIAL_ACCOUNT_ID:")
-								if len(parts) > 1 {
-									specialAccountID := parts[1]
-									q.Query = parts[0]
-									h.WriteStringAttribute("account_id", specialAccountID)
-								} else if len(q.AccountIDs) == 1 {
-									if q.AccountIDs[0] != -1 {
-										h.WriteIntAttribute("account_id", q.AccountIDs[0])
-									}
-								} else if len(q.AccountIDs) > 1 {
-									accountIDsStr := fmt.Sprintf("[%s]", strings.Join(strings.Fields(fmt.Sprint(q.AccountIDs)), ","))
-									h.WriteStringAttribute("account_id", accountIDsStr)
-								}
-								h.WriteMultilineStringAttribute("query", q.Query)
-							})
-						}
+						writeNRQLQueries(h, config.NRQLQueries)
+
 						h.WriteBooleanAttribute("facet_show_other_series", config.Facet.ShowOtherSeries)
 						h.WriteBooleanAttribute("legend_enabled", config.Legend.Enabled)
 						h.WriteBooleanAttribute("ignore_time_range", config.PlatformOptions.IgnoreTimeRange)
@@ -282,6 +266,27 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 	})
 
 	return h.String(), nil
+}
+
+func writeNRQLQueries(h *HCLGen, queries []DashboardWidgetNRQLQuery) {
+	for _, q := range queries {
+		h.WriteBlock("nrql_query", []string{}, func() {
+			parts := strings.Split(q.Query, "||SPECIAL_ACCOUNT_ID:")
+			if len(parts) > 1 {
+				specialAccountID := parts[1]
+				q.Query = parts[0]
+				h.WriteStringAttribute("account_id", specialAccountID)
+			} else if len(q.AccountIDs) == 1 {
+				if q.AccountIDs[0] != -1 {
+					h.WriteIntAttribute("account_id", q.AccountIDs[0])
+				}
+			} else if len(q.AccountIDs) > 1 {
+				accountIDsStr := fmt.Sprintf("[%s]", strings.Join(strings.Fields(fmt.Sprint(q.AccountIDs)), ","))
+				h.WriteStringAttribute("account_id", accountIDsStr)
+			}
+			h.WriteMultilineStringAttribute("query", q.Query)
+		})
+	}
 }
 
 func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b []byte) *DashboardWidgetRawConfiguration {
