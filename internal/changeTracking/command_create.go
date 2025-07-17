@@ -104,6 +104,9 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 		if eventSearchQuery == "" {
 			log.Fatal("--entitySearch cannot be empty")
 		}
+		if eventCustomAttributes != "" && eventCustomAttributesFile != "" {
+			log.Fatal("Only one of --customAttributes or --customAttributesFile can be specified at a time.")
+		}
 
 		params.Description = eventDescription
 		params.User = eventUser
