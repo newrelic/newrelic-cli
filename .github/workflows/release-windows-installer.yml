@@ -98,14 +98,3 @@ jobs:
           asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
           asset_name: NewRelicCLIInstaller.msi
           asset_content_type: application/octet-stream
-
-      - name: Upload windows install script
-        id: upload-windows-install-script
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-          asset_path: .\scripts\install.ps1
-          asset_name: install.ps1
-          asset_content_type: application/octet-stream
