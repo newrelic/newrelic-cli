@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
 	"github.com/newrelic/newrelic-cli/internal/agent/migrate"
 	"github.com/newrelic/newrelic-cli/internal/agent/obfuscate"
 	"github.com/newrelic/newrelic-cli/internal/agent/version"
@@ -12,7 +14,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/agent"
-	"github.com/spf13/cobra"
 )
 
 var (
