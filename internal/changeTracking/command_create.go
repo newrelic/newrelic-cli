@@ -51,7 +51,7 @@ This command allows you to create a change tracking event for a New Relic entity
 
 Required fields:
   --entitySearch         NRQL entity search query (e.g. name = 'MyService' AND type = 'SERVICE')
-  --category            Category of event (e.g. DEPLOYMENT, FEATURE_FLAG, OPERATIONAL, etc.)
+  --category            Category of event (e.g. DEPLOYMENT, FEATURE FLAG, OPERATIONAL, etc.)
   --type                Type of event (e.g. BASIC, ROLLBACK, SERVER_REBOOT, etc.)
 
 For DEPLOYMENT events, the following are required/supported:
@@ -60,7 +60,7 @@ For DEPLOYMENT events, the following are required/supported:
   --commit              Commit hash for the deployment
   --deepLink            Deep link URL for the deployment
 
-For FEATURE_FLAG events, the following are required/supported:
+For FEATURE FLAG events, the following are required/supported:
   --featureFlagId       ID of the feature flag (required)
 
 Other supported fields:
@@ -134,10 +134,10 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 				DeepLink:  eventDeepLink,
 			}
 		}
-		// Set feature flag fields if category is FEATURE_FLAG
-		if strings.ToUpper(eventCategory) == "FEATURE_FLAG" {
+		// Set feature flag fields if category is FEATURE FLAG
+		if strings.ToUpper(eventCategory) == "FEATURE FLAG" {
 			if eventFeatureFlagId == "" {
-				log.Fatal("--featureFlagId is required for FEATURE_FLAG events")
+				log.Fatal("--featureFlagId is required for FEATURE FLAG events")
 			}
 			params.CategoryAndTypeData.CategoryFields.FeatureFlag = &changetracking.ChangeTrackingFeatureFlagFieldsInput{
 				FeatureFlagId: eventFeatureFlagId,
