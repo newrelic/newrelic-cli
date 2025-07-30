@@ -140,6 +140,12 @@ jobs:
         id: upload-install-script
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
+      
+      - name: Copy checksum file
+        shell: bash
+        run: |
+          VERSION=$(ls dist/newrelic-cli_*_checksums.txt | cut -d_ -f2)
+          cp "dist/newrelic-cli_${VERSION}_checksums.txt" "dist/checksums.txt"
 
       - name: Get latest tag
         id: get-latest-tag
