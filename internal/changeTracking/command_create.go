@@ -50,17 +50,17 @@ var CmdChangeTrackingCreate = &cobra.Command{
 This command allows you to create a change tracking event for a New Relic entity, supporting all fields in the Change Tracking API schema.
 
 Required fields:
-  --entitySearch         NRQL entity search query (e.g. name = 'MyService' AND type = 'SERVICE')
-  --category            Category of event (e.g. DEPLOYMENT, FEATURE FLAG, OPERATIONAL, etc.)
-  --type                Type of event (e.g. BASIC, ROLLBACK, SERVER_REBOOT, etc.)
+  --entitySearch        NRQL entity search query (e.g., name = 'MyService' AND type = 'SERVICE'). See our docs on 'entitySearch.query' under 'Required attributes' for more detailed examples: https://docs.newrelic.com/docs/change-tracking/change-tracking-events/#required-fields
+  --category            Category of event (e.g. Deployment, Feature Flag, Operational, etc.)
+  --type                Type of event (e.g. Basic, Rollback, Server Reboot, etc.)
 
-For DEPLOYMENT events, the following are required/supported:
+For Deployment events, the following are required/supported:
   --version             Version of the deployment (required)
   --changelog           Changelog for the deployment (URL or text)
   --commit              Commit hash for the deployment
   --deepLink            Deep link URL for the deployment
 
-For FEATURE FLAG events, the following are required/supported:
+For Feature Flag events, the following are required/supported:
   --featureFlagId       ID of the feature flag (required)
 
 Other supported fields:
@@ -68,7 +68,7 @@ Other supported fields:
   --user                Username of the actor or bot
   --groupId             String to correlate two or more events
   --shortDescription    Short description for the event
-  --customAttributes    Custom attributes in JS object format (e.g. {key1: 'value1', key2: 2})
+  --customAttributes    Custom attributes in JS object format (e.g. {cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2})
   --customAttributesFile Path to a file containing custom attributes, or '-' to read from STDIN
   --validationFlags     Array of validation flags (e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE, FAIL_ON_FIELD_LENGTH, FAIL_ON_REST_API_FAILURES)
   --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now)
@@ -82,7 +82,7 @@ The JS object format must use unquoted keys and values of type string, boolean, 
 
 Validation is performed before sending to the API. Keys must be valid JS identifiers, and values must be string, boolean, or number.
 
-For more information, see: https://docs.newrelic.com/docs/change-tracking/change-tracking-graphql/
+For more information, see: https://docs.newrelic.com/docs/change-tracking/change-tracking-events/#change-tracking-event-mutation
 `,
 	Example: cmdChangeTrackingCreateExample,
 	PreRun:  client.RequireClient,
