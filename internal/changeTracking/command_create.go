@@ -1,7 +1,6 @@
 package changeTracking
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -18,17 +17,16 @@ import (
 )
 
 var (
-	eventCategory             string
-	eventType                 string
-	eventDescription          string
-	eventSearchQuery          string
-	eventTimestamp            int64
-	eventUser                 string
-	eventGroupID              string
-	eventShortDescription     string
-	eventCustomAttributes     string
-	eventCustomAttributesFile string
-	eventValidationFlags      []string
+	eventCategory         string
+	eventType             string
+	eventDescription      string
+	eventSearchQuery      string
+	eventTimestamp        int64
+	eventUser             string
+	eventGroupID          string
+	eventShortDescription string
+	eventCustomAttributes string
+	eventValidationFlags  []string
 
 	// Deployment fields
 	eventVersion   string
@@ -40,7 +38,35 @@ var (
 	eventFeatureFlagId string
 )
 
-var cmdChangeTrackingCreateExample = fmt.Sprintf(`newrelic changeTracking create --entitySearch <EntitySearch> --category <DEPLOYMENT> --type <BASIC> --description 'desc' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
+var cmdChangeTrackingCreateExample = `# Deployment event example with complex entity search (shows nested quotes pattern)
+newrelic changeTracking create \
+  --entitySearch "name = 'MyService' AND type = 'SERVICE'" \
+  --category Deployment \
+  --type Basic \
+  --description "Deployed version 1.2.3 to production" \
+  --version "1.2.3" \
+  --changelog "https://github.com/myorg/myservice/releases/tag/v1.2.3" \
+  --commit "abc123def456" \
+  --user "jenkins-bot"
+
+# Feature Flag event example (shows both nested quote patterns)
+newrelic changeTracking create \
+  --entitySearch "name = 'MyApp'" \
+  --category "feature flag" \
+  --type BASIC \
+  --description "Enabled new checkout flow feature flag" \
+  --featureFlagId "checkout-flow-v2" \
+  --user "product-team"
+
+# Custom category/type example with custom attributes
+newrelic changeTracking create \
+  --entitySearch "id = '<Entity GUID>'" \
+  --category OPERATIONAL \
+  --type "MAINTENANCE_WINDOW" \
+  --description "Database maintenance completed" \
+  --customAttributes '{"duration_minutes": 45, "affected_tables": "users,orders", "downtime": false}' \
+  --validationFlags ALLOW_CUSTOM_CATEGORY_OR_TYPE \
+  --user "ops-team"`
 
 var CmdChangeTrackingCreate = &cobra.Command{
 	Use:   "create",
@@ -68,15 +94,14 @@ Other supported fields:
   --user                Username of the actor or bot
   --groupId             String to correlate two or more events
   --shortDescription    Short description for the event
-  --customAttributes    Custom attributes in JS object format (e.g. {cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2})
-  --customAttributesFile Path to a file containing custom attributes, or '-' to read from STDIN
+  --customAttributes    Custom attributes: use '-' for STDIN, '{...}' for inline JS object, or provide a file path
   --validationFlags     Array of validation flags (e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE, FAIL_ON_FIELD_LENGTH, FAIL_ON_REST_API_FAILURES)
   --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now)
 
 Custom attributes can be provided in three ways:
-  1. As a JS object string via --customAttributes (e.g. '{foo: "bar", num: 2, flag: true}')
-  2. As a JS object file via --customAttributesFile (e.g. --customAttributesFile ./attrs.js)
-  3. From STDIN by passing --customAttributesFile - and piping the JS object (e.g. 'cat attrs.js | newrelic changeTracking create ... --customAttributesFile -')
+  1. From STDIN by passing '-' (e.g. 'cat attrs.js | newrelic changeTracking create ... --customAttributes -')
+  2. As an inline JS object starting with '{' (e.g. --customAttributes '{cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}')
+  3. As a file path (e.g. --customAttributes ./attrs.js)
 
 The JS object format must use unquoted keys and values of type string, boolean, or number. Example: {cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}
 
@@ -92,7 +117,7 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 		if eventTimestamp == 0 {
 			params.Timestamp = nrtime.EpochMilliseconds(time.Now())
 		} else {
-			params.Timestamp = nrtime.EpochMilliseconds(time.Unix(eventTimestamp, 0))
+			params.Timestamp = nrtime.EpochMilliseconds(time.UnixMilli(eventTimestamp))
 		}
 
 		if eventCategory == "" {
@@ -103,9 +128,6 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 		}
 		if eventSearchQuery == "" {
 			log.Fatal("--entitySearch cannot be empty")
-		}
-		if eventCustomAttributes != "" && eventCustomAttributesFile != "" {
-			log.Fatal("Only one of --customAttributes or --customAttributesFile can be specified at a time.")
 		}
 
 		params.Description = eventDescription
@@ -144,25 +166,30 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 			}
 		}
 
-		// Custom Attributes: support --customAttributes, --customAttributesFile, and STDIN
+		// Custom Attributes: support --customAttributes with three parsing modes:
+		// 1. If equals "-", read from STDIN
+		// 2. If starts with "{", parse as JS object
+		// 3. Otherwise, treat as file path
 		var customAttrRaw string
-		if eventCustomAttributesFile != "" {
-			if eventCustomAttributesFile == "-" {
+		if eventCustomAttributes != "" {
+			if eventCustomAttributes == "-" {
 				// Read from STDIN
 				stdinBytes, err := os.ReadFile("/dev/stdin")
 				if err != nil {
 					log.Fatalf("Failed to read custom attributes from STDIN: %v", err)
 				}
 				customAttrRaw = string(stdinBytes)
+			} else if strings.HasPrefix(strings.TrimSpace(eventCustomAttributes), "{") {
+				// Parse as JS object directly
+				customAttrRaw = eventCustomAttributes
 			} else {
-				fileBytes, err := os.ReadFile(eventCustomAttributesFile)
+				// Treat as file path
+				fileBytes, err := os.ReadFile(eventCustomAttributes)
 				if err != nil {
 					log.Fatalf("Failed to read custom attributes file: %v", err)
 				}
 				customAttrRaw = string(fileBytes)
 			}
-		} else if eventCustomAttributes != "" {
-			customAttrRaw = eventCustomAttributes
 		}
 
 		if customAttrRaw != "" {
@@ -227,8 +254,7 @@ func init() {
 	CmdChangeTrackingCreate.Flags().StringVar(&eventUser, "user", "", "username of the actor or bot")
 	CmdChangeTrackingCreate.Flags().StringVar(&eventGroupID, "groupId", "", "string that can be used to correlate two or more events")
 	CmdChangeTrackingCreate.Flags().StringVar(&eventShortDescription, "shortDescription", "", "short description for the event")
-	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributes, "customAttributes", "", "custom attributes for the event in JS object format, e.g. {key1: 'value1', key2: 2}")
-	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributesFile, "customAttributesFile", "", "path to a file containing custom attributes in JS object format, or '-' to read from STDIN")
+	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributes, "customAttributes", "", "custom attributes: use '-' for STDIN, '{...}' for inline JS object, or provide a file path")
 	CmdChangeTrackingCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", []string{"FAIL_ON_FIELD_LENGTH"}, "array of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
 	CmdChangeTrackingCreate.Flags().Int64VarP(&eventTimestamp, "timestamp", "t", 0, "the time of the event, the number of milliseconds since the Unix epoch, defaults to now")
 
