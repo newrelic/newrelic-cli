@@ -52,8 +52,8 @@ newrelic changeTracking create \
 # Feature Flag event example (shows both nested quote patterns)
 newrelic changeTracking create \
   --entitySearch "name = 'MyApp'" \
-  --category "feature flag" \
-  --type BASIC \
+  --category "Feature Flag" \
+  --type Basic \
   --description "Enabled new checkout flow feature flag" \
   --featureFlagId "checkout-flow-v2" \
   --user "product-team"
@@ -61,8 +61,8 @@ newrelic changeTracking create \
 # Custom category/type example with custom attributes
 newrelic changeTracking create \
   --entitySearch "id = '<Entity GUID>'" \
-  --category OPERATIONAL \
-  --type "MAINTENANCE_WINDOW" \
+  --category Operational \
+  --type "Maintenance Window" \
   --description "Database maintenance completed" \
   --customAttributes '{"duration_minutes": 45, "affected_tables": "users,orders", "downtime": false}' \
   --validationFlags ALLOW_CUSTOM_CATEGORY_OR_TYPE \
