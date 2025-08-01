@@ -56,16 +56,29 @@ newrelic changeTracking create \
   --type Basic \
   --description "Enabled new checkout flow feature flag" \
   --featureFlagId "checkout-flow-v2" \
+  --validationFlags FAIL_ON_FIELD_LENGTH \
   --user "product-team"
 
-# Custom category/type example with custom attributes
+# Custom category/type example with custom attributes and multiple validation flags (comma-separated style)
 newrelic changeTracking create \
   --entitySearch "id = '<Entity GUID>'" \
   --category Operational \
   --type "Maintenance Window" \
   --description "Database maintenance completed" \
-  --customAttributes '{"duration_minutes": 45, "affected_tables": "users,orders", "downtime": false}' \
+  --customAttributes '{cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}' \
+  --validationFlags ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES \
+  --user "ops-team"
+
+# Custom category/type example using repeated --validationFlags style (each flag separately)
+newrelic changeTracking create \
+  --entitySearch "id = '<Entity GUID>'" \
+  --category Operational \
+  --type "Maintenance Window" \
+  --description "Database maintenance completed" \
+  --customAttributes '{cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}' \
   --validationFlags ALLOW_CUSTOM_CATEGORY_OR_TYPE \
+  --validationFlags FAIL_ON_FIELD_LENGTH \
+  --validationFlags FAIL_ON_REST_API_FAILURES \
   --user "ops-team"`
 
 var CmdChangeTrackingCreate = &cobra.Command{
@@ -99,7 +112,7 @@ Other supported fields:
   --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now)
 
 Custom attributes can be provided in three ways:
-  1. From STDIN by passing '-' (e.g. 'cat attrs.js | newrelic changeTracking create ... --customAttributes -')
+  1. From STDIN by passing '-' (e.g. 'echo  '{cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}' | newrelic changeTracking create ... --customAttributes -')
   2. As an inline JS object starting with '{' (e.g. --customAttributes '{cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}')
   3. As a file path (e.g. --customAttributes ./attrs.js)
 
@@ -255,7 +268,7 @@ func init() {
 	CmdChangeTrackingCreate.Flags().StringVar(&eventGroupID, "groupId", "", "string that can be used to correlate two or more events")
 	CmdChangeTrackingCreate.Flags().StringVar(&eventShortDescription, "shortDescription", "", "short description for the event")
 	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributes, "customAttributes", "", "custom attributes: use '-' for STDIN, '{...}' for inline JS object, or provide a file path")
-	CmdChangeTrackingCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", []string{"FAIL_ON_FIELD_LENGTH"}, "array of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
+	CmdChangeTrackingCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", nil, "array of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
 	CmdChangeTrackingCreate.Flags().Int64VarP(&eventTimestamp, "timestamp", "t", 0, "the time of the event, the number of milliseconds since the Unix epoch, defaults to now")
 
 	// Deployment fields
