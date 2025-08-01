@@ -140,6 +140,35 @@ jobs:
         id: upload-install-script
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
+      
+      - name: Copy checksum file and upload to GitHub Release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          # Copy and sign files
+          VERSION=$(ls dist/newrelic-cli_*_checksums.txt | cut -d_ -f2)
+          cp "dist/newrelic-cli_${VERSION}_checksums.txt" "dist/checksums.txt"
+          gpg --detach-sign --armor -u "4F9A9B5B96EC30B9" "dist/checksums.txt"
+          
+          # Get release ID for the current version
+          RELEASE_ID=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/tags/${VERSION}" | \
+            jq -r '.id')
+          
+          # Upload checksums.txt to GitHub Release
+          curl -s \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: text/plain" \
+            --data-binary @"dist/checksums.txt" \
+            "https://uploads.github.com/repos/newrelic/newrelic-cli/releases/${RELEASE_ID}/assets?name=checksums.txt"
+          
+          # Upload checksums.txt.sig to GitHub Release
+          curl -s \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: text/plain" \
+            --data-binary @"dist/checksums.txt.sig" \
+            "https://uploads.github.com/repos/newrelic/newrelic-cli/releases/${RELEASE_ID}/assets?name=checksums.txt.sig"
 
       - name: Get latest tag
         id: get-latest-tag
