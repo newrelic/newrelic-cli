@@ -141,38 +141,74 @@ jobs:
         run: |
           aws s3 cp ./scripts/install.sh s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh --profile virtuoso
       
-      - name: Copy checksum file and upload to GitHub Release
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: |
-          # Copy and sign files
-          VERSION=$(ls dist/newrelic-cli_*_checksums.txt | cut -d_ -f2)
-          cp "dist/newrelic-cli_${VERSION}_checksums.txt" "dist/checksums.txt"
-          gpg --detach-sign --armor -u "4F9A9B5B96EC30B9" "dist/checksums.txt"
-          
-          # Get release ID for the current version
-          RELEASE_ID=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" \
-            "https://api.github.com/repos/newrelic/newrelic-cli/releases/tags/${VERSION}" | \
-            jq -r '.id')
-          
-          # Upload checksums.txt to GitHub Release
-          curl -s \
-            -H "Authorization: token ${GITHUB_TOKEN}" \
-            -H "Content-Type: text/plain" \
-            --data-binary @"dist/checksums.txt" \
-            "https://uploads.github.com/repos/newrelic/newrelic-cli/releases/${RELEASE_ID}/assets?name=checksums.txt"
-          
-          # Upload checksums.txt.sig to GitHub Release
-          curl -s \
-            -H "Authorization: token ${GITHUB_TOKEN}" \
-            -H "Content-Type: text/plain" \
-            --data-binary @"dist/checksums.txt.sig" \
-            "https://uploads.github.com/repos/newrelic/newrelic-cli/releases/${RELEASE_ID}/assets?name=checksums.txt.sig"
-
       - name: Get latest tag
         id: get-latest-tag
         uses: actions-ecosystem/action-get-latest-tag@v1
+
+      - name: Get latest release upload URL
+        id: get-latest-release-upload-url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+      
+      - name: Copy checksum files and validate
+        id: copy-checksums
+        shell: bash
+        run: |
+          # Find the checksum file and validate
+          CHECKSUM_FILE=$(find dist -name "newrelic-cli_*_checksums.txt")
+          if [ -z "$CHECKSUM_FILE" ]; then
+            echo "::error::Original checksum file not found in dist directory"
+            exit 1
+          fi
+          
+          # Extract version and validate
+          VERSION=$(echo "$CHECKSUM_FILE" | cut -d_ -f2)
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not extract version from checksum filename"
+            exit 1
+          fi
+          echo "Found version: $VERSION"
+          
+          # Copy checksum file and validate
+          cp "$CHECKSUM_FILE" "dist/checksums.txt"
+          if [ ! -f "dist/checksums.txt" ]; then
+            echo "::error::Failed to create checksums.txt"
+            exit 1
+          fi
+          echo "Created checksums.txt successfully"
+          
+          # Create signature and validate
+          gpg --batch --yes -u "4F9A9B5B96EC30B9" \
+              --output "dist/checksums.txt.sig" \
+              --detach-sign \
+              "dist/checksums.txt"
+          if [ ! -f "dist/checksums.txt.sig" ]; then
+            echo "::error::Failed to create signature file"
+            exit 1
+          fi
+          echo "Created checksums.txt.sig successfully"
+
+      - name: Upload checksums file
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+          asset_path: ./dist/checksums.txt
+          asset_name: checksums.txt
+          asset_content_type: text/plain
+
+      - name: Upload checksums signature
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+          asset_path: ./dist/checksums.txt.sig
+          asset_name: checksums.txt.sig
+          asset_content_type: text/plain
 
       - name: Create currentVersion.txt
         id: create-current-version
