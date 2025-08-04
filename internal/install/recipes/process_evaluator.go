@@ -56,12 +56,10 @@ func GetPsUtilCommandLines(ctx context.Context) []types.GenericProcess {
 			if err != process.ErrorProcessNotRunning {
 				log.Debugf("cannot read pid %d: %s", pid, err)
 			}
-
 			continue
 		}
 		name, _ := psproc.Name()
 		if name == "lsass.exe" {
-			log.Debugf("skipping sensitive process: %s", name)
 			continue
 		}
 		p := NewPSUtilProcess(psproc)
