@@ -1,3 +1,8 @@
+<a name="v0.102.0"></a>
+## [v0.102.0] - 2025-08-04
+### Features
+- **checksum:** Add validations for checksum file upload ([#1742](https://github.com/newrelic/newrelic-cli/issues/1742))
+
 <a name="v0.101.0"></a>
 ## [v0.101.0] - 2025-08-04
 ### Features
@@ -2570,7 +2575,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.101.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.102.0...HEAD
+[v0.102.0]: https://github.com/newrelic/newrelic-cli/compare/v0.101.0...v0.102.0
 [v0.101.0]: https://github.com/newrelic/newrelic-cli/compare/v0.100.6...v0.101.0
 [v0.100.6]: https://github.com/newrelic/newrelic-cli/compare/v0.100.5...v0.100.6
 [v0.100.5]: https://github.com/newrelic/newrelic-cli/compare/v0.100.4...v0.100.5
