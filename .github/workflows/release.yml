@@ -180,7 +180,10 @@ jobs:
           echo "Created checksums.txt successfully"
           
           # Create signature and validate
-          gpg --detach-sign --armor -u "4F9A9B5B96EC30B9" "dist/checksums.txt"
+          gpg --batch --yes -u "4F9A9B5B96EC30B9" \
+              --output "dist/checksums.txt.sig" \
+              --detach-sign \
+              "dist/checksums.txt"
           if [ ! -f "dist/checksums.txt.sig" ]; then
             echo "::error::Failed to create signature file"
             exit 1
