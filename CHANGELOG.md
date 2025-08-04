@@ -1,5 +1,10 @@
+<a name="v0.100.6"></a>
+## [v0.100.6] - 2025-07-31
+### Bug Fixes
+- updated populating infra-agent logs based on core install skip condition ([#1738](https://github.com/newrelic/newrelic-cli/issues/1738))
+
 <a name="v0.100.5"></a>
-## [v0.100.5] - 2025-07-18
+## [v0.100.5] - 2025-07-23
 <a name="v0.100.4"></a>
 ## [v0.100.4] - 2025-07-18
 <a name="v0.100.3"></a>
@@ -2560,7 +2565,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.6...HEAD
+[v0.100.6]: https://github.com/newrelic/newrelic-cli/compare/v0.100.5...v0.100.6
 [v0.100.5]: https://github.com/newrelic/newrelic-cli/compare/v0.100.4...v0.100.5
 [v0.100.4]: https://github.com/newrelic/newrelic-cli/compare/v0.100.3...v0.100.4
 [v0.100.3]: https://github.com/newrelic/newrelic-cli/compare/v0.100.2...v0.100.3
