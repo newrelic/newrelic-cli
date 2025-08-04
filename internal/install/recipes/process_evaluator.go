@@ -59,7 +59,11 @@ func GetPsUtilCommandLines(ctx context.Context) []types.GenericProcess {
 
 			continue
 		}
-
+		name, _ := psproc.Name()
+		if name == "lsass.exe" {
+			log.Debugf("skipping sensitive process: %s", name)
+			continue
+		}
 		p := NewPSUtilProcess(psproc)
 		processes = append(processes, p)
 	}
