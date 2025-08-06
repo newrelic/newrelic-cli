@@ -40,7 +40,7 @@ Note: Custom attributes are no longer supported in this command. For a more flex
 	Example: "newrelic entity deployment create --guid <GUID> --version <0.0.1>",
 }
 
-var cmdEntityDeploymentCreateExample = fmt.Sprintf(`newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp %v --user 'jenkins-bot'`, time.Now().Unix())
+var cmdEntityDeploymentCreateExample = fmt.Sprintf(`newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp %v --user 'jenkins-bot'`, time.Now().UnixMilli())
 
 var cmdEntityDeploymentCreate = &cobra.Command{
 	Use:   "create",
@@ -57,7 +57,7 @@ The deployment command marks a change for a New Relic entity
 		if timestamp == 0 {
 			params.Timestamp = nrtime.EpochMilliseconds(time.Now())
 		} else {
-			params.Timestamp = nrtime.EpochMilliseconds(time.Unix(timestamp, 0))
+			params.Timestamp = nrtime.EpochMilliseconds(time.UnixMilli(timestamp))
 		}
 
 		if version == "" {
