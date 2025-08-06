@@ -1,3 +1,23 @@
+<a name="v0.103.1"></a>
+## [v0.103.1] - 2025-08-05
+### Bug Fixes
+- Skip lsass.exe process from being processed ([#1741](https://github.com/newrelic/newrelic-cli/issues/1741))
+
+<a name="v0.103.0"></a>
+## [v0.103.0] - 2025-08-04
+### Features
+- **checksum:** Update checksum signing config ([#1743](https://github.com/newrelic/newrelic-cli/issues/1743))
+
+<a name="v0.102.0"></a>
+## [v0.102.0] - 2025-08-04
+### Features
+- **checksum:** Add validations for checksum file upload ([#1742](https://github.com/newrelic/newrelic-cli/issues/1742))
+
+<a name="v0.101.0"></a>
+## [v0.101.0] - 2025-08-04
+### Features
+- **checksum:** Add multiple checksum files for customer convenience([#1740](https://github.com/newrelic/newrelic-cli/issues/1740))
+
 <a name="v0.100.6"></a>
 ## [v0.100.6] - 2025-07-31
 ### Bug Fixes
@@ -2565,7 +2585,11 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.100.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.103.1...HEAD
+[v0.103.1]: https://github.com/newrelic/newrelic-cli/compare/v0.103.0...v0.103.1
+[v0.103.0]: https://github.com/newrelic/newrelic-cli/compare/v0.102.0...v0.103.0
+[v0.102.0]: https://github.com/newrelic/newrelic-cli/compare/v0.101.0...v0.102.0
+[v0.101.0]: https://github.com/newrelic/newrelic-cli/compare/v0.100.6...v0.101.0
 [v0.100.6]: https://github.com/newrelic/newrelic-cli/compare/v0.100.5...v0.100.6
 [v0.100.5]: https://github.com/newrelic/newrelic-cli/compare/v0.100.4...v0.100.5
 [v0.100.4]: https://github.com/newrelic/newrelic-cli/compare/v0.100.3...v0.100.4
