@@ -47,7 +47,7 @@ newrelic changeTracking create \
   --version "1.2.3" \
   --changelog "https://github.com/myorg/myservice/releases/tag/v1.2.3" \
   --commit "abc123def456" \
-  --user "jenkins-bot"
+  --user "ci-cd-bot"
 
 # Feature Flag event example (shows both nested quote patterns)
 newrelic changeTracking create \
@@ -86,10 +86,10 @@ var CmdChangeTrackingCreate = &cobra.Command{
 	Short: "Create a New Relic change tracking event",
 	Long: `Create a New Relic change tracking event.
 
-This command allows you to create a change tracking event for a New Relic entity, supporting all fields in the Change Tracking API schema.
+This command allows you to create a change tracking event for a New Relic entity, supporting all fields in the Change Tracking GraphQL API schema for the changeTrackingCreateEvent mutation. For more information on each field, visit: https://docs.newrelic.com/docs/change-tracking/change-tracking-events/#change-tracking-event-mutation
 
 Required fields:
-  --entitySearch        NRQL entity search query (e.g., name = 'MyService' AND type = 'SERVICE'). See our docs on 'entitySearch.query' under 'Required attributes' for more detailed examples: https://docs.newrelic.com/docs/change-tracking/change-tracking-events/#required-fields
+  --entitySearch        Entity search query (e.g., name = 'MyService' AND type = 'SERVICE'). See our docs on 'entitySearch.query' under 'Required attributes' for more detailed examples: https://docs.newrelic.com/docs/change-tracking/change-tracking-events/#required-fields
   --category            Category of event (e.g. Deployment, Feature Flag, Operational, etc.)
   --type                Type of event (e.g. Basic, Rollback, Server Reboot, etc.)
 
@@ -109,7 +109,7 @@ Other supported fields:
   --shortDescription    Short description for the event
   --customAttributes    Custom attributes: use '-' for STDIN, '{...}' for inline JS object, or provide a file path
   --validationFlags     Array of validation flags (e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE, FAIL_ON_FIELD_LENGTH, FAIL_ON_REST_API_FAILURES)
-  --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now)
+  --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now). Can not be more than 24 hours in the past or future
 
 Custom attributes can be provided in three ways:
   1. From STDIN by passing '-' (e.g. 'echo  '{cloud_vendor: "vendor_name", region: "us-east-1", isProd: true, instances: 2}' | newrelic changeTracking create ... --customAttributes -')
