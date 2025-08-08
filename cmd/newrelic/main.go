@@ -12,6 +12,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/agent"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
+	"github.com/newrelic/newrelic-cli/internal/changeTracking"
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
@@ -43,6 +44,7 @@ func init() {
 	Command.AddCommand(synthetics.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(configCmd.Command)
+	Command.AddCommand(changeTracking.Command)
 	Command.AddCommand(decode.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
