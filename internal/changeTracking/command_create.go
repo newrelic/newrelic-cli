@@ -108,7 +108,7 @@ Other supported fields:
   --groupId             String to correlate two or more events
   --shortDescription    Short description for the event
   --customAttributes    Custom attributes: use '-' for STDIN, '{...}' for inline JS object, or provide a file path
-  --validationFlags     Array of validation flags (e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE, FAIL_ON_FIELD_LENGTH, FAIL_ON_REST_API_FAILURES)
+  --validationFlags     Comma-separated list of validation flags (e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE, FAIL_ON_FIELD_LENGTH, FAIL_ON_REST_API_FAILURES)
   --timestamp           Time of the event (milliseconds since Unix epoch, defaults to now). Can not be more than 24 hours in the past or future
 
 Custom attributes can be provided in three ways:
@@ -268,7 +268,7 @@ func init() {
 	CmdChangeTrackingCreate.Flags().StringVar(&eventGroupID, "groupId", "", "string that can be used to correlate two or more events")
 	CmdChangeTrackingCreate.Flags().StringVar(&eventShortDescription, "shortDescription", "", "short description for the event")
 	CmdChangeTrackingCreate.Flags().StringVar(&eventCustomAttributes, "customAttributes", "", "custom attributes: use '-' for STDIN, '{...}' for inline JS object, or provide a file path")
-	CmdChangeTrackingCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", nil, "array of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
+	CmdChangeTrackingCreate.Flags().StringSliceVar(&eventValidationFlags, "validationFlags", nil, "comma-separated list of validation flags, e.g. ALLOW_CUSTOM_CATEGORY_OR_TYPE,FAIL_ON_FIELD_LENGTH,FAIL_ON_REST_API_FAILURES")
 	CmdChangeTrackingCreate.Flags().Int64VarP(&eventTimestamp, "timestamp", "t", 0, "the time of the event, the number of milliseconds since the Unix epoch, defaults to now")
 
 	// Deployment fields
