@@ -51,9 +51,9 @@ type DashboardBillboardVisual struct {
 }
 
 type DashboardBillboardGridOptions struct {
-	Value   int `json:"value,omitempty"`
-	Label   int `json:"label,omitempty"`
-	Columns int `json:"columns,omitempty"`
+	Value   float64 `json:"value,omitempty"`
+	Label   float64 `json:"label,omitempty"`
+	Columns float64 `json:"columns,omitempty"`
 }
 
 type DashboardWidgetRawConfiguration struct {
@@ -367,9 +367,9 @@ func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfigu
 
 			if config.BillboardSettings.GridOptions != (DashboardBillboardGridOptions{}) {
 				h.WriteBlock("grid_options", []string{}, func() {
-					h.WriteIntAttributeIfNotZero("columns", config.BillboardSettings.GridOptions.Columns)
-					h.WriteIntAttributeIfNotZero("label", config.BillboardSettings.GridOptions.Label)
-					h.WriteIntAttributeIfNotZero("value", config.BillboardSettings.GridOptions.Value)
+					h.WriteFloatAttribute("columns", config.BillboardSettings.GridOptions.Columns)
+					h.WriteFloatAttribute("label", config.BillboardSettings.GridOptions.Label)
+					h.WriteFloatAttribute("value", config.BillboardSettings.GridOptions.Value)
 				})
 			}
 		})
