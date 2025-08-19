@@ -72,7 +72,7 @@ type DashboardWidgetRawConfiguration struct {
 	PlatformOptions   DashboardWidgetPlatformOptions `json:"platformOptions,omitempty"`
 	RefreshRate       DashboardWidgetRefreshRate     `json:"refreshRate,omitempty"`
 	InitialSorting    DashboardWidgetInitialSorting  `json:"initialSorting,omitempty"`
-	BillboardSettings DashboardBillboardSettings   `json:"billboardSettings,omitempty"`
+	BillboardSettings DashboardBillboardSettings     `json:"billboardSettings,omitempty"`
 }
 
 type DataFormatter struct {
