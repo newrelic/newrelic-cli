@@ -1,5 +1,10 @@
+<a name="v0.103.3"></a>
+## [v0.103.3] - 2025-08-21
+### Bug Fixes
+- **checksum:** Update copied checksum file name ([#1744](https://github.com/newrelic/newrelic-cli/issues/1744))
+
 <a name="v0.103.2"></a>
-## [v0.103.2] - 2025-08-05
+## [v0.103.2] - 2025-08-07
 <a name="v0.103.1"></a>
 ## [v0.103.1] - 2025-08-05
 ### Bug Fixes
@@ -2587,7 +2592,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.103.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.103.3...HEAD
+[v0.103.3]: https://github.com/newrelic/newrelic-cli/compare/v0.103.2...v0.103.3
 [v0.103.2]: https://github.com/newrelic/newrelic-cli/compare/v0.103.1...v0.103.2
 [v0.103.1]: https://github.com/newrelic/newrelic-cli/compare/v0.103.0...v0.103.1
 [v0.103.0]: https://github.com/newrelic/newrelic-cli/compare/v0.102.0...v0.103.0
