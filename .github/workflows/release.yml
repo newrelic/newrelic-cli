@@ -172,23 +172,23 @@ jobs:
           echo "Found version: $VERSION"
           
           # Copy checksum file and validate
-          cp "$CHECKSUM_FILE" "dist/checksums.txt"
-          if [ ! -f "dist/checksums.txt" ]; then
-            echo "::error::Failed to create checksums.txt"
+          cp "$CHECKSUM_FILE" "dist/checksums_sha256.txt"
+          if [ ! -f "dist/checksums_sha256.txt" ]; then
+            echo "::error::Failed to create checksums_sha256.txt"
             exit 1
           fi
-          echo "Created checksums.txt successfully"
-          
+          echo "Created checksums_sha256.txt successfully"
+
           # Create signature and validate
           gpg --batch --yes -u "4F9A9B5B96EC30B9" \
-              --output "dist/checksums.txt.sig" \
+              --output "dist/checksums_sha256.txt.sig" \
               --detach-sign \
-              "dist/checksums.txt"
-          if [ ! -f "dist/checksums.txt.sig" ]; then
+              "dist/checksums_sha256.txt"
+          if [ ! -f "dist/checksums_sha256.txt.sig" ]; then
             echo "::error::Failed to create signature file"
             exit 1
           fi
-          echo "Created checksums.txt.sig successfully"
+          echo "Created checksums_sha256.txt.sig successfully"
 
       - name: Upload checksums file
         uses: actions/upload-release-asset@v1
@@ -196,8 +196,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-          asset_path: ./dist/checksums.txt
-          asset_name: checksums.txt
+          asset_path: ./dist/checksums_sha256.txt
+          asset_name: checksums_sha256.txt
           asset_content_type: text/plain
 
       - name: Upload checksums signature
@@ -206,8 +206,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:
           upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-          asset_path: ./dist/checksums.txt.sig
-          asset_name: checksums.txt.sig
+          asset_path: ./dist/checksums_sha256.txt.sig
+          asset_name: checksums_sha256.txt.sig
           asset_content_type: text/plain
 
       - name: Create currentVersion.txt
