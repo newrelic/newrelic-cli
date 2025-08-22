@@ -1,9 +1,10 @@
 package execution
 
 import (
-	log "github.com/sirupsen/logrus"
 	"io"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type LineCaptureBuffer struct {
