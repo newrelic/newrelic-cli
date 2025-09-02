@@ -3,9 +3,10 @@ package version
 import (
 	"reflect"
 
-	"github.com/newrelic/newrelic-client-go/v2/pkg/agent"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	"github.com/newrelic/newrelic-client-go/v2/pkg/agent"
 )
 
 func AgentNameTitleCase(agentName agent.AgentReleasesFilter) string {

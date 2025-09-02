@@ -3,9 +3,10 @@ package version_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/newrelic/newrelic-cli/internal/agent/version"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/agent"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAgentNameTitleCase(t *testing.T) {
