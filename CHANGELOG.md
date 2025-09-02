@@ -1,3 +1,8 @@
+<a name="v0.104.0"></a>
+## [v0.104.0] - 2025-09-02
+### Features
+- **change-event:** adds support for the change tracking api ([#1729](https://github.com/newrelic/newrelic-cli/issues/1729))
+
 <a name="v0.103.3"></a>
 ## [v0.103.3] - 2025-08-21
 ### Bug Fixes
@@ -2592,7 +2597,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.103.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.104.0...HEAD
+[v0.104.0]: https://github.com/newrelic/newrelic-cli/compare/v0.103.3...v0.104.0
 [v0.103.3]: https://github.com/newrelic/newrelic-cli/compare/v0.103.2...v0.103.3
 [v0.103.2]: https://github.com/newrelic/newrelic-cli/compare/v0.103.1...v0.103.2
 [v0.103.1]: https://github.com/newrelic/newrelic-cli/compare/v0.103.0...v0.103.1
