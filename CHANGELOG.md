@@ -1,3 +1,8 @@
+<a name="v0.104.1"></a>
+## [v0.104.1] - 2025-09-04
+### Bug Fixes
+- **agent-control:** use proper fleet link ([#1748](https://github.com/newrelic/newrelic-cli/issues/1748))
+
 <a name="v0.104.0"></a>
 ## [v0.104.0] - 2025-09-02
 ### Features
@@ -2597,7 +2602,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.104.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.104.1...HEAD
+[v0.104.1]: https://github.com/newrelic/newrelic-cli/compare/v0.104.0...v0.104.1
 [v0.104.0]: https://github.com/newrelic/newrelic-cli/compare/v0.103.3...v0.104.0
 [v0.103.3]: https://github.com/newrelic/newrelic-cli/compare/v0.103.2...v0.103.3
 [v0.103.2]: https://github.com/newrelic/newrelic-cli/compare/v0.103.1...v0.103.2
