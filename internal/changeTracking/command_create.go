@@ -1,7 +1,6 @@
 package changeTracking
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -159,56 +158,8 @@ For more information, see: https://docs.newrelic.com/docs/change-tracking/change
 			CategoryFields: &changetracking.ChangeTrackingCategoryFieldsInput{},
 		}
 
-		// Validation: deployment fields only allowed for DEPLOYMENT
-		if strings.ToUpper(eventCategory) != "DEPLOYMENT" {
-			var invalidFlags []string
-			if eventVersion != "" {
-				invalidFlags = append(invalidFlags, "--version")
-			}
-			if eventChangelog != "" {
-				invalidFlags = append(invalidFlags, "--changelog")
-			}
-			if eventCommit != "" {
-				invalidFlags = append(invalidFlags, "--commit")
-			}
-			if eventDeepLink != "" {
-				invalidFlags = append(invalidFlags, "--deepLink")
-			}
-
-			if len(invalidFlags) > 0 {
-				errorMessage := fmt.Sprintf("%s can only be used with DEPLOYMENT events.", strings.Join(invalidFlags, ", "))
-				log.Fatal(errorMessage)
-			}
-		}
-
-		// Validation: featureFlagId only allowed for FEATURE FLAG
-		if strings.ToUpper(eventCategory) != "FEATURE FLAG" {
-			if eventFeatureFlagId != "" {
-				log.Fatal("--featureFlagId is only valid for FEATURE FLAG events")
-			}
-		}
-
-		// Set deployment fields if category is DEPLOYMENT
-		if strings.ToUpper(eventCategory) == "DEPLOYMENT" {
-			if eventVersion == "" {
-				log.Fatal("--version is required for DEPLOYMENT events")
-			}
-			params.CategoryAndTypeData.CategoryFields.Deployment = &changetracking.ChangeTrackingDeploymentFieldsInput{
-				Version:   eventVersion,
-				Changelog: eventChangelog,
-				Commit:    eventCommit,
-				DeepLink:  eventDeepLink,
-			}
-		}
-		// Set feature flag fields if category is FEATURE FLAG
-		if strings.ToUpper(eventCategory) == "FEATURE FLAG" {
-			if eventFeatureFlagId == "" {
-				log.Fatal("--featureFlagId is required for FEATURE FLAG events")
-			}
-			params.CategoryAndTypeData.CategoryFields.FeatureFlag = &changetracking.ChangeTrackingFeatureFlagFieldsInput{
-				FeatureFlagId: eventFeatureFlagId,
-			}
-		}
+		validateCategoryFields(eventCategory)
+		setCategoryFields(eventCategory, &params)
 
 		// Custom Attributes: support --customAttributes with three parsing modes:
 		// 1. If equals "-", read from STDIN
@@ -310,4 +261,52 @@ func init() {
 
 	// Feature flag fields
 	CmdChangeTrackingCreate.Flags().StringVar(&eventFeatureFlagId, "featureFlagId", "", "ID of the feature flag")
+}
+
+func validateCategoryFields(category string) {
+	cat := strings.ToUpper(category)
+	if cat != "DEPLOYMENT" {
+		var invalidFlags []string
+		if eventVersion != "" {
+			invalidFlags = append(invalidFlags, "--version")
+		}
+		if eventChangelog != "" {
+			invalidFlags = append(invalidFlags, "--changelog")
+		}
+		if eventCommit != "" {
+			invalidFlags = append(invalidFlags, "--commit")
+		}
+		if eventDeepLink != "" {
+			invalidFlags = append(invalidFlags, "--deepLink")
+		}
+		if len(invalidFlags) > 0 {
+			log.Fatalf("%s can only be used with DEPLOYMENT events.", strings.Join(invalidFlags, ", "))
+		}
+	}
+	if cat != "FEATURE FLAG" && eventFeatureFlagId != "" {
+		log.Fatal("--featureFlagId is only valid for FEATURE FLAG events")
+	}
+	if cat == "DEPLOYMENT" && eventVersion == "" {
+		log.Fatal("--version is required for DEPLOYMENT events")
+	}
+	if cat == "FEATURE FLAG" && eventFeatureFlagId == "" {
+		log.Fatal("--featureFlagId is required for FEATURE FLAG events")
+	}
+}
+
+func setCategoryFields(category string, params *changetracking.ChangeTrackingCreateEventInput) {
+	cat := strings.ToUpper(category)
+	if cat == "DEPLOYMENT" {
+		params.CategoryAndTypeData.CategoryFields.Deployment = &changetracking.ChangeTrackingDeploymentFieldsInput{
+			Version:   eventVersion,
+			Changelog: eventChangelog,
+			Commit:    eventCommit,
+			DeepLink:  eventDeepLink,
+		}
+	}
+	if cat == "FEATURE FLAG" {
+		params.CategoryAndTypeData.CategoryFields.FeatureFlag = &changetracking.ChangeTrackingFeatureFlagFieldsInput{
+			FeatureFlagId: eventFeatureFlagId,
+		}
+	}
 }
