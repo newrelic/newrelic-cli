@@ -39,11 +39,17 @@ release:
     - glob: scripts/install.ps1
       name_template: "install.ps1"
 checksum:
-  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
-  algorithm: sha256
-  extra_files:
-    - glob: "scripts/install.sh"
-    - glob: "scripts/install.ps1"
+  - id: cli-checksums
+    name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+    algorithm: sha256
+    ids:
+      - default  # Only includes CLI archives
+  - id: install-scripts-checksums
+    name_template: "install-scripts_checksums.txt"
+    algorithm: sha256
+    extra_files:
+      - glob: "scripts/install.sh"
+      - glob: "scripts/install.ps1"
 archives:
   - id: "default"
     builds:
