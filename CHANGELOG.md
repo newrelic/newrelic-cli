@@ -1,5 +1,10 @@
+<a name="v0.104.5"></a>
+## [v0.104.5] - 2025-09-30
+### Bug Fixes
+- add change tracking validations ([#1749](https://github.com/newrelic/newrelic-cli/issues/1749))
+
 <a name="v0.104.4"></a>
-## [v0.104.4] - 2025-09-18
+## [v0.104.4] - 2025-09-26
 <a name="v0.104.3"></a>
 ## [v0.104.3] - 2025-09-18
 <a name="v0.104.2"></a>
@@ -2608,7 +2613,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.104.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.104.5...HEAD
+[v0.104.5]: https://github.com/newrelic/newrelic-cli/compare/v0.104.4...v0.104.5
 [v0.104.4]: https://github.com/newrelic/newrelic-cli/compare/v0.104.3...v0.104.4
 [v0.104.3]: https://github.com/newrelic/newrelic-cli/compare/v0.104.2...v0.104.3
 [v0.104.2]: https://github.com/newrelic/newrelic-cli/compare/v0.104.1...v0.104.2
