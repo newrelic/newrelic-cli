@@ -385,24 +385,6 @@ func writeImportConfigToGeneratedFile(workspacePath, importConfig, importConfigF
 	fmt.Printf("\nImport configuration written to: %s\n", filePath)
 }
 
-// Helper functions for Terraform version checking
-func getTerraformVersion() (string, error) {
-	cmd := exec.Command("terraform", "version", "-json")
-	output, _ := cmd.Output()
-
-	// Parse JSON output
-	var versionData map[string]interface{}
-	if err := json.Unmarshal(output, &versionData); err != nil {
-		return "", fmt.Errorf("failed to parse terraform version JSON: %v", err)
-	}
-
-	if version, ok := versionData["terraform_version"].(string); ok {
-		return version, nil
-	}
-
-	return "", fmt.Errorf("could not find terraform version in output")
-}
-
 func isValidTerraformVersion(currentVersion, minVersion string) bool {
 	// Split versions by dots and remove any "v" prefix
 	currentVersion = strings.TrimPrefix(currentVersion, "v")
