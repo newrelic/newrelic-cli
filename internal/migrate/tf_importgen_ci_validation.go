@@ -103,6 +103,10 @@ func resolveDuplicateNames(dropRuleData *DropRuleInput) *DropRuleInput {
 	}
 
 	log.Infof("✅ Successfully resolved all duplicate resource names")
+
+	// Add aesthetic delay after duplicate resolution
+	time.Sleep(1500 * time.Millisecond)
+
 	return dropRuleData
 }
 

@@ -48,6 +48,9 @@ func init() {
 }
 
 func runNRQLDropRulesTFImportGenCI() {
+	// Print execution header
+	printExecutionHeaderCI()
+
 	// Validate input parameters
 	if err := validateInputParametersCI(ciInputFile, ciInputJSON); err != nil {
 		log.Fatal(err)

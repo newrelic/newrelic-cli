@@ -32,6 +32,8 @@ The command requires input data containing drop rule resource information in JSO
 }
 ```
 
+**Note**: If duplicate resource names are found in the input data, the command will automatically resolve them by adding random alphabetic suffixes to ensure unique resource definitions.
+
 ## Command Syntax
 
 ```bash
@@ -118,12 +120,16 @@ newrelic migrate nrqldroprules tf-importgen-ci \
 
 ### Phase 3: CI/CD Integration
 
-1. **Copy Generated Files**: Transfer the generated files to your CI/CD Terraform workspace
-2. **Update CI Configuration**:
-   - Comment out existing NRQL drop rule resources
-   - Remove the commented resources from your configuration files
-3. **Manual State Cleanup**: Remove existing NRQL drop rules from Terraform state
-4. **Execute Migration**: Run `terraform plan` and `terraform apply` in your CI environment
+The migration process differs depending on your Terraform/OpenTofu setup:
+
+#### Standard Migration Process (Recommended)
+
+1. **Copy Generated Files**: Transfer `provider.tf`, `imports.tf`, and `pcrs.tf` to your CI workspace
+2. **Execute Import**: Run `terraform plan` and `terraform apply` to import Pipeline Cloud Rules
+3. **Clean Up State**: After successful import, remove old NRQL drop rules from state:
+   ```bash
+   terraform state rm newrelic_nrql_drop_rule.rule1 newrelic_nrql_drop_rule.rule2
+   ```
 
 ## Generated File Details
 
@@ -169,15 +175,32 @@ The command performs automatic account ID consistency validation:
 
 **Requirements**: Terraform/OpenTofu ≥ 1.5
 
+### Standard Process:
+
 1. **Copy Generated Files**: Transfer `provider.tf`, `imports.tf`, and `pcrs.tf` to your CI workspace
-2. **Clean Up Configuration**: Comment out and remove existing NRQL drop rule resources from your configuration
-3. **Manual State Removal**: Remove NRQL drop rules from state before applying:
+2. **Execute Import**: Run `terraform plan` and `terraform apply` to import Pipeline Cloud Rules
+3. **Remove Old Resources**: After successful import, clean up old NRQL drop rules from state:
    ```bash
+   # Identify resources in state
+   terraform state list | grep nrql_drop_rule
+   
+   # Remove them from state (use actual resource names from your state)
    terraform state rm newrelic_nrql_drop_rule.rule1 newrelic_nrql_drop_rule.rule2
    ```
-4. **Execute Migration**: Run `terraform plan` and `terraform apply`
+4. **Verify Migration**: Confirm Pipeline Cloud Rules are working and old rules are removed from state
 
 ## Common Issues and Troubleshooting
+
+### Duplicate Resource Names
+
+**Issue**: Duplicate resource names in input data
+```
+⚠️ WARNING: DUPLICATE RESOURCE NAMES DETECTED
+The following resource names appear multiple times in the input data:
+  - log_filter_rule (appears 3 times at positions: [0, 2, 5])
+```
+
+**Solution**: The command automatically resolves this by renaming duplicates. No manual intervention required.
 
 ### Environment Variable Issues
 

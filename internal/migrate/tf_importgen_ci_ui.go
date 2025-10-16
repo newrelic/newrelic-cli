@@ -32,6 +32,20 @@ func printDuplicateNamesWarning(duplicates map[string][]int) {
 	fmt.Printf("%sThis prevents Terraform resource conflicts during import.%s\n\n", ColorYellow, ColorReset)
 }
 
+// printExecutionHeaderCI displays the execution start header
+func printExecutionHeaderCI() {
+	separator := strings.Repeat(SeparatorChar, SeparatorLength)
+	fmt.Printf("\n%s\n", separator)
+	fmt.Println("NEW RELIC CLI: PIPELINE CLOUD RULES MIGRATION (CI/CD)")
+	fmt.Printf("%s\n", separator)
+	fmt.Println("🚀 Starting Terraform/OpenTofu import configuration generation...")
+	fmt.Println("📋 This command will prepare your workspace for CI/CD migration")
+	fmt.Printf("%s\n\n", separator)
+
+	// aesthetic sleep interval added
+	time.Sleep(time.Millisecond * 1500)
+}
+
 // showStepHeaderCI displays a colored step header
 func showStepHeaderCI(step string) {
 	fmt.Printf("%s%s%s\n", ColorCyan, step, ColorReset)
@@ -84,61 +98,33 @@ func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, w
 	time.Sleep(300 * time.Millisecond)
 	fmt.Printf("   ⚠️  REQUIREMENT: Ensure %s version >= %s in your CI environment\n", config.DisplayName, MinRequiredVersion)
 	fmt.Println("       for import block support.")
-	fmt.Println()
-
-	time.Sleep(1500 * time.Millisecond)
-
-	// Step 2: Prepare CI configuration
-	showStepHeaderCI("2. PREPARE YOUR EXISTING CI CONFIGURATION:")
-	time.Sleep(500 * time.Millisecond)
-	fmt.Println("   📝 Comment out ALL existing NRQL drop rule resources in your CI configuration")
-
 	if includeRemovedBlocks {
-		time.Sleep(300 * time.Millisecond)
-		fmt.Printf("   📝 Copy all content from %s into your CI %s configuration\n", RemovedBlocksFile, config.DisplayName)
-		fmt.Println()
-		time.Sleep(300 * time.Millisecond)
 		fmt.Printf("   ⚠️  REQUIREMENT: Ensure %s version >= %s in your CI environment\n", config.DisplayName, MinRemovedBlocksVersion)
-		fmt.Println("       for removed block support.")
-	} else {
-		time.Sleep(300 * time.Millisecond)
-		fmt.Println("   📝 Remove the commented NRQL drop rule resources from your CI configuration")
-		fmt.Println("       (or manually remove them from Terraform state before applying)")
+		fmt.Println("       for removed block support. To skip this constraint, you may alternatively")
+		fmt.Println("       use the `terraform state rm` command to delist drop rule resources.")
 	}
 	fmt.Println()
 
 	time.Sleep(1500 * time.Millisecond)
 
-	// Step 3: Manual state removal (now the main approach when not using removed blocks)
-	if !includeRemovedBlocks {
-		showStepHeaderCI("3. REMOVE EXISTING DROP RULES FROM STATE:")
+	// Step 2: Comment out drop rules (only if using removed blocks)
+	stepNumber := 2
+	if includeRemovedBlocks {
+		showStepHeaderCI("2. PREPARE YOUR EXISTING CI CONFIGURATION:")
 		time.Sleep(500 * time.Millisecond)
-		fmt.Println("   Before applying the import configuration, manually remove existing")
-		time.Sleep(200 * time.Millisecond)
-		fmt.Println("   NRQL drop rules from state using this command in your CI environment:")
-		fmt.Println()
-
-		time.Sleep(500 * time.Millisecond)
-
-		// Generate state rm command
-		var resourceNames []string
-		for _, resource := range dropRuleData.DropRuleResourceIDs {
-			resourceNames = append(resourceNames, fmt.Sprintf("newrelic_nrql_drop_rule.%s", resource.Name))
-		}
-
-		stateRmCommand := fmt.Sprintf("   %s state rm %s", config.ToolName, strings.Join(resourceNames, " "))
-		fmt.Println(stateRmCommand)
+		fmt.Println("   📝 Comment out ALL existing NRQL drop rule resources in your CI configuration")
+		time.Sleep(300 * time.Millisecond)
+		fmt.Println("   💡 The removed blocks added in removals.tf will handle the state cleanup automatically")
+		fmt.Println("      when you run terraform apply. Alternatively, you may use the `terraform state rm`")
+		fmt.Println("      command to delist drop rule resources.")
 		fmt.Println()
 
 		time.Sleep(1500 * time.Millisecond)
+		stepNumber = 3
 	}
 
-	// Step 4: Execute in CI
-	stepNumber := "3"
-	if !includeRemovedBlocks {
-		stepNumber = "4"
-	}
-	showStepHeaderCI(fmt.Sprintf("%s. EXECUTE IN YOUR CI ENVIRONMENT:", stepNumber))
+	// Step 3/2: Execute terraform plan and apply
+	showStepHeaderCI(fmt.Sprintf("%d. EXECUTE IN YOUR CI ENVIRONMENT:", stepNumber))
 	time.Sleep(500 * time.Millisecond)
 	fmt.Println("   After copying files and preparing configuration:")
 	time.Sleep(300 * time.Millisecond)
@@ -148,19 +134,43 @@ func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, w
 	fmt.Println()
 
 	time.Sleep(1500 * time.Millisecond)
+	stepNumber++
 
-	// Step 5: Verification
-	stepNumber = "4"
+	// Step 4/3: Manual state removal (only if NOT using removed blocks)
 	if !includeRemovedBlocks {
-		stepNumber = "5"
+		showStepHeaderCI(fmt.Sprintf("%d. REMOVE EXISTING DROP RULES FROM STATE:", stepNumber))
+		time.Sleep(500 * time.Millisecond)
+		fmt.Println("   After the import is successful, remove the old NRQL drop rules from state")
+		time.Sleep(200 * time.Millisecond)
+		fmt.Println("   to complete the migration:")
+		fmt.Println()
+
+		time.Sleep(500 * time.Millisecond)
+
+		fmt.Println("   💡 Enabling your CI/CD environment to allow listing resources in")
+		fmt.Println("      the Terraform state (using `terraform state list`) can help")
+		fmt.Println("      identify drop rule resources to be deleted using the `terraform state rm` command.")
+		fmt.Printf("      %s state list | grep nrql_drop_rule\n", config.ToolName)
+		fmt.Println()
+		time.Sleep(300 * time.Millisecond)
+
+		fmt.Println("   💡 The IDs of drop rule resources specified in the JSON may also be")
+		fmt.Println("      leveraged to perform a `state rm`. E.g. `terraform state rm $(terraform state list -id=<drop-rule-ID>)`")
+
+		fmt.Println()
+
+		time.Sleep(1500 * time.Millisecond)
+		stepNumber++
 	}
-	showStepHeaderCI(fmt.Sprintf("%s. VERIFICATION:", stepNumber))
+
+	// Final step: Verification
+	showStepHeaderCI(fmt.Sprintf("%d. VERIFICATION:", stepNumber))
 	time.Sleep(500 * time.Millisecond)
 	fmt.Println("   ✅ Verify that Pipeline Cloud Rules are created successfully")
 	time.Sleep(300 * time.Millisecond)
 	fmt.Println("   ✅ Verify that old NRQL drop rules are removed from state (not destroyed)")
 	time.Sleep(300 * time.Millisecond)
-	fmt.Println("   ✅ Test that your log filtering continues to work as expected")
+	fmt.Println("   ✅ Test that your log filtering continues to work as expected, via Pipeline Cloud Rules")
 	fmt.Println()
 
 	time.Sleep(1 * time.Second)
