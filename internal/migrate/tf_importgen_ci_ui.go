@@ -17,6 +17,21 @@ func printAccountMismatchWarningCI(envAccountID string, mismatchedResources []st
 	fmt.Printf("%sThis may cause import failures. Please verify your account configuration.%s\n\n", ColorYellow, ColorReset)
 }
 
+// printDuplicateNamesWarning displays a warning about duplicate resource names
+func printDuplicateNamesWarning(duplicates map[string][]int) {
+	fmt.Printf("\n%s%s⚠️  WARNING: DUPLICATE RESOURCE NAMES DETECTED%s\n", ColorYellow, ColorBold, ColorReset)
+	fmt.Printf("%sThe following resource names appear multiple times in the input data:%s\n", ColorBold, ColorReset)
+
+	for name, indices := range duplicates {
+		fmt.Printf("  - %s%s%s (appears %d times at positions: %v)\n",
+			ColorBold, name, ColorReset, len(indices), indices)
+	}
+
+	fmt.Printf("\n%sRESOLUTION:%s Duplicate names will be automatically renamed with random suffixes\n", ColorBold, ColorReset)
+	fmt.Printf("to ensure unique resource definitions in the generated Pipeline Cloud Rules configuration.\n")
+	fmt.Printf("%sThis prevents Terraform resource conflicts during import.%s\n\n", ColorYellow, ColorReset)
+}
+
 // showStepHeaderCI displays a colored step header
 func showStepHeaderCI(step string) {
 	fmt.Printf("%s%s%s\n", ColorCyan, step, ColorReset)
@@ -37,7 +52,7 @@ func showLoadingAnimationCI(message string, duration time.Duration) {
 }
 
 // printCIRecommendationsCI displays the comprehensive CI/CD migration recommendations
-func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, workspacePath string) {
+func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, workspacePath string, includeRemovedBlocks bool) {
 	// Print attention-grabbing separator
 	separator := strings.Repeat(SeparatorChar, SeparatorLength)
 	fmt.Printf("\n%s\n", separator)
@@ -61,8 +76,10 @@ func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, w
 	fmt.Printf("      - %s        (Pipeline Cloud Rules configuration)\n", PipelineCloudRulesFile)
 	time.Sleep(200 * time.Millisecond)
 	fmt.Printf("      - %s     (Import blocks)\n", ImportConfigFile)
-	time.Sleep(200 * time.Millisecond)
-	fmt.Printf("      - %s    (Removed blocks for drop rules)\n", RemovedBlocksFile)
+	if includeRemovedBlocks {
+		time.Sleep(200 * time.Millisecond)
+		fmt.Printf("      - %s    (Removed blocks for drop rules)\n", RemovedBlocksFile)
+	}
 	fmt.Println()
 	time.Sleep(300 * time.Millisecond)
 	fmt.Printf("   ⚠️  REQUIREMENT: Ensure %s version >= %s in your CI environment\n", config.DisplayName, MinRequiredVersion)
@@ -71,44 +88,57 @@ func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, w
 
 	time.Sleep(1500 * time.Millisecond)
 
-	// Step 2: Comment out drop rules and add removals
+	// Step 2: Prepare CI configuration
 	showStepHeaderCI("2. PREPARE YOUR EXISTING CI CONFIGURATION:")
 	time.Sleep(500 * time.Millisecond)
 	fmt.Println("   📝 Comment out ALL existing NRQL drop rule resources in your CI configuration")
-	time.Sleep(300 * time.Millisecond)
-	fmt.Printf("   📝 Copy all content from %s into your CI %s configuration\n", RemovedBlocksFile, config.DisplayName)
-	fmt.Println()
-	time.Sleep(300 * time.Millisecond)
-	fmt.Printf("   ⚠️  REQUIREMENT: Ensure %s version >= %s in your CI environment\n", config.DisplayName, MinRemovedBlocksVersion)
-	fmt.Println("       for removed block support.")
+
+	if includeRemovedBlocks {
+		time.Sleep(300 * time.Millisecond)
+		fmt.Printf("   📝 Copy all content from %s into your CI %s configuration\n", RemovedBlocksFile, config.DisplayName)
+		fmt.Println()
+		time.Sleep(300 * time.Millisecond)
+		fmt.Printf("   ⚠️  REQUIREMENT: Ensure %s version >= %s in your CI environment\n", config.DisplayName, MinRemovedBlocksVersion)
+		fmt.Println("       for removed block support.")
+	} else {
+		time.Sleep(300 * time.Millisecond)
+		fmt.Println("   📝 Remove the commented NRQL drop rule resources from your CI configuration")
+		fmt.Println("       (or manually remove them from Terraform state before applying)")
+	}
 	fmt.Println()
 
 	time.Sleep(1500 * time.Millisecond)
 
-	// Step 3: Alternative approach
-	showStepHeaderCI("3. ALTERNATIVE: MANUAL STATE REMOVAL (if you prefer not to use removed blocks):")
-	time.Sleep(500 * time.Millisecond)
-	fmt.Println("   If you prefer to manually remove drop rules from state without using")
-	time.Sleep(200 * time.Millisecond)
-	fmt.Println("   removed blocks, run this command in your CI environment:")
-	fmt.Println()
+	// Step 3: Manual state removal (now the main approach when not using removed blocks)
+	if !includeRemovedBlocks {
+		showStepHeaderCI("3. REMOVE EXISTING DROP RULES FROM STATE:")
+		time.Sleep(500 * time.Millisecond)
+		fmt.Println("   Before applying the import configuration, manually remove existing")
+		time.Sleep(200 * time.Millisecond)
+		fmt.Println("   NRQL drop rules from state using this command in your CI environment:")
+		fmt.Println()
 
-	time.Sleep(500 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 
-	// Generate state rm command
-	var resourceNames []string
-	for _, resource := range dropRuleData.DropRuleResourceIDs {
-		resourceNames = append(resourceNames, fmt.Sprintf("newrelic_nrql_drop_rule.%s", resource.Name))
+		// Generate state rm command
+		var resourceNames []string
+		for _, resource := range dropRuleData.DropRuleResourceIDs {
+			resourceNames = append(resourceNames, fmt.Sprintf("newrelic_nrql_drop_rule.%s", resource.Name))
+		}
+
+		stateRmCommand := fmt.Sprintf("   %s state rm %s", config.ToolName, strings.Join(resourceNames, " "))
+		fmt.Println(stateRmCommand)
+		fmt.Println()
+
+		time.Sleep(1500 * time.Millisecond)
 	}
 
-	stateRmCommand := fmt.Sprintf("   %s state rm %s", config.ToolName, strings.Join(resourceNames, " "))
-	fmt.Println(stateRmCommand)
-	fmt.Println()
-
-	time.Sleep(1500 * time.Millisecond)
-
-	// Step 4: Final steps
-	showStepHeaderCI("4. EXECUTE IN YOUR CI ENVIRONMENT:")
+	// Step 4: Execute in CI
+	stepNumber := "3"
+	if !includeRemovedBlocks {
+		stepNumber = "4"
+	}
+	showStepHeaderCI(fmt.Sprintf("%s. EXECUTE IN YOUR CI ENVIRONMENT:", stepNumber))
 	time.Sleep(500 * time.Millisecond)
 	fmt.Println("   After copying files and preparing configuration:")
 	time.Sleep(300 * time.Millisecond)
@@ -120,7 +150,11 @@ func printCIRecommendationsCI(config *ToolConfig, dropRuleData *DropRuleInput, w
 	time.Sleep(1500 * time.Millisecond)
 
 	// Step 5: Verification
-	showStepHeaderCI("5. VERIFICATION:")
+	stepNumber = "4"
+	if !includeRemovedBlocks {
+		stepNumber = "5"
+	}
+	showStepHeaderCI(fmt.Sprintf("%s. VERIFICATION:", stepNumber))
 	time.Sleep(500 * time.Millisecond)
 	fmt.Println("   ✅ Verify that Pipeline Cloud Rules are created successfully")
 	time.Sleep(300 * time.Millisecond)

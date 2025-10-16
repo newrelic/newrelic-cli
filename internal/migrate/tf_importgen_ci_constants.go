@@ -27,15 +27,21 @@ var RequiredEnvVars = []string{"NEW_RELIC_ACCOUNT_ID", "NEW_RELIC_API_KEY"}
 
 const OptionalRegionEnvVar = "NEW_RELIC_REGION"
 
-// File patterns for workspace validation
+// File patterns for workspace validation (removed blocks file only included when needed)
 var ConflictingFilePatterns = []string{
 	".tfstate",
 	".tfstate.backup",
 	".terraform",
 	ProviderConfigFile,
 	ImportConfigFile,
-	RemovedBlocksFile,
 	PipelineCloudRulesFile,
+}
+
+// GetConflictingFilePatternsWithRemoved returns file patterns including removed blocks file
+func GetConflictingFilePatternsWithRemoved() []string {
+	patterns := make([]string, len(ConflictingFilePatterns))
+	copy(patterns, ConflictingFilePatterns)
+	return append(patterns, RemovedBlocksFile)
 }
 
 // Provider configuration template

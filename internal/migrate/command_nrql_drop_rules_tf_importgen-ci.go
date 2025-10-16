@@ -10,6 +10,7 @@ var (
 	ciInputJSON     string
 	ciWorkspacePath string
 	useTofu         bool
+	generateRemoved bool // Hidden flag for removed blocks
 )
 
 var cmdNRQLDropRulesTFImportGenCI = &cobra.Command{
@@ -17,8 +18,8 @@ var cmdNRQLDropRulesTFImportGenCI = &cobra.Command{
 	Short: "Generate Terraform import configuration for CI environments",
 	Long: `
             Generate Terraform import configuration for CI environments based on drop rules data.
-            This command creates a complete Terraform workspace with import blocks, provider 
-            configuration, and removed blocks for Pipeline Cloud Rules migration in CI/CD pipelines.
+            This command creates a complete Terraform workspace with import blocks and provider 
+            configuration for Pipeline Cloud Rules migration in CI/CD pipelines.
     `,
 	Example: `  # Generate import config from file
   newrelic migrate nrqldroprules tf-importgen-ci --file drop_rules.json
@@ -40,6 +41,10 @@ func init() {
 	cmdNRQLDropRulesTFImportGenCI.Flags().StringVar(&ciInputJSON, "json", "", "JSON string containing drop rule resource IDs")
 	cmdNRQLDropRulesTFImportGenCI.Flags().StringVar(&ciWorkspacePath, "workspacePath", ".", "path to the Terraform workspace (defaults to current directory)")
 	cmdNRQLDropRulesTFImportGenCI.Flags().BoolVar(&useTofu, "tofu", false, "use OpenTofu instead of Terraform")
+
+	// Hidden flag for removed blocks functionality
+	cmdNRQLDropRulesTFImportGenCI.Flags().BoolVarP(&generateRemoved, "removed", "r", false, "generate removed blocks configuration")
+	cmdNRQLDropRulesTFImportGenCI.Flags().MarkHidden("removed")
 }
 
 func runNRQLDropRulesTFImportGenCI() {
@@ -102,9 +107,11 @@ func runNRQLDropRulesTFImportGenCI() {
 		log.Fatalf("Failed to plan %s: %v", toolConfig.DisplayName, err)
 	}
 
-	// Generate removed blocks
-	if err := generateRemovedBlocksCI(absWorkspacePath, dropRuleData); err != nil {
-		log.Fatalf("Failed to generate removed blocks: %v", err)
+	// Generate removed blocks only if flag is set
+	if generateRemoved {
+		if err := generateRemovedBlocksCI(absWorkspacePath, dropRuleData); err != nil {
+			log.Fatalf("Failed to generate removed blocks: %v", err)
+		}
 	}
 
 	// Format configuration files
@@ -113,5 +120,5 @@ func runNRQLDropRulesTFImportGenCI() {
 	}
 
 	// Print final recommendations
-	printCIRecommendationsCI(toolConfig, dropRuleData, absWorkspacePath)
+	printCIRecommendationsCI(toolConfig, dropRuleData, absWorkspacePath, generateRemoved)
 }
