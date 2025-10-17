@@ -1,5 +1,10 @@
+<a name="v0.105.0"></a>
+## [v0.105.0] - 2025-10-17
+### Features
+- **nrqldroprules:** adds new tf-importgen-ci command to simplify migration of Drop Rules to Pipeline Cloud Rules in CI ([#1751](https://github.com/newrelic/newrelic-cli/issues/1751))
+
 <a name="v0.104.6"></a>
-## [v0.104.6] - 2025-09-30
+## [v0.104.6] - 2025-10-14
 <a name="v0.104.5"></a>
 ## [v0.104.5] - 2025-09-30
 ### Bug Fixes
@@ -2615,7 +2620,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.104.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.105.0...HEAD
+[v0.105.0]: https://github.com/newrelic/newrelic-cli/compare/v0.104.6...v0.105.0
 [v0.104.6]: https://github.com/newrelic/newrelic-cli/compare/v0.104.5...v0.104.6
 [v0.104.5]: https://github.com/newrelic/newrelic-cli/compare/v0.104.4...v0.104.5
 [v0.104.4]: https://github.com/newrelic/newrelic-cli/compare/v0.104.3...v0.104.4
