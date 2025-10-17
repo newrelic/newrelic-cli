@@ -44,7 +44,7 @@ func init() {
 
 	// Hidden flag for removed blocks functionality
 	cmdNRQLDropRulesTFImportGenCI.Flags().BoolVarP(&generateRemoved, "removed", "r", false, "generate removed blocks configuration")
-	cmdNRQLDropRulesTFImportGenCI.Flags().MarkHidden("removed")
+	_ = cmdNRQLDropRulesTFImportGenCI.Flags().MarkHidden("removed")
 }
 
 func runNRQLDropRulesTFImportGenCI() {

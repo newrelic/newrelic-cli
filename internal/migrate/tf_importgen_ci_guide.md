@@ -1,23 +1,36 @@
-# New Relic CLI: NRQL Drop Rules to Pipeline Cloud Rules Migration Guide (CI/CD)
+# New Relic CLI: `newrelic_nrql_drop_rule` -> `newrelic_pipeline_cloud_rule` Migration Guide for CI/CD Workflows Using Automation Helpers
+
+This guide describes the **second phase** of a three-phase automation helper-process designed to assist in migrating `newrelic_nrql_drop_rule` resources (Drop Rules, managed via Terraform) to `newrelic_pipeline_cloud_rule` resources in CI-based environments, such as Atlantis and Grandcentral. This migration is necessary due to the upcoming end-of-life (EOL) of NRQL Drop Rules, scheduled for January 7, 2026. After this date, any Drop Rules managed via the `newrelic_nrql_drop_rule` Terraform resource will no longer function. For a general overview and more details on the EOL, its implications, and the required actions to replace `newrelic_nrql_drop_rule` resources, refer to [this detailed article](https://registry.terraform.io/providers/newrelic/newrelic/latest/docs/guides/drop_rules_eol_guide).
+
+For context, the three-phase migration process consists of (see an overview of this in the [NRQL Drop Rule EOL Guide in the documentation of the New Relic Terraform Provider](https://registry.terraform.io/providers/newrelic/newrelic/latest/docs/guides/drop_rules_eol_guide)):
+- **Phase 1** **(a prerequisite to Phase 2)** - executed in the CI/CD environment with inputs on Terraform-managed `newrelic_nrql_drop_rule` resources added to a custom script, which is in turn added to the CI/CD environment and applied, to identify and export existing drop rules as JSON data;
+- **Phase 2** **(with the procedure outlined in this document)** - executed locally using the New Relic CLI command `tf-importgen-ci` to process the JSON data and generate Pipeline Cloud Rule configurations and import scripts; and
+- **Phase 3** - executed back in the CI/CD environment to apply the generated configurations, import the new Pipeline Cloud Rules, and remove the legacy NRQL Drop Rules from management.
+
+While more details on the working of the first phase may be found in the documentation for [the initial data export phase in the New Relic Terraform Provider's repository](https://github.com/newrelic/terraform-provider-newrelic/blob/main/examples/drop_rule_migration_ci), **this document outlines the second phase of the three-phase automation process**, which involves using the New Relic CLI to process exported Drop Rule data and generate complete Terraform configurations for CI/CD migration.
+
+The `tf-importgen-ci` command processes the JSON data exported during Phase 1 and generates comprehensive Terraform/OpenTofu configurations, including import blocks, provider configurations, and Pipeline Cloud Rule resources. This command also provides detailed step-by-step instructions for integrating the generated configurations back into your CI/CD environment during Phase 3. Therefore, successful completion of Phase 1 (data export) is a prerequisite for this phase, and completing this phase generates all necessary files and instructions for Phase 3 (CI/CD integration and migration execution).
 
 ## Overview
 
 The `tf-importgen-ci` command is a specialized tool designed to facilitate the migration from NRQL Drop Rules to Pipeline Cloud Rules in CI/CD environments. This command generates complete Terraform/OpenTofu configurations, including import blocks and provider configurations, to enable seamless migration with minimal manual intervention.
 
+The second phase of the three-phase procedure requires that **as a follow-up to Phase 1 (described above), the `tf-importgen-ci` command must be run on the JSON data exported during Phase 1, using the appropriate flags as detailed below.**
+
 ## Prerequisites
 
 ### Technical Requirements
 
-- **Terraform/OpenTofu**: Version ≥ 1.5 (required for import blocks)
-- **New Relic CLI**: Latest version
-- **Environment Variables**: 
-  - `NEW_RELIC_API_KEY` (required)
-  - `NEW_RELIC_ACCOUNT_ID` (required)
-  - `NEW_RELIC_REGION` (optional, defaults to 'US')
+Before using the `tf-importgen-ci` command, ensure that the following technical requirements are met in your local environment:
 
-### Data Requirements
+- **New Relic CLI**: Latest version installed and accessible in your PATH
+- **Terraform/OpenTofu**: Version 1.5 or higher must be installed (required for import blocks)
+- **Environment Variables**: The following must be set:
+  - `NEW_RELIC_API_KEY` (required) - Your New Relic User API key with appropriate permissions
+  - `NEW_RELIC_ACCOUNT_ID` (required) - The New Relic account ID where your Drop Rules are located
+  - `NEW_RELIC_REGION` (optional) - Set to 'US' or 'EU' based on your account region (defaults to 'US')
+- **JSON Input**: Valid JSON file containing the exported Drop Rule data from Phase 1, supplied via the `--json` or `--filePath` arguments, as explained in the command arguments below
 
-The command requires input data containing drop rule resource information in JSON format. This data typically comes from the output of the `tf-update` command or manual extraction from existing Terraform state.
 
 **Required JSON Structure:**
 ```json
@@ -49,7 +62,7 @@ newrelic migrate nrqldroprules tf-importgen-ci [flags]
 | `--workspacePath` | string | optional | Path to Terraform workspace (defaults to current directory) |
 | `--tofu` | boolean | optional | Use OpenTofu instead of Terraform |
 
-**Note**: Either `--file` or `--json` must be provided, but not both.
+**Note**: Either `--file` or `--json` must be provided, but not both. For simplicity, it is recommended to run this command directly in your Terraform workspace directory with the JSON file present, avoiding the need to specify a separate `--workspacePath`.
 
 ## Usage Examples
 
@@ -88,12 +101,7 @@ newrelic migrate nrqldroprules tf-importgen-ci \
 
 ## Migration Workflow
 
-### Phase 1: Pre-Migration Preparation
-
-1. **Identify NRQL Drop Rules**: Catalog all existing NRQL drop rules in your infrastructure
-2. **Run tf-update Command**: Execute the `tf-update` command to populate `pipeline_cloud_rule_entity_id` values
-3. **Extract Resource Data**: Collect the updated resource information in the required JSON format
-4. **Environment Setup**: Ensure all required environment variables are configured
+Phase 1 is a prerequisite; see the "Overview" section in this guide for more details. Phase 2 begins with the JSON exported by Phase 1, as a prerequisite.
 
 ### Phase 2: Local Workspace Generation
 
@@ -112,6 +120,7 @@ newrelic migrate nrqldroprules tf-importgen-ci \
    - Initializes Terraform/OpenTofu workspace
    - Runs plan to generate Pipeline Cloud Rules configuration (`pcrs.tf`)
    - Formats all configuration files
+   - Generates guidelines/recommendations for Phase 3, i.e. to delist Drop Rules from Terraform state
 
 3. **Generated Files**:
    - `provider.tf`: New Relic provider configuration
@@ -126,10 +135,7 @@ The migration process differs depending on your Terraform/OpenTofu setup:
 
 1. **Copy Generated Files**: Transfer `provider.tf`, `imports.tf`, and `pcrs.tf` to your CI workspace
 2. **Execute Import**: Run `terraform plan` and `terraform apply` to import Pipeline Cloud Rules
-3. **Clean Up State**: After successful import, remove old NRQL drop rules from state:
-   ```bash
-   terraform state rm newrelic_nrql_drop_rule.rule1 newrelic_nrql_drop_rule.rule2
-   ```
+3. **Clean Up State**: After successful import, remove old NRQL drop rules from state, based on the recommendations shown in the output of the `tf-importgen-ci` command (run in Phase 2), towards the end
 
 ## Generated File Details
 
@@ -179,7 +185,7 @@ The command performs automatic account ID consistency validation:
 
 1. **Copy Generated Files**: Transfer `provider.tf`, `imports.tf`, and `pcrs.tf` to your CI workspace
 2. **Execute Import**: Run `terraform plan` and `terraform apply` to import Pipeline Cloud Rules
-3. **Remove Old Resources**: After successful import, clean up old NRQL drop rules from state:
+3. **Remove Old Resources**: After successful import, clean up old NRQL drop rules from state, based on the recommendations shown in the output of the `tf-importgen-ci` command (run in Phase 2), towards the end, or:
    ```bash
    # Identify resources in state
    terraform state list | grep nrql_drop_rule

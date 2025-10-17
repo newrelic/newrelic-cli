@@ -92,12 +92,12 @@ func isValidVersionCI(currentVersion, minVersion string) bool {
 
 		// Get current value, default to 0 if not enough parts
 		if i < len(currentParts) {
-			fmt.Sscanf(currentParts[i], "%d", &currentVal)
+			_, _ = fmt.Sscanf(currentParts[i], "%d", &currentVal)
 		}
 
 		// Get min value, default to 0 if not enough parts
 		if i < len(minParts) {
-			fmt.Sscanf(minParts[i], "%d", &minVal)
+			_, _ = fmt.Sscanf(minParts[i], "%d", &minVal)
 		}
 
 		if currentVal > minVal {
