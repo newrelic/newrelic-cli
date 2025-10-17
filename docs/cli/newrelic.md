@@ -23,6 +23,7 @@ The New Relic CLI enables users to perform tasks against the New Relic APIs
 * [newrelic agent](newrelic_agent.md)	 - Utilities for New Relic Agents
 * [newrelic apiAccess](newrelic_apiAccess.md)	 - Manage New Relic API access keys
 * [newrelic apm](newrelic_apm.md)	 - Interact with New Relic APM
+* [newrelic changeTracking](newrelic_changeTracking_create.md)	 - Create new change tracking events
 * [newrelic completion](newrelic_completion.md)	 - Generate completion script
 * [newrelic config](newrelic_config.md)	 - Manage the configuration of the New Relic CLI
 * [newrelic decode](newrelic_decode.md)	 - Decodes NR1 URL Strings 
