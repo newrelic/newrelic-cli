@@ -31,9 +31,16 @@ else
     exit 1
 fi
 
-for x in cut tar gzip sudo; do
+for x in cut tar gzip; do
     which $x > /dev/null || (echo "Unable to continue.  Please install $x before proceeding."; exit 1)
 done
+if [ "$UID" = "0" ]; then
+    # running as root, so skip sudo
+    sudo=""
+else
+    sudo="sudo"
+    which $sudo > /dev/null || (echo "Unable to continue.  Please install sudo before proceeding."; exit 1)
+fi
 
 DISTRO=$(cat /etc/issue /etc/system-release /etc/redhat-release /etc/os-release 2>/dev/null | grep -m 1 -Eo "(Ubuntu|Amazon|CentOS|Debian|Red Hat|SUSE)" || true)
 
@@ -43,12 +50,12 @@ if [ $IS_CURL_INSTALLED -eq 0 ]; then
     read -r CONFIRM_CURL
     if [ "$CONFIRM_CURL" == "Y" ] || [ "$CONFIRM_CURL" == "y" ] || [ "$CONFIRM_CURL" == "" ]; then
         if [ "$DISTRO" == "Ubuntu" ] || [ "$DISTRO" == "Debian" ]; then
-            sudo apt-get update
-            sudo apt-get install curl -y
+            $sudo apt-get update
+            $sudo apt-get install curl -y
         elif [ "$DISTRO" == "Amazon" ] || [ "$DISTRO" == "CentOS" ] || [ "$DISTRO" == "Red Hat" ]; then
-            sudo yum install curl -y
+            $sudo yum install curl -y
         elif [ "$DISTRO" == "SUSE" ]; then
-            sudo zypper -n install curl
+            $sudo zypper -n install curl
         else
             echo "Unable to continue. Please install curl manually before proceeding."; exit 131
         fi
@@ -66,7 +73,7 @@ DESTDIR="${DESTDIR:-/usr/local/bin}"
 curl --connect-timeout 10 -IsL "$BASE_URL" > /dev/null || ( echo "Cannot connect to $BASE_URL to download the New Relic CLI. Check your firewall settings. If you are using a proxy, make sure you have set the HTTPS_PROXY environment variable." && exit 132 )
 
 # Create DESTDIR if it does not exist.
-if [ ! -d "$DESTDIR" ]; then 
+if [ ! -d "$DESTDIR" ]; then
     mkdir -m 755 -p "$DESTDIR"
 fi
 
@@ -92,17 +99,14 @@ RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newr
 # Download & unpack the release tarball.
 curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
 
-if [ "$UID" != "0" ]; then
-    echo "Installing to $DESTDIR using sudo"
-    sudo mv newrelic "$DESTDIR"
-    sudo chmod +x "$DESTDIR/newrelic"
-    sudo chown root:0 "$DESTDIR/newrelic"
-else
+if [ "$UID" = "0" ]; then
     echo "Installing to $DESTDIR"
-    mv newrelic "$DESTDIR"
-    chmod +x "$DESTDIR/newrelic"
-    chown root:0 "$DESTDIR/newrelic"
+else
+    echo "Installing to $DESTDIR using sudo"
 fi
+$sudo mv newrelic "$DESTDIR"
+$sudo chmod +x "$DESTDIR/newrelic"
+$sudo chown root:0 "$DESTDIR/newrelic"
 
 # Delete the working directory when the install was successful.
 rm -r "$SCRATCH"
