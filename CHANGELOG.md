@@ -1,5 +1,10 @@
+<a name="v0.106.0"></a>
+## [v0.106.0] - 2025-10-24
+### Features
+- **nrqldroprules:** adds new migration commands to simplify migration of Drop Rules to Pipeline Cloud Rules in local envs ([#1753](https://github.com/newrelic/newrelic-cli/issues/1753))
+
 <a name="v0.105.2"></a>
-## [v0.105.2] - 2025-10-23
+## [v0.105.2] - 2025-10-24
 <a name="v0.105.1"></a>
 ## [v0.105.1] - 2025-10-23
 <a name="v0.105.0"></a>
@@ -2624,7 +2629,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.105.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.0...HEAD
+[v0.106.0]: https://github.com/newrelic/newrelic-cli/compare/v0.105.2...v0.106.0
 [v0.105.2]: https://github.com/newrelic/newrelic-cli/compare/v0.105.1...v0.105.2
 [v0.105.1]: https://github.com/newrelic/newrelic-cli/compare/v0.105.0...v0.105.1
 [v0.105.0]: https://github.com/newrelic/newrelic-cli/compare/v0.104.6...v0.105.0
