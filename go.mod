@@ -10,6 +10,7 @@ require (
 	github.com/ghodss/yaml v1.0.0
 	github.com/go-task/task/v3 v3.11.0
 	github.com/google/uuid v1.3.0
+	github.com/hashicorp/go-version v1.7.0
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f
 	github.com/imdario/mergo v0.3.16
 	github.com/itchyny/gojq v0.12.16
