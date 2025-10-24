@@ -323,14 +323,6 @@ func checkResourceHasEntityID(workspacePath, resource string, config *ToolConfig
 	return strings.Contains(string(output), "pipeline_cloud_rule_entity_id")
 }
 
-func checkResourceDestroyed(workspacePath, resource string, config *ToolConfig) bool {
-	cmd := exec.Command(config.ToolName, "state", "show", resource)
-	cmd.Dir = workspacePath
-
-	_, err := cmd.Output()
-	return err != nil // If command fails, resource likely doesn't exist
-}
-
 // Add helper functions for delisting functionality
 func generateStateRmCommands(toolName string, resources []string) []string {
 	var commands []string
@@ -564,4 +556,23 @@ func checkAndCleanupImportConfig(workspacePath string) {
 	} else {
 		fmt.Printf("✅ Successfully cleaned up import configuration file: %s\n", importConfigPath)
 	}
+}
+
+// executeCommandWithOutput executes a command and displays output in real-time
+func executeCommandWithOutput(workspacePath, command string) error {
+	parts := strings.Fields(command)
+	cmd := exec.Command(parts[0], parts[1:]...)
+	cmd.Dir = workspacePath
+
+	// Set up pipes for real-time output
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// Execute command
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("command failed: %s", command)
+	}
+
+	return nil
 }
