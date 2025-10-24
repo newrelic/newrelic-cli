@@ -1,15 +1,9 @@
 package migrate
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-version"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -18,6 +12,7 @@ var (
 	workspacePath        string
 	resourceIdentifiers  []string
 	skipResponseToPrompt bool
+	updateUseTofu        bool
 )
 
 var cmdNRQLDropRulesTFUpdate = &cobra.Command{
@@ -31,8 +26,8 @@ var cmdNRQLDropRulesTFUpdate = &cobra.Command{
 	Example: `  # Update drop rules in current directory
   newrelic migrate nrqldroprules tf-update
 
-  # Update drop rules in specific workspace
-  newrelic migrate nrqldroprules tf-update --workspacePath /path/to/terraform
+  # Update drop rules in specific workspace with OpenTofu
+  newrelic migrate nrqldroprules tf-update --workspacePath /path/to/terraform --tofu
 
   # Update specific resources without prompts
   newrelic migrate nrqldroprules tf-update --resourceIdentifiers resource1,resource2 --skipResponseToPrompt`,
@@ -47,268 +42,83 @@ func init() {
 	cmdNRQLDropRulesTFUpdate.Flags().StringVar(&workspacePath, "workspacePath", ".", "path to the Terraform workspace")
 	cmdNRQLDropRulesTFUpdate.Flags().StringSliceVar(&resourceIdentifiers, "resourceIdentifiers", []string{}, "list of resource identifiers for newrelic_nrql_drop_rule resources")
 	cmdNRQLDropRulesTFUpdate.Flags().BoolVar(&skipResponseToPrompt, "skipResponseToPrompt", false, "skip all user prompts (answers 'N' to all prompts)")
+	cmdNRQLDropRulesTFUpdate.Flags().BoolVar(&updateUseTofu, "tofu", false, "use OpenTofu instead of Terraform")
 }
 
 func runNRQLDropRulesTFUpdate() {
-	// Resolve workspace path
-	absWorkspacePath, err := filepath.Abs(workspacePath)
+	// Create command context
+	ctx, err := NewCommandContext(updateUseTofu, workspacePath, skipResponseToPrompt, CommandUpdate, resourceIdentifiers)
 	if err != nil {
-		log.Fatalf("Error resolving workspace path: %v", err)
+		log.Fatal(err)
 	}
 
-	log.Infof("Using Terraform workspace: %s", absWorkspacePath)
+	// Initialize command
+	if err := ctx.InitializeCommand(); err != nil {
+		log.Fatal(err)
+	}
 
-	// Try to run terraform state list
-	dropRuleResources, err := getTerraformDropRuleResources(absWorkspacePath)
+	// Try to get drop rule resources from state
+	dropRuleResources, err := ctx.GetDropRuleResources()
 	if err != nil {
-		log.Warnf("Failed to list Terraform state: %v", err)
-		handleTerraformStateFailure()
+		log.Warnf("Failed to list %s state: %v", ctx.ToolConfig.DisplayName, err)
+		handleUpdateStateFailure(ctx)
 		return
 	}
 
 	if len(dropRuleResources) > 0 {
-		handleTerraformStateSuccess(absWorkspacePath, dropRuleResources)
+		handleUpdateStateSuccess(ctx, dropRuleResources)
 	} else {
-		handleTerraformStateFailure()
+		handleUpdateStateFailure(ctx)
 	}
 }
 
-func getTerraformDropRuleResources(workspacePath string) ([]string, error) {
-	cmd := exec.Command("terraform", "state", "list")
-	cmd.Dir = workspacePath
+func handleUpdateStateSuccess(ctx *CommandContext, resources []string) {
+	fmt.Printf("\n✅ Found %d NRQL drop rule resources in %s state\n", len(resources), ctx.ToolConfig.DisplayName)
 
-	output, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("terraform state list failed: %v", err)
-	}
-
-	var dropRuleResources []string
-	lines := strings.Split(string(output), "\n")
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.Contains(line, "newrelic_nrql_drop_rule") {
-			dropRuleResources = append(dropRuleResources, line)
-		}
-	}
-
-	return dropRuleResources, nil
-}
-
-func handleTerraformStateSuccess(workspacePath string, resources []string) {
-	log.Infof("Found %d NRQL drop rule resources in Terraform state", len(resources))
-
-	// Check New Relic Terraform Provider version before proceeding
-	log.Info("Checking New Relic Terraform Provider version...")
-	providerVersion, err := getNewRelicProviderVersion(workspacePath)
-	if err != nil {
-		log.Warnf("Could not determine New Relic Terraform Provider version: %v", err)
-		log.Info("Skipping provider version check. Note that New Relic Terraform Provider >= 3.63.0 is required for pipeline_cloud_rule_entity_id support.")
-	} else {
-		log.Infof("Detected New Relic Terraform Provider version: %s", providerVersion)
-
-		// Parse and validate provider version using go-version
-		if !isValidProviderVersion(providerVersion, "3.63.0") {
-			log.Fatalf("Changes to add pipeline_cloud_rule_entity_id corresponding to drop rules would not be added to the state with New Relic Terraform Provider version %s. Provider version >= 3.63.0 is required. Please upgrade your provider.", providerVersion)
-		}
-		log.Info("New Relic Terraform Provider version check passed.")
-	}
-
-	// Generate target flags
-	targetFlags := make([]string, len(resources))
+	// List found resources
+	fmt.Println("\n📋 Resources to be updated:")
 	for i, resource := range resources {
-		targetFlags[i] = fmt.Sprintf("-target=%s", resource)
-	}
-	targetString := strings.Join(targetFlags, " ")
-
-	// Generate commands
-	planCommand := fmt.Sprintf("terraform plan -refresh-only %s", targetString)
-	applyCommand := fmt.Sprintf("terraform apply -refresh-only %s", targetString)
-
-	// Print commands
-	fmt.Printf("\nGenerated Terraform commands:\n")
-	fmt.Printf("1. %s\n", planCommand)
-	fmt.Printf("2. %s\n", applyCommand)
-
-	// Ask user if they want to execute
-	if skipResponseToPrompt {
-		fmt.Println("\nSkipping execution due to --skipResponseToPrompt flag")
-		return
+		fmt.Printf("  %d. %s\n", i+1, resource)
 	}
 
-	if !promptForExecution() {
-		fmt.Println("\nExecution halted. Please run the commands above manually in your Terraform workspace.")
-		return
+	// Check provider version
+	fmt.Println("\n🔍 Checking provider version requirements...")
+	if err := ctx.CheckProviderVersion(); err != nil {
+		log.Fatal(err)
 	}
 
-	// Execute commands
-	executeTerraformCommands(workspacePath, planCommand, applyCommand, resources)
-}
+	// Generate and display commands
+	planCmd, actionCmd := ctx.GenerateTargetCommands(resources)
 
-func handleTerraformStateFailure() {
-	if len(resourceIdentifiers) == 0 {
-		log.Fatal("Unable to list Terraform state and no --resourceIdentifiers provided. Please specify resource identifiers for newrelic_nrql_drop_rule resources.")
-	}
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("📝 Generated %s commands for resource updates:\n", ctx.ToolConfig.DisplayName)
+	fmt.Println(strings.Repeat("=", 60))
+	ctx.PrintCommands(planCmd, actionCmd)
 
-	log.Infof("Using provided resource identifiers: %v", resourceIdentifiers)
-
-	// Generate target flags from provided identifiers
-	targetFlags := make([]string, len(resourceIdentifiers))
-	for i, resource := range resourceIdentifiers {
-		targetFlags[i] = fmt.Sprintf("-target=%s", resource)
-	}
-	targetString := strings.Join(targetFlags, " ")
-
-	// Generate and print commands
-	planCommand := fmt.Sprintf("terraform plan -refresh-only %s", targetString)
-	applyCommand := fmt.Sprintf("terraform apply -refresh-only %s", targetString)
-
-	fmt.Printf("\nGenerated Terraform commands for provided resources:\n")
-	fmt.Printf("1. %s\n", planCommand)
-	fmt.Printf("2. %s\n", applyCommand)
-	fmt.Println("\nPlease run these commands in your appropriate Terraform workspace.")
-}
-
-func promptForExecution() bool {
-	fmt.Print("\nWould you like this CLI to execute the commands above? (Y/N): ")
-
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return false
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	return response == "Y" || response == "YES"
-}
-
-func executeTerraformCommands(workspacePath, planCommand, applyCommand string, resources []string) {
-	// Execute plan command
-	fmt.Println("\nExecuting terraform plan...")
-	if err := executeTerraformCommand(workspacePath, planCommand); err != nil {
-		log.Errorf("Terraform plan failed: %v", err)
-		return
-	}
-
-	// Ask for confirmation before apply
-	fmt.Print("\nProceed with terraform apply? (Y/N): ")
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	if response != "Y" && response != "YES" {
-		fmt.Println("Apply cancelled.")
-		return
-	}
-
-	// Execute apply command
-	fmt.Println("\nExecuting terraform apply...")
-	if err := executeTerraformCommand(workspacePath, applyCommand); err != nil {
-		log.Errorf("Terraform apply failed: %v", err)
-		return
-	}
-
-	// Validate updates
-	validateDropRuleUpdates(workspacePath, resources)
-}
-
-func executeTerraformCommand(workspacePath, command string) error {
-	parts := strings.Fields(command)
-	cmd := exec.Command(parts[0], parts[1:]...)
-	cmd.Dir = workspacePath
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	return cmd.Run()
-}
-
-func validateDropRuleUpdates(workspacePath string, resources []string) {
-	fmt.Println("\nValidating drop rule updates...")
-
-	updatedCount := 0
-	for _, resource := range resources {
-		if hasEntityID := checkResourceHasEntityID(workspacePath, resource); hasEntityID {
-			updatedCount++
-			fmt.Printf("✓ %s: Updated with pipeline_cloud_rule_entity_id\n", resource)
+	// Execute if user confirms
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	if ctx.PromptForExecution() {
+		if err := ctx.ExecuteStandardFlow(planCmd, actionCmd, resources); err != nil {
+			fmt.Printf("\n❌ Execution failed: %v\n", err)
+			log.Error(err)
 		} else {
-			fmt.Printf("⚠ %s: Missing pipeline_cloud_rule_entity_id\n", resource)
+			fmt.Println("\n🎉 NRQL drop rule update completed successfully!")
+			fmt.Println("Your resources now include pipeline_cloud_rule_entity_id values.")
 		}
-	}
-
-	if updatedCount == len(resources) {
-		fmt.Printf("\n✅ All %d NRQL drop rule resources have been successfully updated with pipeline_cloud_rule_entity_id\n", updatedCount)
 	} else {
-		fmt.Printf("\n⚠️ %d out of %d resources were updated. Please check the remaining resources manually.\n", updatedCount, len(resources))
+		fmt.Printf("\n🛑 Execution halted by user.\n")
+		fmt.Printf("Please run the commands above manually in your %s workspace:\n", ctx.ToolConfig.DisplayName)
+		fmt.Printf("  1. %s\n", planCmd)
+		fmt.Printf("  2. %s -auto-approve\n", actionCmd)
+		fmt.Println("\nNote: The -auto-approve flag is recommended to avoid interactive prompts.")
 	}
 }
 
-func checkResourceHasEntityID(workspacePath, resource string) bool {
-	cmd := exec.Command("terraform", "state", "show", resource)
-	cmd.Dir = workspacePath
-
-	output, err := cmd.Output()
-	if err != nil {
-		log.Warnf("Failed to show state for %s: %v", resource, err)
-		return false
+func handleUpdateStateFailure(ctx *CommandContext) {
+	if len(ctx.ResourceIDs) == 0 {
+		log.Fatalf("Unable to list %s state and no --resourceIdentifiers provided. Please specify resource identifiers for newrelic_nrql_drop_rule resources.", ctx.ToolConfig.DisplayName)
 	}
 
-	return strings.Contains(string(output), "pipeline_cloud_rule_entity_id")
-}
-
-// Helper functions for New Relic Terraform Provider version checking
-func getNewRelicProviderVersion(workspacePath string) (string, error) {
-	cmd := exec.Command("terraform", "version", "-json")
-	cmd.Dir = workspacePath
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get terraform version: %v", err)
-	}
-
-	// Parse JSON output
-	var versionData map[string]interface{}
-	if err := json.Unmarshal(output, &versionData); err != nil {
-		return "", fmt.Errorf("failed to parse terraform version JSON: %v", err)
-	}
-
-	// Extract provider selections
-	if providerSelections, ok := versionData["provider_selections"].(map[string]interface{}); ok {
-		// Look for New Relic provider
-		for providerKey, versionFound := range providerSelections {
-			if strings.Contains(providerKey, "newrelic/newrelic") {
-				if versionStr, ok := versionFound.(string); ok {
-					return strings.TrimPrefix(versionStr, "v"), nil
-				}
-			}
-		}
-	}
-
-	return "", fmt.Errorf("could not find New Relic provider version in terraform version output")
-}
-
-func isValidProviderVersion(currentVersion, minVersion string) bool {
-	// Clean version strings by removing "v" prefix if present
-	currentVersion = strings.TrimPrefix(currentVersion, "v")
-	minVersion = strings.TrimPrefix(minVersion, "v")
-
-	// Parse versions using go-version
-	current, err := version.NewVersion(currentVersion)
-	if err != nil {
-		log.Warnf("Failed to parse current provider version %s: %v", currentVersion, err)
-		return false
-	}
-
-	minimum, err := version.NewVersion(minVersion)
-	if err != nil {
-		log.Warnf("Failed to parse minimum provider version %s: %v", minVersion, err)
-		return false
-	}
-
-	// Check if current version is greater than or equal to minimum required version
-	return current.GreaterThanOrEqual(minimum)
+	log.Infof("Using provided resource identifiers: %v", ctx.ResourceIDs)
+	ctx.PrintCommandsForResourceIDs()
 }

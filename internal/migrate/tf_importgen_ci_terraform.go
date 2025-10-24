@@ -171,3 +171,22 @@ func executeCommandCI(workspacePath, command string) error {
 
 	return nil
 }
+
+// executeCommandWithOutput executes a command and displays output in real-time
+func executeCommandWithOutput(workspacePath, command string) error {
+	parts := strings.Fields(command)
+	cmd := exec.Command(parts[0], parts[1:]...)
+	cmd.Dir = workspacePath
+
+	// Set up pipes for real-time output
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// Execute command
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("command failed: %s", command)
+	}
+
+	return nil
+}

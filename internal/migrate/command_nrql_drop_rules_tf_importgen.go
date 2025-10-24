@@ -1,12 +1,7 @@
 package migrate
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -18,6 +13,7 @@ var (
 	pipelineCloudRuleIDs       []string
 	fileName                   string
 	importSkipResponseToPrompt bool
+	importUseTofu              bool
 )
 
 var cmdNRQLDropRulesTFImportGen = &cobra.Command{
@@ -32,8 +28,8 @@ var cmdNRQLDropRulesTFImportGen = &cobra.Command{
 	Example: `  # Generate import config in current directory
   newrelic migrate nrqldroprules tf-importgen
 
-  # Generate import config in specific workspace and save to file
-  newrelic migrate nrqldroprules tf-importgen --workspacePath /path/to/terraform --fileName imports.tf
+  # Generate import config in specific workspace and save to file with OpenTofu
+  newrelic migrate nrqldroprules tf-importgen --workspacePath /path/to/terraform --fileName imports.tf --tofu
 
   # Generate import config with specific Pipeline Cloud Rule IDs
   newrelic migrate nrqldroprules tf-importgen --pipelineCloudRuleIDs id1,id2 --skipResponseToPrompt`,
@@ -49,379 +45,163 @@ func init() {
 	cmdNRQLDropRulesTFImportGen.Flags().StringSliceVar(&pipelineCloudRuleIDs, "pipelineCloudRuleIDs", []string{}, "list of Pipeline Cloud Rule IDs to generate import configuration with")
 	cmdNRQLDropRulesTFImportGen.Flags().StringVar(&fileName, "fileName", "", "file name to write the import blocks to (prints to terminal if not specified)")
 	cmdNRQLDropRulesTFImportGen.Flags().BoolVar(&importSkipResponseToPrompt, "skipResponseToPrompt", false, "skip all user prompts (answers 'N' to all prompts)")
-}
-
-type TerraformState struct {
-	Values struct {
-		RootModule struct {
-			Resources []struct {
-				Address string                 `json:"address"`
-				Values  map[string]interface{} `json:"values"`
-			} `json:"resources"`
-		} `json:"root_module"`
-	} `json:"values"`
+	cmdNRQLDropRulesTFImportGen.Flags().BoolVar(&importUseTofu, "tofu", false, "use OpenTofu instead of Terraform")
 }
 
 func runNRQLDropRulesTFImportGen() {
-	// Resolve workspace path
-	absWorkspacePath, err := filepath.Abs(importWorkspacePath)
+	// Create command context
+	ctx, err := NewCommandContext(importUseTofu, importWorkspacePath, importSkipResponseToPrompt, CommandImport, pipelineCloudRuleIDs)
 	if err != nil {
-		log.Fatalf("Error resolving workspace path: %v", err)
+		log.Fatal(err)
 	}
 
-	log.Infof("Using Terraform workspace: %s", absWorkspacePath)
+	// Initialize command
+	if err := ctx.InitializeCommand(); err != nil {
+		log.Fatal(err)
+	}
 
-	// Try to run terraform state list
-	dropRuleResources, err := getTerraformDropRuleResources(absWorkspacePath)
+	// Try to get drop rule resources from state
+	dropRuleResources, err := ctx.GetDropRuleResources()
 	if err != nil {
-		log.Warnf("Failed to list Terraform state: %v", err)
-		handleImportStateFailure()
+		log.Warnf("Failed to list %s state: %v", ctx.ToolConfig.DisplayName, err)
+		handleImportStateFailure(ctx)
 		return
 	}
 
 	if len(dropRuleResources) > 0 {
-		handleImportStateSuccess(absWorkspacePath, dropRuleResources)
+		handleImportStateSuccess(ctx, dropRuleResources)
 	} else {
-		handleImportStateFailure()
+		handleImportStateFailure(ctx)
 	}
 }
 
-func handleImportStateSuccess(workspacePath string, resources []string) {
-	log.Infof("Found %d NRQL drop rule resources in Terraform state", len(resources))
+func handleImportStateSuccess(ctx *CommandContext, resources []string) {
+	log.Infof("Found %d NRQL drop rule resources in %s state", len(resources), ctx.ToolConfig.DisplayName)
 
-	// Validate that all resources have pipeline_cloud_rule_entity_id
-	_, err := validateAndExtractPipelineRuleIDs(workspacePath, resources)
+	// Validate resources have pipeline_cloud_rule_entity_id
+	_, err := ValidateAndExtractPipelineRuleIDs(ctx.WorkspacePath, resources, ctx.ToolConfig)
 	if err != nil {
 		log.Fatalf("Validation failed: %v", err)
 	}
 
-	// Check Terraform version before proceeding
-	log.Info("Checking Terraform version...")
-	terraformVersion, err := getTerraformVersion()
-	if err != nil {
-		log.Warnf("Could not determine Terraform version: %v", err)
-		log.Info("Skipping Terraform version check. Note that Terraform >= 1.5 is required for generating import configuration.")
-	} else {
-		log.Infof("Detected Terraform version: %s", terraformVersion)
+	// Check tool version
+	checkToolVersionForImport(ctx.ToolConfig)
 
-		// Parse and validate Terraform version
-		if !isValidTerraformVersion(terraformVersion, "1.5") {
-			log.Fatalf("This command requires Terraform version >= 1.5 to generate import configuration. Your version: %s", terraformVersion)
-		}
-		log.Info("Terraform version check passed.")
-	}
-	// Generate import configuration
-	importConfig := generateImportConfigurationFromResources(resources)
-
-	// Handle output based on fileName flag
-	if fileName != "" {
-		writeImportConfigToFile(workspacePath, importConfig)
-	} else {
-		fmt.Printf("\nGenerated import configuration:\n")
-		fmt.Println(importConfig)
-	}
-
-	// Generate config file name for terraform command
-	generateConfigOutFile := "generated_pipeline_rules.tf"
-	importConfigFile := "import_config_pipeline_rules.tf"
-
-	// Ask if user wants to write import config to the generated file (only if fileName not specified)
-	if fileName == "" && !importSkipResponseToPrompt {
-		if promptForWriteToFile() {
-			writeImportConfigToGeneratedFile(workspacePath, importConfig, importConfigFile)
-		}
-	}
-
-	// Generate and show terraform commands
-	planCommand := fmt.Sprintf("terraform plan -generate-config-out=%s", generateConfigOutFile)
-	applyCommand := "terraform apply"
-
-	fmt.Printf("\nGenerated Terraform commands:\n")
-	fmt.Printf("1. %s\n", planCommand)
-	fmt.Printf("2. %s\n", applyCommand)
-
-	// Ask user if they want to execute
-	if importSkipResponseToPrompt {
-		fmt.Println("\nSkipping execution due to --skipResponseToPrompt flag")
-		return
-	}
-
-	if !promptForImportExecution() {
-		fmt.Println("\nExecution halted. Please run the commands above manually in your Terraform workspace.")
-		return
-	}
-
-	// Execute commands
-	executeImportTerraformCommands(workspacePath, planCommand, applyCommand)
+	// Generate and handle import configuration
+	importConfig := GenerateImportConfigFromResources(resources)
+	handleImportOutput(ctx, importConfig)
+	executeImportWorkflow(ctx, importConfig)
 }
 
-func handleImportStateFailure() {
+func handleImportStateFailure(ctx *CommandContext) {
 	if len(pipelineCloudRuleIDs) == 0 {
-		log.Fatal("Unable to list Terraform state and no --pipelineCloudRuleIDs provided. Please specify Pipeline Cloud Rule IDs to generate import configuration.")
+		log.Fatalf("Unable to list %s state and no --pipelineCloudRuleIDs provided. Please specify Pipeline Cloud Rule IDs to generate import configuration.", ctx.ToolConfig.DisplayName)
 	}
 
 	log.Infof("Using provided Pipeline Cloud Rule IDs: %v", pipelineCloudRuleIDs)
 
 	// Generate import configuration from provided IDs
-	importConfig := generateImportConfiguration(pipelineCloudRuleIDs)
+	importConfig := GenerateImportConfigFromIDs(pipelineCloudRuleIDs)
+	handleImportOutput(ctx, importConfig)
+	executeImportWorkflow(ctx, importConfig)
+}
 
-	// Handle output based on fileName flag
-	if fileName != "" {
-		writeImportConfigToFile(".", importConfig)
-	} else {
-		fmt.Printf("\nGenerated import configuration for provided Pipeline Cloud Rule IDs:\n")
-		fmt.Println(importConfig)
+func checkToolVersionForImport(config *ToolConfig) {
+	log.Infof("Checking %s version...", config.DisplayName)
+	toolVersion, err := getToolVersionCI(config)
+	if err != nil {
+		log.Warnf("Could not determine %s version: %v", config.DisplayName, err)
+		log.Infof("Skipping %s version check. Note that %s >= 1.5 is required for generating import configuration.", config.DisplayName, config.DisplayName)
+		return
 	}
 
-	// Generate config file name for terraform command
-	generateConfigOutFile := "generated_pipeline_rules.tf"
-	importConfigFile := "import_config_pipeline_rules.tf"
+	log.Infof("Detected %s version: %s", config.DisplayName, toolVersion)
 
-	// Ask if user wants to write import config to the generated file (only if fileName not specified)
-	if fileName == "" && !importSkipResponseToPrompt {
-		if promptForWriteToFile() {
-			writeImportConfigToGeneratedFile(".", importConfig, importConfigFile)
+	if !isValidVersionCI(toolVersion, MinRequiredVersion) {
+		log.Fatalf("This command requires %s version >= %s to generate import configuration. Your version: %s", config.DisplayName, MinRequiredVersion, toolVersion)
+	}
+	log.Infof("%s version check passed.", config.DisplayName)
+}
+
+func handleImportOutput(ctx *CommandContext, importConfig string) {
+	if fileName != "" {
+		WriteConfigToFile(ctx.WorkspacePath, importConfig, fileName)
+	} else {
+		fmt.Printf("\nGenerated import configuration:\n")
+		fmt.Println(importConfig)
+	}
+}
+
+func executeImportWorkflow(ctx *CommandContext, importConfig string) {
+	// Handle writing to generated file
+	if fileName == "" && !ctx.SkipPrompts {
+		fmt.Print("\nWould you like to write the import configuration to the generated config file? (Y/N): ")
+		if readUserInput() {
+			WriteConfigToFile(ctx.WorkspacePath, importConfig, "import_config_pipeline_rules.tf")
 		}
 	}
 
-	// Generate and show terraform commands
-	planCommand := fmt.Sprintf("terraform plan -generate-config-out=%s", generateConfigOutFile)
-	applyCommand := "terraform apply"
+	// Generate and show commands
+	planCommand := fmt.Sprintf("%s plan -generate-config-out=generated_pipeline_rules.tf", ctx.ToolConfig.ToolName)
+	applyCommand := fmt.Sprintf("%s apply", ctx.ToolConfig.ToolName)
 
-	fmt.Printf("\nGenerated Terraform commands:\n")
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("📝 Generated %s commands for Pipeline Cloud Rule import:\n", ctx.ToolConfig.DisplayName)
+	fmt.Println(strings.Repeat("=", 60))
 	fmt.Printf("1. %s\n", planCommand)
 	fmt.Printf("2. %s\n", applyCommand)
 
-	if !importSkipResponseToPrompt {
-		if promptForImportExecution() {
-			executeImportTerraformCommands(".", planCommand, applyCommand)
+	// Execute if user confirms
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	if ctx.PromptForExecution() {
+		if err := executeImportCommandsStandardFlow(ctx, planCommand, applyCommand); err != nil {
+			fmt.Printf("\n❌ Execution failed: %v\n", err)
+			log.Error(err)
 		} else {
-			fmt.Println("\nExecution halted. Please run the commands above manually in your Terraform workspace.")
+			fmt.Println("\n🎉 Pipeline Cloud Rule import completed successfully!")
+			fmt.Println("Your Pipeline Cloud Rules have been imported into Terraform state.")
 		}
 	} else {
-		fmt.Println("\nPlease run these commands in your appropriate Terraform workspace.")
+		fmt.Printf("\n🛑 Execution halted by user.\n")
+		fmt.Printf("Please run the commands above manually in your %s workspace:\n", ctx.ToolConfig.DisplayName)
+		fmt.Printf("  1. %s\n", planCommand)
+		fmt.Printf("  2. %s -auto-approve\n", applyCommand)
+		fmt.Println("\nNote: The -auto-approve flag is recommended to avoid interactive prompts.")
 	}
 }
 
-func validateAndExtractPipelineRuleIDs(workspacePath string, resources []string) ([]string, error) {
-	var pipelineRuleIDs []string
-
-	for _, resource := range resources {
-		// Get detailed state information using terraform show -json
-		cmd := exec.Command("terraform", "show", "-json")
-		cmd.Dir = workspacePath
-
-		output, err := cmd.Output()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get terraform state JSON: %v", err)
-		}
-
-		var state TerraformState
-		if err := json.Unmarshal(output, &state); err != nil {
-			return nil, fmt.Errorf("failed to parse terraform state JSON: %v", err)
-		}
-
-		// Find the specific resource and extract pipeline_cloud_rule_entity_id
-		found := false
-		for _, res := range state.Values.RootModule.Resources {
-			if res.Address == resource {
-				found = true
-				if entityID, ok := res.Values["pipeline_cloud_rule_entity_id"]; ok && entityID != nil && entityID != "" {
-					pipelineRuleIDs = append(pipelineRuleIDs, fmt.Sprintf("%v", entityID))
-				} else {
-					return nil, fmt.Errorf("resource %s is missing pipeline_cloud_rule_entity_id. Please run tf-update first", resource)
-				}
-				break
-			}
-		}
-
-		if !found {
-			return nil, fmt.Errorf("resource %s not found in state", resource)
-		}
+func executeImportCommandsStandardFlow(ctx *CommandContext, planCmd, applyCmd string) error {
+	// Execute plan and show output immediately
+	if err := ctx.ExecuteCommand(planCmd, "plan"); err != nil {
+		return err
 	}
 
-	return pipelineRuleIDs, nil
-}
+	// Show plan completion and ask for apply confirmation
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("📋 Plan completed successfully! Review the import plan above.\n")
+	fmt.Println(strings.Repeat("=", 60))
 
-func generateImportConfigurationFromResources(resources []string) string {
-	var importBlocks []string
-
-	for _, resource := range resources {
-		// Extract the resource identifier (e.g., "foo" from "newrelic_nrql_drop_rule.foo")
-		resourceParts := strings.Split(resource, ".")
-		if len(resourceParts) < 2 {
-			log.Warnf("Invalid resource format: %s", resource)
-			continue
-		}
-
-		resourceIdentifier := strings.Join(resourceParts[1:], ".") // Handle cases like "module.something.resource.name"
-
-		importBlock := fmt.Sprintf(`import {
-  to = newrelic_pipeline_cloud_rule.%s
-  id = %s.pipeline_cloud_rule_entity_id
-}`, resourceIdentifier, resource)
-		importBlocks = append(importBlocks, importBlock)
+	// Get confirmation for apply
+	if !ctx.PromptForActionConfirmation() {
+		fmt.Println("\n🛑 Import cancelled by user.")
+		return nil
 	}
 
-	return strings.Join(importBlocks, "\n\n")
-}
+	// Add auto-approve to apply command and show warning
+	autoApproveCmd := applyCmd + " -auto-approve"
 
-func generateImportConfiguration(pipelineRuleIDs []string) string {
-	var importBlocks []string
+	fmt.Printf("\n⚠️  WARNING: Using -auto-approve flag to avoid interactive prompts.\n")
+	fmt.Printf("The import operation will proceed without additional confirmation.\n")
+	fmt.Println(strings.Repeat("-", 60))
 
-	for i, ruleID := range pipelineRuleIDs {
-		importBlock := fmt.Sprintf(`import {
-  to = newrelic_pipeline_cloud_rule.pipeline_rule_%d
-  id = "%s"
-}`, i+1, ruleID)
-		importBlocks = append(importBlocks, importBlock)
+	// Execute apply with auto-approve
+	if err := ctx.ExecuteCommand(autoApproveCmd, "apply"); err != nil {
+		return err
 	}
 
-	return strings.Join(importBlocks, "\n\n")
-}
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("🔍 Import operation completed successfully!\n")
+	fmt.Println(strings.Repeat("=", 60))
 
-func writeImportConfigToFile(workspacePath, importConfig string) {
-	filePath := filepath.Join(workspacePath, fileName)
-
-	file, err := os.Create(filePath)
-	if err != nil {
-		log.Errorf("Failed to create file %s: %v", filePath, err)
-		fmt.Printf("\nFailed to write to file. Import configuration:\n")
-		fmt.Println(importConfig)
-		return
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(importConfig)
-	if err != nil {
-		log.Errorf("Failed to write to file %s: %v", filePath, err)
-		fmt.Printf("\nFailed to write to file. Import configuration:\n")
-		fmt.Println(importConfig)
-		return
-	}
-
-	fmt.Printf("\nImport configuration written to: %s\n", filePath)
-}
-
-func promptForImportExecution() bool {
-	fmt.Print("\nWould you like this CLI to execute the commands above? (Y/N): ")
-
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return false
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	return response == "Y" || response == "YES"
-}
-
-func promptForWriteToFile() bool {
-	fmt.Print("\nWould you like to write the import configuration to the generated config file? (Y/N): ")
-
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return false
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	return response == "Y" || response == "YES"
-}
-
-func executeImportTerraformCommands(workspacePath, planCommand, applyCommand string) {
-	// Execute plan command
-	fmt.Println("\nExecuting terraform plan...")
-	if err := executeTerraformCommand(workspacePath, planCommand); err != nil {
-		log.Errorf("Terraform plan failed: %v", err)
-		return
-	}
-
-	// Ask for confirmation before apply
-	fmt.Print("\nProceed with terraform apply? (Y/N): ")
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	if response != "Y" && response != "YES" {
-		fmt.Println("Apply cancelled.")
-		return
-	}
-
-	// Execute apply command
-	fmt.Println("\nExecuting terraform apply...")
-	if err := executeTerraformCommand(workspacePath, applyCommand); err != nil {
-		log.Errorf("Terraform apply failed: %v", err)
-		return
-	}
-
-	fmt.Println("\n✅ Import configuration and terraform commands executed successfully!")
-}
-
-func writeImportConfigToGeneratedFile(workspacePath, importConfig, importConfigFile string) {
-	filePath := filepath.Join(workspacePath, importConfigFile)
-
-	file, err := os.Create(filePath)
-	if err != nil {
-		log.Errorf("Failed to create file %s: %v", filePath, err)
-		fmt.Printf("\nFailed to write import configuration to file.\n")
-		return
-	}
-	defer file.Close()
-
-	_, err = file.WriteString(importConfig)
-	if err != nil {
-		log.Errorf("Failed to write to file %s: %v", filePath, err)
-		fmt.Printf("\nFailed to write import configuration to file.\n")
-		return
-	}
-
-	fmt.Printf("\nImport configuration written to: %s\n", filePath)
-}
-
-func isValidTerraformVersion(currentVersion, minVersion string) bool {
-	// Split versions by dots and remove any "v" prefix
-	currentVersion = strings.TrimPrefix(currentVersion, "v")
-	minVersion = strings.TrimPrefix(minVersion, "v")
-
-	currentParts := strings.Split(currentVersion, ".")
-	minParts := strings.Split(minVersion, ".")
-
-	// Ensure we have at least two parts for comparison
-	for i := 0; i < 2; i++ {
-		var currentVal, minVal int
-
-		// Get current value, default to 0 if not enough parts
-		if i < len(currentParts) {
-			fmt.Sscanf(currentParts[i], "%d", &currentVal)
-		}
-
-		// Get min value, default to 0 if not enough parts
-		if i < len(minParts) {
-			fmt.Sscanf(minParts[i], "%d", &minVal)
-		}
-
-		if currentVal >= minVal {
-			// Current version component is greater, so overall version is higher
-			if i < 1 {
-				continue
-			}
-			return true
-		} else if currentVal < minVal {
-			// Current version component is less, so overall version is lower
-			return false
-		}
-
-		// If equal, continue to next component
-	}
-
-	// If we've compared all components and they're equal, versions are equal
-	return true
-
+	return nil
 }

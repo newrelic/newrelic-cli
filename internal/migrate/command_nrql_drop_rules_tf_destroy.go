@@ -1,11 +1,7 @@
 package migrate
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -13,211 +9,136 @@ import (
 )
 
 var (
-	destroyWorkspacePath        string
-	destroyResourceIdentifiers  []string
-	destroySkipResponseToPrompt bool
+	delistWorkspacePath        string
+	delistResourceIdentifiers  []string
+	delistSkipResponseToPrompt bool
+	delistUseTofu              bool
 )
 
 var cmdNRQLDropRulesTFDestroy = &cobra.Command{
-	Use:   "tf-destroy",
-	Short: "Destroy NRQL drop rules in Terraform workspace",
+	Use:   "tf-delist",
+	Short: "Delist NRQL drop rules from Terraform state (without destroying)",
 	Long: `
-			Destroy NRQL drop rules in your Terraform workspace by generating and executing
-			terraform destroy commands. This command will attempt to run terraform commands
-			in your workspace to destroy the drop rule resources.
+			Safely remove NRQL drop rules from your Terraform state without destroying the actual
+			resources. This command uses 'terraform state rm' to delist the resources, allowing
+			you to stop managing them via Terraform while keeping the drop rules active in New Relic.
+			
+			⚠️  IMPORTANT: This command DOES NOT destroy the actual drop rules in New Relic.
+			It only removes them from Terraform state management.
 	`,
-	Example: `  # Destroy drop rules in current directory
-  newrelic migrate nrqldroprules tf-destroy
+	Example: `  # Delist drop rules in current directory
+  newrelic migrate nrqldroprules tf-delist
 
-  # Destroy drop rules in specific workspace
-  newrelic migrate nrqldroprules tf-destroy --workspacePath /path/to/terraform
+  # Delist drop rules in specific workspace with OpenTofu
+  newrelic migrate nrqldroprules tf-delist --workspacePath /path/to/terraform --tofu
 
-  # Destroy specific resources without prompts
-  newrelic migrate nrqldroprules tf-destroy --resourceIdentifiers resource1,resource2 --skipResponseToPrompt`,
+  # Delist specific resources without prompts
+  newrelic migrate nrqldroprules tf-delist --resourceIdentifiers resource1,resource2 --skipResponseToPrompt`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runNRQLDropRulesTFDestroy()
+		runNRQLDropRulesTFDelist()
 	},
 }
 
 func init() {
 	cmdNRQLDropRules.AddCommand(cmdNRQLDropRulesTFDestroy)
 
-	cmdNRQLDropRulesTFDestroy.Flags().StringVar(&destroyWorkspacePath, "workspacePath", ".", "path to the Terraform workspace")
-	cmdNRQLDropRulesTFDestroy.Flags().StringSliceVar(&destroyResourceIdentifiers, "resourceIdentifiers", []string{}, "list of resource identifiers for newrelic_nrql_drop_rule resources")
-	cmdNRQLDropRulesTFDestroy.Flags().BoolVar(&destroySkipResponseToPrompt, "skipResponseToPrompt", false, "skip all user prompts (answers 'N' to all prompts)")
+	cmdNRQLDropRulesTFDestroy.Flags().StringVar(&delistWorkspacePath, "workspacePath", ".", "path to the Terraform workspace")
+	cmdNRQLDropRulesTFDestroy.Flags().StringSliceVar(&delistResourceIdentifiers, "resourceIdentifiers", []string{}, "list of resource identifiers for newrelic_nrql_drop_rule resources")
+	cmdNRQLDropRulesTFDestroy.Flags().BoolVar(&delistSkipResponseToPrompt, "skipResponseToPrompt", false, "skip all user prompts (answers 'N' to all prompts)")
+	cmdNRQLDropRulesTFDestroy.Flags().BoolVar(&delistUseTofu, "tofu", false, "use OpenTofu instead of Terraform")
 }
 
-func runNRQLDropRulesTFDestroy() {
-	// Resolve workspace path
-	absWorkspacePath, err := filepath.Abs(destroyWorkspacePath)
+func runNRQLDropRulesTFDelist() {
+	// Create command context with new CommandDelist type
+	ctx, err := NewCommandContext(delistUseTofu, delistWorkspacePath, delistSkipResponseToPrompt, CommandDelist, delistResourceIdentifiers)
 	if err != nil {
-		log.Fatalf("Error resolving workspace path: %v", err)
+		log.Fatal(err)
 	}
 
-	log.Infof("Using Terraform workspace: %s", absWorkspacePath)
+	// Initialize command
+	if err := ctx.InitializeCommand(); err != nil {
+		log.Fatal(err)
+	}
 
-	// Try to run terraform state list
-	dropRuleResources, err := getTerraformDropRuleResources(absWorkspacePath)
+	// Try to get drop rule resources from state
+	dropRuleResources, err := ctx.GetDropRuleResources()
 	if err != nil {
-		log.Warnf("Failed to list Terraform state: %v", err)
-		handleDestroyTerraformStateFailure()
+		log.Warnf("Failed to list %s state: %v", ctx.ToolConfig.DisplayName, err)
+		handleDelistStateFailure(ctx)
 		return
 	}
 
 	if len(dropRuleResources) > 0 {
-		handleDestroyTerraformStateSuccess(absWorkspacePath, dropRuleResources)
+		handleDelistStateSuccess(ctx, dropRuleResources)
 	} else {
-		handleDestroyTerraformStateFailure()
+		handleDelistStateFailure(ctx)
 	}
 }
 
-func handleDestroyTerraformStateSuccess(workspacePath string, resources []string) {
-	log.Infof("Found %d NRQL drop rule resources in Terraform state", len(resources))
+func handleDelistStateSuccess(ctx *CommandContext, resources []string) {
+	fmt.Printf("\n✅ Found %d NRQL drop rule resources in %s state\n", len(resources), ctx.ToolConfig.DisplayName)
 
-	// Generate target flags
-	targetFlags := make([]string, len(resources))
+	// Display important warning
+	fmt.Println("\n" + strings.Repeat("⚠️", 20))
+	fmt.Printf("🛡️  SAFE DELISTING MODE: Resources will be REMOVED FROM STATE ONLY\n")
+	fmt.Printf("📋 The actual drop rules in New Relic will remain ACTIVE and UNCHANGED\n")
+	fmt.Printf("🔄 This allows you to stop managing them via %s safely\n", ctx.ToolConfig.DisplayName)
+	fmt.Println(strings.Repeat("⚠️", 20))
+
+	// Check and cleanup import configuration file before proceeding
+	checkAndCleanupImportConfig(ctx.WorkspacePath)
+
+	// List found resources
+	fmt.Println("\n📋 Resources to be delisted from state:")
 	for i, resource := range resources {
-		targetFlags[i] = fmt.Sprintf("-target=%s", resource)
-	}
-	targetString := strings.Join(targetFlags, " ")
-
-	// Generate commands
-	planCommand := fmt.Sprintf("terraform plan -destroy %s", targetString)
-	destroyCommand := fmt.Sprintf("terraform destroy %s", targetString)
-
-	// Print commands
-	fmt.Printf("\nGenerated Terraform commands:\n")
-	fmt.Printf("1. %s\n", planCommand)
-	fmt.Printf("2. %s\n", destroyCommand)
-
-	// Ask user if they want to execute
-	if destroySkipResponseToPrompt {
-		fmt.Println("\nSkipping execution due to --skipResponseToPrompt flag")
-		return
+		fmt.Printf("  %d. %s\n", i+1, resource)
 	}
 
-	if !promptForDestroyExecution() {
-		fmt.Println("\nExecution halted. Please run the commands above manually in your Terraform workspace.")
-		return
+	// Generate and display state rm commands
+	stateRmCommands := generateStateRmCommands(ctx.ToolConfig.ToolName, resources)
+
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("📝 Generated %s state removal commands:\n", ctx.ToolConfig.DisplayName)
+	fmt.Println(strings.Repeat("=", 60))
+
+	for i, cmd := range stateRmCommands {
+		fmt.Printf("%d. %s\n", i+1, cmd)
 	}
 
-	// Execute commands
-	executeDestroyTerraformCommands(workspacePath, planCommand, destroyCommand, resources)
-}
-
-func handleDestroyTerraformStateFailure() {
-	if len(destroyResourceIdentifiers) == 0 {
-		log.Fatal("Unable to list Terraform state and no --resourceIdentifiers provided. Please specify resource identifiers for newrelic_nrql_drop_rule resources.")
-	}
-
-	log.Infof("Using provided resource identifiers: %v", destroyResourceIdentifiers)
-
-	// Generate target flags from provided identifiers
-	targetFlags := make([]string, len(destroyResourceIdentifiers))
-	for i, resource := range destroyResourceIdentifiers {
-		targetFlags[i] = fmt.Sprintf("-target=%s", resource)
-	}
-	targetString := strings.Join(targetFlags, " ")
-
-	// Generate and print commands
-	planCommand := fmt.Sprintf("terraform plan -destroy %s", targetString)
-	destroyCommand := fmt.Sprintf("terraform destroy %s", targetString)
-
-	fmt.Printf("\nGenerated Terraform commands for provided resources:\n")
-	fmt.Printf("1. %s\n", planCommand)
-	fmt.Printf("2. %s\n", destroyCommand)
-	fmt.Println("\nPlease run these commands in your appropriate Terraform workspace.")
-}
-
-func promptForDestroyExecution() bool {
-	fmt.Print("\nWould you like this CLI to execute the commands above? (Y/N): ")
-
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return false
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	return response == "Y" || response == "YES"
-}
-
-func executeDestroyTerraformCommands(workspacePath, planCommand, destroyCommand string, resources []string) {
-	// Execute plan command
-	fmt.Println("\nExecuting terraform plan...")
-	if err := executeDestroyTerraformCommand(workspacePath, planCommand); err != nil {
-		log.Errorf("Terraform plan failed: %v", err)
-		return
-	}
-
-	// Ask for confirmation before destroy
-	fmt.Print("\nProceed with terraform destroy? (Y/N): ")
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		log.Errorf("Error reading input: %v", err)
-		return
-	}
-
-	response = strings.TrimSpace(strings.ToUpper(response))
-	if response != "Y" && response != "YES" {
-		fmt.Println("Destroy cancelled.")
-		return
-	}
-
-	// Execute destroy command
-	fmt.Println("\nExecuting terraform destroy...")
-	if err := executeDestroyTerraformCommand(workspacePath, destroyCommand); err != nil {
-		log.Errorf("Terraform destroy failed: %v", err)
-		return
-	}
-
-	// Validate destruction
-	validateDropRuleDestruction(workspacePath, resources)
-}
-
-func executeDestroyTerraformCommand(workspacePath, command string) error {
-	parts := strings.Fields(command)
-	cmd := exec.Command(parts[0], parts[1:]...)
-	cmd.Dir = workspacePath
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	return cmd.Run()
-}
-
-func validateDropRuleDestruction(workspacePath string, resources []string) {
-	fmt.Println("\nValidating drop rule destruction...")
-
-	destroyedCount := 0
-	for _, resource := range resources {
-		if isDestroyed := checkResourceDestroyed(workspacePath, resource); isDestroyed {
-			destroyedCount++
-			fmt.Printf("✓ %s: Successfully destroyed\n", resource)
+	// Execute if user confirms
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	if ctx.PromptForExecution() {
+		if err := executeDelistFlow(ctx, stateRmCommands, resources); err != nil {
+			fmt.Printf("\n❌ Delisting failed: %v\n", err)
+			log.Error(err)
 		} else {
-			fmt.Printf("⚠ %s: Still exists in state\n", resource)
+			fmt.Println("\n🎉 NRQL drop rule delisting completed successfully!")
+			printPostDelistInstructions(ctx.ToolConfig.DisplayName, resources)
 		}
-	}
-
-	if destroyedCount == len(resources) {
-		fmt.Printf("\n✅ All %d NRQL drop rule resources have been successfully destroyed\n", destroyedCount)
 	} else {
-		fmt.Printf("\n⚠️ %d out of %d resources were destroyed. Please check the remaining resources manually.\n", destroyedCount, len(resources))
+		fmt.Printf("\n🛑 Execution halted by user.\n")
+		fmt.Printf("Please run the commands above manually in your %s workspace.\n", ctx.ToolConfig.DisplayName)
+		printPostDelistInstructions(ctx.ToolConfig.DisplayName, resources)
 	}
 }
 
-func checkResourceDestroyed(workspacePath, resource string) bool {
-	cmd := exec.Command("terraform", "state", "show", resource)
-	cmd.Dir = workspacePath
-
-	_, err := cmd.Output()
-	if err != nil {
-		// If the command fails, it likely means the resource no longer exists in state
-		return true
+func handleDelistStateFailure(ctx *CommandContext) {
+	if len(ctx.ResourceIDs) == 0 {
+		log.Fatalf("Unable to list %s state and no --resourceIdentifiers provided. Please specify resource identifiers for newrelic_nrql_drop_rule resources.", ctx.ToolConfig.DisplayName)
 	}
 
-	// If the command succeeds, the resource still exists
-	return false
+	log.Infof("Using provided resource identifiers: %v", ctx.ResourceIDs)
+
+	// Check and cleanup import configuration file before proceeding
+	checkAndCleanupImportConfig(ctx.WorkspacePath)
+
+	// Generate state rm commands for provided resources
+	stateRmCommands := generateStateRmCommands(ctx.ToolConfig.ToolName, ctx.ResourceIDs)
+
+	fmt.Printf("\nGenerated %s state removal commands for provided resources:\n", ctx.ToolConfig.DisplayName)
+	for i, cmd := range stateRmCommands {
+		fmt.Printf("%d. %s\n", i+1, cmd)
+	}
+	fmt.Printf("\nPlease run these commands in your %s workspace.\n", ctx.ToolConfig.DisplayName)
+	printPostDelistInstructions(ctx.ToolConfig.DisplayName, ctx.ResourceIDs)
 }
