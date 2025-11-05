@@ -90,18 +90,23 @@ jobs:
           echo "✅ ListBucket permission verified"
 
           echo "📝 Creating test file for upload verification..."
-          echo "test-permission-check" > /tmp/test-permission.txt
+          TIMESTAMP=$(date -u +"%d-%m-%Y_T%H%M%S")
+          TEST_FILE_NAME="permission-check-${TIMESTAMP}.txt"
+          S3_TEST_PATH="s3://nr-downloads-main/install/newrelic-cli/workflow_tester/${TEST_FILE_NAME}"
+          echo "test-permission-check" > /tmp/${TEST_FILE_NAME}
+          echo "🕒 Test file: ${TEST_FILE_NAME}"
 
           echo "⬆️  Testing S3 PutObject permission..."
-          if ! aws s3 cp /tmp/test-permission.txt s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso > /dev/null 2>&1; then
+          if ! aws s3 cp /tmp/${TEST_FILE_NAME} ${S3_TEST_PATH} --profile virtuoso > /dev/null 2>&1; then
             echo "::error::❌ Failed to upload to S3 bucket. Please verify s3:PutObject permission."
+            rm -f /tmp/${TEST_FILE_NAME}
             exit 1
           fi
           echo "✅ PutObject permission verified"
 
           echo "🧹 Cleaning up test artifacts..."
-          aws s3 rm s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso > /dev/null 2>&1 || true
-          rm -f /tmp/test-permission.txt
+          aws s3 rm ${S3_TEST_PATH} --profile virtuoso > /dev/null 2>&1 || true
+          rm -f /tmp/${TEST_FILE_NAME}
 
           echo "✅ AWS S3 permissions validated successfully - ready for release artifact distribution!"
 
