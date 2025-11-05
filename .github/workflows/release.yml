@@ -8,71 +8,8 @@ on:
 
 
 jobs:
-  check-aws-permissions:
-    if: github.ref == 'refs/heads/main'
-    name: Check AWS S3 Permissions
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install AWS CLI
-        run: |
-          sudo snap install aws-cli --classic
-
-      - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/credentials
-          contents:  |
-            [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          write-mode: overwrite
-
-      - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/config
-          contents:  |
-            [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
-            region = ${{ secrets.AWS_DEFAULT_REGION }}
-            source_profile = virtuoso_user
-          write-mode: overwrite
-
-      - name: Check S3 bucket permissions
-        run: |
-          set -e
-          echo "Testing AWS credentials and S3 bucket permissions..."
-
-          # Test if we can list the bucket (this requires s3:ListBucket permission)
-          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ --profile virtuoso; then
-            echo "::error::Failed to list S3 bucket. Please check AWS credentials and permissions."
-            exit 1
-          fi
-
-          # Create a test file to verify write permissions
-          echo "test-permission-check" > /tmp/test-permission.txt
-
-          # Test if we can upload a file (this requires s3:PutObject permission)
-          if ! aws s3 cp /tmp/test-permission.txt s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso; then
-            echo "::error::Failed to upload to S3 bucket. Please verify s3:PutObject permission is granted."
-            exit 1
-          fi
-
-          # Clean up test file from S3
-          aws s3 rm s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso || true
-
-          echo "AWS S3 permissions verified successfully!"
-
-      - name: Cleanup configs
-        if: always()
-        run: |
-          rm -rf /home/runner/.aws/credentials
-          rm -rf /home/runner/.aws/config
-          rm -f /tmp/test-permission.txt
-
   test:
     if: github.ref == 'refs/heads/main'
-    needs: check-aws-permissions
     uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
     secrets:
       NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
@@ -113,6 +50,57 @@ jobs:
         env:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
         run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+
+      - name: Install AWS CLI
+        run: |
+          sudo snap install aws-cli --classic
+
+      - name: Write AWS config 1
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: /home/runner/.aws/credentials
+          contents:  |
+            [virtuoso_user]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          write-mode: overwrite
+
+      - name: Write AWS config 2
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: /home/runner/.aws/config
+          contents:  |
+            [profile virtuoso]
+            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            region = ${{ secrets.AWS_DEFAULT_REGION }}
+            source_profile = virtuoso_user
+          write-mode: overwrite
+
+      - name: Check S3 bucket permissions
+        run: |
+          set -e
+          echo "Verifying AWS credentials and S3 bucket permissions before release..."
+
+          # Test if we can list the bucket (requires s3:ListBucket permission)
+          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ --profile virtuoso; then
+            echo "::error::Failed to list S3 bucket. Please check AWS credentials and permissions."
+            exit 1
+          fi
+
+          # Create a test file to verify write permissions
+          echo "test-permission-check" > /tmp/test-permission.txt
+
+          # Test if we can upload a file (requires s3:PutObject permission)
+          if ! aws s3 cp /tmp/test-permission.txt s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso; then
+            echo "::error::Failed to upload to S3 bucket. Please verify s3:PutObject permission is granted."
+            exit 1
+          fi
+
+          # Clean up test file from S3
+          aws s3 rm s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso || true
+          rm -f /tmp/test-permission.txt
+
+          echo "✓ AWS S3 permissions verified successfully!"
 
       - name: Publish Release
         shell: bash
@@ -174,31 +162,6 @@ jobs:
           VERSION=$(ls dist/*Windows_x86_64.zip | cut -d_ -f2)
           rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
           zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip dist/newrelic_windows_amd64_v1/newrelic.exe
-
-      - name: Install AWS CLI
-        run: |
-          sudo snap install aws-cli --classic
-
-      - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/credentials
-          contents:  |
-            [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          write-mode: overwrite
-
-      - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/config
-          contents:  |
-            [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
-            region = ${{ secrets.AWS_DEFAULT_REGION }}
-            source_profile = virtuoso_user
-          write-mode: overwrite
 
       - name: Upload Unix based install script to AWS
         id: upload-install-script
