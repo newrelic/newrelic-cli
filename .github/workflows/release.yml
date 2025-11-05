@@ -131,7 +131,7 @@ jobs:
           path: /home/runner/.aws/config
           contents:  |
             [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            role_arn = ${{ secrets.AWS_ROLE_ARN_V2 }}
             region = ${{ secrets.AWS_DEFAULT_REGION }}
             source_profile = virtuoso_user
           write-mode: overwrite
