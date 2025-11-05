@@ -61,8 +61,8 @@ jobs:
           path: /home/runner/.aws/credentials
           contents:  |
             [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_V2 }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_V2 }}
           write-mode: overwrite
 
       - name: Write AWS config 2
@@ -71,36 +71,39 @@ jobs:
           path: /home/runner/.aws/config
           contents:  |
             [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
+            role_arn = ${{ secrets.AWS_ROLE_ARN_V2 }}
             region = ${{ secrets.AWS_DEFAULT_REGION }}
             source_profile = virtuoso_user
           write-mode: overwrite
 
-      - name: Check S3 bucket permissions
+      - name: Verify AWS credentials for release artifact distribution to S3
         run: |
           set -e
-          echo "Verifying AWS credentials and S3 bucket permissions before release..."
+          echo "🔐 Verifying AWS credentials and S3 bucket access..."
+          echo "📦 Target bucket: s3://nr-downloads-main/install/newrelic-cli/"
 
-          # Test if we can list the bucket (requires s3:ListBucket permission)
-          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ --profile virtuoso; then
-            echo "::error::Failed to list S3 bucket. Please check AWS credentials and permissions."
+          echo "🔍 Testing S3 ListBucket permission..."
+          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ --profile virtuoso > /dev/null 2>&1; then
+            echo "::error::❌ Failed to list S3 bucket. Please verify AWS credentials and s3:ListBucket permission."
             exit 1
           fi
+          echo "✅ ListBucket permission verified"
 
-          # Create a test file to verify write permissions
+          echo "📝 Creating test file for upload verification..."
           echo "test-permission-check" > /tmp/test-permission.txt
 
-          # Test if we can upload a file (requires s3:PutObject permission)
-          if ! aws s3 cp /tmp/test-permission.txt s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso; then
-            echo "::error::Failed to upload to S3 bucket. Please verify s3:PutObject permission is granted."
+          echo "⬆️  Testing S3 PutObject permission..."
+          if ! aws s3 cp /tmp/test-permission.txt s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso > /dev/null 2>&1; then
+            echo "::error::❌ Failed to upload to S3 bucket. Please verify s3:PutObject permission."
             exit 1
           fi
+          echo "✅ PutObject permission verified"
 
-          # Clean up test file from S3
-          aws s3 rm s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso || true
+          echo "🧹 Cleaning up test artifacts..."
+          aws s3 rm s3://nr-downloads-main/install/newrelic-cli/.permission-check-test.txt --profile virtuoso > /dev/null 2>&1 || true
           rm -f /tmp/test-permission.txt
 
-          echo "✓ AWS S3 permissions verified successfully!"
+          echo "✅ AWS S3 permissions validated successfully - ready for release artifact distribution!"
 
       - name: Publish Release
         shell: bash
@@ -276,9 +279,9 @@ jobs:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
       CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_V2 }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_V2 }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_V2 }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
   snapshot:
