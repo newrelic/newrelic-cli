@@ -121,8 +121,8 @@ jobs:
           path: /home/runner/.aws/credentials
           contents:  |
             [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_V2 }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_V2 }}
           write-mode: overwrite
 
       - name: Write AWS config 2
