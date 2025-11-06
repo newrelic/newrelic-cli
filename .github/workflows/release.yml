@@ -50,6 +50,65 @@ jobs:
           PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
         run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
 
+      - name: Install AWS CLI
+        run: |
+          sudo snap install aws-cli --classic
+
+      - name: Write AWS config 1
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: /home/runner/.aws/credentials
+          contents:  |
+            [virtuoso_user]
+            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_V2 }}
+            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_V2 }}
+          write-mode: overwrite
+
+      - name: Write AWS config 2
+        uses: DamianReeves/write-file-action@v1.3
+        with:
+          path: /home/runner/.aws/config
+          contents:  |
+            [profile virtuoso]
+            role_arn = ${{ secrets.AWS_ROLE_ARN_V2 }}
+            region = ${{ secrets.AWS_DEFAULT_REGION }}
+            source_profile = virtuoso_user
+          write-mode: overwrite
+
+      - name: Verify AWS credentials for release artifact distribution to S3
+        run: |
+          set -e
+          echo "🔐 Verifying AWS credentials and S3 bucket access..."
+          echo "📦 Target bucket: s3://nr-downloads-main/install/newrelic-cli/"
+
+          echo "🔍 Testing S3 ListBucket permission..."
+          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ --profile virtuoso > /dev/null 2>&1; then
+            echo "::error::❌ Failed to list S3 bucket. Please verify AWS credentials and s3:ListBucket permission."
+            exit 1
+          fi
+          echo "✅ ListBucket permission verified"
+
+          echo "📝 Creating test file for upload verification..."
+          TIMESTAMP=$(date -u +"%d-%m-%Y_T%H%M%S")
+          TEST_FILE_NAME="permission-check-${TIMESTAMP}.txt"
+          S3_TEST_PATH="s3://nr-downloads-main/install/newrelic-cli/workflow_tester/${TEST_FILE_NAME}"
+          echo "test-permission-check" > /tmp/${TEST_FILE_NAME}
+          echo "🕒 Test file: ${TEST_FILE_NAME}"
+
+          echo "⬆️  Testing S3 PutObject permission..."
+          if ! aws s3 cp /tmp/${TEST_FILE_NAME} ${S3_TEST_PATH} --profile virtuoso > /dev/null 2>&1; then
+            echo "::error::❌ Failed to upload to S3 bucket. Please verify s3:PutObject permission."
+            rm -f /tmp/${TEST_FILE_NAME}
+            exit 1
+          fi
+          echo "✅ PutObject permission verified"
+
+          echo "🧹 Cleaning up test artifacts..."
+          aws s3 rm ${S3_TEST_PATH} --profile virtuoso > /dev/null 2>&1 || true
+          rm -f /tmp/${TEST_FILE_NAME}
+
+          echo "✅ AWS S3 permissions validated successfully - ready for release artifact distribution!"
+
       - name: Publish Release
         shell: bash
         env:
@@ -110,31 +169,6 @@ jobs:
           VERSION=$(ls dist/*Windows_x86_64.zip | cut -d_ -f2)
           rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
           zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip dist/newrelic_windows_amd64_v1/newrelic.exe
-
-      - name: Install AWS CLI
-        run: |
-          sudo snap install aws-cli --classic
-
-      - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/credentials
-          contents:  |
-            [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          write-mode: overwrite
-
-      - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/config
-          contents:  |
-            [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
-            region = ${{ secrets.AWS_DEFAULT_REGION }}
-            source_profile = virtuoso_user
-          write-mode: overwrite
 
       - name: Upload Unix based install script to AWS
         id: upload-install-script
@@ -249,9 +283,9 @@ jobs:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
       CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_V2 }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_V2 }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_V2 }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
 
   snapshot:
