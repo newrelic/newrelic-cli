@@ -1,5 +1,11 @@
+<a name="v0.106.3"></a>
+## [v0.106.3] - 2025-11-06
+### Bug Fixes
+- update release workflow to use updated secrets
+- **workflows:** add AWS S3 permission check before release to fail fast on credential issues, point to new V2 creds ([#1757](https://github.com/newrelic/newrelic-cli/issues/1757))
+
 <a name="v0.106.2"></a>
-## [v0.106.2] - 2025-10-30
+## [v0.106.2] - 2025-11-03
 <a name="v0.106.1"></a>
 ## [v0.106.1] - 2025-10-30
 <a name="v0.106.0"></a>
@@ -2633,7 +2639,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.3...HEAD
+[v0.106.3]: https://github.com/newrelic/newrelic-cli/compare/v0.106.2...v0.106.3
 [v0.106.2]: https://github.com/newrelic/newrelic-cli/compare/v0.106.1...v0.106.2
 [v0.106.1]: https://github.com/newrelic/newrelic-cli/compare/v0.106.0...v0.106.1
 [v0.106.0]: https://github.com/newrelic/newrelic-cli/compare/v0.105.2...v0.106.0
