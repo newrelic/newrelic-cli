@@ -57,7 +57,7 @@ The deployment command marks a change for a New Relic entity
 		if timestamp == 0 {
 			params.Timestamp = nrtime.EpochMilliseconds(time.Now())
 		} else {
-			params.Timestamp = nrtime.EpochMilliseconds(time.UnixMilli(timestamp))
+			params.Timestamp = nrtime.EpochMilliseconds(time.Unix(timestamp, 0))
 		}
 
 		if version == "" {
