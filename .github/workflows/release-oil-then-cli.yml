@@ -11,16 +11,43 @@ on:
         description: 'Confirm the OIL Version Tag to create (Must match above):'
         required: true
         type: string
-      cli_release_ref:
-        description: 'The branch to release the CLI from (do not alter unless necessary)'
-        required: true
-        default: 'main'
 
 jobs:
   coordinator:
     name: Publish OIL Tag & Release CLI
     runs-on: ubuntu-latest
     steps:
+      - name: 🔐 Gatekeeper (Access Control)
+        id: gatekeeper
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          ACTOR: ${{ github.actor }}
+          ORG: newrelic
+          TEAM_1: virtuoso
+          TEAM_2: oac
+        run: |
+          echo "👮 Verifying if user '$ACTOR' is authorized to run this workflow..."
+          
+          # Function to check team membership via API
+          check_membership() {
+            local TEAM_SLUG=$1
+            local HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/orgs/$ORG/teams/$TEAM_SLUG/memberships/$ACTOR")
+          
+            if [[ "$HTTP_STATUS" == "200" ]]; then return 0; else return 1; fi
+          }
+          
+          if check_membership "$TEAM_1"; then
+            echo "✅ User '$ACTOR' is a member of '$TEAM_1'. Access Granted."
+          elif check_membership "$TEAM_2"; then
+            echo "✅ User '$ACTOR' is a member of '$TEAM_2'. Access Granted."
+          else
+            echo "⛔ ACCESS DENIED: User '$ACTOR' is not a member of '$TEAM_1' or '$TEAM_2'."
+            echo "💀 Aborting workflow."
+            exit 1
+          fi
+
       - name: 🛡️ Verify Version Input Consistency
         run: |
           echo "👮 Performing Safety Check on Version Inputs..."
@@ -175,13 +202,16 @@ jobs:
           
           # 2. Check for recipes.zip in the version folder
           echo "🔹 Checking specific version artifact..."
-          FILE_CHECK=$(aws s3 ls s3://nr-downloads-main/install/open-install-library/$TAG_NAME/recipes.zip --profile virtuoso)
+          FILE_PATH="s3://nr-downloads-main/install/open-install-library/$TAG_NAME/recipes.zip"
+          
+          FILE_CHECK=$(aws s3 ls "$FILE_PATH" --profile virtuoso)
           
           if [ -z "$FILE_CHECK" ]; then
             echo "❌ FAILURE: recipes.zip not found in folder $TAG_NAME/"
             exit 1
           else
-            echo "✅ SUCCESS: recipes.zip found in S3."
+            echo "✅ SUCCESS: recipes.zip found at:"
+            echo "👉 $FILE_PATH"
           fi
 
       - name: 🚀 Trigger & Track New Relic CLI Release
@@ -192,7 +222,7 @@ jobs:
           
           gh workflow run release.yml \
             --repo ${{ github.repository }} \
-            --ref ${{ inputs.cli_release_ref }}
+            --ref main
           
           echo "⏳ Waiting 10 seconds for the run to appear in the API..."
           sleep 10
@@ -200,7 +230,7 @@ jobs:
           RUN_URL=$(gh run list \
             --repo ${{ github.repository }} \
             --workflow release.yml \
-            --branch ${{ inputs.cli_release_ref }} \
+            --branch main \
             --limit 1 \
             --json url \
             --jq '.[0].url')
