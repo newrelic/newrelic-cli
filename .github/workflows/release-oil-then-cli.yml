@@ -1,18 +1,22 @@
-name: Release (*Open Install Library* then *CLI*, Experimental)
+name: Release (OIL --> CLI)
 
 on:
   workflow_dispatch:
     inputs:
       version_tag:
-        description: 'The Version Tag to create (e.g., v0.73.1)'
+        description: 'OIL Version Tag to create (e.g., v0.73.1):'
+        required: true
+        type: string
+      version_tag_confirm:
+        description: 'Confirm the OIL Version Tag to create (Must match above):'
         required: true
         type: string
       tag_description:
-        description: 'Optional: Detailed description for the Releases page'
+        description: 'Release Description (Optional, defaults to "Release v...")'
         required: false
         type: string
       cli_release_ref:
-        description: 'The branch to release the CLI from'
+        description: 'The branch to release the CLI from (do not alter unless necessary)'
         required: true
         default: 'main'
 
@@ -21,7 +25,20 @@ jobs:
     name: Tag Remote & Release Local
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Validate & Create Tag
+      - name: 1. Safety Check (Version Match)
+        run: |
+          echo "👮 Performing Safety Check on Version Inputs..."
+          TAG="${{ inputs.version_tag }}"
+          CONFIRM="${{ inputs.version_tag_confirm }}"
+          
+          if [ "$TAG" != "$CONFIRM" ]; then
+            echo "🛑 FATAL MISMATCH: Version '$TAG' does not match Confirmation '$CONFIRM'"
+            echo "❌ Aborting workflow to prevent accidental tagging."
+            exit 1
+          fi
+          echo "✅ Version inputs match ($TAG). Proceeding..."
+
+      - name: 2. Validate & Create Tag
         id: create_tag
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -29,7 +46,7 @@ jobs:
           REPO: open-install-library
           TAG_NAME: ${{ inputs.version_tag }}
           TAG_MSG: "Release ${{ inputs.version_tag }}"
-          TAG_DESC: ${{ inputs.tag_description }}
+          INPUT_DESC: ${{ inputs.tag_description }}
         run: |
           echo "🕵️ Checking if tag $TAG_NAME already exists in $OWNER/$REPO..."
           
@@ -54,7 +71,7 @@ jobs:
           fi
           echo "🎯 Target Commit SHA: $LATEST_SHA"
 
-          # Create the Tag Object (Strictly the message, no description here)
+          # Create the Tag Object
           echo "📝 Creating Git Tag Object with message: '$TAG_MSG'..."
           
           TAG_OBJ_PAYLOAD=$(jq -n \
@@ -91,37 +108,43 @@ jobs:
             exit 1
           fi
 
-          # Optional: Create GitHub Release Entry (For the description)
-          if [ ! -z "$TAG_DESC" ]; then
-            echo "📜 Description provided. Creating GitHub Release entry..."
+          # Create GitHub Release Entry
+          # Logic: If input is empty, default to "Release vX.Y.Z". Else use input.
+          echo "📜 Preparing GitHub Release Entry..."
           
-            RELEASE_PAYLOAD=$(jq -n \
-              --arg tag "$TAG_NAME" \
-              --arg name "$TAG_MSG" \
-              --arg body "$TAG_DESC" \
-              '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
-          
-            REL_RESPONSE=$(curl -s -w "%{http_code}" -o rel_response.json -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              "https://api.github.com/repos/$OWNER/$REPO/releases" \
-              -d "$RELEASE_PAYLOAD")
-          
-             REL_CODE=$(tail -n1 <<< "$REL_RESPONSE")
-             if [[ "$REL_CODE" == "201" ]]; then
-               echo "🎉 GitHub Release entry created successfully."
-             else
-               echo "⚠️ Warning: Tag created, but Release entry failed ($REL_CODE). Continuing..."
-             fi
+          RELEASE_BODY="$INPUT_DESC"
+          if [ -z "$RELEASE_BODY" ]; then
+             RELEASE_BODY="$TAG_MSG"
+             echo "ℹ️ No description provided. Defaulting body to: '$RELEASE_BODY'"
           else
-             echo "⏩ No description provided. Skipping Release entry creation."
+             echo "ℹ️ Using user-provided description."
           fi
+          
+          RELEASE_PAYLOAD=$(jq -n \
+            --arg tag "$TAG_NAME" \
+            --arg name "$TAG_MSG" \
+            --arg body "$RELEASE_BODY" \
+            '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
+          
+          REL_RESPONSE=$(curl -s -w "%{http_code}" -o rel_response.json -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER/$REPO/releases" \
+            -d "$RELEASE_PAYLOAD")
+          
+           REL_CODE=$(tail -n1 <<< "$REL_RESPONSE")
+           if [[ "$REL_CODE" == "201" ]]; then
+             echo "🎉 GitHub Release entry created successfully."
+           else
+             echo "⚠️ Warning: Tag created, but Release entry failed ($REL_CODE)."
+             exit 1
+           fi
 
-      - name: 2. Wait for Propagation
+      - name: 3. Wait for Propagation
         run: |
-          echo "⏳ Sleeping for 120 seconds to ensure backend consistency..."
-          sleep 120
+          echo "⏳ Sleeping for 90 seconds to ensure backend consistency..."
+          sleep 90
 
-      - name: 3. Double Check Verification
+      - name: 4. Double Check Verification
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           OWNER: newrelic
@@ -134,19 +157,20 @@ jobs:
             "https://api.github.com/repos/$OWNER/$REPO/git/refs/tags/$TAG_NAME")
           
           if [[ "$HTTP_CODE" == "200" ]]; then
-            echo "✅ Verification Passed: Tag $TAG_NAME is discoverable."
+            echo "✅ VERIFIED: Tag '$TAG_NAME' was found on the remote!"
           else
             echo "⛔ Verification Failed: Tag $TAG_NAME was not found after waiting (HTTP $HTTP_CODE)."
             echo "💀 Halting workflow. The CLI release will NOT be triggered."
             exit 1
           fi
 
-      - name: 4. Trigger CLI Release
+      - name: 5. Trigger CLI Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "🚀 All checks passed. Triggering CLI release workflow..."
           
           gh workflow run release.yml \
+            --repo ${{ github.repository }} \
             --ref ${{ inputs.cli_release_ref }} \
             -f note="Automated Release: ${{ inputs.version_tag }}"
