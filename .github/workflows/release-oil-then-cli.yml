@@ -11,10 +11,6 @@ on:
         description: 'Confirm the OIL Version Tag to create (Must match above):'
         required: true
         type: string
-      tag_description:
-        description: 'Release Description (Optional, defaults to "Release v...")'
-        required: false
-        type: string
       cli_release_ref:
         description: 'The branch to release the CLI from (do not alter unless necessary)'
         required: true
@@ -38,7 +34,7 @@ jobs:
           fi
           echo "✅ Version inputs match ($TAG). Proceeding..."
 
-      - name: 🏷️ Create and Push Tag to Open Install Library Repository
+      - name: 🏷️ Create and Push Tag to Open Install Library
         id: create_tag
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -46,7 +42,6 @@ jobs:
           REPO: open-install-library
           TAG_NAME: ${{ inputs.version_tag }}
           TAG_MSG: "Release ${{ inputs.version_tag }}"
-          INPUT_DESC: ${{ inputs.tag_description }}
         run: |
           echo "🕵️ Checking if tag $TAG_NAME already exists in $OWNER/$REPO..."
           
@@ -71,7 +66,7 @@ jobs:
           fi
           echo "🎯 Target Commit SHA: $LATEST_SHA"
 
-          # Create the Tag Object
+          # Create the Tag Object (Annotated Tag)
           echo "📝 Creating Git Tag Object with message: '$TAG_MSG'..."
           
           TAG_OBJ_PAYLOAD=$(jq -n \
@@ -92,7 +87,7 @@ jobs:
              exit 1
           fi
 
-          # Create the Reference
+          # Create the Reference (Triggers OIL workflow)
           echo "🔗 Linking Reference refs/tags/$TAG_NAME..."
           REF_RESPONSE=$(curl -s -w "%{http_code}" -o response.json -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
@@ -102,73 +97,120 @@ jobs:
           HTTP_CODE=$(tail -n1 <<< "$REF_RESPONSE")
 
           if [[ "$HTTP_CODE" == "201" ]]; then
-            echo "✅ Successfully created tag reference!"
+            echo "✅ Successfully pushed tag! This should trigger the internal OIL workflow."
           else
             echo "💥 Error creating reference. HTTP: $HTTP_CODE"
             exit 1
           fi
 
-          # Create GitHub Release Entry
-          echo "📜 Preparing GitHub Release Entry..."
-          
-          RELEASE_BODY="$INPUT_DESC"
-          if [ -z "$RELEASE_BODY" ]; then
-             RELEASE_BODY="$TAG_MSG"
-             echo "ℹ️ No description provided. Defaulting body to: '$RELEASE_BODY'"
-          else
-             echo "ℹ️ Using user-provided description."
-          fi
-          
-          RELEASE_PAYLOAD=$(jq -n \
-            --arg tag "$TAG_NAME" \
-            --arg name "$TAG_MSG" \
-            --arg body "$RELEASE_BODY" \
-            '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
-          
-          REL_RESPONSE=$(curl -s -w "%{http_code}" -o rel_response.json -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$OWNER/$REPO/releases" \
-            -d "$RELEASE_PAYLOAD")
-          
-           REL_CODE=$(tail -n1 <<< "$REL_RESPONSE")
-           if [[ "$REL_CODE" == "201" ]]; then
-             echo "🎉 GitHub Release entry created successfully."
-           else
-             echo "⚠️ Warning: Tag created, but Release entry failed ($REL_CODE)."
-             exit 1
-           fi
-
-      - name: ⏳ Wait to Confirm Release Published
+      - name: ⏳ Wait for OIL Workflow & S3 Sync
         run: |
-          echo "⏳ Sleeping for 90 seconds to ensure backend consistency..."
-          sleep 90
+          echo "⏳ Sleeping for 240 seconds (4 minutes) to allow OIL workflow to build and upload to S3..."
+          sleep 240
 
-      - name: 🔍 Double Check for Tag Availability on Open Install Library Repository
+      - name: 🔎 Verify OIL GitHub Release Exists
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           OWNER: newrelic
           REPO: open-install-library
           TAG_NAME: ${{ inputs.version_tag }}
         run: |
-          echo "🔎 Performing verification check for $TAG_NAME..."
+          echo "🔎 Checking if OIL workflow successfully created the GitHub Release entry..."
           
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$OWNER/$REPO/git/refs/tags/$TAG_NAME")
+            "https://api.github.com/repos/$OWNER/$REPO/releases/tags/$TAG_NAME")
           
           if [[ "$HTTP_CODE" == "200" ]]; then
-            echo "✅ VERIFIED: Tag '$TAG_NAME' was found on the remote!"
+            echo "✅ VERIFIED: GitHub Release for '$TAG_NAME' exists."
           else
-            echo "⛔ Verification Failed: Tag $TAG_NAME was not found after waiting (HTTP $HTTP_CODE)."
-            echo "💀 Halting workflow. The CLI release will NOT be triggered."
+            echo "⛔ Verification Failed: GitHub Release not found (HTTP $HTTP_CODE)."
+            echo "Possible cause: The OIL workflow failed or took too long."
+            echo "💀 Halting workflow."
             exit 1
           fi
 
-      - name: 🚀 Trigger New Relic CLI Release
+      - name: ☁️ Configure AWS Credentials
+        run: |
+          echo "🔧 Setting up AWS Profile (virtuoso)..."
+          mkdir -p ~/.aws
+          
+          # Write Credentials
+          cat > ~/.aws/credentials <<EOF
+          [virtuoso_user]
+          aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_V2 }}
+          aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_V2 }}
+          EOF
+          
+          # Write Config
+          cat > ~/.aws/config <<EOF
+          [profile virtuoso]
+          role_arn = ${{ secrets.AWS_ROLE_ARN_V2 }}
+          region = ${{ secrets.AWS_DEFAULT_REGION }}
+          source_profile = virtuoso_user
+          EOF
+          
+          echo "✅ AWS Configured."
+
+      - name: ☁️ Verify S3 Artifacts (Source of Truth)
+        id: verify_s3
+        env:
+          TAG_NAME: ${{ inputs.version_tag }}
+        run: |
+          echo "🔎 Verifying S3 Integrity..."
+          
+          # 1. Check currentVersion.txt
+          echo "🔹 Checking currentVersion.txt..."
+          S3_VERSION=$(aws s3 cp s3://nr-downloads-main/install/open-install-library/currentVersion.txt - --profile virtuoso --quiet)
+          
+          # Trim whitespace just in case
+          S3_VERSION=$(echo "$S3_VERSION" | xargs)
+          TAG_CLEAN=$(echo "$TAG_NAME" | xargs)
+          
+          if [ "$S3_VERSION" == "$TAG_CLEAN" ]; then
+             echo "✅ SUCCESS: currentVersion.txt matches $TAG_NAME"
+          else
+             echo "❌ FAILURE: currentVersion.txt contains '$S3_VERSION', expected '$TAG_NAME'"
+             exit 1
+          fi
+          
+          # 2. Check for recipes.zip in the version folder
+          echo "🔹 Checking specific version artifact..."
+          FILE_CHECK=$(aws s3 ls s3://nr-downloads-main/install/open-install-library/$TAG_NAME/recipes.zip --profile virtuoso)
+          
+          if [ -z "$FILE_CHECK" ]; then
+            echo "❌ FAILURE: recipes.zip not found in folder $TAG_NAME/"
+            exit 1
+          else
+            echo "✅ SUCCESS: recipes.zip found in S3."
+          fi
+
+      - name: 🚀 Trigger & Track New Relic CLI Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "🚀 All checks passed. Triggering CLI release workflow..."
+          echo "🚀 All S3 checks passed. Triggering CLI release workflow..."
           
           gh workflow run release.yml \
             --repo ${{ github.repository }} \
             --ref ${{ inputs.cli_release_ref }}
+          
+          echo "⏳ Waiting 10 seconds for the run to appear in the API..."
+          sleep 10
+          
+          RUN_URL=$(gh run list \
+            --repo ${{ github.repository }} \
+            --workflow release.yml \
+            --branch ${{ inputs.cli_release_ref }} \
+            --limit 1 \
+            --json url \
+            --jq '.[0].url')
+          
+          echo "---------------------------------------------------------"
+          if [ -z "$RUN_URL" ]; then
+            echo "⚠️ Workflow triggered, but URL could not be fetched automatically."
+            echo "👉 Please check the Actions tab manually."
+          else
+            echo "🔗 TRACK YOUR RELEASE HERE:"
+            echo "👉 $RUN_URL"
+          fi
+          echo "---------------------------------------------------------"
