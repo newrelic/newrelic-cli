@@ -1,0 +1,152 @@
+name: Release (*Open Install Library* then *CLI*, Experimental)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_tag:
+        description: 'The Version Tag to create (e.g., v0.73.1)'
+        required: true
+        type: string
+      tag_description:
+        description: 'Optional: Detailed description for the Releases page'
+        required: false
+        type: string
+      cli_release_ref:
+        description: 'The branch to release the CLI from'
+        required: true
+        default: 'main'
+
+jobs:
+  coordinator:
+    name: Tag Remote & Release Local
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Validate & Create Tag
+        id: create_tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          OWNER: newrelic
+          REPO: open-install-library
+          TAG_NAME: ${{ inputs.version_tag }}
+          TAG_MSG: "Release ${{ inputs.version_tag }}"
+          TAG_DESC: ${{ inputs.tag_description }}
+        run: |
+          echo "🕵️ Checking if tag $TAG_NAME already exists in $OWNER/$REPO..."
+          
+          # Check if the tag already exists
+          HTTP_CHECK=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER/$REPO/git/refs/tags/$TAG_NAME")
+          
+          if [[ "$HTTP_CHECK" == "200" ]]; then
+            echo "🛑 Error: Tag $TAG_NAME already exists! Aborting workflow to prevent duplicates."
+            exit 1
+          fi
+          echo "✨ Tag is unique. Proceeding..."
+
+          # Get the SHA of the main branch
+          echo "🎣 Fetching latest commit SHA from main branch..."
+          LATEST_SHA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER/$REPO/git/refs/heads/main" | jq -r .object.sha)
+          
+          if [ "$LATEST_SHA" == "null" ] || [ -z "$LATEST_SHA" ]; then
+            echo "💥 Error: Could not fetch SHA for main branch."
+            exit 1
+          fi
+          echo "🎯 Target Commit SHA: $LATEST_SHA"
+
+          # Create the Tag Object (Strictly the message, no description here)
+          echo "📝 Creating Git Tag Object with message: '$TAG_MSG'..."
+          
+          TAG_OBJ_PAYLOAD=$(jq -n \
+            --arg tag "$TAG_NAME" \
+            --arg msg "$TAG_MSG" \
+            --arg obj "$LATEST_SHA" \
+            '{tag: $tag, message: $msg, object: $obj, type: "commit"}')
+
+          TAG_OBJ_RESPONSE=$(curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER/$REPO/git/tags" \
+            -d "$TAG_OBJ_PAYLOAD")
+          
+          TAG_SHA=$(echo "$TAG_OBJ_RESPONSE" | jq -r .sha)
+
+          if [ "$TAG_SHA" == "null" ]; then
+             echo "💥 Failed to create Tag Object."
+             echo "$TAG_OBJ_RESPONSE"
+             exit 1
+          fi
+
+          # Create the Reference
+          echo "🔗 Linking Reference refs/tags/$TAG_NAME..."
+          REF_RESPONSE=$(curl -s -w "%{http_code}" -o response.json -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER/$REPO/git/refs" \
+            -d "{\"ref\": \"refs/tags/$TAG_NAME\", \"sha\": \"$TAG_SHA\"}")
+          
+          HTTP_CODE=$(tail -n1 <<< "$REF_RESPONSE")
+
+          if [[ "$HTTP_CODE" == "201" ]]; then
+            echo "✅ Successfully created tag reference!"
+          else
+            echo "💥 Error creating reference. HTTP: $HTTP_CODE"
+            exit 1
+          fi
+
+          # Optional: Create GitHub Release Entry (For the description)
+          if [ ! -z "$TAG_DESC" ]; then
+            echo "📜 Description provided. Creating GitHub Release entry..."
+          
+            RELEASE_PAYLOAD=$(jq -n \
+              --arg tag "$TAG_NAME" \
+              --arg name "$TAG_MSG" \
+              --arg body "$TAG_DESC" \
+              '{tag_name: $tag, name: $name, body: $body, draft: false, prerelease: false}')
+          
+            REL_RESPONSE=$(curl -s -w "%{http_code}" -o rel_response.json -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$OWNER/$REPO/releases" \
+              -d "$RELEASE_PAYLOAD")
+          
+             REL_CODE=$(tail -n1 <<< "$REL_RESPONSE")
+             if [[ "$REL_CODE" == "201" ]]; then
+               echo "🎉 GitHub Release entry created successfully."
+             else
+               echo "⚠️ Warning: Tag created, but Release entry failed ($REL_CODE). Continuing..."
+             fi
+          else
+             echo "⏩ No description provided. Skipping Release entry creation."
+          fi
+
+      - name: 2. Wait for Propagation
+        run: |
+          echo "⏳ Sleeping for 120 seconds to ensure backend consistency..."
+          sleep 120
+
+      - name: 3. Double Check Verification
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          OWNER: newrelic
+          REPO: open-install-library
+          TAG_NAME: ${{ inputs.version_tag }}
+        run: |
+          echo "🔎 Performing verification check for $TAG_NAME..."
+          
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$OWNER/$REPO/git/refs/tags/$TAG_NAME")
+          
+          if [[ "$HTTP_CODE" == "200" ]]; then
+            echo "✅ Verification Passed: Tag $TAG_NAME is discoverable."
+          else
+            echo "⛔ Verification Failed: Tag $TAG_NAME was not found after waiting (HTTP $HTTP_CODE)."
+            echo "💀 Halting workflow. The CLI release will NOT be triggered."
+            exit 1
+          fi
+
+      - name: 4. Trigger CLI Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🚀 All checks passed. Triggering CLI release workflow..."
+          
+          gh workflow run release.yml \
+            --ref ${{ inputs.cli_release_ref }} \
+            -f note="Automated Release: ${{ inputs.version_tag }}"
