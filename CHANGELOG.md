@@ -1,3 +1,8 @@
+<a name="v0.106.8"></a>
+## [v0.106.8] - 2025-11-20
+### Bug Fixes
+- **newrelic-entity:** fix timestamp issue in entity deployment marker ([#1760](https://github.com/newrelic/newrelic-cli/issues/1760))
+
 <a name="v0.106.7"></a>
 ## [v0.106.7] - 2025-11-19
 <a name="v0.106.6"></a>
@@ -2647,7 +2652,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.8...HEAD
+[v0.106.8]: https://github.com/newrelic/newrelic-cli/compare/v0.106.7...v0.106.8
 [v0.106.7]: https://github.com/newrelic/newrelic-cli/compare/v0.106.6...v0.106.7
 [v0.106.6]: https://github.com/newrelic/newrelic-cli/compare/v0.106.5...v0.106.6
 [v0.106.5]: https://github.com/newrelic/newrelic-cli/compare/v0.106.4...v0.106.5
