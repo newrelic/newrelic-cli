@@ -26,7 +26,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
-	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
+	golang.org/x/exp 944ab1f22d93
 	golang.org/x/net v0.38.0
 	golang.org/x/term v0.30.0
 	golang.org/x/text v0.23.0
