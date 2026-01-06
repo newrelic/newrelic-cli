@@ -1,5 +1,10 @@
+<a name="v0.106.9"></a>
+## [v0.106.9] - 2026-01-06
+### Bug Fixes
+- **nrqldroprules:** update EOL date, in light of the new effective date, June 30, 2026 ([#1773](https://github.com/newrelic/newrelic-cli/issues/1773))
+
 <a name="v0.106.8"></a>
-## [v0.106.8] - 2025-11-20
+## [v0.106.8] - 2025-12-19
 ### Bug Fixes
 - **newrelic-entity:** fix timestamp issue in entity deployment marker ([#1760](https://github.com/newrelic/newrelic-cli/issues/1760))
 
@@ -2652,7 +2657,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.9...HEAD
+[v0.106.9]: https://github.com/newrelic/newrelic-cli/compare/v0.106.8...v0.106.9
 [v0.106.8]: https://github.com/newrelic/newrelic-cli/compare/v0.106.7...v0.106.8
 [v0.106.7]: https://github.com/newrelic/newrelic-cli/compare/v0.106.6...v0.106.7
 [v0.106.6]: https://github.com/newrelic/newrelic-cli/compare/v0.106.5...v0.106.6
