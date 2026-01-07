@@ -24,7 +24,7 @@ func NewOsValidator() *OsValidator {
 
 func (v *OsValidator) Validate(m *types.DiscoveryManifest) error {
 	if m.OS == "" {
-		return fmt.Errorf(noOperatingSystemDetected)
+		return fmt.Errorf("%s", noOperatingSystemDetected)
 	}
 	if !(strings.ToLower(m.OS) == "linux" ||
 		strings.ToLower(m.OS) == "windows" ||

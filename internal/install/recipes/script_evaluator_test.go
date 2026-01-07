@@ -54,7 +54,7 @@ func GivenScriptEvaluator() *ScriptEvaluator {
 
 func GivenScriptEvaluatorError(detail string) *ScriptEvaluator {
 	recipeExecutor := execution.NewMockRecipeExecutor()
-	recipeExecutor.ExecuteErr = fmt.Errorf(detail)
+	recipeExecutor.ExecuteErr = fmt.Errorf("%s", detail)
 	return newScriptEvaluator(recipeExecutor)
 }
 
