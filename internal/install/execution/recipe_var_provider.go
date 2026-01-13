@@ -227,55 +227,9 @@ func varFromEnv() types.RecipeVars {
 		vars[EnvNriaPassthroughEnvironment] = yamlFromCommaDelimitedString(EnvNriaPassthroughEnvironment, passthroughEnvironment)
 	}
 
-	// Allow users to override hardcoded values in recipes
-	if val := os.Getenv("NRIA_ENABLE_PROCESS_METRICS"); val != "" {
-		vars["NRIA_ENABLE_PROCESS_METRICS"] = val
-	} else {
-		vars["NRIA_ENABLE_PROCESS_METRICS"] = "true" // Default value
-	}
-
-	if val := os.Getenv("NRIA_STATUS_SERVER_ENABLED"); val != "" {
-		vars["NRIA_STATUS_SERVER_ENABLED"] = val
-	} else {
-		vars["NRIA_STATUS_SERVER_ENABLED"] = "true" // Default value for guided install
-	}
-
-	if val := os.Getenv("NRIA_STATUS_SERVER_PORT"); val != "" {
-		vars["NRIA_STATUS_SERVER_PORT"] = val
-	} else {
-		vars["NRIA_STATUS_SERVER_PORT"] = "18003" // Default port
-	}
-
-	// Logging configuration
-	vars["NRIA_LOG_LEVEL"] = os.Getenv("NRIA_LOG_LEVEL")
-	vars["NRIA_LOG_FILE"] = os.Getenv("NRIA_LOG_FILE")
-	vars["NRIA_LOG_FORMAT"] = os.Getenv("NRIA_LOG_FORMAT")
-
-	// Hostname configuration
-	vars["NRIA_DISPLAY_NAME"] = os.Getenv("NRIA_DISPLAY_NAME")
-	vars["NRIA_OVERRIDE_HOSTNAME"] = os.Getenv("NRIA_OVERRIDE_HOSTNAME")
-	vars["NRIA_OVERRIDE_HOSTNAME_SHORT"] = os.Getenv("NRIA_OVERRIDE_HOSTNAME_SHORT")
-
 	// Installation paths
 	vars["NRIA_AGENT_DIR"] = os.Getenv("NRIA_AGENT_DIR")
 	vars["NRIA_PLUGIN_DIR"] = os.Getenv("NRIA_PLUGIN_DIR")
-
-	// Performance tuning - metrics sample rates
-	vars["NRIA_METRICS_PROCESS_SAMPLE_RATE"] = os.Getenv("NRIA_METRICS_PROCESS_SAMPLE_RATE")
-	vars["NRIA_METRICS_NETWORK_SAMPLE_RATE"] = os.Getenv("NRIA_METRICS_NETWORK_SAMPLE_RATE")
-	vars["NRIA_METRICS_STORAGE_SAMPLE_RATE"] = os.Getenv("NRIA_METRICS_STORAGE_SAMPLE_RATE")
-	vars["NRIA_METRICS_SYSTEM_SAMPLE_RATE"] = os.Getenv("NRIA_METRICS_SYSTEM_SAMPLE_RATE")
-	vars["NRIA_METRICS_NFS_SAMPLE_RATE"] = os.Getenv("NRIA_METRICS_NFS_SAMPLE_RATE")
-
-	// Proxy configuration (alternative to HTTPS_PROXY)
-	vars["NRIA_PROXY"] = os.Getenv("NRIA_PROXY")
-	vars["NRIA_IGNORE_SYSTEM_PROXY"] = os.Getenv("NRIA_IGNORE_SYSTEM_PROXY")
-
-	// Cloud metadata configuration
-	vars["NRIA_DISABLE_CLOUD_METADATA"] = os.Getenv("NRIA_DISABLE_CLOUD_METADATA")
-
-	// Process metrics filtering
-	vars["NRIA_DISABLE_ZERO_MEM_PROCESS_FILTER"] = os.Getenv("NRIA_DISABLE_ZERO_MEM_PROCESS_FILTER")
 
 	return vars
 }
