@@ -86,9 +86,10 @@ var RecipeStatusTypes = struct {
 }
 
 type StatusError struct {
-	Message  string   `json:"message"`
-	Details  string   `json:"details"`
-	TaskPath []string `json:"taskPath"`
+	Message          string   `json:"message"`
+	Details          string   `json:"details"`
+	TaskPath         []string `json:"taskPath"`
+	OptimizedMessage string   `json:"optimizedMessage"`
 }
 
 var StatusIconMap = map[RecipeStatusType]string{
@@ -379,8 +380,9 @@ func (s *InstallStatus) withRecipeEvent(e RecipeStatusEvent, rs RecipeStatusType
 	s.withSuccessLinkConfig(e.Recipe.SuccessLinkConfig)
 
 	statusError := StatusError{
-		Message:  e.Msg,
-		TaskPath: e.TaskPath,
+		Message:          e.Msg,
+		TaskPath:         e.TaskPath,
+		OptimizedMessage: e.OptimizedMessage,
 	}
 
 	s.Error = statusError

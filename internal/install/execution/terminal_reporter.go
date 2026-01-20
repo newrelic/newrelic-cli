@@ -114,6 +114,8 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 
 		r.printLoggingLink(status)
 
+		r.printFleetLink(status)
+
 		fmt.Println()
 		fmt.Println("\n  --------------------")
 		fmt.Println()
@@ -144,13 +146,33 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 	return nil
 }
 
+func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
+	linkToFleet := ""
+	fleetMsg := "View your fleet at the link below:\n"
+	statuses := r.getRecipesStatusesForInstallationSummary(status)
+
+	for _, s := range statuses {
+		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
+
+		if s.Status == RecipeStatusTypes.INSTALLED && isAgentControlRecipe {
+			linkToFleet = status.PlatformLinkGenerator.GenerateFleetLink(status.HostEntityGUID())
+		}
+	}
+
+	if linkToFleet != "" {
+		fmt.Println("")
+		fmt.Printf("\n  %s", fleetMsg)
+		fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToFleet)
+	}
+}
+
 func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
 	linkToLogging := ""
 	loggingMsg := "View your logs at the link below:\n"
 	statusesToDisplay := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statusesToDisplay {
-		if s.Status == RecipeStatusTypes.INSTALLED && (s.Name == types.LoggingRecipeName || s.Name == types.LoggingSuperAgentRecipeName) {
+		if s.Status == RecipeStatusTypes.INSTALLED && s.Name == types.LoggingRecipeName {
 			linkToLogging = status.PlatformLinkGenerator.GenerateLoggingLink(status.HostEntityGUID())
 		}
 	}

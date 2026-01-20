@@ -23,7 +23,7 @@ on:
 jobs:
   release-windows:
     name: Publish Windows Release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -54,11 +54,10 @@ jobs:
 
       - name: Install aws cli
         run: |
-          sudo apt-get update -y
-          sudo apt-get install awscli -y
+          sudo snap install aws-cli --classic
 
       - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: /home/runner/.aws/credentials
           contents:  |
@@ -68,7 +67,7 @@ jobs:
           write-mode: overwrite
 
       - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@v1.3
         with:
           path: /home/runner/.aws/config
           contents:  |

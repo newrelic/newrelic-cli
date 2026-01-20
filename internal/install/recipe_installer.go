@@ -14,6 +14,9 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/newrelic/newrelic-cli/internal/cli"
+	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-cli/internal/config"
+	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
@@ -22,7 +25,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/install/ux"
 	"github.com/newrelic/newrelic-cli/internal/install/validation"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
 
 const validationTimeout = 5 * time.Minute
@@ -53,7 +55,9 @@ type RecipeInstall struct {
 
 type RecipeInstallFunc func(ctx context.Context, i *RecipeInstall, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, recipes []types.OpenInstallationRecipe) error
 
-func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) *RecipeInstall {
+func NewRecipeInstaller(ic types.InstallerContext) *RecipeInstall {
+	nrClient := client.NRClient
+
 	var recipeFetcher recipes.RecipeFetcher
 
 	if ic.LocalRecipes != "" {
@@ -69,10 +73,18 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	mv := discovery.NewManifestValidator()
 	ff := recipes.NewRecipeFileFetcher([]string{})
 	lf := execution.NewRecipeLogForwarder()
+
+	// Initialize status subscribers
 	ers := []execution.StatusSubscriber{
 		execution.NewTerminalStatusReporter(),
-		execution.NewInstallEventsReporter(&nrClient.InstallEvents),
 	}
+
+	// Only add InstallEventsReporter if an API key is available
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
+	if apiKey != "" {
+		ers = append(ers, execution.NewInstallEventsReporter(&nrClient.InstallEvents))
+	}
+
 	slg := execution.NewPlatformLinkGenerator()
 	statusRollup := execution.NewInstallStatus(ic, ers, slg)
 
@@ -117,6 +129,7 @@ func NewRecipeInstaller(ic types.InstallerContext, nrClient *newrelic.NewRelic) 
 	i.recipeDetectorFactory = func(ctx context.Context, repo *recipes.RecipeRepository, ic *types.InstallerContext) RecipeStatusDetector {
 		return recipes.NewRecipeDetector(ctx, repo, i.processEvaluator, ic)
 	}
+
 	return &i
 }
 
@@ -188,7 +201,7 @@ func (i *RecipeInstall) Install() error {
 
 Welcome to New Relic. Let's set up full stack observability for your environment.
 Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notices
-	`)
+    `)
 	fmt.Println()
 
 	log.Tracef("InstallerContext: %+v", i.InstallerContext)
@@ -220,13 +233,19 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 	errChan := make(chan error)
 	var err error
 
-	err = i.connectToPlatform()
-	if err != nil {
-		i.status.InstallComplete(err)
-		return err
+	// Test connection to platform if accountID and apiKey are provided.
+	accountID := configAPI.GetActiveProfileAccountID()
+	apiKey := configAPI.GetActiveProfileString(config.APIKey)
+
+	if accountID != 0 && apiKey != "" {
+		err = i.connectToPlatform()
+		if err != nil {
+			i.status.InstallComplete(err)
+			return err
+		}
 	}
 
-	// If not in a dev environemt, check to see if
+	// If not in a dev environment, check to see if
 	// the installed CLI is up to date.
 	if !cli.IsDevEnvironment() {
 		if err = i.promptIfNotLatestCLIVersion(ctx); err != nil {
@@ -305,9 +324,9 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return err
 	}
 
-	if _, ok := availableRecipes.GetRecipeDetection(types.SuperAgentRecipeName); i.hostHasSuperAgentProcess() && !ok {
+	if _, ok := availableRecipes.GetRecipeDetection(types.AgentControlRecipeName); i.hostHasAgentControlProcess() && !ok {
 		availableRecipes = append(availableRecipes, &recipes.RecipeDetectionResult{
-			Recipe:     &types.OpenInstallationRecipe{Name: types.SuperAgentRecipeName},
+			Recipe:     &types.OpenInstallationRecipe{Name: types.AgentControlRecipeName},
 			Status:     execution.RecipeStatusTypes.AVAILABLE,
 			DurationMs: 0,
 		})
@@ -381,13 +400,13 @@ func (i *RecipeInstall) reportRecipeRecommendations(availableRecipes recipes.Rec
 	}
 }
 
-// Skip reporting for the infra agent if super agent has been targeted.
+// Skip reporting for the infra agent if agent control has been targeted.
 // The logs-integration also reports a status for the infra agent
 // and should be skipped as well.
 func (i *RecipeInstall) shouldSkipReporting(name string) bool {
 	if name == "infrastructure-agent-installer" || name == "logs-integration" {
 		for _, v := range i.RecipeNames {
-			if v == "super-agent" || v == "logs-integration-super-agent" {
+			if v == "agent-control" || v == "logs-integration-agent-control" {
 				return true
 			}
 		}
@@ -430,11 +449,11 @@ func (i *RecipeInstall) isTargetInstallRecipe(recipeName string) bool {
 
 func (i *RecipeInstall) checkSuper(bundler RecipeBundler) *recipes.Bundler {
 	bun, ok := bundler.(*recipes.Bundler)
-	if i.hostHasSuperAgentProcess() && ok {
+	if i.hostHasAgentControlProcess() && ok {
 		bun.HasSuperInstalled = true
-		log.Debugf("Super agent process found.")
+		log.Debugf("Agent Control process found.")
 	} else {
-		log.Debugf("Super agent process not found.")
+		log.Debugf("Agent Control process not found.")
 	}
 	log.Debugf("Preparing bundle")
 	return bun
@@ -452,9 +471,9 @@ func bundleRecipeProcessing(bundle *recipes.Bundle, bun *recipes.Bundler) {
 }
 
 // installAdditionalBundle installs additional bundles for the given recipes.
-// It checks if the host has a super agent process running, and proceeds with the additional bundle.
+// It checks if the host has a agent control process running, and proceeds with the additional bundle.
 // If the list of recipes is provided, it creates a targeted bundle; otherwise, it creates a guided bundle.
-// If the host has super agent installed infra agent and logs agent would be NULL
+// If the host has agent control installed infra agent and logs agent would be NULL
 // It then installs the additional bundle and reports any unsupported recipes.
 func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleInstaller RecipeBundleInstaller, repo *recipes.RecipeRepository) error {
 	var additionalBundle *recipes.Bundle
@@ -480,7 +499,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 	if bundleInstaller.InstalledRecipesCount() == 0 {
 		for _, recipe := range i.RecipeNames {
 			if bun.HasSuperInstalled && bun.IsCore(recipe) {
-				return types.NewDetailError(types.EventTypes.OtherError, types.ErrSuperAgent.Error())
+				return types.NewDetailError(types.EventTypes.OtherError, types.ErrAgentControl.Error())
 			}
 		}
 
@@ -583,9 +602,10 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 
 		if e, ok := err.(*types.UnsupportedOperatingSystemError); ok {
 			i.status.RecipeUnsupported(execution.RecipeStatusEvent{
-				Recipe:   *r,
-				Msg:      e.Error(),
-				Metadata: i.recipeExecutor.GetOutput().Metadata(),
+				Recipe:           *r,
+				Msg:              e.Error(),
+				Metadata:         i.recipeExecutor.GetOutput().Metadata(),
+				OptimizedMessage: e.Error(),
 			})
 
 			return "", err
@@ -599,9 +619,10 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		i.askToReRunInDebugMode()
 
 		se := execution.RecipeStatusEvent{
-			Recipe:   *r,
-			Msg:      msg,
-			Metadata: i.recipeExecutor.GetOutput().Metadata(),
+			Recipe:           *r,
+			Msg:              msg,
+			Metadata:         i.recipeExecutor.GetOutput().Metadata(),
+			OptimizedMessage: err.Error(),
 		}
 
 		if e, ok := err.(types.GoTaskError); ok {
@@ -655,6 +676,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 			Msg:                  validationErr.Error(),
 			ValidationDurationMs: validationDurationMs,
 			Metadata:             i.recipeExecutor.GetOutput().Metadata(),
+			OptimizedMessage:     err.Error(),
 		})
 
 		return "", validationErr
@@ -724,7 +746,6 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 	}
 
 	hasValidationIntegration := r.ValidationIntegration != ""
-	hasValidationNRQL := r.ValidationNRQL != ""
 
 	// Add either Integration Validation or NRQL Validation if configured
 	if hasValidationIntegration {
@@ -736,6 +757,8 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 	} else {
 		log.Debugf("no validationIntegration defined, skipping")
 	}
+
+	hasValidationNRQL := r.ValidationNRQL != ""
 
 	if hasValidationNRQL {
 		validationFuncs = append(validationFuncs, func() (string, error) {
@@ -773,7 +796,7 @@ func (i *RecipeInstall) validateRecipeViaAllMethods(ctx context.Context, r *type
 				return "", fmt.Errorf("no validation was successful.  most recent validation error: %w", err)
 			}
 		case <-timeoutCtx.Done():
-			return "", fmt.Errorf("timed out waiting for validation to succeed")
+			return "", fmt.Errorf("installation validation timed out after %v. please retry the process\n", validationTimeout)
 		}
 	}
 }
@@ -838,6 +861,6 @@ func (i *RecipeInstall) finishHandlingFailure(recipeName string) {
 	}
 }
 
-func (i *RecipeInstall) hostHasSuperAgentProcess() bool {
-	return i.processEvaluator.FindProcess(types.SuperAgentProcessName)
+func (i *RecipeInstall) hostHasAgentControlProcess() bool {
+	return i.processEvaluator.FindProcess(types.AgentControlProcessName)
 }

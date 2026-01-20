@@ -1,3 +1,295 @@
+<a name="v0.106.13"></a>
+## [v0.106.13] - 2026-01-13
+<a name="v0.106.12"></a>
+## [v0.106.12] - 2026-01-13
+<a name="v0.106.11"></a>
+## [v0.106.11] - 2026-01-13
+<a name="v0.106.10"></a>
+## [v0.106.10] - 2026-01-12
+<a name="v0.106.9"></a>
+## [v0.106.9] - 2026-01-06
+### Bug Fixes
+- **nrqldroprules:** update EOL date, in light of the new effective date, June 30, 2026 ([#1773](https://github.com/newrelic/newrelic-cli/issues/1773))
+
+<a name="v0.106.8"></a>
+## [v0.106.8] - 2025-12-19
+### Bug Fixes
+- **newrelic-entity:** fix timestamp issue in entity deployment marker ([#1760](https://github.com/newrelic/newrelic-cli/issues/1760))
+
+<a name="v0.106.7"></a>
+## [v0.106.7] - 2025-11-19
+<a name="v0.106.6"></a>
+## [v0.106.6] - 2025-11-19
+<a name="v0.106.5"></a>
+## [v0.106.5] - 2025-11-19
+<a name="v0.106.4"></a>
+## [v0.106.4] - 2025-11-18
+<a name="v0.106.3"></a>
+## [v0.106.3] - 2025-11-06
+### Bug Fixes
+- update release workflow to use updated secrets
+- **workflows:** add AWS S3 permission check before release to fail fast on credential issues, point to new V2 creds ([#1757](https://github.com/newrelic/newrelic-cli/issues/1757))
+
+<a name="v0.106.2"></a>
+## [v0.106.2] - 2025-11-03
+<a name="v0.106.1"></a>
+## [v0.106.1] - 2025-10-30
+<a name="v0.106.0"></a>
+## [v0.106.0] - 2025-10-24
+### Features
+- **nrqldroprules:** adds new migration commands to simplify migration of Drop Rules to Pipeline Cloud Rules in local envs ([#1753](https://github.com/newrelic/newrelic-cli/issues/1753))
+
+<a name="v0.105.2"></a>
+## [v0.105.2] - 2025-10-24
+<a name="v0.105.1"></a>
+## [v0.105.1] - 2025-10-23
+<a name="v0.105.0"></a>
+## [v0.105.0] - 2025-10-17
+### Features
+- **nrqldroprules:** adds new tf-importgen-ci command to simplify migration of Drop Rules to Pipeline Cloud Rules in CI ([#1751](https://github.com/newrelic/newrelic-cli/issues/1751))
+
+<a name="v0.104.6"></a>
+## [v0.104.6] - 2025-10-14
+<a name="v0.104.5"></a>
+## [v0.104.5] - 2025-09-30
+### Bug Fixes
+- add change tracking validations ([#1749](https://github.com/newrelic/newrelic-cli/issues/1749))
+
+<a name="v0.104.4"></a>
+## [v0.104.4] - 2025-09-26
+<a name="v0.104.3"></a>
+## [v0.104.3] - 2025-09-18
+<a name="v0.104.2"></a>
+## [v0.104.2] - 2025-09-09
+<a name="v0.104.1"></a>
+## [v0.104.1] - 2025-09-08
+### Bug Fixes
+- **agent-control:** use proper fleet link ([#1748](https://github.com/newrelic/newrelic-cli/issues/1748))
+
+<a name="v0.104.0"></a>
+## [v0.104.0] - 2025-09-02
+### Features
+- **change-event:** adds support for the change tracking api ([#1729](https://github.com/newrelic/newrelic-cli/issues/1729))
+
+<a name="v0.103.3"></a>
+## [v0.103.3] - 2025-08-21
+### Bug Fixes
+- **checksum:** Update copied checksum file name ([#1744](https://github.com/newrelic/newrelic-cli/issues/1744))
+
+<a name="v0.103.2"></a>
+## [v0.103.2] - 2025-08-07
+<a name="v0.103.1"></a>
+## [v0.103.1] - 2025-08-05
+### Bug Fixes
+- Skip lsass.exe process from being processed ([#1741](https://github.com/newrelic/newrelic-cli/issues/1741))
+
+<a name="v0.103.0"></a>
+## [v0.103.0] - 2025-08-04
+### Features
+- **checksum:** Update checksum signing config ([#1743](https://github.com/newrelic/newrelic-cli/issues/1743))
+
+<a name="v0.102.0"></a>
+## [v0.102.0] - 2025-08-04
+### Features
+- **checksum:** Add validations for checksum file upload ([#1742](https://github.com/newrelic/newrelic-cli/issues/1742))
+
+<a name="v0.101.0"></a>
+## [v0.101.0] - 2025-08-04
+### Features
+- **checksum:** Add multiple checksum files for customer convenience([#1740](https://github.com/newrelic/newrelic-cli/issues/1740))
+
+<a name="v0.100.6"></a>
+## [v0.100.6] - 2025-07-31
+### Bug Fixes
+- updated populating infra-agent logs based on core install skip condition ([#1738](https://github.com/newrelic/newrelic-cli/issues/1738))
+
+<a name="v0.100.5"></a>
+## [v0.100.5] - 2025-07-23
+<a name="v0.100.4"></a>
+## [v0.100.4] - 2025-07-18
+<a name="v0.100.3"></a>
+## [v0.100.3] - 2025-07-17
+<a name="v0.100.2"></a>
+## [v0.100.2] - 2025-07-17
+### Bug Fixes
+- **checksum:** Remove the Manuel install.ps1 upload ([#1736](https://github.com/newrelic/newrelic-cli/issues/1736))
+
+<a name="v0.100.1"></a>
+## [v0.100.1] - 2025-07-17
+### Bug Fixes
+- **checksum:** Add checksum generation in main checksum file ([#1734](https://github.com/newrelic/newrelic-cli/issues/1734))
+
+<a name="v0.100.0"></a>
+## [v0.100.0] - 2025-07-17
+### Features
+- **fedora-support:** add fedora support in platform and platformFamily ([#1732](https://github.com/newrelic/newrelic-cli/issues/1732))
+
+<a name="v0.99.8"></a>
+## [v0.99.8] - 2025-07-16
+### Bug Fixes
+- **checksum:** Add install.sh and install.ps1 for checksum generation ([#1731](https://github.com/newrelic/newrelic-cli/issues/1731))
+
+<a name="v0.99.7"></a>
+## [v0.99.7] - 2025-07-14
+<a name="v0.99.6"></a>
+## [v0.99.6] - 2025-07-09
+<a name="v0.99.5"></a>
+## [v0.99.5] - 2025-07-09
+<a name="v0.99.4"></a>
+## [v0.99.4] - 2025-07-01
+### Bug Fixes
+- Add CLI docs support for specific infra agent CLI installs ([#1726](https://github.com/newrelic/newrelic-cli/issues/1726))
+- **deps:** update golang version in lieu of recent vulnerabilities detected ([#1728](https://github.com/newrelic/newrelic-cli/issues/1728))
+
+<a name="v0.99.3"></a>
+## [v0.99.3] - 2025-06-26
+### Bug Fixes
+- **deps:** update dependencies in response to a few vulns reported ([#1725](https://github.com/newrelic/newrelic-cli/issues/1725))
+
+<a name="v0.99.2"></a>
+## [v0.99.2] - 2025-06-26
+<a name="v0.99.1"></a>
+## [v0.99.1] - 2025-06-26
+<a name="v0.99.0"></a>
+## [v0.99.0] - 2025-06-18
+### Features
+- Add support for using agent rel versions in CLI install cmds ([#1721](https://github.com/newrelic/newrelic-cli/issues/1721))
+
+<a name="v0.98.4"></a>
+## [v0.98.4] - 2025-06-09
+<a name="v0.98.3"></a>
+## [v0.98.3] - 2025-05-27
+### Bug Fixes
+- Add InstallEventsReporter only if API key is set ([#1720](https://github.com/newrelic/newrelic-cli/issues/1720))
+
+<a name="v0.98.2"></a>
+## [v0.98.2] - 2025-05-14
+<a name="v0.98.1"></a>
+## [v0.98.1] - 2025-05-13
+### Bug Fixes
+- **otel:** remove dangling references to otel recipe ([#1714](https://github.com/newrelic/newrelic-cli/issues/1714))
+
+<a name="v0.98.0"></a>
+## [v0.98.0] - 2025-04-29
+### Bug Fixes
+- **build:** adds updated GPG Key ID ([#1709](https://github.com/newrelic/newrelic-cli/issues/1709))
+
+### Features
+- **nerdgraph:** Add support to output results for mutations in CLI ([#1670](https://github.com/newrelic/newrelic-cli/issues/1670))
+
+<a name="v0.97.18"></a>
+## [v0.97.18] - 2025-04-23
+<a name="v0.97.17"></a>
+## [v0.97.17] - 2025-04-23
+<a name="v0.97.16"></a>
+## [v0.97.16] - 2025-04-22
+### Bug Fixes
+- Updated awscli command in rel ymls ([#1708](https://github.com/newrelic/newrelic-cli/issues/1708))
+
+<a name="v0.97.15"></a>
+## [v0.97.15] - 2025-04-21
+<a name="v0.97.14"></a>
+## [v0.97.14] - 2025-04-21
+### Bug Fixes
+- Updated the ubuntu version in rel ymls ([#1707](https://github.com/newrelic/newrelic-cli/issues/1707))
+
+<a name="v0.97.13"></a>
+## [v0.97.13] - 2025-04-14
+<a name="v0.97.12"></a>
+## [v0.97.12] - 2025-04-10
+<a name="v0.97.11"></a>
+## [v0.97.11] - 2025-04-07
+### Bug Fixes
+- **script:** Fixed error with Infra Guided Install on windows hosts ([#1704](https://github.com/newrelic/newrelic-cli/issues/1704))
+
+<a name="v0.97.10"></a>
+## [v0.97.10] - 2025-04-02
+### Bug Fixes
+- **agent-control:** Agent control short url fix ([#1702](https://github.com/newrelic/newrelic-cli/issues/1702))
+- **deps:** bump golang.org/x/net from 0.33.0 to 0.36.0 ([#1696](https://github.com/newrelic/newrelic-cli/issues/1696))
+- **script:** Escape square brackets in registry key paths ([#1691](https://github.com/newrelic/newrelic-cli/issues/1691))
+
+<a name="v0.97.9"></a>
+## [v0.97.9] - 2025-03-05
+### Bug Fixes
+- **dependabot-alerts:** Updated module github.com/golang-jwt/jwt/v4 to v4.5.1 ([#1690](https://github.com/newrelic/newrelic-cli/issues/1690))
+
+<a name="v0.97.8"></a>
+## [v0.97.8] - 2025-03-03
+### Bug Fixes
+- Fixed newrelic.exe signature missing issue ([#1686](https://github.com/newrelic/newrelic-cli/issues/1686))
+
+<a name="v0.97.7"></a>
+## [v0.97.7] - 2025-02-12
+<a name="v0.97.6"></a>
+## [v0.97.6] - 2025-02-11
+<a name="v0.97.5"></a>
+## [v0.97.5] - 2025-02-04
+### Bug Fixes
+- Bumped windows download artifact version to v4 ([#1684](https://github.com/newrelic/newrelic-cli/issues/1684))
+
+<a name="v0.97.4"></a>
+## [v0.97.4] - 2025-02-04
+### Bug Fixes
+- Revert PR [#1677](https://github.com/newrelic/newrelic-cli/issues/1677) causing regression test failure ([#1680](https://github.com/newrelic/newrelic-cli/issues/1680))
+- **dependabot:** Updates to dependencies to fix dependabot alerts ([#1677](https://github.com/newrelic/newrelic-cli/issues/1677))
+- **release:** Bumped windows upload-artifact to v4 ([#1679](https://github.com/newrelic/newrelic-cli/issues/1679))
+
+<a name="v0.97.3"></a>
+## [v0.97.3] - 2025-01-07
+### Bug Fixes
+- **agent-control:** rename Super Agent to Agent Control in the CLI ([#1674](https://github.com/newrelic/newrelic-cli/issues/1674))
+
+<a name="v0.97.2"></a>
+## [v0.97.2] - 2024-12-04
+### Bug Fixes
+- **dashboard:** Updated the Dashboard JSON to HCL Converter Utility with Latest Fields in the Resource ([#1669](https://github.com/newrelic/newrelic-cli/issues/1669))
+
+<a name="v0.97.1"></a>
+## [v0.97.1] - 2024-11-12
+<a name="v0.97.0"></a>
+## [v0.97.0] - 2024-11-11
+### Features
+- Add optimized message field to recipe and status events ([#1666](https://github.com/newrelic/newrelic-cli/issues/1666))
+
+<a name="v0.96.3"></a>
+## [v0.96.3] - 2024-10-31
+<a name="v0.96.2"></a>
+## [v0.96.2] - 2024-10-24
+<a name="v0.96.1"></a>
+## [v0.96.1] - 2024-10-21
+<a name="v0.96.0"></a>
+## [v0.96.0] - 2024-10-07
+### Features
+- Arm64 docker image ([#1652](https://github.com/newrelic/newrelic-cli/issues/1652))
+
+<a name="v0.95.0"></a>
+## [v0.95.0] - 2024-10-04
+### Features
+- Agent version command ([#1648](https://github.com/newrelic/newrelic-cli/issues/1648))
+
+<a name="v0.94.3"></a>
+## [v0.94.3] - 2024-10-02
+### Bug Fixes
+- Eu license keys ([#1650](https://github.com/newrelic/newrelic-cli/issues/1650))
+
+<a name="v0.94.2"></a>
+## [v0.94.2] - 2024-09-27
+### Bug Fixes
+- License key fatal error ([#1649](https://github.com/newrelic/newrelic-cli/issues/1649))
+
+<a name="v0.94.1"></a>
+## [v0.94.1] - 2024-09-24
+<a name="v0.94.0"></a>
+## [v0.94.0] - 2024-09-20
+### Features
+- Fleet management link ([#1647](https://github.com/newrelic/newrelic-cli/issues/1647))
+
+<a name="v0.93.8"></a>
+## [v0.93.8] - 2024-09-18
+### Bug Fixes
+- Uninstall previous cli version windows ([#1645](https://github.com/newrelic/newrelic-cli/issues/1645))
+
 <a name="v0.93.7"></a>
 ## [v0.93.7] - 2024-09-17
 ### Bug Fixes
@@ -2373,7 +2665,87 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.13...HEAD
+[v0.106.13]: https://github.com/newrelic/newrelic-cli/compare/v0.106.12...v0.106.13
+[v0.106.12]: https://github.com/newrelic/newrelic-cli/compare/v0.106.11...v0.106.12
+[v0.106.11]: https://github.com/newrelic/newrelic-cli/compare/v0.106.10...v0.106.11
+[v0.106.10]: https://github.com/newrelic/newrelic-cli/compare/v0.106.9...v0.106.10
+[v0.106.9]: https://github.com/newrelic/newrelic-cli/compare/v0.106.8...v0.106.9
+[v0.106.8]: https://github.com/newrelic/newrelic-cli/compare/v0.106.7...v0.106.8
+[v0.106.7]: https://github.com/newrelic/newrelic-cli/compare/v0.106.6...v0.106.7
+[v0.106.6]: https://github.com/newrelic/newrelic-cli/compare/v0.106.5...v0.106.6
+[v0.106.5]: https://github.com/newrelic/newrelic-cli/compare/v0.106.4...v0.106.5
+[v0.106.4]: https://github.com/newrelic/newrelic-cli/compare/v0.106.3...v0.106.4
+[v0.106.3]: https://github.com/newrelic/newrelic-cli/compare/v0.106.2...v0.106.3
+[v0.106.2]: https://github.com/newrelic/newrelic-cli/compare/v0.106.1...v0.106.2
+[v0.106.1]: https://github.com/newrelic/newrelic-cli/compare/v0.106.0...v0.106.1
+[v0.106.0]: https://github.com/newrelic/newrelic-cli/compare/v0.105.2...v0.106.0
+[v0.105.2]: https://github.com/newrelic/newrelic-cli/compare/v0.105.1...v0.105.2
+[v0.105.1]: https://github.com/newrelic/newrelic-cli/compare/v0.105.0...v0.105.1
+[v0.105.0]: https://github.com/newrelic/newrelic-cli/compare/v0.104.6...v0.105.0
+[v0.104.6]: https://github.com/newrelic/newrelic-cli/compare/v0.104.5...v0.104.6
+[v0.104.5]: https://github.com/newrelic/newrelic-cli/compare/v0.104.4...v0.104.5
+[v0.104.4]: https://github.com/newrelic/newrelic-cli/compare/v0.104.3...v0.104.4
+[v0.104.3]: https://github.com/newrelic/newrelic-cli/compare/v0.104.2...v0.104.3
+[v0.104.2]: https://github.com/newrelic/newrelic-cli/compare/v0.104.1...v0.104.2
+[v0.104.1]: https://github.com/newrelic/newrelic-cli/compare/v0.104.0...v0.104.1
+[v0.104.0]: https://github.com/newrelic/newrelic-cli/compare/v0.103.3...v0.104.0
+[v0.103.3]: https://github.com/newrelic/newrelic-cli/compare/v0.103.2...v0.103.3
+[v0.103.2]: https://github.com/newrelic/newrelic-cli/compare/v0.103.1...v0.103.2
+[v0.103.1]: https://github.com/newrelic/newrelic-cli/compare/v0.103.0...v0.103.1
+[v0.103.0]: https://github.com/newrelic/newrelic-cli/compare/v0.102.0...v0.103.0
+[v0.102.0]: https://github.com/newrelic/newrelic-cli/compare/v0.101.0...v0.102.0
+[v0.101.0]: https://github.com/newrelic/newrelic-cli/compare/v0.100.6...v0.101.0
+[v0.100.6]: https://github.com/newrelic/newrelic-cli/compare/v0.100.5...v0.100.6
+[v0.100.5]: https://github.com/newrelic/newrelic-cli/compare/v0.100.4...v0.100.5
+[v0.100.4]: https://github.com/newrelic/newrelic-cli/compare/v0.100.3...v0.100.4
+[v0.100.3]: https://github.com/newrelic/newrelic-cli/compare/v0.100.2...v0.100.3
+[v0.100.2]: https://github.com/newrelic/newrelic-cli/compare/v0.100.1...v0.100.2
+[v0.100.1]: https://github.com/newrelic/newrelic-cli/compare/v0.100.0...v0.100.1
+[v0.100.0]: https://github.com/newrelic/newrelic-cli/compare/v0.99.8...v0.100.0
+[v0.99.8]: https://github.com/newrelic/newrelic-cli/compare/v0.99.7...v0.99.8
+[v0.99.7]: https://github.com/newrelic/newrelic-cli/compare/v0.99.6...v0.99.7
+[v0.99.6]: https://github.com/newrelic/newrelic-cli/compare/v0.99.5...v0.99.6
+[v0.99.5]: https://github.com/newrelic/newrelic-cli/compare/v0.99.4...v0.99.5
+[v0.99.4]: https://github.com/newrelic/newrelic-cli/compare/v0.99.3...v0.99.4
+[v0.99.3]: https://github.com/newrelic/newrelic-cli/compare/v0.99.2...v0.99.3
+[v0.99.2]: https://github.com/newrelic/newrelic-cli/compare/v0.99.1...v0.99.2
+[v0.99.1]: https://github.com/newrelic/newrelic-cli/compare/v0.99.0...v0.99.1
+[v0.99.0]: https://github.com/newrelic/newrelic-cli/compare/v0.98.4...v0.99.0
+[v0.98.4]: https://github.com/newrelic/newrelic-cli/compare/v0.98.3...v0.98.4
+[v0.98.3]: https://github.com/newrelic/newrelic-cli/compare/v0.98.2...v0.98.3
+[v0.98.2]: https://github.com/newrelic/newrelic-cli/compare/v0.98.1...v0.98.2
+[v0.98.1]: https://github.com/newrelic/newrelic-cli/compare/v0.98.0...v0.98.1
+[v0.98.0]: https://github.com/newrelic/newrelic-cli/compare/v0.97.18...v0.98.0
+[v0.97.18]: https://github.com/newrelic/newrelic-cli/compare/v0.97.17...v0.97.18
+[v0.97.17]: https://github.com/newrelic/newrelic-cli/compare/v0.97.16...v0.97.17
+[v0.97.16]: https://github.com/newrelic/newrelic-cli/compare/v0.97.15...v0.97.16
+[v0.97.15]: https://github.com/newrelic/newrelic-cli/compare/v0.97.14...v0.97.15
+[v0.97.14]: https://github.com/newrelic/newrelic-cli/compare/v0.97.13...v0.97.14
+[v0.97.13]: https://github.com/newrelic/newrelic-cli/compare/v0.97.12...v0.97.13
+[v0.97.12]: https://github.com/newrelic/newrelic-cli/compare/v0.97.11...v0.97.12
+[v0.97.11]: https://github.com/newrelic/newrelic-cli/compare/v0.97.10...v0.97.11
+[v0.97.10]: https://github.com/newrelic/newrelic-cli/compare/v0.97.9...v0.97.10
+[v0.97.9]: https://github.com/newrelic/newrelic-cli/compare/v0.97.8...v0.97.9
+[v0.97.8]: https://github.com/newrelic/newrelic-cli/compare/v0.97.7...v0.97.8
+[v0.97.7]: https://github.com/newrelic/newrelic-cli/compare/v0.97.6...v0.97.7
+[v0.97.6]: https://github.com/newrelic/newrelic-cli/compare/v0.97.5...v0.97.6
+[v0.97.5]: https://github.com/newrelic/newrelic-cli/compare/v0.97.4...v0.97.5
+[v0.97.4]: https://github.com/newrelic/newrelic-cli/compare/v0.97.3...v0.97.4
+[v0.97.3]: https://github.com/newrelic/newrelic-cli/compare/v0.97.2...v0.97.3
+[v0.97.2]: https://github.com/newrelic/newrelic-cli/compare/v0.97.1...v0.97.2
+[v0.97.1]: https://github.com/newrelic/newrelic-cli/compare/v0.97.0...v0.97.1
+[v0.97.0]: https://github.com/newrelic/newrelic-cli/compare/v0.96.3...v0.97.0
+[v0.96.3]: https://github.com/newrelic/newrelic-cli/compare/v0.96.2...v0.96.3
+[v0.96.2]: https://github.com/newrelic/newrelic-cli/compare/v0.96.1...v0.96.2
+[v0.96.1]: https://github.com/newrelic/newrelic-cli/compare/v0.96.0...v0.96.1
+[v0.96.0]: https://github.com/newrelic/newrelic-cli/compare/v0.95.0...v0.96.0
+[v0.95.0]: https://github.com/newrelic/newrelic-cli/compare/v0.94.3...v0.95.0
+[v0.94.3]: https://github.com/newrelic/newrelic-cli/compare/v0.94.2...v0.94.3
+[v0.94.2]: https://github.com/newrelic/newrelic-cli/compare/v0.94.1...v0.94.2
+[v0.94.1]: https://github.com/newrelic/newrelic-cli/compare/v0.94.0...v0.94.1
+[v0.94.0]: https://github.com/newrelic/newrelic-cli/compare/v0.93.8...v0.94.0
+[v0.93.8]: https://github.com/newrelic/newrelic-cli/compare/v0.93.7...v0.93.8
 [v0.93.7]: https://github.com/newrelic/newrelic-cli/compare/v0.93.6...v0.93.7
 [v0.93.6]: https://github.com/newrelic/newrelic-cli/compare/v0.93.5...v0.93.6
 [v0.93.5]: https://github.com/newrelic/newrelic-cli/compare/v0.93.4...v0.93.5

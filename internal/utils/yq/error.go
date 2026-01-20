@@ -43,7 +43,7 @@ func (err *yamlParseError) Error() string {
 	msg := strings.TrimPrefix(
 		strings.TrimPrefix(err.err.Error(), "yaml: "),
 		"unmarshal errors:\n  ")
-	if fmt.Sscanf(msg, "line %d: ", &line); line == 0 {
+	if _, scanErr := fmt.Sscanf(msg, "line %d: ", &line); scanErr != nil || line == 0 {
 		return "invalid yaml: " + err.fname
 	}
 	msg = msg[strings.Index(msg, ": ")+2:]

@@ -99,19 +99,19 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 		Name:        types.LoggingRecipeName,
 		Status:      RecipeStatusTypes.INSTALLED,
 	}
-	loggingSuperAgentRecipeStatus := &RecipeStatus{
+	loggingAgentControlRecipeStatus := &RecipeStatus{
 		DisplayName: "Logs integration",
-		Name:        types.LoggingSuperAgentRecipeName,
+		Name:        types.LoggingAgentControlRecipeName,
 		Status:      RecipeStatusTypes.INSTALLED,
 	}
 
 	status.Statuses = append(status.Statuses, loggingRecipeStatus)
-	status.Statuses = append(status.Statuses, loggingSuperAgentRecipeStatus)
+	status.Statuses = append(status.Statuses, loggingAgentControlRecipeStatus)
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
 	require.Equal(t, 1, g.GenerateEntityLinkCallCount)
-	require.Equal(t, 2, g.GenerateLoggingLinkCallCount)
+	require.Equal(t, 1, g.GenerateLoggingLinkCallCount)
 }
 
 func Test_ShouldNotGenerateExplorerLink(t *testing.T) {

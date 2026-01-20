@@ -208,6 +208,7 @@ func IsValidUserAPIKeyFormat(key string) bool {
 // Returns true if the given license key is valid.
 // A valid license key is 40 characters in length,
 // ends with "NRAL", and has a hexadecimal prefix.
+// EU license keys begin with the prefix "eu01xx".
 func IsValidLicenseKeyFormat(licenseKey string) bool {
 	if len(licenseKey) != 40 {
 		log.Debug("license key is invalid length")
@@ -222,6 +223,9 @@ func IsValidLicenseKeyFormat(licenseKey string) bool {
 	}
 
 	prefix := strings.TrimSuffix(licenseKey, suffix)
+
+	euRegionPrefix := "eu01xx"
+	prefix = strings.TrimPrefix(prefix, euRegionPrefix)
 
 	hexadecimal := regexp.MustCompile("^[a-fA-F0-9]*$").MatchString(prefix)
 

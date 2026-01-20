@@ -33,7 +33,17 @@ builds:
 
 release:
   name_template: "{{.ProjectName}} v{{.Version}}"
-
+  extra_files:
+    - glob: scripts/install.sh
+      name_template: "install.sh"
+    - glob: scripts/install.ps1
+      name_template: "install.ps1"
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+  algorithm: sha256
+  extra_files:
+    - glob: "scripts/install.sh"
+    - glob: "scripts/install.ps1"
 archives:
   - id: "default"
     builds:
@@ -57,7 +67,10 @@ signs:
     args:
       [
         "-u",
-        "92ADA76A30A3F1FD",
+        # GPG Key ID Updated on 29 April 2025 - Expires 27 April 2027
+        "4F9A9B5B96EC30B9",
+        # When the Key ID here is updated, it has to be paired with an update
+        # to the PGP_PRIVATE_KEY attribute consumed by GitHub Workflows
         "--output",
         "${signature}",
         "--detach-sign",
@@ -67,14 +80,44 @@ signs:
 dockers:
   - dockerfile: build/package/Dockerfile
     image_templates:
-      - "newrelic/cli:{{ .Tag }}"
-      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
-      - "newrelic/cli:latest"
+      - "newrelic/cli:{{ .Tag }}-amd64"
+      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "newrelic/cli:latest-amd64"
+    use: buildx
     build_flag_templates:
       - "--pull"
       - "--label=repository=http://github.com/newrelic/newrelic-cli"
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
+      - "--platform=linux/amd64"
+    goarch: amd64
+  - dockerfile: build/package/Dockerfile
+    image_templates:
+      - "newrelic/cli:{{ .Tag }}-arm64"
+      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-arm64"
+      - "newrelic/cli:latest-arm64"
+    use: buildx
+    build_flag_templates:
+      - "--pull"
+      - "--label=repository=http://github.com/newrelic/newrelic-cli"
+      - "--label=homepage=https://developer.newrelic.com/"
+      - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
+      - "--platform=linux/arm64"
+    goarch: arm64
+
+docker_manifests:
+  - name_template: "newrelic/cli:{{ .Tag }}"
+    image_templates:
+      - "newrelic/cli:{{ .Tag }}-amd64"
+      - "newrelic/cli:{{ .Tag }}-arm64"
+  - name_template: "newrelic/cli:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-arm64"
+  - name_template: "newrelic/cli:latest"
+    image_templates:
+      - "newrelic/cli:latest-amd64"
+      - "newrelic/cli:latest-arm64"
 
 # Uses git-chglog output from release flow
 changelog:

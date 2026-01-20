@@ -29,6 +29,7 @@ type RecipeStatusEvent struct {
 	EntityGUID           string
 	ValidationDurationMs int64
 	Metadata             map[string]string
+	OptimizedMessage     string
 }
 
 func NewRecipeStatusEvent(recipe *types.OpenInstallationRecipe) RecipeStatusEvent {
