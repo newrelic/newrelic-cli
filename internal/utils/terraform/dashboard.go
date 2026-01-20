@@ -33,6 +33,29 @@ var (
 	}
 )
 
+type DashboardBillboardSettings struct {
+	Link        DashboardBillboardLink        `json:"link,omitempty"`
+	Visual      DashboardBillboardVisual      `json:"visual,omitempty"`
+	GridOptions DashboardBillboardGridOptions `json:"gridOptions,omitempty"`
+}
+
+type DashboardBillboardLink struct {
+	Title  string `json:"title,omitempty"`
+	URL    string `json:"url,omitempty"`
+	NewTab bool   `json:"newTab,omitempty"`
+}
+
+type DashboardBillboardVisual struct {
+	Alignment string `json:"alignment,omitempty"`
+	Display   string `json:"display,omitempty"`
+}
+
+type DashboardBillboardGridOptions struct {
+	Value   float64 `json:"value,omitempty"`
+	Label   float64 `json:"label,omitempty"`
+	Columns float64 `json:"columns,omitempty"`
+}
+
 type DashboardWidgetRawConfiguration struct {
 	DataFormatters    []DataFormatter                `json:"dataFormatters"`
 	NRQLQueries       []DashboardWidgetNRQLQuery     `json:"nrqlQueries"`
@@ -49,6 +72,7 @@ type DashboardWidgetRawConfiguration struct {
 	PlatformOptions   DashboardWidgetPlatformOptions `json:"platformOptions,omitempty"`
 	RefreshRate       DashboardWidgetRefreshRate     `json:"refreshRate,omitempty"`
 	InitialSorting    DashboardWidgetInitialSorting  `json:"initialSorting,omitempty"`
+	BillboardSettings DashboardBillboardSettings     `json:"billboardSettings,omitempty"`
 }
 
 type DataFormatter struct {
@@ -321,6 +345,33 @@ func writeBillboardWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfigu
 			h.WriteStringAttribute("type", q.Type)
 			h.WriteStringAttribute("format", q.Format)
 			writeInterfaceValues(h, "precision", q.Precision) // function to handle different types of precision
+		})
+	}
+
+	if config.BillboardSettings != (DashboardBillboardSettings{}) {
+		h.WriteBlock("billboard_settings", []string{}, func() {
+			if config.BillboardSettings.Link != (DashboardBillboardLink{}) {
+				h.WriteBlock("link", []string{}, func() {
+					h.WriteStringAttributeIfNotEmpty("url", config.BillboardSettings.Link.URL)
+					h.WriteStringAttributeIfNotEmpty("title", config.BillboardSettings.Link.Title)
+					h.WriteBooleanAttribute("new_tab", config.BillboardSettings.Link.NewTab)
+				})
+			}
+
+			if config.BillboardSettings.Visual != (DashboardBillboardVisual{}) {
+				h.WriteBlock("visual", []string{}, func() {
+					h.WriteStringAttributeIfNotEmpty("alignment", config.BillboardSettings.Visual.Alignment)
+					h.WriteStringAttributeIfNotEmpty("display", config.BillboardSettings.Visual.Display)
+				})
+			}
+
+			if config.BillboardSettings.GridOptions != (DashboardBillboardGridOptions{}) {
+				h.WriteBlock("grid_options", []string{}, func() {
+					h.WriteFloatAttribute("columns", config.BillboardSettings.GridOptions.Columns)
+					h.WriteFloatAttribute("label", config.BillboardSettings.GridOptions.Label)
+					h.WriteFloatAttribute("value", config.BillboardSettings.GridOptions.Value)
+				})
+			}
 		})
 	}
 }
