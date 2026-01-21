@@ -179,7 +179,7 @@ func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error
 			cmd, err := p.Cmd()
 			cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? install`)
 			if err == nil && cmdRegex.MatchString(cmd) {
-				log.Debugf(fmt.Sprintf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID()))
+				log.Debugf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID())
 				count++
 			}
 		}

@@ -1,6 +1,8 @@
 module github.com/newrelic/newrelic-cli
 
-go 1.23.10
+go 1.24.0
+
+toolchain go1.24.11
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -17,7 +19,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.68.1
+	github.com/newrelic/newrelic-client-go/v2 v2.76.0
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.23.9
 	github.com/sirupsen/logrus v1.9.3
