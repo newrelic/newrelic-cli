@@ -1,0 +1,33 @@
+name: update-deployment
+short: Update a fleet deployment
+long: |
+  Update an existing fleet deployment's details such as name, description, configuration versions, and tags.
+
+  This allows you to modify deployment metadata and update which configuration versions
+  are part of the deployment rollout.
+example: |
+  # Update deployment name
+  newrelic fleetcontrol fleet update-deployment --id "deployment_abc123" --name "Updated Deployment Name"
+
+  # Update deployment with new configuration versions
+  newrelic fleetcontrol fleet update-deployment --id "deployment_abc123" --configuration-version-ids "version_1,version_2,version_3"
+
+  # Update deployment description and tags
+  newrelic fleetcontrol fleet update-deployment --id "deployment_abc123" --description "Updated rollout plan" --tags "env:staging,release:v1.2.4"
+flags:
+  - name: id
+    type: string
+    required: true
+    description: the deployment ID to update
+  - name: name
+    type: string
+    description: the new name of the deployment
+  - name: description
+    type: string
+    description: a new description of the deployment
+  - name: configuration-version-ids
+    type: stringSlice
+    description: updated configuration version IDs to deploy (can be specified multiple times)
+  - name: tags
+    type: stringSlice
+    description: updated tags in format key:value1,value2 (can be specified multiple times)

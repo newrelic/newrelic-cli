@@ -1,0 +1,35 @@
+name: add-version
+short: Add a new version to an existing fleet configuration
+long: |
+  Add a new version to an existing fleet configuration.
+
+  This creates a new version of the configuration, typically from a file containing
+  the updated configuration content in JSON or YAML format.
+example: |
+  # Add a new version from a file (recommended)
+  newrelic fleetcontrol fleet add-version --configuration-guid "abc-123-def" --configuration-file-path ./new-config.json
+
+  # Add a new version from a YAML file
+  newrelic fleetcontrol fleet add-version --configuration-guid "abc-123-def" --configuration-file-path ./updated-config.yaml
+
+  # Add a new version with inline content (for testing/development only)
+  newrelic fleetcontrol fleet add-version --configuration-guid "abc-123-def" --configuration-content '{"updated": "config"}'
+
+  # Add a new version with explicit organization ID
+  newrelic fleetcontrol fleet add-version --configuration-guid "abc-123-def" --organization-id "org-456" --configuration-file-path ./config-v2.json
+flags:
+  - name: configuration-guid
+    type: string
+    required: true
+    description: the GUID of the configuration to add a version to
+  - name: organization-id
+    type: string
+    description: the organization ID; if not provided, will be derived from current organization
+  - name: configuration-file-path
+    type: file
+    required: false
+    description: path to configuration file (JSON/YAML) - recommended approach for production use
+  - name: configuration-content
+    type: string
+    required: false
+    description: inline configuration content (JSON/YAML) - use only for testing, development, or emergency purposes

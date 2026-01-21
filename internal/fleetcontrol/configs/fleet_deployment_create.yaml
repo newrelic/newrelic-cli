@@ -1,0 +1,32 @@
+name: create-deployment
+short: Create a new fleet deployment
+long: |
+  Create a new fleet deployment to manage configuration rollouts across rings.
+
+  A deployment tracks the rollout of configuration versions across the rings
+  in a fleet, allowing controlled and monitored deployment phases.
+example: |
+  # Create a deployment for a fleet
+  newrelic fleetcontrol fleet create-deployment --fleet-id "fleet_abc123" --name "v1.2.3 Deployment" --configuration-version-ids "version_1,version_2"
+
+  # Create a deployment with description and tags
+  newrelic fleetcontrol fleet create-deployment --fleet-id "fleet_abc123" --name "Production Rollout" --configuration-version-ids "version_1" --description "Rolling out new config" --tags "env:prod,release:v1.2.3"
+flags:
+  - name: fleet-id
+    type: string
+    required: true
+    description: the ID of the fleet for this deployment
+  - name: name
+    type: string
+    required: true
+    description: the name of the deployment
+  - name: configuration-version-ids
+    type: stringSlice
+    required: true
+    description: the configuration version IDs to deploy (can be specified multiple times)
+  - name: description
+    type: string
+    description: a description of the deployment
+  - name: tags
+    type: stringSlice
+    description: tags in format key:value1,value2 (can be specified multiple times)

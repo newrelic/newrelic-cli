@@ -1,0 +1,21 @@
+name: get-versions
+short: Get all versions of a fleet configuration
+long: |
+  Retrieve all versions of a fleet configuration by configuration GUID.
+
+  This command fetches the version history of a configuration, including
+  version numbers, blob IDs, and timestamps.
+example: |
+  # Get all versions of a configuration
+  newrelic fleetcontrol fleet get-versions --configuration-guid "ABC123DEF456"
+
+  # Get versions with explicit organization ID
+  newrelic fleetcontrol fleet get-versions --configuration-guid "ABC123DEF456" --organization-id "ORG_ID"
+flags:
+  - name: configuration-guid
+    type: string
+    required: true
+    description: the configuration entity GUID
+  - name: organization-id
+    type: string
+    description: the organization ID; if not provided, it will be fetched from the API

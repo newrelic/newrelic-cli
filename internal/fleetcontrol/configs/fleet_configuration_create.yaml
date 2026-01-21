@@ -1,0 +1,49 @@
+name: create-configuration
+short: Create a fleet configuration
+long: |
+  Create a new fleet configuration with custom attributes.
+
+  Configurations allow you to define settings and attributes for fleet management.
+  The configuration content is typically provided via a file containing JSON or YAML.
+example: |
+  # Create a configuration from a file (recommended)
+  newrelic fleetcontrol fleet create-configuration --entity-name "My Fleet" --agent-type "NRInfra" --managed-entity-type "KUBERNETESCLUSTER" --configuration-file-path ./config.json
+
+  # Create a configuration from a YAML file
+  newrelic fleetcontrol fleet create-configuration --entity-name "My Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-file-path ./config.yaml
+
+  # Create a configuration with inline content (for testing/development only)
+  newrelic fleetcontrol fleet create-configuration --entity-name "Test Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-content '{"key": "value"}'
+
+  # Create a configuration with explicit organization ID
+  newrelic fleetcontrol fleet create-configuration --entity-name "Production Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --organization-id "abc-123-def" --configuration-file-path ./prod-config.json
+flags:
+  - name: entity-name
+    type: string
+    required: true
+    description: the name of the configuration entity
+  - name: agent-type
+    type: string
+    required: true
+    description: the agent type (e.g., NRInfra, NRDB)
+    validation:
+      allowed_values: ["NRInfra","NRDOT", "FluentBit", "NRPrometheusAgent"]
+      case_insensitive: true
+  - name: managed-entity-type
+    type: string
+    required: true
+    description: the type of entities this configuration manages
+    validation:
+      allowed_values: ["HOST", "KUBERNETESCLUSTER", "APM"]
+      case_insensitive: true
+  - name: organization-id
+    type: string
+    description: the organization ID; if not provided, will be derived from current organization
+  - name: configuration-file-path
+    type: file
+    required: false
+    description: path to configuration file (JSON/YAML) - recommended approach for production use
+  - name: configuration-content
+    type: string
+    required: false
+    description: inline configuration content (JSON/YAML) - use only for testing, development, or emergency purposes

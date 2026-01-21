@@ -1,0 +1,24 @@
+name: search
+short: Search for fleet entities by name
+long: |
+  Search for fleet entities by name using exact match or substring match.
+
+  This command searches all fleet entities and filters them based on the provided
+  name criteria. Use --name-equals for exact match or --name-contains for substring match.
+  These flags are mutually exclusive.
+example: |
+  # Search for fleets with exact name
+  newrelic fleetcontrol fleet search --name-equals "Production Fleet"
+
+  # Search for fleets containing a substring
+  newrelic fleetcontrol fleet search --name-contains "prod"
+
+  # Search with table format
+  newrelic fleetcontrol fleet search --name-contains "staging" --format Text
+flags:
+  - name: name-equals
+    type: string
+    description: search for fleets with this exact name
+  - name: name-contains
+    type: string
+    description: search for fleets whose name contains this substring

@@ -1,0 +1,35 @@
+name: get-configuration
+short: Get a fleet configuration or version
+long: |
+  Get a fleet configuration or a specific version of a configuration.
+
+  You can retrieve the latest version of a configuration, a specific version by number,
+  or a configuration version by its entity GUID.
+example: |
+  # Get latest version of a configuration
+  newrelic fleetcontrol fleet get-configuration --entity-guid "abc-123-def"
+
+  # Get specific version of a configuration
+  newrelic fleetcontrol fleet get-configuration --entity-guid "abc-123-def" --version 2
+
+  # Get configuration version by version entity GUID
+  newrelic fleetcontrol fleet get-configuration --entity-guid "version-entity-guid" --mode ConfigVersionEntity
+flags:
+  - name: entity-guid
+    type: string
+    required: true
+    description: the configuration or version entity GUID
+  - name: organization-id
+    type: string
+    description: the organization ID; if not provided, will be derived from current organization
+  - name: mode
+    type: string
+    default: ConfigEntity
+    description: the entity type to retrieve (ConfigEntity for configuration, ConfigVersionEntity for specific version entity)
+    validation:
+      allowed_values: ["ConfigEntity", "ConfigVersionEntity"]
+      case_insensitive: true
+  - name: version
+    type: int
+    default: -1
+    description: the version number to retrieve; use -1 or omit for latest version (only applies when mode is ConfigEntity)
