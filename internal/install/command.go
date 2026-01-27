@@ -15,6 +15,7 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 	nrRegion "github.com/newrelic/newrelic-client-go/v2/pkg/region"
 )
@@ -85,6 +86,13 @@ var Command = &cobra.Command{
 		}
 
 		detailErr := fetchLicenseKey()
+
+		if detailErr != nil {
+			log.Fatal(detailErr)
+		}
+
+		// Validate that the license key belongs to the same account as the API key
+		detailErr = validateCredentialAccountMatch()
 
 		if detailErr != nil {
 			log.Fatal(detailErr)
@@ -296,4 +304,56 @@ func fetchLicenseKeyFromProfile() string {
 	log.Debug("license key provided by config is invalid")
 
 	return ""
+}
+
+// validateCredentialAccountMatch verifies that the license key belongs to the same
+// account as the API key to prevent installation validation failures.
+// This function should only be called after fetchLicenseKey() has successfully completed.
+func validateCredentialAccountMatch() *types.DetailError {
+	accountID := configAPI.GetActiveProfileAccountID()
+	licenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
+
+	// This should never happen if fetchLicenseKey() succeeded, but check defensively
+	if licenseKey == "" {
+		log.Error("validateCredentialAccountMatch called but NEW_RELIC_LICENSE_KEY is not set")
+		return types.NewDetailError(
+			types.EventTypes.UnableToFetchLicenseKey,
+			"license key is required for credential validation but was not found",
+		)
+	}
+
+	log.Debug("validating that license key belongs to account: ", accountID)
+
+	// Search for all ingest keys (including license keys) associated with the account
+	params := apiaccess.APIAccessKeySearchQuery{
+		Scope: apiaccess.APIAccessKeySearchScope{
+			AccountIDs: []int{accountID},
+		},
+		Types: []apiaccess.APIAccessKeyType{
+			apiaccess.APIAccessKeyTypeTypes.INGEST,
+		},
+	}
+
+	keys, err := client.NRClient.APIAccess.SearchAPIAccessKeysWithContext(utils.SignalCtx, params)
+
+	if err != nil {
+		// If we can't verify, log a warning but don't fail the installation
+		log.Warnf("unable to verify credential account match: %s", err)
+		return nil
+	}
+
+	// Check if the license key belongs to this account
+	for _, k := range keys {
+		if k.Key == licenseKey {
+			log.Debug("license key validated: belongs to account ", accountID)
+			return nil
+		}
+	}
+
+	// License key does not belong to this account
+	log.Error("credential mismatch detected: license key does not belong to the configured account")
+	return types.NewDetailError(
+		types.EventTypes.CredentialAccountMismatch,
+		fmt.Sprintf(types.ErrCredentialMismatch, accountID),
+	)
 }
