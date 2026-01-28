@@ -354,6 +354,6 @@ func validateCredentialAccountMatch() *types.DetailError {
 	log.Error("credential mismatch detected: license key does not belong to the configured account")
 	return types.NewDetailError(
 		types.EventTypes.CredentialAccountMismatch,
-		fmt.Sprintf(types.ErrCredentialMismatch, accountID),
+		fmt.Sprintf(types.ErrCredentialMismatch, utils.Obfuscate(licenseKey), accountID),
 	)
 }
