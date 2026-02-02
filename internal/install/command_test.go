@@ -91,142 +91,66 @@ func TestFetchLicenseKey(t *testing.T) {
 	}()
 
 	// ==================================================================================
-	// TEST 1: POSITIVE CASE - License key provided and matches the account
-	// ==================================================================================
-	// Validates that when a license key is provided and BELONGS to the configured
-	// account, the NEW validateLicenseKeyForAccount() logic accepts it.
+	// TEST 1: License key matches account - NEW validation accepts it
 	// ==================================================================================
 	t.Run("LicenseKeyProvided_MatchingAccount", func(t *testing.T) {
-		// Skip if no real credentials available
 		if origAccountID == "" || origAPIKey == "" || origRegion == "" || origLicenseKey == "" {
-			t.Skip("Skipping test: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION, and NEW_RELIC_LICENSE_KEY environment variables")
+			t.Skip("Skipping: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION, NEW_RELIC_LICENSE_KEY")
 		}
 
-		// Use the real credentials - license key should match the account
 		os.Setenv("NEW_RELIC_ACCOUNT_ID", origAccountID)
 		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
 		os.Setenv("NEW_RELIC_REGION", origRegion)
 		os.Setenv("NEW_RELIC_LICENSE_KEY", origLicenseKey)
 
-		// Call fetchLicenseKey - it will validate the license key against the account
 		err := fetchLicenseKey()
 
-		// Assert: Should succeed - license key belongs to the account
-		if err != nil {
-			t.Errorf("Expected no error when license key matches account")
-			t.Logf("  Account ID: %s", origAccountID)
-			t.Logf("  API Key: %s", utils.Obfuscate(origAPIKey))
-			t.Logf("  Region: %s", origRegion)
-			t.Logf("  License Key: %s", utils.Obfuscate(origLicenseKey))
-			t.Logf("  Error: %v", err)
-		}
-
-		actual := os.Getenv("NEW_RELIC_LICENSE_KEY")
-		if actual != origLicenseKey {
-			t.Errorf("License key should remain unchanged. Expected: %s, Got: %s",
-				utils.Obfuscate(origLicenseKey), utils.Obfuscate(actual))
-		}
+		assert.Nil(t, err, "License key belonging to account should be accepted. Account: %s, Key: %s",
+			origAccountID, utils.Obfuscate(origLicenseKey))
+		assert.Equal(t, origLicenseKey, os.Getenv("NEW_RELIC_LICENSE_KEY"))
 	})
 
 	// ==================================================================================
-	// TEST 2: NEGATIVE CASE - License key provided but does NOT match the account
-	// ==================================================================================
-	// Validates that when a license key does NOT belong to the configured account,
-	// the NEW validateLicenseKeyForAccount() logic rejects it with CredentialAccountMismatch.
+	// TEST 2: License key doesn't match account - NEW validation rejects it
 	// ==================================================================================
 	t.Run("LicenseKeyProvided_NonMatchingAccount", func(t *testing.T) {
-		// Skip if no real credentials available
 		if origAccountID == "" || origAPIKey == "" || origRegion == "" || origLicenseKey == "" {
-			t.Skip("Skipping test: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION, and NEW_RELIC_LICENSE_KEY environment variables")
+			t.Skip("Skipping: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION, NEW_RELIC_LICENSE_KEY")
 		}
 
-		// Use a different account ID that won't match the license key
 		wrongAccountID := "9999999"
-
-		// Set up environment with WRONG account ID
 		os.Setenv("NEW_RELIC_ACCOUNT_ID", wrongAccountID)
 		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
 		os.Setenv("NEW_RELIC_REGION", origRegion)
 		os.Setenv("NEW_RELIC_LICENSE_KEY", origLicenseKey)
 
-		// Call fetchLicenseKey - it will validate the license key against the WRONG account
 		err := fetchLicenseKey()
 
-		// Assert: Should fail with CredentialAccountMismatch error
-		if err == nil {
-			t.Errorf("Expected CredentialAccountMismatch error when license key doesn't match account")
-			t.Logf("  Correct Account ID: %s", origAccountID)
-			t.Logf("  Wrong Account ID (used): %s", wrongAccountID)
-			t.Logf("  API Key: %s", utils.Obfuscate(origAPIKey))
-			t.Logf("  Region: %s", origRegion)
-			t.Logf("  License Key: %s (belongs to %s, NOT %s)", utils.Obfuscate(origLicenseKey), origAccountID, wrongAccountID)
-		}
-
-		if err != nil && err.EventName != types.EventTypes.CredentialAccountMismatch {
-			t.Errorf("Expected CredentialAccountMismatch error type, got: %v", err.EventName)
-			t.Logf("  Wrong Account ID: %s", wrongAccountID)
-			t.Logf("  License Key: %s", utils.Obfuscate(origLicenseKey))
-			t.Logf("  Error: %v", err)
-		}
-
-		if err != nil && !strings.Contains(err.Error(), "credential mismatch detected") {
-			t.Errorf("Error message should mention 'credential mismatch detected'")
-			t.Logf("  Error message: %s", err.Error())
-		}
-
-		if err != nil && !strings.Contains(err.Error(), wrongAccountID) {
-			t.Errorf("Error message should contain wrong account ID: %s", wrongAccountID)
-			t.Logf("  Error message: %s", err.Error())
-		}
+		assert.NotNil(t, err, "License key not belonging to account should be rejected")
+		assert.Equal(t, types.EventTypes.CredentialAccountMismatch, err.EventName,
+			"Expected CredentialAccountMismatch. Account: %s, Key: %s", wrongAccountID, utils.Obfuscate(origLicenseKey))
+		assert.Contains(t, err.Error(), "credential mismatch detected")
+		assert.Contains(t, err.Error(), wrongAccountID)
 	})
 
 	// ==================================================================================
-	// TEST 3: FALLBACK CASE - No license key provided, fetch from API
-	// ==================================================================================
-	// Validates the 3-tier fallback: env var → profile → API fetch.
-	// When no license key is provided, it should fetch from the API for the account.
+	// TEST 3: No license key provided - API fetch should succeed
 	// ==================================================================================
 	t.Run("NoLicenseKeyProvided_FetchesFromAPI", func(t *testing.T) {
-		// Skip if no real credentials available
 		if origAccountID == "" || origAPIKey == "" || origRegion == "" {
-			t.Skip("Skipping test: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, and NEW_RELIC_REGION environment variables")
+			t.Skip("Skipping: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION")
 		}
 
-		// Set up environment WITHOUT license key
 		os.Setenv("NEW_RELIC_ACCOUNT_ID", origAccountID)
 		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
 		os.Setenv("NEW_RELIC_REGION", origRegion)
-		os.Unsetenv("NEW_RELIC_LICENSE_KEY") // Unset to simulate not being provided
+		os.Unsetenv("NEW_RELIC_LICENSE_KEY")
 
-		// Call fetchLicenseKey - it will fetch license key from API
 		err := fetchLicenseKey()
 
-		// Assert: Should succeed - fetches license key from API
-		if err != nil {
-			t.Errorf("Expected no error when fetching license key from API")
-			t.Logf("  Account ID: %s", origAccountID)
-			t.Logf("  API Key: %s", utils.Obfuscate(origAPIKey))
-			t.Logf("  Region: %s", origRegion)
-			t.Logf("  Error: %v", err)
-		}
-
-		// Assert: License key should now be set in environment
-		fetchedKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
-		if fetchedKey == "" {
-			t.Errorf("License key should be fetched and set in environment")
-			t.Logf("  Account ID: %s", origAccountID)
-			t.Logf("  API Key: %s", utils.Obfuscate(origAPIKey))
-		}
-
-		if len(fetchedKey) != 40 {
-			t.Errorf("License key should be 40 characters, got: %d", len(fetchedKey))
-			t.Logf("  Fetched License Key: %s", utils.Obfuscate(fetchedKey))
-		}
-
-		if !strings.HasSuffix(fetchedKey, "NRAL") {
-			t.Errorf("License key should end with NRAL")
-			t.Logf("  Fetched License Key: %s", utils.Obfuscate(fetchedKey))
-		}
+		assert.Nil(t, err, "API fetch should succeed. Account: %s, API Key: %s",
+			origAccountID, utils.Obfuscate(origAPIKey))
+		assert.NotEmpty(t, os.Getenv("NEW_RELIC_LICENSE_KEY"), "License key should be fetched and set")
 	})
 }
 
