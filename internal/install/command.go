@@ -318,6 +318,10 @@ func fetchLicenseKeyFromProfile() string {
 // validateLicenseKeyForAccount verifies that a license key belongs to the specified account
 // to prevent installation validation failures where data is sent to one account but validated against another.
 func validateLicenseKeyForAccount(licenseKey string, accountID int) *types.DetailError {
+	if client.NRClient == nil {
+		return nil
+	}
+
 	// Search for all ingest keys (including license keys) associated with the account
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
