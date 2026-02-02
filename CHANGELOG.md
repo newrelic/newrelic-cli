@@ -1,5 +1,7 @@
+<a name="v0.106.17"></a>
+## [v0.106.17] - 2026-01-27
 <a name="v0.106.16"></a>
-## [v0.106.16] - 2026-01-21
+## [v0.106.16] - 2026-01-22
 ### Bug Fixes
 - **deps:** fix vulnerabilities, January 2026 edition ([#1774](https://github.com/newrelic/newrelic-cli/issues/1774))
 
@@ -2674,7 +2676,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.16...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.17...HEAD
+[v0.106.17]: https://github.com/newrelic/newrelic-cli/compare/v0.106.16...v0.106.17
 [v0.106.16]: https://github.com/newrelic/newrelic-cli/compare/v0.106.15...v0.106.16
 [v0.106.15]: https://github.com/newrelic/newrelic-cli/compare/v0.106.14...v0.106.15
 [v0.106.14]: https://github.com/newrelic/newrelic-cli/compare/v0.106.13...v0.106.14
