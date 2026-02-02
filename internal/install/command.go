@@ -232,7 +232,7 @@ func fetchLicenseKey() *types.DetailError {
 	// Validate profile early since we'll need it for validation
 	detailErr := validateProfile()
 	if detailErr != nil {
-		log.Fatal(detailErr)
+		return detailErr
 	}
 
 	accountID := configAPI.GetActiveProfileAccountID()

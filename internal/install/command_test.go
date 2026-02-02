@@ -71,6 +71,16 @@ func TestValidateProfile(t *testing.T) {
 }
 
 func TestFetchLicenseKey(t *testing.T) {
+	accountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
+	apiKey := os.Getenv("NEW_RELIC_API_KEY")
+	region := os.Getenv("NEW_RELIC_REGION")
+	licenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
+
+	// Set up required environment variables for validateProfile()
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", "12345")
+	os.Setenv("NEW_RELIC_API_KEY", "NRAK-TEST1234567890")
+	os.Setenv("NEW_RELIC_REGION", "US")
+
 	okCase := func() *types.DetailError { return nil }()
 	// TODO: Error case
 
@@ -87,6 +97,11 @@ func TestFetchLicenseKey(t *testing.T) {
 
 	actual := os.Getenv("NEW_RELIC_LICENSE_KEY")
 	assert.Equal(t, expect, actual)
+
+	os.Setenv("NEW_RELIC_ACCOUNT_ID", accountID)
+	os.Setenv("NEW_RELIC_API_KEY", apiKey)
+	os.Setenv("NEW_RELIC_REGION", region)
+	os.Setenv("NEW_RELIC_LICENSE_KEY", licenseKey)
 }
 
 func initSegmentMockServer() *httptest.Server {
