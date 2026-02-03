@@ -15,6 +15,7 @@ import (
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 	nrRegion "github.com/newrelic/newrelic-client-go/v2/pkg/region"
 )
@@ -211,10 +212,10 @@ func checkNetwork() error {
 }
 
 // Attempt to fetch and set a license key through 3 methods:
-// 1. NEW_RELIC_LICENSE_KEY environment variable,
-// 2. Active profile config.LicenseKey,
-// 3. API call,
-// returns an error if all methods fail.
+// 1. NEW_RELIC_LICENSE_KEY environment variable (validates it belongs to the account),
+// 2. Active profile config.LicenseKey (validates it belongs to the account),
+// 3. API call (fetches a valid key for the account),
+// returns an error if all methods fail or if a provided key doesn't match the account.
 func fetchLicenseKey() *types.DetailError {
 	var licenseKey string
 
@@ -228,27 +229,43 @@ func fetchLicenseKey() *types.DetailError {
 		log.Debug("using license key: ", utils.Obfuscate(licenseKey))
 	}
 
-	licenseKey = fetchLicenseKeyFromEnvironment()
-
-	if licenseKey != "" {
-		setLicenseKey(licenseKey)
-		return nil
-	}
-
-	licenseKey = fetchLicenseKeyFromProfile()
-
-	if licenseKey != "" {
-		setLicenseKey(licenseKey)
-		return nil
-	}
-
-	// fetch licenseKey via API
+	// Validate profile early since we'll need it for validation
 	detailErr := validateProfile()
 	if detailErr != nil {
-		log.Fatal(detailErr)
+		return detailErr
 	}
 
 	accountID := configAPI.GetActiveProfileAccountID()
+
+	// Try environment variable first
+	licenseKey = fetchLicenseKeyFromEnvironment()
+
+	if licenseKey != "" {
+		log.Debug("validating that license key from environment belongs to account: ", accountID)
+		// Validate that the environment license key belongs to the configured account
+		if detailErr := validateLicenseKeyForAccount(licenseKey, accountID); detailErr != nil {
+			return detailErr
+		}
+		log.Debug("license key from environment validated: belongs to account ", accountID)
+		setLicenseKey(licenseKey)
+		return nil
+	}
+
+	// Try profile configuration
+	licenseKey = fetchLicenseKeyFromProfile()
+
+	if licenseKey != "" {
+		log.Debug("validating that license key from profile belongs to account: ", accountID)
+		// Validate that the profile license key belongs to the configured account
+		if detailErr := validateLicenseKeyForAccount(licenseKey, accountID); detailErr != nil {
+			return detailErr
+		}
+		log.Debug("license key from profile validated: belongs to account ", accountID)
+		setLicenseKey(licenseKey)
+		return nil
+	}
+
+	// Fetch licenseKey via API - this is already validated by definition since it comes from the account
 	maxTimeoutSeconds := config.DefaultMaxTimeoutSeconds
 
 	licenseKey, err := client.FetchLicenseKey(accountID, config.FlagProfileName, &maxTimeoutSeconds)
@@ -296,4 +313,44 @@ func fetchLicenseKeyFromProfile() string {
 	log.Debug("license key provided by config is invalid")
 
 	return ""
+}
+
+// validateLicenseKeyForAccount verifies that a license key belongs to the specified account
+// to prevent installation validation failures where data is sent to one account but validated against another.
+func validateLicenseKeyForAccount(licenseKey string, accountID int) *types.DetailError {
+	if client.NRClient == nil {
+		return nil
+	}
+
+	// Search for all ingest keys (including license keys) associated with the account
+	params := apiaccess.APIAccessKeySearchQuery{
+		Scope: apiaccess.APIAccessKeySearchScope{
+			AccountIDs: []int{accountID},
+		},
+		Types: []apiaccess.APIAccessKeyType{
+			apiaccess.APIAccessKeyTypeTypes.INGEST,
+		},
+	}
+
+	keys, err := client.NRClient.APIAccess.SearchAPIAccessKeysWithContext(utils.SignalCtx, params)
+
+	if err != nil {
+		// If we can't verify, log a warning but don't fail the installation
+		log.Warnf("unable to verify credential account match: %s", err)
+		return nil
+	}
+
+	// Check if the license key belongs to this account
+	for _, k := range keys {
+		if k.Key == licenseKey {
+			return nil
+		}
+	}
+
+	// License key does not belong to this account
+	log.Error("credential mismatch detected: license key does not belong to the configured account")
+	return types.NewDetailError(
+		types.EventTypes.CredentialAccountMismatch,
+		fmt.Sprintf(types.ErrCredentialMismatch, utils.Obfuscate(licenseKey), accountID),
+	)
 }

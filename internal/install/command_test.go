@@ -13,6 +13,7 @@ import (
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
+	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
 func TestInstallCommand(t *testing.T) {
@@ -71,22 +72,86 @@ func TestValidateProfile(t *testing.T) {
 }
 
 func TestFetchLicenseKey(t *testing.T) {
-	okCase := func() *types.DetailError { return nil }()
 	// TODO: Error case
-
 	// TODO: From API (mock?)
-
 	// TODO: From profile
 
-	// From environment variable
-	expect := "0123456789abcdefABCDEF0123456789abcdNRAL"
-	os.Setenv("NEW_RELIC_LICENSE_KEY", expect)
+	// Save original environment to restore later
+	origAccountID := os.Getenv("NEW_RELIC_ACCOUNT_ID")
+	origAPIKey := os.Getenv("NEW_RELIC_API_KEY")
+	origRegion := os.Getenv("NEW_RELIC_REGION")
+	origLicenseKey := os.Getenv("NEW_RELIC_LICENSE_KEY")
 
-	err := fetchLicenseKey()
-	assert.Equal(t, okCase, err)
+	// Restore environment after test
+	defer func() {
+		os.Setenv("NEW_RELIC_ACCOUNT_ID", origAccountID)
+		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
+		os.Setenv("NEW_RELIC_REGION", origRegion)
+		os.Setenv("NEW_RELIC_LICENSE_KEY", origLicenseKey)
+	}()
 
-	actual := os.Getenv("NEW_RELIC_LICENSE_KEY")
-	assert.Equal(t, expect, actual)
+	// ==================================================================================
+	// TEST 1: License key matches account - NEW validation accepts it
+	// ==================================================================================
+	t.Run("LicenseKeyProvided_MatchingAccount", func(t *testing.T) {
+		if origAccountID == "" || origAPIKey == "" || origRegion == "" || origLicenseKey == "" {
+			t.Skip("Skipping: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION, NEW_RELIC_LICENSE_KEY")
+		}
+
+		os.Setenv("NEW_RELIC_ACCOUNT_ID", origAccountID)
+		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
+		os.Setenv("NEW_RELIC_REGION", origRegion)
+		os.Setenv("NEW_RELIC_LICENSE_KEY", origLicenseKey)
+
+		err := fetchLicenseKey()
+
+		assert.Nil(t, err, "License key belonging to account should be accepted. Account: %s, Key: %s",
+			origAccountID, utils.Obfuscate(origLicenseKey))
+		assert.Equal(t, origLicenseKey, os.Getenv("NEW_RELIC_LICENSE_KEY"))
+	})
+
+	// ==================================================================================
+	// TEST 2: License key doesn't match account - NEW validation rejects it
+	// ==================================================================================
+	t.Run("LicenseKeyProvided_NonMatchingAccount", func(t *testing.T) {
+		if origAccountID == "" || origAPIKey == "" || origRegion == "" || origLicenseKey == "" {
+			t.Skip("Skipping: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION, NEW_RELIC_LICENSE_KEY")
+		}
+
+		wrongAccountID := "9999999"
+		os.Setenv("NEW_RELIC_ACCOUNT_ID", wrongAccountID)
+		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
+		os.Setenv("NEW_RELIC_REGION", origRegion)
+		os.Setenv("NEW_RELIC_LICENSE_KEY", origLicenseKey)
+
+		err := fetchLicenseKey()
+
+		assert.NotNil(t, err, "License key not belonging to account should be rejected")
+		assert.Equal(t, types.EventTypes.CredentialAccountMismatch, err.EventName,
+			"Expected CredentialAccountMismatch. Account: %s, Key: %s", wrongAccountID, utils.Obfuscate(origLicenseKey))
+		assert.Contains(t, err.Error(), "credential mismatch detected")
+		assert.Contains(t, err.Error(), wrongAccountID)
+	})
+
+	// ==================================================================================
+	// TEST 3: No license key provided - API fetch should succeed
+	// ==================================================================================
+	t.Run("NoLicenseKeyProvided_FetchesFromAPI", func(t *testing.T) {
+		if origAccountID == "" || origAPIKey == "" || origRegion == "" {
+			t.Skip("Skipping: requires NEW_RELIC_ACCOUNT_ID, NEW_RELIC_API_KEY, NEW_RELIC_REGION")
+		}
+
+		os.Setenv("NEW_RELIC_ACCOUNT_ID", origAccountID)
+		os.Setenv("NEW_RELIC_API_KEY", origAPIKey)
+		os.Setenv("NEW_RELIC_REGION", origRegion)
+		os.Unsetenv("NEW_RELIC_LICENSE_KEY")
+
+		err := fetchLicenseKey()
+
+		assert.Nil(t, err, "API fetch should succeed. Account: %s, API Key: %s",
+			origAccountID, utils.Obfuscate(origAPIKey))
+		assert.NotEmpty(t, os.Getenv("NEW_RELIC_LICENSE_KEY"), "License key should be fetched and set")
+	})
 }
 
 func initSegmentMockServer() *httptest.Server {
