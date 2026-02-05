@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"os"
 	"sort"
 	"time"
 
@@ -86,6 +87,14 @@ func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDe
 
 func (dt *RecipeDetector) shouldDiscover(recipe *types.OpenInstallationRecipe) bool {
 	isTargeted := dt.installerContext.IsRecipeTargeted(recipe.Name)
+
+	// Skip autodiscovery if env var is set and recipes are targeted
+	if os.Getenv("NEW_RELIC_SKIP_AUTODISCOVERY") == "1" &&
+		(dt.installerContext.RecipeNamesProvided() || dt.installerContext.RecipePathsProvided()) {
+		return isTargeted
+	}
+
+	// Check recipe's discoveryMode setting
 	if len(recipe.PreInstall.DiscoveryMode) == 1 &&
 		(recipe.PreInstall.DiscoveryMode[0] == types.OpenInstallationDiscoveryModeTypes.TARGETED) {
 		return isTargeted
