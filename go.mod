@@ -78,3 +78,5 @@ require (
 )
 
 replace github.com/go-task/task/v3 => github.com/newrelic-forks/task/v3 v3.11.0
+
+replace github.com/newrelic/newrelic-client-go/v2 => ../newrelic-client-go

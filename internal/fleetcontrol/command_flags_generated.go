@@ -116,6 +116,22 @@ func (fv *FlagValues) RemoveMembers() RemoveMembersFlags {
 	}
 }
 
+// ListMembersFlags provides typed access to 'list-members' command flags
+type ListMembersFlags struct {
+	FleetID     string
+	Ring        string
+	IncludeTags bool
+}
+
+// ListMembers returns typed flags for the 'list-members' command
+func (fv *FlagValues) ListMembers() ListMembersFlags {
+	return ListMembersFlags{
+		FleetID:     fv.GetString("fleet-id"),
+		Ring:        fv.GetString("ring"),
+		IncludeTags: fv.GetBool("include-tags"),
+	}
+}
+
 // CreateConfigurationFlags provides typed access to 'create-configuration' command flags
 type CreateConfigurationFlags struct {
 	EntityName             string

@@ -28,6 +28,7 @@ var (
 	cmdFleetSearch                   *cobra.Command
 	cmdFleetAddMembers               *cobra.Command
 	cmdFleetRemoveMembers            *cobra.Command
+	cmdFleetListMembers              *cobra.Command
 	cmdFleetCreateConfiguration      *cobra.Command
 	cmdFleetGetConfiguration         *cobra.Command
 	cmdFleetGetConfigurationVersions *cobra.Command
@@ -72,6 +73,7 @@ func init() {
 		"search":               handleFleetSearch,
 		"add-members":          handleFleetAddMembers,
 		"remove-members":       handleFleetRemoveMembers,
+		"list-members":         handleFleetListMembers,
 		"create-configuration": handleFleetCreateConfiguration,
 		"get-configuration":    handleFleetGetConfiguration,
 		"get-versions":         handleFleetGetConfigurationVersions,
@@ -120,6 +122,8 @@ func init() {
 			cmdFleetAddMembers = cmd
 		case "remove-members":
 			cmdFleetRemoveMembers = cmd
+		case "list-members":
+			cmdFleetListMembers = cmd
 		case "create-configuration":
 			cmdFleetCreateConfiguration = cmd
 		case "get-configuration":
@@ -148,6 +152,7 @@ func init() {
 	cmdFleet.AddCommand(cmdFleetSearch)
 	cmdFleet.AddCommand(cmdFleetAddMembers)
 	cmdFleet.AddCommand(cmdFleetRemoveMembers)
+	cmdFleet.AddCommand(cmdFleetListMembers)
 	cmdFleet.AddCommand(cmdFleetCreateConfiguration)
 	cmdFleet.AddCommand(cmdFleetGetConfiguration)
 	cmdFleet.AddCommand(cmdFleetGetConfigurationVersions)
