@@ -101,8 +101,6 @@ github.com/mitchellh/mapstructure v1.4.3 h1:OVowDSCllw/YjdLkam3/sm7wEtOy59d8ndGg
 github.com/mitchellh/mapstructure v1.4.3/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/newrelic-forks/task/v3 v3.11.0 h1:8Gwo33tMTqQkWlekCChbCZqf0nrXI85UqVeIgXk73L0=
 github.com/newrelic-forks/task/v3 v3.11.0/go.mod h1:rzfFpA7kl0CsL44ZQd2F2Hic5xOb2m03N6Y2lUjdNo4=
-github.com/newrelic/newrelic-client-go/v2 v2.75.4-0.20260126193226-d66adfb1b578 h1:oGHFiFNMS0yM4JLeCcdwIMEVs2UnPxDc6EhzeeDfHGM=
-github.com/newrelic/newrelic-client-go/v2 v2.75.4-0.20260126193226-d66adfb1b578/go.mod h1:P6rXSHPtayzr50+UEYvvjzYPiADv7w2SqeyKz0z5HkU=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
