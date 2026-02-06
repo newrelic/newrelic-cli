@@ -17,7 +17,6 @@ var (
 	ErrPostEvent              = errors.New("there was a failure posting data to New Relic. Please try again later or contact New Relic support. For real-time platform status info visit https://status.newrelic.com/")
 	ErrLicenseKey             = errors.New("the configured license key is invalid for the configured account. Please set a valid license key with the `newrelic profile` command. For more details visit https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key")
 	ErrAgentControl           = errors.New("agent control is installed, preventing the installation of this recipe")
-	ErrCredentialMismatch     = "credential mismatch detected: the license key %s does not belong to the configured account %d. This will cause installation validation to fail because data will be sent to one account but validated against another. Please ensure your API key, account ID, and license key are all from the same New Relic account. For more details about API keys visit https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/"
 )
 
 type EventType string
@@ -41,7 +40,6 @@ var EventTypes = struct {
 	UnableToLocatePostedData   EventType
 	InvalidUserAPIKeyFormat    EventType
 	InvalidRegion              EventType
-	CredentialAccountMismatch  EventType
 }{
 	InstallStarted:             "InstallStarted",
 	AccountIDMissing:           "AccountIDMissing",
@@ -61,7 +59,6 @@ var EventTypes = struct {
 	OtherError:                 "OtherError",
 	InvalidUserAPIKeyFormat:    "InvalidUserAPIKeyFormat",
 	InvalidRegion:              "InvalidRegion",
-	CredentialAccountMismatch:  "CredentialAccountMismatch",
 }
 
 func TryParseEventType(e string) (EventType, bool) {
@@ -96,8 +93,6 @@ func TryParseEventType(e string) (EventType, bool) {
 		return EventTypes.InvalidUserAPIKeyFormat, true
 	case "InvalidRegion":
 		return EventTypes.InvalidRegion, true
-	case "CredentialAccountMismatch":
-		return EventTypes.CredentialAccountMismatch, true
 	}
 
 	return "", false
