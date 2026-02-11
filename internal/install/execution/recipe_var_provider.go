@@ -227,6 +227,10 @@ func varFromEnv() types.RecipeVars {
 		vars[EnvNriaPassthroughEnvironment] = yamlFromCommaDelimitedString(EnvNriaPassthroughEnvironment, passthroughEnvironment)
 	}
 
+	// Installation paths
+	vars["NRIA_AGENT_DIR"] = os.Getenv("NRIA_AGENT_DIR")
+	vars["NRIA_PLUGIN_DIR"] = os.Getenv("NRIA_PLUGIN_DIR")
+
 	return vars
 }
 
