@@ -289,20 +289,24 @@ func requireValidVisualizationID(id string) {
 
 func writeLineWidgetAttributes(h *HCLGen, config *DashboardWidgetRawConfiguration) {
 	h.WriteBooleanAttribute("y_axis_left_zero", config.YAxisLeft.Zero)
-	var widgetLineThreshold DashboardWidgetLineThreshold
-	if err := json.Unmarshal(config.Threshold, &widgetLineThreshold); err != nil {
-		log.Fatal("Error unmarshalling widgetLineThreshold:", err)
-	}
 
-	h.WriteBooleanAttribute("is_label_visible", widgetLineThreshold.IsLabelVisible)
+	// Only process thresholds if they exist
+	if len(config.Threshold) > 0 && string(config.Threshold) != "null" {
+		var widgetLineThreshold DashboardWidgetLineThreshold
+		if err := json.Unmarshal(config.Threshold, &widgetLineThreshold); err != nil {
+			log.Fatal("Error unmarshalling widgetLineThreshold:", err)
+		}
 
-	for _, q := range widgetLineThreshold.Threshold {
-		h.WriteBlock("threshold", []string{}, func() {
-			h.WriteStringAttribute("name", q.Name)
-			h.WriteStringAttribute("severity", q.Severity)
-			h.WriteFloatAttribute("from", q.From)
-			h.WriteFloatAttribute("to", q.To)
-		})
+		h.WriteBooleanAttribute("is_label_visible", widgetLineThreshold.IsLabelVisible)
+
+		for _, q := range widgetLineThreshold.Threshold {
+			h.WriteBlock("threshold", []string{}, func() {
+				h.WriteStringAttribute("name", q.Name)
+				h.WriteStringAttribute("severity", q.Severity)
+				h.WriteFloatAttribute("from", q.From)
+				h.WriteFloatAttribute("to", q.To)
+			})
+		}
 	}
 }
 
