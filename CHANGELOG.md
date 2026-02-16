@@ -1,3 +1,10 @@
+<a name="v0.106.24"></a>
+## [v0.106.24] - 2026-02-16
+<a name="v0.106.23"></a>
+## [v0.106.23] - 2026-02-16
+### Bug Fixes
+- upgrade Alpine and Go to resolve trivy issues ([#1786](https://github.com/newrelic/newrelic-cli/issues/1786))
+
 <a name="v0.106.22"></a>
 ## [v0.106.22] - 2026-02-06
 ### Bug Fixes
@@ -2692,7 +2699,9 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.24...HEAD
+[v0.106.24]: https://github.com/newrelic/newrelic-cli/compare/v0.106.23...v0.106.24
+[v0.106.23]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...v0.106.23
 [v0.106.22]: https://github.com/newrelic/newrelic-cli/compare/v0.106.21...v0.106.22
 [v0.106.21]: https://github.com/newrelic/newrelic-cli/compare/v0.106.20...v0.106.21
 [v0.106.20]: https://github.com/newrelic/newrelic-cli/compare/v0.106.19...v0.106.20
