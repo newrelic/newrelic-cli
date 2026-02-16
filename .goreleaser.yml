@@ -90,6 +90,7 @@ dockers:
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
       - "--platform=linux/amd64"
+      - "--provenance=false"
     goarch: amd64
   - dockerfile: build/package/Dockerfile
     image_templates:
@@ -103,6 +104,7 @@ dockers:
       - "--label=homepage=https://developer.newrelic.com/"
       - "--label=maintainer=Developer Toolkit <opensource@newrelic.com>"
       - "--platform=linux/arm64"
+      - "--provenance=false"
     goarch: arm64
 
 docker_manifests:
