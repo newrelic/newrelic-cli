@@ -1,5 +1,23 @@
+<a name="v0.106.22"></a>
+## [v0.106.22] - 2026-02-06
+### Bug Fixes
+- **cli:** revert addition of support for credentials check, [#1783](https://github.com/newrelic/newrelic-cli/issues/1783) ([#1784](https://github.com/newrelic/newrelic-cli/issues/1784))
+
+<a name="v0.106.21"></a>
+## [v0.106.21] - 2026-02-06
+<a name="v0.106.20"></a>
+## [v0.106.20] - 2026-02-03
+### Bug Fixes
+- **cli:** add support for creds check ([#1783](https://github.com/newrelic/newrelic-cli/issues/1783))
+
+<a name="v0.106.19"></a>
+## [v0.106.19] - 2026-02-02
+<a name="v0.106.18"></a>
+## [v0.106.18] - 2026-02-02
+<a name="v0.106.17"></a>
+## [v0.106.17] - 2026-02-02
 <a name="v0.106.16"></a>
-## [v0.106.16] - 2026-01-21
+## [v0.106.16] - 2026-01-22
 ### Bug Fixes
 - **deps:** fix vulnerabilities, January 2026 edition ([#1774](https://github.com/newrelic/newrelic-cli/issues/1774))
 
@@ -2674,7 +2692,13 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.16...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...HEAD
+[v0.106.22]: https://github.com/newrelic/newrelic-cli/compare/v0.106.21...v0.106.22
+[v0.106.21]: https://github.com/newrelic/newrelic-cli/compare/v0.106.20...v0.106.21
+[v0.106.20]: https://github.com/newrelic/newrelic-cli/compare/v0.106.19...v0.106.20
+[v0.106.19]: https://github.com/newrelic/newrelic-cli/compare/v0.106.18...v0.106.19
+[v0.106.18]: https://github.com/newrelic/newrelic-cli/compare/v0.106.17...v0.106.18
+[v0.106.17]: https://github.com/newrelic/newrelic-cli/compare/v0.106.16...v0.106.17
 [v0.106.16]: https://github.com/newrelic/newrelic-cli/compare/v0.106.15...v0.106.16
 [v0.106.15]: https://github.com/newrelic/newrelic-cli/compare/v0.106.14...v0.106.15
 [v0.106.14]: https://github.com/newrelic/newrelic-cli/compare/v0.106.13...v0.106.14
