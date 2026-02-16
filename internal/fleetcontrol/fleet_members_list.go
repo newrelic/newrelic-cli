@@ -29,13 +29,13 @@ type FleetMembersResultWithoutTags struct {
 //
 // This command fetches all managed entities that are members of a specific fleet.
 // Results can optionally be filtered to show only entities in a specific ring.
-// Tags can be excluded from the output (default) or included via the --include-tags flag.
+// Tags can be excluded from the output (default) or included via the --show-tags flag.
 //
 // The command:
 // 1. Validates flag values (done automatically by framework via YAML rules)
 // 2. Builds the filter input with fleet ID and optional ring name
 // 3. Calls the New Relic API to retrieve the fleet members
-// 4. Filters out tags if --include-tags is false (default behavior)
+// 4. Filters out tags if --show-tags is false (default behavior)
 // 5. Returns the list of member entities with their details
 //
 // Parameters:
@@ -66,9 +66,9 @@ func handleFleetListMembers(cmd *cobra.Command, args []string, flags *FlagValues
 		return PrintError(fmt.Errorf("failed to list fleet members: %w", err))
 	}
 
-	// Filter out tags if --include-tags is false (default)
+	// Filter out tags if --show-tags is false (default)
 	// Use a custom struct that completely omits the Tags field
-	if !f.IncludeTags {
+	if !f.ShowTags {
 		filteredResult := &FleetMembersResultWithoutTags{
 			NextCursor: result.NextCursor,
 			Items:      make([]FleetMemberEntityWithoutTags, len(result.Items)),

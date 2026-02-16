@@ -1,4 +1,4 @@
-name: delete-version
+name: delete
 short: Delete a specific version of a fleet configuration
 long: |
   Delete a specific version of a fleet configuration.
@@ -6,12 +6,12 @@ long: |
   This operation cannot be undone. The configuration entity itself will remain.
 example: |
   # Delete a configuration version
-  newrelic fleetcontrol fleet delete-version --version-guid "version-entity-guid"
+  newrelic fleetcontrol configuration versions delete --version-id "version-entity-guid"
 flags:
-  - name: version-guid
+  - name: version-id
     type: string
     required: true
-    description: the configuration version GUID to delete
+    description: the configuration version ID to delete
   - name: organization-id
     type: string
     description: the organization ID; if not provided, will be derived from current organization

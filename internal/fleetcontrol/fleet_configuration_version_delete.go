@@ -34,7 +34,7 @@ func handleFleetDeleteVersion(cmd *cobra.Command, args []string, flags *FlagValu
 
 	// Call New Relic API to delete the version
 	err := client.NRClient.FleetControl.FleetControlDeleteConfigurationVersion(
-		f.VersionGUID,
+		f.VersionID,
 		orgID,
 	)
 	if err != nil {
@@ -42,5 +42,5 @@ func handleFleetDeleteVersion(cmd *cobra.Command, args []string, flags *FlagValu
 	}
 
 	// Print success message to stdout with status wrapper
-	return PrintConfigurationDeleteSuccess(f.VersionGUID)
+	return PrintConfigurationDeleteSuccess(f.VersionID)
 }

@@ -34,7 +34,7 @@ func handleFleetDeleteConfiguration(cmd *cobra.Command, args []string, flags *Fl
 
 	// Call New Relic API to delete the configuration
 	_, err := client.NRClient.FleetControl.FleetControlDeleteConfiguration(
-		f.ConfigurationGUID,
+		f.ConfigurationID,
 		orgID,
 	)
 	if err != nil {
@@ -42,5 +42,5 @@ func handleFleetDeleteConfiguration(cmd *cobra.Command, args []string, flags *Fl
 	}
 
 	// Print the deletion result to stdout with status wrapper
-	return PrintConfigurationDeleteSuccess(f.ConfigurationGUID)
+	return PrintConfigurationDeleteSuccess(f.ConfigurationID)
 }

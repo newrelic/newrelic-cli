@@ -32,22 +32,23 @@ func handleFleetGet(cmd *cobra.Command, args []string, flags *FlagValues) error 
 	f := flags.Get()
 
 	// Use GetEntity to fetch the entity directly by ID
-	entityInterface, err := client.NRClient.FleetControl.GetEntity(f.ID)
+	entityInterface, err := client.NRClient.FleetControl.GetEntity(f.FleetID)
 	if err != nil {
 		return PrintError(fmt.Errorf("failed to get fleet: %w", err))
 	}
 
 	if entityInterface == nil {
-		return PrintError(fmt.Errorf("fleet with ID '%s' not found", f.ID))
+		return PrintError(fmt.Errorf("fleet with ID '%s' not found", f.FleetID))
 	}
 
 	// Dereference the interface pointer and type assert to fleet entity
 	fleetEntity, ok := (*entityInterface).(*fleetcontrol.EntityManagementFleetEntity)
 	if !ok {
-		return PrintError(fmt.Errorf("entity '%s' is not a fleet (type: %T)", f.ID, *entityInterface))
+		return PrintError(fmt.Errorf("entity '%s' is not a fleet (type: %T)", f.FleetID, *entityInterface))
 	}
 
 	// Convert to filtered output format with status wrapper
-	filteredOutput := FilterFleetEntityFromEntityManagement(*fleetEntity)
+	// Always show tags for get command since it's fetching a specific entity
+	filteredOutput := FilterFleetEntityFromEntityManagement(*fleetEntity, true)
 	return PrintFleetSuccess(filteredOutput)
 }

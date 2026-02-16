@@ -5,14 +5,17 @@ long: |
 
   A fleet allows you to organize and manage entities in rings for controlled deployments.
 example: |
-  # Create a fleet for managing hosts (organization ID fetched automatically)
-  newrelic fleetcontrol fleet create --name "Production Hosts" --managed-entity-type HOST
+  # Create a fleet for managing Linux hosts (organization ID fetched automatically)
+  newrelic fleetcontrol fleet create --name "Production Hosts" --managed-entity-type HOST --operating-system LINUX
+
+  # Create a fleet for managing Windows hosts
+  newrelic fleetcontrol fleet create --name "Windows Servers" --managed-entity-type HOST --operating-system WINDOWS --description "Production Windows Servers"
 
   # Create a fleet with description and tags
   newrelic fleetcontrol fleet create --name "K8s Clusters" --managed-entity-type KUBERNETESCLUSTER --description "Production K8s" --tags "env:prod,team:platform"
 
   # Create a fleet with explicit organization ID (skips API call to fetch organization)
-  newrelic fleetcontrol fleet create --name "My Fleet" --managed-entity-type HOST --organization-id "org-123-abc"
+  newrelic fleetcontrol fleet create --name "My Fleet" --managed-entity-type HOST --operating-system LINUX --organization-id "org-123-abc"
 flags:
   - name: name
     type: string
@@ -34,6 +37,12 @@ flags:
   - name: organization-id
     type: string
     description: the organization ID; if not provided, it will be fetched from the API
+  - name: operating-system
+    type: string
+    description: the operating system type for HOST fleets (LINUX or WINDOWS); not applicable for KUBERNETESCLUSTER fleets
+    validation:
+      allowed_values: ["LINUX", "WINDOWS"]
+      case_insensitive: true
   - name: tags
     type: stringSlice
     description: tags in format key:value1,value2 (can be specified multiple times)

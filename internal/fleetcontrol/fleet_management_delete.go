@@ -14,10 +14,10 @@ import (
 // The entities managed by the fleet are not deleted, only the fleet itself.
 //
 // The command supports two modes:
-// 1. Single deletion: Use --id to delete one fleet
-// 2. Bulk deletion: Use --ids to delete multiple fleets
+// 1. Single deletion: Use --fleet-id to delete one fleet
+// 2. Bulk deletion: Use --fleet-ids to delete multiple fleets
 //
-// The flags --id and --ids are mutually exclusive.
+// The flags --fleet-id and --fleet-ids are mutually exclusive.
 //
 // Parameters:
 //   - cmd: The cobra command being executed
@@ -30,22 +30,22 @@ func handleFleetDelete(cmd *cobra.Command, args []string, flags *FlagValues) err
 	// Get typed flag values
 	f := flags.Delete()
 
-	// Validate that exactly one of --id or --ids is provided (mutually exclusive)
-	if f.ID == "" && len(f.Ids) == 0 {
-		return PrintError(fmt.Errorf("one of --id or --ids must be provided"))
+	// Validate that exactly one of --fleet-id or --fleet-ids is provided (mutually exclusive)
+	if f.FleetID == "" && len(f.FleetIDs) == 0 {
+		return PrintError(fmt.Errorf("one of --fleet-id or --fleet-ids must be provided"))
 	}
 
-	if f.ID != "" && len(f.Ids) > 0 {
-		return PrintError(fmt.Errorf("--id and --ids are mutually exclusive, use only one"))
+	if f.FleetID != "" && len(f.FleetIDs) > 0 {
+		return PrintError(fmt.Errorf("--fleet-id and --fleet-ids are mutually exclusive, use only one"))
 	}
 
-	// Handle single deletion with --id
-	if f.ID != "" {
-		return deleteSingleFleet(f.ID)
+	// Handle single deletion with --fleet-id
+	if f.FleetID != "" {
+		return deleteSingleFleet(f.FleetID)
 	}
 
-	// Handle bulk deletion with --ids
-	return deleteBulkFleets(f.Ids)
+	// Handle bulk deletion with --fleet-ids
+	return deleteBulkFleets(f.FleetIDs)
 }
 
 // deleteSingleFleet deletes a single fleet by ID and returns the result.
@@ -59,11 +59,11 @@ func deleteSingleFleet(id string) error {
 }
 
 // deleteBulkFleets deletes multiple fleets and returns the results as a list.
-// If --ids contains only one ID, suggests using --id instead.
+// If --fleet-ids contains only one ID, suggests using --fleet-id instead.
 func deleteBulkFleets(ids []string) error {
-	// Validate that --ids has more than one ID
+	// Validate that --fleet-ids has more than one ID
 	if len(ids) == 1 {
-		return PrintError(fmt.Errorf("--ids contains only one ID, use --id instead for single fleet deletion"))
+		return PrintError(fmt.Errorf("--fleet-ids contains only one ID, use --fleet-id instead for single fleet deletion"))
 	}
 
 	// Collect results for each deletion

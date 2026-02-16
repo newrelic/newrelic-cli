@@ -114,7 +114,7 @@ func TestFleetCreateCommandFlags(t *testing.T) {
 	t.Parallel()
 
 	requiredFlags := []string{"name", "managed-entity-type"}
-	optionalFlags := []string{"description", "product", "organization-id", "tags"}
+	optionalFlags := []string{"description", "product", "organization-id", "operating-system", "tags"}
 
 	// Test required flags exist
 	for _, flagName := range requiredFlags {

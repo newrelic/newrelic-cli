@@ -1,0 +1,23 @@
+name: deploy
+short: Trigger deployment for a fleet deployment
+long: |
+  Trigger deployment to roll out configurations across fleet rings.
+
+  This command initiates the actual deployment process for a fleet deployment
+  that was previously created. You can specify which rings to deploy to,
+  allowing for controlled, phased rollouts.
+example: |
+  # Deploy to all rings
+  newrelic fleetcontrol deployment deploy --deployment-id "deployment_abc123" --rings-to-deploy "canary,default"
+
+  # Deploy to a single ring
+  newrelic fleetcontrol deployment deploy --deployment-id "deployment_abc123" --rings-to-deploy "default"
+flags:
+  - name: deployment-id
+    type: string
+    required: true
+    description: the ID of the deployment to trigger
+  - name: rings-to-deploy
+    type: stringSlice
+    required: true
+    description: the names of the rings to deploy to (can be specified multiple times)

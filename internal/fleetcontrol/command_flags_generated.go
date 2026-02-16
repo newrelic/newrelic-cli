@@ -11,6 +11,7 @@ type CreateFlags struct {
 	Description       string
 	Product           string
 	OrganizationID    string
+	OperatingSystem   string
 	Tags              []string
 }
 
@@ -22,6 +23,7 @@ func (fv *FlagValues) Create() CreateFlags {
 		Description:       fv.GetString("description"),
 		Product:           fv.GetString("product"),
 		OrganizationID:    fv.GetString("organization-id"),
+		OperatingSystem:   fv.GetString("operating-system"),
 		Tags:              fv.GetStringSlice("tags"),
 	}
 }
@@ -46,27 +48,27 @@ func (fv *FlagValues) Update() UpdateFlags {
 
 // DeleteFlags provides typed access to 'delete' command flags
 type DeleteFlags struct {
-	ID  string
-	Ids []string
+	FleetID  string
+	FleetIDs []string
 }
 
 // Delete returns typed flags for the 'delete' command
 func (fv *FlagValues) Delete() DeleteFlags {
 	return DeleteFlags{
-		ID:  fv.GetString("id"),
-		Ids: fv.GetStringSlice("ids"),
+		FleetID:  fv.GetString("fleet-id"),
+		FleetIDs: fv.GetStringSlice("fleet-ids"),
 	}
 }
 
 // GetFlags provides typed access to 'get' command flags
 type GetFlags struct {
-	ID string
+	FleetID string
 }
 
 // Get returns typed flags for the 'get' command
 func (fv *FlagValues) Get() GetFlags {
 	return GetFlags{
-		ID: fv.GetString("id"),
+		FleetID: fv.GetString("fleet-id"),
 	}
 }
 
@@ -74,6 +76,7 @@ func (fv *FlagValues) Get() GetFlags {
 type SearchFlags struct {
 	NameEquals   string
 	NameContains string
+	ShowTags     bool
 }
 
 // Search returns typed flags for the 'search' command
@@ -81,17 +84,18 @@ func (fv *FlagValues) Search() SearchFlags {
 	return SearchFlags{
 		NameEquals:   fv.GetString("name-equals"),
 		NameContains: fv.GetString("name-contains"),
+		ShowTags:     fv.GetBool("show-tags"),
 	}
 }
 
-// AddMembersFlags provides typed access to 'add-members' command flags
+// AddMembersFlags provides typed access to 'add' (members) command flags
 type AddMembersFlags struct {
 	FleetID   string
 	Ring      string
 	EntityIDs []string
 }
 
-// AddMembers returns typed flags for the 'add-members' command
+// AddMembers returns typed flags for the 'add' (members) command
 func (fv *FlagValues) AddMembers() AddMembersFlags {
 	return AddMembersFlags{
 		FleetID:   fv.GetString("fleet-id"),
@@ -100,14 +104,14 @@ func (fv *FlagValues) AddMembers() AddMembersFlags {
 	}
 }
 
-// RemoveMembersFlags provides typed access to 'remove-members' command flags
+// RemoveMembersFlags provides typed access to 'remove' (members) command flags
 type RemoveMembersFlags struct {
 	FleetID   string
 	Ring      string
 	EntityIDs []string
 }
 
-// RemoveMembers returns typed flags for the 'remove-members' command
+// RemoveMembers returns typed flags for the 'remove' (members) command
 func (fv *FlagValues) RemoveMembers() RemoveMembersFlags {
 	return RemoveMembersFlags{
 		FleetID:   fv.GetString("fleet-id"),
@@ -116,40 +120,40 @@ func (fv *FlagValues) RemoveMembers() RemoveMembersFlags {
 	}
 }
 
-// ListMembersFlags provides typed access to 'list-members' command flags
+// ListMembersFlags provides typed access to 'list' (members) command flags
 type ListMembersFlags struct {
-	FleetID     string
-	Ring        string
-	IncludeTags bool
+	FleetID  string
+	Ring     string
+	ShowTags bool
 }
 
-// ListMembers returns typed flags for the 'list-members' command
+// ListMembers returns typed flags for the 'list' (members) command
 func (fv *FlagValues) ListMembers() ListMembersFlags {
 	return ListMembersFlags{
-		FleetID:     fv.GetString("fleet-id"),
-		Ring:        fv.GetString("ring"),
-		IncludeTags: fv.GetBool("include-tags"),
+		FleetID:  fv.GetString("fleet-id"),
+		Ring:     fv.GetString("ring"),
+		ShowTags: fv.GetBool("show-tags"),
 	}
 }
 
-// CreateConfigurationFlags provides typed access to 'create-configuration' command flags
+// CreateConfigurationFlags provides typed access to 'create' (configuration) command flags
 type CreateConfigurationFlags struct {
-	EntityName             string
-	AgentType              string
-	ManagedEntityType      string
-	OrganizationID         string
-	ConfigurationFilePath  string // File content from path
-	ConfigurationContent   string // Inline content
+	Name                  string
+	AgentType             string
+	ManagedEntityType     string
+	OrganizationID        string
+	ConfigurationFilePath string // File content from path
+	ConfigurationContent  string // Inline content
 }
 
-// CreateConfiguration returns typed flags for the 'create-configuration' command
+// CreateConfiguration returns typed flags for the 'create' (configuration) command
 func (fv *FlagValues) CreateConfiguration() (CreateConfigurationFlags, error) {
 	configFilePath, err := fv.GetFile("configuration-file-path")
 	if err != nil {
 		return CreateConfigurationFlags{}, err
 	}
 	return CreateConfigurationFlags{
-		EntityName:            fv.GetString("entity-name"),
+		Name:                  fv.GetString("name"),
 		AgentType:             fv.GetString("agent-type"),
 		ManagedEntityType:     fv.GetString("managed-entity-type"),
 		OrganizationID:        fv.GetString("organization-id"),
@@ -158,124 +162,178 @@ func (fv *FlagValues) CreateConfiguration() (CreateConfigurationFlags, error) {
 	}, nil
 }
 
-// GetConfigurationFlags provides typed access to 'get-configuration' command flags
+// GetConfigurationFlags provides typed access to 'get' (configuration) command flags
 type GetConfigurationFlags struct {
-	EntityGUID     string
-	OrganizationID string
-	Mode           string
-	Version        int
+	ConfigurationID string
+	OrganizationID  string
+	Mode            string
+	Version         int
 }
 
-// GetConfiguration returns typed flags for the 'get-configuration' command
+// GetConfiguration returns typed flags for the 'get' (configuration) command
 func (fv *FlagValues) GetConfiguration() GetConfigurationFlags {
 	return GetConfigurationFlags{
-		EntityGUID:     fv.GetString("entity-guid"),
-		OrganizationID: fv.GetString("organization-id"),
-		Mode:           fv.GetString("mode"),
-		Version:        fv.GetInt("version"),
+		ConfigurationID: fv.GetString("configuration-id"),
+		OrganizationID:  fv.GetString("organization-id"),
+		Mode:            fv.GetString("mode"),
+		Version:         fv.GetInt("version"),
 	}
 }
 
-// GetVersionsFlags provides typed access to 'get-versions' command flags
+// GetVersionsFlags provides typed access to 'list' (configuration versions) command flags
 type GetVersionsFlags struct {
-	ConfigurationGUID string
-	OrganizationID    string
+	ConfigurationID string
+	OrganizationID  string
 }
 
-// GetVersions returns typed flags for the 'get-versions' command
+// GetVersions returns typed flags for the 'list' (configuration versions) command
 func (fv *FlagValues) GetVersions() GetVersionsFlags {
 	return GetVersionsFlags{
-		ConfigurationGUID: fv.GetString("configuration-guid"),
-		OrganizationID:    fv.GetString("organization-id"),
+		ConfigurationID: fv.GetString("configuration-id"),
+		OrganizationID:  fv.GetString("organization-id"),
 	}
 }
 
-// AddVersionFlags provides typed access to 'add-version' command flags
+// AddVersionFlags provides typed access to 'add' (configuration versions) command flags
 type AddVersionFlags struct {
-	ConfigurationGUID     string
+	ConfigurationID       string
 	OrganizationID        string
 	ConfigurationFilePath string // File content from path
 	ConfigurationContent  string // Inline content
 }
 
-// AddVersion returns typed flags for the 'add-version' command
+// AddVersion returns typed flags for the 'add' (configuration versions) command
 func (fv *FlagValues) AddVersion() (AddVersionFlags, error) {
 	configFilePath, err := fv.GetFile("configuration-file-path")
 	if err != nil {
 		return AddVersionFlags{}, err
 	}
 	return AddVersionFlags{
-		ConfigurationGUID:     fv.GetString("configuration-guid"),
+		ConfigurationID:       fv.GetString("configuration-id"),
 		OrganizationID:        fv.GetString("organization-id"),
 		ConfigurationFilePath: configFilePath,
 		ConfigurationContent:  fv.GetString("configuration-content"),
 	}, nil
 }
 
-// DeleteConfigurationFlags provides typed access to 'delete-configuration' command flags
+// DeleteConfigurationFlags provides typed access to 'delete' (configuration) command flags
 type DeleteConfigurationFlags struct {
-	ConfigurationGUID string
-	OrganizationID    string
+	ConfigurationID string
+	OrganizationID  string
 }
 
-// DeleteConfiguration returns typed flags for the 'delete-configuration' command
+// DeleteConfiguration returns typed flags for the 'delete' (configuration) command
 func (fv *FlagValues) DeleteConfiguration() DeleteConfigurationFlags {
 	return DeleteConfigurationFlags{
-		ConfigurationGUID: fv.GetString("configuration-guid"),
-		OrganizationID:    fv.GetString("organization-id"),
+		ConfigurationID: fv.GetString("configuration-id"),
+		OrganizationID:  fv.GetString("organization-id"),
 	}
 }
 
-// DeleteVersionFlags provides typed access to 'delete-version' command flags
+// DeleteVersionFlags provides typed access to 'delete' (configuration versions) command flags
 type DeleteVersionFlags struct {
-	VersionGUID    string
+	VersionID      string
 	OrganizationID string
 }
 
-// DeleteVersion returns typed flags for the 'delete-version' command
+// DeleteVersion returns typed flags for the 'delete' (configuration versions) command
 func (fv *FlagValues) DeleteVersion() DeleteVersionFlags {
 	return DeleteVersionFlags{
-		VersionGUID:    fv.GetString("version-guid"),
+		VersionID:      fv.GetString("version-id"),
 		OrganizationID: fv.GetString("organization-id"),
 	}
 }
 
-// CreateDeploymentFlags provides typed access to 'create-deployment' command flags
+// CreateDeploymentFlags provides typed access to 'create' (deployment) command flags
 type CreateDeploymentFlags struct {
 	FleetID                 string
 	Name                    string
+	Agent                   []string
+	AgentType               string
+	AgentVersion            string
 	ConfigurationVersionIDs []string
 	Description             string
 	Tags                    []string
 }
 
-// CreateDeployment returns typed flags for the 'create-deployment' command
+// CreateDeployment returns typed flags for the 'create' (deployment) command
 func (fv *FlagValues) CreateDeployment() CreateDeploymentFlags {
 	return CreateDeploymentFlags{
 		FleetID:                 fv.GetString("fleet-id"),
 		Name:                    fv.GetString("name"),
+		Agent:                   fv.GetStringArray("agent"),
+		AgentType:               fv.GetString("agent-type"),
+		AgentVersion:            fv.GetString("agent-version"),
 		ConfigurationVersionIDs: fv.GetStringSlice("configuration-version-ids"),
 		Description:             fv.GetString("description"),
 		Tags:                    fv.GetStringSlice("tags"),
 	}
 }
 
-// UpdateDeploymentFlags provides typed access to 'update-deployment' command flags
+// UpdateDeploymentFlags provides typed access to 'update' (deployment) command flags
 type UpdateDeploymentFlags struct {
-	ID                      string
+	DeploymentID            string
 	Name                    string
 	Description             string
+	Agent                   []string
 	ConfigurationVersionIDs []string
 	Tags                    []string
 }
 
-// UpdateDeployment returns typed flags for the 'update-deployment' command
+// UpdateDeployment returns typed flags for the 'update' (deployment) command
 func (fv *FlagValues) UpdateDeployment() UpdateDeploymentFlags {
 	return UpdateDeploymentFlags{
-		ID:                      fv.GetString("id"),
+		DeploymentID:            fv.GetString("deployment-id"),
 		Name:                    fv.GetString("name"),
 		Description:             fv.GetString("description"),
+		Agent:                   fv.GetStringArray("agent"),
 		ConfigurationVersionIDs: fv.GetStringSlice("configuration-version-ids"),
 		Tags:                    fv.GetStringSlice("tags"),
+	}
+}
+
+// DeployFlags provides typed access to 'deploy' (deployment) command flags
+type DeployFlags struct {
+	DeploymentID  string
+	RingsToDeploy []string
+}
+
+// Deploy returns typed flags for the 'deploy' (deployment) command
+func (fv *FlagValues) Deploy() DeployFlags {
+	return DeployFlags{
+		DeploymentID:  fv.GetString("deployment-id"),
+		RingsToDeploy: fv.GetStringSlice("rings-to-deploy"),
+	}
+}
+
+// GetManagedFlags provides typed access to 'get-managed' (entities) command flags
+type GetManagedFlags struct {
+	EntityType  string
+	Limit       int
+	IncludeTags bool
+}
+
+// GetManaged returns typed flags for the 'get-managed' (entities) command
+func (fv *FlagValues) GetManaged() GetManagedFlags {
+	return GetManagedFlags{
+		EntityType:  fv.GetString("entity-type"),
+		Limit:       fv.GetInt("limit"),
+		IncludeTags: fv.GetBool("include-tags"),
+	}
+}
+
+// GetUnassignedFlags provides typed access to 'get-unassigned' (entities) command flags
+type GetUnassignedFlags struct {
+	EntityType  string
+	Limit       int
+	IncludeTags bool
+}
+
+// GetUnassigned returns typed flags for the 'get-unassigned' (entities) command
+func (fv *FlagValues) GetUnassigned() GetUnassignedFlags {
+	return GetUnassignedFlags{
+		EntityType:  fv.GetString("entity-type"),
+		Limit:       fv.GetInt("limit"),
+		IncludeTags: fv.GetBool("include-tags"),
 	}
 }

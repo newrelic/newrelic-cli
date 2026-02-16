@@ -1,4 +1,4 @@
-name: get-configuration
+name: get
 short: Get a fleet configuration or version
 long: |
   Get a fleet configuration or a specific version of a configuration.
@@ -7,15 +7,15 @@ long: |
   or a configuration version by its entity GUID.
 example: |
   # Get latest version of a configuration
-  newrelic fleetcontrol fleet get-configuration --entity-guid "abc-123-def"
+  newrelic fleetcontrol configuration get --configuration-id "abc-123-def"
 
   # Get specific version of a configuration
-  newrelic fleetcontrol fleet get-configuration --entity-guid "abc-123-def" --version 2
+  newrelic fleetcontrol configuration get --configuration-id "abc-123-def" --version 2
 
   # Get configuration version by version entity GUID
-  newrelic fleetcontrol fleet get-configuration --entity-guid "version-entity-guid" --mode ConfigVersionEntity
+  newrelic fleetcontrol configuration get --configuration-id "version-entity-guid" --mode ConfigVersionEntity
 flags:
-  - name: entity-guid
+  - name: configuration-id
     type: string
     required: true
     description: the configuration or version entity GUID
@@ -32,4 +32,4 @@ flags:
   - name: version
     type: int
     default: -1
-    description: the version number to retrieve; use -1 or omit for latest version (only applies when mode is ConfigEntity)
+    description: the version number to retrieve (only applies when mode is ConfigEntity)

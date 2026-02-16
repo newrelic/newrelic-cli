@@ -57,6 +57,10 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 		configBody = f.ConfigurationContent
 	}
 
+	// Convert the configuration body to []byte to prevent JSON marshaling
+	// This preserves newlines and formatting in the configuration file
+	configBodyBytes := []byte(configBody)
+
 	// Get organization ID (provided or fetched from API)
 	orgID := GetOrganizationID(f.OrganizationID)
 
@@ -66,7 +70,7 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 		"x-newrelic-client-go-custom-headers": map[string]string{
 			"Newrelic-Entity": fmt.Sprintf(
 				`{"name": "%s", "agentType": "%s", "managedEntityType": "%s"}`,
-				f.EntityName,
+				f.Name,
 				f.AgentType,
 				f.ManagedEntityType,
 			),
@@ -75,7 +79,7 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 
 	// Call New Relic API to create the configuration
 	result, err := client.NRClient.FleetControl.FleetControlCreateConfiguration(
-		configBody,
+		configBodyBytes,
 		customHeaders,
 		orgID,
 	)

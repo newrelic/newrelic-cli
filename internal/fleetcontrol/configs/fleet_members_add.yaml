@@ -1,4 +1,4 @@
-name: add-members
+name: add
 short: Add managed entities to a fleet ring
 long: |
   Add one or more managed entities to a specific ring within a fleet.
@@ -6,7 +6,7 @@ long: |
   Rings are used to organize entities for controlled deployment rollouts.
 example: |
   # Add entities to a fleet ring
-  newrelic fleetcontrol fleet add-members --fleet-id abc123 --ring "canary" --entity-ids "entity1,entity2,entity3"
+  newrelic fleetcontrol fleet members add --fleet-id abc123 --ring "canary" --entity-ids "entity1,entity2,entity3"
 flags:
   - name: fleet-id
     type: string

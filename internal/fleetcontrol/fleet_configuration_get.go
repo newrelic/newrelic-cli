@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	"github.com/newrelic/newrelic-cli/internal/output"
 )
 
 // handleFleetGetConfiguration implements the 'get-configuration' command to retrieve a fleet configuration.
@@ -46,7 +45,7 @@ func handleFleetGetConfiguration(cmd *cobra.Command, args []string, flags *FlagV
 
 	// Call New Relic API to get the configuration
 	result, err := client.NRClient.FleetControl.FleetControlGetConfiguration(
-		f.EntityGUID,
+		f.ConfigurationID,
 		orgID,
 		mode,
 		f.Version,
@@ -55,7 +54,9 @@ func handleFleetGetConfiguration(cmd *cobra.Command, args []string, flags *FlagV
 		return PrintError(fmt.Errorf("failed to get configuration: %w", err))
 	}
 
-	// Print the configuration directly to stdout (no wrapper for success)
-	// This allows the raw configuration to be used directly or formatted as table
-	return output.Print(result)
+	// Print the raw configuration directly to stdout
+	// Bypass the output formatter entirely since this is raw YAML content
+	// that should be displayed exactly as returned by the API
+	fmt.Print(string(*result))
+	return nil
 }

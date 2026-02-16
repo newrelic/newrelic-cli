@@ -1,0 +1,37 @@
+name: get-managed
+short: Get all managed entities in an account
+long: |
+  Retrieve all entities that are currently managed by any fleet in the account.
+
+  Managed entities are identified by having both:
+  - tags.nr.fleet IS NOT NULL
+  - tags.nr.supervisor IS NOT NULL
+
+  This command helps you see which entities are under fleet management.
+example: |
+  # Get all managed entities
+  newrelic fleetcontrol entities get-managed
+
+  # Limit results to 50 entities
+  newrelic fleetcontrol entities get-managed --limit 50
+
+  # Filter by entity type
+  newrelic fleetcontrol entities get-managed --entity-type HOST
+
+  # Include tags in output
+  newrelic fleetcontrol entities get-managed --include-tags
+flags:
+  - name: entity-type
+    type: string
+    required: false
+    description: filter by entity type (e.g., HOST, KUBERNETESCLUSTER)
+  - name: limit
+    type: int
+    required: false
+    default: 100
+    description: maximum number of entities to return
+  - name: include-tags
+    type: bool
+    required: false
+    default: false
+    description: include entity tags in output

@@ -42,6 +42,19 @@ func handleFleetCreate(cmd *cobra.Command, args []string, flags *FlagValues) err
 		return PrintError(err)
 	}
 
+	// Validate operating system requirements based on entity type
+	// For HOST fleets, operating system must be specified
+	// For KUBERNETESCLUSTER fleets, operating system should not be specified
+	if entityType == fleetcontrol.FleetControlManagedEntityTypeTypes.HOST {
+		if f.OperatingSystem == "" {
+			return PrintError(fmt.Errorf("--operating-system is required when --managed-entity-type is HOST (allowed values: LINUX, WINDOWS)"))
+		}
+	} else if entityType == fleetcontrol.FleetControlManagedEntityTypeTypes.KUBERNETESCLUSTER {
+		if f.OperatingSystem != "" {
+			return PrintError(fmt.Errorf("--operating-system should not be specified for KUBERNETESCLUSTER fleets"))
+		}
+	}
+
 	// Get organization ID (either from flag or fetch from API)
 	// This avoids an unnecessary API call if the user already knows their org ID
 	orgID := GetOrganizationID(f.OrganizationID)
@@ -73,6 +86,19 @@ func handleFleetCreate(cmd *cobra.Command, args []string, flags *FlagValues) err
 
 	if f.Product != "" {
 		createInput.Product = f.Product
+	}
+
+	// Add operating system if provided (only applicable for HOST fleets)
+	// For KUBERNETESCLUSTER fleets, this should not be specified
+	// Using a pointer ensures nil is sent instead of an empty object when not set
+	if f.OperatingSystem != "" {
+		osType, err := MapOperatingSystemType(f.OperatingSystem)
+		if err != nil {
+			return PrintError(err)
+		}
+		createInput.OperatingSystem = &fleetcontrol.FleetControlOperatingSystemCreateInput{
+			Type: osType,
+		}
 	}
 
 	if len(tags) > 0 {

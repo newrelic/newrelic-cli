@@ -1,4 +1,4 @@
-name: delete-configuration
+name: delete
 short: Delete a fleet configuration
 long: |
   Delete a fleet configuration and all its versions.
@@ -6,12 +6,12 @@ long: |
   This operation cannot be undone and will remove all versions of the configuration.
 example: |
   # Delete a configuration
-  newrelic fleetcontrol fleet delete-configuration --configuration-guid "abc-123-def"
+  newrelic fleetcontrol configuration delete --configuration-id "abc-123-def"
 flags:
-  - name: configuration-guid
+  - name: configuration-id
     type: string
     required: true
-    description: the configuration GUID to delete
+    description: the configuration ID to delete
   - name: organization-id
     type: string
     description: the organization ID; if not provided, will be derived from current organization

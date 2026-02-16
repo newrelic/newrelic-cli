@@ -93,6 +93,71 @@ func ParseTags(tagStrings []string) ([]fleetcontrol.FleetControlTagInput, error)
 	return tags, nil
 }
 
+// ParseAgentSpec parses an agent specification string into a FleetControlAgentInput struct.
+// Agent specs are used to define agent configurations for deployments.
+//
+// Format: "AgentType:Version:ConfigVersionID1,ConfigVersionID2,..."
+//   - AgentType: The type of agent (e.g., NRInfra, NRDOT)
+//   - Version: The agent version (e.g., 1.70.0, 2.0.0)
+//   - ConfigVersionIDs: Comma-separated list of configuration version IDs
+//
+// Parameters:
+//   - agentSpec: Agent specification string to parse
+//
+// Returns:
+//   - FleetControlAgentInput struct
+//   - Error if format is invalid
+//
+// Example:
+//   agent, err := ParseAgentSpec("NRInfra:1.70.0:version1,version2")
+//   // Returns: {AgentType: "NRInfra", Version: "1.70.0", ConfigurationVersionList: [{ID: "version1"}, {ID: "version2"}]}
+func ParseAgentSpec(agentSpec string) (fleetcontrol.FleetControlAgentInput, error) {
+	// Split on colon to separate AgentType:Version:ConfigVersionIDs
+	parts := strings.SplitN(agentSpec, ":", 3)
+	if len(parts) != 3 {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("expected format 'AgentType:Version:ConfigVersionID1,ConfigVersionID2' but got '%s'", agentSpec)
+	}
+
+	agentType := strings.TrimSpace(parts[0])
+	version := strings.TrimSpace(parts[1])
+	configVersionsStr := strings.TrimSpace(parts[2])
+
+	// Validate required fields
+	if agentType == "" {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("agent type cannot be empty")
+	}
+	if version == "" {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("agent version cannot be empty")
+	}
+	if configVersionsStr == "" {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("configuration version IDs cannot be empty")
+	}
+
+	// Split configuration version IDs on comma
+	configVersionIDs := strings.Split(configVersionsStr, ",")
+	configVersionList := make([]fleetcontrol.FleetControlConfigurationVersionListInput, 0, len(configVersionIDs))
+
+	for _, versionID := range configVersionIDs {
+		versionID = strings.TrimSpace(versionID)
+		if versionID == "" {
+			continue // Skip empty entries
+		}
+		configVersionList = append(configVersionList, fleetcontrol.FleetControlConfigurationVersionListInput{
+			ID: versionID,
+		})
+	}
+
+	if len(configVersionList) == 0 {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("at least one configuration version ID is required")
+	}
+
+	return fleetcontrol.FleetControlAgentInput{
+		AgentType:                agentType,
+		Version:                  version,
+		ConfigurationVersionList: configVersionList,
+	}, nil
+}
+
 // Type mappers - Convert YAML-validated string values to client library types
 // These mappers ensure we use the YAML-validated values without bypassing validation
 
@@ -168,6 +233,30 @@ func MapConfigurationMode(modeStr string) (fleetcontrol.GetConfigurationMode, er
 	}
 }
 
+// MapOperatingSystemType converts a validated operating system type string to the client library type.
+// This function should ONLY be called after YAML validation has confirmed the value is allowed.
+//
+// Parameters:
+//   - osStr: The operating system type string (already validated by framework)
+//
+// Returns:
+//   - The corresponding FleetControlOperatingSystemType
+//   - Error if the type is not recognized (should never happen after YAML validation)
+func MapOperatingSystemType(osStr string) (fleetcontrol.FleetControlOperatingSystemType, error) {
+	// Note: YAML validation has already confirmed this value is in allowed_values
+	// This mapping must match the YAML allowed_values exactly
+	switch strings.ToUpper(osStr) {
+	case "LINUX":
+		return fleetcontrol.FleetControlOperatingSystemTypeTypes.LINUX, nil
+	case "WINDOWS":
+		return fleetcontrol.FleetControlOperatingSystemTypeTypes.WINDOWS, nil
+	default:
+		// This should never happen if YAML validation is working correctly
+		return fleetcontrol.FleetControlOperatingSystemType(""), fmt.Errorf(
+			"unrecognized operating system type '%s' - YAML validation may have failed", osStr)
+	}
+}
+
 // ErrorResponse represents an error response with consistent field ordering.
 // Status field comes first, followed by error message.
 type ErrorResponse struct {
@@ -212,18 +301,19 @@ func printJSON(data interface{}) error {
 // FleetResponseWrapper wraps fleet entity output with consistent status and error fields.
 // Used to provide a uniform response structure across all fleet management commands.
 type FleetResponseWrapper struct {
-	Status            string                                   `json:"status"`
-	Error             string                                   `json:"error"`
-	ID                string                                   `json:"id,omitempty"`
-	Name              string                                   `json:"name,omitempty"`
-	Type              string                                   `json:"type,omitempty"`
-	ManagedEntityType string                                   `json:"managedEntityType,omitempty"`
+	Status            string                                    `json:"status"`
+	Error             string                                    `json:"error"`
+	ID                string                                    `json:"id,omitempty"`
+	Name              string                                    `json:"name,omitempty"`
+	Type              string                                    `json:"type,omitempty"`
+	ManagedEntityType string                                    `json:"managedEntityType,omitempty"`
+	OperatingSystem   *fleetcontrol.FleetControlOperatingSystem `json:"operatingSystem,omitempty"`
 	Scope             *fleetcontrol.FleetControlScopedReference `json:"scope,omitempty"`
-	Tags              []fleetcontrol.FleetControlTag           `json:"tags,omitempty"`
-	Product           []string                                 `json:"product,omitempty"`
-	Description       string                                   `json:"description,omitempty"`
-	CreatedAt         int64                                    `json:"createdAt,omitempty"`
-	UpdatedAt         int64                                    `json:"updatedAt,omitempty"`
+	Tags              []fleetcontrol.FleetControlTag            `json:"tags,omitempty"`
+	Product           []string                                  `json:"product,omitempty"`
+	Description       string                                    `json:"description,omitempty"`
+	CreatedAt         int64                                     `json:"createdAt,omitempty"`
+	UpdatedAt         int64                                     `json:"updatedAt,omitempty"`
 }
 
 // FleetListResponseWrapper wraps a list of fleet entities with consistent status and error fields.
@@ -257,6 +347,10 @@ func PrintFleetSuccess(fleet *FleetEntityOutput) error {
 
 	if fleet.Scope.ID != "" {
 		response.Scope = &fleet.Scope
+	}
+
+	if fleet.OperatingSystem != nil {
+		response.OperatingSystem = fleet.OperatingSystem
 	}
 
 	if len(fleet.Tags) > 0 {
@@ -327,16 +421,17 @@ func PrintDeleteBulkSuccess(results []FleetDeleteResponseWrapper) error {
 // FleetEntityOutput is a filtered representation of a fleet entity containing only user-relevant fields.
 // This removes verbose metadata and internal structures that aren't useful for command output.
 type FleetEntityOutput struct {
-	ID                string                                `json:"id"`
-	Name              string                                `json:"name"`
-	Type              string                                `json:"type,omitempty"`
-	ManagedEntityType string                                `json:"managedEntityType,omitempty"`
+	ID                string                                   `json:"id"`
+	Name              string                                   `json:"name"`
+	Type              string                                   `json:"type,omitempty"`
+	ManagedEntityType string                                   `json:"managedEntityType,omitempty"`
+	OperatingSystem   *fleetcontrol.FleetControlOperatingSystem `json:"operatingSystem,omitempty"`
 	Scope             fleetcontrol.FleetControlScopedReference `json:"scope,omitempty"`
-	Tags              []fleetcontrol.FleetControlTag        `json:"tags,omitempty"`
-	Product           []string                              `json:"product,omitempty"`
-	Description       string                                `json:"description,omitempty"`
-	CreatedAt         int64                                 `json:"createdAt,omitempty"`
-	UpdatedAt         int64                                 `json:"updatedAt,omitempty"`
+	Tags              []fleetcontrol.FleetControlTag           `json:"tags,omitempty"`
+	Product           []string                                 `json:"product,omitempty"`
+	Description       string                                   `json:"description,omitempty"`
+	CreatedAt         int64                                    `json:"createdAt,omitempty"`
+	UpdatedAt         int64                                    `json:"updatedAt,omitempty"`
 }
 
 // FilterFleetEntity creates a filtered output from a fleet entity, removing verbose fields.
@@ -364,6 +459,11 @@ func FilterFleetEntity(entity fleetcontrol.FleetControlFleetEntityResult) *Fleet
 
 	// Add scope (always present)
 	output.Scope = entity.Scope
+
+	// Add operating system if present (only applicable for HOST fleets)
+	if entity.OperatingSystem.Type != "" {
+		output.OperatingSystem = &entity.OperatingSystem
+	}
 
 	// Add tags if present
 	if len(entity.Tags) > 0 {
@@ -400,10 +500,11 @@ func FilterFleetEntity(entity fleetcontrol.FleetControlFleetEntityResult) *Fleet
 //
 // Parameters:
 //   - entity: The fleet entity from EntityManagement API
+//   - showTags: Whether to include tags in the output
 //
 // Returns:
 //   - Filtered fleet entity output
-func FilterFleetEntityFromEntityManagement(entity fleetcontrol.EntityManagementFleetEntity) *FleetEntityOutput {
+func FilterFleetEntityFromEntityManagement(entity fleetcontrol.EntityManagementFleetEntity, showTags bool) *FleetEntityOutput {
 	output := &FleetEntityOutput{
 		ID:   entity.ID,
 		Name: entity.Name,
@@ -424,8 +525,17 @@ func FilterFleetEntityFromEntityManagement(entity fleetcontrol.EntityManagementF
 		Type: fleetcontrol.FleetControlEntityScope(entity.Scope.Type),
 	}
 
+	// Add operating system if present (only applicable for HOST fleets)
+	// Convert EntityManagementOperatingSystem to FleetControlOperatingSystem
+	if entity.OperatingSystem.Type != "" {
+		output.OperatingSystem = &fleetcontrol.FleetControlOperatingSystem{
+			Type: fleetcontrol.FleetControlOperatingSystemType(entity.OperatingSystem.Type),
+		}
+	}
+
 	// Convert tags from EntityManagementTag to FleetControlTag
-	if len(entity.Tags) > 0 {
+	// Only include tags if showTags flag is true
+	if showTags && len(entity.Tags) > 0 {
 		tags := make([]fleetcontrol.FleetControlTag, len(entity.Tags))
 		for i, tag := range entity.Tags {
 			tags[i] = fleetcontrol.FleetControlTag{

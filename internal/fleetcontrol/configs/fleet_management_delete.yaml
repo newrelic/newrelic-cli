@@ -7,16 +7,16 @@ long: |
   These flags are mutually exclusive.
 example: |
   # Delete a single fleet
-  newrelic fleetcontrol fleet delete --id abc123
+  newrelic fleetcontrol fleet delete --fleet-id abc123
 
   # Delete multiple fleets
-  newrelic fleetcontrol fleet delete --ids abc123,def456,ghi789
+  newrelic fleetcontrol fleet delete --fleet-ids abc123,def456,ghi789
 flags:
-  - name: id
+  - name: fleet-id
     type: string
     required: false
     description: the fleet ID to delete (use for single fleet deletion)
-  - name: ids
+  - name: fleet-ids
     type: stringSlice
     required: false
     description: comma-separated list of fleet IDs to delete (use for bulk deletion)

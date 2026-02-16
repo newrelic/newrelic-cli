@@ -57,6 +57,10 @@ func handleFleetAddVersion(cmd *cobra.Command, args []string, flags *FlagValues)
 		configBody = f.ConfigurationContent
 	}
 
+	// Convert the configuration body to []byte to prevent JSON marshaling
+	// This preserves newlines and formatting in the configuration file
+	configBodyBytes := []byte(configBody)
+
 	// Get organization ID (provided or fetched from API)
 	orgID := GetOrganizationID(f.OrganizationID)
 
@@ -66,7 +70,7 @@ func handleFleetAddVersion(cmd *cobra.Command, args []string, flags *FlagValues)
 		"x-newrelic-client-go-custom-headers": map[string]string{
 			"Newrelic-Entity": fmt.Sprintf(
 				`{"agentConfiguration": "%s"}`,
-				f.ConfigurationGUID,
+				f.ConfigurationID,
 			),
 		},
 	}
@@ -74,7 +78,7 @@ func handleFleetAddVersion(cmd *cobra.Command, args []string, flags *FlagValues)
 	// Call New Relic API to add the version
 	// Note: This uses the same endpoint as CreateConfiguration but with different headers
 	result, err := client.NRClient.FleetControl.FleetControlCreateConfiguration(
-		configBody,
+		configBodyBytes,
 		customHeaders,
 		orgID,
 	)

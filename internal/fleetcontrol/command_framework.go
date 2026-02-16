@@ -40,7 +40,7 @@ type CommandDefinition struct {
 // Flags define the command-line arguments a command accepts
 type FlagDefinition struct {
 	Name        string           `yaml:"name"`        // Flag name (e.g., "name", "id")
-	Type        string           `yaml:"type"`        // Data type: string, int, bool, stringSlice, file
+	Type        string           `yaml:"type"`        // Data type: string, int, bool, stringSlice, stringArray, file
 	Required    bool             `yaml:"required"`    // Whether this flag is required
 	Default     interface{}      `yaml:"default"`     // Default value if not provided
 	Description string           `yaml:"description"` // Help text for this flag
@@ -102,6 +102,7 @@ func (fv *FlagValues) GetString(name string) string {
 
 // GetStringSlice retrieves a validated string slice flag value by name
 // Values are cached after first retrieval for performance
+// Note: stringSlice type auto-splits on commas
 //
 // Parameters:
 //   - name: The flag name
@@ -113,6 +114,24 @@ func (fv *FlagValues) GetStringSlice(name string) []string {
 		return cached.([]string)
 	}
 	val, _ := fv.cmd.Flags().GetStringSlice(name)
+	fv.cachedVals[name] = val
+	return val
+}
+
+// GetStringArray retrieves a validated string array flag value by name
+// Values are cached after first retrieval for performance
+// Note: stringArray type does NOT auto-split on commas (only splits when flag is repeated)
+//
+// Parameters:
+//   - name: The flag name
+//
+// Returns:
+//   - The string array value of the flag
+func (fv *FlagValues) GetStringArray(name string) []string {
+	if cached, ok := fv.cachedVals[name]; ok {
+		return cached.([]string)
+	}
+	val, _ := fv.cmd.Flags().GetStringArray(name)
 	fv.cachedVals[name] = val
 	return val
 }
@@ -222,6 +241,15 @@ func (fv *FlagValues) validateFlags() error {
 		case "stringSlice":
 			// For slices, validate each element
 			vals, _ := fv.cmd.Flags().GetStringSlice(name)
+			for _, v := range vals {
+				if err := validateValue(name, v, def.Validation); err != nil {
+					return err
+				}
+			}
+			continue
+		case "stringArray":
+			// For arrays, validate each element
+			vals, _ := fv.cmd.Flags().GetStringArray(name)
 			for _, v := range vals {
 				if err := validateValue(name, v, def.Validation); err != nil {
 					return err
@@ -384,6 +412,13 @@ func BuildCommand(def CommandDefinition, handler CommandHandler) *cobra.Command 
 				defaultVal = flag.Default.([]string)
 			}
 			cmd.Flags().StringSlice(flag.Name, defaultVal, flag.Description)
+
+		case "stringArray":
+			var defaultVal []string
+			if flag.Default != nil {
+				defaultVal = flag.Default.([]string)
+			}
+			cmd.Flags().StringArray(flag.Name, defaultVal, flag.Description)
 
 		case "int":
 			defaultVal := 0

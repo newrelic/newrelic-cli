@@ -13,8 +13,11 @@ example: |
   # Search for fleets containing a substring
   newrelic fleetcontrol fleet search --name-contains "prod"
 
-  # Search with table format
-  newrelic fleetcontrol fleet search --name-contains "staging" --format Text
+  # Search with tags included
+  newrelic fleetcontrol fleet search --name-contains "prod" --show-tags
+
+  # Search all fleets with tags and table format
+  newrelic fleetcontrol fleet search --show-tags --format Text
 flags:
   - name: name-equals
     type: string
@@ -22,3 +25,6 @@ flags:
   - name: name-contains
     type: string
     description: search for fleets whose name contains this substring
+  - name: show-tags
+    type: bool
+    description: "include tags in the search results (default: false)"

@@ -40,7 +40,7 @@ func handleFleetGetConfigurationVersions(cmd *cobra.Command, args []string, flag
 
 	// Call New Relic API to get all configuration versions
 	result, err := client.NRClient.FleetControl.FleetControlGetConfigurationVersions(
-		f.ConfigurationGUID,
+		f.ConfigurationID,
 		orgID,
 	)
 	if err != nil {

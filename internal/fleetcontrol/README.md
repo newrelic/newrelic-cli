@@ -1,12 +1,13 @@
 # Fleet Control CLI - Command Reference
 
-A command-line interface for managing New Relic Fleet Control entities including fleets, configurations, deployments, and members.
+A command-line interface for managing New Relic Fleet Control entities including fleets, configurations, deployments, members, and entity queries.
 
 Fleet Control enables centralized management of New Relic agents across your infrastructure, allowing you to:
 - Group entities into fleets for organized management
 - Create and version agent configurations
 - Deploy configurations to fleet members
 - Manage fleet membership with ring-based deployments
+- Query managed and unassigned entities
 
 ## 📁 Directory Structure
 
@@ -15,7 +16,7 @@ internal/fleetcontrol/
 ├── README.md                                      # This file - Command reference
 ├── CONTRIBUTING.md                                # Technical guide for developers
 ├── TEST_VALIDATION.md                            # Validation testing guide
-├── command.go                                    # Main entry point
+├── command.go                                    # Main entry point with command hierarchy
 ├── command_framework.go                          # Core framework
 ├── command_flags_generated.go                    # Generated typed flag accessors
 ├── command_fleet.go                              # Command registration
@@ -27,46 +28,59 @@ internal/fleetcontrol/
 │   ├── fleet_management_delete.yaml
 │   ├── fleet_management_get.yaml
 │   ├── fleet_management_search.yaml
+│   ├── fleet_members_add.yaml
+│   ├── fleet_members_remove.yaml
+│   ├── fleet_members_list.yaml
 │   ├── fleet_configuration_create.yaml
 │   ├── fleet_configuration_get.yaml
+│   ├── fleet_configuration_delete.yaml
 │   ├── fleet_configuration_version_list.yaml
 │   ├── fleet_configuration_version_add.yaml
-│   ├── fleet_configuration_delete.yaml
 │   ├── fleet_configuration_version_delete.yaml
 │   ├── fleet_deployment_create.yaml
 │   ├── fleet_deployment_update.yaml
-│   ├── fleet_members_add.yaml
-│   └── fleet_members_remove.yaml
+│   ├── fleet_deployment_deploy.yaml
+│   ├── fleet_entities_get_managed.yaml
+│   └── fleet_entities_get_unassigned.yaml
 │
 └── Handler implementation files (one per command)
 ```
 
-## 📋 Available Commands
+## 📋 Command Hierarchy
 
-### Fleet Management
-- **`create`** - Create a new fleet to group and manage entities
-- **`get`** - Retrieve details of a specific fleet by ID
-- **`search`** - Search for fleets by name or list all fleets
-- **`update`** - Update fleet properties (name, description, tags)
-- **`delete`** - Delete one or more fleets (single or bulk)
+Fleet Control commands are organized by resource type for intuitive navigation:
 
-### Configuration Management
-- **`create-configuration`** - Create a new versioned configuration for fleet agents
-- **`get-configuration`** - Retrieve configuration content by GUID and version
-- **`get-versions`** - List all versions of a configuration
-- **`add-version`** - Add a new version to an existing configuration
-- **`delete-configuration`** - Delete an entire configuration and all versions
-- **`delete-version`** - Delete a specific configuration version
-
-### Deployment Management (⚠️ Experimental)
-- **`create-deployment`** - Create a deployment to roll out configurations to fleet members
-- **`update-deployment`** - Update deployment properties and configuration versions
-
-### Member Management (⚠️ Experimental)
-- **`add-members`** - Add entities to a fleet ring
-- **`remove-members`** - Remove entities from a fleet ring
-
-**Note:** Deployment and member management commands are functional but currently being tested with the right managed entities and may be unstable.
+```
+newrelic fleetcontrol
+├── fleet                    # Fleet management
+│   ├── create              # Create a new fleet
+│   ├── get                 # Get fleet details
+│   ├── search              # Search fleets
+│   ├── update              # Update fleet
+│   ├── delete              # Delete fleet(s)
+│   └── members             # Manage fleet members
+│       ├── add             # Add entities to ring
+│       ├── remove          # Remove entities from ring
+│       └── list            # List fleet members
+│
+├── configuration            # Configuration management
+│   ├── create              # Create configuration
+│   ├── get                 # Get configuration content
+│   ├── delete              # Delete configuration
+│   └── versions            # Manage configuration versions
+│       ├── list            # List all versions
+│       ├── add             # Add new version
+│       └── delete          # Delete specific version
+│
+├── deployment               # Deployment management
+│   ├── create              # Create deployment
+│   ├── update              # Update deployment
+│   └── deploy              # Trigger deployment
+│
+└── entities                 # Entity queries
+    ├── get-managed         # List managed entities
+    └── get-unassigned      # List available entities
+```
 
 ## 🔧 Prerequisites
 
@@ -107,7 +121,7 @@ export NEW_RELIC_REGION="US"  # or "EU" for European accounts
 go build -o ./bin/darwin/newrelic ./cmd/newrelic
 
 # Verify the build
-./bin/darwin/newrelic fleetcontrol fleet --help
+./bin/darwin/newrelic fleetcontrol --help
 ```
 
 ### Verifying Setup
@@ -187,20 +201,17 @@ newrelic fleetcontrol fleet create \
 Retrieve details of a specific fleet by its ID.
 
 **Required Flags:**
-- `--id` - Fleet ID
-
-**Optional Flags:**
-- `--organization-id` - Organization ID (auto-fetched if not provided)
+- `--fleet-id` - Fleet ID
 
 **Examples:**
 
 ```bash
 # Get fleet details
-newrelic fleetcontrol fleet get --id "fleet-abc-123"
+newrelic fleetcontrol fleet get --fleet-id "fleet-abc-123"
 
 # With explicit organization ID
 newrelic fleetcontrol fleet get \
-  --id "fleet-abc-123" \
+  --fleet-id "fleet-abc-123" \
   --organization-id "ORG_ID"
 ```
 
@@ -326,24 +337,21 @@ newrelic fleetcontrol fleet update \
 Delete a single fleet or multiple fleets in bulk.
 
 **Required Flags (mutually exclusive):**
-- `--id` - Delete a single fleet
-- `--ids` - Delete multiple fleets (comma-separated, requires 2+ IDs)
-
-**Optional Flags:**
-- `--organization-id` - Organization ID (auto-fetched if not provided)
+- `--fleet-id` - Delete a single fleet
+- `--fleet-ids` - Delete multiple fleets (comma-separated, requires 2+ IDs)
 
 **Validation:**
-- Must provide either `--id` or `--ids`, not both
-- Bulk delete (`--ids`) requires at least 2 IDs (use `--id` for single deletion)
+- Must provide either `--fleet-id` or `--fleet-ids`, not both
+- Bulk delete (`--fleet-ids`) requires at least 2 IDs (use `--fleet-id` for single deletion)
 
 **Examples:**
 
 ```bash
 # Delete single fleet
-newrelic fleetcontrol fleet delete --id "fleet-abc-123"
+newrelic fleetcontrol fleet delete --fleet-id "fleet-abc-123"
 
 # Bulk delete multiple fleets
-newrelic fleetcontrol fleet delete --ids "fleet-1,fleet-2,fleet-3"
+newrelic fleetcontrol fleet delete --fleet-ids "fleet-1,fleet-2,fleet-3"
 ```
 
 **Response (single delete):**
@@ -378,14 +386,116 @@ newrelic fleetcontrol fleet delete --ids "fleet-1,fleet-2,fleet-3"
 
 ---
 
+### Fleet Member Management Commands
+
+#### members add - Add Members to Fleet
+
+Add entities to a fleet ring for controlled deployment rollouts.
+
+**Required Flags:**
+- `--fleet-id` - Fleet ID to add members to
+- `--ring` - Ring name within the fleet
+- `--entity-ids` - Comma-separated list of entity IDs to add
+
+**Examples:**
+
+```bash
+# Add members to fleet ring
+newrelic fleetcontrol fleet members add \
+  --fleet-id "fleet-abc-123" \
+  --ring "production" \
+  --entity-ids "entity-1,entity-2,entity-3"
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "error": "",
+  "result": {
+    "fleetId": "fleet-abc-123",
+    "ring": "production",
+    "addedEntityIds": ["entity-1", "entity-2", "entity-3"],
+    ...
+  }
+}
+```
+
+---
+
+#### members remove - Remove Members from Fleet
+
+Remove entities from a fleet ring.
+
+**Required Flags:**
+- `--fleet-id` - Fleet ID to remove members from
+- `--ring` - Ring name within the fleet
+- `--entity-ids` - Comma-separated list of entity IDs to remove
+
+**Examples:**
+
+```bash
+# Remove members from fleet ring
+newrelic fleetcontrol fleet members remove \
+  --fleet-id "fleet-abc-123" \
+  --ring "production" \
+  --entity-ids "entity-1,entity-2"
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "error": "",
+  "result": {
+    "fleetId": "fleet-abc-123",
+    "ring": "production",
+    "removedEntityIds": ["entity-1", "entity-2"],
+    ...
+  }
+}
+```
+
+---
+
+#### members list - List Fleet Members
+
+List all entities in a fleet, optionally filtered by ring.
+
+**Required Flags:**
+- `--fleet-id` - Fleet ID to list members from
+
+**Optional Flags:**
+- `--ring` - Filter by specific ring name
+- `--include-tags` - Include entity tags in output (default: false)
+
+**Examples:**
+
+```bash
+# List all members in a fleet
+newrelic fleetcontrol fleet members list --fleet-id "fleet-abc-123"
+
+# List members in a specific ring
+newrelic fleetcontrol fleet members list \
+  --fleet-id "fleet-abc-123" \
+  --ring "canary"
+
+# Include tags in the output
+newrelic fleetcontrol fleet members list \
+  --fleet-id "fleet-abc-123" \
+  --include-tags
+```
+
+---
+
 ### Configuration Management Commands
 
-#### create-configuration - Create a New Configuration
+#### create - Create a New Configuration
 
 Create a versioned configuration for fleet agents.
 
 **Required Flags:**
-- `--entity-name` - Configuration name
+- `--name` - Configuration name
 - `--agent-type` - Type of agent this configuration targets
   - Allowed values: `NRInfra`, `NRDOT`, `FluentBit`, `NRPrometheusAgent` (case-insensitive)
 - `--managed-entity-type` - Type of entities this configuration applies to
@@ -406,15 +516,15 @@ Create a versioned configuration for fleet agents.
 
 ```bash
 # Recommended: Read from file
-newrelic fleetcontrol fleet create-configuration \
-  --entity-name "Production Host Config" \
+newrelic fleetcontrol configuration create \
+  --name "Production Host Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
   --configuration-file-path ./configs/prod-host.json
 
 # Alternative: Inline content (testing only)
-newrelic fleetcontrol fleet create-configuration \
-  --entity-name "Test Config" \
+newrelic fleetcontrol configuration create \
+  --name "Test Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
   --configuration-content '{"metrics_interval": 15}'
@@ -440,18 +550,18 @@ newrelic fleetcontrol fleet create-configuration \
 
 ---
 
-#### get-configuration - Get Configuration Content
+#### get - Get Configuration Content
 
 Retrieve the configuration content for a specific configuration or version.
 
 **Required Flags:**
-- `--entity-guid` - Configuration entity GUID or version entity GUID
+- `--configuration-id` - Configuration entity ID or version entity ID
 
 **Optional Flags:**
 - `--version` - Specific version number to retrieve (defaults to latest if not provided)
 - `--mode` - Entity mode:
-  - `ConfigEntity` (default) - Use when `--entity-guid` is a configuration entity GUID
-  - `ConfigVersionEntity` - Use when `--entity-guid` is a version entity GUID
+  - `ConfigEntity` (default) - Use when `--configuration-id` is a configuration entity ID
+  - `ConfigVersionEntity` - Use when `--configuration-id` is a version entity ID
 - `--organization-id` - Organization ID (auto-fetched if not provided)
 
 **Note:** This command returns raw configuration content on success (no status wrapper) but uses error wrapper on failure.
@@ -460,22 +570,22 @@ Retrieve the configuration content for a specific configuration or version.
 
 ```bash
 # Get latest version
-newrelic fleetcontrol fleet get-configuration \
-  --entity-guid "CONFIG-ABC-123"
+newrelic fleetcontrol configuration get \
+  --configuration-id "CONFIG-ABC-123"
 
 # Get specific version by number
-newrelic fleetcontrol fleet get-configuration \
-  --entity-guid "CONFIG-ABC-123" \
+newrelic fleetcontrol configuration get \
+  --configuration-id "CONFIG-ABC-123" \
   --version 2
 
-# Get by version entity GUID
-newrelic fleetcontrol fleet get-configuration \
-  --entity-guid "VERSION-XYZ-789" \
+# Get by version entity ID
+newrelic fleetcontrol configuration get \
+  --configuration-id "VERSION-XYZ-789" \
   --mode "ConfigVersionEntity"
 
 # Table format
-newrelic fleetcontrol fleet get-configuration \
-  --entity-guid "CONFIG-ABC-123" \
+newrelic fleetcontrol configuration get \
+  --configuration-id "CONFIG-ABC-123" \
   --format text
 ```
 
@@ -500,29 +610,62 @@ newrelic fleetcontrol fleet get-configuration \
 
 ---
 
-#### get-versions - List All Configuration Versions
+#### delete - Delete a Configuration
+
+Delete an entire configuration and all its versions.
+
+**Required Flags:**
+- `--configuration-id` - Configuration entity ID to delete
+
+**Optional Flags:**
+- `--organization-id` - Organization ID (auto-fetched if not provided)
+
+**Warning:** This deletes the configuration and all associated versions permanently.
+
+**Examples:**
+
+```bash
+# Delete configuration
+newrelic fleetcontrol configuration delete \
+  --configuration-id "CONFIG-ABC-123"
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "error": "",
+  "id": "CONFIG-ABC-123"
+}
+```
+
+---
+
+### Configuration Version Commands
+
+#### versions list - List All Configuration Versions
 
 Retrieve version history for a configuration.
 
 **Required Flags:**
-- `--configuration-guid` - Configuration entity GUID (not version GUID)
+- `--configuration-id` - Configuration entity ID (not version ID)
 
 **Optional Flags:**
 - `--organization-id` - Organization ID (auto-fetched if not provided)
 
 **Validation:**
-- Returns error if no versions are found (invalid GUID or configuration with no versions)
+- Returns error if no versions are found (invalid ID or configuration with no versions)
 
 **Examples:**
 
 ```bash
 # List all versions
-newrelic fleetcontrol fleet get-versions \
-  --configuration-guid "CONFIG-ABC-123"
+newrelic fleetcontrol configuration versions list \
+  --configuration-id "CONFIG-ABC-123"
 
 # With explicit organization ID
-newrelic fleetcontrol fleet get-versions \
-  --configuration-guid "CONFIG-ABC-123" \
+newrelic fleetcontrol configuration versions list \
+  --configuration-id "CONFIG-ABC-123" \
   --organization-id "ORG_ID"
 ```
 
@@ -560,18 +703,18 @@ newrelic fleetcontrol fleet get-versions \
 ```json
 {
   "status": "failed",
-  "error": "no version details found, please check the GUID of the configuration entity provided"
+  "error": "no version details found, please check the ID of the configuration entity provided"
 }
 ```
 
 ---
 
-#### add-version - Add a New Version to Configuration
+#### versions add - Add a New Version to Configuration
 
 Add a new version to an existing configuration.
 
 **Required Flags:**
-- `--configuration-guid` - Configuration entity GUID
+- `--configuration-id` - Configuration entity ID
 - **Exactly one of:**
   - `--configuration-file-path` - Path to configuration file (JSON/YAML) - **recommended for production**
   - `--configuration-content` - Inline configuration content (JSON/YAML) - **for testing/development only**
@@ -588,13 +731,13 @@ Add a new version to an existing configuration.
 
 ```bash
 # Recommended: Read from file
-newrelic fleetcontrol fleet add-version \
-  --configuration-guid "CONFIG-ABC-123" \
+newrelic fleetcontrol configuration versions add \
+  --configuration-id "CONFIG-ABC-123" \
   --configuration-file-path ./configs/v2-config.json
 
 # Alternative: Inline content (testing only)
-newrelic fleetcontrol fleet add-version \
-  --configuration-guid "CONFIG-ABC-123" \
+newrelic fleetcontrol configuration versions add \
+  --configuration-id "CONFIG-ABC-123" \
   --configuration-content '{"metrics_interval": 30, "updated": true}'
 ```
 
@@ -617,55 +760,24 @@ newrelic fleetcontrol fleet add-version \
 
 ---
 
-#### delete-configuration - Delete a Configuration
-
-Delete an entire configuration and all its versions.
-
-**Required Flags:**
-- `--configuration-guid` - Configuration entity GUID to delete
-
-**Optional Flags:**
-- `--organization-id` - Organization ID (auto-fetched if not provided)
-
-**Warning:** This deletes the configuration and all associated versions permanently.
-
-**Examples:**
-
-```bash
-# Delete configuration
-newrelic fleetcontrol fleet delete-configuration \
-  --configuration-guid "CONFIG-ABC-123"
-```
-
-**Response:**
-```json
-{
-  "status": "success",
-  "error": "",
-  "id": "CONFIG-ABC-123"
-}
-```
-
----
-
-#### delete-version - Delete a Configuration Version
+#### versions delete - Delete a Configuration Version
 
 Delete a specific version of a configuration.
 
 **Required Flags:**
-- `--version-guid` - Version entity GUID to delete
+- `--version-id` - Version entity ID to delete
 
 **Optional Flags:**
 - `--organization-id` - Organization ID (auto-fetched if not provided)
 
-**Note:** The version GUID is the entity GUID of the specific version (found in get-versions output), not the configuration GUID.
+**Note:** The version ID is the entity ID of the specific version (found in versions list output), not the configuration ID.
 
 **Examples:**
 
 ```bash
 # Delete specific version
-newrelic fleetcontrol fleet delete-version \
-  --version-guid "VERSION-XYZ-456"
+newrelic fleetcontrol configuration versions delete \
+  --version-id "VERSION-XYZ-456"
 ```
 
 **Response:**
@@ -681,33 +793,56 @@ newrelic fleetcontrol fleet delete-version \
 
 ### Deployment Management Commands
 
-**⚠️ Experimental:** These commands are functional but currently being tested with the right managed entities. They may be unstable in their current state.
+#### create - Create a Deployment
 
-#### create-deployment - Create a Deployment
-
-Create a deployment to roll out configurations to fleet members.
+Create a deployment to roll out configurations to fleet members. Supports single or multiple agents.
 
 **Required Flags:**
 - `--fleet-id` - Fleet ID to deploy to
 - `--name` - Deployment name
-- `--configuration-version-ids` - Comma-separated list of configuration version IDs to deploy
+- **Either** (new syntax - supports multiple agents):
+  - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times)
+- **Or** (legacy syntax - single agent only):
+  - `--agent-type` - Agent type (e.g., NRInfra, NRDOT)
+  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0)
+  - `--configuration-version-ids` - Configuration version IDs to deploy
 
 **Optional Flags:**
 - `--description` - Deployment description
 - `--tags` - Tags in format `"key:value1,value2"` (can specify multiple times)
-- `--organization-id` - Organization ID (auto-fetched if not provided)
+
+**Validation:**
+- Must use either `--agent` OR the legacy three flags (`--agent-type`, `--agent-version`, `--configuration-version-ids`)
+- Cannot mix the two syntaxes
 
 **Examples:**
 
 ```bash
-# Create deployment
-newrelic fleetcontrol fleet create-deployment \
+# New syntax: Single agent
+newrelic fleetcontrol deployment create \
   --fleet-id "fleet-abc-123" \
   --name "Production Rollout v2" \
-  --configuration-version-ids "version-1,version-2" \
+  --agent "NRInfra:1.70.0:version-1,version-2" \
   --description "Rolling out updated monitoring configuration" \
   --tags "env:prod" \
   --tags "release:v1.2.3"
+
+# New syntax: Multiple agents (Infrastructure + .NET)
+newrelic fleetcontrol deployment create \
+  --fleet-id "fleet-abc-123" \
+  --name "Multi-Agent Deployment" \
+  --agent "NRInfra:1.70.0:version-1,version-2" \
+  --agent "NRDOT:2.0.0:version-3" \
+  --description "Deploying Infrastructure and .NET agent configs"
+
+# Legacy syntax: Single agent (still supported for backward compatibility)
+newrelic fleetcontrol deployment create \
+  --fleet-id "fleet-abc-123" \
+  --name "Production Rollout v2" \
+  --agent-type "NRInfra" \
+  --agent-version "1.70.0" \
+  --configuration-version-ids "version-1,version-2" \
+  --description "Rolling out updated monitoring configuration"
 ```
 
 **Response:**
@@ -727,38 +862,55 @@ newrelic fleetcontrol fleet create-deployment \
 
 ---
 
-#### update-deployment - Update a Deployment
+#### update - Update a Deployment
 
-Update an existing deployment's properties.
+Update an existing deployment's properties, including agent configurations.
 
 **Required Flags:**
-- `--id` - Deployment ID to update
+- `--deployment-id` - Deployment ID to update
 
 **Optional Flags:**
 - `--name` - New deployment name
-- `--configuration-version-ids` - New comma-separated list of configuration version IDs
+- **Either** (new syntax - supports multiple agents):
+  - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times)
+- **Or** (legacy syntax):
+  - `--configuration-version-ids` - Configuration version IDs to update
 - `--description` - New description
 - `--tags` - New tags (replaces existing tags)
-- `--organization-id` - Organization ID (auto-fetched if not provided)
 
-**Note:** Only provided fields will be updated. Omitted fields remain unchanged.
+**Important Notes:**
+- Only provided fields will be updated. Omitted fields remain unchanged.
+- Must use either `--agent` OR `--configuration-version-ids`, not both
+- Using `--agent` allows you to update agent types, versions, and configuration versions
+- Using `--configuration-version-ids` (legacy) only updates configuration versions
 
 **Examples:**
 
 ```bash
-# Update deployment name
-newrelic fleetcontrol fleet update-deployment \
-  --id "deployment-xyz-789" \
-  --name "Production Rollout v3"
+# New syntax: Update agents with new versions
+newrelic fleetcontrol deployment update \
+  --deployment-id "deployment-xyz-789" \
+  --agent "NRInfra:1.71.0:version-3,version-4" \
+  --agent "NRDOT:2.1.0:version-5"
 
-# Update configuration versions
-newrelic fleetcontrol fleet update-deployment \
-  --id "deployment-xyz-789" \
+# New syntax: Update single agent
+newrelic fleetcontrol deployment update \
+  --deployment-id "deployment-xyz-789" \
+  --agent "NRInfra:1.71.0:version-3,version-4"
+
+# Legacy syntax: Update configuration versions only
+newrelic fleetcontrol deployment update \
+  --deployment-id "deployment-xyz-789" \
   --configuration-version-ids "version-3,version-4"
 
+# Update deployment name
+newrelic fleetcontrol deployment update \
+  --deployment-id "deployment-xyz-789" \
+  --name "Production Rollout v3"
+
 # Update multiple fields
-newrelic fleetcontrol fleet update-deployment \
-  --id "deployment-xyz-789" \
+newrelic fleetcontrol deployment update \
+  --deployment-id "deployment-xyz-789" \
   --name "Updated Deployment" \
   --description "New description" \
   --tags "env:prod,updated:yes"
@@ -780,82 +932,94 @@ newrelic fleetcontrol fleet update-deployment \
 
 ---
 
-### Member Management Commands
+#### deploy - Trigger Deployment
 
-**⚠️ Experimental:** These commands are functional but currently being tested with the right managed entities. They may be unstable in their current state.
-
-#### add-members - Add Members to Fleet
-
-Add entities to a fleet ring.
+Trigger deployment to roll out configurations across fleet rings.
 
 **Required Flags:**
-- `--fleet-id` - Fleet ID to add members to
-- `--ring` - Ring name within the fleet
-- `--entity-ids` - Comma-separated list of entity IDs to add
-
-**Optional Flags:**
-- `--organization-id` - Organization ID (auto-fetched if not provided)
+- `--deployment-id` - Deployment ID to trigger
+- `--rings-to-deploy` - Comma-separated list of ring names to deploy to
 
 **Examples:**
 
 ```bash
-# Add members to fleet ring
-newrelic fleetcontrol fleet add-members \
-  --fleet-id "fleet-abc-123" \
-  --ring "production" \
-  --entity-ids "entity-1,entity-2,entity-3"
-```
+# Deploy to multiple rings
+newrelic fleetcontrol deployment deploy \
+  --deployment-id "deployment-xyz-789" \
+  --rings-to-deploy "canary,default"
 
-**Response:**
-```json
-{
-  "status": "success",
-  "error": "",
-  "result": {
-    "fleetId": "fleet-abc-123",
-    "ring": "production",
-    "addedEntityIds": ["entity-1", "entity-2", "entity-3"],
-    ...
-  }
-}
+# Deploy to a single ring
+newrelic fleetcontrol deployment deploy \
+  --deployment-id "deployment-xyz-789" \
+  --rings-to-deploy "default"
 ```
 
 ---
 
-#### remove-members - Remove Members from Fleet
+### Entity Query Commands
 
-Remove entities from a fleet ring.
+These commands help you identify which entities are managed by fleets and which are available for fleet management.
 
-**Required Flags:**
-- `--fleet-id` - Fleet ID to remove members from
-- `--ring` - Ring name within the fleet
-- `--entity-ids` - Comma-separated list of entity IDs to remove
+#### get-managed - List Managed Entities
+
+Retrieve all entities that are currently managed by any fleet in the account.
+
+Managed entities are identified by having both:
+- `tags.nr.fleet IS NOT NULL`
+- `tags.nr.supervisor IS NOT NULL`
 
 **Optional Flags:**
-- `--organization-id` - Organization ID (auto-fetched if not provided)
+- `--entity-type` - Filter by entity type (e.g., HOST, KUBERNETESCLUSTER)
+- `--limit` - Maximum number of entities to return (default: 100)
+- `--include-tags` - Include entity tags in output (default: false)
 
 **Examples:**
 
 ```bash
-# Remove members from fleet ring
-newrelic fleetcontrol fleet remove-members \
-  --fleet-id "fleet-abc-123" \
-  --ring "production" \
-  --entity-ids "entity-1,entity-2"
+# Get all managed entities
+newrelic fleetcontrol entities get-managed
+
+# Limit results to 50 entities
+newrelic fleetcontrol entities get-managed --limit 50
+
+# Filter by entity type
+newrelic fleetcontrol entities get-managed --entity-type HOST
+
+# Include tags in output
+newrelic fleetcontrol entities get-managed --include-tags
 ```
 
-**Response:**
-```json
-{
-  "status": "success",
-  "error": "",
-  "result": {
-    "fleetId": "fleet-abc-123",
-    "ring": "production",
-    "removedEntityIds": ["entity-1", "entity-2"],
-    ...
-  }
-}
+---
+
+#### get-unassigned - List Unassigned Entities
+
+Retrieve all entities that are NOT currently managed by any fleet but are available for fleet management.
+
+Unassigned entities are identified by having:
+- `tags.nr.fleet IS NULL`
+- `tags.nr.supervisor IS NOT NULL`
+
+This command helps you identify which entities can be added to a fleet.
+
+**Optional Flags:**
+- `--entity-type` - Filter by entity type (e.g., HOST, KUBERNETESCLUSTER)
+- `--limit` - Maximum number of entities to return (default: 100)
+- `--include-tags` - Include entity tags in output (default: false)
+
+**Examples:**
+
+```bash
+# Get all unassigned entities
+newrelic fleetcontrol entities get-unassigned
+
+# Limit results to 50 entities
+newrelic fleetcontrol entities get-unassigned --limit 50
+
+# Filter by entity type
+newrelic fleetcontrol entities get-unassigned --entity-type HOST
+
+# Include tags in output
+newrelic fleetcontrol entities get-unassigned --include-tags
 ```
 
 ---
@@ -941,13 +1105,13 @@ Errors from these commands still use the status/error wrapper.
 **Extract data from success:**
 ```bash
 # Get entityGuid from create
-newrelic fleetcontrol fleet create-configuration ... | jq -r '.result.entityGuid'
+newrelic fleetcontrol configuration create ... | jq -r '.result.entityGuid'
 
 # Get version number
-newrelic fleetcontrol fleet add-version ... | jq -r '.result.blobVersionEntity.version'
+newrelic fleetcontrol configuration versions add ... | jq -r '.result.blobVersionEntity.version'
 
 # Get ID from delete
-newrelic fleetcontrol fleet delete --id abc123 | jq -r '.id'
+newrelic fleetcontrol fleet delete --fleet-id abc123 | jq -r '.id'
 ```
 
 **Check status before extracting:**
@@ -991,15 +1155,15 @@ echo "Created fleet: $FLEET_ID"
 **Create configuration and add version:**
 ```bash
 # Create configuration
-CONFIG_GUID=$(newrelic fleetcontrol fleet create-configuration \
-  --entity-name "My Config" \
+CONFIG_GUID=$(newrelic fleetcontrol configuration create \
+  --name "My Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
   --configuration-file-path ./config.json | jq -r '.result.entityGuid')
 
 # Add a new version
-newrelic fleetcontrol fleet add-version \
-  --configuration-guid "$CONFIG_GUID" \
+newrelic fleetcontrol configuration versions add \
+  --configuration-id "$CONFIG_GUID" \
   --configuration-file-path ./config-v2.json
 ```
 
@@ -1013,6 +1177,19 @@ newrelic fleetcontrol fleet search | jq 'length'
 
 # Get fleet names only
 newrelic fleetcontrol fleet search | jq -r '.[].name'
+```
+
+**Find entities to add to fleet:**
+```bash
+# Get unassigned hosts
+ENTITIES=$(newrelic fleetcontrol entities get-unassigned \
+  --entity-type HOST | jq -r '.[].id' | head -3 | paste -sd "," -)
+
+# Add them to fleet
+newrelic fleetcontrol fleet members add \
+  --fleet-id "fleet-abc-123" \
+  --ring "production" \
+  --entity-ids "$ENTITIES"
 ```
 
 ---
@@ -1054,11 +1231,11 @@ Used in fleet and configuration commands. Values are case-insensitive.
 
 ### Configuration Modes
 
-Used in get-configuration command. Values are case-insensitive.
+Used in configuration get command. Values are case-insensitive.
 
 **Allowed values:**
-- `ConfigEntity` (default) - Query by configuration entity GUID
-- `ConfigVersionEntity` - Query by version entity GUID
+- `ConfigEntity` (default) - Query by configuration entity ID
+- `ConfigVersionEntity` - Query by version entity ID
 
 **Example:**
 ```bash
@@ -1092,12 +1269,73 @@ Tags must be in format `"key:value1,value2"`.
 
 ---
 
+### Agent Specification Format
+
+Used in deployment create command with the `--agent` flag. Format: `"AgentType:Version:ConfigVersionID1,ConfigVersionID2,..."`
+
+**Format Components:**
+- **AgentType** - The type of agent (e.g., NRInfra, NRDOT, FluentBit, NRPrometheusAgent)
+- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0)
+- **ConfigVersionIDs** - Comma-separated list of configuration version IDs (no spaces)
+
+**Examples:**
+
+```bash
+# Single agent with one configuration version
+--agent "NRInfra:1.70.0:version-abc-123"
+
+# Single agent with multiple configuration versions
+--agent "NRInfra:1.70.0:version-1,version-2,version-3"
+
+# Multiple agents (Infrastructure and .NET)
+--agent "NRInfra:1.70.0:version-1,version-2" \
+--agent "NRDOT:2.0.0:version-3"
+
+# Multiple agents (Infrastructure, .NET, and Fluent Bit)
+--agent "NRInfra:1.70.0:config-infra-v1" \
+--agent "NRDOT:2.0.0:config-dotnet-v1" \
+--agent "FluentBit:1.9.0:config-logs-v1"
+```
+
+**Common Errors:**
+```bash
+# ❌ Incorrect: Spaces in format
+--agent "NRInfra : 1.70.0 : version-1, version-2"
+
+# ✅ Correct: No spaces
+--agent "NRInfra:1.70.0:version-1,version-2"
+
+# ❌ Incorrect: Missing version
+--agent "NRInfra:version-1,version-2"
+
+# ✅ Correct: All three parts present
+--agent "NRInfra:1.70.0:version-1,version-2"
+```
+
+**Backward Compatibility:**
+
+The legacy syntax using separate flags is still supported for single-agent deployments:
+
+```bash
+# Legacy syntax (single agent only)
+--agent-type "NRInfra" \
+--agent-version "1.70.0" \
+--configuration-version-ids "version-1,version-2"
+
+# New syntax (supports multiple agents)
+--agent "NRInfra:1.70.0:version-1,version-2"
+```
+
+**Note:** The `--agent` flag and legacy flags are mutually exclusive. Choose one syntax or the other, not both.
+
+---
+
 ### Mutually Exclusive Flags
 
 Some commands enforce mutual exclusivity between certain flags.
 
 **Delete fleet:**
-- `--id` (single delete) OR `--ids` (bulk delete)
+- `--fleet-id` (single delete) OR `--fleet-ids` (bulk delete)
 - Cannot use both
 - Bulk delete requires 2+ IDs
 
@@ -1112,6 +1350,12 @@ Some commands enforce mutual exclusivity between certain flags.
 - File path is recommended for production
 - Inline content is for testing/development only
 
+**Deployment agent specification:**
+- `--agent` (new syntax) OR `--agent-type` + `--agent-version` + `--configuration-version-ids` (legacy syntax)
+- Must use one syntax or the other, not both
+- New syntax supports multiple agents, legacy syntax supports only one
+- Both syntaxes are functionally equivalent for single-agent deployments
+
 ---
 
 ## 🐛 Troubleshooting
@@ -1124,8 +1368,8 @@ Some commands enforce mutual exclusivity between certain flags.
 | **"Account not found"** | Check `NEW_RELIC_ACCOUNT_ID` is correct. Find it in New Relic UI or URL. |
 | **"required flag not set"** | Ensure flag syntax is correct: `--flag-name value` or `--flag-name=value` (not `flag-name=value`) |
 | **"invalid value for flag"** | Check validation rules above. Values may need to match allowed values (case-insensitive) |
-| **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--id` OR `--ids`, not both) |
-| **"no version details found"** | Configuration GUID is invalid or has no versions. Verify GUID is correct using `search` command |
+| **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--fleet-id` OR `--fleet-ids`, not both) |
+| **"no version details found"** | Configuration ID is invalid or has no versions. Verify ID is correct using `search` command |
 | **File not found error** | When using `--configuration-file-path`, ensure the file path is correct and file exists |
 | **"organization ID required"** | Provide `--organization-id` explicitly if auto-fetch fails |
 | **Empty response** | Check that entity exists using `search` or `get` commands |
@@ -1204,13 +1448,28 @@ If you're looking to contribute or understand the technical architecture:
 
 ## 📝 Recent Updates
 
+**February 2026:**
+- **MAJOR:** Restructured command hierarchy by resource type for better UX
+  - Fleet commands: `newrelic fleetcontrol fleet <command>`
+  - Configuration commands: `newrelic fleetcontrol configuration <command>`
+  - Deployment commands: `newrelic fleetcontrol deployment <command>`
+  - Entity queries: `newrelic fleetcontrol entities <command>`
+- **MAJOR:** Unified ID parameter names across all commands
+  - `--fleet-id` / `--fleet-ids` for fleet identifiers
+  - `--configuration-id` for configuration identifiers
+  - `--deployment-id` for deployment identifiers
+  - `--version-id` for version identifiers
+  - `--name` (not `--entity-name`) for configuration names
+- Added entity query commands: `get-managed` and `get-unassigned`
+- Nested member commands under `fleet members`
+- Nested version commands under `configuration versions`
+
 **January 2026:**
 - Split hybrid file flags into mutually exclusive `--configuration-file-path` and `--configuration-content`
-- Renamed `--entity-guid` to `--configuration-guid` in get-versions for clarity
 - Added consistent status/error response wrappers for all commands
-- Added empty results validation for get-versions command
+- Added empty results validation for versions list command
 - Fixed Go Client delete operations to handle empty responses
 - Improved documentation structure for first-time users
 - Added comprehensive prerequisites and setup guide
 
-**Last Updated**: January 27, 2026
+**Last Updated**: February 12, 2026

@@ -1,4 +1,4 @@
-name: create-configuration
+name: create
 short: Create a fleet configuration
 long: |
   Create a new fleet configuration with custom attributes.
@@ -7,25 +7,25 @@ long: |
   The configuration content is typically provided via a file containing JSON or YAML.
 example: |
   # Create a configuration from a file (recommended)
-  newrelic fleetcontrol fleet create-configuration --entity-name "My Fleet" --agent-type "NRInfra" --managed-entity-type "KUBERNETESCLUSTER" --configuration-file-path ./config.json
+  newrelic fleetcontrol configuration create --name "My Fleet" --agent-type "NRInfra" --managed-entity-type "KUBERNETESCLUSTER" --configuration-file-path ./config.json
 
   # Create a configuration from a YAML file
-  newrelic fleetcontrol fleet create-configuration --entity-name "My Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-file-path ./config.yaml
+  newrelic fleetcontrol configuration create --name "My Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-file-path ./config.yaml
 
   # Create a configuration with inline content (for testing/development only)
-  newrelic fleetcontrol fleet create-configuration --entity-name "Test Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-content '{"key": "value"}'
+  newrelic fleetcontrol configuration create --name "Test Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-content '{"key": "value"}'
 
   # Create a configuration with explicit organization ID
-  newrelic fleetcontrol fleet create-configuration --entity-name "Production Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --organization-id "abc-123-def" --configuration-file-path ./prod-config.json
+  newrelic fleetcontrol configuration create --name "Production Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --organization-id "abc-123-def" --configuration-file-path ./prod-config.json
 flags:
-  - name: entity-name
+  - name: name
     type: string
     required: true
     description: the name of the configuration entity
   - name: agent-type
     type: string
     required: true
-    description: the agent type (e.g., NRInfra, NRDB)
+    description: the agent type (e.g., NRInfra, NRDOT)
     validation:
       allowed_values: ["NRInfra","NRDOT", "FluentBit", "NRPrometheusAgent"]
       case_insensitive: true

@@ -7,12 +7,12 @@ long: |
   managed entity type, scope, tags, and metadata.
 example: |
   # Get fleet details by ID
-  newrelic fleetcontrol fleet get --id "NDgyOTY3M3xOR0VQfEZMRUVUfDAxOWJmOGU5"
+  newrelic fleetcontrol fleet get --fleet-id "NDgyOTY3M3xOR0VQfEZMRUVUfDAxOWJmOGU5"
 
   # Get fleet details with specific format
-  newrelic fleetcontrol fleet get --id "NDgyOTY3M3xOR0VQfEZMRUVUfDAxOWJmOGU5" --format JSON
+  newrelic fleetcontrol fleet get --fleet-id "NDgyOTY3M3xOR0VQfEZMRUVUfDAxOWJmOGU5" --format JSON
 flags:
-  - name: id
+  - name: fleet-id
     type: string
     required: true
     description: the fleet entity ID

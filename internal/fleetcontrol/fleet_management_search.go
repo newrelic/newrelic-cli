@@ -71,7 +71,7 @@ func handleFleetSearch(cmd *cobra.Command, args []string, flags *FlagValues) err
 		}
 
 		if matches {
-			filteredFleet := FilterFleetEntityFromEntityManagement(*fleetEntity)
+			filteredFleet := FilterFleetEntityFromEntityManagement(*fleetEntity, f.ShowTags)
 			filteredFleets = append(filteredFleets, *filteredFleet)
 		}
 	}
