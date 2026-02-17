@@ -47,6 +47,7 @@ var (
 	cmdDeploymentCreate *cobra.Command
 	cmdDeploymentUpdate *cobra.Command
 	cmdDeploymentDeploy *cobra.Command
+	cmdDeploymentDelete *cobra.Command
 
 	// Entities command variables
 	cmdEntitiesGetManaged    *cobra.Command
@@ -195,6 +196,7 @@ func initDeploymentCommands(config *CommandConfig) {
 		"deployment_create": handleFleetCreateDeployment,
 		"deployment_update": handleFleetUpdateDeployment,
 		"deployment_deploy": handleFleetDeploy,
+		"deployment_delete": handleFleetDeleteDeployment,
 	}
 
 	for _, cmdDef := range config.Commands {
@@ -210,6 +212,9 @@ func initDeploymentCommands(config *CommandConfig) {
 		} else if cmdDef.Name == "deploy" {
 			handler = handlers["deployment_deploy"]
 			cmdVar = &cmdDeploymentDeploy
+		} else if cmdDef.Name == "delete" && contains(cmdDef.Short, "deployment") {
+			handler = handlers["deployment_delete"]
+			cmdVar = &cmdDeploymentDelete
 		} else {
 			continue // Not a deployment command
 		}
@@ -223,6 +228,7 @@ func initDeploymentCommands(config *CommandConfig) {
 	cmdDeployment.AddCommand(cmdDeploymentCreate)
 	cmdDeployment.AddCommand(cmdDeploymentUpdate)
 	cmdDeployment.AddCommand(cmdDeploymentDeploy)
+	cmdDeployment.AddCommand(cmdDeploymentDelete)
 }
 
 // initEntitiesCommands initializes entities commands

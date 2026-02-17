@@ -9,6 +9,47 @@ Fleet Control enables centralized management of New Relic agents across your inf
 - Manage fleet membership with ring-based deployments
 - Query managed and unassigned entities
 
+## 📑 Table of Contents
+
+- [📁 Directory Structure](#-directory-structure)
+- [📋 Command Hierarchy](#-command-hierarchy)
+- [🔧 Prerequisites](#-prerequisites)
+  - [Required Environment Variables](#required-environment-variables)
+  - [Getting Your Credentials](#getting-your-credentials)
+  - [Building the CLI](#building-the-cli)
+  - [Verifying Setup](#verifying-setup)
+  - [Organization ID](#organization-id)
+- [📋 Command Reference](#-command-reference)
+  - [Fleet Management Commands](#fleet-management-commands)
+  - [Fleet Member Management Commands](#fleet-member-management-commands)
+  - [Configuration Management Commands](#configuration-management-commands)
+  - [Configuration Version Commands](#configuration-version-commands)
+  - [Deployment Management Commands](#deployment-management-commands)
+  - [Entity Query Commands](#entity-query-commands)
+- [📤 Understanding Response Formats](#-understanding-response-formats)
+  - [Success Response](#success-response)
+  - [Failure Response](#failure-response)
+  - [Commands with Raw Output](#commands-with-raw-output)
+- [🔍 Working with JSON Responses](#-working-with-json-responses)
+  - [Using jq for Response Parsing](#using-jq-for-response-parsing)
+  - [Practical Workflow Examples](#practical-workflow-examples)
+- [🎯 Validation Rules Reference](#-validation-rules-reference)
+  - [Agent Types](#agent-types)
+  - [Managed Entity Types](#managed-entity-types)
+  - [Configuration Modes](#configuration-modes)
+  - [Tags Format](#tags-format)
+  - [Agent Specification Format](#agent-specification-format)
+  - [Mutually Exclusive Flags](#mutually-exclusive-flags)
+- [🐛 Troubleshooting](#-troubleshooting)
+  - [Common Issues](#common-issues)
+  - [Flag Syntax Examples](#flag-syntax-examples)
+  - [Validation Errors](#validation-errors)
+  - [Debug Mode](#debug-mode)
+- [📚 Additional Resources](#-additional-resources)
+  - [For Developers](#for-developers)
+  - [New Relic Documentation](#new-relic-documentation)
+- [📝 Recent Updates](#-recent-updates)
+
 ## 📁 Directory Structure
 
 ```
@@ -40,6 +81,7 @@ internal/fleetcontrol/
 │   ├── fleet_deployment_create.yaml
 │   ├── fleet_deployment_update.yaml
 │   ├── fleet_deployment_deploy.yaml
+│   ├── fleet_deployment_delete.yaml
 │   ├── fleet_entities_get_managed.yaml
 │   └── fleet_entities_get_unassigned.yaml
 │
@@ -75,7 +117,8 @@ newrelic fleetcontrol
 ├── deployment               # Deployment management
 │   ├── create              # Create deployment
 │   ├── update              # Update deployment
-│   └── deploy              # Trigger deployment
+│   ├── deploy              # Trigger deployment
+│   └── delete              # Delete deployment
 │
 └── entities                 # Entity queries
     ├── get-managed         # List managed entities
@@ -988,6 +1031,32 @@ newrelic fleetcontrol deployment deploy \
 newrelic fleetcontrol deployment deploy \
   --deployment-id "deployment-xyz-789" \
   --rings-to-deploy "default"
+```
+
+---
+
+#### delete - Delete a Deployment
+
+Delete a fleet deployment. This operation cannot be undone and will remove the deployment. The deployment must not be actively in progress.
+
+**Required Flags:**
+- `--deployment-id` - Deployment ID to delete
+
+**Examples:**
+
+```bash
+# Delete a deployment
+newrelic fleetcontrol deployment delete \
+  --deployment-id "deployment-xyz-789"
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "error": "",
+  "id": "deployment-xyz-789"
+}
 ```
 
 ---

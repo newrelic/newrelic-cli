@@ -306,6 +306,18 @@ func (fv *FlagValues) Deploy() DeployFlags {
 	}
 }
 
+// DeleteDeploymentFlags provides typed access to 'delete' (deployment) command flags
+type DeleteDeploymentFlags struct {
+	DeploymentID string
+}
+
+// DeleteDeployment returns typed flags for the 'delete' (deployment) command
+func (fv *FlagValues) DeleteDeployment() DeleteDeploymentFlags {
+	return DeleteDeploymentFlags{
+		DeploymentID: fv.GetString("deployment-id"),
+	}
+}
+
 // GetManagedFlags provides typed access to 'get-managed' (entities) command flags
 type GetManagedFlags struct {
 	EntityType  string

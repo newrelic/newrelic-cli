@@ -692,6 +692,30 @@ func PrintDeploymentSuccess(result interface{}) error {
 	return printJSON(response)
 }
 
+// DeploymentDeleteResponseWrapper wraps deployment delete result with consistent status and error fields.
+type DeploymentDeleteResponseWrapper struct {
+	Status string `json:"status"`
+	Error  string `json:"error"`
+	ID     string `json:"id,omitempty"`
+}
+
+// PrintDeploymentDeleteSuccess outputs successful deployment delete operation with status and error fields.
+// Uses custom JSON marshaling to preserve field order.
+//
+// Parameters:
+//   - id: The ID of the deleted deployment
+//
+// Returns:
+//   - Error from printJSON (typically nil)
+func PrintDeploymentDeleteSuccess(id string) error {
+	response := DeploymentDeleteResponseWrapper{
+		Status: "success",
+		Error:  "",
+		ID:     id,
+	}
+	return printJSON(response)
+}
+
 // MemberResponseWrapper wraps member operation output with consistent status and error fields.
 // Used for add-members and remove-members operations.
 type MemberResponseWrapper struct {
