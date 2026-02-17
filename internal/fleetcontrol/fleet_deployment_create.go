@@ -91,6 +91,12 @@ func handleFleetCreateDeployment(cmd *cobra.Command, args []string, flags *FlagV
 		}
 	}
 
+	// Validate agent versions are compatible with the fleet type
+	// This checks that "*" is only used with KUBERNETESCLUSTER fleets, not HOST fleets
+	if err := ValidateAgentVersionsForFleet(f.FleetID, agents); err != nil {
+		return PrintError(err)
+	}
+
 	// Determine scope for the deployment (defaults to organization scope)
 	var scopeID string
 	var scopeType fleetcontrol.FleetControlEntityScope

@@ -158,6 +158,53 @@ func ParseAgentSpec(agentSpec string) (fleetcontrol.FleetControlAgentInput, erro
 	}, nil
 }
 
+// ValidateAgentVersionsForFleet validates that agent versions are compatible with the fleet type.
+// The "*" wildcard version is only allowed for KUBERNETESCLUSTER fleets, not HOST fleets.
+//
+// Parameters:
+//   - fleetID: The ID of the fleet to validate against
+//   - agents: The agent configurations to validate
+//
+// Returns:
+//   - Error if validation fails (e.g., "*" used with HOST fleet)
+func ValidateAgentVersionsForFleet(fleetID string, agents []fleetcontrol.FleetControlAgentInput) error {
+	// Fetch the fleet entity to check its managed entity type
+	entityInterface, err := client.NRClient.FleetControl.GetEntity(fleetID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch fleet details for validation: %w", err)
+	}
+
+	if entityInterface == nil {
+		return fmt.Errorf("fleet with ID '%s' not found", fleetID)
+	}
+
+	// Type assert to fleet entity
+	fleetEntity, ok := (*entityInterface).(*fleetcontrol.EntityManagementFleetEntity)
+	if !ok {
+		return fmt.Errorf("entity '%s' is not a fleet", fleetID)
+	}
+
+	// Check if this is a HOST fleet
+	isHostFleet := string(fleetEntity.ManagedEntityType) == "HOST"
+
+	// If it's a HOST fleet, validate that no agent uses "*" as version
+	if isHostFleet {
+		for _, agent := range agents {
+			if agent.Version == "*" {
+				return fmt.Errorf(
+					"agent version '*' (wildcard) is not supported for HOST fleets. "+
+						"Please specify an explicit version (e.g., '1.70.0'). "+
+						"Wildcard versions are only supported for KUBERNETESCLUSTER fleets. "+
+						"Fleet '%s' is of type: %s",
+					fleetID, string(fleetEntity.ManagedEntityType))
+			}
+		}
+	}
+
+	// KUBERNETESCLUSTER fleets allow "*", so no validation needed
+	return nil
+}
+
 // Type mappers - Convert YAML-validated string values to client library types
 // These mappers ensure we use the YAML-validated values without bypassing validation
 

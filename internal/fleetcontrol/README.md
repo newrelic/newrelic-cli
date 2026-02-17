@@ -801,19 +801,22 @@ Create a deployment to roll out configurations to fleet members. Supports single
 - `--fleet-id` - Fleet ID to deploy to
 - `--name` - Deployment name
 - **Either** (new syntax - supports multiple agents):
-  - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times)
-- **Or** (legacy syntax - single agent only):
-  - `--agent-type` - Agent type (e.g., NRInfra, NRDOT)
-  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0)
-  - `--configuration-version-ids` - Configuration version IDs to deploy
+  - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times for multiple agents)
+- **Or** (legacy syntax - **SINGLE agent only**):
+  - `--agent-type` - Agent type (e.g., NRInfra, NRDOT) - **creates ONE agent**
+  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0, or `*` for KUBERNETESCLUSTER fleets only)
+  - `--configuration-version-ids` - Configuration version IDs to deploy (comma-separated values for multiple configs on the **same** agent)
 
 **Optional Flags:**
 - `--description` - Deployment description
 - `--tags` - Tags in format `"key:value1,value2"` (can specify multiple times)
 
 **Validation:**
-- Must use either `--agent` OR the legacy three flags (`--agent-type`, `--agent-version`, `--configuration-version-ids`)
-- Cannot mix the two syntaxes
+- Must use either `--agent` OR all three legacy flags (`--agent-type`, `--agent-version`, `--configuration-version-ids`)
+- Cannot mix syntaxes - using `--agent` with any legacy flag will error
+- Agent version `"*"` (wildcard) is **only allowed for KUBERNETESCLUSTER fleets**
+  - HOST fleets must specify an explicit version (e.g., `"1.70.0"`)
+  - The CLI validates fleet type and rejects wildcards for HOST fleets with a clear error message
 
 **Examples:**
 
@@ -835,14 +838,46 @@ newrelic fleetcontrol deployment create \
   --agent "NRDOT:2.0.0:version-3" \
   --description "Deploying Infrastructure and .NET agent configs"
 
-# Legacy syntax: Single agent (still supported for backward compatibility)
+# Legacy syntax: SINGLE agent with one config (still supported for backward compatibility)
 newrelic fleetcontrol deployment create \
   --fleet-id "fleet-abc-123" \
-  --name "Production Rollout v2" \
+  --name "Single Config Deployment" \
+  --agent-type "NRInfra" \
+  --agent-version "1.70.0" \
+  --configuration-version-ids "version-1" \
+  --description "One agent, one configuration"
+
+# Legacy syntax: SINGLE agent with multiple configs (comma-separated)
+# This creates ONE Infrastructure agent with TWO configuration versions
+newrelic fleetcontrol deployment create \
+  --fleet-id "fleet-abc-123" \
+  --name "Multi-Config Single Agent" \
   --agent-type "NRInfra" \
   --agent-version "1.70.0" \
   --configuration-version-ids "version-1,version-2" \
-  --description "Rolling out updated monitoring configuration"
+  --description "One agent, multiple configurations"
+
+# Kubernetes fleet with wildcard version (only works for KUBERNETESCLUSTER fleets)
+newrelic fleetcontrol deployment create \
+  --fleet-id "k8s-fleet-456" \
+  --name "K8s Wildcard Deployment" \
+  --agent "NRInfra:*:version-1,version-2" \
+  --description "Using wildcard version for Kubernetes"
+
+# IMPORTANT DIFFERENCE: New vs Legacy Syntax
+# Legacy: Can only create ONE agent type per deployment
+# New: Can create MULTIPLE agent types per deployment
+
+# ❌ Cannot do this with legacy syntax (would need two separate deployments):
+# --agent-type "NRInfra" ... AND --agent-type "NRDOT" ...
+
+# ✅ Can do this with new syntax (one deployment with multiple agents):
+newrelic fleetcontrol deployment create \
+  --fleet-id "fleet-abc-123" \
+  --name "Multi-Agent Deployment" \
+  --agent "NRInfra:1.70.0:version-1,version-2" \
+  --agent "NRDOT:2.0.0:version-3" \
+  --description "Two different agent types in one deployment"
 ```
 
 **Response:**
@@ -872,9 +907,9 @@ Update an existing deployment's properties, including agent configurations.
 **Optional Flags:**
 - `--name` - New deployment name
 - **Either** (new syntax - supports multiple agents):
-  - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times)
-- **Or** (legacy syntax):
-  - `--configuration-version-ids` - Configuration version IDs to update
+  - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times for multiple agents)
+- **Or** (legacy syntax - **SINGLE agent only**):
+  - `--configuration-version-ids` - Configuration version IDs to update (comma-separated values for multiple configs on the **same** agent)
 - `--description` - New description
 - `--tags` - New tags (replaces existing tags)
 
@@ -883,6 +918,7 @@ Update an existing deployment's properties, including agent configurations.
 - Must use either `--agent` OR `--configuration-version-ids`, not both
 - Using `--agent` allows you to update agent types, versions, and configuration versions
 - Using `--configuration-version-ids` (legacy) only updates configuration versions
+- Agent version `"*"` (wildcard) validation is applied during update but may be limited by API constraints
 
 **Examples:**
 
@@ -1275,7 +1311,10 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 
 **Format Components:**
 - **AgentType** - The type of agent (e.g., NRInfra, NRDOT, FluentBit, NRPrometheusAgent)
-- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0)
+- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0, or `*` for KUBERNETESCLUSTER fleets only)
+  - Use explicit versions like `"1.70.0"` for HOST fleets
+  - Use `"*"` (wildcard) only for KUBERNETESCLUSTER fleets
+  - The CLI validates fleet type before allowing wildcard versions
 - **ConfigVersionIDs** - Comma-separated list of configuration version IDs (no spaces)
 
 **Examples:**
@@ -1295,6 +1334,9 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 --agent "NRInfra:1.70.0:config-infra-v1" \
 --agent "NRDOT:2.0.0:config-dotnet-v1" \
 --agent "FluentBit:1.9.0:config-logs-v1"
+
+# Wildcard version for Kubernetes fleet (only valid for KUBERNETESCLUSTER type)
+--agent "NRInfra:*:config-k8s-v1"
 ```
 
 **Common Errors:**
@@ -1310,23 +1352,44 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 
 # ✅ Correct: All three parts present
 --agent "NRInfra:1.70.0:version-1,version-2"
+
+# ❌ Incorrect: Using wildcard "*" with HOST fleet
+--agent "NRInfra:*:version-1"  # on a HOST fleet
+# Error: agent version '*' (wildcard) is not supported for HOST fleets.
+#        Please specify an explicit version (e.g., '1.70.0').
+
+# ✅ Correct: Explicit version for HOST fleet
+--agent "NRInfra:1.70.0:version-1"
+
+# ✅ Correct: Wildcard for KUBERNETESCLUSTER fleet
+--agent "NRInfra:*:version-1"  # on a KUBERNETESCLUSTER fleet
 ```
 
 **Backward Compatibility:**
 
-The legacy syntax using separate flags is still supported for single-agent deployments:
+The legacy syntax using separate flags is still supported but **limited to single-agent deployments**:
 
 ```bash
-# Legacy syntax (single agent only)
+# Legacy syntax (creates ONE agent with multiple configs)
 --agent-type "NRInfra" \
 --agent-version "1.70.0" \
 --configuration-version-ids "version-1,version-2"
+# Result: 1 Infrastructure agent with 2 configuration versions
 
-# New syntax (supports multiple agents)
+# New syntax (can create MULTIPLE agents)
 --agent "NRInfra:1.70.0:version-1,version-2"
+# Result: 1 Infrastructure agent with 2 configuration versions
+
+# New syntax (multiple agents - NOT possible with legacy syntax)
+--agent "NRInfra:1.70.0:version-1,version-2" \
+--agent "NRDOT:2.0.0:version-3"
+# Result: 2 agents (Infrastructure + .NET)
 ```
 
-**Note:** The `--agent` flag and legacy flags are mutually exclusive. Choose one syntax or the other, not both.
+**Important Notes:**
+- The `--agent` flag and legacy flags are mutually exclusive - choose one syntax or the other, not both
+- **Legacy syntax limitation**: Can only create ONE agent type per deployment. To deploy multiple agent types (e.g., Infrastructure + .NET), use the new `--agent` syntax
+- `--configuration-version-ids` in legacy syntax: Comma-separated IDs all belong to the **same single agent**, not multiple agents
 
 ---
 
@@ -1350,11 +1413,17 @@ Some commands enforce mutual exclusivity between certain flags.
 - File path is recommended for production
 - Inline content is for testing/development only
 
-**Deployment agent specification:**
-- `--agent` (new syntax) OR `--agent-type` + `--agent-version` + `--configuration-version-ids` (legacy syntax)
-- Must use one syntax or the other, not both
-- New syntax supports multiple agents, legacy syntax supports only one
-- Both syntaxes are functionally equivalent for single-agent deployments
+**Deployment agent specification (create/update):**
+- `--agent` (new syntax) OR all three legacy flags: `--agent-type` + `--agent-version` + `--configuration-version-ids`
+- **Validation logic:**
+  - Using `--agent` with ANY legacy flag (even just one) will error
+  - Legacy syntax requires ALL three flags - partial specification will error
+  - Example: `--agent-type "NRInfra" --agent-version "1.70.0"` without `--configuration-version-ids` → Error
+- **Key difference:**
+  - **New syntax (`--agent`)**: Can specify multiple times to create **MULTIPLE agents** (e.g., Infrastructure + .NET in same deployment)
+  - **Legacy syntax**: Creates **EXACTLY ONE agent** (but can have multiple configuration version IDs for that one agent)
+- `--configuration-version-ids` supports comma-separated values (`"v1,v2,v3"`) for multiple configs on the **same** agent
+- Both syntaxes are functionally equivalent when deploying a **single agent type**
 
 ---
 
@@ -1368,7 +1437,9 @@ Some commands enforce mutual exclusivity between certain flags.
 | **"Account not found"** | Check `NEW_RELIC_ACCOUNT_ID` is correct. Find it in New Relic UI or URL. |
 | **"required flag not set"** | Ensure flag syntax is correct: `--flag-name value` or `--flag-name=value` (not `flag-name=value`) |
 | **"invalid value for flag"** | Check validation rules above. Values may need to match allowed values (case-insensitive) |
-| **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--fleet-id` OR `--fleet-ids`, not both) |
+| **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--fleet-id` OR `--fleet-ids`, not both). For deployments, use either `--agent` or all three legacy flags, not a mix. |
+| **"agent version '*' not supported for HOST fleets"** | Wildcard version (`"*"`) is only allowed for KUBERNETESCLUSTER fleets. Use an explicit version (e.g., `"1.70.0"`) for HOST fleets. |
+| **"--configuration-version-ids is required"** | When using legacy deployment syntax, you must provide all three flags: `--agent-type`, `--agent-version`, AND `--configuration-version-ids`. |
 | **"no version details found"** | Configuration ID is invalid or has no versions. Verify ID is correct using `search` command |
 | **File not found error** | When using `--configuration-file-path`, ensure the file path is correct and file exists |
 | **"organization ID required"** | Provide `--organization-id` explicitly if auto-fetch fails |
