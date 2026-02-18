@@ -21,11 +21,31 @@ Fleet Control enables centralized management of New Relic agents across your inf
   - [Organization ID](#organization-id)
 - [📋 Command Reference](#-command-reference)
   - [Fleet Management Commands](#fleet-management-commands)
+    - [`fleetcontrol fleet create`](#fleetcontrol-fleet-create---create-a-new-fleet)
+    - [`fleetcontrol fleet get`](#fleetcontrol-fleet-get---get-fleet-by-id)
+    - [`fleetcontrol fleet search`](#fleetcontrol-fleet-search---search-for-fleets)
+    - [`fleetcontrol fleet update`](#fleetcontrol-fleet-update---update-an-existing-fleet)
+    - [`fleetcontrol fleet delete`](#fleetcontrol-fleet-delete---delete-one-or-more-fleets)
   - [Fleet Member Management Commands](#fleet-member-management-commands)
+    - [`fleetcontrol fleet members add`](#fleetcontrol-fleet-members-add---add-members-to-fleet)
+    - [`fleetcontrol fleet members remove`](#fleetcontrol-fleet-members-remove---remove-members-from-fleet)
+    - [`fleetcontrol fleet members list`](#fleetcontrol-fleet-members-list---list-fleet-members)
   - [Configuration Management Commands](#configuration-management-commands)
+    - [`fleetcontrol configuration create`](#fleetcontrol-configuration-create---create-a-new-configuration)
+    - [`fleetcontrol configuration get`](#fleetcontrol-configuration-get---get-configuration-content)
+    - [`fleetcontrol configuration delete`](#fleetcontrol-configuration-delete---delete-a-configuration)
   - [Configuration Version Commands](#configuration-version-commands)
+    - [`fleetcontrol configuration versions list`](#fleetcontrol-configuration-versions-list---list-all-configuration-versions)
+    - [`fleetcontrol configuration versions add`](#fleetcontrol-configuration-versions-add---add-a-new-version-to-configuration)
+    - [`fleetcontrol configuration versions delete`](#fleetcontrol-configuration-versions-delete---delete-a-configuration-version)
   - [Deployment Management Commands](#deployment-management-commands)
+    - [`fleetcontrol deployment create`](#fleetcontrol-deployment-create---create-a-deployment)
+    - [`fleetcontrol deployment update`](#fleetcontrol-deployment-update---update-a-deployment)
+    - [`fleetcontrol deployment deploy`](#fleetcontrol-deployment-deploy---trigger-deployment)
+    - [`fleetcontrol deployment delete`](#fleetcontrol-deployment-delete---delete-a-deployment)
   - [Entity Query Commands](#entity-query-commands)
+    - [`fleetcontrol entities get-managed`](#fleetcontrol-entities-get-managed---list-managed-entities)
+    - [`fleetcontrol entities get-unassigned`](#fleetcontrol-entities-get-unassigned---list-unassigned-entities)
 - [📤 Understanding Response Formats](#-understanding-response-formats)
   - [Success Response](#success-response)
   - [Failure Response](#failure-response)
@@ -54,9 +74,7 @@ Fleet Control enables centralized management of New Relic agents across your inf
 
 ```
 internal/fleetcontrol/
-├── README.md                                      # This file - Command reference
-├── CONTRIBUTING.md                                # Technical guide for developers
-├── TEST_VALIDATION.md                            # Validation testing guide
+├── README.md                                     # This file - Command reference
 ├── command.go                                    # Main entry point with command hierarchy
 ├── command_framework.go                          # Core framework
 ├── command_flags_generated.go                    # Generated typed flag accessors
@@ -157,16 +175,6 @@ export NEW_RELIC_REGION="US"  # or "EU" for European accounts
    - Look in the URL after `/accounts/` (e.g., `https://one.newrelic.com/accounts/1234567/...`)
    - Or find it in Account settings
 
-### Building the CLI
-
-```bash
-# From the repository root
-go build -o ./bin/darwin/newrelic ./cmd/newrelic
-
-# Verify the build
-./bin/darwin/newrelic fleetcontrol --help
-```
-
 ### Verifying Setup
 
 Test your configuration with a simple command:
@@ -188,14 +196,14 @@ Most commands accept an optional `--organization-id` flag. If not provided, the 
 
 ### Fleet Management Commands
 
-#### create - Create a New Fleet
+#### `fleetcontrol fleet create` - Create a New Fleet
 
 Create a fleet to group and manage entities of the same type.
 
 **Required Flags:**
 - `--name` - Fleet name
 - `--managed-entity-type` - Type of entities this fleet will manage
-  - Allowed values: `HOST`, `KUBERNETESCLUSTER`, `APM` (case-insensitive)
+  - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
 
 **Optional Flags:**
 - `--description` - Fleet description
@@ -239,7 +247,7 @@ newrelic fleetcontrol fleet create \
 
 ---
 
-#### get - Get Fleet by ID
+#### `fleetcontrol fleet get` - Get Fleet by ID
 
 Retrieve details of a specific fleet by its ID.
 
@@ -276,7 +284,7 @@ newrelic fleetcontrol fleet get \
 
 ---
 
-#### search - Search for Fleets
+#### `fleetcontrol fleet search` - Search for Fleets
 
 Search for fleets using name filters or retrieve all fleets.
 
@@ -323,7 +331,7 @@ newrelic fleetcontrol fleet search --format text
 
 ---
 
-#### update - Update an Existing Fleet
+#### `fleetcontrol fleet update` - Update an Existing Fleet
 
 Update fleet properties such as name, description, or tags.
 
@@ -375,7 +383,7 @@ newrelic fleetcontrol fleet update \
 
 ---
 
-#### delete - Delete One or More Fleets
+#### `fleetcontrol fleet delete` - Delete One or More Fleets
 
 Delete a single fleet or multiple fleets in bulk.
 
@@ -431,7 +439,7 @@ newrelic fleetcontrol fleet delete --fleet-ids "fleet-1,fleet-2,fleet-3"
 
 ### Fleet Member Management Commands
 
-#### members add - Add Members to Fleet
+#### `fleetcontrol fleet members add` - Add Members to Fleet
 
 Add entities to a fleet ring for controlled deployment rollouts.
 
@@ -466,7 +474,7 @@ newrelic fleetcontrol fleet members add \
 
 ---
 
-#### members remove - Remove Members from Fleet
+#### `fleetcontrol fleet members remove` - Remove Members from Fleet
 
 Remove entities from a fleet ring.
 
@@ -501,7 +509,7 @@ newrelic fleetcontrol fleet members remove \
 
 ---
 
-#### members list - List Fleet Members
+#### `fleetcontrol fleet members list` - List Fleet Members
 
 List all entities in a fleet, optionally filtered by ring.
 
@@ -533,7 +541,7 @@ newrelic fleetcontrol fleet members list \
 
 ### Configuration Management Commands
 
-#### create - Create a New Configuration
+#### `fleetcontrol configuration create` - Create a New Configuration
 
 Create a versioned configuration for fleet agents.
 
@@ -542,7 +550,7 @@ Create a versioned configuration for fleet agents.
 - `--agent-type` - Type of agent this configuration targets
   - Allowed values: `NRInfra`, `NRDOT`, `FluentBit`, `NRPrometheusAgent` (case-insensitive)
 - `--managed-entity-type` - Type of entities this configuration applies to
-  - Allowed values: `HOST`, `KUBERNETESCLUSTER`, `APM` (case-insensitive)
+  - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
 - **Exactly one of:**
   - `--configuration-file-path` - Path to configuration file (JSON/YAML) - **recommended for production**
   - `--configuration-content` - Inline configuration content (JSON/YAML) - **for testing/development only**
@@ -593,7 +601,7 @@ newrelic fleetcontrol configuration create \
 
 ---
 
-#### get - Get Configuration Content
+#### `fleetcontrol configuration get` - Get Configuration Content
 
 Retrieve the configuration content for a specific configuration or version.
 
@@ -653,7 +661,7 @@ newrelic fleetcontrol configuration get \
 
 ---
 
-#### delete - Delete a Configuration
+#### `fleetcontrol configuration delete` - Delete a Configuration
 
 Delete an entire configuration and all its versions.
 
@@ -686,7 +694,7 @@ newrelic fleetcontrol configuration delete \
 
 ### Configuration Version Commands
 
-#### versions list - List All Configuration Versions
+#### `fleetcontrol configuration versions list` - List All Configuration Versions
 
 Retrieve version history for a configuration.
 
@@ -752,7 +760,7 @@ newrelic fleetcontrol configuration versions list \
 
 ---
 
-#### versions add - Add a New Version to Configuration
+#### `fleetcontrol configuration versions add` - Add a New Version to Configuration
 
 Add a new version to an existing configuration.
 
@@ -803,7 +811,7 @@ newrelic fleetcontrol configuration versions add \
 
 ---
 
-#### versions delete - Delete a Configuration Version
+#### `fleetcontrol configuration versions delete` - Delete a Configuration Version
 
 Delete a specific version of a configuration.
 
@@ -836,7 +844,7 @@ newrelic fleetcontrol configuration versions delete \
 
 ### Deployment Management Commands
 
-#### create - Create a Deployment
+#### `fleetcontrol deployment create` - Create a Deployment
 
 Create a deployment to roll out configurations to fleet members. Supports single or multiple agents.
 
@@ -940,7 +948,7 @@ newrelic fleetcontrol deployment create \
 
 ---
 
-#### update - Update a Deployment
+#### `fleetcontrol deployment update` - Update a Deployment
 
 Update an existing deployment's properties, including agent configurations.
 
@@ -1011,7 +1019,7 @@ newrelic fleetcontrol deployment update \
 
 ---
 
-#### deploy - Trigger Deployment
+#### `fleetcontrol deployment deploy` - Trigger Deployment
 
 Trigger deployment to roll out configurations across fleet rings.
 
@@ -1035,7 +1043,7 @@ newrelic fleetcontrol deployment deploy \
 
 ---
 
-#### delete - Delete a Deployment
+#### `fleetcontrol deployment delete` - Delete a Deployment
 
 Delete a fleet deployment. This operation cannot be undone and will remove the deployment. The deployment must not be actively in progress.
 
@@ -1065,7 +1073,7 @@ newrelic fleetcontrol deployment delete \
 
 These commands help you identify which entities are managed by fleets and which are available for fleet management.
 
-#### get-managed - List Managed Entities
+#### `fleetcontrol entities get-managed` - List Managed Entities
 
 Retrieve all entities that are currently managed by any fleet in the account.
 
@@ -1096,7 +1104,7 @@ newrelic fleetcontrol entities get-managed --include-tags
 
 ---
 
-#### get-unassigned - List Unassigned Entities
+#### `fleetcontrol entities get-unassigned` - List Unassigned Entities
 
 Retrieve all entities that are NOT currently managed by any fleet but are available for fleet management.
 
@@ -1325,7 +1333,6 @@ Used in fleet and configuration commands. Values are case-insensitive.
 **Allowed values:**
 - `HOST` - Physical or virtual hosts
 - `KUBERNETESCLUSTER` - Kubernetes clusters
-- `APM` - APM applications
 
 **Example:**
 ```bash
@@ -1541,7 +1548,7 @@ When you see "invalid value for flag", check:
 ```json
 {
   "status": "failed",
-  "error": "invalid value 'KUBERNETES' for flag --managed-entity-type: must be one of [HOST, KUBERNETESCLUSTER, APM]"
+  "error": "invalid value 'KUBERNETES' for flag --managed-entity-type: must be one of [HOST, KUBERNETESCLUSTER]"
 }
 ```
 
@@ -1563,53 +1570,9 @@ newrelic fleetcontrol fleet create --name "Test"
 
 ## 📚 Additional Resources
 
-### For Developers
-
-If you're looking to contribute or understand the technical architecture:
-
-- See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for technical details on:
-  - YAML-driven framework architecture
-  - Adding new commands and flags
-  - Code organization principles
-  - Testing and validation
-
-- See **[TEST_VALIDATION.md](./TEST_VALIDATION.md)** for:
-  - Testing YAML validation
-  - Understanding validation flow
-  - Common development issues
-
 ### New Relic Documentation
 
 - [Fleet Control Documentation](https://docs.newrelic.com/docs/infrastructure/fleet-management/)
-- [New Relic API Keys](https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/)
 - [New Relic CLI Overview](https://github.com/newrelic/newrelic-cli)
 
 ---
-
-## 📝 Recent Updates
-
-**February 2026:**
-- **MAJOR:** Restructured command hierarchy by resource type for better UX
-  - Fleet commands: `newrelic fleetcontrol fleet <command>`
-  - Configuration commands: `newrelic fleetcontrol configuration <command>`
-  - Deployment commands: `newrelic fleetcontrol deployment <command>`
-  - Entity queries: `newrelic fleetcontrol entities <command>`
-- **MAJOR:** Unified ID parameter names across all commands
-  - `--fleet-id` / `--fleet-ids` for fleet identifiers
-  - `--configuration-id` for configuration identifiers
-  - `--deployment-id` for deployment identifiers
-  - `--version-id` for version identifiers
-  - `--name` (not `--entity-name`) for configuration names
-- Added entity query commands: `get-managed` and `get-unassigned`
-- Nested member commands under `fleet members`
-- Nested version commands under `configuration versions`
-
-**January 2026:**
-- Split hybrid file flags into mutually exclusive `--configuration-file-path` and `--configuration-content`
-- Added consistent status/error response wrappers for all commands
-- Added empty results validation for versions list command
-- Fixed Go Client delete operations to handle empty responses
-- Improved documentation structure for first-time users
-- Added comprehensive prerequisites and setup guide
-
-**Last Updated**: February 12, 2026
