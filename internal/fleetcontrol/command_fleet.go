@@ -71,6 +71,10 @@ func init() {
 }
 
 // initFleetCommands initializes fleet management and fleet members commands
+// suppressing the linter here, since breaking this function down to address cyclomatic complexity concerns
+// could affect the code-perception of the hierarchical structure of the fleet commands
+//
+//nolint:gocyclo
 func initFleetCommands(config *CommandConfig) {
 	// Map of filename patterns to handlers for fleet commands
 	handlers := map[string]CommandHandler{
@@ -140,11 +144,11 @@ func initFleetCommands(config *CommandConfig) {
 // initConfigurationCommands initializes configuration and configuration versions commands
 func initConfigurationCommands(config *CommandConfig) {
 	handlers := map[string]CommandHandler{
-		"configuration_create":        handleFleetCreateConfiguration,
-		"configuration_get":           handleFleetGetConfiguration,
-		"configuration_delete":        handleFleetDeleteConfiguration,
-		"configuration_versions_list": handleFleetGetConfigurationVersions,
-		"configuration_versions_add":  handleFleetAddVersion,
+		"configuration_create":          handleFleetCreateConfiguration,
+		"configuration_get":             handleFleetGetConfiguration,
+		"configuration_delete":          handleFleetDeleteConfiguration,
+		"configuration_versions_list":   handleFleetGetConfigurationVersions,
+		"configuration_versions_add":    handleFleetAddVersion,
 		"configuration_versions_delete": handleFleetDeleteVersion,
 	}
 
@@ -266,6 +270,6 @@ func initEntitiesCommands(config *CommandConfig) {
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) &&
 		(s == substr ||
-		 len(s) > len(substr) &&
-		 (strings.Contains(strings.ToLower(s), strings.ToLower(substr))))
+			len(s) > len(substr) &&
+				(strings.Contains(strings.ToLower(s), strings.ToLower(substr))))
 }

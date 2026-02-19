@@ -70,7 +70,7 @@ func handleFleetGetUnassignedEntities(cmd *cobra.Command, args []string, flags *
 			ID:     string(entity.GetGUID()),
 			Name:   entity.GetName(),
 			Type:   entity.GetType(),
-			Domain: string(entity.GetDomain()),
+			Domain: entity.GetDomain(),
 		}
 
 		// Add tags only if --include-tags flag is true

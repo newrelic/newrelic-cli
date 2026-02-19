@@ -13,11 +13,11 @@ import (
 
 // EntityOutput is a simplified representation of an entity
 type EntityOutput struct {
-	ID     string                    `json:"id"`
-	Name   string                    `json:"name"`
-	Type   string                    `json:"type"`
-	Domain string                    `json:"domain"`
-	Tags   []entities.EntityTag      `json:"tags,omitempty"`
+	ID     string               `json:"id"`
+	Name   string               `json:"name"`
+	Type   string               `json:"type"`
+	Domain string               `json:"domain"`
+	Tags   []entities.EntityTag `json:"tags,omitempty"`
 }
 
 // handleFleetGetManagedEntities implements the 'get-managed' command to retrieve managed entities.
@@ -79,7 +79,7 @@ func handleFleetGetManagedEntities(cmd *cobra.Command, args []string, flags *Fla
 			ID:     string(entity.GetGUID()),
 			Name:   entity.GetName(),
 			Type:   entity.GetType(),
-			Domain: string(entity.GetDomain()),
+			Domain: entity.GetDomain(),
 		}
 
 		// Add tags only if --include-tags flag is true

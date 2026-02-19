@@ -39,11 +39,11 @@ type CommandDefinition struct {
 // FlagDefinition represents a single flag definition from YAML
 // Flags define the command-line arguments a command accepts
 type FlagDefinition struct {
-	Name        string           `yaml:"name"`        // Flag name (e.g., "name", "id")
-	Type        string           `yaml:"type"`        // Data type: string, int, bool, stringSlice, stringArray, file
-	Required    bool             `yaml:"required"`    // Whether this flag is required
-	Default     interface{}      `yaml:"default"`     // Default value if not provided
-	Description string           `yaml:"description"` // Help text for this flag
+	Name        string           `yaml:"name"`                 // Flag name (e.g., "name", "id")
+	Type        string           `yaml:"type"`                 // Data type: string, int, bool, stringSlice, stringArray, file
+	Required    bool             `yaml:"required"`             // Whether this flag is required
+	Default     interface{}      `yaml:"default"`              // Default value if not provided
+	Description string           `yaml:"description"`          // Help text for this flag
 	Validation  *ValidationRules `yaml:"validation,omitempty"` // Optional validation rules
 }
 
@@ -57,9 +57,9 @@ type ValidationRules struct {
 // FlagValues provides dynamic, validated access to flag values
 // This is passed to command handlers and provides type-safe flag access
 type FlagValues struct {
-	cmd        *cobra.Command              // The cobra command instance
-	flagDefs   map[string]*FlagDefinition  // Map of flag name to definition
-	cachedVals map[string]interface{}      // Cache of retrieved values
+	cmd        *cobra.Command             // The cobra command instance
+	flagDefs   map[string]*FlagDefinition // Map of flag name to definition
+	cachedVals map[string]interface{}     // Cache of retrieved values
 }
 
 // newFlagValues creates a new FlagValues instance for a command
@@ -183,9 +183,10 @@ func (fv *FlagValues) GetBool(name string) bool {
 //   - Error if file doesn't exist or reading fails
 //
 // Example:
-//   // User must provide a valid file path:
-//   // --configuration-file-path ./config.json  (reads file)
-//   // For inline content, use --configuration-content flag instead
+//
+//	// User must provide a valid file path:
+//	// --configuration-file-path ./config.json  (reads file)
+//	// For inline content, use --configuration-content flag instead
 func (fv *FlagValues) GetFile(name string) (string, error) {
 	if cached, ok := fv.cachedVals[name]; ok {
 		return cached.(string), nil

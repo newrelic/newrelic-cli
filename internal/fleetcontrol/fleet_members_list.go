@@ -12,11 +12,11 @@ import (
 // FleetMemberEntityWithoutTags is a filtered version of FleetControlFleetMemberEntityResult
 // that excludes the Tags field, used when --include-tags is false
 type FleetMemberEntityWithoutTags struct {
-	ID       string                                `json:"id"`
-	Metadata fleetcontrol.FleetControlMetadata     `json:"metadata"`
-	Name     string                                `json:"name"`
+	ID       string                                   `json:"id"`
+	Metadata fleetcontrol.FleetControlMetadata        `json:"metadata"`
+	Name     string                                   `json:"name"`
 	Scope    fleetcontrol.FleetControlScopedReference `json:"scope"`
-	Type     string                                `json:"type"`
+	Type     string                                   `json:"type"`
 }
 
 // FleetMembersResultWithoutTags is the result structure without tags
