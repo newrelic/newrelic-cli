@@ -18,6 +18,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/diagnose"
+	"github.com/newrelic/newrelic-cli/internal/install/backup"
 	"github.com/newrelic/newrelic-cli/internal/install/discovery"
 	"github.com/newrelic/newrelic-cli/internal/install/execution"
 	"github.com/newrelic/newrelic-cli/internal/install/recipes"
@@ -311,6 +312,12 @@ func (i *RecipeInstall) install(ctx context.Context) error {
 		return err
 	}
 
+	// Backup existing configurations before installation
+	if err := i.backupExistingConfigs(ctx, m); err != nil {
+		// Log but continue - backup failures shouldn't block installation
+		log.Warnf("Configuration backup failed: %s", err)
+	}
+
 	repo := recipes.NewRecipeRepository(func() ([]*types.OpenInstallationRecipe, error) {
 		fetchRecipes, err2 := i.recipeFetcher.FetchRecipes(ctx)
 		return fetchRecipes, err2
@@ -566,6 +573,38 @@ func (i *RecipeInstall) discover(ctx context.Context) (*types.DiscoveryManifest,
 	}
 
 	return m, nil
+}
+
+func (i *RecipeInstall) backupExistingConfigs(ctx context.Context, manifest *types.DiscoveryManifest) error {
+	backupOpts := backup.Options{
+		SkipBackup:     i.InstallerContext.SkipBackup,
+		BackupLocation: i.InstallerContext.BackupLocation,
+		MaxBackups:     5,
+	}
+
+	orchestrator, err := backup.NewOrchestrator(manifest, backupOpts, cli.Version())
+	if err != nil {
+		return err
+	}
+
+	i.progressIndicator.Start("Checking for existing New Relic configurations...")
+
+	result, err := orchestrator.PerformBackup(ctx, cli.Version())
+	if err != nil {
+		i.progressIndicator.Stop()
+		return err
+	}
+
+	if result != nil && result.Success {
+		i.progressIndicator.Success(fmt.Sprintf("Existing New Relic configuration detected. Backed up to: %s", result.BackupDir))
+		log.Infof("Backed up %d config files. Manifest: %s", result.FilesBackedUp, result.ManifestPath)
+	} else if result != nil && !result.Success {
+		i.progressIndicator.Fail("Configuration backup failed, continuing installation. Check logs for details.")
+	} else {
+		i.progressIndicator.Stop()
+	}
+
+	return nil
 }
 
 func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle, repo *recipes.RecipeRepository) {
