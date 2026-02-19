@@ -1,0 +1,34 @@
+name: list
+short: List managed entities in a fleet
+long: |
+  List all managed entities in a specific fleet, optionally filtered by ring.
+
+  This command retrieves all entities that are members of a fleet, showing their
+  details including entity ID, name, type, scope, and metadata. You can
+  optionally filter results to show only entities in a specific ring.
+
+  By default, tags are excluded from the output to keep it concise. Use --show-tags
+  to show tags for each entity.
+example: |
+  # List all members in a fleet
+  newrelic fleetcontrol fleet members list --fleet-id abc123
+
+  # List members in a specific ring
+  newrelic fleetcontrol fleet members list --fleet-id abc123 --ring "canary"
+
+  # Include tags in the output
+  newrelic fleetcontrol fleet members list --fleet-id abc123 --show-tags
+flags:
+  - name: fleet-id
+    type: string
+    required: true
+    description: the fleet ID to list members from
+  - name: ring
+    type: string
+    required: false
+    description: optional ring name to filter members by
+  - name: show-tags
+    type: bool
+    required: false
+    default: false
+    description: "include entity tags in the output (default: false)"

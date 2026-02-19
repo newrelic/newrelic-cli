@@ -22,6 +22,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/events"
+	"github.com/newrelic/newrelic-cli/internal/fleetcontrol"
 	"github.com/newrelic/newrelic-cli/internal/install"
 	"github.com/newrelic/newrelic-cli/internal/migrate"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
@@ -54,6 +55,7 @@ func init() {
 	Command.AddCommand(install.Command)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
+	Command.AddCommand(fleetcontrol.Command)
 	Command.AddCommand(nrql.Command)
 	Command.AddCommand(migrate.Command)
 	Command.AddCommand(profile.Command)
