@@ -52,8 +52,9 @@ func GetOrganizationID(providedOrgID string) string {
 //   - Error if any tag has invalid format
 //
 // Example:
-//   tags, err := ParseTags([]string{"env:prod,staging", "team:platform"})
-//   // Returns: [{Key: "env", Values: ["prod", "staging"]}, {Key: "team", Values: ["platform"]}]
+//
+//	tags, err := ParseTags([]string{"env:prod,staging", "team:platform"})
+//	// Returns: [{Key: "env", Values: ["prod", "staging"]}, {Key: "team", Values: ["platform"]}]
 func ParseTags(tagStrings []string) ([]fleetcontrol.FleetControlTagInput, error) {
 	if len(tagStrings) == 0 {
 		return nil, nil
@@ -109,8 +110,9 @@ func ParseTags(tagStrings []string) ([]fleetcontrol.FleetControlTagInput, error)
 //   - Error if format is invalid
 //
 // Example:
-//   agent, err := ParseAgentSpec("NRInfra:1.70.0:version1,version2")
-//   // Returns: {AgentType: "NRInfra", Version: "1.70.0", ConfigurationVersionList: [{ID: "version1"}, {ID: "version2"}]}
+//
+//	agent, err := ParseAgentSpec("NRInfra:1.70.0:version1,version2")
+//	// Returns: {AgentType: "NRInfra", Version: "1.70.0", ConfigurationVersionList: [{ID: "version1"}, {ID: "version2"}]}
 func ParseAgentSpec(agentSpec string) (fleetcontrol.FleetControlAgentInput, error) {
 	// Split on colon to separate AgentType:Version:ConfigVersionIDs
 	parts := strings.SplitN(agentSpec, ":", 3)
@@ -468,17 +470,17 @@ func PrintDeleteBulkSuccess(results []FleetDeleteResponseWrapper) error {
 // FleetEntityOutput is a filtered representation of a fleet entity containing only user-relevant fields.
 // This removes verbose metadata and internal structures that aren't useful for command output.
 type FleetEntityOutput struct {
-	ID                string                                   `json:"id"`
-	Name              string                                   `json:"name"`
-	Type              string                                   `json:"type,omitempty"`
-	ManagedEntityType string                                   `json:"managedEntityType,omitempty"`
+	ID                string                                    `json:"id"`
+	Name              string                                    `json:"name"`
+	Type              string                                    `json:"type,omitempty"`
+	ManagedEntityType string                                    `json:"managedEntityType,omitempty"`
 	OperatingSystem   *fleetcontrol.FleetControlOperatingSystem `json:"operatingSystem,omitempty"`
-	Scope             fleetcontrol.FleetControlScopedReference `json:"scope,omitempty"`
-	Tags              []fleetcontrol.FleetControlTag           `json:"tags,omitempty"`
-	Product           []string                                 `json:"product,omitempty"`
-	Description       string                                   `json:"description,omitempty"`
-	CreatedAt         int64                                    `json:"createdAt,omitempty"`
-	UpdatedAt         int64                                    `json:"updatedAt,omitempty"`
+	Scope             fleetcontrol.FleetControlScopedReference  `json:"scope,omitempty"`
+	Tags              []fleetcontrol.FleetControlTag            `json:"tags,omitempty"`
+	Product           []string                                  `json:"product,omitempty"`
+	Description       string                                    `json:"description,omitempty"`
+	CreatedAt         int64                                     `json:"createdAt,omitempty"`
+	UpdatedAt         int64                                     `json:"updatedAt,omitempty"`
 }
 
 // FilterFleetEntity creates a filtered output from a fleet entity, removing verbose fields.

@@ -52,8 +52,12 @@ func spinner(duration time.Duration, message string) {
 //   - args: Command arguments (not used)
 //   - flags: Validated flag values from YAML configuration
 //
-// Returns:
-//   - Error if deployment trigger fails, nil on success
+// # Returns error if deployment trigger fails, nil on success
+//
+// suppressing the linter here, since breaking this function down to address cyclomatic complexity concerns
+// could affect the code-perception of the hierarchical structure of the fleet commands
+//
+//nolint:gocyclo
 func handleFleetDeploy(cmd *cobra.Command, args []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.Deploy()
