@@ -34,7 +34,7 @@ flags:
     required: true
     description: the type of entities this configuration manages
     validation:
-      allowed_values: ["HOST", "KUBERNETESCLUSTER", "APM"]
+      allowed_values: ["HOST", "KUBERNETESCLUSTER"]
       case_insensitive: true
   - name: organization-id
     type: string
