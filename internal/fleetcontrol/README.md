@@ -128,7 +128,7 @@ export NEW_RELIC_REGION="US"  # or "EU" for European accounts
 
 1. **API Key**: Generate a User API Key from [New Relic One](https://one.newrelic.com) → Click your name (bottom-left) → "API Keys" → Create "User" key (not "Browser" or "License")
 
-2. **Account ID**: Find it in the [New Relic One](https://one.newrelic.com) URL after `/accounts/` (e.g., `https://one.newrelic.com/accounts/1234567/...`) or in Account settings
+2. **Account ID**: Find it in the [New Relic One](https://one.newrelic.com) URL after `/accounts/` (e.g., `https://one.newrelic.com/accounts/1234567/...`) or in Account settings.
 
 ### Verifying Setup
 
@@ -516,7 +516,7 @@ Create a versioned configuration for fleet agents.
 **Validation:**
 - Mutually exclusive: Must provide either `--configuration-file-path` OR `--configuration-content`, not both
 - File path is the recommended approach for production use
-- Inline content should only be used for testing, development, or emergency purposes
+- Inline content should only be used for testing, development, or emergency purposes.
 
 **Examples:**
 
@@ -564,7 +564,7 @@ Retrieve the configuration content for a specific configuration or version.
 - `--configuration-id` - Configuration entity ID or version entity ID
 
 **Optional Flags:**
-- `--version` - Specific version number to retrieve (defaults to latest if not provided)
+- `--version` - Specific version number to retrieve (defaults to latest if not provided).
 - `--mode` - Entity mode:
   - `ConfigEntity` (default) - Use when `--configuration-id` is a configuration entity ID
   - `ConfigVersionEntity` - Use when `--configuration-id` is a version entity ID
@@ -660,7 +660,7 @@ Retrieve version history for a configuration.
 - `--organization-id` - Organization ID (auto-fetched if not provided)
 
 **Validation:**
-- Returns error if no versions are found (invalid ID or configuration with no versions)
+- Returns error if no versions are found (invalid ID or configuration with no versions).
 
 **Examples:**
 
@@ -731,7 +731,7 @@ Add a new version to an existing configuration.
 **Validation:**
 - Mutually exclusive: Must provide either `--configuration-file-path` OR `--configuration-content`, not both
 - File path is the recommended approach for production use
-- Inline content should only be used for testing, development, or emergency purposes
+- Inline content should only be used for testing, development, or emergency purposes.
 
 **Examples:**
 
@@ -822,7 +822,7 @@ Create a deployment to roll out configurations to fleet members. Supports single
 - Cannot mix syntaxes - using `--agent` with any legacy flag will error
 - Agent version `"*"` (wildcard) is **only allowed for KUBERNETESCLUSTER fleets**
   - HOST fleets must specify an explicit version (e.g., `"1.70.0"`)
-  - The CLI validates fleet type and rejects wildcards for HOST fleets with a clear error message
+  - The CLI validates fleet type and rejects wildcards for HOST fleets with a clear error message.
 
 **Examples:**
 
@@ -924,7 +924,7 @@ Update an existing deployment's properties, including agent configurations. Note
 - Must use either `--agent` OR `--configuration-version-ids`, not both
 - Using `--agent` allows you to update agent types, versions, and configuration versions
 - Using `--configuration-version-ids` (legacy) only updates configuration versions
-- Agent version `"*"` (wildcard) validation is applied during update but may be limited by API constraints
+- Agent version `"*"` (wildcard) validation is applied during update but may be limited by API constraints.
 
 **Examples:**
 
