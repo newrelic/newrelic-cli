@@ -585,10 +585,7 @@ func FilterFleetEntityFromEntityManagement(entity fleetcontrol.EntityManagementF
 	if showTags && len(entity.Tags) > 0 {
 		tags := make([]fleetcontrol.FleetControlTag, len(entity.Tags))
 		for i, tag := range entity.Tags {
-			tags[i] = fleetcontrol.FleetControlTag{
-				Key:    tag.Key,
-				Values: tag.Values,
-			}
+			tags[i] = fleetcontrol.FleetControlTag(tag)
 		}
 		output.Tags = tags
 	}
