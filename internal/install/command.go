@@ -365,7 +365,10 @@ func handleRestoreBackup(backupID string) error {
 		fmt.Print("Continue? (y/N): ")
 
 		var response string
-		fmt.Scanln(&response)
+		if _, err := fmt.Scanln(&response); err != nil {
+			fmt.Println("Restore canceled.")
+			return nil
+		}
 		if response != "y" && response != "Y" {
 			fmt.Println("Restore canceled.")
 			return nil
