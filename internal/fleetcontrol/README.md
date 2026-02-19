@@ -11,12 +11,10 @@ Fleet Control enables centralized management of New Relic agents across your inf
 
 ## 📑 Table of Contents
 
-- [📁 Directory Structure](#-directory-structure)
 - [📋 Command Hierarchy](#-command-hierarchy)
 - [🔧 Prerequisites](#-prerequisites)
   - [Required Environment Variables](#required-environment-variables)
   - [Getting Your Credentials](#getting-your-credentials)
-  - [Building the CLI](#building-the-cli)
   - [Verifying Setup](#verifying-setup)
   - [Organization ID](#organization-id)
 - [📋 Command Reference](#-command-reference)
@@ -59,52 +57,16 @@ Fleet Control enables centralized management of New Relic agents across your inf
   - [Configuration Modes](#configuration-modes)
   - [Tags Format](#tags-format)
   - [Agent Specification Format](#agent-specification-format)
-  - [Mutually Exclusive Flags](#mutually-exclusive-flags)
 - [🐛 Troubleshooting](#-troubleshooting)
   - [Common Issues](#common-issues)
   - [Flag Syntax Examples](#flag-syntax-examples)
   - [Validation Errors](#validation-errors)
   - [Debug Mode](#debug-mode)
+- [📁 Directory Structure](#-directory-structure)
 - [📚 Additional Resources](#-additional-resources)
-  - [For Developers](#for-developers)
   - [New Relic Documentation](#new-relic-documentation)
-- [📝 Recent Updates](#-recent-updates)
 
-## 📁 Directory Structure
 
-```
-internal/fleetcontrol/
-├── README.md                                     # This file - Command reference
-├── command.go                                    # Main entry point with command hierarchy
-├── command_framework.go                          # Core framework
-├── command_flags_generated.go                    # Generated typed flag accessors
-├── command_fleet.go                              # Command registration
-├── helpers.go                                    # Shared utility functions
-│
-├── configs/                                      # YAML configuration files
-│   ├── fleet_management_create.yaml
-│   ├── fleet_management_update.yaml
-│   ├── fleet_management_delete.yaml
-│   ├── fleet_management_get.yaml
-│   ├── fleet_management_search.yaml
-│   ├── fleet_members_add.yaml
-│   ├── fleet_members_remove.yaml
-│   ├── fleet_members_list.yaml
-│   ├── fleet_configuration_create.yaml
-│   ├── fleet_configuration_get.yaml
-│   ├── fleet_configuration_delete.yaml
-│   ├── fleet_configuration_version_list.yaml
-│   ├── fleet_configuration_version_add.yaml
-│   ├── fleet_configuration_version_delete.yaml
-│   ├── fleet_deployment_create.yaml
-│   ├── fleet_deployment_update.yaml
-│   ├── fleet_deployment_deploy.yaml
-│   ├── fleet_deployment_delete.yaml
-│   ├── fleet_entities_get_managed.yaml
-│   └── fleet_entities_get_unassigned.yaml
-│
-└── Handler implementation files (one per command)
-```
 
 ## 📋 Command Hierarchy
 
@@ -164,16 +126,9 @@ export NEW_RELIC_REGION="US"  # or "EU" for European accounts
 
 ### Getting Your Credentials
 
-1. **API Key**: Generate a User API Key from New Relic:
-   - Go to [New Relic One](https://one.newrelic.com)
-   - Click on your name in the bottom-left corner
-   - Select "API Keys"
-   - Create a "User" key (not "Browser" or "License")
+1. **API Key**: Generate a User API Key from [New Relic One](https://one.newrelic.com) → Click your name (bottom-left) → "API Keys" → Create "User" key (not "Browser" or "License")
 
-2. **Account ID**: Find your account ID:
-   - Go to [New Relic One](https://one.newrelic.com)
-   - Look in the URL after `/accounts/` (e.g., `https://one.newrelic.com/accounts/1234567/...`)
-   - Or find it in Account settings
+2. **Account ID**: Find it in the [New Relic One](https://one.newrelic.com) URL after `/accounts/` (e.g., `https://one.newrelic.com/accounts/1234567/...`) or in Account settings
 
 ### Verifying Setup
 
@@ -184,7 +139,7 @@ Test your configuration with a simple command:
 ./bin/darwin/newrelic fleetcontrol fleet search
 ```
 
-If you see authentication errors, verify your `NEW_RELIC_API_KEY` is set correctly.
+If you see authentication errors, verify your `NEW_RELIC_API_KEY` is set correctly. If the issue persists, ensure the user associated with the API key has the necessary capabilities to perform Fleet Control operations.
 
 ### Organization ID
 
@@ -454,7 +409,7 @@ Add entities to a fleet ring for controlled deployment rollouts.
 # Add members to fleet ring
 newrelic fleetcontrol fleet members add \
   --fleet-id "fleet-abc-123" \
-  --ring "production" \
+  --ring "canary" \
   --entity-ids "entity-1,entity-2,entity-3"
 ```
 
@@ -465,7 +420,7 @@ newrelic fleetcontrol fleet members add \
   "error": "",
   "result": {
     "fleetId": "fleet-abc-123",
-    "ring": "production",
+    "ring": "canary",
     "addedEntityIds": ["entity-1", "entity-2", "entity-3"],
     ...
   }
@@ -489,7 +444,7 @@ Remove entities from a fleet ring.
 # Remove members from fleet ring
 newrelic fleetcontrol fleet members remove \
   --fleet-id "fleet-abc-123" \
-  --ring "production" \
+  --ring "default" \
   --entity-ids "entity-1,entity-2"
 ```
 
@@ -500,7 +455,7 @@ newrelic fleetcontrol fleet members remove \
   "error": "",
   "result": {
     "fleetId": "fleet-abc-123",
-    "ring": "production",
+    "ring": "default",
     "removedEntityIds": ["entity-1", "entity-2"],
     ...
   }
@@ -518,7 +473,7 @@ List all entities in a fleet, optionally filtered by ring.
 
 **Optional Flags:**
 - `--ring` - Filter by specific ring name
-- `--include-tags` - Include entity tags in output (default: false)
+- `--show-tags` - Include entity tags in output (default: false)
 
 **Examples:**
 
@@ -534,7 +489,7 @@ newrelic fleetcontrol fleet members list \
 # Include tags in the output
 newrelic fleetcontrol fleet members list \
   --fleet-id "fleet-abc-123" \
-  --include-tags
+  --show-tags
 ```
 
 ---
@@ -950,7 +905,7 @@ newrelic fleetcontrol deployment create \
 
 #### `fleetcontrol deployment update` - Update a Deployment
 
-Update an existing deployment's properties, including agent configurations.
+Update an existing deployment's properties, including agent configurations. Note that a deployment can only be updated before it is triggered; a deployment that has already been completed cannot be updated.
 
 **Required Flags:**
 - `--deployment-id` - Deployment ID to update
@@ -1440,10 +1395,7 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 # ✅ Correct: Wildcard for KUBERNETESCLUSTER fleet
 --agent "NRInfra:*:version-1"  # on a KUBERNETESCLUSTER fleet
 ```
-
-**Backward Compatibility:**
-
-The legacy syntax using separate flags is still supported but **limited to single-agent deployments**:
+The syntax using separate flags can be preferred in the case of single-agent deployments:
 
 ```bash
 # Legacy syntax (creates ONE agent with multiple configs)
@@ -1466,40 +1418,6 @@ The legacy syntax using separate flags is still supported but **limited to singl
 - The `--agent` flag and legacy flags are mutually exclusive - choose one syntax or the other, not both
 - **Legacy syntax limitation**: Can only create ONE agent type per deployment. To deploy multiple agent types (e.g., Infrastructure + .NET), use the new `--agent` syntax
 - `--configuration-version-ids` in legacy syntax: Comma-separated IDs all belong to the **same single agent**, not multiple agents
-
----
-
-### Mutually Exclusive Flags
-
-Some commands enforce mutual exclusivity between certain flags.
-
-**Delete fleet:**
-- `--fleet-id` (single delete) OR `--fleet-ids` (bulk delete)
-- Cannot use both
-- Bulk delete requires 2+ IDs
-
-**Search fleet:**
-- `--name-equals` OR `--name-contains`
-- Both optional, but mutually exclusive
-- If neither provided, returns all fleets
-
-**Configuration content:**
-- `--configuration-file-path` OR `--configuration-content`
-- Must provide exactly one, not both or neither
-- File path is recommended for production
-- Inline content is for testing/development only
-
-**Deployment agent specification (create/update):**
-- `--agent` (new syntax) OR all three legacy flags: `--agent-type` + `--agent-version` + `--configuration-version-ids`
-- **Validation logic:**
-  - Using `--agent` with ANY legacy flag (even just one) will error
-  - Legacy syntax requires ALL three flags - partial specification will error
-  - Example: `--agent-type "NRInfra" --agent-version "1.70.0"` without `--configuration-version-ids` → Error
-- **Key difference:**
-  - **New syntax (`--agent`)**: Can specify multiple times to create **MULTIPLE agents** (e.g., Infrastructure + .NET in same deployment)
-  - **Legacy syntax**: Creates **EXACTLY ONE agent** (but can have multiple configuration version IDs for that one agent)
-- `--configuration-version-ids` supports comma-separated values (`"v1,v2,v3"`) for multiple configs on the **same** agent
-- Both syntaxes are functionally equivalent when deploying a **single agent type**
 
 ---
 
@@ -1565,7 +1483,42 @@ export NEW_RELIC_CLI_LOG_LEVEL=debug
 # Run command
 newrelic fleetcontrol fleet create --name "Test"
 ```
+---
+## 📁 Directory Structure
 
+```
+internal/fleetcontrol/
+├── README.md                                     # This file - Command reference
+├── command.go                                    # Main entry point with command hierarchy
+├── command_framework.go                          # Core framework
+├── command_flags_generated.go                    # Generated typed flag accessors
+├── command_fleet.go                              # Command registration
+├── helpers.go                                    # Shared utility functions
+│
+├── configs/                                      # YAML configuration files
+│   ├── fleet_management_create.yaml
+│   ├── fleet_management_update.yaml
+│   ├── fleet_management_delete.yaml
+│   ├── fleet_management_get.yaml
+│   ├── fleet_management_search.yaml
+│   ├── fleet_members_add.yaml
+│   ├── fleet_members_remove.yaml
+│   ├── fleet_members_list.yaml
+│   ├── fleet_configuration_create.yaml
+│   ├── fleet_configuration_get.yaml
+│   ├── fleet_configuration_delete.yaml
+│   ├── fleet_configuration_version_list.yaml
+│   ├── fleet_configuration_version_add.yaml
+│   ├── fleet_configuration_version_delete.yaml
+│   ├── fleet_deployment_create.yaml
+│   ├── fleet_deployment_update.yaml
+│   ├── fleet_deployment_deploy.yaml
+│   ├── fleet_deployment_delete.yaml
+│   ├── fleet_entities_get_managed.yaml
+│   └── fleet_entities_get_unassigned.yaml
+│
+└── Handler implementation files (one per command)
+```
 ---
 
 ## 📚 Additional Resources
