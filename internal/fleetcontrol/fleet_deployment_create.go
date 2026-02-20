@@ -33,7 +33,7 @@ import (
 //
 // Returns:
 //   - Error if deployment creation fails, nil on success
-func handleFleetCreateDeployment(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetCreateDeployment(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.CreateDeployment()
 

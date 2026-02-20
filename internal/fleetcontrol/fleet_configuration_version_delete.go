@@ -25,7 +25,7 @@ import (
 //
 // Returns:
 //   - Error if version deletion fails, nil on success
-func handleFleetDeleteVersion(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetDeleteVersion(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.DeleteVersion()
 
