@@ -29,7 +29,7 @@ import (
 //
 // Returns:
 //   - Error if configuration retrieval fails, nil on success
-func handleFleetGetConfiguration(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetGetConfiguration(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.GetConfiguration()
 
