@@ -1,0 +1,46 @@
+name: create
+short: Create a new fleet deployment
+long: |
+  Create a new fleet deployment to manage configuration rollouts across rings.
+
+  A deployment tracks the rollout of configuration versions across the rings
+  in a fleet, allowing controlled and monitored deployment phases.
+example: |
+  # Create a deployment with single agent (new syntax)
+  newrelic fleetcontrol deployment create --fleet-id "fleet_abc123" --name "v1.2.3 Deployment" --agent "NRInfra:1.70.0:version_1,version_2"
+
+  # Create a deployment with multiple agents (new syntax)
+  newrelic fleetcontrol deployment create --fleet-id "fleet_abc123" --name "Multi-Agent Deployment" --agent "NRInfra:1.70.0:version_1,version_2" --agent "NRDOT:2.0.0:version_3"
+
+  # Create a deployment with description and tags (new syntax)
+  newrelic fleetcontrol deployment create --fleet-id "fleet_abc123" --name "Production Rollout" --agent "NRInfra:1.70.0:version_1" --description "Rolling out new config" --tags "env:prod,release:v1.2.3"
+
+  # Legacy: Create deployment with single agent (old syntax - still supported)
+  newrelic fleetcontrol deployment create --fleet-id "fleet_abc123" --name "Legacy Deployment" --agent-type "NRInfra" --agent-version "1.70.0" --configuration-version-ids "version_1,version_2"
+flags:
+  - name: fleet-id
+    type: string
+    required: true
+    description: the ID of the fleet for this deployment
+  - name: name
+    type: string
+    required: true
+    description: the name of the deployment
+  - name: agent
+    type: stringArray
+    description: "agent specification in format 'AgentType:Version:ConfigVersionID1,ConfigVersionID2' (can be specified multiple times for multiple agents). Mutually exclusive with --agent-type, --agent-version, and --configuration-version-ids"
+  - name: agent-type
+    type: string
+    description: "(legacy) the agent type for single agent deployment (e.g., NRInfra, NRDOT). Mutually exclusive with --agent"
+  - name: agent-version
+    type: string
+    description: "(legacy) the agent version for single agent deployment (e.g., 1.70.0, 2.0.0). Mutually exclusive with --agent"
+  - name: configuration-version-ids
+    type: stringSlice
+    description: "(legacy) the configuration version IDs for single agent deployment (can be specified multiple times). Mutually exclusive with --agent"
+  - name: description
+    type: string
+    description: a description of the deployment
+  - name: tags
+    type: stringSlice
+    description: tags in format key:value1,value2 (can be specified multiple times)

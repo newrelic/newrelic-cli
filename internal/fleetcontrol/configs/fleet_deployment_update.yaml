@@ -1,0 +1,42 @@
+name: update
+short: Update a fleet deployment
+long: |
+  Update an existing fleet deployment's details such as name, description, configuration versions, and tags.
+
+  This allows you to modify deployment metadata and update which configuration versions
+  are part of the deployment rollout.
+example: |
+  # Update deployment name
+  newrelic fleetcontrol deployment update --deployment-id "deployment_abc123" --name "Updated Deployment Name"
+
+  # Update deployment with new agents (new syntax)
+  newrelic fleetcontrol deployment update --deployment-id "deployment_abc123" --agent "NRInfra:1.71.0:version_1,version_2" --agent "NRDOT:2.1.0:version_3"
+
+  # Update deployment with single agent (new syntax)
+  newrelic fleetcontrol deployment update --deployment-id "deployment_abc123" --agent "NRInfra:1.70.0:version_1,version_2,version_3"
+
+  # Update deployment configuration versions (legacy syntax)
+  newrelic fleetcontrol deployment update --deployment-id "deployment_abc123" --configuration-version-ids "version_1,version_2,version_3"
+
+  # Update deployment description and tags
+  newrelic fleetcontrol deployment update --deployment-id "deployment_abc123" --description "Updated rollout plan" --tags "env:staging,release:v1.2.4"
+flags:
+  - name: deployment-id
+    type: string
+    required: true
+    description: the deployment ID to update
+  - name: name
+    type: string
+    description: the new name of the deployment
+  - name: description
+    type: string
+    description: a new description of the deployment
+  - name: agent
+    type: stringArray
+    description: "updated agent specifications in format 'AgentType:Version:ConfigVersionID1,ConfigVersionID2' (can be specified multiple times for multiple agents). Mutually exclusive with --configuration-version-ids"
+  - name: configuration-version-ids
+    type: stringSlice
+    description: "(legacy) updated configuration version IDs to deploy (can be specified multiple times). Mutually exclusive with --agent"
+  - name: tags
+    type: stringSlice
+    description: updated tags in format key:value1,value2 (can be specified multiple times)

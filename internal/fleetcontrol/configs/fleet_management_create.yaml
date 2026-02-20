@@ -1,0 +1,48 @@
+name: create
+short: Create a new fleet
+long: |
+  Create a new fleet entity to manage collections of hosts or Kubernetes clusters.
+
+  A fleet allows you to organize and manage entities in rings for controlled deployments.
+example: |
+  # Create a fleet for managing Linux hosts (organization ID fetched automatically)
+  newrelic fleetcontrol fleet create --name "Production Hosts" --managed-entity-type HOST --operating-system LINUX
+
+  # Create a fleet for managing Windows hosts
+  newrelic fleetcontrol fleet create --name "Windows Servers" --managed-entity-type HOST --operating-system WINDOWS --description "Production Windows Servers"
+
+  # Create a fleet with description and tags
+  newrelic fleetcontrol fleet create --name "K8s Clusters" --managed-entity-type KUBERNETESCLUSTER --description "Production K8s" --tags "env:prod,team:platform"
+
+  # Create a fleet with explicit organization ID (skips API call to fetch organization)
+  newrelic fleetcontrol fleet create --name "My Fleet" --managed-entity-type HOST --operating-system LINUX --organization-id "org-123-abc"
+flags:
+  - name: name
+    type: string
+    required: true
+    description: the name of the fleet
+  - name: managed-entity-type
+    type: string
+    required: true
+    description: the type of entities this fleet manages
+    validation:
+      allowed_values: ["HOST", "KUBERNETESCLUSTER"]
+      case_insensitive: true
+  - name: description
+    type: string
+    description: a description of the fleet
+  - name: product
+    type: string
+    description: the product identifier for this fleet (optional)
+  - name: organization-id
+    type: string
+    description: the organization ID; if not provided, it will be fetched from the API
+  - name: operating-system
+    type: string
+    description: the operating system type for HOST fleets (LINUX or WINDOWS); not applicable for KUBERNETESCLUSTER fleets
+    validation:
+      allowed_values: ["LINUX", "WINDOWS"]
+      case_insensitive: true
+  - name: tags
+    type: stringSlice
+    description: tags in format key:value1,value2 (can be specified multiple times)
