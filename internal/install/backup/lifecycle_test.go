@@ -3,7 +3,6 @@
 package backup
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -47,7 +46,7 @@ func TestManager_RotateBackups(t *testing.T) {
 
 	// Keep only last 5
 	manager := NewManager(backupBaseDir, 5)
-	err := manager.RotateBackups(context.Background())
+	err := manager.RotateBackups()
 	require.NoError(t, err)
 
 	// Verify only 5 backups remain

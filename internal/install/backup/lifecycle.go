@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -28,7 +27,7 @@ func NewManager(baseBackupDir string, maxBackups int) *Manager {
 }
 
 // RotateBackups keeps only the most recent N backups and deletes older ones
-func (m *Manager) RotateBackups(ctx context.Context) error {
+func (m *Manager) RotateBackups() error {
 	log.Debugf("Rotating backups (keeping last %d)", m.maxBackups)
 
 	// Check if backup directory exists
@@ -80,7 +79,7 @@ func (m *Manager) RotateBackups(ctx context.Context) error {
 	// Delete old backups
 	if len(backups) > m.maxBackups {
 		backupsToDelete := backups[m.maxBackups:]
-		log.Infof("Rotating out %d old backups", len(backupsToDelete))
+		log.Debugf("Rotating out %d old backups", len(backupsToDelete))
 
 		for _, backup := range backupsToDelete {
 			backupPath := filepath.Join(m.baseBackupDir, backup.name)
@@ -155,24 +154,6 @@ func (m *Manager) GetManifest(backupID string) (*Manifest, error) {
 	return &manifest, nil
 }
 
-// DeleteBackup removes a specific backup directory
-func (m *Manager) DeleteBackup(backupID string) error {
-	backupPath := filepath.Join(m.baseBackupDir, backupID)
-
-	// Verify it's a backup directory
-	if !strings.HasPrefix(backupID, "backup-") {
-		return fmt.Errorf("invalid backup ID: %s", backupID)
-	}
-
-	log.Infof("Deleting backup: %s", backupID)
-
-	if err := os.RemoveAll(backupPath); err != nil {
-		return fmt.Errorf("failed to delete backup: %w", err)
-	}
-
-	return nil
-}
-
 // parseBackupTimestamp parses the timestamp from a backup directory name
 // Format: backup-2026-02-18-150405
 func (m *Manager) parseBackupTimestamp(backupID string) (time.Time, error) {
@@ -190,9 +171,4 @@ func (m *Manager) parseBackupTimestamp(backupID string) (time.Time, error) {
 	}
 
 	return timestamp, nil
-}
-
-// GetBackupDir returns the full path to a backup directory
-func (m *Manager) GetBackupDir(backupID string) string {
-	return filepath.Join(m.baseBackupDir, backupID)
 }

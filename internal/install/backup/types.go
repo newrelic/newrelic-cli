@@ -30,6 +30,7 @@ type Options struct {
 
 // Result contains the outcome of a backup operation
 type Result struct {
+	BackupID      string
 	BackupDir     string
 	ManifestPath  string
 	FilesBackedUp int

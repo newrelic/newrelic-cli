@@ -1,41 +1,33 @@
 package backup
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 // InstallationDetector detects existing New Relic installations
 type InstallationDetector struct {
-	manifest *types.DiscoveryManifest
 	platform string
 }
 
 // NewInstallationDetector creates a new installation detector
-func NewInstallationDetector(manifest *types.DiscoveryManifest) *InstallationDetector {
+func NewInstallationDetector() *InstallationDetector {
 	return &InstallationDetector{
-		manifest: manifest,
 		platform: runtime.GOOS,
 	}
 }
 
 // DetectExistingInstallation checks for existing New Relic installations
 // and returns information about all detected config files across all agent types
-func (d *InstallationDetector) DetectExistingInstallation(ctx context.Context) (*InstallationInfo, error) {
+func (d *InstallationDetector) DetectExistingInstallation() (*InstallationInfo, error) {
 	log.Debug("Detecting existing New Relic installations (all agent types)")
 
 	configPaths := d.GetAllConfigPaths()
-	existingFiles, err := d.findExistingFiles(configPaths)
-	if err != nil {
-		return nil, err
-	}
+	existingFiles := d.findExistingFiles(configPaths)
 
 	if len(existingFiles) == 0 {
 		log.Debug("No existing New Relic config files detected")
@@ -48,7 +40,7 @@ func (d *InstallationDetector) DetectExistingInstallation(ctx context.Context) (
 	log.WithFields(log.Fields{
 		"platform": d.platform,
 		"files":    len(existingFiles),
-	}).Infof("Detected %d New Relic config files across all agent types", len(existingFiles))
+	}).Debugf("Detected %d New Relic config files across all agent types", len(existingFiles))
 
 	return &InstallationInfo{
 		IsInstalled: true,
@@ -75,28 +67,23 @@ func (d *InstallationDetector) GetAllConfigPaths() []string {
 // getLinuxPaths returns all New Relic config paths for Linux
 func (d *InstallationDetector) getLinuxPaths() []string {
 	return []string{
-		// Infrastructure Agent
+		// Infrastructure Agent (walks entire dir: logging.d/, integrations.d/, etc.)
 		"/etc/newrelic-infra.yml",
 		"/etc/newrelic-infra/",
-		"/var/db/newrelic-infra/",
 
 		// APM Agents (generic)
-		"/etc/newrelic/newrelic.yml",
 		"/etc/newrelic/",
 		"/usr/local/etc/newrelic/",
 
 		// APM Agents (language-specific)
-		"/etc/newrelic-java/newrelic.yml",
 		"/etc/newrelic-java/",
 		"/etc/php.d/newrelic.ini",
 		"/etc/php/*/conf.d/newrelic.ini",
+		"/etc/php5/conf.d/newrelic.ini",
+		"/etc/php5/mods-available/newrelic.ini",
 
 		// User-level configs
 		filepath.Join(os.Getenv("HOME"), ".newrelic/"),
-
-		// Logging
-		"/etc/newrelic-infra/logging.d/",
-		"/var/log/newrelic/",
 	}
 }
 
@@ -112,28 +99,16 @@ func (d *InstallationDetector) getWindowsPaths() []string {
 		programData = "C:\\ProgramData"
 	}
 
-	userProfile := os.Getenv("USERPROFILE")
-	if userProfile == "" {
-		userProfile = "C:\\Users\\*"
-	}
-
 	return []string{
-		// Infrastructure Agent
-		filepath.Join(programFiles, "New Relic", "newrelic-infra", "newrelic-infra.yml"),
-		filepath.Join(programFiles, "New Relic", "newrelic-infra", "integrations.d"),
+		// Infrastructure Agent (walks entire dir: logging.d/, integrations.d/, etc.)
 		filepath.Join(programFiles, "New Relic", "newrelic-infra"),
 
 		// .NET Agent
 		filepath.Join(programData, "New Relic", ".NET Agent"),
 		filepath.Join(programFiles, "New Relic", ".NET Agent"),
 
-		// Generic APM configs
-		filepath.Join(programFiles, "New Relic", "newrelic.yml"),
-		filepath.Join(programData, "New Relic"),
-
-		// User-level configs
-		filepath.Join(userProfile, "AppData", "Local", "New Relic"),
-		filepath.Join(userProfile, ".newrelic"),
+		// Agent Control
+		filepath.Join(programFiles, "New Relic", "newrelic-agent-control", "local-data", "agent-control"),
 	}
 }
 
@@ -145,10 +120,8 @@ func (d *InstallationDetector) getDarwinPaths() []string {
 	}
 
 	return []string{
-		// Infrastructure Agent
-		"/usr/local/etc/newrelic-infra/newrelic-infra.yml",
+		// Infrastructure Agent (walks entire dir: logging.d/, integrations.d/, etc.)
 		"/usr/local/etc/newrelic-infra/",
-		"/opt/newrelic-infra/",
 
 		// APM Agents
 		"/usr/local/etc/newrelic/",
@@ -161,7 +134,7 @@ func (d *InstallationDetector) getDarwinPaths() []string {
 }
 
 // findExistingFiles recursively finds all New Relic config files
-func (d *InstallationDetector) findExistingFiles(paths []string) ([]string, error) {
+func (d *InstallationDetector) findExistingFiles(paths []string) []string {
 	var existingFiles []string
 	seen := make(map[string]bool) // Deduplicate files
 
@@ -218,8 +191,7 @@ func (d *InstallationDetector) findExistingFiles(paths []string) ([]string, erro
 		}
 	}
 
-	log.Debugf("Found %d existing New Relic config files", len(existingFiles))
-	return existingFiles, nil
+	return existingFiles
 }
 
 // isNewRelicConfigFile checks if a file is a New Relic config file
@@ -243,25 +215,7 @@ func (d *InstallationDetector) isNewRelicConfigFile(filePath string) bool {
 	}
 
 	// Check if filename or directory contains "newrelic"
-	containsNewRelic := strings.Contains(fileName, "newrelic") ||
+	return strings.Contains(fileName, "newrelic") ||
 		strings.Contains(dirName, "newrelic") ||
 		strings.Contains(dirName, "new relic")
-
-	// Check for known config file patterns
-	knownPatterns := []string{
-		"newrelic.yml",
-		"newrelic.yaml",
-		"newrelic-infra.yml",
-		"newrelic.ini",
-		"newrelic.xml",
-		"newrelic.config",
-	}
-
-	for _, pattern := range knownPatterns {
-		if fileName == pattern {
-			return true
-		}
-	}
-
-	return containsNewRelic
 }

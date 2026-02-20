@@ -9,8 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 func TestInstallationDetector_DetectExistingInstallation(t *testing.T) {
@@ -25,14 +23,12 @@ func TestInstallationDetector_DetectExistingInstallation(t *testing.T) {
 	require.NoError(t, os.WriteFile(configFile, []byte("license_key: test"), 0644))
 
 	// Create detector with mock paths
-	manifest := &types.DiscoveryManifest{}
-	detector := NewInstallationDetector(manifest)
+	detector := NewInstallationDetector()
 
 	// Override paths to use temp directory
 	paths := []string{filepath.Join(tmpDir, "etc")}
 
-	files, err := detector.findExistingFiles(paths)
-	require.NoError(t, err)
+	files := detector.findExistingFiles(paths)
 	assert.NotEmpty(t, files)
 }
 
@@ -85,20 +81,16 @@ func TestInstallationDetector_isNewRelicConfigFile(t *testing.T) {
 }
 
 func TestInstallationDetector_DetectExistingInstallation_NoFiles(t *testing.T) {
-	manifest := &types.DiscoveryManifest{}
-	detector := NewInstallationDetector(manifest)
+	detector := NewInstallationDetector()
 
 	// Use a directory that doesn't exist
 	paths := []string{"/nonexistent/path"}
-	files, err := detector.findExistingFiles(paths)
-
-	require.NoError(t, err)
+	files := detector.findExistingFiles(paths)
 	assert.Empty(t, files)
 }
 
 func TestInstallationDetector_GetAllConfigPaths(t *testing.T) {
-	manifest := &types.DiscoveryManifest{}
-	detector := NewInstallationDetector(manifest)
+	detector := NewInstallationDetector()
 
 	paths := detector.GetAllConfigPaths()
 

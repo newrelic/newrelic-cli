@@ -1,7 +1,6 @@
 package install
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -375,7 +374,7 @@ func handleRestoreBackup(backupID string) error {
 		}
 	}
 
-	if err := restorer.RestoreBackup(context.Background(), backupID, true); err != nil {
+	if err := restorer.RestoreBackup(backupID, true); err != nil {
 		return fmt.Errorf("restore failed: %w", err)
 	}
 

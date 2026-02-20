@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -28,7 +27,7 @@ func NewCreator(baseBackupDir string) *Creator {
 }
 
 // CreateBackup creates a timestamped backup of config files with checksums
-func (c *Creator) CreateBackup(ctx context.Context, files []string, platform string, cliVersion string) (*Result, error) {
+func (c *Creator) CreateBackup(files []string, platform string, cliVersion string) (*Result, error) {
 	if len(files) == 0 {
 		log.Debug("No files to backup")
 		return &Result{
@@ -44,7 +43,7 @@ func (c *Creator) CreateBackup(ctx context.Context, files []string, platform str
 		"backupID":  backupID,
 		"backupDir": backupDir,
 		"files":     len(files),
-	}).Info("Creating configuration backup")
+	}).Debug("Creating configuration backup")
 
 	// Create backup directory
 	if err := os.MkdirAll(backupDir, 0750); err != nil {
@@ -55,6 +54,7 @@ func (c *Creator) CreateBackup(ctx context.Context, files []string, platform str
 	}
 
 	result := &Result{
+		BackupID:  backupID,
 		BackupDir: backupDir,
 		Success:   true,
 		Warnings:  []string{},
@@ -102,7 +102,7 @@ func (c *Creator) CreateBackup(ctx context.Context, files []string, platform str
 		"backupID":      backupID,
 		"filesBackedUp": result.FilesBackedUp,
 		"warnings":      len(result.Warnings),
-	}).Info("Backup completed")
+	}).Debug("Backup completed")
 
 	return result, nil
 }
@@ -114,7 +114,7 @@ func (c *Creator) backupSingleFile(srcPath string, backupDir string) (*BackedUpF
 	if err != nil {
 		return nil, fmt.Errorf("failed to open source file: %w", err)
 	}
-	defer srcFile.Close()
+	defer func() { _ = srcFile.Close() }()
 
 	// Get file info
 	srcInfo, err := srcFile.Stat()
@@ -151,22 +151,17 @@ func (c *Creator) backupSingleFile(srcPath string, backupDir string) (*BackedUpF
 	if err != nil {
 		return nil, fmt.Errorf("failed to create destination file: %w", err)
 	}
-	defer dstFile.Close()
 
 	// Copy file and calculate checksum
-	checksum, size, err := c.copyFileWithChecksum(srcFile, dstFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to copy file: %w", err)
+	checksum, size, copyErr := c.copyFileWithChecksum(srcFile, dstFile)
+	if closeErr := dstFile.Close(); closeErr != nil && copyErr == nil {
+		copyErr = fmt.Errorf("failed to close destination file: %w", closeErr)
+	}
+	if copyErr != nil {
+		return nil, fmt.Errorf("failed to copy file: %w", copyErr)
 	}
 
 	permissions := c.getFilePermissions(srcInfo)
-
-	log.WithFields(log.Fields{
-		"source":      srcPath,
-		"destination": dstPath,
-		"size":        size,
-		"checksum":    checksum[:16] + "...",
-	}).Debug("File backed up successfully")
 
 	return &BackedUpFile{
 		OriginalPath:   srcPath,

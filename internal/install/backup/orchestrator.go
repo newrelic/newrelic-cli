@@ -1,19 +1,15 @@
 package backup
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"runtime"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/newrelic/newrelic-cli/internal/install/types"
 )
 
 // Orchestrator coordinates all backup operations
 type Orchestrator struct {
-	manifest *types.DiscoveryManifest
 	options  Options
 	detector *InstallationDetector
 	creator  *Creator
@@ -21,7 +17,7 @@ type Orchestrator struct {
 }
 
 // NewOrchestrator creates a new backup orchestrator
-func NewOrchestrator(manifest *types.DiscoveryManifest, options Options, cliVersion string) (*Orchestrator, error) {
+func NewOrchestrator(options Options) (*Orchestrator, error) {
 	// Set defaults
 	if options.MaxBackups == 0 {
 		options.MaxBackups = 5
@@ -39,12 +35,11 @@ func NewOrchestrator(manifest *types.DiscoveryManifest, options Options, cliVers
 		"maxBackups":     options.MaxBackups,
 	}).Debug("Initializing backup orchestrator")
 
-	detector := NewInstallationDetector(manifest)
+	detector := NewInstallationDetector()
 	creator := NewCreator(backupLocation)
 	manager := NewManager(backupLocation, options.MaxBackups)
 
 	return &Orchestrator{
-		manifest: manifest,
 		options:  options,
 		detector: detector,
 		creator:  creator,
@@ -55,34 +50,27 @@ func NewOrchestrator(manifest *types.DiscoveryManifest, options Options, cliVers
 // PerformBackup executes the backup workflow (recipe-agnostic)
 // This method detects ALL existing New Relic configurations and backs them up
 // before ANY recipe installation, regardless of which recipe is being installed
-func (o *Orchestrator) PerformBackup(ctx context.Context, cliVersion string) (*Result, error) {
+func (o *Orchestrator) PerformBackup(cliVersion string) (*Result, error) {
 	// 1. Check if backup is skipped
 	if o.options.SkipBackup {
-		log.Info("Backup skipped by user option")
 		return nil, nil
 	}
 
 	// 2. Detect ALL existing New Relic installations (recipe-agnostic)
 	// This scans for config files across ALL agent types (Infrastructure, APM, Logging, Integrations)
-	installInfo, err := o.detector.DetectExistingInstallation(ctx)
+	installInfo, err := o.detector.DetectExistingInstallation()
 	if err != nil {
 		log.WithError(err).Warn("Failed to detect existing installations")
 		return nil, nil // Don't fail installation on detection error
 	}
 
 	if !installInfo.IsInstalled || len(installInfo.ConfigFiles) == 0 {
-		log.Info("No existing New Relic installations detected, skipping backup")
 		return nil, nil
 	}
 
-	log.WithFields(log.Fields{
-		"configFiles": len(installInfo.ConfigFiles),
-		"platform":    runtime.GOOS,
-	}).Infof("Detected %d New Relic config files across all agent types", len(installInfo.ConfigFiles))
-
 	// 3. Create backup of ALL detected configs
 	// Works the same regardless of which recipe is being installed
-	result, err := o.creator.CreateBackup(ctx, installInfo.ConfigFiles, runtime.GOOS, cliVersion)
+	result, err := o.creator.CreateBackup(installInfo.ConfigFiles, runtime.GOOS, cliVersion)
 	if err != nil {
 		log.WithError(err).Warn("Backup failed. Installation will continue.")
 		return result, nil // Don't fail installation on backup error
@@ -99,7 +87,7 @@ func (o *Orchestrator) PerformBackup(ctx context.Context, cliVersion string) (*R
 	}
 
 	// 4. Rotate old backups
-	if err := o.manager.RotateBackups(ctx); err != nil {
+	if err := o.manager.RotateBackups(); err != nil {
 		log.WithError(err).Warn("Failed to rotate old backups")
 		// Don't fail on rotation error
 	}
@@ -132,16 +120,8 @@ func GetDefaultBackupLocation() string {
 		}
 		baseDir = filepath.Join(programData, ".newrelic-backups")
 
-	case "darwin":
-		homeDir, err := os.UserHomeDir()
-		if err != nil {
-			baseDir = "/tmp/.newrelic-backups"
-		} else {
-			baseDir = filepath.Join(homeDir, ".newrelic-backups")
-		}
-
 	default:
-		// Fallback for unknown platforms
+		// darwin and other platforms: use home directory
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
 			baseDir = "/tmp/.newrelic-backups"
@@ -159,14 +139,9 @@ func (o *Orchestrator) ListBackups() ([]*Manifest, error) {
 }
 
 // RestoreBackup restores a specific backup
-func (o *Orchestrator) RestoreBackup(ctx context.Context, backupID string, verifyChecksums bool) error {
-	backupLocation := o.options.BackupLocation
-	if backupLocation == "" {
-		backupLocation = GetDefaultBackupLocation()
-	}
-
-	restorer := NewRestorer(backupLocation)
-	return restorer.RestoreBackup(ctx, backupID, verifyChecksums)
+func (o *Orchestrator) RestoreBackup(backupID string, verifyChecksums bool) error {
+	restorer := NewRestorer(o.GetBackupLocation())
+	return restorer.RestoreBackup(backupID, verifyChecksums)
 }
 
 // GetBackupLocation returns the configured backup location

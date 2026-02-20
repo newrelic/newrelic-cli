@@ -3,7 +3,6 @@
 package backup
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -28,12 +27,14 @@ func TestCreator_CreateBackup(t *testing.T) {
 
 	// Create backup
 	creator := NewCreator(backupBaseDir)
-	result, err := creator.CreateBackup(context.Background(), []string{configFile1, configFile2}, "linux", "v0.106.23")
+	result, err := creator.CreateBackup([]string{configFile1, configFile2}, "linux", "v0.106.23")
 
 	require.NoError(t, err)
 	require.NotNil(t, result)
 	assert.True(t, result.Success)
 	assert.Equal(t, 2, result.FilesBackedUp)
+	assert.NotEmpty(t, result.BackupID)
+	assert.Contains(t, result.BackupID, "backup-")
 	assert.NotEmpty(t, result.BackupDir)
 	assert.NotEmpty(t, result.ManifestPath)
 
@@ -75,7 +76,7 @@ func TestCreator_CreateBackup_NoFiles(t *testing.T) {
 	backupBaseDir := t.TempDir()
 
 	creator := NewCreator(backupBaseDir)
-	result, err := creator.CreateBackup(context.Background(), []string{}, "linux", "v0.106.23")
+	result, err := creator.CreateBackup([]string{}, "linux", "v0.106.23")
 
 	require.NoError(t, err)
 	require.NotNil(t, result)
@@ -96,7 +97,7 @@ func TestCreator_CreateBackup_PartialFailure(t *testing.T) {
 	invalidFile := filepath.Join(srcDir, "nonexistent.yml")
 
 	creator := NewCreator(backupBaseDir)
-	result, err := creator.CreateBackup(context.Background(), []string{validFile, invalidFile}, "linux", "v0.106.23")
+	result, err := creator.CreateBackup([]string{validFile, invalidFile}, "linux", "v0.106.23")
 
 	require.NoError(t, err)
 	require.NotNil(t, result)

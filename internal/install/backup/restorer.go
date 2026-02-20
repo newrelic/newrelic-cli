@@ -1,7 +1,6 @@
 package backup
 
 import (
-	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
@@ -15,20 +14,18 @@ import (
 
 // Restorer handles restoring configurations from backups
 type Restorer struct {
-	baseBackupDir string
-	manager       *Manager
+	manager *Manager
 }
 
 // NewRestorer creates a new backup restorer
 func NewRestorer(baseBackupDir string) *Restorer {
 	return &Restorer{
-		baseBackupDir: baseBackupDir,
-		manager:       NewManager(baseBackupDir, 5),
+		manager: NewManager(baseBackupDir, 5),
 	}
 }
 
 // RestoreBackup restores files from a backup
-func (r *Restorer) RestoreBackup(ctx context.Context, backupID string, verifyChecksums bool) error {
+func (r *Restorer) RestoreBackup(backupID string, verifyChecksums bool) error {
 	log.WithFields(log.Fields{
 		"backupID":        backupID,
 		"verifyChecksums": verifyChecksums,
@@ -128,7 +125,7 @@ func (r *Restorer) restoreFile(file BackedUpFile) error {
 	if err != nil {
 		return fmt.Errorf("failed to open backup file: %w", err)
 	}
-	defer srcFile.Close()
+	defer func() { _ = srcFile.Close() }()
 
 	// Get backup file info
 	srcInfo, err := srcFile.Stat()
@@ -147,11 +144,14 @@ func (r *Restorer) restoreFile(file BackedUpFile) error {
 	if err != nil {
 		return fmt.Errorf("failed to create destination file: %w", err)
 	}
-	defer dstFile.Close()
 
 	// Copy file
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return fmt.Errorf("failed to copy file: %w", err)
+	_, copyErr := io.Copy(dstFile, srcFile)
+	if closeErr := dstFile.Close(); closeErr != nil && copyErr == nil {
+		copyErr = fmt.Errorf("failed to close destination file: %w", closeErr)
+	}
+	if copyErr != nil {
+		return fmt.Errorf("failed to copy file: %w", copyErr)
 	}
 
 	// Restore permissions
@@ -191,7 +191,7 @@ func (r *Restorer) calculateChecksum(filePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
