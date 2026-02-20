@@ -13,6 +13,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
+	"github.com/newrelic/newrelic-cli/internal/install/backup"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
@@ -20,11 +21,15 @@ import (
 )
 
 var (
-	assumeYes    bool
-	localRecipes string
-	recipeNames  []string
-	recipePaths  []string
-	tags         []string
+	assumeYes      bool
+	localRecipes   string
+	recipeNames    []string
+	recipePaths    []string
+	tags           []string
+	skipBackup     bool
+	backupLocation string
+	listBackups    bool
+	restoreBackup  string
 )
 
 // processRecipeNames validates, extracts recipe names, and sets environment variables.
@@ -63,16 +68,28 @@ var Command = &cobra.Command{
 	Short:  "Install New Relic.",
 	PreRun: client.RequireClient,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// Handle --list-backups
+		if listBackups {
+			return handleListBackups()
+		}
+
+		// Handle --restore-backup
+		if restoreBackup != "" {
+			return handleRestoreBackup(restoreBackup)
+		}
+
 		extractedRecipeNames, err := processRecipeNames(recipeNames)
 		if err != nil {
 			return types.NewDetailError(types.EventTypes.OtherError, err.Error())
 		}
 
 		ic := types.InstallerContext{
-			AssumeYes:    assumeYes,
-			LocalRecipes: localRecipes,
-			RecipeNames:  extractedRecipeNames,
-			RecipePaths:  recipePaths,
+			AssumeYes:      assumeYes,
+			LocalRecipes:   localRecipes,
+			RecipeNames:    extractedRecipeNames,
+			RecipePaths:    recipePaths,
+			SkipBackup:     skipBackup,
+			BackupLocation: backupLocation,
 		}
 
 		ic.SetTags(tags)
@@ -140,6 +157,12 @@ func init() {
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
 	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
+
+	// Backup flags
+	Command.Flags().BoolVarP(&skipBackup, "skip-backup", "", false, "skip backing up existing configuration files (useful for CI/CD)")
+	Command.Flags().StringVarP(&backupLocation, "backup-location", "", "", "custom location for backup files (default: platform-specific)")
+	Command.Flags().BoolVarP(&listBackups, "list-backups", "", false, "list all available configuration backups and exit")
+	Command.Flags().StringVarP(&restoreBackup, "restore-backup", "", "", "restore configuration from a specific backup ID (e.g., backup-2026-02-18-143022)")
 }
 
 func validateProfile() *types.DetailError {
@@ -296,4 +319,65 @@ func fetchLicenseKeyFromProfile() string {
 	log.Debug("license key provided by config is invalid")
 
 	return ""
+}
+
+func handleListBackups() error {
+	backupLocation := backupLocation
+	if backupLocation == "" {
+		backupLocation = backup.GetDefaultBackupLocation()
+	}
+
+	manager := backup.NewManager(backupLocation, 5)
+	backups, err := manager.ListBackups()
+	if err != nil {
+		return fmt.Errorf("failed to list backups: %w", err)
+	}
+
+	if len(backups) == 0 {
+		fmt.Println("No backups found.")
+		return nil
+	}
+
+	fmt.Printf("Found %d backups:\n\n", len(backups))
+	for _, b := range backups {
+		fmt.Printf("  %s\n", b.BackupID)
+		fmt.Printf("    Date: %s\n", b.Timestamp.Format("2006-01-02 15:04:05"))
+		fmt.Printf("    Platform: %s\n", b.Platform)
+		fmt.Printf("    Files: %d\n", len(b.Files))
+		fmt.Printf("    CLI Version: %s\n\n", b.CLIVersion)
+	}
+
+	return nil
+}
+
+func handleRestoreBackup(backupID string) error {
+	backupLocation := backupLocation
+	if backupLocation == "" {
+		backupLocation = backup.GetDefaultBackupLocation()
+	}
+
+	restorer := backup.NewRestorer(backupLocation)
+
+	fmt.Printf("⚠️  This will overwrite current configuration files with backup: %s\n", backupID)
+
+	if !assumeYes {
+		fmt.Print("Continue? (y/N): ")
+
+		var response string
+		if _, err := fmt.Scanln(&response); err != nil {
+			fmt.Println("Restore canceled.")
+			return nil
+		}
+		if response != "y" && response != "Y" {
+			fmt.Println("Restore canceled.")
+			return nil
+		}
+	}
+
+	if err := restorer.RestoreBackup(backupID, true); err != nil {
+		return fmt.Errorf("restore failed: %w", err)
+	}
+
+	fmt.Println("✅ Configuration restored successfully.")
+	return nil
 }
