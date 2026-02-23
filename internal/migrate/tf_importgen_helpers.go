@@ -78,11 +78,21 @@ func (ctx *CommandContext) GetDropRuleResources() ([]string, error) {
 }
 
 // GenerateTargetCommands creates terraform commands with target flags
+// This function validates resources and is used only for display purposes
 func (ctx *CommandContext) GenerateTargetCommands(resources []string) (planCmd, actionCmd string) {
-	targetFlags := make([]string, len(resources))
-	for i, resource := range resources {
-		targetFlags[i] = fmt.Sprintf("-target=%s", resource)
+	validatedResources := []string{}
+	targetFlags := []string{}
+
+	for _, resource := range resources {
+		// Validate resource identifier to prevent injection attacks
+		if err := validateResourceIdentifier(resource); err != nil {
+			log.Warnf("Skipping invalid resource identifier %s: %v", resource, err)
+			continue
+		}
+		validatedResources = append(validatedResources, resource)
+		targetFlags = append(targetFlags, fmt.Sprintf("-target=%s", resource))
 	}
+
 	targetString := strings.Join(targetFlags, " ")
 
 	switch ctx.CommandType {
@@ -92,7 +102,7 @@ func (ctx *CommandContext) GenerateTargetCommands(resources []string) (planCmd, 
 	case CommandDelist:
 		// For delist, we don't use plan/apply but state rm commands
 		planCmd = "# No plan needed for state removal"
-		actionCmd = fmt.Sprintf("%s state rm %s", ctx.ToolConfig.ToolName, strings.Join(resources, " "))
+		actionCmd = fmt.Sprintf("%s state rm %s", ctx.ToolConfig.ToolName, strings.Join(validatedResources, " "))
 	}
 
 	return planCmd, actionCmd
@@ -156,8 +166,16 @@ func (ctx *CommandContext) ExecuteCommand(command, actionName string) error {
 func (ctx *CommandContext) ExecuteStandardFlow(planCmd, actionCmd string, resources []string) error {
 	// For delist operations, skip plan and go directly to confirmation
 	if ctx.CommandType == CommandDelist {
-		return executeDelistFlow(ctx, generateStateRmCommands(ctx.ToolConfig.ToolName, resources), resources)
+		return executeDelistFlow(ctx, resources)
 	}
+
+	// For update operations, use safe execution with explicit arguments
+	if ctx.CommandType == CommandUpdate {
+		return executeUpdateFlow(ctx, resources)
+	}
+
+	// Legacy fallback for other command types (should not be reached)
+	log.Warnf("Using legacy command execution flow for unknown command type")
 
 	// Execute plan and show output immediately
 	if err := ctx.ExecuteCommand(planCmd, "plan"); err != nil {
@@ -327,21 +345,55 @@ func checkResourceHasEntityID(workspacePath, resource string, config *ToolConfig
 func generateStateRmCommands(toolName string, resources []string) []string {
 	var commands []string
 	for _, resource := range resources {
+		// Validate resource identifier to prevent injection attacks
+		if err := validateResourceIdentifier(resource); err != nil {
+			log.Warnf("Skipping invalid resource identifier %s: %v", resource, err)
+			continue
+		}
 		cmd := fmt.Sprintf("%s state rm %s", toolName, resource)
 		commands = append(commands, cmd)
 	}
 	return commands
 }
 
-func executeDelistFlow(ctx *CommandContext, stateRmCommands []string, resources []string) error {
+// validateResourceIdentifier checks if a resource identifier is safe to use
+// It rejects identifiers that could be used for command injection
+func validateResourceIdentifier(identifier string) error {
+	if identifier == "" {
+		return fmt.Errorf("resource identifier cannot be empty")
+	}
+
+	// Reject identifiers that start with '-' as they could be interpreted as flags
+	if strings.HasPrefix(identifier, "-") {
+		return fmt.Errorf("resource identifier cannot start with '-' (potential flag injection)")
+	}
+
+	// Check for basic Terraform resource address pattern
+	// Valid formats: type.name, type.name[index], type.name["key"], module.name.type.name
+	// This is a basic validation - Terraform will do more thorough validation
+	if !strings.Contains(identifier, ".") {
+		return fmt.Errorf("resource identifier must follow Terraform address format (e.g., resource_type.name)")
+	}
+
+	return nil
+}
+
+func executeDelistFlow(ctx *CommandContext, resources []string) error {
 	fmt.Println("\n🔄 Starting state delisting process...")
 	fmt.Println("This will remove resources from Terraform state without destroying them.")
 
-	// Execute each state rm command
-	for i, command := range stateRmCommands {
-		fmt.Printf("\n[%d/%d] Delisting resource from state...\n", i+1, len(stateRmCommands))
-		if err := ctx.ExecuteCommand(command, "state rm"); err != nil {
-			return fmt.Errorf("failed to delist resource: %v", err)
+	// Execute each state rm command safely with explicit arguments
+	for i, resource := range resources {
+		fmt.Printf("\n[%d/%d] Delisting resource from state: %s\n", i+1, len(resources), resource)
+
+		// Validate resource identifier before executing
+		if err := validateResourceIdentifier(resource); err != nil {
+			return fmt.Errorf("invalid resource identifier %s: %v", resource, err)
+		}
+
+		// Execute command with explicit arguments (safe from injection)
+		if err := executeStateRmCommand(ctx, resource); err != nil {
+			return fmt.Errorf("failed to delist resource %s: %v", resource, err)
 		}
 	}
 
@@ -351,6 +403,91 @@ func executeDelistFlow(ctx *CommandContext, stateRmCommands []string, resources 
 	fmt.Println(strings.Repeat("=", 60))
 	validateDelisting(ctx, resources)
 
+	return nil
+}
+
+// executeUpdateFlow runs the update workflow with safe explicit arguments
+func executeUpdateFlow(ctx *CommandContext, resources []string) error {
+	fmt.Println("\n🔄 Starting resource update process...")
+
+	// Validate all resources first
+	validResources := []string{}
+	for _, resource := range resources {
+		if err := validateResourceIdentifier(resource); err != nil {
+			log.Warnf("Skipping invalid resource identifier %s: %v", resource, err)
+			continue
+		}
+		validResources = append(validResources, resource)
+	}
+
+	if len(validResources) == 0 {
+		return fmt.Errorf("no valid resources to update")
+	}
+
+	// Build target arguments for plan
+	planArgs := []string{"plan", "-refresh-only"}
+	for _, resource := range validResources {
+		planArgs = append(planArgs, fmt.Sprintf("-target=%s", resource))
+	}
+
+	// Execute plan with explicit arguments
+	fmt.Printf("\n🔄 Executing %s plan...\n", ctx.ToolConfig.ToolName)
+	if err := executeCommandWithArgs(ctx.WorkspacePath, ctx.ToolConfig.ToolName, planArgs...); err != nil {
+		fmt.Printf("\n❌ %s plan failed!\n", ctx.ToolConfig.DisplayName)
+		return fmt.Errorf("%s plan failed: %v", ctx.ToolConfig.DisplayName, err)
+	}
+
+	// Show plan completion and ask for apply confirmation
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("📋 Plan completed successfully! Review the changes above.\n")
+	fmt.Println(strings.Repeat("=", 60))
+
+	// Get confirmation for apply
+	if !ctx.PromptForActionConfirmation() {
+		fmt.Println("\n🛑 Action cancelled by user.")
+		return nil
+	}
+
+	// Build apply arguments
+	applyArgs := []string{"apply", "-refresh-only", "-auto-approve"}
+	for _, resource := range validResources {
+		applyArgs = append(applyArgs, fmt.Sprintf("-target=%s", resource))
+	}
+
+	// Execute apply with explicit arguments
+	fmt.Printf("\n⚠️  WARNING: Using -auto-approve flag to avoid interactive prompts.\n")
+	fmt.Printf("The apply operation will proceed without additional confirmation.\n")
+	fmt.Println(strings.Repeat("-", 60))
+
+	fmt.Printf("\n🔄 Executing %s apply...\n", ctx.ToolConfig.ToolName)
+	if err := executeCommandWithArgs(ctx.WorkspacePath, ctx.ToolConfig.ToolName, applyArgs...); err != nil {
+		fmt.Printf("\n❌ %s apply failed!\n", ctx.ToolConfig.DisplayName)
+		return fmt.Errorf("%s apply failed: %v", ctx.ToolConfig.DisplayName, err)
+	}
+
+	fmt.Printf("\n✅ %s apply completed successfully!\n", ctx.ToolConfig.DisplayName)
+
+	// Validate results
+	fmt.Println("\n" + strings.Repeat("=", 60))
+	fmt.Printf("🔍 Validating update results...\n")
+	fmt.Println(strings.Repeat("=", 60))
+	ctx.ValidateResults(validResources)
+
+	return nil
+}
+
+// executeStateRmCommand safely executes 'terraform state rm' with explicit arguments
+func executeStateRmCommand(ctx *CommandContext, resource string) error {
+	fmt.Printf("🔄 Executing %s state rm %s...\n", ctx.ToolConfig.ToolName, resource)
+	fmt.Println(strings.Repeat("-", 50))
+
+	// Execute with explicit arguments - safe from command injection
+	if err := executeCommandWithArgs(ctx.WorkspacePath, ctx.ToolConfig.ToolName, "state", "rm", resource); err != nil {
+		fmt.Printf("\n❌ %s state rm failed!\n", ctx.ToolConfig.DisplayName)
+		return fmt.Errorf("%s state rm failed: %v", ctx.ToolConfig.DisplayName, err)
+	}
+
+	fmt.Printf("\n✅ Resource delisted successfully!\n")
 	return nil
 }
 
@@ -559,9 +696,21 @@ func checkAndCleanupImportConfig(workspacePath string) {
 }
 
 // executeCommandWithOutput executes a command and displays output in real-time
+// DEPRECATED: Use executeCommandWithArgs for new code to prevent command injection
 func executeCommandWithOutput(workspacePath, command string) error {
+	// For backward compatibility, parse the command but log a warning
+	log.Warnf("Using deprecated executeCommandWithOutput with command string: %s", command)
 	parts := strings.Fields(command)
-	cmd := exec.Command(parts[0], parts[1:]...)
+	if len(parts) == 0 {
+		return fmt.Errorf("empty command")
+	}
+	return executeCommandWithArgs(workspacePath, parts[0], parts[1:]...)
+}
+
+// executeCommandWithArgs executes a command with explicit arguments and displays output in real-time
+// This function is safe against command injection as arguments are passed explicitly
+func executeCommandWithArgs(workspacePath, program string, args ...string) error {
+	cmd := exec.Command(program, args...)
 	cmd.Dir = workspacePath
 
 	// Set up pipes for real-time output
@@ -571,7 +720,7 @@ func executeCommandWithOutput(workspacePath, command string) error {
 	// Execute command
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("command failed: %s", command)
+		return fmt.Errorf("command failed: %s %v", program, args)
 	}
 
 	return nil
