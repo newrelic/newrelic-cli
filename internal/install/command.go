@@ -64,9 +64,16 @@ func processRecipeNames(recipeNames []string) ([]string, error) {
 
 // Command represents the install command.
 var Command = &cobra.Command{
-	Use:    "install",
-	Short:  "Install New Relic.",
-	PreRun: client.RequireClient,
+	Use:   "install",
+	Short: "Install New Relic.",
+	PreRun: func(cmd *cobra.Command, args []string) {
+		// --list-backups and --restore-backup are local-only operations
+		// that don't require a New Relic API connection
+		if listBackups || restoreBackup != "" {
+			return
+		}
+		client.RequireClient(cmd, args)
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Handle --list-backups
 		if listBackups {

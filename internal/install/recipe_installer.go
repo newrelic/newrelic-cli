@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"time"
@@ -602,7 +603,11 @@ func (i *RecipeInstall) backupExistingConfigs() error {
 	if result != nil && result.Success {
 		i.progressIndicator.Success(fmt.Sprintf("Backed up %d existing config files before installation overwrites them.", result.FilesBackedUp))
 		fmt.Printf("  %s  %s\n", color.GreenString(ux.IconArrowRight), result.BackupDir)
-		fmt.Printf("  If you had custom configurations, restore with: newrelic install --restore-backup %s\n", result.BackupID)
+		restoreCmd := fmt.Sprintf("newrelic install --restore-backup %s --backup-location %s", result.BackupID, filepath.Dir(result.BackupDir))
+		if os.Geteuid() == 0 {
+			restoreCmd = "sudo " + restoreCmd
+		}
+		fmt.Printf("  If you had custom configurations, restore with: %s\n", restoreCmd)
 	} else if result != nil && !result.Success {
 		i.progressIndicator.Fail("Configuration backup failed, continuing installation. Check logs for details.")
 	} else {

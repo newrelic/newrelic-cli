@@ -46,7 +46,7 @@ func (c *Creator) CreateBackup(files []string, platform string, cliVersion strin
 	}).Debug("Creating configuration backup")
 
 	// Create backup directory
-	if err := os.MkdirAll(backupDir, 0750); err != nil {
+	if err := os.MkdirAll(backupDir, 0755); err != nil {
 		return &Result{
 			Success: false,
 			Error:   fmt.Errorf("failed to create backup directory: %w", err),
@@ -142,7 +142,7 @@ func (c *Creator) backupSingleFile(srcPath string, backupDir string) (*BackedUpF
 
 	// Create destination directory
 	dstDir := filepath.Dir(dstPath)
-	if err := os.MkdirAll(dstDir, 0750); err != nil {
+	if err := os.MkdirAll(dstDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create destination directory: %w", err)
 	}
 
@@ -195,7 +195,7 @@ func (c *Creator) writeManifest(manifest *Manifest, backupDir string) (string, e
 		return "", fmt.Errorf("failed to marshal manifest: %w", err)
 	}
 
-	if err := os.WriteFile(manifestPath, jsonData, 0640); err != nil {
+	if err := os.WriteFile(manifestPath, jsonData, 0644); err != nil {
 		return "", fmt.Errorf("failed to write manifest file: %w", err)
 	}
 
