@@ -79,6 +79,12 @@ type loggingLauncher struct {
 	Referrer string `json:"referrer,omitempty"`
 }
 
+type fleetLauncher struct {
+	NerdletID string `json:"nerdletId"`
+	Referrer  string `json:"referrer"`
+	FleetGUID string `json:"fleetGuid"`
+}
+
 // The CLI URL referrer param is a JSON string containing information
 // the UI can use to understand how/where the URL was generated. This allows the
 // UI to return to its previous state in the case of a user closing the browser
@@ -164,9 +170,27 @@ func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string)
 	return string(stringifiedParam)
 }
 
-func (g *PlatformLinkGenerator) generateFleetLink(_ string) string {
-	longURL := fmt.Sprintf("https://%s/fleet",
+func (g *PlatformLinkGenerator) generateFleetLauncherParams(fleetGUID string) string {
+	p := fleetLauncher{
+		NerdletID: "fleet.detail",
+		Referrer:  "newrelic-cli",
+		FleetGUID: fleetGUID,
+	}
+
+	stringifiedParam, err := json.Marshal(p)
+	if err != nil {
+		log.Debugf("error marshaling fleet launcher param: %s", err)
+		return ""
+	}
+
+	return string(stringifiedParam)
+}
+
+func (g *PlatformLinkGenerator) generateFleetLink(fleetGUID string) string {
+	longURL := fmt.Sprintf("https://%s/launcher/new-relic-control.launcher?platform[accountId]=%d&pane=%s",
 		nrPlatformHostname(),
+		configAPI.GetActiveProfileAccountID(),
+		utils.Base64Encode(g.generateFleetLauncherParams(fleetGUID)),
 	)
 
 	shortURL, err := g.generateShortNewRelicURL(longURL)

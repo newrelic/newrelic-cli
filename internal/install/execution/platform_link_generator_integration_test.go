@@ -59,6 +59,22 @@ func TestGenerateShortNewRelicURL_NonNewRelicURL(t *testing.T) {
 	require.Equal(t, result, longURL)
 }
 
+func TestGenerateFleetLink_Integration(t *testing.T) {
+	t.Parallel()
+
+	skipTestIfMissingEnvVars(t, []string{"NEW_RELIC_API_KEY"})
+
+	g := NewPlatformLinkGenerator()
+	fleetGUID := "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI"
+
+	result := g.GenerateFleetLink(fleetGUID)
+
+	// Verify it returns a shortened URL
+	require.Contains(t, result, "http")
+	// Short URL should be shorter than a typical long URL
+	require.Less(t, len(result), 200)
+}
+
 func skipTestIfMissingEnvVars(t *testing.T, vars []string) {
 	for _, v := range vars {
 		if os.Getenv(v) == "" {

@@ -129,6 +129,37 @@ func TestGetAccountPlanManagementURL(t *testing.T) {
 	require.Contains(t, result, "plan-management/home?account=")
 }
 
+func TestGenerateFleetLink_WithFleetGUID(t *testing.T) {
+	t.Parallel()
+
+	fleetGUID := "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI"
+
+	g := NewPlatformLinkGenerator()
+	g.apiKey = ""
+
+	result := g.GenerateFleetLink(fleetGUID)
+
+	// Verify URL contains the fleet launcher
+	require.Contains(t, result, "launcher/new-relic-control.launcher")
+	require.Contains(t, result, "pane=")
+	require.Contains(t, result, "platform[accountId]")
+	require.Contains(t, result, nrPlatformHostname())
+}
+
+func TestGenerateFleetLink_EmptyFleetGUID(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+	g.apiKey = ""
+
+	result := g.GenerateFleetLink("")
+
+	// Should still generate valid URL even with empty GUID
+	require.Contains(t, result, "launcher/new-relic-control.launcher")
+	require.Contains(t, result, "pane=")
+	require.Contains(t, result, nrPlatformHostname())
+}
+
 type platformLinkGeneratorBuilder struct {
 	platformLinkGenerator *PlatformLinkGenerator
 	installStatus         *InstallStatus

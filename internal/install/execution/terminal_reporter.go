@@ -155,7 +155,19 @@ func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
 
 		if s.Status == RecipeStatusTypes.INSTALLED && isAgentControlRecipe {
-			linkToFleet = status.PlatformLinkGenerator.GenerateFleetLink(status.HostEntityGUID())
+			// Use NR_CLI_FLEET_ID environment variable if available, otherwise fall back to entity GUID
+			fleetGUID := os.Getenv("NR_CLI_FLEET_ID")
+			if fleetGUID == "" {
+				fleetGUID = status.HostEntityGUID()
+			}
+
+			log.WithFields(log.Fields{
+				"fleetGUID":      fleetGUID,
+				"fromEnvVar":     os.Getenv("NR_CLI_FLEET_ID") != "",
+				"hostEntityGUID": status.HostEntityGUID(),
+			}).Debug("Generating fleet link")
+
+			linkToFleet = status.PlatformLinkGenerator.GenerateFleetLink(fleetGUID)
 		}
 	}
 
