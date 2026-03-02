@@ -129,6 +129,108 @@ func TestGetAccountPlanManagementURL(t *testing.T) {
 	require.Contains(t, result, "plan-management/home?account=")
 }
 
+func TestGenerateFleetLink_WithFleetGUID(t *testing.T) {
+	t.Parallel()
+
+	fleetGUID := "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI"
+
+	g := NewPlatformLinkGenerator()
+	g.apiKey = ""
+
+	result := g.GenerateFleetLink(fleetGUID)
+
+	require.Contains(t, result, "launcher/new-relic-control.launcher")
+	require.Contains(t, result, "pane=")
+	require.Contains(t, result, "platform[accountId]")
+	require.Contains(t, result, nrPlatformHostname())
+}
+
+func TestGenerateFleetLink_EmptyFleetGUID(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+	g.apiKey = ""
+
+	result := g.GenerateFleetLink("")
+
+	expectedURL := fmt.Sprintf("https://%s/fleet", nrPlatformHostname())
+	require.Equal(t, expectedURL, result)
+}
+
+func TestGenerateFleetLink_WhitespaceOnlyFleetGUID(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+	g.apiKey = ""
+
+	testCases := []string{
+		"  ",
+		"\t",
+		"\n",
+		"  \t\n  ",
+	}
+
+	for _, tc := range testCases {
+		result := g.GenerateFleetLink(tc)
+		expectedURL := fmt.Sprintf("https://%s/fleet", nrPlatformHostname())
+		require.Equal(t, expectedURL, result, "Should return base URL for whitespace-only GUID: %q", tc)
+	}
+}
+
+func TestGenerateFleetLauncherParams_TrimsWhitespace(t *testing.T) {
+	t.Parallel()
+
+	g := NewPlatformLinkGenerator()
+
+	testCases := []struct {
+		name         string
+		inputGUID    string
+		expectedGUID string
+	}{
+		{
+			name:         "GUID with leading spaces",
+			inputGUID:    "  MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+			expectedGUID: "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+		},
+		{
+			name:         "GUID with trailing spaces",
+			inputGUID:    "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI  ",
+			expectedGUID: "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+		},
+		{
+			name:         "GUID with leading and trailing spaces",
+			inputGUID:    "  MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI  ",
+			expectedGUID: "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+		},
+		{
+			name:         "GUID with tabs and newlines",
+			inputGUID:    "\t\nMTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI\n\t",
+			expectedGUID: "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+		},
+		{
+			name:         "GUID without whitespace",
+			inputGUID:    "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+			expectedGUID: "MTIyMTMwNjh8TkdFUHxGTEVFVHwwMTljOGY0OS03ZDY2LTczOGEtYjQ4Ny03NjI5YzE1ZjNiOWI",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := g.generateFleetLauncherParams(tc.inputGUID)
+
+			require.Contains(t, result, tc.expectedGUID, "Fleet GUID should be trimmed of whitespace")
+
+			if tc.inputGUID != tc.expectedGUID {
+				require.NotContains(t, result, tc.inputGUID, "Fleet GUID should not contain original whitespace")
+			}
+
+			require.Contains(t, result, `"nerdletId":"fleet.detail"`)
+			require.Contains(t, result, `"referrer":"newrelic-cli"`)
+			require.Contains(t, result, `"fleetGuid":"`+tc.expectedGUID+`"`)
+		})
+	}
+}
+
 type platformLinkGeneratorBuilder struct {
 	platformLinkGenerator *PlatformLinkGenerator
 	installStatus         *InstallStatus
