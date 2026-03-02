@@ -1,3 +1,8 @@
+<a name="v0.107.0"></a>
+## [v0.107.0] - 2026-02-19
+### Features
+- **fleetcontrol:** Add a new package to support managing Fleet Control Ops ([#1794](https://github.com/newrelic/newrelic-cli/issues/1794))
+
 <a name="v0.106.23"></a>
 ## [v0.106.23] - 2026-02-16
 ### Bug Fixes
@@ -2698,7 +2703,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.23...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.107.0...HEAD
+[v0.107.0]: https://github.com/newrelic/newrelic-cli/compare/v0.106.23...v0.107.0
 [v0.106.23]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...v0.106.23
 [v0.106.22]: https://github.com/newrelic/newrelic-cli/compare/v0.106.21...v0.106.22
 [v0.106.21]: https://github.com/newrelic/newrelic-cli/compare/v0.106.20...v0.106.21
