@@ -108,7 +108,7 @@ func handleDelistStateSuccess(ctx *CommandContext, resources []string) {
 	// Execute if user confirms
 	fmt.Println("\n" + strings.Repeat("=", 60))
 	if ctx.PromptForExecution() {
-		if err := executeDelistFlow(ctx, stateRmCommands, resources); err != nil {
+		if err := executeDelistFlow(ctx, resources); err != nil {
 			fmt.Printf("\n❌ Delisting failed: %v\n", err)
 			log.Error(err)
 		} else {
