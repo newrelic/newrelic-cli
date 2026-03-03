@@ -45,7 +45,7 @@ type FleetMembersResultWithoutTags struct {
 //
 // Returns:
 //   - Error if listing members fails, nil on success
-func handleFleetListMembers(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetListMembers(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.ListMembers()
 

@@ -31,7 +31,7 @@ import (
 //
 // Returns:
 //   - Error if configuration creation fails, nil on success
-func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetCreateConfiguration(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	// Note: CreateConfiguration() returns error because it handles file reading
 	f, err := flags.CreateConfiguration()
