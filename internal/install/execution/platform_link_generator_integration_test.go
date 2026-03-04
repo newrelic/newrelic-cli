@@ -69,7 +69,6 @@ func TestGenerateFleetLink_Integration(t *testing.T) {
 
 	result := g.GenerateFleetLink(fleetGUID)
 
-
 	require.Contains(t, result, "http")
 	require.Less(t, len(result), 200)
 }

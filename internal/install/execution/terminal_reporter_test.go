@@ -471,3 +471,64 @@ func Test_InstallComplete_IncompleteNonAgentControlShowsRedirectLink(t *testing.
 
 	require.Equal(t, 1, g.GenerateRedirectURLCallCount)
 }
+
+func Test_InstallComplete_IncompleteAgentControlNoPlatformLinkGenerator(t *testing.T) {
+	r := NewTerminalStatusReporter()
+
+	status := &InstallStatus{
+		PlatformLinkGenerator: nil,
+	}
+	failedAgentControlRecipe := &RecipeStatus{
+		Name:        types.AgentControlRecipeName,
+		DisplayName: "Agent Control",
+		Status:      RecipeStatusTypes.FAILED,
+	}
+	status.Statuses = append(status.Statuses, failedAgentControlRecipe)
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+}
+
+func Test_InstallComplete_IncompleteNonAgentControlNoLinkGenerator(t *testing.T) {
+	r := NewTerminalStatusReporter()
+
+	status := &InstallStatus{
+		PlatformLinkGenerator: nil,
+	}
+	failedOtherRecipe := &RecipeStatus{
+		Name:        "infrastructure-agent-installer",
+		DisplayName: "Infrastructure Agent",
+		Status:      RecipeStatusTypes.FAILED,
+	}
+	status.Statuses = append(status.Statuses, failedOtherRecipe)
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+}
+
+func Test_InstallComplete_SuccessfulMixedInstallation(t *testing.T) {
+	r := NewTerminalStatusReporter()
+	g := NewMockPlatformLinkGenerator()
+	g.GenerateRedirectURLVal = "https://one.newrelic.com/redirect"
+
+	status := &InstallStatus{
+		PlatformLinkGenerator: g,
+	}
+	agentControlRecipe := &RecipeStatus{
+		Name:        types.AgentControlRecipeName,
+		DisplayName: "Agent Control",
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+	infraRecipe := &RecipeStatus{
+		Name:        "infrastructure-agent-installer",
+		DisplayName: "Infrastructure Agent",
+		Status:      RecipeStatusTypes.INSTALLED,
+	}
+	status.Statuses = append(status.Statuses, agentControlRecipe, infraRecipe)
+
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+
+	require.Equal(t, 1, g.GenerateRedirectURLCallCount)
+	require.Equal(t, 0, g.GenerateGuidedInstallDocLinkCallCount)
+}
