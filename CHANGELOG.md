@@ -1,5 +1,10 @@
+<a name="v0.107.2"></a>
+## [v0.107.2] - 2026-03-03
+### Bug Fixes
+- update alpine image to the latest version ([#1797](https://github.com/newrelic/newrelic-cli/issues/1797))
+
 <a name="v0.107.1"></a>
-## [v0.107.1] - 2026-03-02
+## [v0.107.1] - 2026-03-03
 ### Bug Fixes
 - **security:** prevent command injection in tf-delist command ([#1796](https://github.com/newrelic/newrelic-cli/issues/1796))
 
@@ -2708,7 +2713,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.107.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.107.2...HEAD
+[v0.107.2]: https://github.com/newrelic/newrelic-cli/compare/v0.107.1...v0.107.2
 [v0.107.1]: https://github.com/newrelic/newrelic-cli/compare/v0.107.0...v0.107.1
 [v0.107.0]: https://github.com/newrelic/newrelic-cli/compare/v0.106.23...v0.107.0
 [v0.106.23]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...v0.106.23
