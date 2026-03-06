@@ -63,8 +63,9 @@ type DashboardWidgetFacet struct {
 }
 
 type DashboardWidgetNRQLQuery struct {
-	AccountID int    `json:"accountId"`
-	Query     string `json:"query"`
+	AccountID  int    `json:"accountId"`
+	AccountIDs []int  `json:"accountIds"`
+	Query      string `json:"query"`
 }
 
 type DashboardWidgetLegend struct {
@@ -170,7 +171,12 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 
 						for _, q := range config.NRQLQueries {
 							h.WriteBlock("nrql_query", []string{}, func() {
-								h.WriteIntAttributeIfNotZero("account_id", q.AccountID)
+								// Handle both accountId (singular) and accountIds (plural array)
+								accountID := q.AccountID
+								if accountID == 0 && len(q.AccountIDs) > 0 {
+									accountID = q.AccountIDs[0]
+								}
+								h.WriteIntAttributeIfNotZero("account_id", accountID)
 								h.WriteMultilineStringAttribute("query", q.Query)
 							})
 						}
