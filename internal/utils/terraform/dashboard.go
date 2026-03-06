@@ -172,27 +172,7 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 
 						for _, q := range config.NRQLQueries {
 							h.WriteBlock("nrql_query", []string{}, func() {
-								// Handle both accountId (singular) and accountIds (plural array)
-								if q.AccountID != 0 {
-									// Single account ID from accountId field
-									h.WriteIntAttribute("account_id", q.AccountID)
-								} else if len(q.AccountIDs) > 0 {
-									if len(q.AccountIDs) == 1 {
-										// Single account ID from accountIds array
-										h.WriteIntAttribute("account_id", q.AccountIDs[0])
-									} else {
-										// Multiple account IDs - build jsonencode format inline
-										arrayString := "["
-										for i, id := range q.AccountIDs {
-											if i > 0 {
-												arrayString += ", "
-											}
-											arrayString += fmt.Sprintf("%d", id)
-										}
-										arrayString += "]"
-										h.WriteString(fmt.Sprintf("%saccount_id = jsonencode(%s)\n", h.i, arrayString))
-									}
-								}
+								writeAccountID(h, q)
 								h.WriteMultilineStringAttribute("query", q.Query)
 							})
 						}
@@ -290,6 +270,37 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 	})
 
 	return h.String(), nil
+}
+
+// writeAccountID handles writing account_id for NRQL queries, supporting both accountId (singular) and accountIds (plural array)
+func writeAccountID(h *HCLGen, q DashboardWidgetNRQLQuery) {
+	// Handle accountId (singular) field
+	if q.AccountID != 0 {
+		h.WriteIntAttribute("account_id", q.AccountID)
+		return
+	}
+
+	// Handle accountIds (plural array) field
+	if len(q.AccountIDs) == 0 {
+		return
+	}
+
+	if len(q.AccountIDs) == 1 {
+		// Single account ID from accountIds array
+		h.WriteIntAttribute("account_id", q.AccountIDs[0])
+		return
+	}
+
+	// Multiple account IDs - build jsonencode format inline
+	arrayString := "["
+	for i, id := range q.AccountIDs {
+		if i > 0 {
+			arrayString += ", "
+		}
+		arrayString += fmt.Sprintf("%d", id)
+	}
+	arrayString += "]"
+	h.WriteString(fmt.Sprintf("%saccount_id = jsonencode(%s)\n", h.i, arrayString))
 }
 
 func unmarshalDashboardWidgetRawConfiguration(title string, widgetType string, b []byte) *DashboardWidgetRawConfiguration {
