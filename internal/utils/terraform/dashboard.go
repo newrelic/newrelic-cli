@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -172,11 +173,26 @@ func GenerateDashboardHCL(resourceLabel string, shiftWidth int, input []byte) (s
 						for _, q := range config.NRQLQueries {
 							h.WriteBlock("nrql_query", []string{}, func() {
 								// Handle both accountId (singular) and accountIds (plural array)
-								accountID := q.AccountID
-								if accountID == 0 && len(q.AccountIDs) > 0 {
-									accountID = q.AccountIDs[0]
+								if q.AccountID != 0 {
+									// Single account ID from accountId field
+									h.WriteIntAttribute("account_id", q.AccountID)
+								} else if len(q.AccountIDs) > 0 {
+									if len(q.AccountIDs) == 1 {
+										// Single account ID from accountIds array
+										h.WriteIntAttribute("account_id", q.AccountIDs[0])
+									} else {
+										// Multiple account IDs - build jsonencode format inline
+										arrayString := "["
+										for i, id := range q.AccountIDs {
+											if i > 0 {
+												arrayString += ", "
+											}
+											arrayString += fmt.Sprintf("%d", id)
+										}
+										arrayString += "]"
+										h.WriteString(fmt.Sprintf("%saccount_id = jsonencode(%s)\n", h.i, arrayString))
+									}
 								}
-								h.WriteIntAttributeIfNotZero("account_id", accountID)
 								h.WriteMultilineStringAttribute("query", q.Query)
 							})
 						}
