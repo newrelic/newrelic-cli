@@ -51,6 +51,10 @@ func (g *PlatformLinkGenerator) GenerateFleetLink(entityGUID string) string {
 	return g.generateFleetLink(entityGUID)
 }
 
+func (g *PlatformLinkGenerator) GenerateGuidedInstallDocLink() string {
+	return "https://docs.newrelic.com/docs/infrastructure/infrastructure-agent/new-relic-guided-install-overview/"
+}
+
 // GenerateRedirectURL creates a URL for the user to navigate to after running
 // through an installation. The URL is displayed in the CLI out as well and is
 // also provided in the nerdstorage document. This provides the user two options
@@ -77,6 +81,12 @@ type referrerParamValue struct {
 type loggingLauncher struct {
 	Query    string `json:"query"`
 	Referrer string `json:"referrer,omitempty"`
+}
+
+type fleetLauncher struct {
+	NerdletID string `json:"nerdletId"`
+	Referrer  string `json:"referrer"`
+	FleetGUID string `json:"fleetGuid"`
 }
 
 // The CLI URL referrer param is a JSON string containing information
@@ -164,9 +174,33 @@ func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string)
 	return string(stringifiedParam)
 }
 
-func (g *PlatformLinkGenerator) generateFleetLink(_ string) string {
-	longURL := fmt.Sprintf("https://%s/fleet",
+func (g *PlatformLinkGenerator) generateFleetLauncherParams(fleetGUID string) string {
+	p := fleetLauncher{
+		NerdletID: "fleet.detail",
+		Referrer:  "newrelic-cli",
+		FleetGUID: strings.TrimSpace(fleetGUID),
+	}
+
+	stringifiedParam, err := json.Marshal(p)
+	if err != nil {
+		log.Debugf("error marshaling fleet launcher param: %s", err)
+		return ""
+	}
+
+	return string(stringifiedParam)
+}
+
+func (g *PlatformLinkGenerator) generateFleetLink(fleetGUID string) string {
+	// If no fleet GUID is available, return the base fleets URL
+	trimmedGUID := strings.TrimSpace(fleetGUID)
+	if trimmedGUID == "" {
+		return fmt.Sprintf("https://%s/fleet", nrPlatformHostname())
+	}
+
+	longURL := fmt.Sprintf("https://%s/launcher/new-relic-control.launcher?platform[accountId]=%d&pane=%s",
 		nrPlatformHostname(),
+		configAPI.GetActiveProfileAccountID(),
+		utils.Base64Encode(g.generateFleetLauncherParams(trimmedGUID)),
 	)
 
 	shortURL, err := g.generateShortNewRelicURL(longURL)

@@ -5,5 +5,6 @@ type LinkGenerator interface {
 	GenerateEntityLink(entityGUID string) string
 	GenerateLoggingLink(entityGUID string) string
 	GenerateFleetLink(entityGUID string) string
+	GenerateGuidedInstallDocLink() string
 	GenerateRedirectURL(status InstallStatus) string
 }
