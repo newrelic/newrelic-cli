@@ -1,5 +1,13 @@
+<a name="v0.108.0"></a>
+## [v0.108.0] - 2026-03-09
+### Bug Fixes
+- **docs:** update GPG public key fingerprint in README ([#1800](https://github.com/newrelic/newrelic-cli/issues/1800))
+
+### Features
+- Modify final links for agent control ([#1803](https://github.com/newrelic/newrelic-cli/issues/1803))
+
 <a name="v0.107.2"></a>
-## [v0.107.2] - 2026-03-03
+## [v0.107.2] - 2026-03-04
 ### Bug Fixes
 - update alpine image to the latest version ([#1797](https://github.com/newrelic/newrelic-cli/issues/1797))
 
@@ -2713,7 +2721,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.107.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.108.0...HEAD
+[v0.108.0]: https://github.com/newrelic/newrelic-cli/compare/v0.107.2...v0.108.0
 [v0.107.2]: https://github.com/newrelic/newrelic-cli/compare/v0.107.1...v0.107.2
 [v0.107.1]: https://github.com/newrelic/newrelic-cli/compare/v0.107.0...v0.107.1
 [v0.107.0]: https://github.com/newrelic/newrelic-cli/compare/v0.106.23...v0.107.0
