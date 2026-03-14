@@ -14,7 +14,7 @@ require (
 	github.com/x-motemen/gobump v0.2.0
 	golang.org/x/tools v0.42.0
 	golang.org/x/tools/cmd/godoc v0.1.0-deprecated
-	gotest.tools/gotestsum v1.13.0
+	gotest.tools/gotestsum v1.8.2
 )
 
 require (
@@ -118,7 +118,6 @@ require (
 	github.com/awslabs/amazon-ecr-credential-helper/ecr-login v0.12.0 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bitfield/gotestdox v0.2.2 // indirect
 	github.com/bkielbasa/cyclop v1.2.3 // indirect
 	github.com/blacktop/go-dwarf v1.0.14 // indirect
 	github.com/blacktop/go-macho v1.1.258 // indirect
