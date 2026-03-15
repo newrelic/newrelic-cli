@@ -48,11 +48,8 @@ checksum:
     - glob: "scripts/install.ps1"
 archives:
   - id: "default"
-    builds:
+    ids:
       - newrelic
-    format_overrides:
-      - goos: windows
-        format: zip
     files:
       - CHANGELOG.md
       - LICENSE
@@ -74,7 +71,9 @@ signs:
       ]
 
 dockers:
-  - dockerfile: build/package/Dockerfile
+  - ids:
+      - newrelic
+    dockerfile: build/package/Dockerfile
     image_templates:
       - "newrelic/cli:{{ .Tag }}-amd64"
       - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-amd64"
@@ -89,7 +88,9 @@ dockers:
       - "--provenance=false"
       - "--sbom=false"
     goarch: amd64
-  - dockerfile: build/package/Dockerfile
+  - ids:
+      - newrelic
+    dockerfile: build/package/Dockerfile
     image_templates:
       - "newrelic/cli:{{ .Tag }}-arm64"
       - "newrelic/cli:v{{ .Major }}.{{ .Minor }}-arm64"
@@ -180,7 +181,7 @@ nfpms:
   - id: newrelic
     package_name: newrelic-cli
     file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    builds:
+    ids:
       - newrelic
     vendor: New Relic
     homepage: https://github.com/newrelic/newrelic-cli
