@@ -1,6 +1,6 @@
 RELEASE_SCRIPT ?= ./scripts/release.sh
 
-GOTOOLS += github.com/goreleaser/goreleaser/v2
+GOTOOLS += github.com/goreleaser/goreleaser
 
 REL_CMD ?= goreleaser
 DIST_DIR ?= ./dist
@@ -27,7 +27,7 @@ release-publish: clean tools docker-login release-notes recipes
 snapshot: clean tools recipes
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]: Creating release via $(REL_CMD)"
 	@echo "=== $(PROJECT_NAME) === [ snapshot         ]:   THIS WILL NOT BE PUBLISHED!"
-	@$(REL_CMD) --skip=publish --snapshot
+	@$(REL_CMD) --skip-publish --snapshot
 
 release-homebrew:
 ifeq ($(HOMEBREW_GITHUB_API_TOKEN), "")
