@@ -1,3 +1,12 @@
+<a name="v0.109.0"></a>
+## [v0.109.0] - 2026-03-16
+### Bug Fixes
+- **dashboard:** handle missing thresholds and multiple account IDs in JSON to HCL converter ([#1799](https://github.com/newrelic/newrelic-cli/issues/1799))
+- **release:** Use Go 1.26-compatible goversioninfo fork ([#1808](https://github.com/newrelic/newrelic-cli/issues/1808))
+
+### Features
+- **dashboard:** add billboard settings support to JSON to HCL converter ([#1745](https://github.com/newrelic/newrelic-cli/issues/1745))
+
 <a name="v0.108.1"></a>
 ## [v0.108.1] - 2026-03-10
 <a name="v0.108.0"></a>
