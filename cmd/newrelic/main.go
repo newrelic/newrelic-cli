@@ -1,4 +1,4 @@
-//go:generate goversioninfo -o=resource_windows.syso
+//go:generate goversioninfo -64 -o=resource_windows.syso
 package main
 
 import (
