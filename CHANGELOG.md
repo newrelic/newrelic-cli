@@ -1,5 +1,13 @@
+<a name="v0.109.0"></a>
+## [v0.109.0] - 2026-03-16
+### Bug Fixes
+- **dashboard:** handle missing thresholds and multiple account IDs in JSON to HCL converter ([#1799](https://github.com/newrelic/newrelic-cli/issues/1799))
+
+### Features
+- **dashboard:** add billboard settings support to JSON to HCL converter ([#1745](https://github.com/newrelic/newrelic-cli/issues/1745))
+
 <a name="v0.108.1"></a>
-## [v0.108.1] - 2026-03-09
+## [v0.108.1] - 2026-03-10
 <a name="v0.108.0"></a>
 ## [v0.108.0] - 2026-03-09
 ### Bug Fixes
@@ -2723,7 +2731,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.108.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.109.0...HEAD
+[v0.109.0]: https://github.com/newrelic/newrelic-cli/compare/v0.108.1...v0.109.0
 [v0.108.1]: https://github.com/newrelic/newrelic-cli/compare/v0.108.0...v0.108.1
 [v0.108.0]: https://github.com/newrelic/newrelic-cli/compare/v0.107.2...v0.108.0
 [v0.107.2]: https://github.com/newrelic/newrelic-cli/compare/v0.107.1...v0.107.2
