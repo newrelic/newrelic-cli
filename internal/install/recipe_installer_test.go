@@ -572,16 +572,6 @@ func TestShouldSkipReporting(t *testing.T) {
 	b = recipeInstall.shouldSkipReporting("logs-integration")
 	assert.Equal(t, true, b, "Agent Control Provided")
 
-	recipeInstall = NewRecipeInstallBuilder().WithTargetRecipeName("logs-integration-agent-control").Build()
-	b = recipeInstall.shouldSkipReporting("infrastructure-agent-installer")
-	assert.Equal(t, true, b, "Agent Control Provided")
-
-	recipeInstall = NewRecipeInstallBuilder().WithTargetRecipeName("logs-integration-agent-control").Build()
-	b = recipeInstall.shouldSkipReporting("logs-integration")
-	assert.Equal(t, true, b, "Agent Control Provided")
-
-	// Agent Control / Logs not included -> should return false
-
 	recipeInstall = NewRecipeInstallBuilder().Build()
 	b = recipeInstall.shouldSkipReporting("infrastructure-agent-installer")
 	assert.Equal(t, false, b, "Agent Control Provided")

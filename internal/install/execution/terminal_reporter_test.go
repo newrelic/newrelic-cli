@@ -22,7 +22,9 @@ func Test_ShouldGenerateEntityLink(t *testing.T) {
 		PlatformLinkGenerator: g,
 	}
 	recipeStatus := &RecipeStatus{
-		Status: RecipeStatusTypes.INSTALLED,
+		DisplayName: "Non AgentControl Integration",
+		Name:        types.InfraAgentRecipeName,
+		Status:      RecipeStatusTypes.INSTALLED,
 	}
 	status.Statuses = append(status.Statuses, recipeStatus)
 
@@ -40,7 +42,9 @@ func Test_ShouldNotGenerateEntityLink(t *testing.T) {
 		PlatformLinkGenerator: g,
 	}
 	recipeStatus := &RecipeStatus{
-		Status: RecipeStatusTypes.FAILED,
+		DisplayName: "Non AgentControl Integration",
+		Name:        types.InfraAgentRecipeName,
+		Status:      RecipeStatusTypes.FAILED,
 	}
 	status.Statuses = append(status.Statuses, recipeStatus)
 
@@ -99,14 +103,8 @@ func Test_ShouldGenerateLoggingLink(t *testing.T) {
 		Name:        types.LoggingRecipeName,
 		Status:      RecipeStatusTypes.INSTALLED,
 	}
-	loggingAgentControlRecipeStatus := &RecipeStatus{
-		DisplayName: "Logs integration",
-		Name:        types.LoggingAgentControlRecipeName,
-		Status:      RecipeStatusTypes.INSTALLED,
-	}
 
 	status.Statuses = append(status.Statuses, loggingRecipeStatus)
-	status.Statuses = append(status.Statuses, loggingAgentControlRecipeStatus)
 
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
@@ -122,7 +120,9 @@ func Test_ShouldNotGenerateExplorerLink(t *testing.T) {
 		PlatformLinkGenerator: g,
 	}
 	recipeStatus := &RecipeStatus{
-		Status: RecipeStatusTypes.FAILED,
+		DisplayName: "Non AgentControl Integration",
+		Name:        types.InfraAgentRecipeName,
+		Status:      RecipeStatusTypes.FAILED,
 	}
 	status.Statuses = append(status.Statuses, recipeStatus)
 	status.successLinkConfig = types.OpenInstallationSuccessLinkConfig{
@@ -248,7 +248,7 @@ func Test_ShouldNotGenerateRedirectURLForAgentControlOnly(t *testing.T) {
 	require.Equal(t, 0, g.GenerateRedirectURLCallCount)
 }
 
-func Test_ShouldGenerateRedirectURLForAgentControlPlusOtherRecipes(t *testing.T) {
+func Test_ShouldNotGenerateRedirectURLForAgentControlPlusOtherRecipes(t *testing.T) {
 	r := NewTerminalStatusReporter()
 	g := NewMockPlatformLinkGenerator()
 	g.GenerateRedirectURLVal = "https://one.newrelic.com/redirect"
@@ -269,7 +269,7 @@ func Test_ShouldGenerateRedirectURLForAgentControlPlusOtherRecipes(t *testing.T)
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
 
-	require.Equal(t, 1, g.GenerateRedirectURLCallCount)
+	require.Equal(t, 0, g.GenerateRedirectURLCallCount)
 }
 
 func Test_ShouldGenerateRedirectURLForNonAgentControlRecipes(t *testing.T) {
@@ -292,68 +292,23 @@ func Test_ShouldGenerateRedirectURLForNonAgentControlRecipes(t *testing.T) {
 	require.Equal(t, 1, g.GenerateRedirectURLCallCount)
 }
 
-func Test_isOnlyAgentControlInstallation_OnlyAgentControl(t *testing.T) {
+func Test_isOnlyAgentControlInstallation_ShouldGenerateFleetConfigurationDocLink(t *testing.T) {
 	r := NewTerminalStatusReporter()
+	g := NewMockPlatformLinkGenerator()
+	g.GenerateFleetConfigurationDocLinkVal = "https://one.newrelic.com/fleet-doc"
 
-	status := &InstallStatus{}
+	status := &InstallStatus{
+		PlatformLinkGenerator: g,
+	}
 	agentControlRecipe := &RecipeStatus{
 		Name:   types.AgentControlRecipeName,
 		Status: RecipeStatusTypes.INSTALLED,
 	}
-	loggingAgentControlRecipe := &RecipeStatus{
-		Name:   types.LoggingAgentControlRecipeName,
-		Status: RecipeStatusTypes.INSTALLED,
-	}
-	status.Statuses = []*RecipeStatus{agentControlRecipe, loggingAgentControlRecipe}
+	status.Statuses = []*RecipeStatus{agentControlRecipe}
 
-	result := r.isOnlyAgentControlInstallation(status)
-	require.True(t, result, "should return true when only agent-control recipes are installed")
-}
-
-func Test_isOnlyAgentControlInstallation_MixedRecipes(t *testing.T) {
-	r := NewTerminalStatusReporter()
-
-	status := &InstallStatus{}
-	agentControlRecipe := &RecipeStatus{
-		Name:   types.AgentControlRecipeName,
-		Status: RecipeStatusTypes.INSTALLED,
-	}
-	otherRecipe := &RecipeStatus{
-		Name:   "infrastructure-agent-installer",
-		Status: RecipeStatusTypes.INSTALLED,
-	}
-	status.Statuses = []*RecipeStatus{agentControlRecipe, otherRecipe}
-
-	result := r.isOnlyAgentControlInstallation(status)
-	require.False(t, result, "should return false when agent-control is mixed with other recipes")
-}
-
-func Test_isOnlyAgentControlInstallation_NoAgentControl(t *testing.T) {
-	r := NewTerminalStatusReporter()
-
-	status := &InstallStatus{}
-	otherRecipe := &RecipeStatus{
-		Name:   "infrastructure-agent-installer",
-		Status: RecipeStatusTypes.INSTALLED,
-	}
-	status.Statuses = []*RecipeStatus{otherRecipe}
-
-	result := r.isOnlyAgentControlInstallation(status)
-	require.False(t, result, "should return false when no agent-control recipes are installed")
-}
-
-func Test_isOnlyAgentControlInstallation_NoInstalledRecipes(t *testing.T) {
-	r := NewTerminalStatusReporter()
-
-	status := &InstallStatus{}
-	failedRecipe := &RecipeStatus{
-		Name:   types.AgentControlRecipeName,
-		Status: RecipeStatusTypes.FAILED,
-	}
-	status.Statuses = []*RecipeStatus{failedRecipe}
-
-	result := r.isOnlyAgentControlInstallation(status)
-	require.False(t, result, "should return false when no recipes are installed (only failed)")
+	err := r.InstallComplete(status)
+	require.NoError(t, err)
+	require.Equal(t, 1, g.GenerateFleetConfigurationDocLinkCallCount)
 }
 
 func Test_isOnlyAgentControlAttempt_OnlyAgentControlFailed(t *testing.T) {
@@ -420,11 +375,7 @@ func Test_isOnlyAgentControlAttempt_BothAgentControlTypes(t *testing.T) {
 		Name:   types.AgentControlRecipeName,
 		Status: RecipeStatusTypes.FAILED,
 	}
-	loggingAgentControlRecipe := &RecipeStatus{
-		Name:   types.LoggingAgentControlRecipeName,
-		Status: RecipeStatusTypes.FAILED,
-	}
-	status.Statuses = []*RecipeStatus{agentControlRecipe, loggingAgentControlRecipe}
+	status.Statuses = []*RecipeStatus{agentControlRecipe}
 
 	result := r.isOnlyAgentControlAttempt(status)
 	require.True(t, result, "should return true when only agent-control recipes (both types) were attempted")
@@ -529,6 +480,6 @@ func Test_InstallComplete_SuccessfulMixedInstallation(t *testing.T) {
 	err := r.InstallComplete(status)
 	require.NoError(t, err)
 
-	require.Equal(t, 1, g.GenerateRedirectURLCallCount)
+	require.Equal(t, 1, g.GenerateFleetConfigurationDocLinkCallCount)
 	require.Equal(t, 0, g.GenerateGuidedInstallDocLinkCallCount)
 }

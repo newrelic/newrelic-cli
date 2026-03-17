@@ -81,64 +81,62 @@ func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
-	hasStatuses := len(status.Statuses) > 0
-	if hasStatuses {
-		hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
-
-		if hasInstalledRecipes {
-			fmt.Print("\n  New Relic installation complete \n\n")
-		}
-
-		fmt.Println("  --------------------")
-		fmt.Println("  Installation Summary")
-		fmt.Println("")
-		r.printInstallationSummary(os.Stdout, status)
-
-		// Check if only agent-control recipes were installed (successfully)
-		isOnlyAgentControl := r.isOnlyAgentControlInstallation(status)
-		// Check if all recipes attempted (regardless of status) are agent-control
-		isOnlyAgentControlAttempt := r.isOnlyAgentControlAttempt(status)
-
-		msg := "View your data at the link below:\n"
-		followInstructionsMsg := "Follow the instructions at the URL below to complete the installation process."
-		if hasInstalledRecipes && (status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) || status.hasAnyRecipeStatus(RecipeStatusTypes.UNSUPPORTED)) {
-			msg = fmt.Sprintf("Installation was successful overall, however, one or more installations could not be completed.\n  %s \n\n", followInstructionsMsg)
-		} else if !hasInstalledRecipes {
-			msg = fmt.Sprintf("Installation incomplete. %s \n\n", followInstructionsMsg)
-		}
-
-		// Generate redirect link only when needed (not for agent-control only installations)
-		linkToData := ""
-		if status.PlatformLinkGenerator != nil && !isOnlyAgentControl && !isOnlyAgentControlAttempt {
-			linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
-		}
-
-		// For incomplete installations: show message with appropriate link
-		if !hasInstalledRecipes {
-			if isOnlyAgentControlAttempt && status.PlatformLinkGenerator != nil {
-				// Agent-control incomplete installation: use documentation link
-				agentControlDocLink := status.PlatformLinkGenerator.GenerateGuidedInstallDocLink()
-				fmt.Printf("\n  %s", msg)
-				fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), agentControlDocLink)
-			} else if linkToData != "" {
-				// Non-agent-control incomplete installation: use regular link
-				fmt.Printf("\n  %s", msg)
-				fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
-			}
-		} else if linkToData != "" && !isOnlyAgentControl {
-			// Successful installation (not agent-control only): show "View your data" link
-			fmt.Printf("\n  %s", msg)
-			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
-		}
-
-		r.printLoggingLink(status)
-
-		r.printFleetLink(status)
-
-		fmt.Println()
-		fmt.Println("\n  --------------------")
-		fmt.Println()
+	if len(status.Statuses) == 0 {
+		return nil
 	}
+
+	hasInstalled := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+	hasFailures := status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) || status.hasAnyRecipeStatus(RecipeStatusTypes.UNSUPPORTED)
+	isAgentControl := r.isAgentControlInstalled(status)
+	isAgentControlAttempt := r.isOnlyAgentControlAttempt(status)
+
+	if hasInstalled {
+		fmt.Print("\n  New Relic installation complete \n\n")
+	}
+
+	fmt.Println("  --------------------")
+	fmt.Println("  What's next?")
+	r.printInstallationSummary(os.Stdout, status)
+
+	var msg, link string
+	dataLink := ""
+	if status.PlatformLinkGenerator != nil && !isAgentControl && !isAgentControlAttempt {
+		dataLink = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
+	}
+
+	switch {
+	case isAgentControl:
+		msg = "Learn about configuring your agent and fleet:"
+		if status.PlatformLinkGenerator != nil {
+			link = status.PlatformLinkGenerator.GenerateFleetConfigurationDocLink()
+		}
+
+	case !hasInstalled:
+		msg = "The installation is incomplete. Follow the instructions at the URL below to complete the installation process."
+		if isAgentControlAttempt && status.PlatformLinkGenerator != nil {
+			link = status.PlatformLinkGenerator.GenerateGuidedInstallDocLink()
+		} else {
+			link = dataLink
+		}
+
+	case hasFailures:
+		msg = "Installation was successful overall, however, one or more installations could not be completed.\n  Follow the instructions at the URL below to complete the installation process."
+		link = dataLink
+
+	default:
+		msg = "View your data at the link below:"
+		link = dataLink
+	}
+
+	if link != "" {
+		fmt.Printf("\n  %s\n", msg)
+		fmt.Printf("  %s  %s\n", color.GreenString(ux.IconArrowRight), link)
+	}
+
+	r.printLoggingLink(status)
+	r.printFleetLink(status)
+
+	fmt.Printf("\n  --------------------\n\n")
 
 	return nil
 }
@@ -167,11 +165,11 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 
 func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 	linkToFleet := ""
-	fleetMsg := "View your fleet at the link below:\n"
+	fleetMsg := "Check out your agent in our Fleet Control UI:\n"
 	statuses := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statuses {
-		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
+		isAgentControlRecipe := s.Name == types.AgentControlRecipeName
 
 		if s.Status == RecipeStatusTypes.INSTALLED && isAgentControlRecipe {
 			// Use NR_CLI_FLEET_ID environment variable if available, otherwise fall back to entity GUID
@@ -197,22 +195,20 @@ func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 	}
 }
 
-func (r TerminalStatusReporter) isOnlyAgentControlInstallation(status *InstallStatus) bool {
+func (r TerminalStatusReporter) isAgentControlInstalled(status *InstallStatus) bool {
 	statuses := r.getRecipesStatusesForInstallationSummary(status)
-	hasInstalledRecipes := false
-	hasNonAgentControlRecipes := false
+	isAgentControlRecipeInstalled := false
 
 	for _, s := range statuses {
 		if s.Status == RecipeStatusTypes.INSTALLED {
-			hasInstalledRecipes = true
-			isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
-			if !isAgentControlRecipe {
-				hasNonAgentControlRecipes = true
+			isAgentControlRecipe := s.Name == types.AgentControlRecipeName
+			if isAgentControlRecipe {
+				isAgentControlRecipeInstalled = true
 				break
 			}
 		}
 	}
-	return hasInstalledRecipes && !hasNonAgentControlRecipes
+	return isAgentControlRecipeInstalled
 }
 
 func (r TerminalStatusReporter) isOnlyAgentControlAttempt(status *InstallStatus) bool {
@@ -222,7 +218,7 @@ func (r TerminalStatusReporter) isOnlyAgentControlAttempt(status *InstallStatus)
 	}
 
 	for _, s := range statuses {
-		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
+		isAgentControlRecipe := s.Name == types.AgentControlRecipeName
 		if !isAgentControlRecipe {
 			return false
 		}
