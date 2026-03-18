@@ -3,18 +3,20 @@ package execution
 import "strings"
 
 type MockPlatformLinkGenerator struct {
-	GenerateExplorerLinkCallCount         int
-	GenerateEntityLinkCallCount           int
-	GenerateLoggingLinkCallCount          int
-	GenerateFleetLinkCallCount            int
-	GenerateRedirectURLCallCount          int
-	GenerateGuidedInstallDocLinkCallCount int
-	GenerateExplorerLinkVal               string
-	GenerateEntityLinkVal                 string
-	GenerateLoggingLinkVal                string
-	GenerateFleetLinkVal                  string
-	GenerateRedirectURLVal                string
-	GenerateGuidedInstallDocLinkVal       string
+	GenerateExplorerLinkCallCount              int
+	GenerateEntityLinkCallCount                int
+	GenerateLoggingLinkCallCount               int
+	GenerateFleetLinkCallCount                 int
+	GenerateRedirectURLCallCount               int
+	GenerateGuidedInstallDocLinkCallCount      int
+	GenerateFleetConfigurationDocLinkCallCount int
+	GenerateExplorerLinkVal                    string
+	GenerateEntityLinkVal                      string
+	GenerateLoggingLinkVal                     string
+	GenerateFleetLinkVal                       string
+	GenerateRedirectURLVal                     string
+	GenerateGuidedInstallDocLinkVal            string
+	GenerateFleetConfigurationDocLinkVal       string
 }
 
 func NewMockPlatformLinkGenerator() *MockPlatformLinkGenerator {
@@ -47,6 +49,14 @@ func (g *MockPlatformLinkGenerator) GenerateGuidedInstallDocLink() string {
 		return g.GenerateGuidedInstallDocLinkVal
 	}
 	return "https://docs.newrelic.com/docs/infrastructure/infrastructure-agent/new-relic-guided-install-overview/"
+}
+
+func (g *MockPlatformLinkGenerator) GenerateFleetConfigurationDocLink() string {
+	g.GenerateFleetConfigurationDocLinkCallCount++
+	if g.GenerateFleetConfigurationDocLinkVal != "" {
+		return g.GenerateFleetConfigurationDocLinkVal
+	}
+	return "https://docs.newrelic.com/docs/new-relic-control/fleet-control/setup/"
 }
 
 func (g *MockPlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string {

@@ -55,6 +55,10 @@ func (g *PlatformLinkGenerator) GenerateGuidedInstallDocLink() string {
 	return "https://docs.newrelic.com/docs/infrastructure/infrastructure-agent/new-relic-guided-install-overview/"
 }
 
+func (g *PlatformLinkGenerator) GenerateFleetConfigurationDocLink() string {
+	return "https://docs.newrelic.com/docs/new-relic-control/fleet-control/setup/"
+}
+
 // GenerateRedirectURL creates a URL for the user to navigate to after running
 // through an installation. The URL is displayed in the CLI out as well and is
 // also provided in the nerdstorage document. This provides the user two options
