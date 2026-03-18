@@ -1,3 +1,8 @@
+<a name="v0.111.0"></a>
+## [v0.111.0] - 2026-03-18
+### Features
+- modify copies from several installation steps and remove logs-integration-agent-control logic ([#1811](https://github.com/newrelic/newrelic-cli/issues/1811))
+
 <a name="v0.110.0"></a>
 ## [v0.110.0] - 2026-03-16
 ### Features
@@ -2737,7 +2742,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.110.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...HEAD
+[v0.111.0]: https://github.com/newrelic/newrelic-cli/compare/v0.110.0...v0.111.0
 [v0.110.0]: https://github.com/newrelic/newrelic-cli/compare/v0.109.0...v0.110.0
 [v0.109.0]: https://github.com/newrelic/newrelic-cli/compare/v0.108.1...v0.109.0
 [v0.108.1]: https://github.com/newrelic/newrelic-cli/compare/v0.108.0...v0.108.1
