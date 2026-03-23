@@ -3,14 +3,20 @@ package execution
 import "strings"
 
 type MockPlatformLinkGenerator struct {
-	GenerateExplorerLinkCallCount int
-	GenerateEntityLinkCallCount   int
-	GenerateLoggingLinkCallCount  int
-	GenerateFleetLinkCallCount    int
-	GenerateExplorerLinkVal       string
-	GenerateEntityLinkVal         string
-	GenerateLoggingLinkVal        string
-	GenerateFleetLinkVal          string
+	GenerateExplorerLinkCallCount              int
+	GenerateEntityLinkCallCount                int
+	GenerateLoggingLinkCallCount               int
+	GenerateFleetLinkCallCount                 int
+	GenerateRedirectURLCallCount               int
+	GenerateGuidedInstallDocLinkCallCount      int
+	GenerateFleetConfigurationDocLinkCallCount int
+	GenerateExplorerLinkVal                    string
+	GenerateEntityLinkVal                      string
+	GenerateLoggingLinkVal                     string
+	GenerateFleetLinkVal                       string
+	GenerateRedirectURLVal                     string
+	GenerateGuidedInstallDocLinkVal            string
+	GenerateFleetConfigurationDocLinkVal       string
 }
 
 func NewMockPlatformLinkGenerator() *MockPlatformLinkGenerator {
@@ -37,7 +43,24 @@ func (g *MockPlatformLinkGenerator) GenerateFleetLink(entityGUID string) string 
 	return g.GenerateFleetLinkVal
 }
 
+func (g *MockPlatformLinkGenerator) GenerateGuidedInstallDocLink() string {
+	g.GenerateGuidedInstallDocLinkCallCount++
+	if g.GenerateGuidedInstallDocLinkVal != "" {
+		return g.GenerateGuidedInstallDocLinkVal
+	}
+	return "https://docs.newrelic.com/docs/infrastructure/infrastructure-agent/new-relic-guided-install-overview/"
+}
+
+func (g *MockPlatformLinkGenerator) GenerateFleetConfigurationDocLink() string {
+	g.GenerateFleetConfigurationDocLinkCallCount++
+	if g.GenerateFleetConfigurationDocLinkVal != "" {
+		return g.GenerateFleetConfigurationDocLinkVal
+	}
+	return "https://docs.newrelic.com/docs/new-relic-control/fleet-control/setup/"
+}
+
 func (g *MockPlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) string {
+	g.GenerateRedirectURLCallCount++
 	if status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED) {
 		switch t := status.successLinkConfig.Type; {
 		case strings.EqualFold(string(t), "explorer"):
@@ -47,5 +70,5 @@ func (g *MockPlatformLinkGenerator) GenerateRedirectURL(status InstallStatus) st
 		}
 	}
 
-	return ""
+	return g.GenerateRedirectURLVal
 }

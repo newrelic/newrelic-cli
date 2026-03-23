@@ -289,14 +289,14 @@ func (i *RecipeInstall) connectToPlatform() error {
 		loaderChan <- nil
 	}()
 
-	i.progressIndicator.Start("Connecting to New Relic Platform")
+	i.progressIndicator.Start("Connecting to the New Relic platform")
 
 	loaded := <-loaderChan
 
 	if loaded == nil {
-		i.progressIndicator.Success("Connecting to New Relic Platform")
+		i.progressIndicator.Success("Connecting to the New Relic platform")
 	} else {
-		i.progressIndicator.Fail("Connecting to New Relic Platform")
+		i.progressIndicator.Fail("Connecting to the New Relic platform")
 	}
 
 	return loaded
@@ -414,7 +414,7 @@ func (i *RecipeInstall) reportRecipeRecommendations(availableRecipes recipes.Rec
 func (i *RecipeInstall) shouldSkipReporting(name string) bool {
 	if name == "infrastructure-agent-installer" || name == "logs-integration" {
 		for _, v := range i.RecipeNames {
-			if v == "agent-control" || v == "logs-integration-agent-control" {
+			if v == "agent-control" {
 				return true
 			}
 		}
@@ -663,7 +663,7 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		// Needed to move some of the failure CLI output/messaging here.  We want to capture metadata on when a user
 		// opts in/out of sending cli logs, and this must occur before we build the RecipeStatusEvent to post to NR
 		msg := fmt.Sprintf("execution failed for %s: %s", r.Name, err)
-		i.optInToSendLogsAndUpdateRecipeMetadata(r.Name)
+		i.optInToSendLogsAndUpdateRecipeMetadata(r.DisplayName)
 		// FIX: This should rerun the executed command
 		i.askToReRunInDebugMode()
 
@@ -741,8 +741,8 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 	return entityGUID, nil
 }
 
-func (i *RecipeInstall) optInToSendLogsAndUpdateRecipeMetadata(recipeName string) {
-	i.progressIndicator.Fail("Installing " + recipeName)
+func (i *RecipeInstall) optInToSendLogsAndUpdateRecipeMetadata(displayName string) {
+	i.progressIndicator.Fail("Installing " + displayName)
 	recipeOutput := i.recipeExecutor.GetRecipeOutput()
 	logCaptureEnabledForRecipe := i.recipeExecutor.GetOutput().IsCapturedCliOutput()
 	if len(recipeOutput) > 0 && logCaptureEnabledForRecipe {
@@ -761,13 +761,12 @@ func (i *RecipeInstall) askToReRunInDebugMode() {
 }
 
 func (i *RecipeInstall) promptUserToReRun() {
-	fmt.Printf("\n%s Installation failed. To help identify the issue, you can re-run the installation command with the --debug flag. This will enable verbose logging and provide more detailed information about each step of the installation process. Use the command newrelic install --debug to start the installation with debug mode enabled.", color.YellowString("\u0021"))
+	fmt.Printf("\n%s To investigate the issue, you can re-run the installation command with the --debug flag. This will turn on verbose logging and provide more detailed information about each step of the installation process. Use the command newrelic install --debug to start the installation with debug mode.", color.YellowString("\u0021"))
 
 	// NOTE: This is only after Infra is installed on the host. If no infra agent is present then root/.newrelic wouldn't be created
 	if i.processEvaluator.FindProcess(types.InfraAgentProcessName) {
 		fmt.Printf("\n%s For viewing the logs, please navigate to /root/.newrelic/newrelic-cli.log. ", color.YellowString("\u0021"))
 	}
-
 }
 
 type validationFunc func() (string, error)

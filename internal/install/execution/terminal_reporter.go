@@ -81,45 +81,62 @@ func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
-	linkToData := ""
-	if status.PlatformLinkGenerator != nil {
-		linkToData = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
+	if len(status.Statuses) == 0 {
+		return nil
 	}
 
-	hasStatuses := len(status.Statuses) > 0
-	if hasStatuses {
-		hasInstalledRecipes := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+	hasInstalled := status.hasAnyRecipeStatus(RecipeStatusTypes.INSTALLED)
+	hasFailures := status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) || status.hasAnyRecipeStatus(RecipeStatusTypes.UNSUPPORTED)
+	isAgentControl := r.isAgentControlInstalled(status)
+	isAgentControlAttempt := r.isOnlyAgentControlAttempt(status)
 
-		if hasInstalledRecipes {
-			fmt.Print("\n  New Relic installation complete \n\n")
-		}
-
-		fmt.Println("  --------------------")
-		fmt.Println("  Installation Summary")
-		fmt.Println("")
-		r.printInstallationSummary(os.Stdout, status)
-
-		msg := "View your data at the link below:\n"
-		followInstructionsMsg := "Follow the instructions at the URL below to complete the installation process."
-		if hasInstalledRecipes && (status.hasAnyRecipeStatus(RecipeStatusTypes.FAILED) || status.hasAnyRecipeStatus(RecipeStatusTypes.UNSUPPORTED)) {
-			msg = fmt.Sprintf("Installation was successful overall, however, one or more installations could not be completed.\n  %s \n\n", followInstructionsMsg)
-		} else if !hasInstalledRecipes {
-			msg = fmt.Sprintf("Installation incomplete. %s \n\n", followInstructionsMsg)
-		}
-
-		if linkToData != "" {
-			fmt.Printf("\n  %s", msg)
-			fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToData)
-		}
-
-		r.printLoggingLink(status)
-
-		r.printFleetLink(status)
-
-		fmt.Println()
-		fmt.Println("\n  --------------------")
-		fmt.Println()
+	if hasInstalled {
+		fmt.Print("\n  New Relic installation complete \n\n")
 	}
+
+	fmt.Println("  --------------------")
+	fmt.Println("  What's next?")
+	r.printInstallationSummary(os.Stdout, status)
+
+	var msg, link string
+	dataLink := ""
+	if status.PlatformLinkGenerator != nil && !isAgentControl && !isAgentControlAttempt {
+		dataLink = status.PlatformLinkGenerator.GenerateRedirectURL(*status)
+	}
+
+	switch {
+	case isAgentControl:
+		msg = "Learn about configuring your agent and fleet:"
+		if status.PlatformLinkGenerator != nil {
+			link = status.PlatformLinkGenerator.GenerateFleetConfigurationDocLink()
+		}
+
+	case !hasInstalled:
+		msg = "The installation is incomplete. Follow the instructions at the URL below to complete the installation process."
+		if isAgentControlAttempt && status.PlatformLinkGenerator != nil {
+			link = status.PlatformLinkGenerator.GenerateGuidedInstallDocLink()
+		} else {
+			link = dataLink
+		}
+
+	case hasFailures:
+		msg = "Installation was successful overall, however, one or more installations could not be completed.\n  Follow the instructions at the URL below to complete the installation process."
+		link = dataLink
+
+	default:
+		msg = "View your data at the link below:"
+		link = dataLink
+	}
+
+	if link != "" {
+		fmt.Printf("\n  %s\n", msg)
+		fmt.Printf("  %s  %s\n", color.GreenString(ux.IconArrowRight), link)
+	}
+
+	r.printLoggingLink(status)
+	r.printFleetLink(status)
+
+	fmt.Printf("\n  --------------------\n\n")
 
 	return nil
 }
@@ -148,14 +165,26 @@ func (r TerminalStatusReporter) UpdateRequired(status *InstallStatus) error {
 
 func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 	linkToFleet := ""
-	fleetMsg := "View your fleet at the link below:\n"
+	fleetMsg := "Check out your agent in our Fleet Control UI:\n"
 	statuses := r.getRecipesStatusesForInstallationSummary(status)
 
 	for _, s := range statuses {
-		isAgentControlRecipe := s.Name == types.AgentControlRecipeName || s.Name == types.LoggingAgentControlRecipeName
+		isAgentControlRecipe := s.Name == types.AgentControlRecipeName
 
 		if s.Status == RecipeStatusTypes.INSTALLED && isAgentControlRecipe {
-			linkToFleet = status.PlatformLinkGenerator.GenerateFleetLink(status.HostEntityGUID())
+			// Use NR_CLI_FLEET_ID environment variable if available, otherwise fall back to entity GUID
+			fleetGUID := os.Getenv("NR_CLI_FLEET_ID")
+			if fleetGUID == "" {
+				fleetGUID = status.HostEntityGUID()
+			}
+
+			log.WithFields(log.Fields{
+				"fleetGUID":      fleetGUID,
+				"fromEnvVar":     os.Getenv("NR_CLI_FLEET_ID") != "",
+				"hostEntityGUID": status.HostEntityGUID(),
+			}).Debug("Generating fleet link")
+
+			linkToFleet = status.PlatformLinkGenerator.GenerateFleetLink(fleetGUID)
 		}
 	}
 
@@ -164,6 +193,38 @@ func (r TerminalStatusReporter) printFleetLink(status *InstallStatus) {
 		fmt.Printf("\n  %s", fleetMsg)
 		fmt.Printf("  %s  %s", color.GreenString(ux.IconArrowRight), linkToFleet)
 	}
+}
+
+func (r TerminalStatusReporter) isAgentControlInstalled(status *InstallStatus) bool {
+	statuses := r.getRecipesStatusesForInstallationSummary(status)
+	isAgentControlRecipeInstalled := false
+
+	for _, s := range statuses {
+		if s.Status == RecipeStatusTypes.INSTALLED {
+			isAgentControlRecipe := s.Name == types.AgentControlRecipeName
+			if isAgentControlRecipe {
+				isAgentControlRecipeInstalled = true
+				break
+			}
+		}
+	}
+	return isAgentControlRecipeInstalled
+}
+
+func (r TerminalStatusReporter) isOnlyAgentControlAttempt(status *InstallStatus) bool {
+	statuses := r.getRecipesStatusesForInstallationSummary(status)
+	if len(statuses) == 0 {
+		return false
+	}
+
+	for _, s := range statuses {
+		isAgentControlRecipe := s.Name == types.AgentControlRecipeName
+		if !isAgentControlRecipe {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (r TerminalStatusReporter) printLoggingLink(status *InstallStatus) {
