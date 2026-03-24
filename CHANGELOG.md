@@ -1,3 +1,53 @@
+<a name="v0.111.0"></a>
+## [v0.111.0] - 2026-03-18
+### Features
+- modify copies from several installation steps and remove logs-integration-agent-control logic ([#1811](https://github.com/newrelic/newrelic-cli/issues/1811))
+
+<a name="v0.110.0"></a>
+## [v0.110.0] - 2026-03-16
+### Features
+- **deps:** Revert PRs [#1806](https://github.com/newrelic/newrelic-cli/issues/1806) and [#1808](https://github.com/newrelic/newrelic-cli/issues/1808) - Urgent fix ([#1809](https://github.com/newrelic/newrelic-cli/issues/1809))
+
+<a name="v0.109.0"></a>
+## [v0.109.0] - 2026-03-16
+### Bug Fixes
+- **dashboard:** handle missing thresholds and multiple account IDs in JSON to HCL converter ([#1799](https://github.com/newrelic/newrelic-cli/issues/1799))
+- **release:** Use Go 1.26-compatible goversioninfo fork ([#1808](https://github.com/newrelic/newrelic-cli/issues/1808))
+
+### Features
+- **dashboard:** add billboard settings support to JSON to HCL converter ([#1745](https://github.com/newrelic/newrelic-cli/issues/1745))
+
+<a name="v0.108.1"></a>
+## [v0.108.1] - 2026-03-10
+<a name="v0.108.0"></a>
+## [v0.108.0] - 2026-03-09
+### Bug Fixes
+- **docs:** update GPG public key fingerprint in README ([#1800](https://github.com/newrelic/newrelic-cli/issues/1800))
+
+### Features
+- Modify final links for agent control ([#1803](https://github.com/newrelic/newrelic-cli/issues/1803))
+
+<a name="v0.107.2"></a>
+## [v0.107.2] - 2026-03-04
+### Bug Fixes
+- update alpine image to the latest version ([#1797](https://github.com/newrelic/newrelic-cli/issues/1797))
+
+<a name="v0.107.1"></a>
+## [v0.107.1] - 2026-03-03
+### Bug Fixes
+- **security:** prevent command injection in tf-delist command ([#1796](https://github.com/newrelic/newrelic-cli/issues/1796))
+
+<a name="v0.107.0"></a>
+## [v0.107.0] - 2026-02-19
+### Features
+- **fleetcontrol:** Add a new package to support managing Fleet Control Ops ([#1794](https://github.com/newrelic/newrelic-cli/issues/1794))
+
+<a name="v0.106.23"></a>
+## [v0.106.23] - 2026-02-16
+### Bug Fixes
+- upgrade Alpine and Go to resolve trivy issues ([#1786](https://github.com/newrelic/newrelic-cli/issues/1786))
+- **release:** disable provenance and SBOM for Alpine 3.21 compatibility ([#1791](https://github.com/newrelic/newrelic-cli/issues/1791))
+
 <a name="v0.106.22"></a>
 ## [v0.106.22] - 2026-02-06
 ### Bug Fixes
@@ -2692,7 +2742,16 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...HEAD
+[v0.111.0]: https://github.com/newrelic/newrelic-cli/compare/v0.110.0...v0.111.0
+[v0.110.0]: https://github.com/newrelic/newrelic-cli/compare/v0.109.0...v0.110.0
+[v0.109.0]: https://github.com/newrelic/newrelic-cli/compare/v0.108.1...v0.109.0
+[v0.108.1]: https://github.com/newrelic/newrelic-cli/compare/v0.108.0...v0.108.1
+[v0.108.0]: https://github.com/newrelic/newrelic-cli/compare/v0.107.2...v0.108.0
+[v0.107.2]: https://github.com/newrelic/newrelic-cli/compare/v0.107.1...v0.107.2
+[v0.107.1]: https://github.com/newrelic/newrelic-cli/compare/v0.107.0...v0.107.1
+[v0.107.0]: https://github.com/newrelic/newrelic-cli/compare/v0.106.23...v0.107.0
+[v0.106.23]: https://github.com/newrelic/newrelic-cli/compare/v0.106.22...v0.106.23
 [v0.106.22]: https://github.com/newrelic/newrelic-cli/compare/v0.106.21...v0.106.22
 [v0.106.21]: https://github.com/newrelic/newrelic-cli/compare/v0.106.20...v0.106.21
 [v0.106.20]: https://github.com/newrelic/newrelic-cli/compare/v0.106.19...v0.106.20

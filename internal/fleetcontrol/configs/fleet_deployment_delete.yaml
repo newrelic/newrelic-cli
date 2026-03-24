@@ -1,0 +1,15 @@
+name: delete
+short: Delete a fleet deployment
+long: |
+  Delete a fleet deployment.
+
+  This operation cannot be undone and will remove the deployment.
+  The deployment must not be actively in progress.
+example: |
+  # Delete a deployment
+  newrelic fleetcontrol deployment delete --deployment-id "deployment_abc123"
+flags:
+  - name: deployment-id
+    type: string
+    required: true
+    description: the deployment ID to delete

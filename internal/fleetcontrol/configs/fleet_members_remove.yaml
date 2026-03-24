@@ -1,0 +1,22 @@
+name: remove
+short: Remove managed entities from a fleet ring
+long: |
+  Remove one or more managed entities from a specific ring within a fleet.
+
+  This operation removes entities from fleet management but does not delete the entities themselves.
+example: |
+  # Remove entities from a fleet ring
+  newrelic fleetcontrol fleet members remove --fleet-id abc123 --ring "canary" --entity-ids "entity1,entity2"
+flags:
+  - name: fleet-id
+    type: string
+    required: true
+    description: the fleet ID
+  - name: ring
+    type: string
+    required: true
+    description: the ring name to remove entities from
+  - name: entity-ids
+    type: stringSlice
+    required: true
+    description: comma-separated list of entity IDs to remove

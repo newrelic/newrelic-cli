@@ -128,9 +128,9 @@ Pre-built binaries are available for all of the above platforms. You can downloa
 Verify that the fingerprint for the downloaded key matches the following:
 
 ```
-gpg --fingerprint developer-toolkit@newrelic.com
+gpg --fingerprint nr-developer-toolkit@users.noreply.github.com
 
-5961 D131 BB2C 5C6B 42B1  4D0F 92AD A76A 30A3 F1FD
+D3EE EEE8 80A9 1DEE 209A  82CC 4F9A 9B5B 96EC 30B9
 ```
 
 When verifying pre-built binaries and checksums, use the long format (the short format is not secure). For example:

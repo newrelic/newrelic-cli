@@ -1,0 +1,23 @@
+name: update
+short: Update a fleet
+long: Update the details of an existing fleet such as name, description, and tags.
+example: |
+  # Update fleet name
+  newrelic fleetcontrol fleet update --id abc123 --name "New Fleet Name"
+
+  # Update fleet description and tags
+  newrelic fleetcontrol fleet update --id abc123 --description "Updated description" --tags "env:staging,team:devops"
+flags:
+  - name: id
+    type: string
+    required: true
+    description: the fleet ID
+  - name: name
+    type: string
+    description: the new name for the fleet
+  - name: description
+    type: string
+    description: the new description for the fleet
+  - name: tags
+    type: stringSlice
+    description: updated tags in format key:value1,value2 (can be specified multiple times)
