@@ -5,6 +5,7 @@ package backup
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,6 +67,26 @@ func TestInstallationDetector_isNewRelicConfigFile(t *testing.T) {
 			want:     true,
 		},
 		{
+			name:     "agent-control local_config.yaml",
+			filePath: "/etc/newrelic-agent-control/local-data/agent-control/local_config.yaml",
+			want:     true,
+		},
+		{
+			name:     "agent-control environment_variables.yaml",
+			filePath: "/etc/newrelic-agent-control/environment_variables.yaml",
+			want:     true,
+		},
+		{
+			name:     "ebpf agent .conf file",
+			filePath: "/etc/newrelic-ebpf-agent/newrelic-ebpf-agent.conf",
+			want:     true,
+		},
+		{
+			name:     "dotnet agent .config file on Windows",
+			filePath: "C:\\ProgramData\\New Relic\\.NET Agent\\newrelic.config",
+			want:     true,
+		},
+		{
 			name:     "wrong extension",
 			filePath: "/etc/newrelic-infra.txt",
 			want:     false,
@@ -109,10 +130,6 @@ func TestInstallationDetector_GetAllConfigPaths(t *testing.T) {
 }
 
 func containsNewRelicPath(path string) bool {
-	lower := filepath.ToSlash(path)
-	return filepath.Base(lower) != lower &&
-		(filepath.Base(lower) == "newrelic" ||
-			filepath.Base(lower) == "newrelic-infra" ||
-			filepath.Base(filepath.Dir(lower)) == "newrelic" ||
-			filepath.Base(filepath.Dir(lower)) == "newrelic-infra")
+	lower := strings.ToLower(filepath.ToSlash(path))
+	return strings.Contains(lower, "newrelic")
 }

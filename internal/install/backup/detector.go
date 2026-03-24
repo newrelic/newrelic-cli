@@ -71,6 +71,12 @@ func (d *InstallationDetector) getLinuxPaths() []string {
 		"/etc/newrelic-infra.yml",
 		"/etc/newrelic-infra/",
 
+		// Agent Control
+		"/etc/newrelic-agent-control/",
+
+		// eBPF Agent
+		"/etc/newrelic-ebpf-agent/",
+
 		// APM Agents (generic)
 		"/etc/newrelic/",
 		"/usr/local/etc/newrelic/",
@@ -120,8 +126,9 @@ func (d *InstallationDetector) getDarwinPaths() []string {
 	}
 
 	return []string{
-		// Infrastructure Agent (walks entire dir: logging.d/, integrations.d/, etc.)
+		// Infrastructure Agent — Intel Mac (Homebrew prefix /usr/local) and Apple Silicon (/opt/homebrew)
 		"/usr/local/etc/newrelic-infra/",
+		"/opt/homebrew/etc/newrelic-infra/",
 
 		// APM Agents
 		"/usr/local/etc/newrelic/",
@@ -201,7 +208,7 @@ func (d *InstallationDetector) isNewRelicConfigFile(filePath string) bool {
 	dirName := strings.ToLower(filepath.Dir(filePath))
 
 	// Check for known config file extensions
-	validExtensions := []string{".yml", ".yaml", ".xml", ".ini", ".json"}
+	validExtensions := []string{".yml", ".yaml", ".xml", ".ini", ".json", ".conf", ".config"}
 	hasValidExtension := false
 	for _, validExt := range validExtensions {
 		if ext == validExt {
