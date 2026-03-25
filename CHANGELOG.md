@@ -1,8 +1,3 @@
-<a name="v0.111.1"></a>
-## [v0.111.1] - 2026-03-24
-### Bug Fixes
-- **deps:** Update Go to 1.26.1 and go-git to 5.16.5 to address CVE-2026-27142 and CVE-2026-25679 ([#1785](https://github.com/newrelic/newrelic-cli/issues/1785))
-
 <a name="v0.111.0"></a>
 ## [v0.111.0] - 2026-03-18
 ### Features
@@ -2747,8 +2742,7 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.1...HEAD
-[v0.111.1]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...v0.111.1
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...HEAD
 [v0.111.0]: https://github.com/newrelic/newrelic-cli/compare/v0.110.0...v0.111.0
 [v0.110.0]: https://github.com/newrelic/newrelic-cli/compare/v0.109.0...v0.110.0
 [v0.109.0]: https://github.com/newrelic/newrelic-cli/compare/v0.108.1...v0.109.0
