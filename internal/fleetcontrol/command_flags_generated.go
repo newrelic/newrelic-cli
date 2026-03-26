@@ -1,3 +1,4 @@
+// Package fleetcontrol
 // Typed flag accessors for each command - provides type-safe, zero-hardcoded-string access to flags
 //
 // IMPORTANT: This file is MANUALLY MAINTAINED following a strict pattern.
@@ -5,20 +6,22 @@
 // 1. Create the YAML config file in configs/ (e.g., fleet_foo_bar.yaml)
 // 2. Create the handler file (e.g., fleet_foo_bar.go)
 // 3. Add typed flag accessors here following the existing pattern:
-//    - Create a <CommandName>Flags struct with fields matching your YAML flags
-//    - Create a method on *FlagValues that returns the struct
-//    - Use fv.GetString(), fv.GetStringSlice(), fv.GetBool(), etc. to retrieve values
+//   - Create a <CommandName>Flags struct with fields matching your YAML flags
+//   - Create a method on *FlagValues that returns the struct
+//   - Use fv.GetString(), fv.GetStringSlice(), fv.GetBool(), etc. to retrieve values
+//
 // 4. Register the handler in command_fleet.go's appropriate init function
 //
 // Example pattern:
-//   type MyCommandFlags struct {
-//       FlagName string
-//   }
-//   func (fv *FlagValues) MyCommand() MyCommandFlags {
-//       return MyCommandFlags{
-//           FlagName: fv.GetString("flag-name"),
-//       }
-//   }
+//
+//	type MyCommandFlags struct {
+//	    FlagName string
+//	}
+//	func (fv *FlagValues) MyCommand() MyCommandFlags {
+//	    return MyCommandFlags{
+//	        FlagName: fv.GetString("flag-name"),
+//	    }
+//	}
 package fleetcontrol
 
 // CreateFlags provides typed access to 'create' command flags
