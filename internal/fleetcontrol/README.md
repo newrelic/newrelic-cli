@@ -159,6 +159,10 @@ Create a fleet to group and manage entities of the same type.
 - `--name` - Fleet name
 - `--managed-entity-type` - Type of entities this fleet will manage
   - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
+- `--operating-system` - Operating system type (**required for HOST fleets only**)
+  - Allowed values: `LINUX`, `WINDOWS` (case-insensitive)
+  - **Must be specified** when creating `HOST` fleets to ensure proper agent configuration
+  - **Must NOT be specified** for `KUBERNETESCLUSTER` fleets (Kubernetes manages its own OS)
 
 **Optional Flags:**
 - `--description` - Fleet description
@@ -169,16 +173,26 @@ Create a fleet to group and manage entities of the same type.
 **Examples:**
 
 ```bash
-# Create a fleet for hosts
+# Create a fleet for Linux hosts
 newrelic fleetcontrol fleet create \
-  --name "Production Hosts" \
+  --name "Production Linux Hosts" \
   --managed-entity-type "HOST" \
-  --description "Production environment host fleet" \
+  --operating-system "LINUX" \
+  --description "Production environment Linux host fleet" \
   --product "Infrastructure" \
   --tags "env:prod" \
   --tags "region:us-east-1"
 
-# Create a Kubernetes fleet
+# Create a fleet for Windows hosts
+newrelic fleetcontrol fleet create \
+  --name "Production Windows Hosts" \
+  --managed-entity-type "HOST" \
+  --operating-system "WINDOWS" \
+  --description "Production environment Windows host fleet" \
+  --product "Infrastructure" \
+  --tags "env:prod"
+
+# Create a Kubernetes fleet (no --operating-system flag)
 newrelic fleetcontrol fleet create \
   --name "K8s Prod Clusters" \
   --managed-entity-type "KUBERNETESCLUSTER" \
@@ -190,13 +204,16 @@ newrelic fleetcontrol fleet create \
 {
   "status": "success",
   "error": "",
-  "result": {
-    "id": "fleet-abc-123",
-    "name": "Production Hosts",
-    "managedEntityType": "HOST",
-    "description": "Production environment host fleet",
-    ...
-  }
+  "id": "fleet-abc-123",
+  "name": "Production Linux Hosts",
+  "type": "FLEET",
+  "managedEntityType": "HOST",
+  "operatingSystem": {
+    "type": "LINUX"
+  },
+  "description": "Production environment Linux host fleet",
+  "createdAt": 1770977865600,
+  "updatedAt": 1770977865882
 }
 ```
 
@@ -1491,7 +1508,7 @@ internal/fleetcontrol/
 ├── README.md                                     # This file - Command reference
 ├── command.go                                    # Main entry point with command hierarchy
 ├── command_framework.go                          # Core framework
-├── command_flags_generated.go                    # Generated typed flag accessors
+├── command_flags_generated.go                    # Manually maintained typed flag accessors
 ├── command_fleet.go                              # Command registration
 ├── helpers.go                                    # Shared utility functions
 │

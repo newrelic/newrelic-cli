@@ -17,8 +17,17 @@ import (
 // 3. Building cobra commands from the YAML definitions
 // 4. Registering all commands with the parent cmdFleet command
 //
-// Each command's business logic lives in its own file (command_<name>.go)
-// Each command's configuration lives in its own YAML file (configs/<name>.yaml)
+// Each command's business logic lives in its own file (fleet_<resource>_<action>.go)
+// Each command's configuration lives in its own YAML file (configs/fleet_<resource>_<action>.yaml)
+//
+// To add a new command:
+// 1. Create YAML config file: configs/fleet_<resource>_<action>.yaml
+// 2. Create handler file: fleet_<resource>_<action>.go with handleFleet<Action><Resource> function
+// 3. Add typed flag accessors in command_flags_generated.go
+// 4. Add command variable declaration in the var block below
+// 5. Add handler to the handlers map in the appropriate init function (initFleetCommands, initConfigurationCommands, etc.)
+// 6. Add matching logic in the for loop to detect and assign your command
+// 7. Add the command variable to the parent.AddCommand() call at the bottom
 
 var (
 	// Fleet management command variables
