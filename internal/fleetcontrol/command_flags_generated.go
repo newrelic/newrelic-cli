@@ -161,6 +161,7 @@ type CreateConfigurationFlags struct {
 	Name                  string
 	AgentType             string
 	ManagedEntityType     string
+	OperatingSystem       string
 	OrganizationID        string
 	ConfigurationFilePath string // File content from path
 	ConfigurationContent  string // Inline content
@@ -176,6 +177,7 @@ func (fv *FlagValues) CreateConfiguration() (CreateConfigurationFlags, error) {
 		Name:                  fv.GetString("name"),
 		AgentType:             fv.GetString("agent-type"),
 		ManagedEntityType:     fv.GetString("managed-entity-type"),
+		OperatingSystem:       fv.GetString("operating-system"),
 		OrganizationID:        fv.GetString("organization-id"),
 		ConfigurationFilePath: configFilePath,
 		ConfigurationContent:  fv.GetString("configuration-content"),
