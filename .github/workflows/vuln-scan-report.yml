@@ -17,6 +17,7 @@ jobs:
     env:
       DOCKER_IMAGE: newrelic/cli
       DOCKER_IMAGE_TAG: ci
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       # All actions pinned to commit SHAs, not tags.
