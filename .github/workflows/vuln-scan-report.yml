@@ -86,7 +86,7 @@ jobs:
         run: |
           # Convert Grype JSON to the same pipe-delimited format as Trivy template output
           jq -r '.matches[] | "\(.artifact.locations[0].path) | \(.artifact.name) | \(.vulnerability.id) | \(.vulnerability.severity | ascii_upcase) | \(.vulnerability.fix.versions[0] // "n/a")"' \
-            ${{ steps.grype.outputs.json }} > grype-report.txt || touch grype-report.txt
+            "${{ steps.grype.outputs.json }}" > grype-report.txt || touch grype-report.txt
 
           cat trivy-report.txt grype-report.txt > combined-raw.txt
 
@@ -122,10 +122,10 @@ jobs:
           sed -i '/^[[:space:]]*$/d' raw-report.txt 2>/dev/null || true
 
           if [ -s raw-report.txt ]; then
-            CRIT_T=$(grep -cw "CRITICAL" raw-report.txt || echo 0)
-            HIGH_T=$(grep -cw "HIGH"     raw-report.txt || echo 0)
-            MED_T=$(grep  -cw "MEDIUM"   raw-report.txt || echo 0)
-            LOW_T=$(grep  -cw "LOW"      raw-report.txt || echo 0)
+            CRIT_T=$(grep -cw "CRITICAL" raw-report.txt || true)
+            HIGH_T=$(grep -cw "HIGH"     raw-report.txt || true)
+            MED_T=$(grep  -cw "MEDIUM"   raw-report.txt || true)
+            LOW_T=$(grep  -cw "LOW"      raw-report.txt || true)
 
             TOTAL=$((CRIT_T + HIGH_T + MED_T + LOW_T))
 
