@@ -1,0 +1,187 @@
+name: Security Vulnerability Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'  # 1:00 AM UTC daily
+
+# Minimal permissions — this workflow only reads source code and posts to Slack.
+# No write access to repo contents, packages, or deployments.
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Build and scan image
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_IMAGE: newrelic/cli
+      DOCKER_IMAGE_TAG: ci
+
+    steps:
+      # All actions pinned to commit SHAs, not tags.
+      # Tags can be silently repointed to malicious commits (as happened with trivy-action in March 2026).
+      # To update an action: find the new SHA via `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build Linux binary
+        run: make compile-linux
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25  # v5
+        with:
+          context: bin/linux/
+          file: ./build/package/Dockerfile
+          load: true
+          push: false
+          tags: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}
+
+      - name: Create Trivy scan template
+        run: |
+          cat << 'EOF' > scan.tpl
+          {{- range . -}}
+          {{- $target := .Target -}}
+          {{- range .Vulnerabilities -}}
+          {{ $target }} | {{ .PkgName }} | {{ .VulnerabilityID }} | {{ .Severity }} | {{ .FixedVersion }}
+          {{ end -}}
+          {{- end -}}
+          EOF
+
+      # Pinned to the SHA of tag 0.35.0 — the first clean release after the March 19, 2026
+      # supply chain compromise where all tags 0.0.1–0.34.2 contained a credential stealer.
+      # SHA verified via: gh api repos/aquasecurity/trivy-action/git/ref/tags/0.35.0
+      # See: https://github.com/aquasecurity/trivy/discussions/10425
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # 0.35.0
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}
+          format: 'template'
+          template: '@scan.tpl'
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH,MEDIUM,LOW"
+          vuln-type: 'os,library'
+          output: "trivy-report.txt"
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+
+      - name: Run Grype scan
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2  # v7.4.0
+        id: grype
+        with:
+          image: "${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}"
+          fail-build: false
+          severity-cutoff: low
+          only-fixed: true
+          output-format: json
+
+      - name: Merge and deduplicate scan results
+        run: |
+          # Convert Grype JSON to the same pipe-delimited format as Trivy template output
+          jq -r '.matches[] | "\(.artifact.locations[0].path) | \(.artifact.name) | \(.vulnerability.id) | \(.vulnerability.severity | ascii_upcase) | \(.vulnerability.fix.versions[0] // "n/a")"' \
+            ${{ steps.grype.outputs.json }} > grype-report.txt || touch grype-report.txt
+
+          cat trivy-report.txt grype-report.txt > combined-raw.txt
+
+          # Pre-sort so CVE lines come before GHSA lines, then deduplicate:
+          # - exact ID matches (CVE or GHSA) via id_key
+          # - GHSA aliases of CVEs via fix_key (pkg+sev+fix), but never CVE-vs-CVE
+          grep " CVE-" combined-raw.txt > combined-sorted.txt 2>/dev/null || true
+          grep -v " CVE-" combined-raw.txt >> combined-sorted.txt 2>/dev/null || true
+
+          awk -F'|' '
+          NF >= 4 {
+            pkg = $2; gsub(/ /, "", pkg)
+            id  = $3; gsub(/ /, "", id)
+            sev = $4; gsub(/ /, "", sev)
+            fix = $5; gsub(/ /, "", fix)
+
+            id_key  = tolower(pkg) "|" tolower(id)
+            fix_key = tolower(pkg) "|" tolower(sev) "|" tolower(fix)
+
+            if (seen_id[id_key]) next
+            if (id !~ /^CVE-/ && fix != "" && fix != "n/a" && seen_cve_fix[fix_key]) next
+
+            seen_id[id_key] = 1
+            if (id ~ /^CVE-/ && fix != "" && fix != "n/a") seen_cve_fix[fix_key] = 1
+            print
+          }' combined-sorted.txt | sort > raw-report.txt
+
+      - name: Format Slack message
+        id: format_message
+        # Run even if a previous step failed so we always get notified
+        if: always()
+        run: |
+          sed -i '/^[[:space:]]*$/d' raw-report.txt 2>/dev/null || true
+
+          if [ -s raw-report.txt ]; then
+            CRIT_T=$(grep -cw "CRITICAL" raw-report.txt || echo 0)
+            HIGH_T=$(grep -cw "HIGH"     raw-report.txt || echo 0)
+            MED_T=$(grep  -cw "MEDIUM"   raw-report.txt || echo 0)
+            LOW_T=$(grep  -cw "LOW"      raw-report.txt || echo 0)
+
+            TOTAL=$((CRIT_T + HIGH_T + MED_T + LOW_T))
+
+            # Flat sorted list: package | CVE | severity | fixed-in
+            CVE_LIST=$(awk -F'|' '
+            NF >= 4 {
+              pkg = $2; gsub(/^ +| +$/, "", pkg)
+              id  = $3; gsub(/^ +| +$/, "", id)
+              sev = $4; gsub(/^ +| +$/, "", sev)
+              fix = $5; gsub(/^ +| +$/, "", fix)
+              printf "%-30s | %-20s | %-8s | %s\n", pkg, id, sev, fix
+            }' raw-report.txt | sort -t'|' -k3,3r)
+
+            {
+              echo "SLACK_MESSAGE<<EOF"
+              echo -e "*🛡️ SECURITY SCAN REPORT* | \`$(date +'%Y-%m-%d')\`"
+              echo -e "_newrelic/cli — Trivy & Grype (only-fixed: true)_"
+              echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo -e "• *Total:* \`$TOTAL\`  🔴 Critical: \`$CRIT_T\`  🟠 High: \`$HIGH_T\`  🟡 Medium: \`$MED_T\`  🔵 Low: \`$LOW_T\`"
+              echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo -e "\`\`\`"
+              echo -e "$(printf '%-30s' 'PACKAGE') | $(printf '%-20s' 'CVE/ID') | SEVERITY | FIXED IN"
+              echo -e "$(printf '%-30s' '' | tr ' ' '-') | $(printf '%-20s' '' | tr ' ' '-') | -------- | --------"
+              echo -e "$CVE_LIST"
+              echo -e "\`\`\`"
+              echo -e "🔗 https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          elif [ "${{ job.status }}" = "failure" ]; then
+            echo "SLACK_MESSAGE=*⚠️ SECURITY SCAN FAILED* - The scan workflow encountered an error. Check the run for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          else
+            echo "SLACK_MESSAGE=*✅ SECURITY SCAN PASSED* - No fixable vulnerabilities detected in newrelic/cli." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Display report in workflow log
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "SECURITY SCAN REPORT | $(date +'%Y-%m-%d')"
+          echo "newrelic/cli | Trivy + Grype combined"
+          echo "=========================================="
+          echo "--- Trivy ---"
+          cat trivy-report.txt 2>/dev/null || echo "(no output)"
+          echo "--- Grype ---"
+          cat grype-report.txt 2>/dev/null || echo "(no output)"
+          echo "--- Deduplicated ---"
+          cat raw-report.txt 2>/dev/null || echo "(no output)"
+
+      - name: Send Slack notification
+        # Always notify — including on scan tool failures
+        if: always()
+        run: |
+          curl -s -X POST \
+            -H 'Content-type: application/json' \
+            --data-binary "$(jq -n --arg msg "$SLACK_MSG" '{"text": $msg}')" \
+            "$SLACK_WEBHOOK_URL"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.VIR_SLACK_WEBHOOK_URL }}
+          SLACK_MSG: ${{ steps.format_message.outputs.SLACK_MESSAGE }}
