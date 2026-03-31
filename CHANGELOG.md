@@ -1,5 +1,10 @@
+<a name="v0.111.3"></a>
+## [v0.111.3] - 2026-03-31
+### Documentation Updates
+- **fleetcontrol:** improve command system documentation ([#1819](https://github.com/newrelic/newrelic-cli/issues/1819))
+
 <a name="v0.111.2"></a>
-## [v0.111.2] - 2026-03-25
+## [v0.111.2] - 2026-03-26
 ### Bug Fixes
 - **deps:** Update google.golang.org/grpc to v1.79.3 to address CVE-2026-33186 ([#1818](https://github.com/newrelic/newrelic-cli/issues/1818))
 
@@ -2753,7 +2758,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.3...HEAD
+[v0.111.3]: https://github.com/newrelic/newrelic-cli/compare/v0.111.2...v0.111.3
 [v0.111.2]: https://github.com/newrelic/newrelic-cli/compare/v0.111.1...v0.111.2
 [v0.111.1]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...v0.111.1
 [v0.111.0]: https://github.com/newrelic/newrelic-cli/compare/v0.110.0...v0.111.0
