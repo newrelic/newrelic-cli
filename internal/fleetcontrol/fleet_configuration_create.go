@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/fleetcontrol"
 )
 
 // handleFleetCreateConfiguration implements the 'create-configuration' command to create a fleet configuration.
@@ -39,6 +40,26 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 		return fmt.Errorf("failed to read flags: %w", err)
 	}
 
+	// Map validated managed entity type to client library type
+	// YAML validation has already confirmed this value is in allowed_values
+	entityType, err := MapManagedEntityType(f.ManagedEntityType)
+	if err != nil {
+		return PrintError(err)
+	}
+
+	// Validate operating system requirements based on entity type
+	// For HOST configurations, operating system must be specified
+	// For KUBERNETESCLUSTER configurations, operating system should not be specified
+	if entityType == fleetcontrol.FleetControlManagedEntityTypeTypes.HOST {
+		if f.OperatingSystem == "" {
+			return PrintError(fmt.Errorf("--operating-system is required when --managed-entity-type is HOST (allowed values: LINUX, WINDOWS)"))
+		}
+	} else if entityType == fleetcontrol.FleetControlManagedEntityTypeTypes.KUBERNETESCLUSTER {
+		if f.OperatingSystem != "" {
+			return PrintError(fmt.Errorf("--operating-system should not be specified for KUBERNETESCLUSTER configurations"))
+		}
+	}
+
 	// Validate that exactly one of --configuration-file-path or --configuration-content is provided
 	hasFilePath := f.ConfigurationFilePath != ""
 	hasContent := f.ConfigurationContent != ""
@@ -65,15 +86,27 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 	orgID := GetOrganizationID(f.OrganizationID)
 
 	// Build custom headers required by the API
-	// These headers specify the entity name, agent type, and managed entity type
+	// These headers specify the entity name, agent type, managed entity type, and operating system (for HOST)
+	var entityHeader string
+	if f.OperatingSystem != "" {
+		entityHeader = fmt.Sprintf(
+			`{"name": "%s", "agentType": "%s", "managedEntityType": "%s", "operatingSystem": {"type": "%s"}}`,
+			f.Name,
+			f.AgentType,
+			f.ManagedEntityType,
+			f.OperatingSystem,
+		)
+	} else {
+		entityHeader = fmt.Sprintf(
+			`{"name": "%s", "agentType": "%s", "managedEntityType": "%s"}`,
+			f.Name,
+			f.AgentType,
+			f.ManagedEntityType,
+		)
+	}
 	customHeaders := map[string]interface{}{
 		"x-newrelic-client-go-custom-headers": map[string]string{
-			"Newrelic-Entity": fmt.Sprintf(
-				`{"name": "%s", "agentType": "%s", "managedEntityType": "%s"}`,
-				f.Name,
-				f.AgentType,
-				f.ManagedEntityType,
-			),
+			"Newrelic-Entity": entityHeader,
 		},
 	}
 

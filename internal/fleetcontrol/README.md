@@ -523,6 +523,8 @@ Create a versioned configuration for fleet agents.
   - Allowed values: `NRInfra`, `NRDOT`, `FluentBit`, `NRPrometheusAgent` (case-insensitive)
 - `--managed-entity-type` - Type of entities this configuration applies to
   - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
+- `--operating-system` - Operating system type (**required for HOST configurations only**)
+  - Allowed values: `LINUX`, `WINDOWS` (case-insensitive)
 - **Exactly one of:**
   - `--configuration-file-path` - Path to configuration file (JSON/YAML) - **recommended for production**
   - `--configuration-content` - Inline configuration content (JSON/YAML) - **for testing/development only**
@@ -532,24 +534,35 @@ Create a versioned configuration for fleet agents.
 
 **Validation:**
 - Mutually exclusive: Must provide either `--configuration-file-path` OR `--configuration-content`, not both
+- `--operating-system` is required when `--managed-entity-type` is `HOST`
+- `--operating-system` must not be specified when `--managed-entity-type` is `KUBERNETESCLUSTER`
 - File path is the recommended approach for production use
 - Inline content should only be used for testing, development, or emergency purposes.
 
 **Examples:**
 
 ```bash
-# Recommended: Read from file
+# Recommended: Read from file (Linux host)
 newrelic fleetcontrol configuration create \
   --name "Production Host Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
+  --operating-system "LINUX" \
   --configuration-file-path ./configs/prod-host.json
+
+# Recommended: Read from file (Kubernetes cluster)
+newrelic fleetcontrol configuration create \
+  --name "Production K8s Config" \
+  --agent-type "NRInfra" \
+  --managed-entity-type "KUBERNETESCLUSTER" \
+  --configuration-file-path ./configs/prod-k8s.json
 
 # Alternative: Inline content (testing only)
 newrelic fleetcontrol configuration create \
   --name "Test Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
+  --operating-system "LINUX" \
   --configuration-content '{"metrics_interval": 15}'
 ```
 

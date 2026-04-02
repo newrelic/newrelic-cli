@@ -9,14 +9,14 @@ example: |
   # Create a configuration from a file (recommended)
   newrelic fleetcontrol configuration create --name "My Fleet" --agent-type "NRInfra" --managed-entity-type "KUBERNETESCLUSTER" --configuration-file-path ./config.json
 
-  # Create a configuration from a YAML file
-  newrelic fleetcontrol configuration create --name "My Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-file-path ./config.yaml
+  # Create a Linux host configuration from a YAML file
+  newrelic fleetcontrol configuration create --name "My Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --operating-system "LINUX" --configuration-file-path ./config.yaml
 
-  # Create a configuration with inline content (for testing/development only)
-  newrelic fleetcontrol configuration create --name "Test Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --configuration-content '{"key": "value"}'
+  # Create a Windows host configuration with inline content (for testing/development only)
+  newrelic fleetcontrol configuration create --name "Test Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --operating-system "WINDOWS" --configuration-content '{"key": "value"}'
 
-  # Create a configuration with explicit organization ID
-  newrelic fleetcontrol configuration create --name "Production Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --organization-id "abc-123-def" --configuration-file-path ./prod-config.json
+  # Create a Linux host configuration with explicit organization ID
+  newrelic fleetcontrol configuration create --name "Production Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --operating-system "LINUX" --organization-id "abc-123-def" --configuration-file-path ./prod-config.json
 flags:
   - name: name
     type: string
@@ -27,7 +27,7 @@ flags:
     required: true
     description: the agent type (e.g., NRInfra, NRDOT)
     validation:
-      allowed_values: ["NRInfra","NRDOT", "FluentBit", "NRPrometheusAgent"]
+      allowed_values: ["NRInfra", "NRDOT", "FluentBit", "NRPrometheusAgent"]
       case_insensitive: true
   - name: managed-entity-type
     type: string
@@ -39,6 +39,12 @@ flags:
   - name: organization-id
     type: string
     description: the organization ID; if not provided, will be derived from current organization
+  - name: operating-system
+    type: string
+    description: the operating system type for HOST configurations (LINUX or WINDOWS); not applicable for KUBERNETESCLUSTER configurations
+    validation:
+      allowed_values: ["LINUX", "WINDOWS"]
+      case_insensitive: true
   - name: configuration-file-path
     type: file
     required: false
