@@ -1,3 +1,8 @@
+<a name="v0.111.4"></a>
+## [v0.111.4] - 2026-04-02
+### Bug Fixes
+- **fleetcontrol:** Add --operating-system flag to configuration create flags ([#1822](https://github.com/newrelic/newrelic-cli/issues/1822))
+
 <a name="v0.111.3"></a>
 ## [v0.111.3] - 2026-03-31
 ### Documentation Updates
@@ -2758,7 +2763,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.4...HEAD
+[v0.111.4]: https://github.com/newrelic/newrelic-cli/compare/v0.111.3...v0.111.4
 [v0.111.3]: https://github.com/newrelic/newrelic-cli/compare/v0.111.2...v0.111.3
 [v0.111.2]: https://github.com/newrelic/newrelic-cli/compare/v0.111.1...v0.111.2
 [v0.111.1]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...v0.111.1
