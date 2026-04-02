@@ -17,15 +17,16 @@ jobs:
     env:
       DOCKER_IMAGE: newrelic/cli
       DOCKER_IMAGE_TAG: ci
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       # All actions pinned to commit SHAs, not tags.
       # Tags can be silently repointed to malicious commits (as happened with trivy-action in March 2026).
       # To update an action: find the new SHA via `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
 
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c  # v6.4.0
         with:
           go-version-file: go.mod
 
@@ -33,10 +34,10 @@ jobs:
         run: make compile-linux
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd  # v4.0.0
 
       - name: Build Docker image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25  # v5
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294  # v7.0.0
         with:
           context: bin/linux/
           file: ./build/package/Dockerfile
@@ -50,7 +51,7 @@ jobs:
           {{- range . -}}
           {{- $target := .Target -}}
           {{- range .Vulnerabilities -}}
-          {{ $target }} | {{ .PkgName }} | {{ .VulnerabilityID }} | {{ .Severity }} | {{ .FixedVersion }}
+          {{ $target }} | {{ .PkgName }} | {{ .VulnerabilityID }} | {{ .Severity }} | {{ .FixedVersion }} | Trivy
           {{ end -}}
           {{- end -}}
           EOF
@@ -85,8 +86,8 @@ jobs:
       - name: Merge and deduplicate scan results
         run: |
           # Convert Grype JSON to the same pipe-delimited format as Trivy template output
-          jq -r '.matches[] | "\(.artifact.locations[0].path) | \(.artifact.name) | \(.vulnerability.id) | \(.vulnerability.severity | ascii_upcase) | \(.vulnerability.fix.versions[0] // "n/a")"' \
-            ${{ steps.grype.outputs.json }} > grype-report.txt || touch grype-report.txt
+          jq -r '.matches[] | "\(.artifact.locations[0].path) | \(.artifact.name) | \(.vulnerability.id) | \(.vulnerability.severity | ascii_upcase) | \(.vulnerability.fix.versions[0] // "n/a") | Grype"' \
+            "${{ steps.grype.outputs.json }}" > grype-report.txt || touch grype-report.txt
 
           cat trivy-report.txt grype-report.txt > combined-raw.txt
 
@@ -122,10 +123,10 @@ jobs:
           sed -i '/^[[:space:]]*$/d' raw-report.txt 2>/dev/null || true
 
           if [ -s raw-report.txt ]; then
-            CRIT_T=$(grep -cw "CRITICAL" raw-report.txt || echo 0)
-            HIGH_T=$(grep -cw "HIGH"     raw-report.txt || echo 0)
-            MED_T=$(grep  -cw "MEDIUM"   raw-report.txt || echo 0)
-            LOW_T=$(grep  -cw "LOW"      raw-report.txt || echo 0)
+            CRIT_T=$(grep -cw "CRITICAL" raw-report.txt || true)
+            HIGH_T=$(grep -cw "HIGH"     raw-report.txt || true)
+            MED_T=$(grep  -cw "MEDIUM"   raw-report.txt || true)
+            LOW_T=$(grep  -cw "LOW"      raw-report.txt || true)
 
             TOTAL=$((CRIT_T + HIGH_T + MED_T + LOW_T))
 
@@ -136,7 +137,8 @@ jobs:
               id  = $3; gsub(/^ +| +$/, "", id)
               sev = $4; gsub(/^ +| +$/, "", sev)
               fix = $5; gsub(/^ +| +$/, "", fix)
-              printf "%-30s | %-20s | %-8s | %s\n", pkg, id, sev, fix
+              src = $6; gsub(/^ +| +$/, "", src)
+              printf "%-30s | %-20s | %-8s | %-6s | %s\n", pkg, id, sev, src, fix
             }' raw-report.txt | sort -t'|' -k3,3r)
 
             {
@@ -147,8 +149,8 @@ jobs:
               echo -e "• *Total:* \`$TOTAL\`  🔴 Critical: \`$CRIT_T\`  🟠 High: \`$HIGH_T\`  🟡 Medium: \`$MED_T\`  🔵 Low: \`$LOW_T\`"
               echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               echo -e "\`\`\`"
-              echo -e "$(printf '%-30s' 'PACKAGE') | $(printf '%-20s' 'CVE/ID') | SEVERITY | FIXED IN"
-              echo -e "$(printf '%-30s' '' | tr ' ' '-') | $(printf '%-20s' '' | tr ' ' '-') | -------- | --------"
+              echo -e "$(printf '%-30s' 'PACKAGE') | $(printf '%-20s' 'CVE/ID') | SEVERITY | SOURCE | FIXED IN"
+              echo -e "$(printf '%-30s' '' | tr ' ' '-') | $(printf '%-20s' '' | tr ' ' '-') | -------- | ------ | --------"
               echo -e "$CVE_LIST"
               echo -e "\`\`\`"
               echo -e "🔗 https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
