@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/fleetcontrol"
 )
@@ -24,17 +22,17 @@ import (
 //
 // Returns:
 //   - The organization ID (either provided or fetched)
-func GetOrganizationID(providedOrgID string) string {
+//   - Error if the API call fails when fetching the organization ID
+func GetOrganizationID(providedOrgID string) (string, error) {
 	if providedOrgID != "" {
-		return providedOrgID
+		return providedOrgID, nil
 	}
 
 	org, err := client.NRClient.Organization.GetOrganization()
 	if err != nil {
-		log.Warnf("Failed to get organization: %v", err)
-		return ""
+		return "", fmt.Errorf("failed to get organization from API: %w", err)
 	}
-	return org.ID
+	return org.ID, nil
 }
 
 // ParseTags converts tag strings in the format "key:value1,value2" into FleetControlTagInput structs.
@@ -128,6 +126,18 @@ func ParseAgentSpec(agentSpec string) (fleetcontrol.FleetControlAgentInput, erro
 	if agentType == "" {
 		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("agent type cannot be empty")
 	}
+
+	// Validate agent type against allowed values
+	validAgentTypes := map[string]bool{
+		"NRInfra":           true,
+		"NRDOT":             true,
+		"FluentBit":         true,
+		"NRPrometheusAgent": true,
+	}
+	if !validAgentTypes[agentType] {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("invalid agent type '%s': must be one of [NRInfra, NRDOT, FluentBit, NRPrometheusAgent]", agentType)
+	}
+
 	if version == "" {
 		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("agent version cannot be empty")
 	}
@@ -222,7 +232,7 @@ func ValidateAgentVersionsForFleet(fleetID string, agents []fleetcontrol.FleetCo
 func MapManagedEntityType(typeStr string) (fleetcontrol.FleetControlManagedEntityType, error) {
 	// Note: YAML validation has already confirmed this value is in allowed_values
 	// This mapping must match the YAML allowed_values exactly
-	switch strings.ToUpper(typeStr) {
+	switch typeStr {
 	case "HOST":
 		return fleetcontrol.FleetControlManagedEntityTypeTypes.HOST, nil
 	case "KUBERNETESCLUSTER":
@@ -230,7 +240,7 @@ func MapManagedEntityType(typeStr string) (fleetcontrol.FleetControlManagedEntit
 	default:
 		// This should never happen if YAML validation is working correctly
 		return fleetcontrol.FleetControlManagedEntityType(""), fmt.Errorf(
-			"unrecognized managed entity type '%s' - YAML validation may have failed", typeStr)
+			"unrecognized managed entity type '%s' - expected exact match for 'HOST' or 'KUBERNETESCLUSTER'", typeStr)
 	}
 }
 
@@ -246,7 +256,7 @@ func MapManagedEntityType(typeStr string) (fleetcontrol.FleetControlManagedEntit
 func MapScopeType(typeStr string) (fleetcontrol.FleetControlEntityScope, error) {
 	// Note: YAML validation has already confirmed this value is in allowed_values
 	// This mapping must match the YAML allowed_values exactly
-	switch strings.ToUpper(typeStr) {
+	switch typeStr {
 	case "ACCOUNT":
 		return fleetcontrol.FleetControlEntityScopeTypes.ACCOUNT, nil
 	case "ORGANIZATION":
@@ -254,7 +264,7 @@ func MapScopeType(typeStr string) (fleetcontrol.FleetControlEntityScope, error) 
 	default:
 		// This should never happen if YAML validation is working correctly
 		return fleetcontrol.FleetControlEntityScope(""), fmt.Errorf(
-			"unrecognized scope type '%s' - YAML validation may have failed", typeStr)
+			"unrecognized scope type '%s' - expected exact match for 'ACCOUNT' or 'ORGANIZATION'", typeStr)
 	}
 }
 
@@ -270,15 +280,15 @@ func MapScopeType(typeStr string) (fleetcontrol.FleetControlEntityScope, error) 
 func MapConfigurationMode(modeStr string) (fleetcontrol.GetConfigurationMode, error) {
 	// Note: YAML validation has already confirmed this value is in allowed_values
 	// This mapping must match the YAML allowed_values exactly
-	switch strings.ToLower(modeStr) {
-	case "configentity", "":
+	switch modeStr {
+	case "ConfigEntity", "":
 		return fleetcontrol.GetConfigurationModeTypes.ConfigEntity, nil
-	case "configversionentity":
+	case "ConfigVersionEntity":
 		return fleetcontrol.GetConfigurationModeTypes.ConfigVersionEntity, nil
 	default:
 		// This should never happen if YAML validation is working correctly
 		return fleetcontrol.GetConfigurationMode(""), fmt.Errorf(
-			"unrecognized configuration mode '%s' - YAML validation may have failed", modeStr)
+			"unrecognized configuration mode '%s' - expected exact match for 'ConfigEntity' or 'ConfigVersionEntity'", modeStr)
 	}
 }
 
@@ -294,7 +304,7 @@ func MapConfigurationMode(modeStr string) (fleetcontrol.GetConfigurationMode, er
 func MapOperatingSystemType(osStr string) (fleetcontrol.FleetControlOperatingSystemType, error) {
 	// Note: YAML validation has already confirmed this value is in allowed_values
 	// This mapping must match the YAML allowed_values exactly
-	switch strings.ToUpper(osStr) {
+	switch osStr {
 	case "LINUX":
 		return fleetcontrol.FleetControlOperatingSystemTypeTypes.LINUX, nil
 	case "WINDOWS":
@@ -302,7 +312,7 @@ func MapOperatingSystemType(osStr string) (fleetcontrol.FleetControlOperatingSys
 	default:
 		// This should never happen if YAML validation is working correctly
 		return fleetcontrol.FleetControlOperatingSystemType(""), fmt.Errorf(
-			"unrecognized operating system type '%s' - YAML validation may have failed", osStr)
+			"unrecognized operating system type '%s' - expected exact match for 'LINUX' or 'WINDOWS'", osStr)
 	}
 }
 

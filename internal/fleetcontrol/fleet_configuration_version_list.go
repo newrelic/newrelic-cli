@@ -36,7 +36,10 @@ func handleFleetGetConfigurationVersions(cmd *cobra.Command, args []string, flag
 	f := flags.GetVersions()
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
 
 	// Call New Relic API to get all configuration versions
 	result, err := client.NRClient.FleetControl.FleetControlGetConfigurationVersions(

@@ -28,7 +28,6 @@ flags:
     description: the entity type to retrieve (ConfigEntity for configuration, ConfigVersionEntity for specific version entity)
     validation:
       allowed_values: ["ConfigEntity", "ConfigVersionEntity"]
-      case_insensitive: true
   - name: version
     type: int
     default: -1

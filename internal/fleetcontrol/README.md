@@ -158,9 +158,9 @@ Create a fleet to group and manage entities of the same type.
 **Required Flags:**
 - `--name` - Fleet name
 - `--managed-entity-type` - Type of entities this fleet will manage
-  - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
+  - Allowed values: `HOST`, `KUBERNETESCLUSTER`
 - `--operating-system` - Operating system type (**required for HOST fleets only**)
-  - Allowed values: `LINUX`, `WINDOWS` (case-insensitive)
+  - Allowed values: `LINUX`, `WINDOWS`
   - **Must be specified** when creating `HOST` fleets to ensure proper agent configuration
   - **Must NOT be specified** for `KUBERNETESCLUSTER` fleets (Kubernetes manages its own OS)
 
@@ -520,9 +520,9 @@ Create a versioned configuration for fleet agents.
 **Required Flags:**
 - `--name` - Configuration name
 - `--agent-type` - Type of agent this configuration targets
-  - Allowed values: `NRInfra`, `NRDOT`, `FluentBit`, `NRPrometheusAgent` (case-insensitive)
+  - Allowed values: `NRInfra`, `NRDOT`, `FluentBit`, `NRPrometheusAgent`
 - `--managed-entity-type` - Type of entities this configuration applies to
-  - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
+  - Allowed values: `HOST`, `KUBERNETESCLUSTER`
 - **Exactly one of:**
   - `--configuration-file-path` - Path to configuration file (JSON/YAML) - **recommended for production**
   - `--configuration-content` - Inline configuration content (JSON/YAML) - **for testing/development only**
@@ -1283,7 +1283,7 @@ newrelic fleetcontrol fleet members add \
 
 ### Agent Types
 
-Used in configuration commands. Values are case-insensitive.
+Used in configuration commands. Values must match exactly.
 
 **Allowed values:**
 - `NRInfra` - New Relic Infrastructure agent
@@ -1293,14 +1293,14 @@ Used in configuration commands. Values are case-insensitive.
 
 **Example:**
 ```bash
---agent-type "nrinfra"  # Case-insensitive, works fine
+--agent-type "NRInfra"  # Must use exact casing
 ```
 
 ---
 
 ### Managed Entity Types
 
-Used in fleet and configuration commands. Values are case-insensitive.
+Used in fleet and configuration commands. Values must match exactly.
 
 **Allowed values:**
 - `HOST` - Physical or virtual hosts
@@ -1308,14 +1308,14 @@ Used in fleet and configuration commands. Values are case-insensitive.
 
 **Example:**
 ```bash
---managed-entity-type "host"  # Case-insensitive, works fine
+--managed-entity-type "HOST"  # Must use exact casing
 ```
 
 ---
 
 ### Configuration Modes
 
-Used in configuration get command. Values are case-insensitive.
+Used in configuration get command. Values must match exactly.
 
 **Allowed values:**
 - `ConfigEntity` (default) - Query by configuration entity ID
@@ -1323,7 +1323,7 @@ Used in configuration get command. Values are case-insensitive.
 
 **Example:**
 ```bash
---mode "configversionentity"  # Case-insensitive, works fine
+--mode "ConfigVersionEntity"  # Must use exact casing
 ```
 
 ---
@@ -1447,7 +1447,7 @@ The syntax using separate flags can be preferred in the case of single-agent dep
 | **"Authentication failed"** | Verify `NEW_RELIC_API_KEY` is set correctly. Ensure it's a User API key, not Browser or License key. |
 | **"Account not found"** | Check `NEW_RELIC_ACCOUNT_ID` is correct. Find it in New Relic UI or URL. |
 | **"required flag not set"** | Ensure flag syntax is correct: `--flag-name value` or `--flag-name=value` (not `flag-name=value`) |
-| **"invalid value for flag"** | Check validation rules above. Values may need to match allowed values (case-insensitive) |
+| **"invalid value for flag"** | Check validation rules above. Values must match allowed values exactly (case-sensitive) |
 | **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--fleet-id` OR `--fleet-ids`, not both). For deployments, use either `--agent` or all three legacy flags, not a mix. |
 | **"agent version '*' not supported for HOST fleets"** | Wildcard version (`"*"`) is only allowed for KUBERNETESCLUSTER fleets. Use an explicit version (e.g., `"1.70.0"`) for HOST fleets. |
 | **"--configuration-version-ids is required"** | When using legacy deployment syntax, you must provide all three flags: `--agent-type`, `--agent-version`, AND `--configuration-version-ids`. |
@@ -1476,7 +1476,7 @@ flag-name=value        # Missing -- prefix
 
 When you see "invalid value for flag", check:
 1. Value is in the allowed values list (see Validation Rules Reference)
-2. Spelling is correct (validation is case-insensitive but value must be in the list)
+2. Spelling and casing are correct (validation is case-sensitive - values must match exactly)
 3. No extra spaces or quotes
 
 **Example validation error:**

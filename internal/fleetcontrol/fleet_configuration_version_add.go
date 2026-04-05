@@ -62,7 +62,10 @@ func handleFleetAddVersion(cmd *cobra.Command, args []string, flags *FlagValues)
 	configBodyBytes := []byte(configBody)
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
 
 	// Build custom headers with the configuration GUID
 	// This tells the API to add a version to the existing configuration

@@ -62,7 +62,10 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 	configBodyBytes := []byte(configBody)
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
 
 	// Build custom headers required by the API
 	// These headers specify the entity name, agent type, and managed entity type

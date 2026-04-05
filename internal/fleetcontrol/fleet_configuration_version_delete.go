@@ -30,10 +30,13 @@ func handleFleetDeleteVersion(cmd *cobra.Command, args []string, flags *FlagValu
 	f := flags.DeleteVersion()
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
 
 	// Call New Relic API to delete the version
-	err := client.NRClient.FleetControl.FleetControlDeleteConfigurationVersion(
+	err = client.NRClient.FleetControl.FleetControlDeleteConfigurationVersion(
 		f.VersionID,
 		orgID,
 	)

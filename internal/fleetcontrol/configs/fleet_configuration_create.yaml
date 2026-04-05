@@ -28,14 +28,12 @@ flags:
     description: the agent type (e.g., NRInfra, NRDOT)
     validation:
       allowed_values: ["NRInfra","NRDOT", "FluentBit", "NRPrometheusAgent"]
-      case_insensitive: true
   - name: managed-entity-type
     type: string
     required: true
     description: the type of entities this configuration manages
     validation:
       allowed_values: ["HOST", "KUBERNETESCLUSTER"]
-      case_insensitive: true
   - name: organization-id
     type: string
     description: the organization ID; if not provided, will be derived from current organization

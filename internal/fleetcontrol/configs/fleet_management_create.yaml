@@ -27,7 +27,6 @@ flags:
     description: the type of entities this fleet manages
     validation:
       allowed_values: ["HOST", "KUBERNETESCLUSTER"]
-      case_insensitive: true
   - name: description
     type: string
     description: a description of the fleet
@@ -42,7 +41,6 @@ flags:
     description: the operating system type for HOST fleets (LINUX or WINDOWS); not applicable for KUBERNETESCLUSTER fleets
     validation:
       allowed_values: ["LINUX", "WINDOWS"]
-      case_insensitive: true
   - name: tags
     type: stringSlice
     description: tags in format key:value1,value2 (can be specified multiple times)
