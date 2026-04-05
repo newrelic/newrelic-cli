@@ -66,24 +66,15 @@ func handleFleetCreateDeployment(cmd *cobra.Command, args []string, flags *FlagV
 		if f.AgentType == "" {
 			return PrintError(fmt.Errorf("--agent-type is required when not using --agent flag"))
 		}
-
-		// Validate agent type against allowed values
-		validAgentTypes := map[string]bool{
-			"NRInfra":           true,
-			"NRDOT":             true,
-			"FluentBit":         true,
-			"NRPrometheusAgent": true,
-		}
-		if !validAgentTypes[f.AgentType] {
-			return PrintError(fmt.Errorf("invalid agent type '%s': must be one of [NRInfra, NRDOT, FluentBit, NRPrometheusAgent]", f.AgentType))
-		}
-
 		if f.AgentVersion == "" {
 			return PrintError(fmt.Errorf("--agent-version is required when not using --agent flag"))
 		}
 		if len(f.ConfigurationVersionIDs) == 0 {
 			return PrintError(fmt.Errorf("--configuration-version-ids is required when not using --agent flag"))
 		}
+
+		// Note: agent-type values are validated by YAML framework
+		// See configs/fleet_deployment_create.yaml allowed_values
 
 		// Convert configuration version IDs to the required format for agent input
 		var configVersionList []fleetcontrol.FleetControlConfigurationVersionListInput

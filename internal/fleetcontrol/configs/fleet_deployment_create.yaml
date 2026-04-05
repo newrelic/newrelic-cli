@@ -32,6 +32,8 @@ flags:
   - name: agent-type
     type: string
     description: "(legacy) the agent type for single agent deployment (e.g., NRInfra, NRDOT). Mutually exclusive with --agent"
+    validation:
+      allowed_values: ["NRInfra", "NRDOT", "FluentBit", "NRPrometheusAgent"]
   - name: agent-version
     type: string
     description: "(legacy) the agent version for single agent deployment (e.g., 1.70.0, 2.0.0). Mutually exclusive with --agent"
