@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/fleetcontrol"
 )
@@ -24,17 +22,45 @@ import (
 //
 // Returns:
 //   - The organization ID (either provided or fetched)
-func GetOrganizationID(providedOrgID string) string {
+//   - Error if the API call fails when fetching the organization ID
+func GetOrganizationID(providedOrgID string) (string, error) {
 	if providedOrgID != "" {
-		return providedOrgID
+		return providedOrgID, nil
 	}
 
 	org, err := client.NRClient.Organization.GetOrganization()
 	if err != nil {
-		log.Warnf("Failed to get organization: %v", err)
-		return ""
+		return "", fmt.Errorf("failed to get organization from API: %w", err)
 	}
-	return org.ID
+	return org.ID, nil
+}
+
+// NormalizeAgentType converts a case-insensitive agent type string to the canonical format expected by the API.
+// This allows users to specify agent types in any case while ensuring the API receives the correct format.
+//
+// Parameters:
+//   - typeStr: The agent type string (case-insensitive)
+//
+// Returns:
+//   - The normalized agent type string with correct casing
+//   - Error if the agent type is not recognized (should not happen after YAML validation)
+//
+// Note: YAML validation has already confirmed this value is in allowed_values.
+// This normalization ensures the API receives the correct casing.
+func NormalizeAgentType(typeStr string) (string, error) {
+	switch strings.ToUpper(typeStr) {
+	case "NRINFRA":
+		return "NRInfra", nil
+	case "NRDOT":
+		return "NRDOT", nil
+	case "FLUENTBIT":
+		return "FluentBit", nil
+	case "NRPROMETHEUSAGENT":
+		return "NRPrometheusAgent", nil
+	default:
+		// This should never happen if YAML validation is working correctly
+		return "", fmt.Errorf("unrecognized agent type: %s (expected NRInfra, NRDOT, FluentBit, or NRPrometheusAgent)", typeStr)
+	}
 }
 
 // ParseTags converts tag strings in the format "key:value1,value2" into FleetControlTagInput structs.
@@ -153,8 +179,14 @@ func ParseAgentSpec(agentSpec string) (fleetcontrol.FleetControlAgentInput, erro
 		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("at least one configuration version ID is required")
 	}
 
+	// Normalize agent type to ensure correct casing for the API
+	normalizedAgentType, err := NormalizeAgentType(agentType)
+	if err != nil {
+		return fleetcontrol.FleetControlAgentInput{}, fmt.Errorf("invalid agent type '%s': expected NRInfra, NRDOT, FluentBit, or NRPrometheusAgent (case-insensitive)", agentType)
+	}
+
 	return fleetcontrol.FleetControlAgentInput{
-		AgentType:                agentType,
+		AgentType:                normalizedAgentType,
 		Version:                  version,
 		ConfigurationVersionList: configVersionList,
 	}, nil

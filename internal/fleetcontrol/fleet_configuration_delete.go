@@ -30,10 +30,13 @@ func handleFleetDeleteConfiguration(cmd *cobra.Command, args []string, flags *Fl
 	f := flags.DeleteConfiguration()
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
 
 	// Call New Relic API to delete the configuration
-	_, err := client.NRClient.FleetControl.FleetControlDeleteConfiguration(
+	_, err = client.NRClient.FleetControl.FleetControlDeleteConfiguration(
 		f.ConfigurationID,
 		orgID,
 	)

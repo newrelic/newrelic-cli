@@ -57,9 +57,9 @@ func handleFleetCreate(cmd *cobra.Command, args []string, flags *FlagValues) err
 
 	// Get organization ID (either from flag or fetch from API)
 	// This avoids an unnecessary API call if the user already knows their org ID
-	orgID := GetOrganizationID(f.OrganizationID)
-	if orgID == "" {
-		return PrintError(fmt.Errorf("failed to determine organization ID"))
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
 	}
 
 	// Parse tags from "key:value1,value2" format to API format

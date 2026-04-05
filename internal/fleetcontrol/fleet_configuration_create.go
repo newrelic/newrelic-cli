@@ -62,7 +62,18 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 	configBodyBytes := []byte(configBody)
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
+
+	// Normalize agent type to ensure correct casing for the API
+	// The API expects specific casing (e.g., "NRInfra" not "nrinfra")
+	// YAML validation allows case-insensitive input for user convenience
+	normalizedAgentType, err := NormalizeAgentType(f.AgentType)
+	if err != nil {
+		return PrintError(fmt.Errorf("invalid agent type: %w", err))
+	}
 
 	// Build custom headers required by the API
 	// These headers specify the entity name, agent type, and managed entity type
@@ -71,7 +82,7 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 			"Newrelic-Entity": fmt.Sprintf(
 				`{"name": "%s", "agentType": "%s", "managedEntityType": "%s"}`,
 				f.Name,
-				f.AgentType,
+				normalizedAgentType,
 				f.ManagedEntityType,
 			),
 		},

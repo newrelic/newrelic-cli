@@ -81,10 +81,16 @@ func handleFleetCreateDeployment(cmd *cobra.Command, args []string, flags *FlagV
 			})
 		}
 
+		// Normalize agent type to ensure correct casing for the API
+		normalizedAgentType, err := NormalizeAgentType(f.AgentType)
+		if err != nil {
+			return PrintError(fmt.Errorf("invalid agent type: %w", err))
+		}
+
 		// Build single agent input from legacy flags
 		agents = []fleetcontrol.FleetControlAgentInput{
 			{
-				AgentType:                f.AgentType,
+				AgentType:                normalizedAgentType,
 				ConfigurationVersionList: configVersionList,
 				Version:                  f.AgentVersion,
 			},

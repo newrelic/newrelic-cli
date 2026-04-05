@@ -34,7 +34,10 @@ func handleFleetGetConfiguration(cmd *cobra.Command, args []string, flags *FlagV
 	f := flags.GetConfiguration()
 
 	// Get organization ID (provided or fetched from API)
-	orgID := GetOrganizationID(f.OrganizationID)
+	orgID, err := GetOrganizationID(f.OrganizationID)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to determine organization ID: %w", err))
+	}
 
 	// Map validated mode to client library type
 	// YAML validation has already confirmed this value is in allowed_values
