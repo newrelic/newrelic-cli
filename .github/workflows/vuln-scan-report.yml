@@ -44,6 +44,8 @@ jobs:
           load: true
           push: false
           tags: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}
+        env:
+          DOCKER_BUILD_SUMMARY: false
 
       - name: Create Trivy scan template
         run: |
