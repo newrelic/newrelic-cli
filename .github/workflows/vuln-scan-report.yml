@@ -82,6 +82,7 @@ jobs:
           severity-cutoff: low
           only-fixed: true
           output-format: json
+          upload-artifacts: false
 
       - name: Merge and deduplicate scan results
         run: |
