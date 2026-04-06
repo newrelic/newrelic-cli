@@ -44,6 +44,8 @@ jobs:
           load: true
           push: false
           tags: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}
+        env:
+          DOCKER_BUILD_SUMMARY: false
 
       - name: Create Trivy scan template
         run: |
@@ -82,7 +84,6 @@ jobs:
           severity-cutoff: low
           only-fixed: true
           output-format: json
-          upload-artifacts: false
 
       - name: Merge and deduplicate scan results
         run: |
