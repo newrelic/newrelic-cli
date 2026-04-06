@@ -20,10 +20,10 @@ require (
 	github.com/newrelic/newrelic-client-go/v2 v2.79.0
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.23.9
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tidwall/gjson v1.14.4
 	github.com/tidwall/sjson v1.2.5
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
