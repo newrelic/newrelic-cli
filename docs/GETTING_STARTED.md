@@ -34,11 +34,12 @@ export NEW_RELIC_API_KEY=<your_personal_api_key>
 ```
 
 API keys are specific to region, and this project defaults to "US".  If you're
-wanting to use this against the EU region, you'll need the following
+wanting to use this against the EU or Japan region, you'll need the following
 environment variable.
 
 ```sh
-export NEW_RELIC_REGION="EU"
+export NEW_RELIC_REGION="EU"   # EU region
+export NEW_RELIC_REGION="JP"   # Japan region
 ```
 
 Creating custom events with the `newrelic events` sub-command requires a License key, which can be configured in a profile or with the following environment variable:
@@ -242,7 +243,7 @@ Custom events may take a moment to appear in query results while they are being 
 | -------------------------------------- | -------------------------------------------------------------- |
 | `NEW_RELIC_ACCOUNT_ID`                 | Your New Relic [account ID].                                   |
 | `NEW_RELIC_API_KEY`                    | Your New Relic [User API key] \(prefixed with `NRAK`).         |
-| `NEW_RELIC_REGION`                     | Your New Relic account's [data center region] \(`US` or `EU`). |
+| `NEW_RELIC_REGION`                     | Your New Relic account's [data center region] \(`US`, `EU`, or `JP`). |
 | `NEW_RELIC_CLI_SKIP_CORE`              | Skipping core recipes during installation \(`1` or `0`).       |
 
 ### Want more?

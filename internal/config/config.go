@@ -70,6 +70,7 @@ func InitializeCredentialsStore() {
 					region.Staging.String(),
 					region.US.String(),
 					region.EU.String(),
+					region.JP.String(),
 				),
 				Default:      region.US.String(),
 				SetValueFunc: ToLower(),

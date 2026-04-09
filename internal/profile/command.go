@@ -56,7 +56,7 @@ for posting custom events with the ` + "`newrelic events`" + `command.
 	PreRun:  requireProfileName,
 	Run: func(cmd *cobra.Command, args []string) {
 		addStringValueToProfile(config.FlagProfileName, apiKey, config.APIKey, "User API Key", nil, nil)
-		addStringValueToProfile(config.FlagProfileName, flagRegion, config.Region, "Region", nil, []string{"US", "EU"})
+		addStringValueToProfile(config.FlagProfileName, flagRegion, config.Region, "Region", nil, []string{"US", "EU", "JP"})
 		addIntValueToProfile(config.FlagProfileName, accountID, config.AccountID, "Account ID", fetchAccountIDs)
 		addStringValueToProfile(config.FlagProfileName, licenseKey, config.LicenseKey, "License Key", fetchLicenseKey(), nil)
 
@@ -275,7 +275,7 @@ func requireProfileName(cmd *cobra.Command, args []string) {
 func init() {
 	// Add
 	Command.AddCommand(cmdAdd)
-	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US or EU region")
+	cmdAdd.Flags().StringVarP(&flagRegion, "region", "r", "", "the US, EU, or JP region")
 	cmdAdd.Flags().StringVarP(&apiKey, "apiKey", "", "", "your personal API key")
 	cmdAdd.Flags().StringVarP(&licenseKey, "licenseKey", "", "", "your license key")
 	cmdAdd.Flags().IntVarP(&accountID, "accountId", "", 0, "your account ID")
