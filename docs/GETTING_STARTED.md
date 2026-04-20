@@ -23,6 +23,10 @@ docker run -i --rm -e NEW_RELIC_API_KEY newrelic/cli apm application search --na
 Binary releases are available on [GitHub][releases] as well and installed
 anywhere in the environment `$PATH` for the user.
 
+### Guided Install
+
+The CLI includes a `newrelic install` command for automated agent installation. This command is designed for initial installations on new hosts. For upgrading existing agents while preserving custom configurations, see the [Install Guide](INSTALL_GUIDE.md) for guidance on when to use guided install versus manual upgrades.
+
 ### Environment Setup
 
 You will need a [Personal API Key][api_key] in order to make full use of this
@@ -247,8 +251,7 @@ Custom events may take a moment to appear in query results while they are being 
 
 ### Want more?
 
-If you'd like to engage with other community members, visit our
-[discuss][discuss] page.  We welcome feature requests or bug reports on GitHub.
+We welcome feature requests or bug reports on [GitHub Issues](https://github.com/newrelic/newrelic-cli/issues).
 We also love Pull Requests.
 
 [homebrew]: https://brew.sh/
@@ -260,5 +263,3 @@ We also love Pull Requests.
 [api_key]: https://docs.newrelic.com/docs/apis/get-started/intro-apis/types-new-relic-api-keys#personal-api-key
 
 [jq]: https://stedolan.github.io/jq/
-
-[discuss]: https://discuss.newrelic.com/c/build-on-new-relic/developer-toolkit
