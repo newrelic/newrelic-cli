@@ -38,8 +38,9 @@ wanting to use this against the EU or Japan region, you'll need the following
 environment variable.
 
 ```sh
+# Set one of the following based on your region:
 export NEW_RELIC_REGION="EU"   # EU region
-export NEW_RELIC_REGION="JP"   # Japan region
+# export NEW_RELIC_REGION="JP" # Japan region
 ```
 
 Creating custom events with the `newrelic events` sub-command requires a License key, which can be configured in a profile or with the following environment variable:
