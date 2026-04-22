@@ -156,6 +156,78 @@ func TestRecipeDetectorShouldDiscover(t *testing.T) {
 	require.True(t, detector.shouldDiscover(recipe), "Should discover when targeted, and guided mode")
 }
 
+func TestSkipAutodiscoveryEnvVar_SkipsNonTargetedRecipes(t *testing.T) {
+	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "1")
+
+	targeted := NewRecipeBuilder().Name("agent-control").Build()
+	other := NewRecipeBuilder().Name("infrastructure-agent-installer").Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{"agent-control"}})
+	b.WithProcessEvaluatorRecipeStatus(targeted, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithProcessEvaluatorRecipeStatus(other, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(targeted, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(other, execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
+
+	available, unavailable, err := detector.GetDetectedRecipes()
+
+	require.NoError(t, err)
+	_, ok := available.GetRecipeDetection("agent-control")
+	require.True(t, ok, "targeted recipe should be available")
+	unavailableOther, ok := unavailable.GetRecipeDetection("infrastructure-agent-installer")
+	require.True(t, ok, "non-targeted recipe should be in unavailable")
+	require.Equal(t, execution.RecipeStatusTypes.NULL, unavailableOther.Status, "non-targeted recipe should have NULL status")
+}
+
+func TestSkipAutodiscoveryEnvVar_IncludesTargetedRecipe(t *testing.T) {
+	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "1")
+
+	targeted := NewRecipeBuilder().Name("agent-control").Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{"agent-control"}})
+	b.WithProcessEvaluatorRecipeStatus(targeted, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(targeted, execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
+
+	require.True(t, detector.shouldDiscover(targeted), "targeted recipe should be discovered")
+}
+
+func TestSkipAutodiscoveryEnvVar_NoEffectWithoutTargetedRecipes(t *testing.T) {
+	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "1")
+
+	recipe := NewRecipeBuilder().Name("infrastructure-agent-installer").Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	// No recipe names provided — guided install
+	b.WithInstallContext(&types.InstallerContext{})
+	b.WithProcessEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
+
+	require.True(t, detector.shouldDiscover(recipe), "should discover all recipes when no targeted names provided (guided install)")
+}
+
+func TestSkipAutodiscoveryEnvVar_NotSet_DiscoversAll(t *testing.T) {
+	// Ensure env var is not set (default behaviour)
+	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "")
+
+	targeted := NewRecipeBuilder().Name("agent-control").Build()
+	other := NewRecipeBuilder().Name("infrastructure-agent-installer").Build()
+
+	b := NewRecipeDetectorTestBuilder()
+	b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{"agent-control"}})
+	b.WithProcessEvaluatorRecipeStatus(targeted, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithProcessEvaluatorRecipeStatus(other, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(targeted, execution.RecipeStatusTypes.AVAILABLE)
+	b.WithScriptEvaluatorRecipeStatus(other, execution.RecipeStatusTypes.AVAILABLE)
+	detector := b.Build()
+
+	require.True(t, detector.shouldDiscover(targeted), "targeted recipe should be discovered")
+	require.True(t, detector.shouldDiscover(other), "non-targeted recipe should still be discovered when env var not set")
+}
+
 type MockRecipesFinder struct {
 	recipes []*types.OpenInstallationRecipe
 	err     error

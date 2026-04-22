@@ -2,6 +2,7 @@ package recipes
 
 import (
 	"context"
+	"os"
 	"sort"
 	"time"
 
@@ -86,6 +87,16 @@ func (dt *RecipeDetector) GetDetectedRecipes() (RecipeDetectionResults, RecipeDe
 
 func (dt *RecipeDetector) shouldDiscover(recipe *types.OpenInstallationRecipe) bool {
 	isTargeted := dt.installerContext.IsRecipeTargeted(recipe.Name)
+
+	// When NEW_RELIC_SKIP_AUTODISCOVERY=1 and a targeted install is requested,
+	// skip discovery for all non-targeted recipes to avoid unnecessary script
+	// execution (e.g. requireAtDiscovery scripts) for recipes the user didn't ask for.
+	if os.Getenv("NEW_RELIC_SKIP_AUTODISCOVERY") == "1" &&
+		(dt.installerContext.RecipeNamesProvided() || dt.installerContext.RecipePathsProvided()) {
+		return isTargeted
+	}
+
+	// Check recipe's discoveryMode setting
 	if len(recipe.PreInstall.DiscoveryMode) == 1 &&
 		(recipe.PreInstall.DiscoveryMode[0] == types.OpenInstallationDiscoveryModeTypes.TARGETED) {
 		return isTargeted
