@@ -59,9 +59,13 @@ func handleFleetListMembers(cmd *cobra.Command, args []string, flags *FlagValues
 		filter.Ring = f.Ring
 	}
 
+	var nextCursor *string
+	if f.NextCursor != "" {
+		nextCursor = &f.NextCursor
+	}
+
 	// Call New Relic API to get fleet members
-	// Empty cursor for first page - pagination can be added in the future if needed
-	result, err := client.NRClient.FleetControl.GetFleetMembers("", filter)
+	result, err := client.NRClient.FleetControl.GetFleetMembers(nextCursor, filter)
 	if err != nil {
 		return PrintError(fmt.Errorf("failed to list fleet members: %w", err))
 	}

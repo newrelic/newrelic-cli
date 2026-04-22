@@ -27,6 +27,10 @@ flags:
     type: string
     required: false
     description: optional ring name to filter members by
+  - name: next-cursor
+    type: string
+    required: false
+    description: optional cursor to continue list from
   - name: show-tags
     type: bool
     required: false

@@ -2,6 +2,8 @@ module github.com/newrelic/newrelic-cli
 
 go 1.26.1
 
+replace github.com/newrelic/newrelic-client-go/v2 => github.com/newrelic/newrelic-client-go/v2 v2.82.2-0.20260416194620-28d678457e4b
+
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Masterminds/semver/v3 v3.3.0

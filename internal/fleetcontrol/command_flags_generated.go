@@ -142,17 +142,19 @@ func (fv *FlagValues) RemoveMembers() RemoveMembersFlags {
 
 // ListMembersFlags provides typed access to 'list' (members) command flags
 type ListMembersFlags struct {
-	FleetID  string
-	Ring     string
-	ShowTags bool
+	FleetID    string
+	Ring       string
+	NextCursor string
+	ShowTags   bool
 }
 
 // ListMembers returns typed flags for the 'list' (members) command
 func (fv *FlagValues) ListMembers() ListMembersFlags {
 	return ListMembersFlags{
-		FleetID:  fv.GetString("fleet-id"),
-		Ring:     fv.GetString("ring"),
-		ShowTags: fv.GetBool("show-tags"),
+		FleetID:    fv.GetString("fleet-id"),
+		Ring:       fv.GetString("ring"),
+		NextCursor: fv.GetString("next-cursor"),
+		ShowTags:   fv.GetBool("show-tags"),
 	}
 }
 
