@@ -483,19 +483,23 @@ newrelic fleetcontrol fleet members remove \
 
 #### `fleetcontrol fleet members list` - List Fleet Members
 
-List all entities in a fleet, optionally filtered by ring.
+List all entities in a fleet, optionally filtered by ring. Results are paginated and include a cursor for retrieving additional pages.
 
 **Required Flags:**
 - `--fleet-id` - Fleet ID to list members from
 
 **Optional Flags:**
 - `--ring` - Filter by specific ring name
+- `--next-cursor` - Cursor to continue from previous page (for pagination)
 - `--show-tags` - Include entity tags in output (default: false)
+
+**Pagination:**
+The response includes a `nextCursor` field. If present, use it with `--next-cursor` to retrieve the next page of results.
 
 **Examples:**
 
 ```bash
-# List all members in a fleet
+# List all members in a fleet (first page)
 newrelic fleetcontrol fleet members list --fleet-id "fleet-abc-123"
 
 # List members in a specific ring
@@ -507,7 +511,30 @@ newrelic fleetcontrol fleet members list \
 newrelic fleetcontrol fleet members list \
   --fleet-id "fleet-abc-123" \
   --show-tags
+
+# Get next page using cursor from previous response
+newrelic fleetcontrol fleet members list \
+  --fleet-id "fleet-abc-123" \
+  --next-cursor "eyJsYXN0SWQiOiIxMjM0NSJ9"
 ```
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": "entity-123",
+      "name": "host-01",
+      "type": "HOST",
+      "scope": {...},
+      "metadata": {...}
+    }
+  ],
+  "nextCursor": "eyJsYXN0SWQiOiIxMjM0NSJ9"
+}
+```
+
+**Note:** If `nextCursor` is present in the response, there are more results available. Use the cursor value with `--next-cursor` to retrieve the next page.
 
 ---
 
