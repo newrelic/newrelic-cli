@@ -27,7 +27,7 @@ newrelic profile add --profile <profile> --region <region> --apiKey <apiKey> --a
       --apiKey string              your personal API key
   -h, --help                       help for add
       --licenseKey string          your license key
-  -r, --region string              the US or EU region
+  -r, --region string              the US, EU, or JP region
 ```
 
 ### Options inherited from parent commands

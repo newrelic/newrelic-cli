@@ -2,8 +2,6 @@ module github.com/newrelic/newrelic-cli
 
 go 1.26.1
 
-replace github.com/newrelic/newrelic-client-go/v2 => github.com/newrelic/newrelic-client-go/v2 v2.82.2-0.20260416194620-28d678457e4b
-
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/Masterminds/semver/v3 v3.3.0
@@ -19,7 +17,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.79.0
+	github.com/newrelic/newrelic-client-go/v2 v2.83.0
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.23.9
 	github.com/sirupsen/logrus v1.9.3

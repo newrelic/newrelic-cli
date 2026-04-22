@@ -121,7 +121,7 @@ export NEW_RELIC_API_KEY="NRAK-YOUR-API-KEY-HERE"
 export NEW_RELIC_ACCOUNT_ID="your-account-id"
 
 # Optional: Specify region (defaults to US)
-export NEW_RELIC_REGION="US"  # or "EU" for European accounts
+export NEW_RELIC_REGION="US"  # or "EU" for European accounts, or "JP" for Japan
 ```
 
 ### Getting Your Credentials
