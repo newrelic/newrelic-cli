@@ -34,6 +34,7 @@ func (s *SpinnerProgressIndicator) Start(msg string) {
 	// Suppress spinner output when logging at debug or trace level.
 	// Output is garbled when verbose log messages are sent during an active spinner.
 	if !config.Logger.IsLevelEnabled(log.DebugLevel) && s.showSpinner {
+		s.FinalMSG = "" // Clear any previous final message to avoid reprinting on Stop()
 
 		dots := ""
 		s.Spinner.PostUpdate = func(s *spinnerLib.Spinner) {
@@ -92,7 +93,7 @@ func (s *SpinnerProgressIndicator) Success(msg string) {
 		return
 	} else if strings.Contains(msg, "Installing") {
 		printInstallFinalMessage("Installed", color.BgGreen)
-	} else {
+	} else if strings.Contains(msg, "Connecting") {
 		printInstallFinalMessage("Connected", color.BgGreen)
 	}
 }
