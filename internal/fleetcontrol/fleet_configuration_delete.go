@@ -25,7 +25,7 @@ import (
 //
 // Returns:
 //   - Error if configuration deletion fails, nil on success
-func handleFleetDeleteConfiguration(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetDeleteConfiguration(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.DeleteConfiguration()
 

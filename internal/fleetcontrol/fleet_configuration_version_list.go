@@ -31,7 +31,7 @@ import (
 //
 // Returns:
 //   - Error if version retrieval fails, nil on success
-func handleFleetGetConfigurationVersions(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetGetConfigurationVersions(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.GetVersions()
 

@@ -30,7 +30,7 @@ import (
 //
 // Returns:
 //   - Error if fleet creation fails, nil on success
-func handleFleetCreate(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetCreate(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.Create()
 
