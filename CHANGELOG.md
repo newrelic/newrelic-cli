@@ -1,5 +1,13 @@
+<a name="v0.112.0"></a>
+## [v0.112.0] - 2026-04-22
+### Bug Fixes
+- **fleetcontrol:** Add missing support for members list cursor following ([#1836](https://github.com/newrelic/newrelic-cli/issues/1836))
+
+### Features
+- **region:** add Japan (JP) region support ([#1833](https://github.com/newrelic/newrelic-cli/issues/1833))
+
 <a name="v0.111.7"></a>
-## [v0.111.7] - 2026-04-15
+## [v0.111.7] - 2026-04-20
 <a name="v0.111.6"></a>
 ## [v0.111.6] - 2026-04-15
 <a name="v0.111.5"></a>
@@ -2769,7 +2777,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.0...HEAD
+[v0.112.0]: https://github.com/newrelic/newrelic-cli/compare/v0.111.7...v0.112.0
 [v0.111.7]: https://github.com/newrelic/newrelic-cli/compare/v0.111.6...v0.111.7
 [v0.111.6]: https://github.com/newrelic/newrelic-cli/compare/v0.111.5...v0.111.6
 [v0.111.5]: https://github.com/newrelic/newrelic-cli/compare/v0.111.4...v0.111.5
