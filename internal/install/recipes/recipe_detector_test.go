@@ -157,7 +157,7 @@ func TestRecipeDetectorShouldDiscover(t *testing.T) {
 }
 
 func TestSkipAutodiscoveryEnvVar_SkipsNonTargetedRecipes(t *testing.T) {
-	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "1")
+	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "true") // also valid: "1", "TRUE", "t"
 
 	targeted := NewRecipeBuilder().Name("agent-control").Build()
 	other := NewRecipeBuilder().Name("infrastructure-agent-installer").Build()
@@ -181,7 +181,7 @@ func TestSkipAutodiscoveryEnvVar_SkipsNonTargetedRecipes(t *testing.T) {
 }
 
 func TestSkipAutodiscoveryEnvVar_IncludesTargetedRecipe(t *testing.T) {
-	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "1")
+	t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", "1") // numeric form also valid
 
 	targeted := NewRecipeBuilder().Name("agent-control").Build()
 
@@ -192,6 +192,23 @@ func TestSkipAutodiscoveryEnvVar_IncludesTargetedRecipe(t *testing.T) {
 	detector := b.Build()
 
 	require.True(t, detector.shouldDiscover(targeted), "targeted recipe should be discovered")
+}
+
+func TestSkipAutodiscoveryEnvVar_AcceptsTrueString(t *testing.T) {
+	// Regression test: PowerShell users naturally set env vars to 'true' not '1'.
+	// strconv.ParseBool handles both, plus TRUE, T, t, etc.
+	for _, val := range []string{"true", "TRUE", "True", "1", "t", "T"} {
+		t.Setenv("NEW_RELIC_SKIP_AUTODISCOVERY", val)
+
+		recipe := NewRecipeBuilder().Name("other-recipe").Build()
+		b := NewRecipeDetectorTestBuilder()
+		b.WithInstallContext(&types.InstallerContext{RecipeNames: []string{"agent-control"}})
+		b.WithProcessEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+		b.WithScriptEvaluatorRecipeStatus(recipe, execution.RecipeStatusTypes.AVAILABLE)
+		detector := b.Build()
+
+		require.False(t, detector.shouldDiscover(recipe), "should skip non-targeted recipe for env var value %q", val)
+	}
 }
 
 func TestSkipAutodiscoveryEnvVar_NoEffectWithoutTargetedRecipes(t *testing.T) {
