@@ -1,3 +1,9 @@
+<a name="v0.112.2"></a>
+## [v0.112.2] - 2026-05-06
+### Bug Fixes
+- bump Alpine base image to 3.23.4 to resolve CVEs ([#1838](https://github.com/newrelic/newrelic-cli/issues/1838))
+- **autodiscovery:** add `NEW_RELIC_SKIP_AUTODISCOVERY` env var to skip autodiscovery for targeted installs ([#1840](https://github.com/newrelic/newrelic-cli/issues/1840))
+
 <a name="v0.112.1"></a>
 ## [v0.112.1] - 2026-04-27
 <a name="v0.112.0"></a>
@@ -2779,7 +2785,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.2...HEAD
+[v0.112.2]: https://github.com/newrelic/newrelic-cli/compare/v0.112.1...v0.112.2
 [v0.112.1]: https://github.com/newrelic/newrelic-cli/compare/v0.112.0...v0.112.1
 [v0.112.0]: https://github.com/newrelic/newrelic-cli/compare/v0.111.7...v0.112.0
 [v0.111.7]: https://github.com/newrelic/newrelic-cli/compare/v0.111.6...v0.111.7
