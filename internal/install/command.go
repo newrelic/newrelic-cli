@@ -59,28 +59,8 @@ func processRecipeNames(recipeNames []string) ([]string, error) {
 
 // Command represents the install command.
 var Command = &cobra.Command{
-	Use:   "install",
-	Short: "Install New Relic.",
-	Long: `Install New Relic.
-
-Installs New Relic using the guided installation flow, or one or more specific
-recipes when the -n (--recipe) flag is provided.
-
-Environment variables:
-
-  NEW_RELIC_CLI_SKIP_CORE=1
-      Skip installation of core recipes (infrastructure agent and logs
-      integration). Useful when only a non-core recipe is needed.
-
-  NEW_RELIC_SKIP_AUTODISCOVERY=1
-      When combined with -n (--recipe), skip the auto-discovery phase for all
-      recipes that were not explicitly requested. Auto-discovery runs
-      requireAtDiscovery scripts for every known recipe to detect installed
-      services, which can take a significant amount of time. Setting this
-      variable limits discovery to only the targeted recipes, reducing
-      installation time. Has no effect when no -n flag is provided.
-      Accepts: 1, true, TRUE, t (or their falsy counterparts to disable).
-`,
+	Use:    "install",
+	Short:  "Install New Relic.",
 	PreRun: client.RequireClient,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		extractedRecipeNames, err := processRecipeNames(recipeNames)
