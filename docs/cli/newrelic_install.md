@@ -29,6 +29,13 @@ newrelic install [flags]
       --trace            trace level logging
 ```
 
+### Environment Variables
+
+| Variable | Description |
+|---|---|
+| `NEW_RELIC_CLI_SKIP_CORE` | Skip installation of core recipes (infrastructure agent and logs integration). Set to `1` to enable. |
+| `NEW_RELIC_SKIP_AUTODISCOVERY` | When combined with `-n`, skip the auto-discovery phase for all recipes not explicitly requested. This prevents `requireAtDiscovery` scripts from running for every known recipe, which can significantly reduce installation time in scripted or automated environments. Has no effect when `-n` is not provided. Accepts truthy values: `1`, `true`, `TRUE`, `t`. |
+
 ### Installing Specific Versions of the Infrastructure Agent
 
 To install a specific version of the infrastructure agent, append the version number to the recipe name using `@`. This functionality is currently supported only for the infrastructure agent.

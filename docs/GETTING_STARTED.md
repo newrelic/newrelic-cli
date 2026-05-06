@@ -246,6 +246,7 @@ Custom events may take a moment to appear in query results while they are being 
 | `NEW_RELIC_API_KEY`                    | Your New Relic [User API key] \(prefixed with `NRAK`).         |
 | `NEW_RELIC_REGION`                     | Your New Relic account's [data center region] \(`US`, `EU`, or `JP`). |
 | `NEW_RELIC_CLI_SKIP_CORE`              | Skipping core recipes during installation \(`1` or `0`).       |
+| `NEW_RELIC_SKIP_AUTODISCOVERY`         | When combined with `-n`, skip auto-discovery for all recipes not explicitly requested. Reduces installation time in automated environments by preventing `requireAtDiscovery` scripts from running for every known recipe. Has no effect without `-n`. Accepts truthy values: `1`, `true`, `TRUE`. |
 
 ### Want more?
 
