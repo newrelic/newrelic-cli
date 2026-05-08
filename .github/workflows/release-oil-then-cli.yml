@@ -12,6 +12,10 @@ on:
         required: true
         type: string
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   coordinator:
     name: Publish OIL Tag & Release CLI

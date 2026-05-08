@@ -19,6 +19,9 @@ on:
       NEW_RELIC_REGION:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest

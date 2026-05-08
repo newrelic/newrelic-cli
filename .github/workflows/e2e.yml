@@ -9,6 +9,9 @@ on:
     workflows: ["Release"]
     types: [requested]
 
+permissions:
+  contents: read
+
 jobs:
   get-test-definition-files:
     name: Get Test Definition Files
