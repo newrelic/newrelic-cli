@@ -1,5 +1,10 @@
+<a name="v0.112.4"></a>
+## [v0.112.4] - 2026-05-11
+### Bug Fixes
+- **ci:** add explicit permissions to GitHub Actions workflows ([#1841](https://github.com/newrelic/newrelic-cli/issues/1841))
+
 <a name="v0.112.3"></a>
-## [v0.112.3] - 2026-05-06
+## [v0.112.3] - 2026-05-08
 <a name="v0.112.2"></a>
 ## [v0.112.2] - 2026-05-06
 ### Bug Fixes
@@ -2787,7 +2792,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.4...HEAD
+[v0.112.4]: https://github.com/newrelic/newrelic-cli/compare/v0.112.3...v0.112.4
 [v0.112.3]: https://github.com/newrelic/newrelic-cli/compare/v0.112.2...v0.112.3
 [v0.112.2]: https://github.com/newrelic/newrelic-cli/compare/v0.112.1...v0.112.2
 [v0.112.1]: https://github.com/newrelic/newrelic-cli/compare/v0.112.0...v0.112.1
