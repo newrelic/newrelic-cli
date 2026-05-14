@@ -1,3 +1,8 @@
+<a name="v0.112.6"></a>
+## [v0.112.6] - 2026-05-14
+### Bug Fixes
+- bump Go stdlib to 1.26.3 to resolve 21 CVEs ([#1846](https://github.com/newrelic/newrelic-cli/issues/1846))
+
 <a name="v0.112.5"></a>
 ## [v0.112.5] - 2026-05-12
 <a name="v0.112.4"></a>
@@ -2794,7 +2799,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.6...HEAD
+[v0.112.6]: https://github.com/newrelic/newrelic-cli/compare/v0.112.5...v0.112.6
 [v0.112.5]: https://github.com/newrelic/newrelic-cli/compare/v0.112.4...v0.112.5
 [v0.112.4]: https://github.com/newrelic/newrelic-cli/compare/v0.112.3...v0.112.4
 [v0.112.3]: https://github.com/newrelic/newrelic-cli/compare/v0.112.2...v0.112.3
