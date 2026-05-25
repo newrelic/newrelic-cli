@@ -1,5 +1,10 @@
+<a name="v0.112.8"></a>
+## [v0.112.8] - 2026-05-25
+### Bug Fixes
+- **deps:** bump github.com/newrelic/newrelic-client-go/v2 from v2.83.0 to v2.86.1
+
 <a name="v0.112.7"></a>
-## [v0.112.7] - 2026-05-14
+## [v0.112.7] - 2026-05-18
 <a name="v0.112.6"></a>
 ## [v0.112.6] - 2026-05-14
 ### Bug Fixes
@@ -2801,7 +2806,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.8...HEAD
+[v0.112.8]: https://github.com/newrelic/newrelic-cli/compare/v0.112.7...v0.112.8
 [v0.112.7]: https://github.com/newrelic/newrelic-cli/compare/v0.112.6...v0.112.7
 [v0.112.6]: https://github.com/newrelic/newrelic-cli/compare/v0.112.5...v0.112.6
 [v0.112.5]: https://github.com/newrelic/newrelic-cli/compare/v0.112.4...v0.112.5
