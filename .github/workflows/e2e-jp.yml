@@ -2,7 +2,7 @@ name: End to end testing (JP)
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/jp-region-tests]
   pull_request:
     branches: [main]
   workflow_run:
@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/open-install-library
+          ref: feature/jp-region-tests
           path: open-install-library
 
       - name: Get Test Definition Files
@@ -89,6 +90,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/open-install-library
+          ref: feature/jp-region-tests
           path: open-install-library
 
       - name: Install Snapcraft
