@@ -1,5 +1,10 @@
+<a name="v0.112.11"></a>
+## [v0.112.11] - 2026-06-16
+### Bug Fixes
+- **deps:** bump golang.org/x/net and Go to resolve NR-576378 CVEs ([#1852](https://github.com/newrelic/newrelic-cli/issues/1852))
+
 <a name="v0.112.10"></a>
-## [v0.112.10] - 2026-05-28
+## [v0.112.10] - 2026-06-03
 <a name="v0.112.9"></a>
 ## [v0.112.9] - 2026-05-28
 <a name="v0.112.8"></a>
@@ -2810,7 +2815,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.10...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.11...HEAD
+[v0.112.11]: https://github.com/newrelic/newrelic-cli/compare/v0.112.10...v0.112.11
 [v0.112.10]: https://github.com/newrelic/newrelic-cli/compare/v0.112.9...v0.112.10
 [v0.112.9]: https://github.com/newrelic/newrelic-cli/compare/v0.112.8...v0.112.9
 [v0.112.8]: https://github.com/newrelic/newrelic-cli/compare/v0.112.7...v0.112.8
