@@ -208,6 +208,10 @@ jobs:
   # single tracking PR with the bump, and posts to Slack. Runs after the scan
   # regardless of vuln count — the PR is opened on tag drift, the CVE table in
   # the body is auto-populated by diffing the scan against the proposed image.
+  #
+  # PREREQUISITE: Repo must have "Allow GitHub Actions to create and approve
+  # pull requests" enabled (Settings → Actions → General → Workflow permissions).
+  # Without it, `gh pr create` here fails with a 403.
   auto-bump-alpine:
     name: Open PR if a newer alpine base image is available
     needs: scan
@@ -224,9 +228,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-        with:
-          # Need full history so we can push to a branch.
-          fetch-depth: 0
 
       - name: Read current alpine tag from Dockerfile
         id: current
@@ -273,15 +274,21 @@ jobs:
             echo "bump=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Apply Dockerfile bump on a temp branch
+      - name: Apply Dockerfile bump
         if: steps.decide.outputs.bump == 'true'
         env:
-          CURRENT: ${{ steps.current.outputs.tag }}
           LATEST: ${{ steps.latest.outputs.tag }}
         run: |
           set -euo pipefail
-          # Replace only the FROM line to avoid touching unrelated occurrences.
-          sed -i "s|^FROM alpine:${CURRENT}\b|FROM alpine:${LATEST}|" "$DOCKERFILE_PATH"
+          # Replace the version on every FROM alpine: line. `[^[:space:]]+`
+          # binds the match to the tag word so trailing `AS <stage>` (multi-stage
+          # builds) is preserved and we don't depend on the CURRENT regex matching
+          # exactly what's in the file.
+          sed -i -E "s|^FROM alpine:[^[:space:]]+|FROM alpine:${LATEST}|" "$DOCKERFILE_PATH"
+          if git diff --quiet -- "$DOCKERFILE_PATH"; then
+            echo "::error::sed produced no change to $DOCKERFILE_PATH — aborting before commit"
+            exit 1
+          fi
           git --no-pager diff -- "$DOCKERFILE_PATH"
 
       - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c  # v6.4.0
@@ -348,22 +355,39 @@ jobs:
         if: steps.decide.outputs.bump == 'true'
         run: |
           set -euo pipefail
-          # CVE id is column 3 in the pipe-delimited Trivy template output.
-          extract_ids() {
+          touch raw-report.txt proposed-trivy.txt
+
+          # Both files are pipe-delimited: target | pkg | id | sev | fix | source.
+          # Filter the *current* report to Trivy-only rows so we are comparing
+          # apples to apples — the proposed image is only re-scanned by Trivy
+          # in this job, so any Grype-only finding from the current scan would
+          # be falsely reported as "fixed" if we included it. Under-reporting
+          # Grype-only fixes is the safe trade-off; the next daily run picks
+          # them up once the bump is merged.
+          extract_trivy_ids() {
+            awk -F'|' '
+              NF>=6 {
+                src=$6; gsub(/^ +| +$/, "", src)
+                if (src != "Trivy") next
+                id=$3; gsub(/^ +| +$/, "", id)
+                if (id != "") print id
+              }' "$1" | sort -u
+          }
+          extract_all_ids() {
             awk -F'|' 'NF>=3 { gsub(/^ +| +$/, "", $3); if ($3 != "") print $3 }' "$1" | sort -u
           }
 
-          touch raw-report.txt proposed-trivy.txt
-          extract_ids raw-report.txt    > current-ids.txt
-          extract_ids proposed-trivy.txt > proposed-ids.txt
+          extract_trivy_ids raw-report.txt   > current-ids.txt
+          extract_all_ids   proposed-trivy.txt > proposed-ids.txt
           comm -23 current-ids.txt proposed-ids.txt > fixed-ids.txt
 
           fixed_count=$(wc -l < fixed-ids.txt | tr -d ' ')
-          echo "Fixed by bump: $fixed_count CVE(s)"
+          echo "Fixed by bump (Trivy-detected): $fixed_count CVE(s)"
           echo "count=$fixed_count" >> "$GITHUB_OUTPUT"
 
           # Build a markdown table of the fixed CVEs by joining against raw-report.txt
-          # for severity/package context. If the report is empty, leave it blank.
+          # for severity/package context. The IDs we just produced are guaranteed
+          # to be Trivy-source rows, so the join is unambiguous.
           {
             echo "| CVE / GHSA | Severity | Package |"
             echo "|---|---|---|"
@@ -410,7 +434,11 @@ jobs:
           CVEs this bump resolves (computed by re-scanning the proposed image and
           diffing against the latest daily scan report).
           MSG
-          git push --force-with-lease origin "$BRANCH_NAME"
+          # --force (not --force-with-lease): this is a bot-only branch, we
+          # always start from main + apply changes, and we want subsequent runs
+          # to overwrite the previous bot commit even on the very first push
+          # when there is no remote-tracking ref to lease against.
+          git push --force origin "$BRANCH_NAME"
 
       - name: Open or update PR
         if: steps.decide.outputs.bump == 'true'
@@ -424,6 +452,7 @@ jobs:
           set -euo pipefail
           title="fix(deps): bump alpine ${CURRENT} -> ${LATEST}"
 
+          count="${FIXED_COUNT:-0}"
           # Build the PR body from the table we generated.
           {
             echo "## Summary"
@@ -432,12 +461,12 @@ jobs:
             echo
             echo "## CVEs resolved by this bump"
             echo
-            if [ "$FIXED_COUNT" -gt 0 ]; then
-              echo "Computed by re-scanning the proposed image with Trivy and diffing against the latest daily scan report. **$FIXED_COUNT CVE(s) addressed.**"
+            if [ "$count" -gt 0 ]; then
+              echo "Computed by re-scanning the proposed image with Trivy and diffing against the latest daily scan report. **$count CVE(s) addressed (Trivy-detected).**"
               echo
               cat fixed-table.md
             else
-              echo "_No flagged CVEs are resolved by this bump_ — opened anyway as routine alpine tag hygiene so we don't drift between point releases (and so future scanner findings have an up-to-date baseline)."
+              echo "_No Trivy-detected CVEs are resolved by this bump_ — opened anyway as routine alpine tag hygiene so we don't drift between point releases (and so future scanner findings have an up-to-date baseline)."
             fi
             echo
             echo "## Notes"
@@ -454,13 +483,13 @@ jobs:
             url=$(gh pr view "$existing" --json url --jq '.url')
             echo "Updated existing PR: $url"
           else
-            url=$(gh pr create --base main --head "$BRANCH_NAME" --title "$title" --body-file pr-body.md --label dependencies --label security)
+            url=$(gh pr create --base main --head "$BRANCH_NAME" --title "$title" --body-file pr-body.md)
             echo "Opened new PR: $url"
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack about the auto-bump PR
-        if: steps.decide.outputs.bump == 'true'
+        if: steps.decide.outputs.bump == 'true' && steps.open_pr.outputs.url != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.VIR_SLACK_WEBHOOK_URL }}
           CURRENT: ${{ steps.current.outputs.tag }}
@@ -468,8 +497,9 @@ jobs:
           PR_URL: ${{ steps.open_pr.outputs.url }}
           FIXED_COUNT: ${{ steps.delta.outputs.count }}
         run: |
-          if [ "$FIXED_COUNT" -gt 0 ]; then
-            extra="resolves *${FIXED_COUNT}* flagged CVE(s)"
+          count="${FIXED_COUNT:-0}"
+          if [ "$count" -gt 0 ]; then
+            extra="resolves *${count}* flagged CVE(s)"
           else
             extra="no scanner-flagged CVEs resolved (routine bump)"
           fi
