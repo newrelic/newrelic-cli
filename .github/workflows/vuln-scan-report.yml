@@ -280,6 +280,14 @@ jobs:
           LATEST: ${{ steps.latest.outputs.tag }}
         run: |
           set -euo pipefail
+          # Always base the bump on origin/main, regardless of which ref triggered
+          # the workflow, so the resulting PR contains only the alpine change and
+          # not any unrelated commits from the triggering ref. (Scheduled runs
+          # already use main; this also makes manual `gh workflow run --ref <branch>`
+          # dispatches produce clean test PRs.)
+          git fetch --depth=1 origin main
+          git checkout -B "$BRANCH_NAME" origin/main
+
           # Replace the version on every FROM alpine: line. `[^[:space:]]+`
           # binds the match to the tag word so trailing `AS <stage>` (multi-stage
           # builds) is preserved and we don't depend on the CURRENT regex matching
@@ -424,7 +432,8 @@ jobs:
           LATEST: ${{ steps.latest.outputs.tag }}
         run: |
           set -euo pipefail
-          git checkout -B "$BRANCH_NAME"
+          # Branch already created in 'Apply Dockerfile bump' step (from origin/main),
+          # so this just commits the staged sed and pushes.
           git add "$DOCKERFILE_PATH"
           git commit -F - <<MSG
           fix(deps): bump alpine ${CURRENT} -> ${LATEST}
