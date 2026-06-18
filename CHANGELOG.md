@@ -1,3 +1,8 @@
+<a name="v0.112.12"></a>
+## [v0.112.12] - 2026-06-18
+### Bug Fixes
+- **deps:** bump alpine 3.24.0 -> 3.24.1 + apk upgrade for libssl/libcrypto CVEs ([#1855](https://github.com/newrelic/newrelic-cli/issues/1855))
+
 <a name="v0.112.11"></a>
 ## [v0.112.11] - 2026-06-16
 ### Bug Fixes
@@ -2815,7 +2820,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.11...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.12...HEAD
+[v0.112.12]: https://github.com/newrelic/newrelic-cli/compare/v0.112.11...v0.112.12
 [v0.112.11]: https://github.com/newrelic/newrelic-cli/compare/v0.112.10...v0.112.11
 [v0.112.10]: https://github.com/newrelic/newrelic-cli/compare/v0.112.9...v0.112.10
 [v0.112.9]: https://github.com/newrelic/newrelic-cli/compare/v0.112.8...v0.112.9
