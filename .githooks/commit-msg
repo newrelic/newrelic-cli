@@ -8,8 +8,8 @@ conventional_commit_regex="^${commit_types}(\([a-z \-]+\))?!?: .+$"
 
 commit_message=$(cat "$1")
 
-if [[ "$commit_message" =~ $conventional_commit_regex ]]; then
-   echo -e "Commit message meets Conventional Commit standards..."
+if echo "$commit_message" | grep -Eq "$conventional_commit_regex"; then
+   echo "Commit message meets Conventional Commit standards..."
    exit 0
 fi
     echo
