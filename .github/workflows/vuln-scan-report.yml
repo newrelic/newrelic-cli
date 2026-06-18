@@ -229,15 +229,22 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-      - name: Read current alpine tag from Dockerfile
+      - name: Read current alpine tag from Dockerfile on main
         id: current
         run: |
-          tag=$(grep -E '^FROM alpine:' "$DOCKERFILE_PATH" | head -1 | sed -E 's|^FROM alpine:([^ ]+).*|\1|')
+          set -euo pipefail
+          # Read from origin/main, not the triggering ref's working tree, since
+          # the bump itself is applied on origin/main later in this job. Reading
+          # from a stale branch would cause a "current vs main" mismatch where
+          # `decide` says bump-is-needed but `Apply Dockerfile bump`'s sed finds
+          # nothing to change (because main is already up to date).
+          git fetch --depth=1 origin main
+          tag=$(git show "origin/main:$DOCKERFILE_PATH" | grep -E '^FROM alpine:' | head -1 | sed -E 's|^FROM alpine:([^ ]+).*|\1|')
           if [ -z "$tag" ]; then
-            echo "::error::Could not find 'FROM alpine:<tag>' in $DOCKERFILE_PATH"
+            echo "::error::Could not find 'FROM alpine:<tag>' in $DOCKERFILE_PATH on origin/main"
             exit 1
           fi
-          echo "Current alpine tag: $tag"
+          echo "Current alpine tag (from origin/main): $tag"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - name: Find latest alpine 3.x.y tag on Docker Hub
