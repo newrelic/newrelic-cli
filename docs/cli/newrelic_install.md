@@ -2,6 +2,12 @@
 
 Install New Relic.
 
+### Important: Intended Use
+
+The `newrelic install` command is designed for **initial installation on new hosts**. It provides an automated, guided installation experience that configures New Relic agents with default settings.
+
+**Note for existing installations:** Running this command on a host with existing New Relic agents will reset agent configurations to defaults. If you need to upgrade agents while preserving custom configurations, use the [manual upgrade procedures](https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/update-or-uninstall/update-infrastructure-agent/) instead.
+
 ```
 newrelic install [flags]
 ```
