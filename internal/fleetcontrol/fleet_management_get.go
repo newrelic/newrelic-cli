@@ -27,7 +27,7 @@ import (
 //
 // Returns:
 //   - Error if fleet retrieval fails, nil on success
-func handleFleetGet(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetGet(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values
 	f := flags.Get()
 

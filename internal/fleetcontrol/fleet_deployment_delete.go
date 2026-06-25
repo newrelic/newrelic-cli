@@ -25,7 +25,7 @@ import (
 //
 // Returns:
 //   - Error if deployment deletion fails, nil on success
-func handleFleetDeleteDeployment(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetDeleteDeployment(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.DeleteDeployment()
 

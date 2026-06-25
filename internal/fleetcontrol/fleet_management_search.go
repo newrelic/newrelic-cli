@@ -30,7 +30,7 @@ import (
 //
 // Returns:
 //   - Error if search fails, nil on success
-func handleFleetSearch(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetSearch(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values
 	f := flags.Search()
 

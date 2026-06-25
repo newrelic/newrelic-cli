@@ -27,7 +27,7 @@ import (
 //
 // Returns:
 //   - Error if fleet update fails, nil on success
-func handleFleetUpdate(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetUpdate(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.Update()
 

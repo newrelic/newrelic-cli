@@ -39,7 +39,7 @@ type EntityOutput struct {
 //
 // Returns:
 //   - Error if search fails, nil on success
-func handleFleetGetManagedEntities(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetGetManagedEntities(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values
 	f := flags.GetManaged()
 

@@ -26,7 +26,7 @@ import (
 //
 // Returns:
 //   - Error if removing members fails, nil on success
-func handleFleetRemoveMembers(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetRemoveMembers(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.RemoveMembers()
 

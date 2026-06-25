@@ -26,7 +26,7 @@ import (
 //
 // Returns:
 //   - Error if validation fails or deletion fails, nil on success
-func handleFleetDelete(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetDelete(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values
 	f := flags.Delete()
 
