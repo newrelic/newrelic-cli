@@ -5,10 +5,10 @@ on:
   schedule:
     - cron: '0 1 * * *'  # 1:00 AM UTC daily
 
-# Permissions are set per-job. The `scan` job stays read-only; the
-# `auto-bump-alpine` job needs write access to push a branch and open a PR.
-# Setting permissions per-job avoids the workflow-level cap from blocking the
-# bump job while keeping the scan job's surface area minimal.
+# Default read-only floor. Per-job blocks below elevate for the auto-bump job
+# that needs to push a branch and open a PR; the `scan` job stays read-only.
+permissions:
+  contents: read
 
 jobs:
   scan:
