@@ -55,8 +55,12 @@ archives:
   - id: "default"
     ids:
       - newrelic
-    # Preserve legacy v1 archive naming (Darwin/Linux/Windows/i386/x86_64)
-    # by templating the Os/Arch instead of using the removed `replacements` field.
+    # Preserve legacy v1 archive naming (Darwin/Linux/Windows/i386/x86_64,
+    # armv7 for goarm=7) by templating the Os/Arch instead of using the
+    # removed `replacements` field. The `.Arm` suffix is critical: without it,
+    # linux/arm+goarm=7 would produce Linux_arm.tar.gz instead of
+    # Linux_armv7.tar.gz — this asset-name mismatch is what broke customer
+    # install.sh downloads in the reverted v0.109.0 release.
     name_template: >-
       {{ .ProjectName }}_{{ .Version }}_
       {{- if eq .Os "darwin" }}Darwin
@@ -66,6 +70,7 @@ archives:
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
+      {{- with .Arm }}v{{ . }}{{ end }}
     format_overrides:
       - goos: windows
         formats: [zip]
