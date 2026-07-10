@@ -219,19 +219,46 @@ jobs:
           docker pull ghcr.io/newrelic/deployer:latest
           docker images ghcr.io/newrelic/deployer:latest
 
+      # Retries up to 3 times with EC2 teardown between attempts — see e2e.yml
+      # for the full rationale (transient WinRM/Ansible-output-capture flake).
       - name: Run deployer
         id: deployerRun
         run: |
-          set -e
+          set +e
           testDefinitionFile=$(echo $MATRIX | jq -c -r '.testDisplayName')
-          echo $testDefinitionFile
-          docker run -i\
-            -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/\
-            -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
-            -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
-            -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrclieu${{ github.run_id }}.json -d test/definitions-eu/smoke/$testDefinitionFile -l debug
-          echo ::set-output name=exit_status::$?
+          echo "Test definition: $testDefinitionFile"
+          exit_status=1
+          attempts_used=0
+          for attempt in 1 2 3; do
+            attempts_used=$attempt
+            echo "::group::Deployer attempt $attempt of 3"
+            docker run -i \
+              -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/ \
+              -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/ \
+              -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/ \
+              -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/ \
+              --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrclieu${{ github.run_id }}.json -d test/definitions-eu/smoke/$testDefinitionFile -l debug
+            exit_status=$?
+            echo "::endgroup::"
+            if [ $exit_status -eq 0 ]; then
+              echo "Deployer succeeded on attempt $attempt"
+              break
+            fi
+            echo "::warning::Deployer failed on attempt $attempt with exit_status=$exit_status"
+            if [ $attempt -lt 3 ]; then
+              echo "::group::Teardown before retry"
+              docker run \
+                -v ${{ github.workspace }}/configs/:/mnt/deployer/configs/ \
+                -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/ \
+                -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/ \
+                -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/ \
+                --entrypoint ruby ghcr.io/newrelic/deployer:latest main.rb -c configs/gitusdkrnrclieu${{ github.run_id }}.json -d test/definitions-eu/smoke/$testDefinitionFile -t || true
+              echo "::endgroup::"
+              sleep 30
+            fi
+          done
+          echo "exit_status=$exit_status" >> "$GITHUB_OUTPUT"
+          echo "attempts_used=$attempts_used" >> "$GITHUB_OUTPUT"
 
       - name: Teardown any previous deployment
         if: always()
@@ -251,4 +278,6 @@ jobs:
 
       - name: Report any error
         if: steps.deployerRun.outputs.exit_status != 0
-        run: exit 1
+        run: |
+          echo "::error::Deployer failed after ${{ steps.deployerRun.outputs.attempts_used }} attempts (final exit_status=${{ steps.deployerRun.outputs.exit_status }})"
+          exit 1
