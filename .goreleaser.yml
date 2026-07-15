@@ -1,3 +1,5 @@
+version: 2
+
 project_name: newrelic-cli
 
 before:
@@ -20,10 +22,15 @@ builds:
       - arm
     goarm:
       - 7
+    # Pin the arm64 variant explicitly so the resulting dist subdirectory
+    # (dist/newrelic_linux_arm64_v8.0) stays stable across future goreleaser
+    # v2.x versions that might change the default variant. amd64 already uses
+    # the _v1 suffix by default; keeping arm64 pinned matches that behavior.
+    goarm64:
+      - v8.0
     ignore: # go-ole is currently 32-bit only.  Remove this when support is added
       - goos: windows
         goarch: arm
-        goarm: 7
       - goos: windows
         goarch: arm64
 
@@ -46,17 +53,27 @@ checksum:
     - glob: "scripts/install.ps1"
 archives:
   - id: "default"
-    builds:
+    ids:
       - newrelic
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
+    # Preserve legacy v1 archive naming (Darwin/Linux/Windows/i386/x86_64,
+    # armv7 for goarm=7) by templating the Os/Arch instead of using the
+    # removed `replacements` field. The `.Arm` suffix is critical: without it,
+    # linux/arm+goarm=7 would produce Linux_arm.tar.gz instead of
+    # Linux_armv7.tar.gz — this asset-name mismatch is what broke customer
+    # install.sh downloads in the reverted v0.109.0 release.
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}Darwin
+      {{- else if eq .Os "linux" }}Linux
+      {{- else if eq .Os "windows" }}Windows
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- with .Arm }}v{{ . }}{{ end }}
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
     files:
       - CHANGELOG.md
       - LICENSE
@@ -125,7 +142,7 @@ docker_manifests:
 
 # Uses git-chglog output from release flow
 changelog:
-  skip: false
+  disable: false
 
 # snapcrafts:
 #   - id: newrelic
@@ -165,33 +182,37 @@ changelog:
 #         # https://snapcraft.io/docs/reference/interfaces.
 #         plugs: ["home", "network"]
 
-scoop:
-  bucket:
-    owner: newrelic
-    name: newrelic-cli
-  commit_author:
-    name: nr-developer-toolkit
-    email: developer-toolkit@newrelic.com
-  commit_msg_template: "chore(scoop): update for {{ .ProjectName }} version {{ .Tag }}"
-  homepage: https://github.com/newrelic/newrelic-cli
-  url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
-  description: |
-    The New Relic CLI is an officially supported command line interface for New
-    Relic, released as part of the Developer Toolkit.
-  license: Apache-2.0
+scoops:
+  - repository:
+      owner: newrelic
+      name: newrelic-cli
+    commit_author:
+      name: nr-developer-toolkit
+      email: developer-toolkit@newrelic.com
+    commit_msg_template: "chore(scoop): update for {{ .ProjectName }} version {{ .Tag }}"
+    homepage: https://github.com/newrelic/newrelic-cli
+    url_template: "https://github.com/newrelic/newrelic-cli/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+    description: |
+      The New Relic CLI is an officially supported command line interface for New
+      Relic, released as part of the Developer Toolkit.
+    license: Apache-2.0
 
 nfpms:
   - id: newrelic
     package_name: newrelic-cli
-    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    builds:
+    # Preserve v1 file naming (Darwin/Linux/x86_64/i386) via templating instead
+    # of the removed `replacements` field.
+    file_name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}Darwin
+      {{- else if eq .Os "linux" }}Linux
+      {{- else if eq .Os "windows" }}Windows
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    ids:
       - newrelic
-    replacements:
-      darwin: Darwin
-      linux: Linux
-      windows: Windows
-      386: i386
-      amd64: x86_64
     vendor: New Relic
     homepage: https://github.com/newrelic/newrelic-cli
     maintainer: opensource@newrelic.com

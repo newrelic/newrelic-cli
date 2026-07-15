@@ -1,0 +1,192 @@
+name: Release Artifact Name Check
+
+# Regression guard against the v0.109.0 incident:
+#
+#   PR #1806 (merged, then reverted 2h40m later via #1809) migrated
+#   .goreleaser.yml to v2 by dropping `archives.replacements` and
+#   `nfpms.replacements` without providing a compatible `name_template`.
+#   The release completed, but every asset landed on S3 under lowercase
+#   `{os}_{arch}` filenames (e.g. newrelic-cli_0.109.0_linux_amd64.tar.gz)
+#   instead of the historical `{Os}_{Machine}` names that scripts/install.sh
+#   and every downstream package manager hard-codes. install.sh 404'd on
+#   every OS/arch combination — the "release succeeded but artifacts weren't
+#   accessible" incident.
+#
+# This job runs on every PR (and every push to main) that touches the release
+# pipeline, executes a real `goreleaser release --snapshot`, and asserts that
+# the exact set of customer-facing filenames still lands under dist/. Any
+# future change that breaks the naming contract fails CI before merge.
+
+on:
+  pull_request:
+    paths:
+      - '.goreleaser.yml'
+      - 'build/release.mk'
+      - 'build/tools.mk'
+      - 'scripts/install.sh'
+      - 'scripts/install.ps1'
+      - 'tools/tools.go'
+      - 'tools/go.mod'
+      - '.github/workflows/release-name-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.goreleaser.yml'
+      - 'build/release.mk'
+      - 'build/tools.mk'
+      - 'scripts/install.sh'
+      - 'scripts/install.ps1'
+      - 'tools/tools.go'
+      - 'tools/go.mod'
+      - '.github/workflows/release-name-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-name-check:
+    name: Verify customer-facing artifact filenames
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.26.x
+
+      - name: Add GOBIN to PATH
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install release tooling (goreleaser v2 + friends)
+        shell: bash
+        env:
+          GOTOOLCHAIN: auto
+        run: |
+          # `make tools` installs whatever tools/tools.go declares (goreleaser v2,
+          # svu, git-chglog, gobump, etc.), so the snapshot uses the exact same
+          # binary the release workflow would.
+          make tools
+
+      - name: Produce a full release snapshot
+        shell: bash
+        env:
+          GOTOOLCHAIN: auto
+        run: |
+          # --skip=publish,announce,sign,docker,scoop lets us build every
+          # archive/nfpm without needing GPG, docker, or Scoop credentials.
+          # The naming contract only depends on archives + nfpms, both of
+          # which still run under this flag set.
+          goreleaser release --snapshot --clean \
+            --skip=publish,announce,sign,docker,scoop
+
+      - name: Assert customer-facing filename set
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Every filename below is directly consumed by a customer-facing
+          # download path. If any goes missing, we have a v0.109.0-class
+          # regression and the release must not ship.
+          #
+          #   Linux_x86_64.tar.gz / Linux_arm64.tar.gz / Linux_armv7.tar.gz
+          #   Darwin_x86_64.tar.gz / Darwin_arm64.tar.gz
+          #     -> scripts/install.sh (RELEASE_URL at line 90)
+          #   Windows_x86_64.zip
+          #     -> release.yml `Re-do Windows_x86_64.zip` step (line 169:
+          #        ls dist/*Windows_x86_64.zip); scoops manifest url_template
+          #   Linux_{x86_64,arm64,arm}.{deb,rpm}
+          #     -> apt / yum / package-manager users
+          #   *_checksums.txt
+          #     -> release.yml checksum-signing step and S3 upload
+          required_suffixes=(
+            "Linux_x86_64.tar.gz"
+            "Linux_arm64.tar.gz"
+            "Linux_armv7.tar.gz"
+            "Darwin_x86_64.tar.gz"
+            "Darwin_arm64.tar.gz"
+            "Windows_x86_64.zip"
+            "Linux_x86_64.deb"
+            "Linux_arm64.deb"
+            "Linux_arm.deb"
+            "Linux_x86_64.rpm"
+            "Linux_arm64.rpm"
+            "Linux_arm.rpm"
+            "checksums.txt"
+          )
+
+          echo "=== dist/ contents ==="
+          ls -1 dist/ | sort
+
+          missing=()
+          for suf in "${required_suffixes[@]}"; do
+            # snapshot filenames include a -SNAPSHOT-<sha> suffix in the version,
+            # so we match by the trailing "_${suf}" fragment rather than a full
+            # equality check.
+            if ! ls dist/newrelic-cli_*_"${suf}" >/dev/null 2>&1; then
+              missing+=("${suf}")
+            fi
+          done
+
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo
+            echo "::error::v0.109.0-class regression detected. The following"
+            echo "::error::customer-facing filenames were NOT produced by the"
+            echo "::error::snapshot — install.sh, package managers, and Scoop"
+            echo "::error::would 404 on release:"
+            for m in "${missing[@]}"; do
+              echo "::error::  - newrelic-cli_<VERSION>_${m}"
+            done
+            echo
+            echo "::error::Fix: review the archives.name_template /"
+            echo "::error::nfpms.file_name_template / format_overrides fields"
+            echo "::error::in .goreleaser.yml against scripts/install.sh:90"
+            echo "::error::and the current production v0.112.x asset list on"
+            echo "::error::download.newrelic.com."
+            exit 1
+          fi
+
+          echo
+          echo "All ${#required_suffixes[@]} customer-facing filenames present."
+
+      - name: Assert internal dist subdirectories consumed by release.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # release.yml (signing + Re-do zip) and the e2e workflows expect
+          # specific goreleaser build-output subdirectories. In goreleaser v2
+          # the arm64 variant suffix (v8.0) is included; amd64 keeps _v1.
+          # Anything that renames these silently breaks release.yml line 155
+          # (windows exe signing) and the e2e "Add newrelic cli path" step.
+          required_dirs=(
+            "dist/newrelic_linux_amd64_v1"
+            "dist/newrelic_windows_amd64_v1"
+            "dist/newrelic_linux_arm64_v8.0"
+            "dist/newrelic_darwin_amd64_v1"
+            "dist/newrelic_darwin_arm64_v8.0"
+          )
+
+          missing_dirs=()
+          for d in "${required_dirs[@]}"; do
+            [ -d "$d" ] || missing_dirs+=("$d")
+          done
+
+          if [ "${#missing_dirs[@]}" -gt 0 ]; then
+            echo "::error::goreleaser build-output subdirectory drift:"
+            for m in "${missing_dirs[@]}"; do
+              echo "::error::  missing: $m"
+            done
+            echo "::error::Fix: pin the relevant goarm64 / goamd64 in"
+            echo "::error::.goreleaser.yml so this subdir naming stays stable,"
+            echo "::error::or update release.yml + .github/workflows/e2e*.yml"
+            echo "::error::to reference the new path."
+            exit 1
+          fi
+
+          echo "All release.yml-consumed build subdirs present."
