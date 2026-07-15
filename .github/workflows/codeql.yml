@@ -18,6 +18,10 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ main ]
 
+# Default to read-only; the `analyze` job overrides with the writes CodeQL needs.
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze
