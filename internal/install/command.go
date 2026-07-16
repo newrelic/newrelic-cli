@@ -168,7 +168,7 @@ func validateProfile() *types.DetailError {
 	}
 
 	if _, err := nrRegion.Parse(region); err != nil {
-		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US", "EU", or "JP".`)
+		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US", "EU", "JP", "GOV", or "FEDRAMP".`)
 	}
 
 	return nil

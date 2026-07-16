@@ -71,6 +71,8 @@ func InitializeCredentialsStore() {
 					region.US.String(),
 					region.EU.String(),
 					region.JP.String(),
+					region.GOV.String(),
+					"FEDRAMP", // alias for GOV; Parse() normalises both to region.GOV
 				),
 				Default:      region.US.String(),
 				SetValueFunc: ToLower(),

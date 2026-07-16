@@ -272,6 +272,12 @@ func nrPlatformHostname() string {
 		return nrPlatformHostnames.JP
 	}
 
+	// GOV/FedRAMP does not have a publicly accessible platform hostname;
+	// fall back to the US host so post-install links remain navigable.
+	if strings.EqualFold(r, region.GOV.String()) || strings.EqualFold(r, "fedramp") {
+		return nrPlatformHostnames.US
+	}
+
 	return nrPlatformHostnames.US
 }
 
