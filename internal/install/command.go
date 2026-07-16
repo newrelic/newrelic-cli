@@ -116,6 +116,10 @@ var Command = &cobra.Command{
 				return err
 			}
 
+			if len(extractedRecipeNames) > 0 && errors.Is(err, types.ErrNoRecipesInstalled) {
+				return err
+			}
+
 			if i.shouldInstallCore() {
 				fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
 				fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
