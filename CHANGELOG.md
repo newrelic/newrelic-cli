@@ -1,3 +1,11 @@
+<a name="v0.113.0"></a>
+## [v0.113.0] - 2026-07-17
+### Bug Fixes
+- **install:** exit non-zero when a targeted install installs no recipes ([#1865](https://github.com/newrelic/newrelic-cli/issues/1865))
+
+### Features
+- **region:** add GOV/FedRAMP region support ([#1866](https://github.com/newrelic/newrelic-cli/issues/1866))
+
 <a name="v0.112.18"></a>
 ## [v0.112.18] - 2026-07-15
 ### Bug Fixes
@@ -2835,7 +2843,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.112.18...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.0...HEAD
+[v0.113.0]: https://github.com/newrelic/newrelic-cli/compare/v0.112.18...v0.113.0
 [v0.112.18]: https://github.com/newrelic/newrelic-cli/compare/v0.112.17...v0.112.18
 [v0.112.17]: https://github.com/newrelic/newrelic-cli/compare/v0.112.16...v0.112.17
 [v0.112.16]: https://github.com/newrelic/newrelic-cli/compare/v0.112.15...v0.112.16
