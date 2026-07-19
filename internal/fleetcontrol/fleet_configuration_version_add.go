@@ -31,7 +31,7 @@ import (
 //
 // Returns:
 //   - Error if version addition fails, nil on success
-func handleFleetAddVersion(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetAddVersion(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	// Note: AddVersion() returns error because it handles file reading
 	f, err := flags.AddVersion()

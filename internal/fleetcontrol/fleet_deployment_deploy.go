@@ -58,7 +58,7 @@ func spinner(duration time.Duration, message string) {
 // could affect the code-perception of the hierarchical structure of the fleet commands
 //
 //nolint:gocyclo
-func handleFleetDeploy(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetDeploy(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.Deploy()
 
