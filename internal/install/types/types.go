@@ -233,6 +233,16 @@ type OpenInstallationPreInstallConfiguration struct {
 	DiscoveryMode []OpenInstallationDiscoveryMode `json:"discoveryMode,omitempty"`
 }
 
+// OpenInstallationUninstallMeta - Declarative removal instructions used when a recipe has no Uninstall taskfile
+type OpenInstallationUninstallMeta struct {
+	// OS packages to remove (e.g. via apt/yum/msiexec)
+	Packages []string `json:"packages,omitempty"`
+	// Services to stop and disable
+	Services []string `json:"services,omitempty"`
+	// Filesystem paths to remove
+	Paths []string `json:"paths,omitempty"`
+}
+
 // OpenInstallationProcessDetailInput - Process details
 type OpenInstallationProcessDetailInput struct {
 	// Process name
@@ -257,6 +267,10 @@ type OpenInstallationRecipe struct {
 	Install string `json:"install"`
 	// Object representing the intended install target
 	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets"`
+	// Go-task's taskfile definition for removing this recipe (see https://taskfile.dev/#/usage)
+	Uninstall string `json:"uninstall,omitempty"`
+	// Declarative packages/services/paths to remove when no Uninstall taskfile is defined
+	UninstallMeta OpenInstallationUninstallMeta `json:"uninstallMeta,omitempty"`
 	// Tags
 	Keywords []string `json:"keywords"`
 	// # Partial list of possible Log forwarding parameters

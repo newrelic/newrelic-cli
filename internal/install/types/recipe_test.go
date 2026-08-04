@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestToStringByFieldName(t *testing.T) {
@@ -112,4 +113,70 @@ func Test_shouldExpandDiscoveryMode(t *testing.T) {
 	m["discoveryMode"] = []interface{}{"badMode", "guided"}
 	dm = expandDiscoveryMode(m)
 	require.Equal(t, 1, len(dm), "One good value should be parsed")
+}
+
+func Test_shouldExpandUninstallMapToString(t *testing.T) {
+	m := make(map[string]interface{})
+	uninstallMap := make(map[interface{}]interface{})
+	uninstallMap["version"] = "3"
+	m["uninstall"] = uninstallMap
+
+	s, err := expandUninstallMapToString(m)
+	require.NoError(t, err)
+	require.Equal(t, "version: \"3\"\n", s)
+}
+
+func Test_shouldExpandUninstallMapToStringWhenAbsent(t *testing.T) {
+	m := make(map[string]interface{})
+
+	s, err := expandUninstallMapToString(m)
+	require.NoError(t, err)
+	require.Equal(t, "", s)
+}
+
+func Test_shouldExpandUninstallMeta(t *testing.T) {
+	m := make(map[string]interface{})
+	mm := make(map[interface{}]interface{})
+	m["uninstallMeta"] = mm
+	mm["packages"] = []interface{}{"newrelic-infra"}
+	mm["services"] = []interface{}{"newrelic-infra"}
+	mm["paths"] = []interface{}{"/etc/newrelic-infra"}
+
+	c := expandUninstallMeta(m)
+	require.Equal(t, []string{"newrelic-infra"}, c.Packages)
+	require.Equal(t, []string{"newrelic-infra"}, c.Services)
+	require.Equal(t, []string{"/etc/newrelic-infra"}, c.Paths)
+}
+
+func Test_shouldExpandUninstallMetaWhenAbsent(t *testing.T) {
+	m := make(map[string]interface{})
+
+	c := expandUninstallMeta(m)
+	require.Equal(t, OpenInstallationUninstallMeta{}, c)
+}
+
+func Test_shouldUnmarshalUninstallFromYAML(t *testing.T) {
+	raw := `
+name: testName
+uninstall:
+  default:
+    cmds:
+      - apt remove -y newrelic-infra
+uninstallMeta:
+  packages:
+    - newrelic-infra
+  services:
+    - newrelic-infra
+  paths:
+    - /etc/newrelic-infra
+`
+
+	var recipe OpenInstallationRecipe
+	err := yaml.Unmarshal([]byte(raw), &recipe)
+	require.NoError(t, err)
+
+	require.Equal(t, "default:\n  cmds:\n  - apt remove -y newrelic-infra\n", recipe.Uninstall)
+	require.Equal(t, []string{"newrelic-infra"}, recipe.UninstallMeta.Packages)
+	require.Equal(t, []string{"newrelic-infra"}, recipe.UninstallMeta.Services)
+	require.Equal(t, []string{"/etc/newrelic-infra"}, recipe.UninstallMeta.Paths)
 }

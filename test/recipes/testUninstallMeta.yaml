@@ -1,0 +1,17 @@
+name: test-uninstall-meta
+displayName: Test Uninstall Meta
+
+install:
+  version: '3'
+  tasks:
+    default:
+      cmds:
+        - "true"
+
+uninstallMeta:
+  packages:
+    - test-uninstall-meta-package
+  services:
+    - test-uninstall-meta-service
+  paths:
+    - /tmp/test-uninstall-meta-path

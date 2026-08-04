@@ -39,6 +39,34 @@ tasks:
 	require.True(t, strings.Contains(b.String(), "echo testValue"))
 }
 
+func TestExecuteTaskfile_RunsGivenTaskfileNotInstall(t *testing.T) {
+	v := types.RecipeVars{}
+	r := types.OpenInstallationRecipe{
+		Name: "test-recipe",
+		Install: `
+version: '3'
+tasks:
+  default:
+    cmds:
+      - exit 1
+`,
+		Uninstall: `
+version: '3'
+tasks:
+  default:
+    cmds:
+      - echo removing-test-recipe
+`,
+	}
+
+	e := NewGoTaskRecipeExecutor()
+	b := bytes.NewBufferString("")
+	e.Stdout = b
+	err := e.ExecuteTaskfile(context.Background(), r.Uninstall, r, v)
+	require.NoError(t, err)
+	require.True(t, strings.Contains(b.String(), "removing-test-recipe"))
+}
+
 func TestExecute_HandleRecipeLastError(t *testing.T) {
 	v := types.RecipeVars{
 		"TEST_VAR": "testValue\n \n",

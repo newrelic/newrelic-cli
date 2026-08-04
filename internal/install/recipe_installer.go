@@ -169,23 +169,31 @@ func (i *RecipeInstall) promptIfNotLatestCLIVersion(ctx context.Context) error {
 	return nil
 }
 
-func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error {
-	processes := i.processEvaluator.GetOrLoadProcesses(ctx)
+// CountConcurrentNewRelicSubcommandProcesses counts running processes that look like
+// `newrelic install` or `newrelic uninstall` invocations, so install and uninstall
+// don't race each other (e.g. stopping a service mid-install).
+func CountConcurrentNewRelicSubcommandProcesses(processes []types.GenericProcess) int {
 	count := 0
 	nameRegex := regexp.MustCompile(`(?i)newrelic(\.exe)?`)
+	cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? (un)?install`)
 	for _, p := range processes {
 		name, err := p.Name()
 		if err == nil && nameRegex.MatchString(name) {
 			cmd, err := p.Cmd()
-			cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? install`)
 			if err == nil && cmdRegex.MatchString(cmd) {
 				log.Debugf("EnsureSingleConcurrentInstall Matched:%s pid:%d", name, p.PID())
 				count++
 			}
 		}
 	}
+	return count
+}
+
+func (i *RecipeInstall) ensureSingleConcurrentInstall(ctx context.Context) error {
+	processes := i.processEvaluator.GetOrLoadProcesses(ctx)
+	count := CountConcurrentNewRelicSubcommandProcesses(processes)
 	if count > 1 {
-		message := fmt.Sprintf("only 1 newrelic install command can run at one time, found %d currently executing. Please retry later, or terminate the other newrelic installations", count)
+		message := fmt.Sprintf("only 1 newrelic install/uninstall command can run at one time, found %d currently executing. Please retry later, or terminate the other newrelic installations", count)
 		return errors.New(message)
 	}
 	return nil
