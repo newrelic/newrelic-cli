@@ -942,7 +942,15 @@ func TestWhenSingleInstallRunningErrorOnMultiple(t *testing.T) {
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
+}
+
+func TestWhenInstallRunningConcurrentlyWithUninstall_Errors(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").WithRunningProcess("env=456 newrelic uninstall", "newrelic").Build()
+	err := recipeInstall.Install()
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 }
 
 func TestWhenSingleInstallRunningNoError(t *testing.T) {
@@ -950,7 +958,7 @@ func TestWhenSingleInstallRunningNoError(t *testing.T) {
 
 	err := recipeInstall.Install()
 	if err != nil {
-		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 	}
 }
 
@@ -960,7 +968,7 @@ func TestWhenSingleInstallRunningErrorOnMultipleWindows(t *testing.T) {
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 }
 
 func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
@@ -968,7 +976,7 @@ func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
 
 	err := recipeInstall.Install()
 	if err != nil {
-		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 	}
 }
 

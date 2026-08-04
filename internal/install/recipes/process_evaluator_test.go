@@ -74,3 +74,26 @@ func TestProcessEvaluatorShouldSucceedFindingExistingProcess(t *testing.T) {
 	found := pe.FindProcess("process-a")
 	require.Equal(t, true, found)
 }
+
+func TestCountConcurrentNewRelicSubcommandProcesses(t *testing.T) {
+	processes := []types.GenericProcess{
+		NewMockProcess("newrelic install -n infra", "newrelic", 1),
+		NewMockProcess("newrelic uninstall -n infra", "newrelic", 2),
+		NewMockProcess("newrelic diagnose", "newrelic", 3),
+		NewMockProcess("otherprocess install", "otherprocess", 4),
+	}
+
+	count := CountConcurrentNewRelicSubcommandProcesses(processes)
+
+	require.Equal(t, 2, count, "should match the install and uninstall processes, but not diagnose or unrelated binaries")
+}
+
+func TestCountConcurrentNewRelicSubcommandProcesses_WindowsExeSuffix(t *testing.T) {
+	processes := []types.GenericProcess{
+		NewMockProcess("newrelic.exe uninstall -n infra", "newrelic.exe", 1),
+	}
+
+	count := CountConcurrentNewRelicSubcommandProcesses(processes)
+
+	require.Equal(t, 1, count)
+}

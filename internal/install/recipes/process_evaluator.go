@@ -3,6 +3,7 @@ package recipes
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"golang.org/x/exp/slices"
 
@@ -98,6 +99,24 @@ func (pe *ProcessEvaluator) DetectionStatus(ctx context.Context, r *types.OpenIn
 	}
 
 	return execution.RecipeStatusTypes.AVAILABLE
+}
+
+// CountConcurrentNewRelicSubcommandProcesses is used to prevent concurrent install/uninstall processes from running at the same time.
+func CountConcurrentNewRelicSubcommandProcesses(processes []types.GenericProcess) int {
+	count := 0
+	nameRegex := regexp.MustCompile(`(?i)newrelic(\.exe)?`)
+	cmdRegex := regexp.MustCompile(`(?i)newrelic(\.exe)? (un)?install`)
+	for _, p := range processes {
+		name, err := p.Name()
+		if err == nil && nameRegex.MatchString(name) {
+			cmd, err := p.Cmd()
+			if err == nil && cmdRegex.MatchString(cmd) {
+				log.Debugf("CountConcurrentNewRelicSubcommandProcesses Matched:%s pid:%d", name, p.PID())
+				count++
+			}
+		}
+	}
+	return count
 }
 
 func (pe *ProcessEvaluator) FindProcess(process string) bool {

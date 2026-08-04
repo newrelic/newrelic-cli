@@ -257,6 +257,8 @@ type OpenInstallationRecipe struct {
 	Install string `json:"install"`
 	// Object representing the intended install target
 	InstallTargets []OpenInstallationRecipeInstallTarget `json:"installTargets"`
+	// Go-task's taskfile definition for removing this recipe (see https://taskfile.dev/#/usage)
+	Uninstall string `json:"uninstall,omitempty"`
 	// Tags
 	Keywords []string `json:"keywords"`
 	// # Partial list of possible Log forwarding parameters

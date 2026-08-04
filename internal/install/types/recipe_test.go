@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestToStringByFieldName(t *testing.T) {
@@ -112,4 +113,74 @@ func Test_shouldExpandDiscoveryMode(t *testing.T) {
 	m["discoveryMode"] = []interface{}{"badMode", "guided"}
 	dm = expandDiscoveryMode(m)
 	require.Equal(t, 1, len(dm), "One good value should be parsed")
+}
+
+func Test_shouldExpandUninstallMapToString(t *testing.T) {
+	m := make(map[string]interface{})
+	uninstallMap := make(map[interface{}]interface{})
+	uninstallMap["version"] = "3"
+	m["uninstall"] = uninstallMap
+
+	s, err := expandUninstallMapToString(m)
+	require.NoError(t, err)
+	require.Equal(t, "version: \"3\"\n", s)
+}
+
+func Test_shouldExpandUninstallMapToStringWhenAbsent(t *testing.T) {
+	m := make(map[string]interface{})
+
+	s, err := expandUninstallMapToString(m)
+	require.NoError(t, err)
+	require.Equal(t, "", s)
+}
+
+func Test_shouldErrorExpandingUninstallMapToStringWhenNotAMap(t *testing.T) {
+	m := make(map[string]interface{})
+	m["uninstall"] = "not-a-map"
+
+	_, err := expandUninstallMapToString(m)
+	require.Error(t, err)
+}
+
+func Test_shouldExpandInstallMapToString(t *testing.T) {
+	m := make(map[string]interface{})
+	installMap := make(map[interface{}]interface{})
+	installMap["version"] = "3"
+	m["install"] = installMap
+
+	s, err := expandInstalllMapToString(m)
+	require.NoError(t, err)
+	require.Equal(t, "version: \"3\"\n", s)
+}
+
+func Test_shouldExpandInstallMapToStringWhenAbsent(t *testing.T) {
+	m := make(map[string]interface{})
+
+	s, err := expandInstalllMapToString(m)
+	require.NoError(t, err)
+	require.Equal(t, "", s)
+}
+
+func Test_shouldErrorExpandingInstallMapToStringWhenNotAMap(t *testing.T) {
+	m := make(map[string]interface{})
+	m["install"] = []interface{}{"not-a-map"}
+
+	_, err := expandInstalllMapToString(m)
+	require.Error(t, err)
+}
+
+func Test_shouldUnmarshalUninstallFromYAML(t *testing.T) {
+	raw := `
+name: testName
+uninstall:
+  default:
+    cmds:
+      - apt remove -y newrelic-infra
+`
+
+	var recipe OpenInstallationRecipe
+	err := yaml.Unmarshal([]byte(raw), &recipe)
+	require.NoError(t, err)
+
+	require.Equal(t, "default:\n  cmds:\n  - apt remove -y newrelic-infra\n", recipe.Uninstall)
 }
