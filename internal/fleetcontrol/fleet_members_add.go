@@ -26,7 +26,7 @@ import (
 //
 // Returns:
 //   - Error if adding members fails, nil on success
-func handleFleetAddMembers(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetAddMembers(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.AddMembers()
 

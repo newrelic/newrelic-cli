@@ -34,7 +34,7 @@ import (
 //
 // Returns:
 //   - Error if deployment update fails, nil on success
-func handleFleetUpdateDeployment(cmd *cobra.Command, args []string, flags *FlagValues) error {
+func handleFleetUpdateDeployment(_ *cobra.Command, _ []string, flags *FlagValues) error {
 	// Get typed flag values - no hardcoded strings!
 	f := flags.UpdateDeployment()
 
