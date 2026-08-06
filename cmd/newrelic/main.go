@@ -31,6 +31,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/synthetics"
+	"github.com/newrelic/newrelic-cli/internal/uninstall"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
@@ -60,6 +61,7 @@ func init() {
 	Command.AddCommand(migrate.Command)
 	Command.AddCommand(profile.Command)
 	Command.AddCommand(reporting.Command)
+	Command.AddCommand(uninstall.Command)
 	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)
 

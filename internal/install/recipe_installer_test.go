@@ -942,7 +942,15 @@ func TestWhenSingleInstallRunningErrorOnMultiple(t *testing.T) {
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
+}
+
+func TestWhenInstallRunningConcurrentlyWithUninstall_Errors(t *testing.T) {
+	recipeInstall := NewRecipeInstallBuilder().WithRunningProcess("env=123 newrelic install", "newrelic").WithRunningProcess("env=456 newrelic uninstall", "newrelic").Build()
+	err := recipeInstall.Install()
+
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 }
 
 func TestWhenSingleInstallRunningNoError(t *testing.T) {
@@ -950,7 +958,7 @@ func TestWhenSingleInstallRunningNoError(t *testing.T) {
 
 	err := recipeInstall.Install()
 	if err != nil {
-		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 	}
 }
 
@@ -960,7 +968,7 @@ func TestWhenSingleInstallRunningErrorOnMultipleWindows(t *testing.T) {
 	err := recipeInstall.Install()
 
 	assert.Error(t, err)
-	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+	assert.True(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 }
 
 func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
@@ -968,7 +976,7 @@ func TestWhenSingleInstallRunningNoErrorWindows(t *testing.T) {
 
 	err := recipeInstall.Install()
 	if err != nil {
-		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install command can run at one time"))
+		assert.False(t, strings.Contains(err.Error(), "only 1 newrelic install/uninstall command can run at one time"))
 	}
 }
 
@@ -1030,6 +1038,29 @@ func TestTargetInstallShouldHaveRecommendationss(t *testing.T) {
 	assert.NotEmpty(t, recommendations, "Should return some recommendations")
 	assert.Equal(t, 1, len(recommendations), "Should return one recommendations")
 	assert.Equal(t, "recipe1", recommendations[0].Recipe.Name, "Should return one recommendations")
+}
+
+func TestCountConcurrentNewRelicSubcommandProcesses(t *testing.T) {
+	processes := []types.GenericProcess{
+		recipes.NewMockProcess("newrelic install -n infra", "newrelic", 1),
+		recipes.NewMockProcess("newrelic uninstall -n infra", "newrelic", 2),
+		recipes.NewMockProcess("newrelic diagnose", "newrelic", 3),
+		recipes.NewMockProcess("otherprocess install", "otherprocess", 4),
+	}
+
+	count := CountConcurrentNewRelicSubcommandProcesses(processes)
+
+	assert.Equal(t, 2, count, "should match the install and uninstall processes, but not diagnose or unrelated binaries")
+}
+
+func TestCountConcurrentNewRelicSubcommandProcesses_WindowsExeSuffix(t *testing.T) {
+	processes := []types.GenericProcess{
+		recipes.NewMockProcess("newrelic.exe uninstall -n infra", "newrelic.exe", 1),
+	}
+
+	count := CountConcurrentNewRelicSubcommandProcesses(processes)
+
+	assert.Equal(t, 1, count)
 }
 
 func captureLoggingOutput(f func()) string {

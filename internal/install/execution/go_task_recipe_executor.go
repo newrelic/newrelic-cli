@@ -49,7 +49,18 @@ func (re *GoTaskRecipeExecutor) ExecutePreInstall(ctx context.Context, r types.O
 	return errors.New("not implemented")
 }
 
-func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) (retErr error) {
+func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
+	return re.executeTaskfile(ctx, r.Install, r, recipeVars)
+}
+
+// ExecuteTaskfile runs an arbitrary go-task Taskfile (e.g. a recipe's Uninstall
+// field) using the same execution/output/error handling as Execute, without
+// requiring the recipe's Install field to be the source of the Taskfile.
+func (re *GoTaskRecipeExecutor) ExecuteTaskfile(ctx context.Context, taskfileYAML string, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) error {
+	return re.executeTaskfile(ctx, taskfileYAML, r, recipeVars)
+}
+
+func (re *GoTaskRecipeExecutor) executeTaskfile(ctx context.Context, taskfileYAML string, r types.OpenInstallationRecipe, recipeVars types.RecipeVars) (retErr error) {
 	defer func() {
 		if r := recover(); r != nil {
 			switch x := r.(type) {
@@ -66,7 +77,7 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	log.Debugf("executing recipe %s", r.Name)
 
 	// unmarshall task file & create/write to temp file
-	taskFile, err := createRecipeTempFile(r)
+	taskFile, err := createRecipeTempFile(taskfileYAML, r.Name)
 	if err != nil {
 		return err
 	}
@@ -155,13 +166,13 @@ func (re *GoTaskRecipeExecutor) Execute(ctx context.Context, r types.OpenInstall
 	return nil
 }
 
-func createRecipeTempFile(r types.OpenInstallationRecipe) (*os.File, error) {
-	out := []byte(r.Install)
+func createRecipeTempFile(taskfileYAML string, recipeName string) (*os.File, error) {
+	out := []byte(taskfileYAML)
 	err := yaml.Unmarshal(out, &taskfile.Taskfile{})
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal taskfile: %s", err)
 	}
-	taskFile, err := ioutil.TempFile("", r.Name)
+	taskFile, err := ioutil.TempFile("", recipeName)
 	if err != nil {
 		return nil, err
 	}

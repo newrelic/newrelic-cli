@@ -1,0 +1,16 @@
+name: test-uninstall-taskfile
+displayName: Test Uninstall Taskfile
+
+install:
+  version: '3'
+  tasks:
+    default:
+      cmds:
+        - "true"
+
+uninstall:
+  version: '3'
+  tasks:
+    default:
+      cmds:
+        - echo "uninstalling test-uninstall-taskfile"

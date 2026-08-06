@@ -50,6 +50,13 @@ func (r *OpenInstallationRecipe) UnmarshalYAML(unmarshal func(interface{}) error
 
 	r.InstallTargets = expandInstallTargets(recipe)
 
+	uninstallAsString, err := expandUninstallMapToString(recipe)
+	if err != nil {
+		return err
+	}
+	r.Uninstall = uninstallAsString
+	r.UninstallMeta = expandUninstallMeta(recipe)
+
 	if v, ok := recipe["keywords"]; ok {
 		r.Keywords = interfaceSliceToStringSlice(v.([]interface{}))
 	}
@@ -379,6 +386,52 @@ func expandInstalllMapToString(recipeIn map[string]interface{}) (string, error) 
 	}
 
 	return string(installAsString), nil
+}
+
+func expandUninstallMapToString(recipeIn map[string]interface{}) (string, error) {
+	uninstallIn, ok := recipeIn["uninstall"]
+	if !ok {
+		return "", nil
+	}
+
+	uninstallOut := map[string]interface{}{}
+	uninstallMap := uninstallIn.(map[interface{}]interface{})
+	for k, v := range uninstallMap {
+		uninstallOut[k.(string)] = v
+	}
+
+	uninstallAsString, err := yaml.Marshal(uninstallOut)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshaling recipe.uninstall to string: %s", err)
+	}
+
+	return string(uninstallAsString), nil
+}
+
+func expandUninstallMeta(recipe map[string]interface{}) OpenInstallationUninstallMeta {
+	v, ok := recipe["uninstallMeta"]
+	if !ok {
+		return OpenInstallationUninstallMeta{}
+	}
+
+	vv := v.(map[interface{}]interface{})
+	metaOut := map[string]interface{}{}
+	for k, v := range vv {
+		metaOut[k.(string)] = v
+	}
+
+	out := OpenInstallationUninstallMeta{}
+	if v, ok := metaOut["packages"]; ok {
+		out.Packages = interfaceSliceToStringSlice(v.([]interface{}))
+	}
+	if v, ok := metaOut["services"]; ok {
+		out.Services = interfaceSliceToStringSlice(v.([]interface{}))
+	}
+	if v, ok := metaOut["paths"]; ok {
+		out.Paths = interfaceSliceToStringSlice(v.([]interface{}))
+	}
+
+	return out
 }
 
 func interfaceSliceToStringSlice(slice []interface{}) []string {
