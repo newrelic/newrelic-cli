@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/http/httpproxy"
 
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
@@ -97,28 +97,32 @@ func initSegmentMockServer() *httptest.Server {
 	return server
 }
 
-func TestProxyNetwork(t *testing.T) {
-
-	proxyConfig := struct {
-		HTTPSProxy string
-		HTTPProxy  string
-	}{
-		HTTPSProxy: "http://localhost:3128",
-		HTTPProxy:  "http://localhost:8080",
+func TestShouldWarnAboutProxy(t *testing.T) {
+	warn := func() bool {
+		return ShouldWarnAboutProxy(*httpproxy.FromEnvironment())
 	}
 
-	// Validate HTTPSProxy
-	if strings.HasPrefix(proxyConfig.HTTPSProxy, "http://") {
-		t.Log("New Relic CLI exclusively supports https proxy, not http for security reasons.")
-	} else if strings.HasPrefix(proxyConfig.HTTPSProxy, "https://") {
-		// Do nothing
-	} else {
-		t.Log("Invalid proxy provided")
-	}
+	t.Run("no warning when HTTPS_PROXY is set with http scheme", func(t *testing.T) {
+		t.Setenv("HTTPS_PROXY", "http://localhost:8080")
+		t.Setenv("HTTP_PROXY", "")
+		assert.False(t, warn())
+	})
 
-	// Validate HTTPProxy
-	if strings.HasPrefix(proxyConfig.HTTPProxy, "http://") {
-		t.Log("If you need to use a proxy, consider setting the HTTPS_PROXY environment variable, then try again. New Relic CLI exclusively supports https proxy.")
-	}
+	t.Run("no warning when HTTPS_PROXY is set with https scheme", func(t *testing.T) {
+		t.Setenv("HTTPS_PROXY", "https://localhost:8080")
+		t.Setenv("HTTP_PROXY", "")
+		assert.False(t, warn())
+	})
 
+	t.Run("warns when HTTP_PROXY is set but HTTPS_PROXY is not", func(t *testing.T) {
+		t.Setenv("HTTP_PROXY", "http://localhost:8080")
+		t.Setenv("HTTPS_PROXY", "")
+		assert.True(t, warn())
+	})
+
+	t.Run("no warning when no proxy is configured", func(t *testing.T) {
+		t.Setenv("HTTP_PROXY", "")
+		t.Setenv("HTTPS_PROXY", "")
+		assert.False(t, warn())
+	})
 }
