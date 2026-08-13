@@ -1,5 +1,10 @@
+<a name="v0.113.5"></a>
+## [v0.113.5] - 2026-08-13
+### Bug Fixes
+- fix all open Dependabot vulnerabilities (5 CVEs across go.mod + tools/go.mod) ([#1872](https://github.com/newrelic/newrelic-cli/issues/1872))
+
 <a name="v0.113.4"></a>
-## [v0.113.4] - 2026-07-27
+## [v0.113.4] - 2026-08-06
 <a name="v0.113.3"></a>
 ## [v0.113.3] - 2026-07-27
 <a name="v0.113.2"></a>
@@ -2851,7 +2856,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.5...HEAD
+[v0.113.5]: https://github.com/newrelic/newrelic-cli/compare/v0.113.4...v0.113.5
 [v0.113.4]: https://github.com/newrelic/newrelic-cli/compare/v0.113.3...v0.113.4
 [v0.113.3]: https://github.com/newrelic/newrelic-cli/compare/v0.113.2...v0.113.3
 [v0.113.2]: https://github.com/newrelic/newrelic-cli/compare/v0.113.1...v0.113.2
