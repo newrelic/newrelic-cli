@@ -76,3 +76,7 @@ require (
 )
 
 replace github.com/go-task/task/v3 => github.com/newrelic-forks/task/v3 v3.11.0
+
+// TEMPORARY: points at newrelic/newrelic-client-go#1442 (fix/fleetcontrol-entity-search-cursor)
+// for local testing while that PR is in review. Revert to a released version before merging.
+replace github.com/newrelic/newrelic-client-go/v2 => github.com/newrelic/newrelic-client-go/v2 v2.93.1-0.20260810175905-93cb87f7dc94
