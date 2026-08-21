@@ -1,3 +1,5 @@
+<a name="v0.113.7"></a>
+## [v0.113.7] - 2026-08-17
 <a name="v0.113.6"></a>
 ## [v0.113.6] - 2026-08-17
 ### Bug Fixes
@@ -2861,7 +2863,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.7...HEAD
+[v0.113.7]: https://github.com/newrelic/newrelic-cli/compare/v0.113.6...v0.113.7
 [v0.113.6]: https://github.com/newrelic/newrelic-cli/compare/v0.113.5...v0.113.6
 [v0.113.5]: https://github.com/newrelic/newrelic-cli/compare/v0.113.4...v0.113.5
 [v0.113.4]: https://github.com/newrelic/newrelic-cli/compare/v0.113.3...v0.113.4
