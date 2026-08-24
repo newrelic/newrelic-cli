@@ -17,7 +17,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.4.4
 	github.com/joshdk/go-junit v0.0.0-20210226021600-6145f504ca0d
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/newrelic/newrelic-client-go/v2 v2.91.0
+	github.com/newrelic/newrelic-client-go/v2 v2.93.2
 	github.com/pkg/errors v0.9.1
 	github.com/shirou/gopsutil/v3 v3.23.9
 	github.com/sirupsen/logrus v1.9.3
@@ -76,7 +76,3 @@ require (
 )
 
 replace github.com/go-task/task/v3 => github.com/newrelic-forks/task/v3 v3.11.0
-
-// TEMPORARY: points at newrelic/newrelic-client-go#1442 (fix/fleetcontrol-entity-search-cursor)
-// for local testing while that PR is in review. Revert to a released version before merging.
-replace github.com/newrelic/newrelic-client-go/v2 => github.com/newrelic/newrelic-client-go/v2 v2.93.1-0.20260810175905-93cb87f7dc94
