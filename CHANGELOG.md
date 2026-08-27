@@ -1,5 +1,11 @@
+<a name="v0.113.8"></a>
+## [v0.113.8] - 2026-08-27
+### Bug Fixes
+- **fleetcontrol:** paginate fleet search across all pages ([#1874](https://github.com/newrelic/newrelic-cli/issues/1874))
+- **security:** bump Go toolchain to 1.26.7 and patch Alpine OpenSSL CVEs ([#1875](https://github.com/newrelic/newrelic-cli/issues/1875))
+
 <a name="v0.113.7"></a>
-## [v0.113.7] - 2026-08-17
+## [v0.113.7] - 2026-08-21
 <a name="v0.113.6"></a>
 ## [v0.113.6] - 2026-08-17
 ### Bug Fixes
@@ -2863,7 +2869,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.7...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.8...HEAD
+[v0.113.8]: https://github.com/newrelic/newrelic-cli/compare/v0.113.7...v0.113.8
 [v0.113.7]: https://github.com/newrelic/newrelic-cli/compare/v0.113.6...v0.113.7
 [v0.113.6]: https://github.com/newrelic/newrelic-cli/compare/v0.113.5...v0.113.6
 [v0.113.5]: https://github.com/newrelic/newrelic-cli/compare/v0.113.4...v0.113.5
