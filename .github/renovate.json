@@ -10,5 +10,16 @@
   "reviewers": ["team:developer-toolkit"],
   "labels": ["dependencies"],
   "prConcurrentLimit": 4,
-  "postUpdateOptions": ["gomodTidy"]
+  "postUpdateOptions": ["gomodTidy"],
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["alpine"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "reviewers": ["pranav-new-relic", "Nandu-pns"],
+      "labels": ["dependencies", "security"],
+      "commitMessagePrefix": "fix(security):",
+      "prPriority": 10
+    }
+  ]
 }
