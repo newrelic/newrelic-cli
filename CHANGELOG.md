@@ -1,3 +1,8 @@
+<a name="v0.113.11"></a>
+## [v0.113.11] - 2026-09-03
+### Bug Fixes
+- **security:** bump google.golang.org/grpc to v1.83.1 in tools ([#1881](https://github.com/newrelic/newrelic-cli/issues/1881))
+
 <a name="v0.113.10"></a>
 ## [v0.113.10] - 2026-09-03
 <a name="v0.113.9"></a>
@@ -2873,7 +2878,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.10...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.11...HEAD
+[v0.113.11]: https://github.com/newrelic/newrelic-cli/compare/v0.113.10...v0.113.11
 [v0.113.10]: https://github.com/newrelic/newrelic-cli/compare/v0.113.9...v0.113.10
 [v0.113.9]: https://github.com/newrelic/newrelic-cli/compare/v0.113.8...v0.113.9
 [v0.113.8]: https://github.com/newrelic/newrelic-cli/compare/v0.113.7...v0.113.8
