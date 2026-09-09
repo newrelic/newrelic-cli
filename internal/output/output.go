@@ -85,6 +85,16 @@ func SetFormat(format Format) (err error) {
 	return nil
 }
 
+// GetFormat returns the currently configured output format, so callers can
+// skip human-readable decoration (e.g. ANSI codes) for structured formats.
+func GetFormat() (format Format) {
+	if err := ensureGlobalOutput(); err != nil {
+		return DefaultFormat
+	}
+
+	return globalOutput.format
+}
+
 func SetPrettyPrint(pretty bool) (err error) {
 	if err = ensureGlobalOutput(); err != nil {
 		return err
