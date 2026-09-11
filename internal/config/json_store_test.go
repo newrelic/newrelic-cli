@@ -770,3 +770,77 @@ func TestStore_GetScopes(t *testing.T) {
 	s := p.GetScopes()
 	require.Equal(t, 2, len(s))
 }
+
+// A scope value (e.g. a profile name) containing gjson-special characters
+// must round-trip as a single flat key, not be parsed as nested paths.
+func TestStore_SetGetWithScope_SpecialCharacters(t *testing.T) {
+	for _, scope := range []string{
+		"sanyam.saxena",
+		"a.b.c",
+		"a#b",
+		"a@b",
+		"a|b",
+		"a*b",
+		"a?b",
+		`a\b`,
+		"a.b#c@d|e*f?g",
+	} {
+		t.Run(scope, func(t *testing.T) {
+			p, err := NewJSONStore(
+				ConfigureFields(FieldDefinition{Key: "testKey"}),
+			)
+			require.NoError(t, err)
+
+			err = p.SetWithScope(scope, FieldKey("testKey"), "testValue")
+			require.NoError(t, err)
+
+			actual, err := p.GetStringWithScope(scope, "testKey")
+			require.NoError(t, err)
+			require.Equal(t, "testValue", actual)
+
+			scopes := p.GetScopes()
+			require.Equal(t, []string{scope}, scopes)
+		})
+	}
+}
+
+// Removing a scope with gjson-special characters must not affect a sibling
+// scope sharing a prefix up to the first special character.
+func TestStore_RemoveScope_SpecialCharacters(t *testing.T) {
+	p, err := NewJSONStore(
+		ConfigureFields(FieldDefinition{Key: "testKey"}),
+	)
+	require.NoError(t, err)
+
+	err = p.SetWithScope("sanyam.saxena", FieldKey("testKey"), "testValue")
+	require.NoError(t, err)
+
+	err = p.SetWithScope("sanyam.other", FieldKey("testKey"), "testValue")
+	require.NoError(t, err)
+
+	err = p.RemoveScope("sanyam.saxena")
+	require.NoError(t, err)
+
+	_, err = p.GetStringWithScope("sanyam.saxena", "testKey")
+	require.Error(t, err)
+
+	actual, err := p.GetStringWithScope("sanyam.other", "testKey")
+	require.NoError(t, err)
+	require.Equal(t, "testValue", actual)
+}
+
+// A plain scope value with no special characters - every pre-existing
+// profile - must continue to round-trip unchanged.
+func TestStore_SetGetWithScope_PlainName(t *testing.T) {
+	p, err := NewJSONStore(
+		ConfigureFields(FieldDefinition{Key: "testKey"}),
+	)
+	require.NoError(t, err)
+
+	err = p.SetWithScope("plainScopeName", FieldKey("testKey"), "testValue")
+	require.NoError(t, err)
+
+	actual, err := p.GetStringWithScope("plainScopeName", "testKey")
+	require.NoError(t, err)
+	require.Equal(t, "testValue", actual)
+}
