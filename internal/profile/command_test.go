@@ -32,6 +32,11 @@ func TestProfilesDefault(t *testing.T) {
 	testcobra.CheckCobraCommandAliases(t, cmdDefault, []string{})
 }
 
+// `profile default` must have the same PreRun guard as `profile add`.
+func TestProfilesDefault_RequiresProfileName(t *testing.T) {
+	assert.NotNil(t, cmdDefault.PreRun)
+}
+
 func TestProfilesList(t *testing.T) {
 	assert.Equal(t, "list", cmdList.Name())
 
@@ -45,4 +50,9 @@ func TestProfilesDelete(t *testing.T) {
 
 	testcobra.CheckCobraMetadata(t, cmdDelete)
 	testcobra.CheckCobraCommandAliases(t, cmdDelete, []string{"remove", "rm"}) // DEPRECATED: from nr1 cli
+}
+
+// `profile delete` must have the same PreRun guard as `profile add`.
+func TestProfilesDelete_RequiresProfileName(t *testing.T) {
+	assert.NotNil(t, cmdDelete.PreRun)
 }
