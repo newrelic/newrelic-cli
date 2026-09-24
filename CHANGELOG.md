@@ -1,3 +1,14 @@
+<a name="v0.113.19"></a>
+## [v0.113.19] - 2026-09-23
+<a name="v0.113.18"></a>
+## [v0.113.18] - 2026-09-23
+<a name="v0.113.17"></a>
+## [v0.113.17] - 2026-09-22
+### Bug Fixes
+- **deps:** bump alpine 3.24.1 -> 3.24.2 ([#1890](https://github.com/newrelic/newrelic-cli/issues/1890))
+
+<a name="v0.113.16"></a>
+## [v0.113.16] - 2026-09-16
 <a name="v0.113.15"></a>
 ## [v0.113.15] - 2026-09-10
 <a name="v0.113.14"></a>
@@ -2889,7 +2900,11 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.15...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.19...HEAD
+[v0.113.19]: https://github.com/newrelic/newrelic-cli/compare/v0.113.18...v0.113.19
+[v0.113.18]: https://github.com/newrelic/newrelic-cli/compare/v0.113.17...v0.113.18
+[v0.113.17]: https://github.com/newrelic/newrelic-cli/compare/v0.113.16...v0.113.17
+[v0.113.16]: https://github.com/newrelic/newrelic-cli/compare/v0.113.15...v0.113.16
 [v0.113.15]: https://github.com/newrelic/newrelic-cli/compare/v0.113.14...v0.113.15
 [v0.113.14]: https://github.com/newrelic/newrelic-cli/compare/v0.113.13...v0.113.14
 [v0.113.13]: https://github.com/newrelic/newrelic-cli/compare/v0.113.12...v0.113.13
