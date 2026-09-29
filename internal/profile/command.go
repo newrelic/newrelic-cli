@@ -117,7 +117,7 @@ func addStringValueToProfile(profileName string, val string, key config.FieldKey
 }
 
 func addIntValueToProfile(profileName string, val int, key config.FieldKey, label string, defaultFunc func() ([]int, error)) {
-	multipleValuesAvailable := false
+	couldNotAutoResolve := false
 
 	if val == 0 {
 		prompt := &survey.Input{
@@ -130,11 +130,12 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 			d, err := defaultFunc()
 			if err != nil {
 				log.Debug(err)
+				couldNotAutoResolve = true
+			} else if len(d) == 1 {
+				defaultValue = d[0]
 			} else {
-				if len(d) == 1 {
-					defaultValue = d[0]
-				} else if len(d) > 0 {
-					multipleValuesAvailable = true
+				couldNotAutoResolve = true
+				if len(d) > 0 {
 					prompt.Suggest = func(string) []string { return utils.IntSliceToStringSlice(d) }
 				}
 			}
@@ -164,8 +165,8 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 	}
 
 	if val == 0 {
-		if acceptDefaults && multipleValuesAvailable {
-			log.Warnf("%s was not set: -y/--acceptDefaults can't choose between multiple available accounts. Re-run with --accountId <id> to set it explicitly.", label)
+		if acceptDefaults && couldNotAutoResolve {
+			log.Warnf("%s was not set: -y/--acceptDefaults couldn't determine a value automatically. Re-run with --accountId <id> to set it explicitly.", label)
 		}
 		// Optional field skipped - leave unset rather than writing 0, which
 		// would fail IntGreaterThan(0) validation and abort the command.

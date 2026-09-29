@@ -4,6 +4,7 @@ package profile
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -124,11 +125,44 @@ func TestAddIntValueToProfile_SetsNonZeroValue(t *testing.T) {
 	require.Equal(t, int64(12345), v)
 }
 
-// `-y`/--acceptDefaults suppresses the interactive prompt entirely, including
-// the multi-account suggestion list. Today that means a multi-account user
-// running `profile add -y` gets an accountID silently left unset with no
-// indication why - this reproduces that silence (PR #1885 review comment).
-func TestAddIntValueToProfile_WarnsWhenAcceptDefaultsSkipsMultiAccountID(t *testing.T) {
+// -y skips the prompt, so it must warn instead of silently leaving accountID
+// unset whenever fetchAccountIDs can't resolve to exactly one value - whether
+// because it errored, found none, or found several (PR #1885 review comment).
+func TestAddIntValueToProfile_WarnsWhenAcceptDefaultsCannotAutoResolve(t *testing.T) {
+	cases := []struct {
+		name string
+		fn   func() ([]int, error)
+	}{
+		{"fetch error", func() ([]int, error) { return nil, fmt.Errorf("boom") }},
+		{"zero accounts", func() ([]int, error) { return []int{}, nil }},
+		{"multiple accounts", func() ([]int, error) { return []int{111, 222}, nil }},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			clearAmbientCredentialEnvVars(t)
+			config.Init(t.TempDir())
+
+			hook := test.NewGlobal()
+			acceptDefaults = true
+			defer func() { acceptDefaults = false }()
+
+			addIntValueToProfile("p", 0, config.AccountID, "Account ID", c.fn)
+
+			_, err := config.CredentialsProvider.GetIntWithScope("p", config.AccountID)
+			require.Error(t, err, "accountID must remain unset")
+
+			var sawWarning bool
+			for _, entry := range hook.AllEntries() {
+				sawWarning = sawWarning || entry.Level.String() == "warning"
+			}
+			require.True(t, sawWarning, "-y silently skipping accountID must log a warning pointing at --accountId")
+		})
+	}
+}
+
+// A single fetched account ID resolves cleanly - no warning, value is set.
+func TestAddIntValueToProfile_AcceptDefaultsUsesSoleFetchedAccountID(t *testing.T) {
 	clearAmbientCredentialEnvVars(t)
 	config.Init(t.TempDir())
 
@@ -136,20 +170,14 @@ func TestAddIntValueToProfile_WarnsWhenAcceptDefaultsSkipsMultiAccountID(t *test
 	acceptDefaults = true
 	defer func() { acceptDefaults = false }()
 
-	addIntValueToProfile("multi-account", 0, config.AccountID, "Account ID", func() ([]int, error) {
-		return []int{111, 222}, nil
+	addIntValueToProfile("p", 0, config.AccountID, "Account ID", func() ([]int, error) {
+		return []int{42}, nil
 	})
 
-	_, err := config.CredentialsProvider.GetIntWithScope("multi-account", config.AccountID)
-	require.Error(t, err, "accountID must remain unset when -y can't disambiguate between multiple accounts")
-
-	var sawWarning bool
-	for _, entry := range hook.AllEntries() {
-		if entry.Level.String() == "warning" {
-			sawWarning = true
-		}
-	}
-	require.True(t, sawWarning, "-y silently skipping accountID in a multi-account scenario must log a warning telling the user to use --accountId")
+	v, err := config.CredentialsProvider.GetIntWithScope("p", config.AccountID)
+	require.NoError(t, err)
+	require.Equal(t, int64(42), v)
+	require.Empty(t, hook.AllEntries())
 }
 
 // `--profile B` selects which profile's credentials to use, but must not
