@@ -256,9 +256,7 @@ The list command prints out the available profiles' credentials.
 			}
 			out["Name"] = name
 			if !isTableOutput {
-				// Table output already signals the default via the "(default)"
-				// suffix on Name above - a separate column would just repeat it.
-				// JSON/YAML have no such suffix, so isDefault is the only signal there.
+				// Table already shows the default via the Name suffix above; JSON/YAML need isDefault since they lack that suffix.
 				out["isDefault"] = isDefault
 			}
 
