@@ -1,5 +1,10 @@
+<a name="v0.114.0"></a>
+## [v0.114.0] - 2026-09-25
+### Features
+- **iam:** add usermanagement and accessmanagement CLI commands ([#1842](https://github.com/newrelic/newrelic-cli/issues/1842))
+
 <a name="v0.113.19"></a>
-## [v0.113.19] - 2026-09-23
+## [v0.113.19] - 2026-09-24
 <a name="v0.113.18"></a>
 ## [v0.113.18] - 2026-09-23
 <a name="v0.113.17"></a>
@@ -2900,7 +2905,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.113.19...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.114.0...HEAD
+[v0.114.0]: https://github.com/newrelic/newrelic-cli/compare/v0.113.19...v0.114.0
 [v0.113.19]: https://github.com/newrelic/newrelic-cli/compare/v0.113.18...v0.113.19
 [v0.113.18]: https://github.com/newrelic/newrelic-cli/compare/v0.113.17...v0.113.18
 [v0.113.17]: https://github.com/newrelic/newrelic-cli/compare/v0.113.16...v0.113.17
