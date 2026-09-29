@@ -117,6 +117,8 @@ func addStringValueToProfile(profileName string, val string, key config.FieldKey
 }
 
 func addIntValueToProfile(profileName string, val int, key config.FieldKey, label string, defaultFunc func() ([]int, error)) {
+	multipleValuesAvailable := false
+
 	if val == 0 {
 		prompt := &survey.Input{
 			Message: fmt.Sprintf("%s:", label),
@@ -132,6 +134,7 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 				if len(d) == 1 {
 					defaultValue = d[0]
 				} else if len(d) > 0 {
+					multipleValuesAvailable = true
 					prompt.Suggest = func(string) []string { return utils.IntSliceToStringSlice(d) }
 				}
 			}
@@ -161,6 +164,9 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 	}
 
 	if val == 0 {
+		if acceptDefaults && multipleValuesAvailable {
+			log.Warnf("%s was not set: -y/--acceptDefaults can't choose between multiple available accounts. Re-run with --accountId <id> to set it explicitly.", label)
+		}
 		// Optional field skipped - leave unset rather than writing 0, which
 		// would fail IntGreaterThan(0) validation and abort the command.
 		return
@@ -249,7 +255,12 @@ The list command prints out the available profiles' credentials.
 				name += text.FgHiBlack.Sprint(defaultProfileString)
 			}
 			out["Name"] = name
-			out["isDefault"] = isDefault
+			if !isTableOutput {
+				// Table output already signals the default via the "(default)"
+				// suffix on Name above - a separate column would just repeat it.
+				// JSON/YAML have no such suffix, so isDefault is the only signal there.
+				out["isDefault"] = isDefault
+			}
 
 			configAPI.ForEachProfileFieldDefinition(p, func(d config.FieldDefinition) {
 				v := configAPI.GetProfileString(p, d.Key)

@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
@@ -123,6 +124,34 @@ func TestAddIntValueToProfile_SetsNonZeroValue(t *testing.T) {
 	require.Equal(t, int64(12345), v)
 }
 
+// `-y`/--acceptDefaults suppresses the interactive prompt entirely, including
+// the multi-account suggestion list. Today that means a multi-account user
+// running `profile add -y` gets an accountID silently left unset with no
+// indication why - this reproduces that silence (PR #1885 review comment).
+func TestAddIntValueToProfile_WarnsWhenAcceptDefaultsSkipsMultiAccountID(t *testing.T) {
+	clearAmbientCredentialEnvVars(t)
+	config.Init(t.TempDir())
+
+	hook := test.NewGlobal()
+	acceptDefaults = true
+	defer func() { acceptDefaults = false }()
+
+	addIntValueToProfile("multi-account", 0, config.AccountID, "Account ID", func() ([]int, error) {
+		return []int{111, 222}, nil
+	})
+
+	_, err := config.CredentialsProvider.GetIntWithScope("multi-account", config.AccountID)
+	require.Error(t, err, "accountID must remain unset when -y can't disambiguate between multiple accounts")
+
+	var sawWarning bool
+	for _, entry := range hook.AllEntries() {
+		if entry.Level.String() == "warning" {
+			sawWarning = true
+		}
+	}
+	require.True(t, sawWarning, "-y silently skipping accountID in a multi-account scenario must log a warning telling the user to use --accountId")
+}
+
 // `--profile B` selects which profile's credentials to use, but must not
 // make `list` mislabel B as the persisted default - only A may be marked so.
 func TestCmdList_MarksTruePersistedDefault_RegardlessOfProfileFlag(t *testing.T) {
@@ -163,7 +192,8 @@ func TestCmdList_DefaultsToTableFormat_WhenFormatFlagNotPassed(t *testing.T) {
 	require.NotEmpty(t, out)
 	require.NotEqual(t, byte('['), out[0], "no --format flag was passed; output must not be JSON")
 	require.Contains(t, out, "Name")
-	require.Contains(t, out, "isDefault")
+	require.Contains(t, out, "(default)", "table output signals the default via the Name suffix")
+	require.NotContains(t, out, "isDefault", "table output must not repeat the default indicator as its own column")
 }
 
 // An explicit --format json must take effect and contain no ANSI codes -
