@@ -442,9 +442,9 @@ func (p *JSONStore) SetWithScope(scope string, key FieldKey, value interface{}) 
 // the fields that appear underneath it. The resulting config will be persisted to
 // disk if PersistToDisk has been used.
 func (p *JSONStore) RemoveScope(scope string) error {
-	path := scope
+	path := escapePathSegment(scope)
 	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, scope)
+		path = fmt.Sprintf("%s.%s", escapePathSegment(p.scope), path)
 	}
 
 	return p.deletePath(path)
@@ -498,16 +498,28 @@ func (p *JSONStore) GetFieldDefinition(key FieldKey) *FieldDefinition {
 }
 
 func (p *JSONStore) getPath(scope string, key FieldKey) string {
-	path := string(key)
+	path := escapePathSegment(string(key))
 	if scope != "" {
-		path = fmt.Sprintf("%s.%s", scope, key)
+		path = fmt.Sprintf("%s.%s", escapePathSegment(scope), path)
 	}
 
 	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, path)
+		path = fmt.Sprintf("%s.%s", escapePathSegment(p.scope), path)
 	}
 
 	return path
+}
+
+// escapePathSegment escapes the gjson/sjson path separator and escape character
+// inside a single segment so values like profile names containing a "." are
+// stored as a single literal key (e.g. {"first.last": {...}}) rather than as a
+// nested object hierarchy.
+func escapePathSegment(s string) string {
+	// Order matters: escape backslashes first so we don't double-escape the
+	// backslashes we introduce when escaping dots below.
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, `.`, `\.`)
+	return s
 }
 
 func (p *JSONStore) deletePath(path string) error {

@@ -770,3 +770,70 @@ func TestStore_GetScopes(t *testing.T) {
 	s := p.GetScopes()
 	require.Equal(t, 2, len(s))
 }
+
+// The following tests guard against a regression where scope names containing
+// a "." (e.g. profile names such as "ava.morgan") were treated by gjson/sjson
+// as nested object paths, causing values to be silently lost on read and
+// scopes to disappear from list operations.
+
+func TestStore_SetWithScope_DottedScopeName(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(PersistToFile(f.Name()))
+	require.NoError(t, err)
+
+	err = p.SetWithScope("ava.morgan", FieldKey("apiKey"), "NRAK-DOTTED-1")
+	require.NoError(t, err)
+
+	v, err := p.GetStringWithScope("ava.morgan", FieldKey("apiKey"))
+	require.NoError(t, err)
+	require.Equal(t, "NRAK-DOTTED-1", v)
+}
+
+func TestStore_GetScopes_DottedScopeName(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(PersistToFile(f.Name()))
+	require.NoError(t, err)
+
+	err = p.SetWithScope("riley.chen", FieldKey("apiKey"), "NRAK-DOTTED-2")
+	require.NoError(t, err)
+	err = p.SetWithScope("prod.us-east-1", FieldKey("apiKey"), "NRAK-DOTTED-3")
+	require.NoError(t, err)
+	err = p.SetWithScope("staging", FieldKey("apiKey"), "NRAK-PLAIN-4")
+	require.NoError(t, err)
+
+	scopes := p.GetScopes()
+	require.ElementsMatch(t,
+		[]string{"riley.chen", "prod.us-east-1", "staging"},
+		scopes,
+	)
+}
+
+func TestStore_RemoveScope_DottedScopeName(t *testing.T) {
+	f, err := ioutil.TempFile("", "newrelic-cli.config_provider_test.*.json")
+	require.NoError(t, err)
+	defer f.Close()
+
+	p, err := NewJSONStore(PersistToFile(f.Name()))
+	require.NoError(t, err)
+
+	err = p.SetWithScope("team.platform", FieldKey("apiKey"), "NRAK-DOTTED-5")
+	require.NoError(t, err)
+	err = p.SetWithScope("team.observability", FieldKey("apiKey"), "NRAK-DOTTED-6")
+	require.NoError(t, err)
+
+	err = p.RemoveScope("team.platform")
+	require.NoError(t, err)
+
+	// The removed scope is gone, the sibling that shares the "team" prefix is intact.
+	require.ElementsMatch(t, []string{"team.observability"}, p.GetScopes())
+
+	v, err := p.GetStringWithScope("team.observability", FieldKey("apiKey"))
+	require.NoError(t, err)
+	require.Equal(t, "NRAK-DOTTED-6", v)
+}
