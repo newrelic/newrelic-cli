@@ -11,6 +11,7 @@ import (
 	// Commands
 	"github.com/newrelic/newrelic-cli/internal/accessmanagement"
 	"github.com/newrelic/newrelic-cli/internal/agent"
+	"github.com/newrelic/newrelic-cli/internal/aimonitoring"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/changeTracking"
@@ -45,6 +46,7 @@ func init() {
 	// Bind imported sub-commands
 	Command.AddCommand(accessmanagement.Command)
 	Command.AddCommand(agent.Command)
+	Command.AddCommand(aimonitoring.Command)
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(synthetics.Command)
 	Command.AddCommand(apm.Command)
