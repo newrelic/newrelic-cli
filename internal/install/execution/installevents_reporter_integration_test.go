@@ -57,7 +57,7 @@ func createEntity(t *testing.T, accountID int, c *newrelic.NewRelic) string {
 	i := workloads.WorkloadCreateInput{
 		Name: "testEntity",
 		EntitySearchQueries: []workloads.WorkloadEntitySearchQueryInput{
-			workloads.WorkloadEntitySearchQueryInput{
+			{
 				Query: "name like 'random'",
 			},
 		},
