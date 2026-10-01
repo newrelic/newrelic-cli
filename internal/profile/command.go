@@ -117,6 +117,8 @@ func addStringValueToProfile(profileName string, val string, key config.FieldKey
 }
 
 func addIntValueToProfile(profileName string, val int, key config.FieldKey, label string, defaultFunc func() ([]int, error)) {
+	couldNotAutoResolve := false
+
 	if val == 0 {
 		prompt := &survey.Input{
 			Message: fmt.Sprintf("%s:", label),
@@ -128,10 +130,12 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 			d, err := defaultFunc()
 			if err != nil {
 				log.Debug(err)
+				couldNotAutoResolve = true
+			} else if len(d) == 1 {
+				defaultValue = d[0]
 			} else {
-				if len(d) == 1 {
-					defaultValue = d[0]
-				} else if len(d) > 0 {
+				couldNotAutoResolve = true
+				if len(d) > 0 {
 					prompt.Suggest = func(string) []string { return utils.IntSliceToStringSlice(d) }
 				}
 			}
@@ -158,6 +162,15 @@ func addIntValueToProfile(profileName string, val int, key config.FieldKey, labe
 		} else {
 			val = defaultValue
 		}
+	}
+
+	if val == 0 {
+		if acceptDefaults && couldNotAutoResolve {
+			log.Warnf("%s was not set: -y/--acceptDefaults couldn't determine a value automatically. Re-run with --accountId <id> to set it explicitly.", label)
+		}
+		// Optional field skipped - leave unset rather than writing 0, which
+		// would fail IntGreaterThan(0) validation and abort the command.
+		return
 	}
 
 	if err := configAPI.SetProfileValue(profileName, key, val); err != nil {
@@ -196,6 +209,7 @@ var cmdDefault = &cobra.Command{
 The default command sets the profile to use by default using the specified name.
 `,
 	Example: "newrelic profile default --profile <profile>",
+	PreRun:  requireProfileName,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := configAPI.SetDefaultProfile(config.FlagProfileName)
 		if err != nil {
@@ -215,20 +229,45 @@ The list command prints out the available profiles' credentials.
 `,
 	Example: "newrelic profile list",
 	Run: func(cmd *cobra.Command, args []string) {
+		// Preserve the pre-existing table default unless --format was
+		// explicitly passed (output.Print()'s own default is JSON).
+		effectiveFormat := output.FormatText
+		if cmd.Flags().Changed("format") {
+			effectiveFormat = output.GetFormat()
+		}
+		isTableOutput := effectiveFormat == output.FormatText
+
+		// Persisted default, not the --profile-flag-overridable active profile.
+		defaultProfileName, err := configAPI.GetDefaultProfileName()
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		list := []map[string]interface{}{}
 		for _, p := range configAPI.GetProfileNames() {
 			out := map[string]interface{}{}
 
+			isDefault := p == defaultProfileName
+
 			name := p
-			if p == configAPI.GetActiveProfileName() {
+			if isDefault && isTableOutput {
+				// Colorized suffix for table output only; JSON/YAML get the
+				// isDefault field below instead of ANSI codes in a string.
 				name += text.FgHiBlack.Sprint(defaultProfileString)
 			}
 			out["Name"] = name
+			if !isTableOutput {
+				// Table already shows the default via the Name suffix above; JSON/YAML need isDefault since they lack that suffix.
+				out["isDefault"] = isDefault
+			}
 
 			configAPI.ForEachProfileFieldDefinition(p, func(d config.FieldDefinition) {
 				v := configAPI.GetProfileString(p, d.Key)
 				if !showKeys && d.Sensitive {
-					v = text.FgHiBlack.Sprint(utils.Obfuscate(v))
+					v = utils.Obfuscate(v)
+					if isTableOutput {
+						v = text.FgHiBlack.Sprint(v)
+					}
 				}
 
 				out[string(d.Key)] = v
@@ -237,7 +276,11 @@ The list command prints out the available profiles' credentials.
 			list = append(list, out)
 		}
 
-		output.Text(list)
+		if isTableOutput {
+			output.Text(list)
+		} else {
+			output.Print(list)
+		}
 	},
 	Aliases: []string{
 		"ls",
@@ -252,6 +295,7 @@ var cmdDelete = &cobra.Command{
 The delete command removes the profile specified by name.
 `,
 	Example: "newrelic profile delete --profile <profile>",
+	PreRun:  requireProfileName,
 	Run: func(cmd *cobra.Command, args []string) {
 		err := configAPI.RemoveProfile(config.FlagProfileName)
 		if err != nil {
