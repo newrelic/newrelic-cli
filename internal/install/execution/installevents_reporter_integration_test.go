@@ -56,6 +56,11 @@ func TestInstallEventsReporter_Basic(t *testing.T) {
 func createEntity(t *testing.T, accountID int, c *newrelic.NewRelic) string {
 	i := workloads.WorkloadCreateInput{
 		Name: "testEntity",
+		EntitySearchQueries: []workloads.WorkloadEntitySearchQueryInput{
+			workloads.WorkloadEntitySearchQueryInput{
+				Query: "name like 'random'",
+			},
+		},
 	}
 	e, err := c.Workloads.WorkloadCreate(accountID, i)
 	require.NoError(t, err)
