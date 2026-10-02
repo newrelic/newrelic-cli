@@ -1,12 +1,12 @@
 {
-    "version": "0.114.3",
+    "version": "0.114.4",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/newrelic/newrelic-cli/releases/download/v0.114.3/newrelic-cli_0.114.3_Windows_x86_64.zip",
+            "url": "https://github.com/newrelic/newrelic-cli/releases/download/v0.114.4/newrelic-cli_0.114.4_Windows_x86_64.zip",
             "bin": [
                 "newrelic.exe"
             ],
-            "hash": "89c949d1998528a68e115844dc6e4233135339ddf2b63f617ae407502ce86d8d"
+            "hash": "58e63420b721c99a54b95ee6e78b28e3f3cef0002229c5237c0e349b8281b8c4"
         }
     },
     "homepage": "https://github.com/newrelic/newrelic-cli",
