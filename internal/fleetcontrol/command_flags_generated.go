@@ -167,6 +167,8 @@ type CreateConfigurationFlags struct {
 	OrganizationID        string
 	ConfigurationFilePath string // File content from path
 	ConfigurationContent  string // Inline content
+	ConfigurationType     string // Defaults to "AgentConfig"; see LegacyConfig
+	LegacyConfig          bool   // If true, create a legacy (null configurationType) configuration
 }
 
 // CreateConfiguration returns typed flags for the 'create' (configuration) command
@@ -183,6 +185,8 @@ func (fv *FlagValues) CreateConfiguration() (CreateConfigurationFlags, error) {
 		OrganizationID:        fv.GetString("organization-id"),
 		ConfigurationFilePath: configFilePath,
 		ConfigurationContent:  fv.GetString("configuration-content"),
+		ConfigurationType:     fv.GetString("configuration-type"),
+		LegacyConfig:          fv.GetBool("legacy-config"),
 	}, nil
 }
 
@@ -192,6 +196,7 @@ type GetConfigurationFlags struct {
 	OrganizationID  string
 	Mode            string
 	Version         int
+	ShowMetadata    bool
 }
 
 // GetConfiguration returns typed flags for the 'get' (configuration) command
@@ -201,6 +206,7 @@ func (fv *FlagValues) GetConfiguration() GetConfigurationFlags {
 		OrganizationID:  fv.GetString("organization-id"),
 		Mode:            fv.GetString("mode"),
 		Version:         fv.GetInt("version"),
+		ShowMetadata:    fv.GetBool("show-metadata"),
 	}
 }
 
