@@ -18,15 +18,26 @@ import (
 
 // llmEventTypes are the NRDB event types reported by APM agents for
 // New Relic AI Monitoring.
+//
+// On the APM agent path, these events' span_id matches the span.id of an
+// APM Span, which makes it possible to stitch an LLM call into its APM
+// trace tree (service function -> agent -> LLM call -> external HTTPS
+// call). LlmAgent is an exception: its span_id refers to the calling
+// function's span, not its own, and its timestamp is the agent call's end
+// time rather than its start.
 var llmEventTypes = []string{
 	"LlmChatCompletionSummary",
 	"LlmChatCompletionMessage",
 	"LlmEmbedding",
-	"LlmFeedbackEvent",
+	"LlmFeedbackMessage",
 	"LlmTool",
 	"LlmAgent",
 	"LlmVectorSearch",
 }
+
+// maxApplicationSearchResults is the number of unique entity GUIDs requested
+// from NRDB. NRQL's uniques() function allows at most 500.
+const maxApplicationSearchResults = 500
 
 var (
 	appName  string
@@ -55,10 +66,12 @@ Results can optionally be narrowed to a single application by name.
 	Run: func(cmd *cobra.Command, args []string) {
 		accountID := configAPI.RequireActiveProfileAccountID()
 
-		query := fmt.Sprintf("SELECT uniques(entity.guid, 25) AS guids FROM %s SINCE %s",
-			strings.Join(llmEventTypes, ", "), appSince)
+		// entityGuid is populated on every ingest path (APM agent and OpenTelemetry);
+		// entity.guid is only populated on the OpenTelemetry path.
+		query := fmt.Sprintf("SELECT uniques(entityGuid, %d) AS guids FROM %s SINCE %s",
+			maxApplicationSearchResults, strings.Join(llmEventTypes, ", "), appSince)
 		if appName != "" {
-			query += fmt.Sprintf(" WHERE appName = '%s'", appName)
+			query += fmt.Sprintf(" WHERE appName = '%s'", escapeNRQLStringLiteral(appName))
 		}
 
 		result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
@@ -68,6 +81,9 @@ Results can optionally be narrowed to a single application by name.
 		if len(guids) == 0 {
 			log.Info("no applications reporting AI Monitoring telemetry were found for the given account and time window")
 			return
+		}
+		if len(guids) >= maxApplicationSearchResults {
+			log.Warnf("results were truncated to %d applications; narrow the search with --name or a shorter --since window", maxApplicationSearchResults)
 		}
 
 		entityResults, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, guids)
@@ -100,7 +116,7 @@ The get command performs a query for an entity by GUID.
 }
 
 // extractEntityGUIDs pulls the aliased "guids" field out of the first NRQL
-// result row produced by a uniques(entity.guid) query.
+// result row produced by a uniques(entityGuid) query.
 func extractEntityGUIDs(results []nrdb.NRDBResult) []common.EntityGUID {
 	if len(results) == 0 {
 		return nil
@@ -119,6 +135,13 @@ func extractEntityGUIDs(results []nrdb.NRDBResult) []common.EntityGUID {
 	}
 
 	return guids
+}
+
+// escapeNRQLStringLiteral escapes backslashes and single quotes so a value
+// can be safely interpolated into a NRQL string literal.
+func escapeNRQLStringLiteral(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	return strings.ReplaceAll(s, `'`, `\'`)
 }
 
 func init() {

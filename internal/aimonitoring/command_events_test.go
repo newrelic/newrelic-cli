@@ -20,5 +20,5 @@ func TestAIMonitoringEvents(t *testing.T) {
 func TestSortedEventTypeAliasKeys(t *testing.T) {
 	keys := sortedEventTypeAliasKeys()
 
-	assert.Equal(t, []string{"agent", "embedding", "feedback", "message", "summary", "tool", "vectorsearch"}, keys)
+	assert.Equal(t, []string{"agent", "embedding", "feedback", "message", "summary", "tool", "vectorsearch", "vectorsearchresult"}, keys)
 }

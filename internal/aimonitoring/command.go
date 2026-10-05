@@ -13,7 +13,8 @@ var Command = &cobra.Command{
 AI Monitoring telemetry is reported by APM agents instrumenting LLM
 libraries (for example OpenAI, Bedrock, LangChain) as NRDB events:
 LlmChatCompletionSummary, LlmChatCompletionMessage, LlmEmbedding,
-LlmFeedbackEvent, LlmTool, and LlmVectorSearch.
+LlmFeedbackMessage, LlmTool, LlmAgent, LlmVectorSearch, and
+LlmVectorSearchResult.
 `,
 	Example: "newrelic aimonitoring application search",
 }

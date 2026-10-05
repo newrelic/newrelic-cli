@@ -19,13 +19,14 @@ import (
 // eventTypeAliases maps a short --type value to the underlying NRDB event
 // type reported by APM agents for New Relic AI Monitoring.
 var eventTypeAliases = map[string]string{
-	"summary":      "LlmChatCompletionSummary",
-	"message":      "LlmChatCompletionMessage",
-	"embedding":    "LlmEmbedding",
-	"feedback":     "LlmFeedbackEvent",
-	"tool":         "LlmTool",
-	"agent":        "LlmAgent",
-	"vectorsearch": "LlmVectorSearch",
+	"summary":            "LlmChatCompletionSummary",
+	"message":            "LlmChatCompletionMessage",
+	"embedding":          "LlmEmbedding",
+	"feedback":           "LlmFeedbackMessage",
+	"tool":               "LlmTool",
+	"agent":              "LlmAgent",
+	"vectorsearch":       "LlmVectorSearch",
+	"vectorsearchresult": "LlmVectorSearchResult",
 }
 
 var (
@@ -44,13 +45,22 @@ var cmdEvents = &cobra.Command{
 The events command runs a NRQL query against one of the NRDB event types
 reported by APM agents instrumenting LLM libraries:
 
-  summary       LlmChatCompletionSummary
-  message       LlmChatCompletionMessage
-  embedding     LlmEmbedding
-  feedback      LlmFeedbackEvent
-  tool          LlmTool
-  agent         LlmAgent
-  vectorsearch  LlmVectorSearch
+  summary             LlmChatCompletionSummary
+  message             LlmChatCompletionMessage
+  embedding           LlmEmbedding
+  feedback            LlmFeedbackMessage
+  tool                LlmTool
+  agent               LlmAgent
+  vectorsearch        LlmVectorSearch
+  vectorsearchresult  LlmVectorSearchResult
+
+Two attributes are reported differently depending on the instrumentation
+path and are passed through as-is by --select:
+
+  - duration is in seconds when ingest_source = 'otel', and milliseconds
+    on the APM agent path.
+  - the trace identifier is trace_id on APM agent events and trace.id on
+    OpenTelemetry events.
 `,
 	Example: `newrelic aimonitoring events --type summary --select "count(*), average(duration)" --where "error is true" --since "1 day ago"`,
 	PreRun:  client.RequireClient,
