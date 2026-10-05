@@ -3608,3 +3608,4 @@
 [v0.2.1]: https://github.com/newrelic/newrelic-cli/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/newrelic/newrelic-cli/compare/v0.1.0...v0.2.0
 <!-- NR-620798 trial: routed via personal fork + diagnostics, 20261005T114018Z -->
+<!-- NR-620798 trial: stdout-only redirect, 20261005T120302Z -->
