@@ -3608,3 +3608,4 @@
 [v0.2.1]: https://github.com/newrelic/newrelic-cli/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/newrelic/newrelic-cli/compare/v0.1.0...v0.2.0
 <!-- NR-620798 experiment marker: post-bump control branch, no dependency changes -->
+<!-- NR-620798 trial 2 -->
