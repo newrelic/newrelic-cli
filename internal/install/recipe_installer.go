@@ -260,16 +260,19 @@ Our Data Privacy Notice: https://newrelic.com/termsandconditions/services-notice
 
 	select {
 	case <-ctx.Done():
+		fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s Install: ctx.Done() fired before i.install(ctx) returned (ctx.Err=%v)\n", time.Now().Format(time.RFC3339Nano), ctx.Err())
 		err = ctx.Err()
 		i.status.InstallComplete(err)
 		return err
 	case err = <-errChan:
+		fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s Install: received from errChan (err=%v), about to call InstallComplete\n", time.Now().Format(time.RFC3339Nano), err)
 		if errors.Is(err, types.ErrInterrupt) {
 			i.status.InstallCanceled()
 			return err
 		}
 
 		i.status.InstallComplete(err)
+		fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s Install: InstallComplete returned\n", time.Now().Format(time.RFC3339Nano))
 
 		return err
 	}
@@ -590,6 +593,7 @@ func (i *RecipeInstall) reportUnsupportedTargetedRecipes(bundle *recipes.Bundle,
 
 // installing recipe
 func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.DiscoveryManifest, r *types.OpenInstallationRecipe, vars types.RecipeVars, assumeYes bool) (string, error) {
+	fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidate: starting recipeExecutor.Execute for %s\n", time.Now().Format(time.RFC3339Nano), r.Name)
 	i.status.RecipeInstalling(execution.RecipeStatusEvent{Recipe: *r})
 
 	// Execute the recipe steps.
@@ -634,9 +638,12 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		return "", err
 	}
 
+	fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidate: recipeExecutor.Execute returned successfully for %s\n", time.Now().Format(time.RFC3339Nano), r.Name)
+
 	entityGUID := i.recipeExecutor.GetOutput().EntityGUID()
 	if entityGUID != "" {
 		log.Debugf("Found entityGuid from recipe execution:%s", entityGUID)
+		fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidate: early return via EntityGUID (%s) for %s\n", time.Now().Format(time.RFC3339Nano), entityGUID, r.Name)
 
 		i.status.RecipeInstalled(execution.RecipeStatusEvent{
 			Recipe:     *r,
@@ -664,9 +671,11 @@ func (i *RecipeInstall) executeAndValidate(ctx context.Context, m *types.Discove
 		i.progressIndicator.Start(msg)
 	}
 
+	fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidate: starting validateRecipeViaAllMethods for %s\n", time.Now().Format(time.RFC3339Nano), r.Name)
 	validationStart := time.Now()
 	entityGUID, err := i.validateRecipeViaAllMethods(ctx, r, m, vars, assumeYes)
 	validationDurationMs := time.Since(validationStart).Milliseconds()
+	fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidate: validateRecipeViaAllMethods returned (err=%v, durationMs=%d) for %s\n", time.Now().Format(time.RFC3339Nano), err, validationDurationMs, r.Name)
 	if err != nil {
 		validationErr := fmt.Errorf("encountered an error while validating receipt of data for %s: %w", r.Name, err)
 		i.status.RecipeFailed(execution.RecipeStatusEvent{
@@ -832,10 +841,13 @@ func (i *RecipeInstall) executeAndValidateWithProgress(ctx context.Context, m *t
 	for {
 		select {
 		case entityGUID := <-successChan:
+			fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidateWithProgress: received successChan, calling Success() for %s\n", time.Now().Format(time.RFC3339Nano), r.Name)
 			i.progressIndicator.Success("Installing " + r.DisplayName)
+			fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidateWithProgress: Success() returned for %s\n", time.Now().Format(time.RFC3339Nano), r.Name)
 
 			return entityGUID, nil
 		case err := <-errorChan:
+			fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s executeAndValidateWithProgress: received errorChan (err=%v) for %s\n", time.Now().Format(time.RFC3339Nano), err, r.Name)
 			if errors.Is(err, types.ErrInterrupt) {
 				i.progressIndicator.Canceled("Installing " + r.DisplayName)
 				i.status.RecipeCanceled(execution.RecipeStatusEvent{Recipe: *r})

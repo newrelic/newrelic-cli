@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 	log "github.com/sirupsen/logrus"
@@ -81,7 +82,9 @@ func (r TerminalStatusReporter) InstallStarted(status *InstallStatus) error {
 }
 
 func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
+	fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s InstallComplete: entered, len(status.Statuses)=%d\n", time.Now().Format(time.RFC3339Nano), len(status.Statuses))
 	if len(status.Statuses) == 0 {
+		fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s InstallComplete: EARLY RETURN - status.Statuses is empty, summary will NOT be printed\n", time.Now().Format(time.RFC3339Nano))
 		return nil
 	}
 
