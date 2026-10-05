@@ -2,6 +2,7 @@ package execution
 
 import (
 	"bytes"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -77,4 +78,24 @@ func TestLineCaptureBuffer(t *testing.T) {
 			require.Equal(t, tt.expectedOutput, w.String(), "Buffer content mismatch")
 		})
 	}
+}
+
+// GoTaskRecipeExecutor.Execute shares a single LineCaptureBuffer between a
+// subprocess's Stdout and Stderr when not in silent install mode, and
+// exec.Cmd reads those two streams from separate goroutines - so Write must
+// be safe for concurrent callers. Run with -race to verify.
+func TestLineCaptureBuffer_ConcurrentWriteIsSafe(t *testing.T) {
+	buf := NewLineCaptureBuffer(&bytes.Buffer{})
+	var wg sync.WaitGroup
+	for g := 0; g < 8; g++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 2000; i++ {
+				_, err := buf.Write([]byte("line from goroutine\n"))
+				assert.NoError(t, err)
+			}
+		}()
+	}
+	wg.Wait()
 }
