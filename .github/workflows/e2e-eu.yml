@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/open-install-library
+          ref: fix/redirect-output-to-file-NR-620798
           path: open-install-library
 
       - name: Get Test Definition Files
@@ -89,6 +90,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: newrelic/open-install-library
+          ref: fix/redirect-output-to-file-NR-620798
           path: open-install-library
 
       - name: Install Snapcraft
