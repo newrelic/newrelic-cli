@@ -76,3 +76,7 @@ require (
 )
 
 replace github.com/go-task/task/v3 => github.com/newrelic-forks/task/v3 v3.11.0
+
+replace golang.org/x/term => golang.org/x/term v0.30.0
+
+replace golang.org/x/sys => golang.org/x/sys v0.31.0
