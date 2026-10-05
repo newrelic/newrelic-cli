@@ -29,6 +29,7 @@ func getSignalContext() context.Context {
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-ch
+		fmt.Fprintf(os.Stderr, "[NR-620798-DIAG] %s getSignalContext: SIGNAL RECEIVED: %s (type=%T) - cancelling SignalCtx\n", time.Now().Format(time.RFC3339Nano), sig, sig)
 		log.Debugf("signal received: %s", sig)
 		cancel()
 	}()
