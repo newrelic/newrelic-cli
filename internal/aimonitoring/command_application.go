@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-client-go/v2/pkg/common"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/entities"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nrdb"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
@@ -40,9 +41,9 @@ var llmEventTypes = []string{
 const maxApplicationSearchResults = 500
 
 var (
-	appName  string
-	appGUID  string
 	appSince string
+	appTags  []string
+	appName  string
 )
 
 var cmdApplication = &cobra.Command{
@@ -59,12 +60,16 @@ var cmdApplicationSearch = &cobra.Command{
 
 The search command finds entities that reported AI Monitoring (LLM) events
 within the given time window and resolves them to their New Relic entities.
-Results can optionally be narrowed to a single application by name.
+Results can optionally be filtered to entities matching the given tags, then
+further narrowed down to a single application by name.
 `,
-	Example: `newrelic aimonitoring application search --since "7 days ago" --name checkout-service`,
+	Example: `newrelic aimonitoring application search --since "7 days ago" --tags aiEnabledApp:true --name checkout-service`,
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		accountID := configAPI.RequireActiveProfileAccountID()
+
+		tags, err := entities.ConvertTagsToMap(appTags)
+		utils.LogIfFatal(err)
 
 		// entityGuid is populated on every ingest path (APM agent and OpenTelemetry);
 		// entity.guid is only populated on the OpenTelemetry path.
@@ -83,36 +88,39 @@ Results can optionally be narrowed to a single application by name.
 			return
 		}
 		if len(guids) >= maxApplicationSearchResults {
-			log.Warnf("results were truncated to %d applications; narrow the search with --name or a shorter --since window", maxApplicationSearchResults)
+			log.Warnf("results were truncated to %d applications; narrow the search with --tags, --name, or a shorter --since window", maxApplicationSearchResults)
 		}
 
 		entityResults, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, guids)
 		utils.LogIfFatal(err)
 
-		utils.LogIfFatal(output.Print(*entityResults))
+		matched := filterEntitiesByTags(*entityResults, tags)
+		if len(tags) > 0 && len(matched) == 0 {
+			log.Info("no applications matched the given tags")
+			return
+		}
+
+		utils.LogIfFatal(output.Print(toApplicationSearchResults(matched)))
 	},
 }
 
-var cmdApplicationGet = &cobra.Command{
-	Use:   "get",
-	Short: "Get a New Relic AI Monitoring application",
-	Long: `Get a New Relic AI Monitoring application
+// applicationSearchResult is the trimmed-down shape printed by `application
+// search` — just enough to identify an application and look it up elsewhere.
+type applicationSearchResult struct {
+	Name string `json:"name"`
+	GUID string `json:"entityGuid"`
+}
 
-The get command performs a query for an entity by GUID.
-`,
-	Example: "newrelic aimonitoring application get --guid <entityGUID>",
-	PreRun:  client.RequireClient,
-	Run: func(cmd *cobra.Command, args []string) {
-		if appGUID == "" {
-			utils.LogIfError(cmd.Help())
-			log.Fatal("--guid is required")
-		}
+func toApplicationSearchResults(ents []entities.EntityInterface) []applicationSearchResult {
+	results := make([]applicationSearchResult, 0, len(ents))
+	for _, e := range ents {
+		results = append(results, applicationSearchResult{
+			Name: e.GetName(),
+			GUID: string(e.GetGUID()),
+		})
+	}
 
-		result, err := client.NRClient.Entities.GetEntity(common.EntityGUID(appGUID))
-		utils.LogIfFatal(err)
-
-		utils.LogIfFatal(output.Print(result))
-	},
+	return results
 }
 
 // extractEntityGUIDs pulls the aliased "guids" field out of the first NRQL
@@ -144,14 +152,54 @@ func escapeNRQLStringLiteral(s string) string {
 	return strings.ReplaceAll(s, `'`, `\'`)
 }
 
+// filterEntitiesByTags returns the entities that carry every given tag.
+// Tags are matched by key and value against the entity's tags, which are
+// unrelated to the NRDB attributes queried for AI Monitoring telemetry.
+func filterEntitiesByTags(ents []entities.EntityInterface, tags []map[string]string) []entities.EntityInterface {
+	if len(tags) == 0 {
+		return ents
+	}
+
+	matched := make([]entities.EntityInterface, 0, len(ents))
+	for _, e := range ents {
+		if entityHasAllTags(e.GetTags(), tags) {
+			matched = append(matched, e)
+		}
+	}
+
+	return matched
+}
+
+func entityHasAllTags(entityTags []entities.EntityTag, tags []map[string]string) bool {
+	for _, t := range tags {
+		if !entityHasTag(entityTags, t["key"], t["value"]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func entityHasTag(entityTags []entities.EntityTag, key, value string) bool {
+	for _, et := range entityTags {
+		if et.Key != key {
+			continue
+		}
+		for _, v := range et.Values {
+			if v == value {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func init() {
 	Command.AddCommand(cmdApplication)
 
-	cmdApplication.PersistentFlags().StringVarP(&appGUID, "guid", "g", "", "search for results matching the given entity GUID")
-
-	cmdApplication.AddCommand(cmdApplicationGet)
-
 	cmdApplication.AddCommand(cmdApplicationSearch)
-	cmdApplicationSearch.Flags().StringVarP(&appName, "name", "n", "", "search for results matching the given application name")
 	cmdApplicationSearch.Flags().StringVar(&appSince, "since", "7 days ago", "the NRQL SINCE clause used to look back for AI Monitoring telemetry")
+	cmdApplicationSearch.Flags().StringSliceVar(&appTags, "tags", []string{}, "filter results to entities matching the given tags, in the format tagKey1:tagValue1,tagKey2:tagValue2")
+	cmdApplicationSearch.Flags().StringVarP(&appName, "name", "n", "", "narrow results further to the given application name")
 }
