@@ -32,6 +32,7 @@ Searches for entities that reported AI Monitoring events within a time window an
 newrelic aimonitoring application search --since "7 days ago" --tags aiEnabledApp:true
 ```
 
+**Response:**
 ```json
 [
   {"name": "checkout-service", "entityGuid": "MTIzfEFQTXxBUFBMSUNBVElPTnwxMjM"}
