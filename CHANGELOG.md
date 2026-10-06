@@ -1,3 +1,12 @@
+<a name="v0.114.5"></a>
+## [v0.114.5] - 2026-10-02
+<a name="v0.114.4"></a>
+## [v0.114.4] - 2026-10-02
+<a name="v0.114.3"></a>
+## [v0.114.3] - 2026-10-01
+### Bug Fixes
+- **profile:** fix name truncation for dotted identifiers and related UX issues ([#1885](https://github.com/newrelic/newrelic-cli/issues/1885))
+
 <a name="v0.114.2"></a>
 ## [v0.114.2] - 2026-09-29
 <a name="v0.114.1"></a>
@@ -2909,7 +2918,10 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.114.2...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.114.5...HEAD
+[v0.114.5]: https://github.com/newrelic/newrelic-cli/compare/v0.114.4...v0.114.5
+[v0.114.4]: https://github.com/newrelic/newrelic-cli/compare/v0.114.3...v0.114.4
+[v0.114.3]: https://github.com/newrelic/newrelic-cli/compare/v0.114.2...v0.114.3
 [v0.114.2]: https://github.com/newrelic/newrelic-cli/compare/v0.114.1...v0.114.2
 [v0.114.1]: https://github.com/newrelic/newrelic-cli/compare/v0.114.0...v0.114.1
 [v0.114.0]: https://github.com/newrelic/newrelic-cli/compare/v0.113.19...v0.114.0
