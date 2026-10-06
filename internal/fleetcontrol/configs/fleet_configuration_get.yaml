@@ -14,6 +14,9 @@ example: |
 
   # Get configuration version by version entity GUID
   newrelic fleetcontrol configuration get --configuration-id "version-entity-guid" --mode ConfigVersionEntity
+
+  # Get entity metadata (e.g. configurationType) instead of the raw configuration content
+  newrelic fleetcontrol configuration get --configuration-id "abc-123-def" --show-metadata
 flags:
   - name: configuration-id
     type: string
@@ -33,3 +36,6 @@ flags:
     type: int
     default: -1
     description: the version number to retrieve (only applies when mode is ConfigEntity)
+  - name: show-metadata
+    type: bool
+    description: return entity metadata (name, agentType, configurationType, etc.) instead of the raw configuration content; mutually exclusive with --mode and --version

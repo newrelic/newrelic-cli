@@ -867,7 +867,7 @@ Create a deployment to roll out configurations to fleet members. Supports single
   - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times for multiple agents)
 - **Or** (legacy syntax - **SINGLE agent only**):
   - `--agent-type` - Agent type (e.g., NRInfra, NRDOT) - **creates ONE agent**
-  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0, or `*` for KUBERNETESCLUSTER fleets only)
+  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0)
   - `--configuration-version-ids` - Configuration version IDs to deploy (comma-separated values for multiple configs on the **same** agent)
 
 **Optional Flags:**
@@ -877,9 +877,6 @@ Create a deployment to roll out configurations to fleet members. Supports single
 **Validation:**
 - Must use either `--agent` OR all three legacy flags (`--agent-type`, `--agent-version`, `--configuration-version-ids`)
 - Cannot mix syntaxes - using `--agent` with any legacy flag will error
-- Agent version `"*"` (wildcard) is **only allowed for KUBERNETESCLUSTER fleets**
-  - HOST fleets must specify an explicit version (e.g., `"1.70.0"`)
-  - The CLI validates fleet type and rejects wildcards for HOST fleets with a clear error message.
 
 **Examples:**
 
@@ -920,7 +917,7 @@ newrelic fleetcontrol deployment create \
   --configuration-version-ids "version-1,version-2" \
   --description "One agent, multiple configurations"
 
-# Kubernetes fleet with wildcard version (only works for KUBERNETESCLUSTER fleets)
+# Kubernetes fleet with wildcard version
 newrelic fleetcontrol deployment create \
   --fleet-id "k8s-fleet-456" \
   --name "K8s Wildcard Deployment" \
@@ -1399,10 +1396,7 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 
 **Format Components:**
 - **AgentType** - The type of agent (e.g., NRInfra, NRDOT, FluentBit, NRPrometheusAgent)
-- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0, or `*` for KUBERNETESCLUSTER fleets only)
-  - Use explicit versions like `"1.70.0"` for HOST fleets
-  - Use `"*"` (wildcard) only for KUBERNETESCLUSTER fleets
-  - The CLI validates fleet type before allowing wildcard versions
+- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0)
 - **ConfigVersionIDs** - Comma-separated list of configuration version IDs (no spaces)
 
 **Examples:**
@@ -1423,7 +1417,7 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 --agent "NRDOT:2.0.0:config-dotnet-v1" \
 --agent "FluentBit:1.9.0:config-logs-v1"
 
-# Wildcard version for Kubernetes fleet (only valid for KUBERNETESCLUSTER type)
+# Wildcard version for Kubernetes fleet
 --agent "NRInfra:*:config-k8s-v1"
 ```
 
@@ -1440,17 +1434,6 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 
 # ✅ Correct: All three parts present
 --agent "NRInfra:1.70.0:version-1,version-2"
-
-# ❌ Incorrect: Using wildcard "*" with HOST fleet
---agent "NRInfra:*:version-1"  # on a HOST fleet
-# Error: agent version '*' (wildcard) is not supported for HOST fleets.
-#        Please specify an explicit version (e.g., '1.70.0').
-
-# ✅ Correct: Explicit version for HOST fleet
---agent "NRInfra:1.70.0:version-1"
-
-# ✅ Correct: Wildcard for KUBERNETESCLUSTER fleet
---agent "NRInfra:*:version-1"  # on a KUBERNETESCLUSTER fleet
 ```
 The syntax using separate flags can be preferred in the case of single-agent deployments:
 
@@ -1489,7 +1472,6 @@ The syntax using separate flags can be preferred in the case of single-agent dep
 | **"required flag not set"** | Ensure flag syntax is correct: `--flag-name value` or `--flag-name=value` (not `flag-name=value`) |
 | **"invalid value for flag"** | Check validation rules above. Values may need to match allowed values (case-insensitive) |
 | **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--fleet-id` OR `--fleet-ids`, not both). For deployments, use either `--agent` or all three legacy flags, not a mix. |
-| **"agent version '*' not supported for HOST fleets"** | Wildcard version (`"*"`) is only allowed for KUBERNETESCLUSTER fleets. Use an explicit version (e.g., `"1.70.0"`) for HOST fleets. |
 | **"--configuration-version-ids is required"** | When using legacy deployment syntax, you must provide all three flags: `--agent-type`, `--agent-version`, AND `--configuration-version-ids`. |
 | **"no version details found"** | Configuration ID is invalid or has no versions. Verify ID is correct using `search` command |
 | **File not found error** | When using `--configuration-file-path`, ensure the file path is correct and file exists |
