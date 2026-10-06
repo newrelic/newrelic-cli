@@ -1,5 +1,10 @@
+<a name="v0.114.6"></a>
+## [v0.114.6] - 2026-10-06
+### Bug Fixes
+- **fleetcontrol:** default configuration create to AgentConfig, add --show-metadata ([#1893](https://github.com/newrelic/newrelic-cli/issues/1893))
+
 <a name="v0.114.5"></a>
-## [v0.114.5] - 2026-10-02
+## [v0.114.5] - 2026-10-05
 <a name="v0.114.4"></a>
 ## [v0.114.4] - 2026-10-02
 <a name="v0.114.3"></a>
@@ -2918,7 +2923,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.114.5...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.114.6...HEAD
+[v0.114.6]: https://github.com/newrelic/newrelic-cli/compare/v0.114.5...v0.114.6
 [v0.114.5]: https://github.com/newrelic/newrelic-cli/compare/v0.114.4...v0.114.5
 [v0.114.4]: https://github.com/newrelic/newrelic-cli/compare/v0.114.3...v0.114.4
 [v0.114.3]: https://github.com/newrelic/newrelic-cli/compare/v0.114.2...v0.114.3
