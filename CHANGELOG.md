@@ -1,3 +1,8 @@
+<a name="v0.115.0"></a>
+## [v0.115.0] - 2026-10-07
+### Features
+- **aimonitoring:** add newrelic aimonitoring command ([#1892](https://github.com/newrelic/newrelic-cli/issues/1892))
+
 <a name="v0.114.6"></a>
 ## [v0.114.6] - 2026-10-06
 ### Bug Fixes
@@ -2923,7 +2928,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.114.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.0...HEAD
+[v0.115.0]: https://github.com/newrelic/newrelic-cli/compare/v0.114.6...v0.115.0
 [v0.114.6]: https://github.com/newrelic/newrelic-cli/compare/v0.114.5...v0.114.6
 [v0.114.5]: https://github.com/newrelic/newrelic-cli/compare/v0.114.4...v0.114.5
 [v0.114.4]: https://github.com/newrelic/newrelic-cli/compare/v0.114.3...v0.114.4
