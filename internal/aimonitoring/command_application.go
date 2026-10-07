@@ -68,40 +68,59 @@ further narrowed down to a single application by name.
 	Run: func(cmd *cobra.Command, args []string) {
 		accountID := configAPI.RequireActiveProfileAccountID()
 
-		tags, err := entities.ConvertTagsToMap(appTags)
+		results, err := searchApplications(accountID, appSince, appName, appTags)
 		utils.LogIfFatal(err)
 
-		// entityGuid is populated on every ingest path (APM agent and OpenTelemetry);
-		// entity.guid is only populated on the OpenTelemetry path.
-		query := fmt.Sprintf("SELECT uniques(entityGuid, %d) AS guids FROM %s SINCE %s",
-			maxApplicationSearchResults, strings.Join(llmEventTypes, ", "), appSince)
-		if appName != "" {
-			query += fmt.Sprintf(" WHERE appName = '%s'", escapeNRQLStringLiteral(appName))
-		}
-
-		result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
-		utils.LogIfFatal(err)
-
-		guids := extractEntityGUIDs(result.Results)
-		if len(guids) == 0 {
-			log.Info("no applications reporting AI Monitoring telemetry were found for the given account and time window")
-			return
-		}
-		if len(guids) >= maxApplicationSearchResults {
-			log.Warnf("results were truncated to %d applications; narrow the search with --tags, --name, or a shorter --since window", maxApplicationSearchResults)
-		}
-
-		entityResults, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, guids)
-		utils.LogIfFatal(err)
-
-		matched := filterEntitiesByTags(*entityResults, tags)
-		if len(tags) > 0 && len(matched) == 0 {
-			log.Info("no applications matched the given tags")
-			return
-		}
-
-		utils.LogIfFatal(output.Print(toApplicationSearchResults(matched)))
+		utils.LogIfFatal(output.Print(results))
 	},
+}
+
+// searchApplications runs the AI Monitoring application search: it finds
+// entities that reported AI Monitoring (LLM) events in the given time
+// window, optionally narrowed by application name, resolves them to New
+// Relic entities, and optionally filters those down to entities matching
+// every given tag. It returns an empty (non-nil) slice, logging why, when
+// nothing is found at either stage.
+func searchApplications(accountID int, since string, name string, tagPairs []string) ([]applicationSearchResult, error) {
+	tags, err := entities.ConvertTagsToMap(tagPairs)
+	if err != nil {
+		return nil, err
+	}
+
+	// entityGuid is populated on every ingest path (APM agent and OpenTelemetry);
+	// entity.guid is only populated on the OpenTelemetry path.
+	query := fmt.Sprintf("SELECT uniques(entityGuid, %d) AS guids FROM %s SINCE %s",
+		maxApplicationSearchResults, strings.Join(llmEventTypes, ", "), since)
+	if name != "" {
+		query += fmt.Sprintf(" WHERE appName = '%s'", escapeNRQLStringLiteral(name))
+	}
+
+	result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
+	if err != nil {
+		return nil, err
+	}
+
+	guids := extractEntityGUIDs(result.Results)
+	if len(guids) == 0 {
+		log.Info("no applications reporting AI Monitoring telemetry were found for the given account and time window")
+		return []applicationSearchResult{}, nil
+	}
+	if len(guids) >= maxApplicationSearchResults {
+		log.Warnf("results were truncated to %d applications; narrow the search with --tags, --name, or a shorter --since window", maxApplicationSearchResults)
+	}
+
+	entityResults, err := client.NRClient.Entities.GetEntitiesWithContext(utils.SignalCtx, guids)
+	if err != nil {
+		return nil, err
+	}
+
+	matched := filterEntitiesByTags(*entityResults, tags)
+	if len(tags) > 0 && len(matched) == 0 {
+		log.Info("no applications matched the given tags")
+		return []applicationSearchResult{}, nil
+	}
+
+	return toApplicationSearchResults(matched), nil
 }
 
 // applicationSearchResult is the trimmed-down shape printed by `application
