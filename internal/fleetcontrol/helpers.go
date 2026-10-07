@@ -234,6 +234,67 @@ func MapManagedEntityType(typeStr string) (fleetcontrol.FleetControlManagedEntit
 	}
 }
 
+// fleetConfigurationForcedLegacyAgentTypePrefix is an agentType prefix that must never receive
+// the "AgentConfig" configurationType default. PipelineControlGateway and its variants
+// (PipelineControlGatewayConfig, PipelineControlGatewayConfigMode) don't have "AgentConfig"
+// classified in their agent-type registries on the fleet-management side.
+//
+// Not reachable via --agent-type's current allowed_values (NRInfra, NRDOT, FluentBit,
+// NRPrometheusAgent) - kept as defense-in-depth in case that allow-list is ever widened.
+const fleetConfigurationForcedLegacyAgentTypePrefix = "pipelinecontrol"
+
+// fleetConfigurationForcedLegacyManagedEntityType is the one managedEntityType value that must
+// never receive the "AgentConfig" default.
+//
+// Not reachable via --managed-entity-type's current allowed_values (HOST, KUBERNETESCLUSTER) -
+// kept as defense-in-depth in case that allow-list is ever widened to include APPLICATION.
+const fleetConfigurationForcedLegacyManagedEntityType = "application"
+
+// fleetConfigurationMustStayLegacy reports whether agentType or managedEntityType forces a
+// configuration to remain legacy (null configurationType), regardless of the default or an
+// explicit --configuration-type/--legacy-config choice.
+func fleetConfigurationMustStayLegacy(agentType, managedEntityType string) bool {
+	return strings.HasPrefix(strings.ToLower(agentType), fleetConfigurationForcedLegacyAgentTypePrefix) ||
+		strings.EqualFold(managedEntityType, fleetConfigurationForcedLegacyManagedEntityType)
+}
+
+// ResolveFleetConfigurationType resolves the configurationType to send when creating a fleet
+// configuration, applying the "AgentConfig" default, the --legacy-config escape hatch, and the
+// forced-legacy exceptions for certain agent/managed-entity types.
+//
+// Parameters:
+//   - configurationType: the value of --configuration-type (already defaulted to "AgentConfig"
+//     by the YAML framework if the flag wasn't passed)
+//   - explicitlySet: whether --configuration-type was explicitly passed on the command line.
+//     Needed because the flag's YAML default means its resolved value alone can't distinguish
+//     "user asked for AgentConfig" from "user didn't say anything".
+//   - legacyConfig: the value of --legacy-config
+//   - agentType, managedEntityType: the target agent/managed-entity type
+//
+// Returns:
+//   - The configurationType to send ("" for a legacy configuration), or an error if the flags
+//     are mutually exclusive or contradict a forced-legacy agent/managed-entity type.
+func ResolveFleetConfigurationType(configurationType string, explicitlySet, legacyConfig bool, agentType, managedEntityType string) (string, error) {
+	if explicitlySet && legacyConfig {
+		return "", fmt.Errorf("--configuration-type and --legacy-config are mutually exclusive, use only one")
+	}
+
+	if fleetConfigurationMustStayLegacy(agentType, managedEntityType) {
+		if explicitlySet {
+			return "", fmt.Errorf(
+				"agent type '%s' / managed entity type '%s' must use a legacy configuration; omit --configuration-type or pass --legacy-config",
+				agentType, managedEntityType)
+		}
+		return "", nil
+	}
+
+	if legacyConfig {
+		return "", nil
+	}
+
+	return configurationType, nil
+}
+
 // MapScopeType converts a validated scope type string to the client library type.
 // This function should ONLY be called after YAML validation has confirmed the value is allowed.
 //
@@ -640,6 +701,105 @@ func PrintConfigurationSuccess(result interface{}) error {
 		Result: result,
 	}
 	return printJSON(response)
+}
+
+// ConfigurationMetadataOutput represents the entity metadata for a fleet configuration, as
+// returned by the get command's --show-metadata mode (via the EntityManagement API, rather
+// than the raw content the Blob Service returns).
+type ConfigurationMetadataOutput struct {
+	ID                string                                    `json:"id"`
+	Name              string                                    `json:"name,omitempty"`
+	AgentType         string                                    `json:"agentType,omitempty"`
+	ManagedEntityType string                                    `json:"managedEntityType,omitempty"`
+	OperatingSystem   *fleetcontrol.FleetControlOperatingSystem `json:"operatingSystem,omitempty"`
+	// ConfigurationType is nil (serialized as JSON null) for legacy/unmigrated configurations.
+	ConfigurationType *string                        `json:"configurationType"`
+	VersionCount      int                            `json:"versionCount,omitempty"`
+	Tags              []fleetcontrol.FleetControlTag `json:"tags,omitempty"`
+	CreatedAt         int64                          `json:"createdAt,omitempty"`
+	UpdatedAt         int64                          `json:"updatedAt,omitempty"`
+}
+
+// FilterAgentConfigurationEntityFromEntityManagement creates a filtered metadata output from an
+// EntityManagementAgentConfigurationEntity, for the get command's --show-metadata mode.
+func FilterAgentConfigurationEntityFromEntityManagement(entity fleetcontrol.EntityManagementAgentConfigurationEntity) *ConfigurationMetadataOutput {
+	output := &ConfigurationMetadataOutput{
+		ID:        entity.ID,
+		Name:      entity.Name,
+		AgentType: entity.AgentType,
+	}
+
+	if entity.ManagedEntityType != "" {
+		output.ManagedEntityType = string(entity.ManagedEntityType)
+	}
+
+	if entity.OperatingSystem.Type != "" {
+		output.OperatingSystem = &fleetcontrol.FleetControlOperatingSystem{
+			Type: fleetcontrol.FleetControlOperatingSystemType(entity.OperatingSystem.Type),
+		}
+	}
+
+	if entity.ConfigurationType != "" {
+		configurationType := entity.ConfigurationType
+		output.ConfigurationType = &configurationType
+	}
+
+	output.VersionCount = entity.VersionCount
+
+	if len(entity.Tags) > 0 {
+		tags := make([]fleetcontrol.FleetControlTag, len(entity.Tags))
+		for i, tag := range entity.Tags {
+			tags[i] = fleetcontrol.FleetControlTag(tag)
+		}
+		output.Tags = tags
+	}
+
+	createdTime := time.Time(entity.Metadata.CreatedAt)
+	if !createdTime.IsZero() {
+		output.CreatedAt = createdTime.UnixMilli()
+	}
+
+	updatedTime := time.Time(entity.Metadata.UpdatedAt)
+	if !updatedTime.IsZero() {
+		output.UpdatedAt = updatedTime.UnixMilli()
+	}
+
+	return output
+}
+
+// ConfigurationVersionMetadataOutput represents the entity metadata for a fleet configuration
+// version, as returned by the get command's --show-metadata mode. A version does not carry a
+// configurationType itself - that lives on its parent AgentConfigurationEntity.
+type ConfigurationVersionMetadataOutput struct {
+	ID                 string `json:"id"`
+	Name               string `json:"name,omitempty"`
+	AgentConfiguration string `json:"agentConfiguration"`
+	Version            int    `json:"version,omitempty"`
+	CreatedAt          int64  `json:"createdAt,omitempty"`
+	UpdatedAt          int64  `json:"updatedAt,omitempty"`
+}
+
+// FilterAgentConfigurationVersionEntityFromEntityManagement creates a filtered metadata output
+// from an EntityManagementAgentConfigurationVersionEntity, for the get command's --show-metadata mode.
+func FilterAgentConfigurationVersionEntityFromEntityManagement(entity fleetcontrol.EntityManagementAgentConfigurationVersionEntity) *ConfigurationVersionMetadataOutput {
+	output := &ConfigurationVersionMetadataOutput{
+		ID:                 entity.ID,
+		Name:               entity.Name,
+		AgentConfiguration: entity.AgentConfiguration,
+		Version:            entity.Version,
+	}
+
+	createdTime := time.Time(entity.Metadata.CreatedAt)
+	if !createdTime.IsZero() {
+		output.CreatedAt = createdTime.UnixMilli()
+	}
+
+	updatedTime := time.Time(entity.Metadata.UpdatedAt)
+	if !updatedTime.IsZero() {
+		output.UpdatedAt = updatedTime.UnixMilli()
+	}
+
+	return output
 }
 
 // ConfigurationDeleteResponseWrapper wraps configuration delete result with consistent status and error fields.

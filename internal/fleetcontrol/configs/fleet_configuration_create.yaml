@@ -17,6 +17,9 @@ example: |
 
   # Create a Linux host configuration with explicit organization ID
   newrelic fleetcontrol configuration create --name "Production Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --operating-system "LINUX" --organization-id "abc-123-def" --configuration-file-path ./prod-config.json
+
+  # Create a legacy configuration (no configuration type) instead of the default "AgentConfig"
+  newrelic fleetcontrol configuration create --name "Legacy Fleet" --agent-type "NRInfra" --managed-entity-type "HOST" --operating-system "LINUX" --configuration-file-path ./legacy-config.json --legacy-config
 flags:
   - name: name
     type: string
@@ -53,3 +56,12 @@ flags:
     type: string
     required: false
     description: inline configuration content (JSON/YAML) - use only for testing, development, or emergency purposes
+  - name: configuration-type
+    type: string
+    default: AgentConfig
+    description: "the configuration type (currently only \"AgentConfig\" is supported). Defaults to \"AgentConfig\"; mutually exclusive with --legacy-config"
+    validation:
+      allowed_values: ["AgentConfig"]
+  - name: legacy-config
+    type: bool
+    description: create a legacy configuration with no configuration type (null), instead of the default "AgentConfig". Mutually exclusive with --configuration-type
