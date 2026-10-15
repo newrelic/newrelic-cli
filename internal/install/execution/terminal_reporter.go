@@ -98,6 +98,11 @@ func (r TerminalStatusReporter) InstallComplete(status *InstallStatus) error {
 	fmt.Println("  What's next?")
 	r.printInstallationSummary(os.Stdout, status)
 
+	if os.Getenv("NEW_RELIC_PRESERVE_CONFIG") == "true" {
+		fmt.Println()
+		fmt.Println(color.YellowString("  Warning: --preserveConfig was set. If a config file already existed on this host, it was left untouched, and any tags or other inputs from this run were not applied."))
+	}
+
 	var msg, link string
 	dataLink := ""
 	if status.PlatformLinkGenerator != nil && !isAgentControl && !isAgentControlAttempt {
