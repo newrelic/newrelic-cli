@@ -32,6 +32,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/nrql"
 	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
+	"github.com/newrelic/newrelic-cli/internal/servicelevel"
 	"github.com/newrelic/newrelic-cli/internal/synthetics"
 	"github.com/newrelic/newrelic-cli/internal/usermanagement"
 	"github.com/newrelic/newrelic-cli/internal/utils"
@@ -68,6 +69,7 @@ func init() {
 	Command.AddCommand(usermanagement.Command)
 	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)
+	Command.AddCommand(servicelevel.Command)
 
 	CheckPrereleaseMode(Command)
 
