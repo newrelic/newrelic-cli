@@ -129,7 +129,8 @@ func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs: []int{accountID},
+			AccountIDs:  []int{accountID},
+			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
 		},
 		Types: []apiaccess.APIAccessKeyType{
 			apiaccess.APIAccessKeyTypeTypes.INGEST,
