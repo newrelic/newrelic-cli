@@ -115,7 +115,6 @@ func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accou
 		Scope: apiaccess.APIAccessKeySearchScope{
 			AccountIDs:  []int{accountID},
 			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
-			Name:        &apiaccess.APIAccessKeyNameQuery{Contains: PreferredIngestKeyName},
 		},
 		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
 	})
