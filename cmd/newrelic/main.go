@@ -9,7 +9,9 @@ import (
 	flag "github.com/spf13/pflag"
 
 	// Commands
+	"github.com/newrelic/newrelic-cli/internal/accessmanagement"
 	"github.com/newrelic/newrelic-cli/internal/agent"
+	"github.com/newrelic/newrelic-cli/internal/aimonitoring"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
 	"github.com/newrelic/newrelic-cli/internal/changeTracking"
@@ -31,6 +33,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/synthetics"
+	"github.com/newrelic/newrelic-cli/internal/usermanagement"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
@@ -41,7 +44,9 @@ var (
 
 func init() {
 	// Bind imported sub-commands
+	Command.AddCommand(accessmanagement.Command)
 	Command.AddCommand(agent.Command)
+	Command.AddCommand(aimonitoring.Command)
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(synthetics.Command)
 	Command.AddCommand(apm.Command)
@@ -60,6 +65,7 @@ func init() {
 	Command.AddCommand(migrate.Command)
 	Command.AddCommand(profile.Command)
 	Command.AddCommand(reporting.Command)
+	Command.AddCommand(usermanagement.Command)
 	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)
 

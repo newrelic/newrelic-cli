@@ -121,7 +121,7 @@ export NEW_RELIC_API_KEY="NRAK-YOUR-API-KEY-HERE"
 export NEW_RELIC_ACCOUNT_ID="your-account-id"
 
 # Optional: Specify region (defaults to US)
-export NEW_RELIC_REGION="US"  # or "EU" for European accounts
+export NEW_RELIC_REGION="US"  # or "EU" for European accounts, or "JP" for Japan
 ```
 
 ### Getting Your Credentials
@@ -159,6 +159,10 @@ Create a fleet to group and manage entities of the same type.
 - `--name` - Fleet name
 - `--managed-entity-type` - Type of entities this fleet will manage
   - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
+- `--operating-system` - Operating system type (**required for HOST fleets only**)
+  - Allowed values: `LINUX`, `WINDOWS` (case-insensitive)
+  - **Must be specified** when creating `HOST` fleets to ensure proper agent configuration
+  - **Must NOT be specified** for `KUBERNETESCLUSTER` fleets (Kubernetes manages its own OS)
 
 **Optional Flags:**
 - `--description` - Fleet description
@@ -169,16 +173,26 @@ Create a fleet to group and manage entities of the same type.
 **Examples:**
 
 ```bash
-# Create a fleet for hosts
+# Create a fleet for Linux hosts
 newrelic fleetcontrol fleet create \
-  --name "Production Hosts" \
+  --name "Production Linux Hosts" \
   --managed-entity-type "HOST" \
-  --description "Production environment host fleet" \
+  --operating-system "LINUX" \
+  --description "Production environment Linux host fleet" \
   --product "Infrastructure" \
   --tags "env:prod" \
   --tags "region:us-east-1"
 
-# Create a Kubernetes fleet
+# Create a fleet for Windows hosts
+newrelic fleetcontrol fleet create \
+  --name "Production Windows Hosts" \
+  --managed-entity-type "HOST" \
+  --operating-system "WINDOWS" \
+  --description "Production environment Windows host fleet" \
+  --product "Infrastructure" \
+  --tags "env:prod"
+
+# Create a Kubernetes fleet (no --operating-system flag)
 newrelic fleetcontrol fleet create \
   --name "K8s Prod Clusters" \
   --managed-entity-type "KUBERNETESCLUSTER" \
@@ -190,13 +204,16 @@ newrelic fleetcontrol fleet create \
 {
   "status": "success",
   "error": "",
-  "result": {
-    "id": "fleet-abc-123",
-    "name": "Production Hosts",
-    "managedEntityType": "HOST",
-    "description": "Production environment host fleet",
-    ...
-  }
+  "id": "fleet-abc-123",
+  "name": "Production Linux Hosts",
+  "type": "FLEET",
+  "managedEntityType": "HOST",
+  "operatingSystem": {
+    "type": "LINUX"
+  },
+  "description": "Production environment Linux host fleet",
+  "createdAt": 1770977865600,
+  "updatedAt": 1770977865882
 }
 ```
 
@@ -466,19 +483,23 @@ newrelic fleetcontrol fleet members remove \
 
 #### `fleetcontrol fleet members list` - List Fleet Members
 
-List all entities in a fleet, optionally filtered by ring.
+List all entities in a fleet, optionally filtered by ring. Results are paginated and include a cursor for retrieving additional pages.
 
 **Required Flags:**
 - `--fleet-id` - Fleet ID to list members from
 
 **Optional Flags:**
 - `--ring` - Filter by specific ring name
+- `--next-cursor` - Cursor to continue from previous page (for pagination)
 - `--show-tags` - Include entity tags in output (default: false)
+
+**Pagination:**
+The response includes a `nextCursor` field. If present, use it with `--next-cursor` to retrieve the next page of results.
 
 **Examples:**
 
 ```bash
-# List all members in a fleet
+# List all members in a fleet (first page)
 newrelic fleetcontrol fleet members list --fleet-id "fleet-abc-123"
 
 # List members in a specific ring
@@ -490,7 +511,30 @@ newrelic fleetcontrol fleet members list \
 newrelic fleetcontrol fleet members list \
   --fleet-id "fleet-abc-123" \
   --show-tags
+
+# Get next page using cursor from previous response
+newrelic fleetcontrol fleet members list \
+  --fleet-id "fleet-abc-123" \
+  --next-cursor "eyJsYXN0SWQiOiIxMjM0NSJ9"
 ```
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": "entity-123",
+      "name": "host-01",
+      "type": "HOST",
+      "scope": {...},
+      "metadata": {...}
+    }
+  ],
+  "nextCursor": "eyJsYXN0SWQiOiIxMjM0NSJ9"
+}
+```
+
+**Note:** If `nextCursor` is present in the response, there are more results available. Use the cursor value with `--next-cursor` to retrieve the next page.
 
 ---
 
@@ -506,6 +550,8 @@ Create a versioned configuration for fleet agents.
   - Allowed values: `NRInfra`, `NRDOT`, `FluentBit`, `NRPrometheusAgent` (case-insensitive)
 - `--managed-entity-type` - Type of entities this configuration applies to
   - Allowed values: `HOST`, `KUBERNETESCLUSTER` (case-insensitive)
+- `--operating-system` - Operating system type (**required for HOST configurations only**)
+  - Allowed values: `LINUX`, `WINDOWS` (case-insensitive)
 - **Exactly one of:**
   - `--configuration-file-path` - Path to configuration file (JSON/YAML) - **recommended for production**
   - `--configuration-content` - Inline configuration content (JSON/YAML) - **for testing/development only**
@@ -515,24 +561,35 @@ Create a versioned configuration for fleet agents.
 
 **Validation:**
 - Mutually exclusive: Must provide either `--configuration-file-path` OR `--configuration-content`, not both
+- `--operating-system` is required when `--managed-entity-type` is `HOST`
+- `--operating-system` must not be specified when `--managed-entity-type` is `KUBERNETESCLUSTER`
 - File path is the recommended approach for production use
 - Inline content should only be used for testing, development, or emergency purposes.
 
 **Examples:**
 
 ```bash
-# Recommended: Read from file
+# Recommended: Read from file (Linux host)
 newrelic fleetcontrol configuration create \
   --name "Production Host Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
+  --operating-system "LINUX" \
   --configuration-file-path ./configs/prod-host.json
+
+# Recommended: Read from file (Kubernetes cluster)
+newrelic fleetcontrol configuration create \
+  --name "Production K8s Config" \
+  --agent-type "NRInfra" \
+  --managed-entity-type "KUBERNETESCLUSTER" \
+  --configuration-file-path ./configs/prod-k8s.json
 
 # Alternative: Inline content (testing only)
 newrelic fleetcontrol configuration create \
   --name "Test Config" \
   --agent-type "NRInfra" \
   --managed-entity-type "HOST" \
+  --operating-system "LINUX" \
   --configuration-content '{"metrics_interval": 15}'
 ```
 
@@ -810,7 +867,7 @@ Create a deployment to roll out configurations to fleet members. Supports single
   - `--agent` - Agent specification in format `"AgentType:Version:ConfigVersionID1,ConfigVersionID2"` (can specify multiple times for multiple agents)
 - **Or** (legacy syntax - **SINGLE agent only**):
   - `--agent-type` - Agent type (e.g., NRInfra, NRDOT) - **creates ONE agent**
-  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0, or `*` for KUBERNETESCLUSTER fleets only)
+  - `--agent-version` - Agent version (e.g., 1.70.0, 2.0.0)
   - `--configuration-version-ids` - Configuration version IDs to deploy (comma-separated values for multiple configs on the **same** agent)
 
 **Optional Flags:**
@@ -820,9 +877,6 @@ Create a deployment to roll out configurations to fleet members. Supports single
 **Validation:**
 - Must use either `--agent` OR all three legacy flags (`--agent-type`, `--agent-version`, `--configuration-version-ids`)
 - Cannot mix syntaxes - using `--agent` with any legacy flag will error
-- Agent version `"*"` (wildcard) is **only allowed for KUBERNETESCLUSTER fleets**
-  - HOST fleets must specify an explicit version (e.g., `"1.70.0"`)
-  - The CLI validates fleet type and rejects wildcards for HOST fleets with a clear error message.
 
 **Examples:**
 
@@ -863,7 +917,7 @@ newrelic fleetcontrol deployment create \
   --configuration-version-ids "version-1,version-2" \
   --description "One agent, multiple configurations"
 
-# Kubernetes fleet with wildcard version (only works for KUBERNETESCLUSTER fleets)
+# Kubernetes fleet with wildcard version
 newrelic fleetcontrol deployment create \
   --fleet-id "k8s-fleet-456" \
   --name "K8s Wildcard Deployment" \
@@ -1342,10 +1396,7 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 
 **Format Components:**
 - **AgentType** - The type of agent (e.g., NRInfra, NRDOT, FluentBit, NRPrometheusAgent)
-- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0, or `*` for KUBERNETESCLUSTER fleets only)
-  - Use explicit versions like `"1.70.0"` for HOST fleets
-  - Use `"*"` (wildcard) only for KUBERNETESCLUSTER fleets
-  - The CLI validates fleet type before allowing wildcard versions
+- **Version** - The agent version to deploy (e.g., 1.70.0, 2.0.0)
 - **ConfigVersionIDs** - Comma-separated list of configuration version IDs (no spaces)
 
 **Examples:**
@@ -1366,7 +1417,7 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 --agent "NRDOT:2.0.0:config-dotnet-v1" \
 --agent "FluentBit:1.9.0:config-logs-v1"
 
-# Wildcard version for Kubernetes fleet (only valid for KUBERNETESCLUSTER type)
+# Wildcard version for Kubernetes fleet
 --agent "NRInfra:*:config-k8s-v1"
 ```
 
@@ -1383,17 +1434,6 @@ Used in deployment create command with the `--agent` flag. Format: `"AgentType:V
 
 # ✅ Correct: All three parts present
 --agent "NRInfra:1.70.0:version-1,version-2"
-
-# ❌ Incorrect: Using wildcard "*" with HOST fleet
---agent "NRInfra:*:version-1"  # on a HOST fleet
-# Error: agent version '*' (wildcard) is not supported for HOST fleets.
-#        Please specify an explicit version (e.g., '1.70.0').
-
-# ✅ Correct: Explicit version for HOST fleet
---agent "NRInfra:1.70.0:version-1"
-
-# ✅ Correct: Wildcard for KUBERNETESCLUSTER fleet
---agent "NRInfra:*:version-1"  # on a KUBERNETESCLUSTER fleet
 ```
 The syntax using separate flags can be preferred in the case of single-agent deployments:
 
@@ -1432,7 +1472,6 @@ The syntax using separate flags can be preferred in the case of single-agent dep
 | **"required flag not set"** | Ensure flag syntax is correct: `--flag-name value` or `--flag-name=value` (not `flag-name=value`) |
 | **"invalid value for flag"** | Check validation rules above. Values may need to match allowed values (case-insensitive) |
 | **"mutually exclusive flags"** | Only one of the mutually exclusive flags should be provided (e.g., `--fleet-id` OR `--fleet-ids`, not both). For deployments, use either `--agent` or all three legacy flags, not a mix. |
-| **"agent version '*' not supported for HOST fleets"** | Wildcard version (`"*"`) is only allowed for KUBERNETESCLUSTER fleets. Use an explicit version (e.g., `"1.70.0"`) for HOST fleets. |
 | **"--configuration-version-ids is required"** | When using legacy deployment syntax, you must provide all three flags: `--agent-type`, `--agent-version`, AND `--configuration-version-ids`. |
 | **"no version details found"** | Configuration ID is invalid or has no versions. Verify ID is correct using `search` command |
 | **File not found error** | When using `--configuration-file-path`, ensure the file path is correct and file exists |
@@ -1491,7 +1530,7 @@ internal/fleetcontrol/
 ├── README.md                                     # This file - Command reference
 ├── command.go                                    # Main entry point with command hierarchy
 ├── command_framework.go                          # Core framework
-├── command_flags_generated.go                    # Generated typed flag accessors
+├── command_flags_generated.go                    # Manually maintained typed flag accessors
 ├── command_fleet.go                              # Command registration
 ├── helpers.go                                    # Shared utility functions
 │

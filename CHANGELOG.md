@@ -1,3 +1,198 @@
+<a name="v0.115.6"></a>
+## [v0.115.6] - 2026-10-29
+<a name="v0.115.5"></a>
+## [v0.115.5] - 2026-10-29
+<a name="v0.115.4"></a>
+## [v0.115.4] - 2026-10-29
+<a name="v0.115.3"></a>
+## [v0.115.3] - 2026-10-27
+<a name="v0.115.2"></a>
+## [v0.115.2] - 2026-10-14
+<a name="v0.115.1"></a>
+## [v0.115.1] - 2026-10-13
+### Bug Fixes
+- **deps:** upgrade Go to 1.26.9 and fix all Trivy/Grype/Dependabot security findings ([#1901](https://github.com/newrelic/newrelic-cli/issues/1901))
+
+<a name="v0.115.0"></a>
+## [v0.115.0] - 2026-10-07
+### Features
+- **aimonitoring:** add newrelic aimonitoring command ([#1892](https://github.com/newrelic/newrelic-cli/issues/1892))
+
+<a name="v0.114.6"></a>
+## [v0.114.6] - 2026-10-06
+### Bug Fixes
+- **fleetcontrol:** default configuration create to AgentConfig, add --show-metadata ([#1893](https://github.com/newrelic/newrelic-cli/issues/1893))
+
+<a name="v0.114.5"></a>
+## [v0.114.5] - 2026-10-05
+<a name="v0.114.4"></a>
+## [v0.114.4] - 2026-10-02
+<a name="v0.114.3"></a>
+## [v0.114.3] - 2026-10-01
+### Bug Fixes
+- **profile:** fix name truncation for dotted identifiers and related UX issues ([#1885](https://github.com/newrelic/newrelic-cli/issues/1885))
+
+<a name="v0.114.2"></a>
+## [v0.114.2] - 2026-09-29
+<a name="v0.114.1"></a>
+## [v0.114.1] - 2026-09-29
+<a name="v0.114.0"></a>
+## [v0.114.0] - 2026-09-25
+### Features
+- **iam:** add usermanagement and accessmanagement CLI commands ([#1842](https://github.com/newrelic/newrelic-cli/issues/1842))
+
+<a name="v0.113.19"></a>
+## [v0.113.19] - 2026-09-24
+<a name="v0.113.18"></a>
+## [v0.113.18] - 2026-09-23
+<a name="v0.113.17"></a>
+## [v0.113.17] - 2026-09-22
+### Bug Fixes
+- **deps:** bump alpine 3.24.1 -> 3.24.2 ([#1890](https://github.com/newrelic/newrelic-cli/issues/1890))
+
+<a name="v0.113.16"></a>
+## [v0.113.16] - 2026-09-16
+<a name="v0.113.15"></a>
+## [v0.113.15] - 2026-09-10
+<a name="v0.113.14"></a>
+## [v0.113.14] - 2026-09-09
+### Bug Fixes
+- **release:** stop fetching install.ps1 from GitHub Release — use checkout copy instead ([#1886](https://github.com/newrelic/newrelic-cli/issues/1886))
+
+<a name="v0.113.13"></a>
+## [v0.113.13] - 2026-09-09
+<a name="v0.113.12"></a>
+## [v0.113.12] - 2026-09-08
+<a name="v0.113.11"></a>
+## [v0.113.11] - 2026-09-07
+### Bug Fixes
+- **security:** bump google.golang.org/grpc to v1.83.1 in tools ([#1881](https://github.com/newrelic/newrelic-cli/issues/1881))
+
+<a name="v0.113.10"></a>
+## [v0.113.10] - 2026-09-03
+<a name="v0.113.9"></a>
+## [v0.113.9] - 2026-08-31
+<a name="v0.113.8"></a>
+## [v0.113.8] - 2026-08-27
+### Bug Fixes
+- **fleetcontrol:** paginate fleet search across all pages ([#1874](https://github.com/newrelic/newrelic-cli/issues/1874))
+- **security:** bump Go toolchain to 1.26.7 and patch Alpine OpenSSL CVEs ([#1875](https://github.com/newrelic/newrelic-cli/issues/1875))
+
+<a name="v0.113.7"></a>
+## [v0.113.7] - 2026-08-21
+<a name="v0.113.6"></a>
+## [v0.113.6] - 2026-08-17
+### Bug Fixes
+- **security:** bump Go toolchain to 1.26.6 to fix 4 stdlib CVEs ([#1873](https://github.com/newrelic/newrelic-cli/issues/1873))
+
+<a name="v0.113.5"></a>
+## [v0.113.5] - 2026-08-13
+### Bug Fixes
+- fix all open Dependabot vulnerabilities (5 CVEs across go.mod + tools/go.mod) ([#1872](https://github.com/newrelic/newrelic-cli/issues/1872))
+
+<a name="v0.113.4"></a>
+## [v0.113.4] - 2026-08-06
+<a name="v0.113.3"></a>
+## [v0.113.3] - 2026-07-27
+<a name="v0.113.2"></a>
+## [v0.113.2] - 2026-07-21
+<a name="v0.113.1"></a>
+## [v0.113.1] - 2026-07-17
+<a name="v0.113.0"></a>
+## [v0.113.0] - 2026-07-17
+### Bug Fixes
+- **install:** exit non-zero when a targeted install installs no recipes ([#1865](https://github.com/newrelic/newrelic-cli/issues/1865))
+
+### Features
+- **region:** add GOV/FedRAMP region support ([#1866](https://github.com/newrelic/newrelic-cli/issues/1866))
+
+<a name="v0.112.18"></a>
+## [v0.112.18] - 2026-07-15
+### Bug Fixes
+- **deps:** Consolidated Dependabot alerts cleanup — July 2026 edition (goreleaser v2 migration, 37 alerts closed)
+
+<a name="v0.112.17"></a>
+## [v0.112.17] - 2026-07-08
+<a name="v0.112.16"></a>
+## [v0.112.16] - 2026-07-08
+<a name="v0.112.15"></a>
+## [v0.112.15] - 2026-06-30
+<a name="v0.112.14"></a>
+## [v0.112.14] - 2026-06-29
+<a name="v0.112.13"></a>
+## [v0.112.13] - 2026-06-18
+<a name="v0.112.12"></a>
+## [v0.112.12] - 2026-06-18
+### Bug Fixes
+- **deps:** bump alpine 3.24.0 -> 3.24.1 + apk upgrade for libssl/libcrypto CVEs ([#1855](https://github.com/newrelic/newrelic-cli/issues/1855))
+
+<a name="v0.112.11"></a>
+## [v0.112.11] - 2026-06-16
+### Bug Fixes
+- **deps:** bump golang.org/x/net and Go to resolve NR-576378 CVEs ([#1852](https://github.com/newrelic/newrelic-cli/issues/1852))
+
+<a name="v0.112.10"></a>
+## [v0.112.10] - 2026-06-03
+<a name="v0.112.9"></a>
+## [v0.112.9] - 2026-05-28
+<a name="v0.112.8"></a>
+## [v0.112.8] - 2026-05-25
+### Bug Fixes
+- **deps:** bump github.com/newrelic/newrelic-client-go/v2 from v2.83.0 to v2.86.1
+
+<a name="v0.112.7"></a>
+## [v0.112.7] - 2026-05-18
+<a name="v0.112.6"></a>
+## [v0.112.6] - 2026-05-14
+### Bug Fixes
+- bump Go stdlib to 1.26.3 to resolve 21 CVEs ([#1846](https://github.com/newrelic/newrelic-cli/issues/1846))
+
+<a name="v0.112.5"></a>
+## [v0.112.5] - 2026-05-12
+<a name="v0.112.4"></a>
+## [v0.112.4] - 2026-05-12
+### Bug Fixes
+- **ci:** add explicit permissions to GitHub Actions workflows ([#1841](https://github.com/newrelic/newrelic-cli/issues/1841))
+
+<a name="v0.112.3"></a>
+## [v0.112.3] - 2026-05-08
+<a name="v0.112.2"></a>
+## [v0.112.2] - 2026-05-06
+### Bug Fixes
+- bump Alpine base image to 3.23.4 to resolve CVEs ([#1838](https://github.com/newrelic/newrelic-cli/issues/1838))
+- **autodiscovery:** add `NEW_RELIC_SKIP_AUTODISCOVERY` env var to skip autodiscovery for targeted installs ([#1840](https://github.com/newrelic/newrelic-cli/issues/1840))
+
+<a name="v0.112.1"></a>
+## [v0.112.1] - 2026-04-27
+<a name="v0.112.0"></a>
+## [v0.112.0] - 2026-04-27
+### Bug Fixes
+- **fleetcontrol:** Add missing support for members list cursor following ([#1836](https://github.com/newrelic/newrelic-cli/issues/1836))
+
+### Features
+- **region:** add Japan (JP) region support ([#1833](https://github.com/newrelic/newrelic-cli/issues/1833))
+
+<a name="v0.111.7"></a>
+## [v0.111.7] - 2026-04-20
+<a name="v0.111.6"></a>
+## [v0.111.6] - 2026-04-15
+<a name="v0.111.5"></a>
+## [v0.111.5] - 2026-04-02
+<a name="v0.111.4"></a>
+## [v0.111.4] - 2026-04-02
+### Bug Fixes
+- **fleetcontrol:** Add --operating-system flag to configuration create flags ([#1822](https://github.com/newrelic/newrelic-cli/issues/1822))
+
+<a name="v0.111.3"></a>
+## [v0.111.3] - 2026-03-31
+### Documentation Updates
+- **fleetcontrol:** improve command system documentation ([#1819](https://github.com/newrelic/newrelic-cli/issues/1819))
+
+<a name="v0.111.2"></a>
+## [v0.111.2] - 2026-03-26
+### Bug Fixes
+- **deps:** Update google.golang.org/grpc to v1.79.3 to address CVE-2026-33186 ([#1818](https://github.com/newrelic/newrelic-cli/issues/1818))
+
 <a name="v0.111.1"></a>
 ## [v0.111.1] - 2026-03-25
 ### Bug Fixes
@@ -2748,7 +2943,66 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.111.1...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.6...HEAD
+[v0.115.6]: https://github.com/newrelic/newrelic-cli/compare/v0.115.5...v0.115.6
+[v0.115.5]: https://github.com/newrelic/newrelic-cli/compare/v0.115.4...v0.115.5
+[v0.115.4]: https://github.com/newrelic/newrelic-cli/compare/v0.115.3...v0.115.4
+[v0.115.3]: https://github.com/newrelic/newrelic-cli/compare/v0.115.2...v0.115.3
+[v0.115.2]: https://github.com/newrelic/newrelic-cli/compare/v0.115.1...v0.115.2
+[v0.115.1]: https://github.com/newrelic/newrelic-cli/compare/v0.115.0...v0.115.1
+[v0.115.0]: https://github.com/newrelic/newrelic-cli/compare/v0.114.6...v0.115.0
+[v0.114.6]: https://github.com/newrelic/newrelic-cli/compare/v0.114.5...v0.114.6
+[v0.114.5]: https://github.com/newrelic/newrelic-cli/compare/v0.114.4...v0.114.5
+[v0.114.4]: https://github.com/newrelic/newrelic-cli/compare/v0.114.3...v0.114.4
+[v0.114.3]: https://github.com/newrelic/newrelic-cli/compare/v0.114.2...v0.114.3
+[v0.114.2]: https://github.com/newrelic/newrelic-cli/compare/v0.114.1...v0.114.2
+[v0.114.1]: https://github.com/newrelic/newrelic-cli/compare/v0.114.0...v0.114.1
+[v0.114.0]: https://github.com/newrelic/newrelic-cli/compare/v0.113.19...v0.114.0
+[v0.113.19]: https://github.com/newrelic/newrelic-cli/compare/v0.113.18...v0.113.19
+[v0.113.18]: https://github.com/newrelic/newrelic-cli/compare/v0.113.17...v0.113.18
+[v0.113.17]: https://github.com/newrelic/newrelic-cli/compare/v0.113.16...v0.113.17
+[v0.113.16]: https://github.com/newrelic/newrelic-cli/compare/v0.113.15...v0.113.16
+[v0.113.15]: https://github.com/newrelic/newrelic-cli/compare/v0.113.14...v0.113.15
+[v0.113.14]: https://github.com/newrelic/newrelic-cli/compare/v0.113.13...v0.113.14
+[v0.113.13]: https://github.com/newrelic/newrelic-cli/compare/v0.113.12...v0.113.13
+[v0.113.12]: https://github.com/newrelic/newrelic-cli/compare/v0.113.11...v0.113.12
+[v0.113.11]: https://github.com/newrelic/newrelic-cli/compare/v0.113.10...v0.113.11
+[v0.113.10]: https://github.com/newrelic/newrelic-cli/compare/v0.113.9...v0.113.10
+[v0.113.9]: https://github.com/newrelic/newrelic-cli/compare/v0.113.8...v0.113.9
+[v0.113.8]: https://github.com/newrelic/newrelic-cli/compare/v0.113.7...v0.113.8
+[v0.113.7]: https://github.com/newrelic/newrelic-cli/compare/v0.113.6...v0.113.7
+[v0.113.6]: https://github.com/newrelic/newrelic-cli/compare/v0.113.5...v0.113.6
+[v0.113.5]: https://github.com/newrelic/newrelic-cli/compare/v0.113.4...v0.113.5
+[v0.113.4]: https://github.com/newrelic/newrelic-cli/compare/v0.113.3...v0.113.4
+[v0.113.3]: https://github.com/newrelic/newrelic-cli/compare/v0.113.2...v0.113.3
+[v0.113.2]: https://github.com/newrelic/newrelic-cli/compare/v0.113.1...v0.113.2
+[v0.113.1]: https://github.com/newrelic/newrelic-cli/compare/v0.113.0...v0.113.1
+[v0.113.0]: https://github.com/newrelic/newrelic-cli/compare/v0.112.18...v0.113.0
+[v0.112.18]: https://github.com/newrelic/newrelic-cli/compare/v0.112.17...v0.112.18
+[v0.112.17]: https://github.com/newrelic/newrelic-cli/compare/v0.112.16...v0.112.17
+[v0.112.16]: https://github.com/newrelic/newrelic-cli/compare/v0.112.15...v0.112.16
+[v0.112.15]: https://github.com/newrelic/newrelic-cli/compare/v0.112.14...v0.112.15
+[v0.112.14]: https://github.com/newrelic/newrelic-cli/compare/v0.112.13...v0.112.14
+[v0.112.13]: https://github.com/newrelic/newrelic-cli/compare/v0.112.12...v0.112.13
+[v0.112.12]: https://github.com/newrelic/newrelic-cli/compare/v0.112.11...v0.112.12
+[v0.112.11]: https://github.com/newrelic/newrelic-cli/compare/v0.112.10...v0.112.11
+[v0.112.10]: https://github.com/newrelic/newrelic-cli/compare/v0.112.9...v0.112.10
+[v0.112.9]: https://github.com/newrelic/newrelic-cli/compare/v0.112.8...v0.112.9
+[v0.112.8]: https://github.com/newrelic/newrelic-cli/compare/v0.112.7...v0.112.8
+[v0.112.7]: https://github.com/newrelic/newrelic-cli/compare/v0.112.6...v0.112.7
+[v0.112.6]: https://github.com/newrelic/newrelic-cli/compare/v0.112.5...v0.112.6
+[v0.112.5]: https://github.com/newrelic/newrelic-cli/compare/v0.112.4...v0.112.5
+[v0.112.4]: https://github.com/newrelic/newrelic-cli/compare/v0.112.3...v0.112.4
+[v0.112.3]: https://github.com/newrelic/newrelic-cli/compare/v0.112.2...v0.112.3
+[v0.112.2]: https://github.com/newrelic/newrelic-cli/compare/v0.112.1...v0.112.2
+[v0.112.1]: https://github.com/newrelic/newrelic-cli/compare/v0.112.0...v0.112.1
+[v0.112.0]: https://github.com/newrelic/newrelic-cli/compare/v0.111.7...v0.112.0
+[v0.111.7]: https://github.com/newrelic/newrelic-cli/compare/v0.111.6...v0.111.7
+[v0.111.6]: https://github.com/newrelic/newrelic-cli/compare/v0.111.5...v0.111.6
+[v0.111.5]: https://github.com/newrelic/newrelic-cli/compare/v0.111.4...v0.111.5
+[v0.111.4]: https://github.com/newrelic/newrelic-cli/compare/v0.111.3...v0.111.4
+[v0.111.3]: https://github.com/newrelic/newrelic-cli/compare/v0.111.2...v0.111.3
+[v0.111.2]: https://github.com/newrelic/newrelic-cli/compare/v0.111.1...v0.111.2
 [v0.111.1]: https://github.com/newrelic/newrelic-cli/compare/v0.111.0...v0.111.1
 [v0.111.0]: https://github.com/newrelic/newrelic-cli/compare/v0.110.0...v0.111.0
 [v0.110.0]: https://github.com/newrelic/newrelic-cli/compare/v0.109.0...v0.110.0

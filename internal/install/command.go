@@ -116,6 +116,10 @@ var Command = &cobra.Command{
 				return err
 			}
 
+			if len(extractedRecipeNames) > 0 && errors.Is(err, types.ErrNoRecipesInstalled) {
+				return err
+			}
+
 			if i.shouldInstallCore() {
 				fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
 				fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
@@ -164,7 +168,7 @@ func validateProfile() *types.DetailError {
 	}
 
 	if _, err := nrRegion.Parse(region); err != nil {
-		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US" or "EU".`)
+		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US", "EU", "JP", "GOV", or "FEDRAMP".`)
 	}
 
 	return nil

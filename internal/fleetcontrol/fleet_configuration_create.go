@@ -1,12 +1,28 @@
 package fleetcontrol
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/fleetcontrol"
 )
+
+// fleetConfigurationEntityHeader is the entity metadata sent to the Blob Service via the
+// Newrelic-Entity custom header when creating a fleet configuration.
+type fleetConfigurationEntityHeader struct {
+	Name              string                                   `json:"name"`
+	AgentType         string                                   `json:"agentType"`
+	ManagedEntityType string                                   `json:"managedEntityType"`
+	OperatingSystem   *fleetConfigurationOperatingSystemHeader `json:"operatingSystem,omitempty"`
+	ConfigurationType string                                   `json:"configurationType,omitempty"`
+}
+
+type fleetConfigurationOperatingSystemHeader struct {
+	Type string `json:"type"`
+}
 
 // handleFleetCreateConfiguration implements the 'create-configuration' command to create a fleet configuration.
 //
@@ -39,6 +55,26 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 		return fmt.Errorf("failed to read flags: %w", err)
 	}
 
+	// Map validated managed entity type to client library type
+	// YAML validation has already confirmed this value is in allowed_values
+	entityType, err := MapManagedEntityType(f.ManagedEntityType)
+	if err != nil {
+		return PrintError(err)
+	}
+
+	// Validate operating system requirements based on entity type
+	// For HOST configurations, operating system must be specified
+	// For KUBERNETESCLUSTER configurations, operating system should not be specified
+	if entityType == fleetcontrol.FleetControlManagedEntityTypeTypes.HOST {
+		if f.OperatingSystem == "" {
+			return PrintError(fmt.Errorf("--operating-system is required when --managed-entity-type is HOST (allowed values: LINUX, WINDOWS)"))
+		}
+	} else if entityType == fleetcontrol.FleetControlManagedEntityTypeTypes.KUBERNETESCLUSTER {
+		if f.OperatingSystem != "" {
+			return PrintError(fmt.Errorf("--operating-system should not be specified for KUBERNETESCLUSTER configurations"))
+		}
+	}
+
 	// Validate that exactly one of --configuration-file-path or --configuration-content is provided
 	hasFilePath := f.ConfigurationFilePath != ""
 	hasContent := f.ConfigurationContent != ""
@@ -61,19 +97,41 @@ func handleFleetCreateConfiguration(cmd *cobra.Command, args []string, flags *Fl
 	// This preserves newlines and formatting in the configuration file
 	configBodyBytes := []byte(configBody)
 
+	// Resolve the configurationType to send: defaults to "AgentConfig" unless --legacy-config
+	// was passed, or the agent/managed-entity type is forced legacy regardless of user input.
+	configurationType, err := ResolveFleetConfigurationType(
+		f.ConfigurationType,
+		flags.Has("configuration-type"),
+		f.LegacyConfig,
+		f.AgentType,
+		f.ManagedEntityType,
+	)
+	if err != nil {
+		return PrintError(err)
+	}
+
 	// Get organization ID (provided or fetched from API)
 	orgID := GetOrganizationID(f.OrganizationID)
 
 	// Build custom headers required by the API
-	// These headers specify the entity name, agent type, and managed entity type
+	// These headers specify the entity name, agent type, managed entity type, operating system
+	// (for HOST), and configuration type (when specified)
+	entity := fleetConfigurationEntityHeader{
+		Name:              f.Name,
+		AgentType:         f.AgentType,
+		ManagedEntityType: f.ManagedEntityType,
+		ConfigurationType: configurationType,
+	}
+	if f.OperatingSystem != "" {
+		entity.OperatingSystem = &fleetConfigurationOperatingSystemHeader{Type: f.OperatingSystem}
+	}
+	entityHeaderBytes, err := json.Marshal(entity)
+	if err != nil {
+		return PrintError(fmt.Errorf("failed to build entity header: %w", err))
+	}
 	customHeaders := map[string]interface{}{
 		"x-newrelic-client-go-custom-headers": map[string]string{
-			"Newrelic-Entity": fmt.Sprintf(
-				`{"name": "%s", "agentType": "%s", "managedEntityType": "%s"}`,
-				f.Name,
-				f.AgentType,
-				f.ManagedEntityType,
-			),
+			"Newrelic-Entity": string(entityHeaderBytes),
 		},
 	}
 

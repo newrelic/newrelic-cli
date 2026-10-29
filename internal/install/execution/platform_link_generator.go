@@ -23,10 +23,12 @@ var nrPlatformHostnames = struct {
 	Staging string
 	US      string
 	EU      string
+	JP      string
 }{
 	Staging: "staging-one.newrelic.com",
 	US:      "one.newrelic.com",
 	EU:      "one.eu.newrelic.com",
+	JP:      "one.jp.newrelic.com",
 }
 
 func NewPlatformLinkGenerator() *PlatformLinkGenerator {
@@ -264,6 +266,16 @@ func nrPlatformHostname() string {
 
 	if strings.EqualFold(r, region.EU.String()) {
 		return nrPlatformHostnames.EU
+	}
+
+	if strings.EqualFold(r, region.JP.String()) {
+		return nrPlatformHostnames.JP
+	}
+
+	// GOV/FedRAMP does not have a publicly accessible platform hostname;
+	// fall back to the US host so post-install links remain navigable.
+	if strings.EqualFold(r, region.GOV.String()) || strings.EqualFold(r, "fedramp") {
+		return nrPlatformHostnames.US
 	}
 
 	return nrPlatformHostnames.US

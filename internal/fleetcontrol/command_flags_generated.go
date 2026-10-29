@@ -1,8 +1,28 @@
-// Code generated from command_config.yaml - DO NOT EDIT manually
-// To regenerate: run `go generate` in this package
-package fleetcontrol
-
+// Package fleetcontrol
 // Typed flag accessors for each command - provides type-safe, zero-hardcoded-string access to flags
+//
+// IMPORTANT: This file is MANUALLY MAINTAINED following a strict pattern.
+// When adding a new command:
+// 1. Create the YAML config file in configs/ (e.g., fleet_foo_bar.yaml)
+// 2. Create the handler file (e.g., fleet_foo_bar.go)
+// 3. Add typed flag accessors here following the existing pattern:
+//   - Create a <CommandName>Flags struct with fields matching your YAML flags
+//   - Create a method on *FlagValues that returns the struct
+//   - Use fv.GetString(), fv.GetStringSlice(), fv.GetBool(), etc. to retrieve values
+//
+// 4. Register the handler in command_fleet.go's appropriate init function
+//
+// Example pattern:
+//
+//	type MyCommandFlags struct {
+//	    FlagName string
+//	}
+//	func (fv *FlagValues) MyCommand() MyCommandFlags {
+//	    return MyCommandFlags{
+//	        FlagName: fv.GetString("flag-name"),
+//	    }
+//	}
+package fleetcontrol
 
 // CreateFlags provides typed access to 'create' command flags
 type CreateFlags struct {
@@ -122,17 +142,19 @@ func (fv *FlagValues) RemoveMembers() RemoveMembersFlags {
 
 // ListMembersFlags provides typed access to 'list' (members) command flags
 type ListMembersFlags struct {
-	FleetID  string
-	Ring     string
-	ShowTags bool
+	FleetID    string
+	Ring       string
+	NextCursor string
+	ShowTags   bool
 }
 
 // ListMembers returns typed flags for the 'list' (members) command
 func (fv *FlagValues) ListMembers() ListMembersFlags {
 	return ListMembersFlags{
-		FleetID:  fv.GetString("fleet-id"),
-		Ring:     fv.GetString("ring"),
-		ShowTags: fv.GetBool("show-tags"),
+		FleetID:    fv.GetString("fleet-id"),
+		Ring:       fv.GetString("ring"),
+		NextCursor: fv.GetString("next-cursor"),
+		ShowTags:   fv.GetBool("show-tags"),
 	}
 }
 
@@ -141,9 +163,12 @@ type CreateConfigurationFlags struct {
 	Name                  string
 	AgentType             string
 	ManagedEntityType     string
+	OperatingSystem       string
 	OrganizationID        string
 	ConfigurationFilePath string // File content from path
 	ConfigurationContent  string // Inline content
+	ConfigurationType     string // Defaults to "AgentConfig"; see LegacyConfig
+	LegacyConfig          bool   // If true, create a legacy (null configurationType) configuration
 }
 
 // CreateConfiguration returns typed flags for the 'create' (configuration) command
@@ -156,9 +181,12 @@ func (fv *FlagValues) CreateConfiguration() (CreateConfigurationFlags, error) {
 		Name:                  fv.GetString("name"),
 		AgentType:             fv.GetString("agent-type"),
 		ManagedEntityType:     fv.GetString("managed-entity-type"),
+		OperatingSystem:       fv.GetString("operating-system"),
 		OrganizationID:        fv.GetString("organization-id"),
 		ConfigurationFilePath: configFilePath,
 		ConfigurationContent:  fv.GetString("configuration-content"),
+		ConfigurationType:     fv.GetString("configuration-type"),
+		LegacyConfig:          fv.GetBool("legacy-config"),
 	}, nil
 }
 
@@ -168,6 +196,7 @@ type GetConfigurationFlags struct {
 	OrganizationID  string
 	Mode            string
 	Version         int
+	ShowMetadata    bool
 }
 
 // GetConfiguration returns typed flags for the 'get' (configuration) command
@@ -177,6 +206,7 @@ func (fv *FlagValues) GetConfiguration() GetConfigurationFlags {
 		OrganizationID:  fv.GetString("organization-id"),
 		Mode:            fv.GetString("mode"),
 		Version:         fv.GetInt("version"),
+		ShowMetadata:    fv.GetBool("show-metadata"),
 	}
 }
 

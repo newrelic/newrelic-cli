@@ -28,7 +28,7 @@ Before using the `tf-importgen-ci` command, ensure that the following technical 
 - **Environment Variables**: The following must be set:
   - `NEW_RELIC_API_KEY` (required) - Your New Relic User API key with appropriate permissions
   - `NEW_RELIC_ACCOUNT_ID` (required) - The New Relic account ID where your Drop Rules are located
-  - `NEW_RELIC_REGION` (optional) - Set to 'US' or 'EU' based on your account region (defaults to 'US')
+  - `NEW_RELIC_REGION` (optional) - Set to 'US', 'EU', or 'JP' based on your account region (defaults to 'US')
 - **JSON Input**: Valid JSON file containing the exported Drop Rule data from Phase 1, supplied via the `--json` or `--filePath` arguments, as explained in the command arguments below
 
 

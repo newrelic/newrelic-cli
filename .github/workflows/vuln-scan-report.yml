@@ -1,0 +1,525 @@
+name: Security Vulnerability Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'  # 1:00 AM UTC daily
+
+# Default read-only floor. Per-job blocks below elevate for the auto-bump job
+# that needs to push a branch and open a PR; the `scan` job stays read-only.
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Build and scan image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DOCKER_IMAGE: newrelic/cli
+      DOCKER_IMAGE_TAG: ci
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      # All actions pinned to commit SHAs, not tags.
+      # Tags can be silently repointed to malicious commits (as happened with trivy-action in March 2026).
+      # To update an action: find the new SHA via `gh api repos/<owner>/<repo>/git/ref/tags/<tag>`
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c  # v6.4.0
+        with:
+          go-version-file: go.mod
+
+      - name: Build Linux binary
+        run: make compile-linux
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd  # v4.0.0
+
+      - name: Build Docker image
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294  # v7.0.0
+        with:
+          context: bin/linux/
+          file: ./build/package/Dockerfile
+          load: true
+          push: false
+          tags: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}
+        env:
+          DOCKER_BUILD_SUMMARY: false
+
+      - name: Create Trivy scan template
+        run: |
+          cat << 'EOF' > scan.tpl
+          {{- range . -}}
+          {{- $target := .Target -}}
+          {{- range .Vulnerabilities -}}
+          {{ $target }} | {{ .PkgName }} | {{ .VulnerabilityID }} | {{ .Severity }} | {{ .FixedVersion }} | Trivy
+          {{ end -}}
+          {{- end -}}
+          EOF
+
+      # Pinned to the SHA of tag 0.35.0 — the first clean release after the March 19, 2026
+      # supply chain compromise where all tags 0.0.1–0.34.2 contained a credential stealer.
+      # SHA verified via: gh api repos/aquasecurity/trivy-action/git/ref/tags/0.35.0
+      # See: https://github.com/aquasecurity/trivy/discussions/10425
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # 0.35.0
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}
+          format: 'template'
+          template: '@scan.tpl'
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH,MEDIUM,LOW"
+          vuln-type: 'os,library'
+          output: "trivy-report.txt"
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+
+      - name: Run Grype scan
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2  # v7.4.0
+        id: grype
+        with:
+          image: "${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_IMAGE_TAG }}"
+          fail-build: false
+          severity-cutoff: low
+          only-fixed: true
+          output-format: json
+
+      - name: Merge and deduplicate scan results
+        run: |
+          # Convert Grype JSON to the same pipe-delimited format as Trivy template output
+          jq -r '.matches[] | "\(.artifact.locations[0].path) | \(.artifact.name) | \(.vulnerability.id) | \(.vulnerability.severity | ascii_upcase) | \(.vulnerability.fix.versions[0] // "n/a") | Grype"' \
+            "${{ steps.grype.outputs.json }}" > grype-report.txt || touch grype-report.txt
+
+          cat trivy-report.txt grype-report.txt > combined-raw.txt
+
+          # Pre-sort so CVE lines come before GHSA lines, then deduplicate:
+          # - exact ID matches (CVE or GHSA) via id_key
+          # - GHSA aliases of CVEs via fix_key (pkg+sev+fix), but never CVE-vs-CVE
+          grep " CVE-" combined-raw.txt > combined-sorted.txt 2>/dev/null || true
+          grep -v " CVE-" combined-raw.txt >> combined-sorted.txt 2>/dev/null || true
+
+          awk -F'|' '
+          NF >= 4 {
+            pkg = $2; gsub(/ /, "", pkg)
+            id  = $3; gsub(/ /, "", id)
+            sev = $4; gsub(/ /, "", sev)
+            fix = $5; gsub(/ /, "", fix)
+
+            id_key  = tolower(pkg) "|" tolower(id)
+            fix_key = tolower(pkg) "|" tolower(sev) "|" tolower(fix)
+
+            if (seen_id[id_key]) next
+            if (id !~ /^CVE-/ && fix != "" && fix != "n/a" && seen_cve_fix[fix_key]) next
+
+            seen_id[id_key] = 1
+            if (id ~ /^CVE-/ && fix != "" && fix != "n/a") seen_cve_fix[fix_key] = 1
+            print
+          }' combined-sorted.txt | sort > raw-report.txt
+
+      - name: Format Slack message
+        id: format_message
+        # Run even if a previous step failed so we always get notified
+        if: always()
+        run: |
+          sed -i '/^[[:space:]]*$/d' raw-report.txt 2>/dev/null || true
+
+          if [ -s raw-report.txt ]; then
+            CRIT_T=$(grep -cw "CRITICAL" raw-report.txt || true)
+            HIGH_T=$(grep -cw "HIGH"     raw-report.txt || true)
+            MED_T=$(grep  -cw "MEDIUM"   raw-report.txt || true)
+            LOW_T=$(grep  -cw "LOW"      raw-report.txt || true)
+
+            TOTAL=$((CRIT_T + HIGH_T + MED_T + LOW_T))
+
+            # Flat sorted list: package | CVE | severity | fixed-in
+            CVE_LIST=$(awk -F'|' '
+            NF >= 4 {
+              pkg = $2; gsub(/^ +| +$/, "", pkg)
+              id  = $3; gsub(/^ +| +$/, "", id)
+              sev = $4; gsub(/^ +| +$/, "", sev)
+              fix = $5; gsub(/^ +| +$/, "", fix)
+              src = $6; gsub(/^ +| +$/, "", src)
+              printf "%-30s | %-20s | %-8s | %-6s | %s\n", pkg, id, sev, src, fix
+            }' raw-report.txt | sort -t'|' -k3,3r)
+
+            {
+              echo "SLACK_MESSAGE<<EOF"
+              echo -e "*🛡️ SECURITY SCAN REPORT* | \`$(date +'%Y-%m-%d')\`"
+              echo -e "_newrelic/cli — Trivy & Grype (only-fixed: true)_"
+              echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo -e "• *Total:* \`$TOTAL\`  🔴 Critical: \`$CRIT_T\`  🟠 High: \`$HIGH_T\`  🟡 Medium: \`$MED_T\`  🔵 Low: \`$LOW_T\`"
+              echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              echo -e "\`\`\`"
+              echo -e "$(printf '%-30s' 'PACKAGE') | $(printf '%-20s' 'CVE/ID') | SEVERITY | SOURCE | FIXED IN"
+              echo -e "$(printf '%-30s' '' | tr ' ' '-') | $(printf '%-20s' '' | tr ' ' '-') | -------- | ------ | --------"
+              echo -e "$CVE_LIST"
+              echo -e "\`\`\`"
+              echo -e "🔗 https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              echo "EOF"
+            } >> $GITHUB_OUTPUT
+          elif [ "${{ job.status }}" = "failure" ]; then
+            echo "SLACK_MESSAGE=*⚠️ SECURITY SCAN FAILED* - The scan workflow encountered an error. Check the run for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_OUTPUT
+          else
+            echo "SLACK_MESSAGE=*✅ SECURITY SCAN PASSED* - No fixable vulnerabilities detected in newrelic/cli." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Display report in workflow log
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "SECURITY SCAN REPORT | $(date +'%Y-%m-%d')"
+          echo "newrelic/cli | Trivy + Grype combined"
+          echo "=========================================="
+          echo "--- Trivy ---"
+          cat trivy-report.txt 2>/dev/null || echo "(no output)"
+          echo "--- Grype ---"
+          cat grype-report.txt 2>/dev/null || echo "(no output)"
+          echo "--- Deduplicated ---"
+          cat raw-report.txt 2>/dev/null || echo "(no output)"
+
+      - name: Send Slack notification
+        # Always notify — including on scan tool failures
+        if: always()
+        run: |
+          curl -s -X POST \
+            -H 'Content-type: application/json' \
+            --data-binary "$(jq -n --arg msg "$SLACK_MSG" '{"text": $msg}')" \
+            "$SLACK_WEBHOOK_URL"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.VIR_SLACK_WEBHOOK_URL }}
+          SLACK_MSG: ${{ steps.format_message.outputs.SLACK_MESSAGE }}
+
+      # Hand the deduplicated CVE list to the auto-bump-alpine job so it can
+      # diff against a re-scan of the proposed alpine tag and list which CVEs
+      # the bump would resolve.
+      - name: Upload current scan report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: vuln-scan-current-report
+          path: raw-report.txt
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # Detects when a newer alpine base image is available, opens (or updates) a
+  # single tracking PR with the bump, and posts to Slack. Runs after the scan
+  # regardless of vuln count — the PR is opened on tag drift, the CVE table in
+  # the body is auto-populated by diffing the scan against the proposed image.
+  #
+  # PREREQUISITE: Repo must have "Allow GitHub Actions to create and approve
+  # pull requests" enabled (Settings → Actions → General → Workflow permissions).
+  # Without it, `gh pr create` here fails with a 403.
+  auto-bump-alpine:
+    name: Open PR if a newer alpine base image is available
+    needs: scan
+    if: always()  # run even if the scan step partially failed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      DOCKERFILE_PATH: build/package/Dockerfile
+      BRANCH_NAME: auto/bump-alpine
+      DOCKER_IMAGE: newrelic/cli
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+
+      - name: Read current alpine tag from Dockerfile on main
+        id: current
+        run: |
+          set -euo pipefail
+          # Read from origin/main, not the triggering ref's working tree, since
+          # the bump itself is applied on origin/main later in this job. Reading
+          # from a stale branch would cause a "current vs main" mismatch where
+          # `decide` says bump-is-needed but `Apply Dockerfile bump`'s sed finds
+          # nothing to change (because main is already up to date).
+          git fetch --depth=1 origin main
+          tag=$(git show "origin/main:$DOCKERFILE_PATH" | grep -E '^FROM alpine:' | head -1 | sed -E 's|^FROM alpine:([^ ]+).*|\1|')
+          if [ -z "$tag" ]; then
+            echo "::error::Could not find 'FROM alpine:<tag>' in $DOCKERFILE_PATH on origin/main"
+            exit 1
+          fi
+          echo "Current alpine tag (from origin/main): $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Find latest alpine 3.x.y tag on Docker Hub
+        id: latest
+        run: |
+          # Pull a generous page of tags so we don't miss the latest after pruning.
+          # Filter to strict 3.X.Y form to skip rolling tags like '3', '3.24', 'latest', 'edge'.
+          latest=$(curl -fsSL 'https://hub.docker.com/v2/repositories/library/alpine/tags/?page_size=100&ordering=last_updated' \
+            | jq -r '.results[].name' \
+            | grep -E '^3\.[0-9]+\.[0-9]+$' \
+            | sort -V \
+            | tail -1)
+          if [ -z "$latest" ]; then
+            echo "::error::Could not resolve a latest alpine 3.x.y tag from Docker Hub"
+            exit 1
+          fi
+          echo "Latest alpine tag: $latest"
+          echo "tag=$latest" >> "$GITHUB_OUTPUT"
+
+      - name: Decide whether a bump is needed
+        id: decide
+        env:
+          CURRENT: ${{ steps.current.outputs.tag }}
+          LATEST: ${{ steps.latest.outputs.tag }}
+        run: |
+          # sort -V puts the higher version last; if "current" already sorts at the
+          # top among {current, latest}, the latest is older or equal -> skip.
+          highest=$(printf '%s\n%s\n' "$CURRENT" "$LATEST" | sort -V | tail -1)
+          if [ "$highest" = "$CURRENT" ]; then
+            echo "Already on the latest alpine ($CURRENT). Nothing to do."
+            echo "bump=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Bump needed: $CURRENT -> $LATEST"
+            echo "bump=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Apply Dockerfile bump
+        if: steps.decide.outputs.bump == 'true'
+        env:
+          LATEST: ${{ steps.latest.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Always base the bump on origin/main, regardless of which ref triggered
+          # the workflow, so the resulting PR contains only the alpine change and
+          # not any unrelated commits from the triggering ref. (Scheduled runs
+          # already use main; this also makes manual `gh workflow run --ref <branch>`
+          # dispatches produce clean test PRs.)
+          git fetch --depth=1 origin main
+          git checkout -B "$BRANCH_NAME" origin/main
+
+          # Replace the version on every FROM alpine: line. `[^[:space:]]+`
+          # binds the match to the tag word so trailing `AS <stage>` (multi-stage
+          # builds) is preserved and we don't depend on the CURRENT regex matching
+          # exactly what's in the file.
+          sed -i -E "s|^FROM alpine:[^[:space:]]+|FROM alpine:${LATEST}|" "$DOCKERFILE_PATH"
+          if git diff --quiet -- "$DOCKERFILE_PATH"; then
+            echo "::error::sed produced no change to $DOCKERFILE_PATH — aborting before commit"
+            exit 1
+          fi
+          git --no-pager diff -- "$DOCKERFILE_PATH"
+
+      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c  # v6.4.0
+        if: steps.decide.outputs.bump == 'true'
+        with:
+          go-version-file: go.mod
+
+      - name: Build Linux binary
+        if: steps.decide.outputs.bump == 'true'
+        run: make compile-linux
+
+      - name: Set up Docker Buildx
+        if: steps.decide.outputs.bump == 'true'
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd  # v4.0.0
+
+      - name: Build proposed Docker image (with new alpine tag)
+        if: steps.decide.outputs.bump == 'true'
+        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294  # v7.0.0
+        with:
+          context: bin/linux/
+          file: ./build/package/Dockerfile
+          load: true
+          push: false
+          tags: ${{ env.DOCKER_IMAGE }}:proposed
+        env:
+          DOCKER_BUILD_SUMMARY: false
+
+      - name: Create Trivy scan template (matches scan job format)
+        if: steps.decide.outputs.bump == 'true'
+        run: |
+          cat << 'EOF' > scan.tpl
+          {{- range . -}}
+          {{- $target := .Target -}}
+          {{- range .Vulnerabilities -}}
+          {{ $target }} | {{ .PkgName }} | {{ .VulnerabilityID }} | {{ .Severity }} | {{ .FixedVersion }} | Trivy
+          {{ end -}}
+          {{- end -}}
+          EOF
+
+      - name: Scan proposed image
+        if: steps.decide.outputs.bump == 'true'
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # 0.35.0
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE }}:proposed
+          format: 'template'
+          template: '@scan.tpl'
+          ignore-unfixed: true
+          severity: "CRITICAL,HIGH,MEDIUM,LOW"
+          vuln-type: 'os,library'
+          output: "proposed-trivy.txt"
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+
+      - name: Download current scan report
+        if: steps.decide.outputs.bump == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
+        with:
+          name: vuln-scan-current-report
+          path: ./
+        continue-on-error: true
+
+      - name: Compute fixed-CVE delta
+        id: delta
+        if: steps.decide.outputs.bump == 'true'
+        run: |
+          set -euo pipefail
+          touch raw-report.txt proposed-trivy.txt
+
+          # Both files are pipe-delimited: target | pkg | id | sev | fix | source.
+          # Filter the *current* report to Trivy-only rows so we are comparing
+          # apples to apples — the proposed image is only re-scanned by Trivy
+          # in this job, so any Grype-only finding from the current scan would
+          # be falsely reported as "fixed" if we included it. Under-reporting
+          # Grype-only fixes is the safe trade-off; the next daily run picks
+          # them up once the bump is merged.
+          extract_trivy_ids() {
+            awk -F'|' '
+              NF>=6 {
+                src=$6; gsub(/^ +| +$/, "", src)
+                if (src != "Trivy") next
+                id=$3; gsub(/^ +| +$/, "", id)
+                if (id != "") print id
+              }' "$1" | sort -u
+          }
+          extract_all_ids() {
+            awk -F'|' 'NF>=3 { gsub(/^ +| +$/, "", $3); if ($3 != "") print $3 }' "$1" | sort -u
+          }
+
+          extract_trivy_ids raw-report.txt   > current-ids.txt
+          extract_all_ids   proposed-trivy.txt > proposed-ids.txt
+          comm -23 current-ids.txt proposed-ids.txt > fixed-ids.txt
+
+          fixed_count=$(wc -l < fixed-ids.txt | tr -d ' ')
+          echo "Fixed by bump (Trivy-detected): $fixed_count CVE(s)"
+          echo "count=$fixed_count" >> "$GITHUB_OUTPUT"
+
+          # Build a markdown table of the fixed CVEs by joining against raw-report.txt
+          # for severity/package context. The IDs we just produced are guaranteed
+          # to be Trivy-source rows, so the join is unambiguous.
+          {
+            echo "| CVE / GHSA | Severity | Package |"
+            echo "|---|---|---|"
+            while IFS= read -r id; do
+              [ -z "$id" ] && continue
+              row=$(awk -F'|' -v id="$id" '
+                NF>=4 {
+                  cur=$3; gsub(/^ +| +$/, "", cur)
+                  if (cur == id) {
+                    pkg=$2; gsub(/^ +| +$/, "", pkg)
+                    sev=$4; gsub(/^ +| +$/, "", sev)
+                    printf "| %s | %s | %s |\n", id, sev, pkg
+                    exit
+                  }
+                }' raw-report.txt)
+              if [ -n "$row" ]; then
+                echo "$row"
+              else
+                echo "| $id | - | - |"
+              fi
+            done < fixed-ids.txt
+          } > fixed-table.md
+
+      - name: Configure git author
+        if: steps.decide.outputs.bump == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push branch
+        if: steps.decide.outputs.bump == 'true'
+        env:
+          CURRENT: ${{ steps.current.outputs.tag }}
+          LATEST: ${{ steps.latest.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # Branch already created in 'Apply Dockerfile bump' step (from origin/main),
+          # so this just commits the staged sed and pushes.
+          git add "$DOCKERFILE_PATH"
+          git commit -F - <<MSG
+          fix(deps): bump alpine ${CURRENT} -> ${LATEST}
+
+          Auto-generated by .github/workflows/vuln-scan-report.yml after detecting
+          a newer alpine base image on Docker Hub. The PR description lists the
+          CVEs this bump resolves (computed by re-scanning the proposed image and
+          diffing against the latest daily scan report).
+          MSG
+          # --force (not --force-with-lease): this is a bot-only branch, we
+          # always start from main + apply changes, and we want subsequent runs
+          # to overwrite the previous bot commit even on the very first push
+          # when there is no remote-tracking ref to lease against.
+          git push --force origin "$BRANCH_NAME"
+
+      - name: Open or update PR
+        if: steps.decide.outputs.bump == 'true'
+        id: open_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT: ${{ steps.current.outputs.tag }}
+          LATEST: ${{ steps.latest.outputs.tag }}
+          FIXED_COUNT: ${{ steps.delta.outputs.count }}
+        run: |
+          set -euo pipefail
+          title="fix(deps): bump alpine ${CURRENT} -> ${LATEST}"
+
+          count="${FIXED_COUNT:-0}"
+          # Build the PR body from the table we generated.
+          {
+            echo "## Summary"
+            echo
+            echo "Bumps the prod docker image base from \`alpine:${CURRENT}\` to \`alpine:${LATEST}\` (auto-detected on Docker Hub)."
+            echo
+            echo "## CVEs resolved by this bump"
+            echo
+            if [ "$count" -gt 0 ]; then
+              echo "Computed by re-scanning the proposed image with Trivy and diffing against the latest daily scan report. **$count CVE(s) addressed (Trivy-detected).**"
+              echo
+              cat fixed-table.md
+            else
+              echo "_No Trivy-detected CVEs are resolved by this bump_ — opened anyway as routine alpine tag hygiene so we don't drift between point releases (and so future scanner findings have an up-to-date baseline)."
+            fi
+            echo
+            echo "## Notes"
+            echo
+            echo "- Branch \`${BRANCH_NAME}\` is reused / force-pushed on each detection, so subsequent alpine releases will update this same PR rather than open a new one."
+            echo "- This PR was opened by \`GITHUB_TOKEN\`, which means CI will not auto-trigger. Push an empty commit, or close-and-reopen, to kick off checks."
+            echo
+            echo "🤖 Auto-generated by [.github/workflows/vuln-scan-report.yml](https://github.com/${GITHUB_REPOSITORY}/blob/main/.github/workflows/vuln-scan-report.yml)"
+          } > pr-body.md
+
+          existing=$(gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --title "$title" --body-file pr-body.md
+            url=$(gh pr view "$existing" --json url --jq '.url')
+            echo "Updated existing PR: $url"
+          else
+            url=$(gh pr create --base main --head "$BRANCH_NAME" --title "$title" --body-file pr-body.md)
+            echo "Opened new PR: $url"
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack about the auto-bump PR
+        if: steps.decide.outputs.bump == 'true' && steps.open_pr.outputs.url != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.VIR_SLACK_WEBHOOK_URL }}
+          CURRENT: ${{ steps.current.outputs.tag }}
+          LATEST: ${{ steps.latest.outputs.tag }}
+          PR_URL: ${{ steps.open_pr.outputs.url }}
+          FIXED_COUNT: ${{ steps.delta.outputs.count }}
+        run: |
+          count="${FIXED_COUNT:-0}"
+          if [ "$count" -gt 0 ]; then
+            extra="resolves *${count}* flagged CVE(s)"
+          else
+            extra="no scanner-flagged CVEs resolved (routine bump)"
+          fi
+          msg=$(printf '*🛠️ Alpine bump PR opened* — \`alpine:%s\` → \`alpine:%s\` (%s)\n%s' "$CURRENT" "$LATEST" "$extra" "$PR_URL")
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data-binary "$(jq -n --arg msg "$msg" '{"text": $msg}')" \
+            "$SLACK_WEBHOOK_URL"

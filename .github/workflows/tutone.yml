@@ -2,6 +2,9 @@ name: Tutone Generate
 
 on: [ workflow_dispatch ]
 
+permissions:
+  contents: read
+
 jobs:
   createPullRequest:
     runs-on: ubuntu-latest

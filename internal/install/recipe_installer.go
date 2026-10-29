@@ -503,9 +503,7 @@ func (i *RecipeInstall) installAdditionalBundle(bundler RecipeBundler, bundleIns
 			}
 		}
 
-		return &types.UncaughtError{
-			Err: fmt.Errorf("no recipes were installed"),
-		}
+		return types.ErrNoRecipesInstalled
 	}
 	if len(i.RecipeNames) > len(additionalBundle.BundleRecipes) {
 		return &types.UncaughtError{
