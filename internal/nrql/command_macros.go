@@ -51,8 +51,8 @@ substituted wherever $macroName appears in a query.
 
 		result, err := client.NRClient.Nrqlmacros.EntityManagementCreateNRQLMacro(
 			nrqlmacros.EntityManagementNRQLMacroEntityCreateInput{
-				Name:       macroName,
-				Expression: macroExpression,
+				Name:          macroName,
+				Expression:    macroExpression,
 				NumParameters: macroNumParams,
 				Scope: nrqlmacros.EntityManagementScopedReferenceInput{
 					Type: nrqlmacros.EntityManagementEntityScopeTypes.ORGANIZATION,
