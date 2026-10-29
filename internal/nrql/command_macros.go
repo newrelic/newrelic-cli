@@ -64,7 +64,7 @@ substituted wherever $macroName appears in a query.
 			log.Fatal(err)
 		}
 
-		err = output.Print(result)
+		err = output.Print(result.Entity)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -151,18 +151,22 @@ reference this macro. Ensure the updated expression is valid before saving.
 	Example: "newrelic nrql macros update --id <macroID> --expression \"environment = 'staging'\"",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
+		if !cmd.Flags().Changed("expression") && !cmd.Flags().Changed("num-parameters") {
+			log.Fatal("at least one of --expression or --num-parameters must be specified")
+		}
+
 		updateInput := nrqlmacros.EntityManagementNRQLMacroEntityUpdateInput{}
 
 		if cmd.Flags().Changed("expression") {
+			if macroExpression == "" {
+				log.Fatal("--expression must not be empty")
+			}
 			updateInput.Expression = macroExpression
 		}
 
 		if cmd.Flags().Changed("num-parameters") {
-			updateInput.NumParameters = macroNumParams
-		}
-
-		if !cmd.Flags().Changed("expression") && !cmd.Flags().Changed("num-parameters") {
-			log.Fatal("at least one of --expression or --num-parameters must be specified")
+			n := macroNumParams
+			updateInput.NumParameters = &n
 		}
 
 		result, err := client.NRClient.Nrqlmacros.EntityManagementUpdateNRQLMacro(macroID, updateInput)
@@ -170,7 +174,7 @@ reference this macro. Ensure the updated expression is valid before saving.
 			log.Fatal(err)
 		}
 
-		err = output.Print(result)
+		err = output.Print(result.Entity)
 		if err != nil {
 			log.Fatal(err)
 		}
