@@ -44,7 +44,7 @@ func NewRecipeLogForwarder() *RecipeLogForwarder {
 }
 
 func (lf *RecipeLogForwarder) PromptUserToSendLogs(reader io.Reader) bool {
-	fmt.Printf("\n%s Something went wrong during the installation — let’s look at the docs and try again. Would you like to send us the logs to help us understand what happened? [Y/n] ", color.YellowString("\u0021"))
+	fmt.Printf("\n%s We couldn’t complete the installation. Check out our troubleshooting docs and try again. Want to help us make our troubleshooting help better? If so, send us the install logs so we can understand. [Y/n] ", color.YellowString("\u0021"))
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		input := strings.TrimSuffix(scanner.Text(), "\n")

@@ -1,0 +1,18 @@
+name: get
+short: Get details of a fleet by ID
+long: |
+  Retrieve detailed information about a specific fleet entity using its ID.
+
+  This command fetches all details associated with a fleet including its configuration,
+  managed entity type, scope, tags, and metadata.
+example: |
+  # Get fleet details by ID
+  newrelic fleetcontrol fleet get --fleet-id "NDgyOTY3M3xOR0VQfEZMRUVUfDAxOWJmOGU5"
+
+  # Get fleet details with specific format
+  newrelic fleetcontrol fleet get --fleet-id "NDgyOTY3M3xOR0VQfEZMRUVUfDAxOWJmOGU5" --format JSON
+flags:
+  - name: fleet-id
+    type: string
+    required: true
+    description: the fleet entity ID

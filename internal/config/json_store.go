@@ -430,7 +430,8 @@ func (p *JSONStore) SetWithScope(scope string, key FieldKey, value interface{}) 
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Set(cfg, escapeWildcards(p.getPath(scope, key)), value)
+	// getPath() already escapes the scope segment; don't escape again here.
+	cfg, err := sjson.Set(cfg, p.getPath(scope, key), value)
 	if err != nil {
 		return err
 	}
@@ -442,9 +443,9 @@ func (p *JSONStore) SetWithScope(scope string, key FieldKey, value interface{}) 
 // the fields that appear underneath it. The resulting config will be persisted to
 // disk if PersistToDisk has been used.
 func (p *JSONStore) RemoveScope(scope string) error {
-	path := scope
+	path := escapePathSegment(scope)
 	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, scope)
+		path = fmt.Sprintf("%s.%s", escapePathSegment(p.scope), path)
 	}
 
 	return p.deletePath(path)
@@ -500,11 +501,11 @@ func (p *JSONStore) GetFieldDefinition(key FieldKey) *FieldDefinition {
 func (p *JSONStore) getPath(scope string, key FieldKey) string {
 	path := string(key)
 	if scope != "" {
-		path = fmt.Sprintf("%s.%s", scope, key)
+		path = fmt.Sprintf("%s.%s", escapePathSegment(scope), key)
 	}
 
 	if p.scope != "" {
-		path = fmt.Sprintf("%s.%s", p.scope, path)
+		path = fmt.Sprintf("%s.%s", escapePathSegment(p.scope), path)
 	}
 
 	return path
@@ -514,7 +515,8 @@ func (p *JSONStore) deletePath(path string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	cfg, err := sjson.Delete(p.getConfig(), escapeWildcards(path))
+	// path is pre-escaped by getPath()/RemoveScope(); don't escape again here.
+	cfg, err := sjson.Delete(p.getConfig(), path)
 	if err != nil {
 		return err
 	}
@@ -572,10 +574,17 @@ func (p *JSONStore) setConfigFromFile() {
 	p.cfg = data
 }
 
-// Escape wildcard characters, as required by sjson
-func escapeWildcards(key string) string {
-	re := regexp.MustCompile(`([*?])`)
-	return re.ReplaceAllString(key, "\\$1")
+// gjsonSpecialChars are the characters gjson/sjson treat as special within
+// a path segment (`. | # @ * ? \`). Escaping them lets a profile name like
+// "sanyam.saxena" be addressed as one literal key, not a nested path.
+var gjsonSpecialChars = regexp.MustCompile(`([\\.*?#@|])`)
+
+// escapePathSegment escapes special characters within a single path segment
+// (e.g. a profile name) before it's joined with others via ".". Apply only
+// to individual segments - escaping an already-joined path would also
+// escape the separators between them.
+func escapePathSegment(segment string) string {
+	return gjsonSpecialChars.ReplaceAllString(segment, `\$1`)
 }
 
 func (p *JSONStore) getConfigValueKeys() []FieldKey {

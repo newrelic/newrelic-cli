@@ -1,0 +1,22 @@
+name: delete
+short: Delete one or more fleets
+long: |
+  Delete one or more existing fleets. This operation cannot be undone.
+
+  Use --id to delete a single fleet or --ids to delete multiple fleets.
+  These flags are mutually exclusive.
+example: |
+  # Delete a single fleet
+  newrelic fleetcontrol fleet delete --fleet-id abc123
+
+  # Delete multiple fleets
+  newrelic fleetcontrol fleet delete --fleet-ids abc123,def456,ghi789
+flags:
+  - name: fleet-id
+    type: string
+    required: false
+    description: the fleet ID to delete (use for single fleet deletion)
+  - name: fleet-ids
+    type: stringSlice
+    required: false
+    description: comma-separated list of fleet IDs to delete (use for bulk deletion)

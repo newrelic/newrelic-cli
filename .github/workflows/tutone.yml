@@ -2,10 +2,13 @@ name: Tutone Generate
 
 on: [ workflow_dispatch ]
 
+permissions:
+  contents: read
+
 jobs:
   createPullRequest:
     runs-on: ubuntu-latest
-    container: golang:1.22-bullseye
+    container: golang:1.26-bullseye
     steps:
       - uses: actions/checkout@v3
 

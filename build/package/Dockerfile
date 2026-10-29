@@ -1,4 +1,4 @@
-FROM alpine:3.20.3
+FROM alpine:3.24
 
 # Add the binary
 COPY newrelic /bin/newrelic

@@ -18,7 +18,7 @@ newrelic entity deployment create [flags]
 ### Examples
 
 ```
-newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'jenkins-bot'
+newrelic entity deployment create --guid <GUID> --version <0.0.1> --changelog 'what changed' --commit '12345e' --deepLink <link back to deployer> --deploymentType 'BASIC' --description 'about' --timestamp <1668446197100> --user 'ci-cd-bot'
 ```
 
 ### Options

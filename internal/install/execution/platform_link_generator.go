@@ -23,10 +23,12 @@ var nrPlatformHostnames = struct {
 	Staging string
 	US      string
 	EU      string
+	JP      string
 }{
 	Staging: "staging-one.newrelic.com",
 	US:      "one.newrelic.com",
 	EU:      "one.eu.newrelic.com",
+	JP:      "one.jp.newrelic.com",
 }
 
 func NewPlatformLinkGenerator() *PlatformLinkGenerator {
@@ -49,6 +51,14 @@ func (g *PlatformLinkGenerator) GenerateLoggingLink(entityGUID string) string {
 
 func (g *PlatformLinkGenerator) GenerateFleetLink(entityGUID string) string {
 	return g.generateFleetLink(entityGUID)
+}
+
+func (g *PlatformLinkGenerator) GenerateGuidedInstallDocLink() string {
+	return "https://docs.newrelic.com/docs/infrastructure/infrastructure-agent/new-relic-guided-install-overview/"
+}
+
+func (g *PlatformLinkGenerator) GenerateFleetConfigurationDocLink() string {
+	return "https://docs.newrelic.com/docs/new-relic-control/fleet-control/setup/"
 }
 
 // GenerateRedirectURL creates a URL for the user to navigate to after running
@@ -77,6 +87,12 @@ type referrerParamValue struct {
 type loggingLauncher struct {
 	Query    string `json:"query"`
 	Referrer string `json:"referrer,omitempty"`
+}
+
+type fleetLauncher struct {
+	NerdletID string `json:"nerdletId"`
+	Referrer  string `json:"referrer"`
+	FleetGUID string `json:"fleetGuid"`
 }
 
 // The CLI URL referrer param is a JSON string containing information
@@ -164,9 +180,33 @@ func (g *PlatformLinkGenerator) generateLoggingLauncherParams(entityGUID string)
 	return string(stringifiedParam)
 }
 
-func (g *PlatformLinkGenerator) generateFleetLink(_ string) string {
-	longURL := fmt.Sprintf("https://%s/fleet)",
+func (g *PlatformLinkGenerator) generateFleetLauncherParams(fleetGUID string) string {
+	p := fleetLauncher{
+		NerdletID: "fleet.detail",
+		Referrer:  "newrelic-cli",
+		FleetGUID: strings.TrimSpace(fleetGUID),
+	}
+
+	stringifiedParam, err := json.Marshal(p)
+	if err != nil {
+		log.Debugf("error marshaling fleet launcher param: %s", err)
+		return ""
+	}
+
+	return string(stringifiedParam)
+}
+
+func (g *PlatformLinkGenerator) generateFleetLink(fleetGUID string) string {
+	// If no fleet GUID is available, return the base fleets URL
+	trimmedGUID := strings.TrimSpace(fleetGUID)
+	if trimmedGUID == "" {
+		return fmt.Sprintf("https://%s/fleet", nrPlatformHostname())
+	}
+
+	longURL := fmt.Sprintf("https://%s/launcher/new-relic-control.launcher?platform[accountId]=%d&pane=%s",
 		nrPlatformHostname(),
+		configAPI.GetActiveProfileAccountID(),
+		utils.Base64Encode(g.generateFleetLauncherParams(trimmedGUID)),
 	)
 
 	shortURL, err := g.generateShortNewRelicURL(longURL)
@@ -226,6 +266,16 @@ func nrPlatformHostname() string {
 
 	if strings.EqualFold(r, region.EU.String()) {
 		return nrPlatformHostnames.EU
+	}
+
+	if strings.EqualFold(r, region.JP.String()) {
+		return nrPlatformHostnames.JP
+	}
+
+	// GOV/FedRAMP does not have a publicly accessible platform hostname;
+	// fall back to the US host so post-install links remain navigable.
+	if strings.EqualFold(r, region.GOV.String()) || strings.EqualFold(r, "fedramp") {
+		return nrPlatformHostnames.US
 	}
 
 	return nrPlatformHostnames.US

@@ -6,13 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   # Compile on all supported OSes
   compile:
     strategy:
       matrix:
         go-version:
-          - 1.22.x
+          - 1.26.x
         platform:
           - ubuntu-latest
           - macos-latest
@@ -25,7 +28,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22.x
+          go-version: 1.26.x
 
       - name: Compile
         run: make compile-only

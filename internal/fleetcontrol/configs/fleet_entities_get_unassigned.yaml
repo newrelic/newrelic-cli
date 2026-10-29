@@ -1,0 +1,37 @@
+name: get-unassigned
+short: Get all unassigned entities available for fleet management
+long: |
+  Retrieve all entities that are NOT currently managed by any fleet but are available for fleet management.
+
+  Unassigned entities are identified by having:
+  - tags.nr.fleet IS NULL
+  - tags.nr.supervisor IS NOT NULL
+
+  This command helps you identify which entities can be added to a fleet.
+example: |
+  # Get all unassigned entities
+  newrelic fleetcontrol entities get-unassigned
+
+  # Limit results to 50 entities
+  newrelic fleetcontrol entities get-unassigned --limit 50
+
+  # Filter by entity type
+  newrelic fleetcontrol entities get-unassigned --entity-type HOST
+
+  # Include tags in output
+  newrelic fleetcontrol entities get-unassigned --include-tags
+flags:
+  - name: entity-type
+    type: string
+    required: false
+    description: filter by entity type (e.g., HOST, KUBERNETESCLUSTER)
+  - name: limit
+    type: int
+    required: false
+    default: 100
+    description: maximum number of entities to return
+  - name: include-tags
+    type: bool
+    required: false
+    default: false
+    description: include entity tags in output

@@ -17,6 +17,7 @@ var (
 	ErrPostEvent              = errors.New("there was a failure posting data to New Relic. Please try again later or contact New Relic support. For real-time platform status info visit https://status.newrelic.com/")
 	ErrLicenseKey             = errors.New("the configured license key is invalid for the configured account. Please set a valid license key with the `newrelic profile` command. For more details visit https://docs.newrelic.com/docs/apis/intro-apis/new-relic-api-keys/#ingest-license-key")
 	ErrAgentControl           = errors.New("agent control is installed, preventing the installation of this recipe")
+	ErrNoRecipesInstalled     = errors.New("no recipes were installed")
 )
 
 type EventType string

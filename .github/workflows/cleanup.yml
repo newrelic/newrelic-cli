@@ -5,6 +5,9 @@ on:
     workflows: [End to end testing, Release]
     types: [completed]
 
+permissions:
+  contents: read
+
 env:
   workflow_run_id: ${{ github.event.workflow_run.id }}
   config_name: gitusdkrnrcli${{ github.event.workflow_run.id }}.json

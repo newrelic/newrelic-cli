@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/newrelic/newrelic-cli/internal/output"
 	"io/ioutil"
 	"strings"
+
+	"github.com/newrelic/newrelic-cli/internal/output"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

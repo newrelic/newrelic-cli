@@ -116,16 +116,22 @@ var Command = &cobra.Command{
 				return err
 			}
 
-			fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
-			fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
+			if len(extractedRecipeNames) > 0 && errors.Is(err, types.ErrNoRecipesInstalled) {
+				return err
+			}
 
-			// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
-			// we need to output something to user to sinc we probably haven't displayed anything yet.
-			fmt.Println(fallbackErrorMsg)
-			fmt.Println(fallbackHelpMsg)
-			fmt.Print("\n\n")
+			if i.shouldInstallCore() {
+				fallbackErrorMsg := fmt.Sprintf("\nWe encountered an issue during the installation: %s.", err)
+				fallbackHelpMsg := "If this problem persists, visit the documentation and support page for additional help here at https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/get-started/requirements-infrastructure-agent/"
 
-			log.Debug(fallbackErrorMsg)
+				// In the extremely rare case we run into an uncaught error (e.g. no recipes found),
+				// we need to output something to user to sinc we probably haven't displayed anything yet.
+				fmt.Println(fallbackErrorMsg)
+				fmt.Println(fallbackHelpMsg)
+				fmt.Print("\n\n")
+
+				log.Debug(fallbackErrorMsg)
+			}
 		}
 
 		return nil
@@ -162,7 +168,7 @@ func validateProfile() *types.DetailError {
 	}
 
 	if _, err := nrRegion.Parse(region); err != nil {
-		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US" or "EU".`)
+		return types.NewDetailError(types.EventTypes.InvalidRegion, `Invalid region provided. Valid regions are "US", "EU", "JP", "GOV", or "FEDRAMP".`)
 	}
 
 	return nil

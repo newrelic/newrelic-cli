@@ -90,15 +90,6 @@ jobs:
           target: "NewRelicCLIInstaller.msi"
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Fetch Github Release Asset - install.ps1
-        uses: dsaltares/fetch-gh-release-asset@0.06
-        with:
-          repo: "newrelic/newrelic-cli"
-          version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
-          file: "install.ps1"
-          target: "./scripts/install.ps1"
-          token: ${{ secrets.RELEASE_TOKEN }}
-
       - name: Upload Windows install script to AWS S3
         id: upload-install-script-windows
         run: |

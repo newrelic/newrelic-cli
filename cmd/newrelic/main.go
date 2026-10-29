@@ -1,4 +1,4 @@
-//go:generate goversioninfo -o=resource_windows.syso
+//go:generate goversioninfo -64 -o=resource_windows.syso
 package main
 
 import (
@@ -9,9 +9,12 @@ import (
 	flag "github.com/spf13/pflag"
 
 	// Commands
+	"github.com/newrelic/newrelic-cli/internal/accessmanagement"
 	"github.com/newrelic/newrelic-cli/internal/agent"
+	"github.com/newrelic/newrelic-cli/internal/aimonitoring"
 	"github.com/newrelic/newrelic-cli/internal/apiaccess"
 	"github.com/newrelic/newrelic-cli/internal/apm"
+	"github.com/newrelic/newrelic-cli/internal/changeTracking"
 	"github.com/newrelic/newrelic-cli/internal/cli"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
@@ -21,13 +24,16 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/edge"
 	"github.com/newrelic/newrelic-cli/internal/entities"
 	"github.com/newrelic/newrelic-cli/internal/events"
+	"github.com/newrelic/newrelic-cli/internal/fleetcontrol"
 	"github.com/newrelic/newrelic-cli/internal/install"
+	"github.com/newrelic/newrelic-cli/internal/migrate"
 	"github.com/newrelic/newrelic-cli/internal/nerdgraph"
 	"github.com/newrelic/newrelic-cli/internal/nerdstorage"
 	"github.com/newrelic/newrelic-cli/internal/nrql"
 	"github.com/newrelic/newrelic-cli/internal/profile"
 	"github.com/newrelic/newrelic-cli/internal/reporting"
 	"github.com/newrelic/newrelic-cli/internal/synthetics"
+	"github.com/newrelic/newrelic-cli/internal/usermanagement"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/workload"
 )
@@ -38,11 +44,14 @@ var (
 
 func init() {
 	// Bind imported sub-commands
+	Command.AddCommand(accessmanagement.Command)
 	Command.AddCommand(agent.Command)
+	Command.AddCommand(aimonitoring.Command)
 	Command.AddCommand(apiaccess.Command)
 	Command.AddCommand(synthetics.Command)
 	Command.AddCommand(apm.Command)
 	Command.AddCommand(configCmd.Command)
+	Command.AddCommand(changeTracking.Command)
 	Command.AddCommand(decode.Command)
 	Command.AddCommand(diagnose.Command)
 	Command.AddCommand(edge.Command)
@@ -51,9 +60,12 @@ func init() {
 	Command.AddCommand(install.Command)
 	Command.AddCommand(nerdgraph.Command)
 	Command.AddCommand(nerdstorage.Command)
+	Command.AddCommand(fleetcontrol.Command)
 	Command.AddCommand(nrql.Command)
+	Command.AddCommand(migrate.Command)
 	Command.AddCommand(profile.Command)
 	Command.AddCommand(reporting.Command)
+	Command.AddCommand(usermanagement.Command)
 	Command.AddCommand(utils.Command)
 	Command.AddCommand(workload.Command)
 
