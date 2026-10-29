@@ -111,34 +111,20 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 }
 
 func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
-	nameKeys, err := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
+	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
 			AccountIDs:  []int{accountID},
 			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
 		},
 		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
-	})
-	if err != nil {
-		return "", err
-	}
-	for _, k := range nameKeys {
-		if k.Name == PreferredIngestKeyName {
-			return k.Key, nil
-		}
 	}
 
-	allKeys, err := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
-		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs:  []int{accountID},
-			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
-		},
-		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
-	})
+	keys, err := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
 	if err != nil {
 		return "", err
 	}
 
-	key := getPreferredLicenseKey(allKeys)
+	key := getPreferredLicenseKey(keys)
 	if key != "" {
 		return key, nil
 	}
