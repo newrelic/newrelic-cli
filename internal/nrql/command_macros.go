@@ -153,12 +153,16 @@ reference this macro. Ensure the updated expression is valid before saving.
 	Run: func(cmd *cobra.Command, args []string) {
 		updateInput := nrqlmacros.EntityManagementNRQLMacroEntityUpdateInput{}
 
-		if macroExpression != "" {
+		if cmd.Flags().Changed("expression") {
 			updateInput.Expression = macroExpression
 		}
 
 		if cmd.Flags().Changed("num-parameters") {
 			updateInput.NumParameters = macroNumParams
+		}
+
+		if !cmd.Flags().Changed("expression") && !cmd.Flags().Changed("num-parameters") {
+			log.Fatal("at least one of --expression or --num-parameters must be specified")
 		}
 
 		result, err := client.NRClient.Nrqlmacros.EntityManagementUpdateNRQLMacro(macroID, updateInput)
