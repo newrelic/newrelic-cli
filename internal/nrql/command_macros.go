@@ -10,35 +10,42 @@ import (
 )
 
 var (
-	macroID         string
-	macroName       string
-	macroExpression string
-	macroOrgID      string
-	macroNumParams  int
+	macroID             string
+	macroName           string
+	macroExpression     string
+	macroOrgID          string
+	macroParameterCount int
 )
 
 var cmdMacros = &cobra.Command{
 	Use:   "macros",
-	Short: "Commands for managing NRQL Macros",
-	Long: `Commands for managing NRQL Macros
+	Short: "Manage NRQL Macros",
+	Long: `Manage NRQL Macros in your New Relic organization.
 
-NRQL Macros are reusable NRQL expression fragments that can be referenced
-as $macroName in queries. They are scoped to an organization.
-`,
+A NRQL Macro is a named, reusable expression fragment. Wherever you write
+$macroName in a NRQL query, New Relic substitutes the macro's expression
+before running the query. Macros are available across every account in your
+organization.`,
 	Example: "newrelic nrql macros --help",
 }
 
 var cmdMacrosCreate = &cobra.Command{
 	Use:   "create",
 	Short: "Create a NRQL Macro",
-	Long: `Create a NRQL Macro
+	Long: `Create a NRQL Macro in your organization.
 
-Creates a new NRQL Macro scoped to your organization. The macro name is
-immutable after creation. The expression is a NRQL fragment that will be
-substituted wherever $macroName appears in a query.
-`,
-	Example: "newrelic nrql macros create --name filterProd --expression \"environment = 'production'\"",
-	PreRun:  client.RequireClient,
+The macro name is permanent — it cannot be changed after creation. Choose
+a name that reflects the macro's purpose, because that name becomes part of
+every query that references it ($macroName).
+
+When the expression uses positional parameters ($1, $2, ...), you must also
+pass --parameter-count with the exact number of distinct tokens.`,
+	Example: `  # Simple filter macro
+  newrelic nrql macros create --name filterProd --expression "environment = 'production'"
+
+  # Parameterized macro
+  newrelic nrql macros create --name filterStatusRegion --expression "status = $1 AND region = $2" --parameter-count 2`,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		orgID := macroOrgID
 		if orgID == "" {
@@ -53,7 +60,7 @@ substituted wherever $macroName appears in a query.
 			nrqlmacros.EntityManagementNRQLMacroEntityCreateInput{
 				Name:          macroName,
 				Expression:    macroExpression,
-				NumParameters: macroNumParams,
+				NumParameters: macroParameterCount,
 				Scope: nrqlmacros.EntityManagementScopedReferenceInput{
 					Type: nrqlmacros.EntityManagementEntityScopeTypes.ORGANIZATION,
 					ID:   orgID,
@@ -73,12 +80,11 @@ substituted wherever $macroName appears in a query.
 
 var cmdMacrosGet = &cobra.Command{
 	Use:   "get",
-	Short: "Get a NRQL Macro by ID",
-	Long: `Get a NRQL Macro by ID
+	Short: "Fetch a NRQL Macro by ID",
+	Long: `Fetch a single NRQL Macro by its entity GUID.
 
-Retrieves a single NRQL Macro by its entity ID.
-`,
-	Example: "newrelic nrql macros get --id <macroID>",
+The ID is the entity GUID returned when you create a macro or list all macros.`,
+	Example: "  newrelic nrql macros get --id <macroID>",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		entityInterface, err := client.NRClient.Nrqlmacros.GetEntity(macroID)
@@ -87,7 +93,7 @@ Retrieves a single NRQL Macro by its entity ID.
 		}
 
 		if entityInterface == nil {
-			log.Fatalf("no macro found with ID: %s", macroID)
+			log.Fatalf("no macro found with ID %s", macroID)
 		}
 
 		macroEntity, ok := (*entityInterface).(*nrqlmacros.EntityManagementNRQLMacroEntity)
@@ -104,12 +110,11 @@ Retrieves a single NRQL Macro by its entity ID.
 
 var cmdMacrosList = &cobra.Command{
 	Use:   "list",
-	Short: "List NRQL Macros",
-	Long: `List NRQL Macros
+	Short: "List all NRQL Macros in your organization",
+	Long: `List all NRQL Macros that belong to your organization.
 
-Lists all NRQL Macros in your organization.
-`,
-	Example: "newrelic nrql macros list",
+The list is scoped to the organization associated with your API key.`,
+	Example: "  newrelic nrql macros list",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		result, err := client.NRClient.Nrqlmacros.GetEntitySearch("", "type = 'NRQL_MACRO'")
@@ -124,8 +129,7 @@ Lists all NRQL Macros in your organization.
 
 		macros := make([]*nrqlmacros.EntityManagementNRQLMacroEntity, 0, len(result.Entities))
 		for _, e := range result.Entities {
-			m, ok := e.(*nrqlmacros.EntityManagementNRQLMacroEntity)
-			if ok {
+			if m, ok := e.(*nrqlmacros.EntityManagementNRQLMacroEntity); ok {
 				macros = append(macros, m)
 			}
 		}
@@ -140,19 +144,23 @@ Lists all NRQL Macros in your organization.
 var cmdMacrosUpdate = &cobra.Command{
 	Use:   "update",
 	Short: "Update a NRQL Macro",
-	Long: `Update a NRQL Macro
+	Long: `Update the expression or parameter count of an existing NRQL Macro.
 
-Updates the expression or parameter count of an existing NRQL Macro.
-Note: the macro name and scope cannot be changed after creation.
+The macro name cannot be changed after creation. Provide at least one of
+--expression or --parameter-count.
 
-WARNING: Expression changes propagate immediately to all queries that
-reference this macro. Ensure the updated expression is valid before saving.
-`,
-	Example: "newrelic nrql macros update --id <macroID> --expression \"environment = 'staging'\"",
-	PreRun:  client.RequireClient,
+WARNING: Expression changes take effect immediately. Every query, dashboard
+widget, and alert condition that references this macro will use the new
+expression on its next execution.`,
+	Example: `  # Update the expression
+  newrelic nrql macros update --id <macroID> --expression "environment = 'staging'"
+
+  # Clear positional parameters
+  newrelic nrql macros update --id <macroID> --expression "environment = 'prod'" --parameter-count 0`,
+	PreRun: client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
-		if !cmd.Flags().Changed("expression") && !cmd.Flags().Changed("num-parameters") {
-			log.Fatal("at least one of --expression or --num-parameters must be specified")
+		if !cmd.Flags().Changed("expression") && !cmd.Flags().Changed("parameter-count") {
+			log.Fatal("at least one of --expression or --parameter-count must be specified")
 		}
 
 		updateInput := nrqlmacros.EntityManagementNRQLMacroEntityUpdateInput{}
@@ -164,8 +172,8 @@ reference this macro. Ensure the updated expression is valid before saving.
 			updateInput.Expression = macroExpression
 		}
 
-		if cmd.Flags().Changed("num-parameters") {
-			n := macroNumParams
+		if cmd.Flags().Changed("parameter-count") {
+			n := macroParameterCount
 			updateInput.NumParameters = &n
 		}
 
@@ -184,12 +192,11 @@ reference this macro. Ensure the updated expression is valid before saving.
 var cmdMacrosDelete = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a NRQL Macro",
-	Long: `Delete a NRQL Macro
+	Long: `Permanently delete a NRQL Macro.
 
-Permanently deletes a NRQL Macro by its entity ID. Any queries that
-reference this macro via $macroName will stop expanding the macro after deletion.
-`,
-	Example: "newrelic nrql macros delete --id <macroID>",
+After deletion, any query that references this macro with $macroName will
+no longer expand it. This action cannot be undone.`,
+	Example: "  newrelic nrql macros delete --id <macroID>",
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		_, err := client.NRClient.Nrqlmacros.EntityManagementDelete(macroID)
@@ -197,36 +204,36 @@ reference this macro via $macroName will stop expanding the macro after deletion
 			log.Fatal(err)
 		}
 
-		log.Infof("NRQL Macro with ID %s deleted successfully.", macroID)
+		log.Infof("NRQL Macro %s deleted.", macroID)
 	},
 }
 
 func init() {
 	Command.AddCommand(cmdMacros)
 
-	// create flags
-	cmdMacrosCreate.Flags().StringVarP(&macroName, "name", "n", "", "Name of the NRQL Macro (required, immutable)")
-	cmdMacrosCreate.Flags().StringVarP(&macroExpression, "expression", "e", "", "NRQL expression fragment for the macro (required)")
-	cmdMacrosCreate.Flags().StringVar(&macroOrgID, "org-id", "", "Organization ID (auto-resolved from API if not provided)")
-	cmdMacrosCreate.Flags().IntVar(&macroNumParams, "num-parameters", 0, "Number of positional parameters ($1, $2, ...) used in the expression")
+	// create
+	cmdMacrosCreate.Flags().StringVarP(&macroName, "name", "n", "", "Unique name for the macro — used as $name in NRQL queries (required, immutable)")
+	cmdMacrosCreate.Flags().StringVarP(&macroExpression, "expression", "e", "", "NRQL expression fragment the macro expands to (required)")
+	cmdMacrosCreate.Flags().StringVar(&macroOrgID, "org-id", "", "Organization GUID (resolved automatically from your API key if omitted)")
+	cmdMacrosCreate.Flags().IntVar(&macroParameterCount, "parameter-count", 0, "Number of positional parameters ($1, $2, ...) in the expression; required when the expression contains $N tokens")
 	_ = cmdMacrosCreate.MarkFlagRequired("name")
 	_ = cmdMacrosCreate.MarkFlagRequired("expression")
 
-	// get flags
-	cmdMacrosGet.Flags().StringVar(&macroID, "id", "", "ID of the NRQL Macro to retrieve (required)")
+	// get
+	cmdMacrosGet.Flags().StringVar(&macroID, "id", "", "Entity GUID of the macro to fetch (required)")
 	_ = cmdMacrosGet.MarkFlagRequired("id")
 
-	// list flags
-	cmdMacrosList.Flags().StringVar(&macroOrgID, "org-id", "", "Organization ID (informational; macros are auto-filtered by your authenticated org)")
+	// list — no flags; org is always inferred from the API key
+	// (no --org-id: the entity search always returns macros for your authenticated organization)
 
-	// update flags
-	cmdMacrosUpdate.Flags().StringVar(&macroID, "id", "", "ID of the NRQL Macro to update (required)")
-	cmdMacrosUpdate.Flags().StringVarP(&macroExpression, "expression", "e", "", "Updated NRQL expression fragment")
-	cmdMacrosUpdate.Flags().IntVar(&macroNumParams, "num-parameters", 0, "Updated number of positional parameters")
+	// update
+	cmdMacrosUpdate.Flags().StringVar(&macroID, "id", "", "Entity GUID of the macro to update (required)")
+	cmdMacrosUpdate.Flags().StringVarP(&macroExpression, "expression", "e", "", "New NRQL expression fragment")
+	cmdMacrosUpdate.Flags().IntVar(&macroParameterCount, "parameter-count", 0, "New positional parameter count; pass 0 to remove all parameters")
 	_ = cmdMacrosUpdate.MarkFlagRequired("id")
 
-	// delete flags
-	cmdMacrosDelete.Flags().StringVar(&macroID, "id", "", "ID of the NRQL Macro to delete (required)")
+	// delete
+	cmdMacrosDelete.Flags().StringVar(&macroID, "id", "", "Entity GUID of the macro to delete (required)")
 	_ = cmdMacrosDelete.MarkFlagRequired("id")
 
 	cmdMacros.AddCommand(cmdMacrosCreate)
