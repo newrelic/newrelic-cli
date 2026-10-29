@@ -1,3 +1,8 @@
+<a name="v0.115.7"></a>
+## [v0.115.7] - 2026-10-29
+### Bug Fixes
+- **security:** bump golang.org/x/net to v0.62.0 — addresses CVE-2026-39821 and related x/net vulnerabilities ([#1917](https://github.com/newrelic/newrelic-cli/issues/1917))
+
 <a name="v0.115.6"></a>
 ## [v0.115.6] - 2026-10-29
 <a name="v0.115.5"></a>
@@ -2943,7 +2948,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.6...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.7...HEAD
+[v0.115.7]: https://github.com/newrelic/newrelic-cli/compare/v0.115.6...v0.115.7
 [v0.115.6]: https://github.com/newrelic/newrelic-cli/compare/v0.115.5...v0.115.6
 [v0.115.5]: https://github.com/newrelic/newrelic-cli/compare/v0.115.4...v0.115.5
 [v0.115.4]: https://github.com/newrelic/newrelic-cli/compare/v0.115.3...v0.115.4
