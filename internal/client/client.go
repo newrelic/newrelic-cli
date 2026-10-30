@@ -110,10 +110,24 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 	return key, nil
 }
 
+// FetchAllLicenseKeys returns every LICENSE ingest key for the given account,
+// following pagination cursors until all pages are collected.
+func FetchAllLicenseKeys(ctx context.Context, client *newrelic.NewRelic, accountID int) ([]apiaccess.APIKey, error) {
+	return client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
+		Scope: apiaccess.APIAccessKeySearchScope{
+			AccountIDs:  []int{accountID},
+			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
+		},
+		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
+	})
+}
+
 func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
-	// Fast path (B): search by name directly — avoids fetching all keys on accounts
-	// with many ingest keys.
-	log.Debugf("searching for preferred license key %q by name", PreferredIngestKeyName)
+	log.Debugf("NEW_RELIC_LICENSE_KEY not set; searching for a license key to use for account %d", accountID)
+
+	// Try to find the preferred key by name directly — avoids fetching all keys on
+	// accounts with many ingest keys.
+	log.Debugf("querying for preferred key %q by name", PreferredIngestKeyName)
 	nameKeys, nameErr := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
 			AccountIDs:  []int{accountID},
@@ -123,33 +137,27 @@ func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accou
 		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
 	})
 	if nameErr != nil {
-		log.Debugf("name-based license key search failed (%s); falling back to full key search", nameErr)
+		log.Debugf("name-based search failed (%s); falling back to scanning all LICENSE keys", nameErr)
 	} else {
 		for _, k := range nameKeys {
 			if k.Name == PreferredIngestKeyName {
-				log.Debugf("found preferred license key by name search")
+				log.Debugf("found preferred key %q; using it for the install", PreferredIngestKeyName)
 				return k.Key, nil
 			}
 		}
-		log.Debugf("preferred license key %q not found by name; falling back to full key search", PreferredIngestKeyName)
+		log.Debugf("preferred key %q not present; falling back to scanning all LICENSE keys", PreferredIngestKeyName)
 	}
 
-	// Full search fallback (A): fetch all LICENSE keys and select the best available one.
-	log.Debugf("fetching all LICENSE ingest keys to select a license key")
-	allKeys, err := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
-		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs:  []int{accountID},
-			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
-		},
-		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
-	})
+	// Preferred key not found or name search failed — fetch all LICENSE keys and
+	// select the best available one.
+	allKeys, err := FetchAllLicenseKeys(ctx, client, accountID)
 	if err != nil {
 		return "", err
 	}
 
 	key := getPreferredLicenseKey(allKeys)
 	if key != "" {
-		log.Debugf("selected license key from full search (%d keys returned)", len(allKeys))
+		log.Debugf("selected license key from full scan (%d LICENSE keys returned)", len(allKeys))
 		return key, nil
 	}
 

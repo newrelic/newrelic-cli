@@ -3,19 +3,20 @@ package diagnose
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/shirou/gopsutil/v3/host"
 
+	nrclient "github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
-	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
@@ -128,24 +129,18 @@ func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
 	accountID := configAPI.GetActiveProfileAccountID()
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 
-	log.Debugf("validating configured license key against LICENSE ingest keys for account %d", accountID)
-
-	params := apiaccess.APIAccessKeySearchQuery{
-		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs:  []int{accountID},
-			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
-		},
-		Types: []apiaccess.APIAccessKeyType{
-			apiaccess.APIAccessKeyTypeTypes.INGEST,
-		},
+	if os.Getenv("NEW_RELIC_LICENSE_KEY") != "" {
+		log.Debugf("license key is set (NEW_RELIC_LICENSE_KEY present); validating it against LICENSE keys for account %d", accountID)
+	} else {
+		log.Debugf("validating configured license key against LICENSE keys for account %d", accountID)
 	}
 
-	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
+	licenseKeys, err := nrclient.FetchAllLicenseKeys(ctx, c.client, accountID)
 	if err != nil {
 		return types.NewDetailError(types.EventTypes.UnableToConnect, fmt.Sprintf(types.ErrConnectionStringFormat, err))
 	}
 
-	log.Debugf("received %d LICENSE keys; checking if configured key is present", len(licenseKeys))
+	log.Debugf("received %d LICENSE keys; scanning for configured key", len(licenseKeys))
 
 	for _, k := range licenseKeys {
 		if k.Key == licenseKey {
