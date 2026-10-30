@@ -127,9 +127,13 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
 	accountID := configAPI.GetActiveProfileAccountID()
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
+
+	log.Debugf("validating configured license key against LICENSE ingest keys for account %d", accountID)
+
 	params := apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs: []int{accountID},
+			AccountIDs:  []int{accountID},
+			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
 		},
 		Types: []apiaccess.APIAccessKeyType{
 			apiaccess.APIAccessKeyTypeTypes.INGEST,
@@ -141,11 +145,15 @@ func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
 		return types.NewDetailError(types.EventTypes.UnableToConnect, fmt.Sprintf(types.ErrConnectionStringFormat, err))
 	}
 
+	log.Debugf("received %d LICENSE keys; checking if configured key is present", len(licenseKeys))
+
 	for _, k := range licenseKeys {
 		if k.Key == licenseKey {
+			log.Debugf("configured license key validated successfully")
 			return nil
 		}
 	}
 
+	log.Debugf("configured license key not found among %d LICENSE keys for account %d", len(licenseKeys), accountID)
 	return types.NewDetailError(types.EventTypes.InvalidIngestKey, types.ErrLicenseKey.Error())
 }
