@@ -82,6 +82,8 @@ func RequireClient(cmd *cobra.Command, args []string) {
 // If the initial request to fetch a license key fails, we retry the request
 // for a maximum time duration per config.DefaultMaxTimeoutSeconds.
 func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) (string, error) {
+	licenseKeyDiscovered = false // reset per-call so multiple invocations behave correctly
+
 	var client *newrelic.NewRelic
 	var err error
 	if profileName == "" {
