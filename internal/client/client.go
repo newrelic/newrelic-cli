@@ -24,16 +24,16 @@ var (
 	NRClient    *newrelic.NewRelic
 	serviceName = "newrelic-cli"
 
-	// licenseKeyDiscovered is set when FetchLicenseKey finds a key from the account
-	// during an install run. Downstream validation can read this via LicenseKeyDiscovered()
+	// licenseKeyAutoFetched is set when FetchLicenseKey finds a key from the account
+	// during an install run. Downstream validation can read this via LicenseKeyAutoFetched()
 	// to skip the redundant key-list search.
-	licenseKeyDiscovered bool
+	licenseKeyAutoFetched bool
 )
 
-// LicenseKeyDiscovered reports whether the license key in use was discovered
+// LicenseKeyAutoFetched reports whether the license key in use was discovered
 // automatically by the CLI this run, rather than provided by the user.
-func LicenseKeyDiscovered() bool {
-	return licenseKeyDiscovered
+func LicenseKeyAutoFetched() bool {
+	return licenseKeyAutoFetched
 }
 
 const (
@@ -82,7 +82,7 @@ func RequireClient(cmd *cobra.Command, args []string) {
 // If the initial request to fetch a license key fails, we retry the request
 // for a maximum time duration per config.DefaultMaxTimeoutSeconds.
 func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) (string, error) {
-	licenseKeyDiscovered = false // reset per-call so multiple invocations behave correctly
+	licenseKeyAutoFetched = false // reset per-call so multiple invocations behave correctly
 
 	var client *newrelic.NewRelic
 	var err error
@@ -120,7 +120,7 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 		return "", retryCtx.MostRecentError()
 	}
 
-	licenseKeyDiscovered = true
+	licenseKeyAutoFetched = true
 	return key, nil
 }
 
