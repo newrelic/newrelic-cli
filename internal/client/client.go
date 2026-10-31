@@ -84,7 +84,7 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 
 	var key string
 	retryFunc := func() error {
-		key, err = execLicenseKeyRequest(utils.SignalCtx, client, accountID)
+		key, err = searchForPreferredLicenseKey(utils.SignalCtx, client, accountID)
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func FetchAllLicenseKeys(ctx context.Context, client *newrelic.NewRelic, account
 	})
 }
 
-func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
+func searchForPreferredLicenseKey(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
 	log.Debugf("NEW_RELIC_LICENSE_KEY not set; searching for a license key to use for account %d", accountID)
 
 	// Try to find the preferred key by name directly — avoids fetching all keys on

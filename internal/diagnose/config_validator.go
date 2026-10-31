@@ -112,7 +112,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 
 func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	validateKeyFunc := func() error {
-		return c.validateLicenseKey(ctx)
+		return c.searchForConfiguredLicenseKey(ctx)
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, validateKeyFunc)
@@ -125,7 +125,7 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	return nil
 }
 
-func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
+func (c *ConfigValidator) searchForConfiguredLicenseKey(ctx context.Context) error {
 	accountID := configAPI.GetActiveProfileAccountID()
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 
