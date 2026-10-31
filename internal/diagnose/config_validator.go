@@ -126,6 +126,11 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) searchForConfiguredLicenseKey(ctx context.Context) error {
+	if nrclient.LicenseKeyDiscovered() {
+		log.Debugf("license key was discovered from account this run; skipping redundant key list check")
+		return nil
+	}
+
 	accountID := configAPI.GetActiveProfileAccountID()
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 

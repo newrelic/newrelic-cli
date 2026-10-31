@@ -23,7 +23,18 @@ import (
 var (
 	NRClient    *newrelic.NewRelic
 	serviceName = "newrelic-cli"
+
+	// licenseKeyDiscovered is set when FetchLicenseKey finds a key from the account
+	// during an install run. Downstream validation can read this via LicenseKeyDiscovered()
+	// to skip the redundant key-list search.
+	licenseKeyDiscovered bool
 )
+
+// LicenseKeyDiscovered reports whether the license key in use was discovered
+// automatically by the CLI this run, rather than provided by the user.
+func LicenseKeyDiscovered() bool {
+	return licenseKeyDiscovered
+}
 
 const (
 	PreferredIngestKeyName = "Installer Ingest License Key"
@@ -107,6 +118,7 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 		return "", retryCtx.MostRecentError()
 	}
 
+	licenseKeyDiscovered = true
 	return key, nil
 }
 
