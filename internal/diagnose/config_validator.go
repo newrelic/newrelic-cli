@@ -25,10 +25,11 @@ const (
 )
 
 type ConfigValidator struct {
-	client *newrelic.NewRelic
+	client            *newrelic.NewRelic
 	*validation.PollingNRQLValidator
 	PostRetryDelaySec int
 	PostMaxRetries    int
+	keyWasAutoFetched func() bool
 }
 
 type ValidationTracerEvent struct {
@@ -47,6 +48,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 		PollingNRQLValidator: v,
 		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
 		PostMaxRetries:       config.DefaultMaxTimeoutSeconds / config.DefaultPostRetryDelaySec,
+		keyWasAutoFetched:    nrclient.LicenseKeyAutoFetched,
 	}
 }
 
@@ -125,7 +127,7 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 }
 
 func (c *ConfigValidator) searchForConfiguredLicenseKey(ctx context.Context) error {
-	if nrclient.LicenseKeyAutoFetched() {
+	if c.keyWasAutoFetched() {
 		log.Debugf("license key was auto-fetched from account this run; skipping redundant key list check")
 		return nil
 	}
