@@ -3,7 +3,6 @@ package diagnose
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
@@ -134,11 +133,7 @@ func (c *ConfigValidator) searchForConfiguredLicenseKey(ctx context.Context) err
 	accountID := configAPI.GetActiveProfileAccountID()
 	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
 
-	if os.Getenv("NEW_RELIC_LICENSE_KEY") != "" {
-		log.Debugf("license key is set (NEW_RELIC_LICENSE_KEY present); validating it against LICENSE keys for account %d", accountID)
-	} else {
-		log.Debugf("validating configured license key against LICENSE keys for account %d", accountID)
-	}
+	log.Debugf("verifying user-provided license key against LICENSE keys for account %d", accountID)
 
 	licenseKeys, err := nrclient.FetchAllLicenseKeys(ctx, c.client, accountID)
 	if err != nil {
