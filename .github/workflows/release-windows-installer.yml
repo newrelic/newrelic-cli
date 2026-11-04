@@ -1,6 +1,8 @@
 name: Release - Windows Installer
 
-permissions: write-all
+permissions:
+  contents: write  # upload release asset
+  id-token: write  # inherit OIDC token from calling workflow if needed
 
 on:
   workflow_call:
@@ -18,7 +20,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           fetch-depth: 0
 
@@ -37,10 +39,10 @@ jobs:
           Write-Host "Latest tag - after: $latestTag"
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.3
+        uses: microsoft/setup-msbuild@ede762b26a2de8d110bb5a3db4d7e0e080c0e917  # v1.3
 
       - name: Download Windows binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
         with:
           name: windows-binary
           path: .\dist\newrelic_windows_amd64_v1
@@ -90,7 +92,7 @@ jobs:
 
       - name: Upload Windows installer
         id: upload-windows-installer
-        uses: actions/upload-release-asset@v1
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         with:

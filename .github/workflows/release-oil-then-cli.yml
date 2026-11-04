@@ -193,16 +193,16 @@ jobs:
         run: |
           echo "🚀 All S3 checks passed. Triggering CLI release workflow..."
           
-          gh workflow run release.yml \
+          gh workflow run release-prepare.yml \
             --repo ${{ github.repository }} \
             --ref main
-          
+
           echo "⏳ Waiting 10 seconds for the run to appear in the API..."
           sleep 10
-          
+
           RUN_URL=$(gh run list \
             --repo ${{ github.repository }} \
-            --workflow release.yml \
+            --workflow release-prepare.yml \
             --branch main \
             --limit 1 \
             --json url \
