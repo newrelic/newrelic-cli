@@ -1,0 +1,248 @@
+name: "🚀 Release: Step 2 — Build, Sign & Publish"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKFLOW A2 — Release build, signing and publish.
+#
+# Triggered automatically when a protected v* tag is pushed — which only
+# happens as the final step of Workflow A1 (release-prepare.yml).
+#
+# Security controls in place:
+#   • Triggered exclusively by protected v* tags. The tag ruleset ensures
+#     only authorised actors (or A1 via RELEASE_TOKEN) can push v* tags.
+#   • AWS credentials are short-lived OIDC tokens, never long-lived secrets.
+#     The IAM role is scoped to this exact workflow: only runs from
+#     refs/tags/v* in this repository can obtain the role.
+#   • permissions block follows least-privilege: only what each job needs.
+#   • No human can trigger this workflow directly.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Least-privilege default — jobs override only what they need.
+permissions:
+  contents: read
+
+jobs:
+  # ── Job 1: Build, sign and publish release artifacts ──────────────────────
+  release:
+    name: "📦 Build, sign & publish"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # create GitHub release + upload assets
+      id-token: write      # obtain OIDC token to assume AWS role
+
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+    steps:
+      - name: "⚙️ Set up Go"
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version: 1.26.x
+
+      - name: "📦 Add GOBIN to PATH"
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: "🔍 Checkout tag"
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: "🔒 Configure AWS credentials via OIDC"
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_V2 }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          # OIDC token presented to AWS contains:
+          #   sub: repo:newrelic/newrelic-cli:ref:refs/tags/v*
+          # The virtuoso IAM role trust policy validates this condition,
+          # so credentials are only issued when running from a v* tag.
+
+      - name: "✅ Pre-flight: verify S3 access before any uploads"
+        run: |
+          echo "🔍 Verifying OIDC credentials can reach S3..."
+          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ > /dev/null 2>&1; then
+            echo "❌ Cannot list S3 bucket. OIDC credential exchange may have failed,"
+            echo "   or the IAM role lacks s3:ListBucket. Aborting before any uploads."
+            exit 1
+          fi
+          echo "✅ S3 access confirmed — OIDC credentials valid."
+
+      - name: "🔑 Install Snapcraft"
+        uses: samuelmeuli/action-snapcraft@d33c176a9b784876d966f80fb1b461808edc0641  # v2
+
+      - name: "🔑 Import PGP signing key"
+        shell: bash
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+        run: echo "$PGP_PRIVATE_KEY" | gpg --batch --import
+
+      - name: "🐳 Log in to Docker Hub"
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: "⚙️ Configure git identity"
+        run: |
+          git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
+          git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
+          git config core.fileMode false
+
+      - name: "🛠️ Build snapshot"
+        run: |
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+          make snapshot
+
+      - name: "🚀 Publish release (goreleaser)"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+        run: |
+          chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
+          ./scripts/win_metadata.sh
+          go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@v1.7.0
+          go generate cmd/newrelic/main.go
+          make release-publish
+          ./scripts/win_metadata_files_remove.sh
+
+      - name: "✍️ Sign Windows binary"
+        shell: bash
+        env:
+          PFX_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+        run: |
+          echo "$PFX_CONTENT" | base64 -d > cert.pfx
+          sudo apt-get install osslsigncode -y
+          sudo mv dist/newrelic_windows_amd64_v1/newrelic.exe \
+                  dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
+          osslsigncode sign -pkcs12 cert.pfx -pass "$PFX_PASSWORD" -h sha256 \
+            -t http://timestamp.digicert.com \
+            -in  dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe \
+            -out dist/newrelic_windows_amd64_v1/newrelic.exe
+          rm -f cert.pfx dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
+
+      - name: "📤 Upload Windows binary as artifact"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: windows-binary
+          path: dist/newrelic_windows_amd64_v1/newrelic.exe
+
+      - name: "🗜️ Re-package Windows zip with signed binary"
+        run: |
+          VERSION=$(ls dist/*Windows_x86_64.zip | cut -d_ -f2)
+          rm -f dist/newrelic-cli_${VERSION}_Windows_x86_64.zip
+          zip -q dist/newrelic-cli_${VERSION}_Windows_x86_64.zip \
+                 dist/newrelic_windows_amd64_v1/newrelic.exe
+
+      - name: "☁️ Upload install.sh to S3"
+        run: |
+          aws s3 cp ./scripts/install.sh \
+            s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh
+          echo "✅ install.sh uploaded."
+
+      - name: "🔢 Get latest tag"
+        id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435  # v1
+
+      - name: "🔗 Get release upload URL"
+        id: get-upload-url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+
+      - name: "🔐 Generate and sign checksums"
+        id: checksums
+        shell: bash
+        run: |
+          CHECKSUM_FILE=$(find dist -name "newrelic-cli_*_checksums.txt")
+          if [ -z "$CHECKSUM_FILE" ]; then
+            echo "❌ Checksum file not found in dist/"
+            exit 1
+          fi
+
+          cp "$CHECKSUM_FILE" dist/checksums_sha256.txt
+
+          gpg --batch --yes -u "4F9A9B5B96EC30B9" \
+              --output dist/checksums_sha256.txt.sig \
+              --detach-sign dist/checksums_sha256.txt
+
+          echo "✅ Checksums signed."
+
+      - name: "📤 Upload checksums to GitHub release"
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-upload-url.outputs.upload_url }}
+          asset_path: ./dist/checksums_sha256.txt
+          asset_name: checksums_sha256.txt
+          asset_content_type: text/plain
+
+      - name: "📤 Upload checksum signature to GitHub release"
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-upload-url.outputs.upload_url }}
+          asset_path: ./dist/checksums_sha256.txt.sig
+          asset_name: checksums_sha256.txt.sig
+          asset_content_type: text/plain
+
+      - name: "📝 Write currentVersion.txt"
+        run: echo "${{ steps.get-latest-tag.outputs.tag }}" > currentVersion.txt
+
+      - name: "☁️ Upload currentVersion.txt to S3"
+        run: |
+          aws s3 cp currentVersion.txt \
+            s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt \
+            --cache-control no-cache
+          echo "✅ currentVersion.txt updated."
+
+      - name: "☁️ Upload all release artifacts to S3"
+        run: |
+          aws s3 cp --recursive \
+            --exclude "*" \
+            --include "newrelic-cli_*.txt" \
+            --include "newrelic-cli_*.sig" \
+            --include "newrelic-cli_*.zip" \
+            --include "newrelic-cli_*.gz" \
+            --include "newrelic-cli_*.rpm" \
+            --include "newrelic-cli_*.deb" \
+            --include "newrelic_*" \
+            ./dist \
+            s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/
+          echo "✅ Release artifacts uploaded to S3."
+
+  # ── Job 2: Windows installer (depends on the signed binary from job 1) ────
+  release-windows-installer:
+    name: "🪟 Build & sign Windows installer"
+    needs: release
+    uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@${{ github.ref_name }}
+    secrets:
+      PFX_BASE64_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+      PFX_CERT_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+  # ── Job 3: Publish to Chocolatey / Homebrew / other package managers ──────
+  publish-packages:
+    name: "📦 Publish to package managers"
+    needs: release-windows-installer
+    uses: newrelic/newrelic-cli/.github/workflows/release-publish-windows.yml@${{ github.ref_name }}
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_V2 }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}

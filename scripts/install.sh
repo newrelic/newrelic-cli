@@ -87,10 +87,38 @@ function error {
 
 trap error ERR
 
-RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+RELEASE_BASE="https://download.newrelic.com/install/newrelic-cli/v${VERSION}"
+RELEASE_URL="${RELEASE_BASE}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+CHECKSUM_URL="${RELEASE_BASE}/checksums_sha256.txt"
 
-# Download & unpack the release tarball.
-curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
+# Download tarball and checksum file, then verify before unpacking.
+curl -sL --retry 3 -o newrelic-cli.tar.gz "${RELEASE_URL}"
+curl -sL --retry 3 -o checksums_sha256.txt "${CHECKSUM_URL}"
+
+# sha256sum is standard on Linux; shasum ships on macOS.
+if command -v sha256sum > /dev/null 2>&1; then
+    SHACHECK="sha256sum"
+elif command -v shasum > /dev/null 2>&1; then
+    SHACHECK="shasum -a 256"
+else
+    echo "Neither sha256sum nor shasum found — cannot verify download integrity."
+    exit 1
+fi
+
+EXPECTED=$(grep "newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz" checksums_sha256.txt | awk '{print $1}')
+if [ -z "$EXPECTED" ]; then
+    echo "Checksum entry not found for newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+    exit 1
+fi
+ACTUAL=$(${SHACHECK} newrelic-cli.tar.gz | awk '{print $1}')
+if [ "$ACTUAL" != "$EXPECTED" ]; then
+    echo "SHA256 mismatch — aborting install."
+    echo "  expected: $EXPECTED"
+    echo "  actual:   $ACTUAL"
+    exit 1
+fi
+
+tar -xzf newrelic-cli.tar.gz
 
 if [ "$UID" != "0" ]; then
     echo "Installing to $DESTDIR using sudo"

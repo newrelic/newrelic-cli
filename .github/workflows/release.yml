@@ -1,4 +1,17 @@
-name: Release
+name: "⚠️ Release (DEPRECATED — use release-prepare.yml)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DEPRECATED: This workflow uses long-lived IAM credentials and violates Req 3
+# of the supply-chain security policy ("Securing what we publish to customers").
+#
+# Use the new split workflows instead:
+#   • release-prepare.yml  — A1: version bump, CHANGELOG, tag creation
+#   • release-publish.yml  — A2: OIDC-gated build, sign & publish (auto-triggered)
+#
+# This file is kept temporarily to allow emergency manual releases while the
+# new pipeline is being validated. It will be deleted once A1/A2 are confirmed
+# working end-to-end.
+# ─────────────────────────────────────────────────────────────────────────────
 
 permissions: write-all
 

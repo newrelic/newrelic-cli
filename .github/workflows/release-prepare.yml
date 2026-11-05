@@ -1,0 +1,159 @@
+name: "🏷️ Release: Step 1 — Prepare & Tag"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKFLOW A1 — Release preparation and tag creation.
+#
+# This workflow is the entry point for every release. It carries zero AWS
+# credentials — all S3 publishing happens in A2 (release-publish.yml) via
+# short-lived OIDC tokens issued only when that workflow runs from a protected
+# v* tag.
+#
+# Security controls in place:
+#   • Requires manual trigger (workflow_dispatch) — no automated scheduling.
+#   • Gated by the "production" GitHub Environment:
+#       - Required reviewers from the nr-developer-toolkit team.
+#       - Self-review is blocked (trigger person ≠ approver).
+#       - Deploys from protected branches only (main).
+#   • Protected v* tag ruleset prevents anyone outside the bypass list from
+#     pushing a tag directly. Individual bypass members are a documented
+#     break-glass exception (Req 10); every bypass is audited by GitHub.
+#   • Pre-flight checks run before any irreversible git changes, so a
+#     failing environment (bad PGP key, bad Docker credentials, etc.) surfaces
+#     cleanly without leaving orphaned CHANGELOG commits or tags.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-and-tag:
+    name: "Prepare release and push tag"
+    runs-on: ubuntu-latest
+
+    # The "production" environment enforces required reviewers and prevents
+    # self-review. No actor allowlist is needed here — the environment gate
+    # IS the authorisation control.
+    environment: production
+
+    steps:
+      # ── 0. Guard ──────────────────────────────────────────────────────────
+      - name: "🛡️ Verify we are on main"
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "❌ This workflow must be triggered from main. Current ref: ${{ github.ref }}"
+            exit 1
+          fi
+          echo "✅ Running from main — proceeding."
+
+      # ── 1. Setup ──────────────────────────────────────────────────────────
+      - name: "⚙️ Set up Go"
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version: 1.26.x
+
+      - name: "📦 Add GOBIN to PATH"
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: "🔍 Checkout main (full history)"
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
+        with:
+          fetch-depth: 0
+          # RELEASE_TOKEN belongs to the service account in the v* tag ruleset
+          # bypass list — the only automated path that can create a protected tag.
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      # ── 2. Install release tooling ────────────────────────────────────────
+      - name: "🔧 Install release tooling"
+        run: |
+          go install github.com/caarlos0/svu@v3.4.4
+          go install github.com/x-motemen/gobump/cmd/gobump@v0.3.0
+          go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.4
+          go install github.com/client9/misspell/cmd/misspell@v0.3.4
+
+      # ── 3. Calculate next version (early — used in pre-flight messages) ───
+      - name: "🔢 Calculate next version"
+        id: version
+        run: |
+          GOBIN=$(go env GOPATH)/bin
+          VER_CURR=$(${GOBIN}/svu current)
+          VER_NEXT=$(${GOBIN}/svu next)
+
+          if [ "${VER_CURR}" = "${VER_NEXT}" ]; then
+            VER_NEXT=$(${GOBIN}/svu patch)
+          fi
+
+          echo "📌 Current : ${VER_CURR}"
+          echo "🚀 Next    : ${VER_NEXT}"
+          echo "version=${VER_NEXT}" >> "$GITHUB_OUTPUT"
+
+      # ── 4. Pre-flight checks (ALL must pass before any git changes) ───────
+      - name: "✈️ Pre-flight: verify PGP signing key"
+        run: |
+          echo "${{ secrets.PGP_PRIVATE_KEY }}" | gpg --batch --import 2>/dev/null
+          if ! gpg --list-secret-keys "4F9A9B5B96EC30B9" > /dev/null 2>&1; then
+            echo "❌ PGP signing key not found. Artifacts cannot be signed in A2."
+            echo "   Aborting before any git changes."
+            exit 1
+          fi
+          echo "✅ PGP signing key imported and verified."
+
+      - name: "✈️ Pre-flight: verify Docker credentials"
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          echo "✅ Docker credentials valid."
+
+      # ── 5. Irreversible changes start here (pre-flights all passed) ───────
+      - name: "⚙️ Configure git identity"
+        run: |
+          git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
+          git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
+
+      - name: "🛠️ Build snapshot binary for doc generation"
+        run: make snapshot
+
+      - name: "📄 Regenerate CLI documentation"
+        run: |
+          NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
+          if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
+            rm -rf docs/cli/*
+            mkdir -p docs/cli
+            bin/${NATIVE_OS}/newrelic documentation \
+              --outputDir docs/cli/ --format markdown
+            git add docs/cli/*
+            git commit --no-verify \
+              -m "chore(docs): regenerate CLI docs for ${{ steps.version.outputs.version }}"
+            echo "✅ CLI docs regenerated and committed."
+          else
+            echo "ℹ️  No snapshot binary found — skipping doc regeneration."
+          fi
+
+      - name: "📝 Update CHANGELOG"
+        run: |
+          GOBIN=$(go env GOPATH)/bin
+          ${GOBIN}/git-chglog \
+            --next-tag ${{ steps.version.outputs.version }} \
+            -o CHANGELOG.md --sort semver
+          ${GOBIN}/misspell -source text -w CHANGELOG.md
+          git add CHANGELOG.md
+          git commit --no-verify \
+            -m "chore(changelog): update CHANGELOG for ${{ steps.version.outputs.version }}"
+          echo "✅ CHANGELOG updated and committed."
+
+      - name: "⬆️ Push preparatory commits to main"
+        run: |
+          git push --no-verify origin HEAD:main
+          echo "✅ Preparatory commits pushed to main."
+
+      - name: "🏷️ Create and push release tag"
+        run: |
+          git tag ${{ steps.version.outputs.version }}
+          git push --no-verify origin HEAD:main --tags
+          echo ""
+          echo "✅ Tag ${{ steps.version.outputs.version }} pushed."
+          echo "🚀 Workflow A2 (release-publish.yml) will now trigger automatically."
+          echo "   Track it at: https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
