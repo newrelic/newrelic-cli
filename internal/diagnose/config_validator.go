@@ -9,13 +9,13 @@ import (
 
 	"github.com/shirou/gopsutil/v3/host"
 
+	nrclient "github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/config"
 	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/install/types"
 	"github.com/newrelic/newrelic-cli/internal/utils"
 	"github.com/newrelic/newrelic-cli/internal/utils/validation"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
-	"github.com/newrelic/newrelic-client-go/v2/pkg/apiaccess"
 	nrErrors "github.com/newrelic/newrelic-client-go/v2/pkg/errors"
 )
 
@@ -25,10 +25,11 @@ const (
 )
 
 type ConfigValidator struct {
-	client *newrelic.NewRelic
+	client            *newrelic.NewRelic
 	*validation.PollingNRQLValidator
 	PostRetryDelaySec int
 	PostMaxRetries    int
+	keyWasAutoFetched func() bool
 }
 
 type ValidationTracerEvent struct {
@@ -47,6 +48,7 @@ func NewConfigValidator(client *newrelic.NewRelic) *ConfigValidator {
 		PollingNRQLValidator: v,
 		PostRetryDelaySec:    config.DefaultPostRetryDelaySec,
 		PostMaxRetries:       config.DefaultMaxTimeoutSeconds / config.DefaultPostRetryDelaySec,
+		keyWasAutoFetched:    nrclient.LicenseKeyAutoFetched,
 	}
 }
 
@@ -111,7 +113,7 @@ func (c *ConfigValidator) Validate(ctx context.Context) error {
 
 func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	validateKeyFunc := func() error {
-		return c.validateLicenseKey(ctx)
+		return c.searchForConfiguredLicenseKey(ctx)
 	}
 
 	r := utils.NewRetry(c.PostMaxRetries, c.PostRetryDelaySec*1000, validateKeyFunc)
@@ -124,28 +126,31 @@ func (c *ConfigValidator) validateKeys(ctx context.Context) error {
 	return nil
 }
 
-func (c *ConfigValidator) validateLicenseKey(ctx context.Context) error {
-	accountID := configAPI.GetActiveProfileAccountID()
-	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
-	params := apiaccess.APIAccessKeySearchQuery{
-		Scope: apiaccess.APIAccessKeySearchScope{
-			AccountIDs: []int{accountID},
-		},
-		Types: []apiaccess.APIAccessKeyType{
-			apiaccess.APIAccessKeyTypeTypes.INGEST,
-		},
+func (c *ConfigValidator) searchForConfiguredLicenseKey(ctx context.Context) error {
+	if c.keyWasAutoFetched() {
+		log.Debugf("license key was auto-fetched from account this run; skipping redundant key list check")
+		return nil
 	}
 
-	licenseKeys, err := c.client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
+	accountID := configAPI.GetActiveProfileAccountID()
+	licenseKey := configAPI.GetActiveProfileString(config.LicenseKey)
+
+	log.Debugf("verifying user-provided license key against LICENSE keys for account %d", accountID)
+
+	licenseKeys, err := nrclient.FetchAllLicenseKeys(ctx, c.client, accountID)
 	if err != nil {
 		return types.NewDetailError(types.EventTypes.UnableToConnect, fmt.Sprintf(types.ErrConnectionStringFormat, err))
 	}
 
+	log.Debugf("received %d LICENSE keys; scanning for configured key", len(licenseKeys))
+
 	for _, k := range licenseKeys {
 		if k.Key == licenseKey {
+			log.Debugf("configured license key validated successfully")
 			return nil
 		}
 	}
 
+	log.Debugf("configured license key not found among %d LICENSE keys for account %d", len(licenseKeys), accountID)
 	return types.NewDetailError(types.EventTypes.InvalidIngestKey, types.ErrLicenseKey.Error())
 }

@@ -23,7 +23,18 @@ import (
 var (
 	NRClient    *newrelic.NewRelic
 	serviceName = "newrelic-cli"
+
+	// licenseKeyAutoFetched is set when FetchLicenseKey finds a key from the account
+	// during an install run. Downstream validation can read this via LicenseKeyAutoFetched()
+	// to skip the redundant key-list search.
+	licenseKeyAutoFetched bool
 )
+
+// LicenseKeyAutoFetched reports whether the license key in use was discovered
+// automatically by the CLI this run, rather than provided by the user.
+func LicenseKeyAutoFetched() bool {
+	return licenseKeyAutoFetched
+}
 
 const (
 	PreferredIngestKeyName = "Installer Ingest License Key"
@@ -71,6 +82,8 @@ func RequireClient(cmd *cobra.Command, args []string) {
 // If the initial request to fetch a license key fails, we retry the request
 // for a maximum time duration per config.DefaultMaxTimeoutSeconds.
 func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) (string, error) {
+	licenseKeyAutoFetched = false // reset per-call so multiple invocations behave correctly
+
 	var client *newrelic.NewRelic
 	var err error
 	if profileName == "" {
@@ -84,7 +97,7 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 
 	var key string
 	retryFunc := func() error {
-		key, err = execLicenseKeyRequest(utils.SignalCtx, client, accountID)
+		key, err = searchForPreferredLicenseKey(utils.SignalCtx, client, accountID)
 		if err != nil {
 			return err
 		}
@@ -107,25 +120,58 @@ func FetchLicenseKey(accountID int, profileName string, maxTimeoutSeconds *int) 
 		return "", retryCtx.MostRecentError()
 	}
 
+	licenseKeyAutoFetched = true
 	return key, nil
 }
 
-func execLicenseKeyRequest(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
-	params := apiaccess.APIAccessKeySearchQuery{
+// FetchAllLicenseKeys returns every LICENSE ingest key for the given account,
+// following pagination cursors until all pages are collected.
+func FetchAllLicenseKeys(ctx context.Context, client *newrelic.NewRelic, accountID int) ([]apiaccess.APIKey, error) {
+	return client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
 		Scope: apiaccess.APIAccessKeySearchScope{
 			AccountIDs:  []int{accountID},
 			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
 		},
 		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
+	})
+}
+
+func searchForPreferredLicenseKey(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
+	log.Debugf("NEW_RELIC_LICENSE_KEY not set; searching for a license key to use for account %d", accountID)
+
+	// Try to find the preferred key by name directly — avoids fetching all keys on
+	// accounts with many ingest keys.
+	log.Debugf("querying for preferred key %q by name", PreferredIngestKeyName)
+	nameKeys, nameErr := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, apiaccess.APIAccessKeySearchQuery{
+		Scope: apiaccess.APIAccessKeySearchScope{
+			AccountIDs:  []int{accountID},
+			IngestTypes: []apiaccess.APIAccessIngestKeyType{apiaccess.APIAccessIngestKeyTypeTypes.LICENSE},
+			Name:        &apiaccess.APIAccessKeyNameQuery{Contains: PreferredIngestKeyName},
+		},
+		Types: []apiaccess.APIAccessKeyType{apiaccess.APIAccessKeyTypeTypes.INGEST},
+	})
+	if nameErr != nil {
+		log.Debugf("name-based search failed (%s); falling back to scanning all LICENSE keys", nameErr)
+	} else {
+		for _, k := range nameKeys {
+			if k.Name == PreferredIngestKeyName {
+				log.Debugf("found preferred key %q; using it for the install", PreferredIngestKeyName)
+				return k.Key, nil
+			}
+		}
+		log.Debugf("preferred key %q not present; falling back to scanning all LICENSE keys", PreferredIngestKeyName)
 	}
 
-	keys, err := client.APIAccess.SearchAPIAccessKeysWithContext(ctx, params)
+	// Preferred key not found or name search failed — fetch all LICENSE keys and
+	// select the best available one.
+	allKeys, err := FetchAllLicenseKeys(ctx, client, accountID)
 	if err != nil {
 		return "", err
 	}
 
-	key := getPreferredLicenseKey(keys)
+	key := getPreferredLicenseKey(allKeys)
 	if key != "" {
+		log.Debugf("selected license key from full scan (%d LICENSE keys returned)", len(allKeys))
 		return key, nil
 	}
 
