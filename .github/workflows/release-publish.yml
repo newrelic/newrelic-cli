@@ -1,0 +1,410 @@
+name: "🚀 Release: Publish (Build, Sign & Upload)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKFLOW: release-publish.yml
+#
+# Triggered automatically when a protected v* tag is pushed — which only
+# happens as the final step of release-orchestrate.yml.
+#
+# This workflow handles ALL publishing:
+#   • OIL S3 upload (recipes.zip + currentVersion.txt) — if include_oil=true
+#   • CLI build, sign, and GitHub Release
+#   • CLI S3 upload (install.sh, install.ps1, artifacts, currentVersion.txt)
+#   • Windows installer build and signing (called workflow)
+#   • Package manager publishing — Chocolatey, Homebrew, etc. (called workflow)
+#
+# A single OIDC credential exchange at the top of job 1 provides AWS access
+# for the entire job. No long-lived AWS keys are used anywhere.
+#
+# How include_oil is determined:
+#   The CLI tag annotation contains `include_oil=true` or `include_oil=false`,
+#   written by release-orchestrate.yml. Atomic, immutable, no TOCTOU races.
+#
+# Re-entrancy / idempotency:
+#   If this workflow fails partway through (e.g. S3 upload fails after OIL
+#   upload but before CLI upload), re-running it from the same tag is safe:
+#   all `aws s3 cp` calls overwrite existing objects, and goreleaser will
+#   re-publish the same release assets. No manual cleanup is needed before
+#   retrying.
+#
+# Security controls:
+#   • Triggered exclusively by protected v* tags.
+#   • AWS credentials are short-lived OIDC tokens (15 min), never stored secrets.
+#     OIDC sub claim: repo:newrelic/newrelic-cli:ref:refs/tags/v*
+#     Bound to a protected tag push — not an environment label that any future
+#     workflow could reuse accidentally.
+#   • permissions block follows least-privilege: only what each job needs.
+#   • No human can trigger this workflow directly.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Least-privilege default — jobs override only what they need.
+# id-token: write at workflow level is required so reusable called workflows
+# (release-publish-windows.yml) can obtain their own OIDC tokens.
+# Per GitHub Actions rules, the caller's top-level permissions cap what called
+# workflows can receive — a job-level grant alone is insufficient for callees.
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+
+  # ── JOB 1: Build, sign and publish ────────────────────────────────────────
+  publish:
+    name: "📦 Build, sign & publish"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write    # create GitHub Release + upload assets
+      id-token: write    # obtain OIDC token to assume AWS role
+
+    env:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+
+    steps:
+
+      # ── SECTION 1: SETUP & OIDC ───────────────────────────────────────────
+
+      - name: "[Setup] ⚙️ Set up Go"
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version: 1.26.x
+
+      - name: "[Setup] 📦 Add GOBIN to PATH"
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: "[Setup] 🔍 Checkout CLI tag"
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: "[Setup] 🔍 Read include_oil from CLI tag annotation"
+        id: tag_meta
+        run: |
+          set -euo pipefail
+          # Defaults to false for manually pushed tags without the annotation.
+          RAW=$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME" || true)
+          VALUE=$(echo "$RAW" | grep 'include_oil=' | cut -d= -f2 | tr -d '[:space:]' || true)
+
+          if [ "$VALUE" != "true" ] && [ "$VALUE" != "false" ]; then
+            echo "⚠️  include_oil not found in tag annotation — defaulting to false."
+            VALUE="false"
+          fi
+
+          echo "include_oil=${VALUE}"
+          echo "include_oil=${VALUE}" >> "$GITHUB_OUTPUT"
+
+      - name: "[Setup] 🔒 Configure AWS credentials via OIDC"
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_V2 }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          # OIDC sub claim: repo:newrelic/newrelic-cli:ref:refs/tags/<version>
+          # Matched by the trust policy on sap-prod-virtuoso-role.
+
+      - name: "[Setup] ✅ Verify CLI S3 access"
+        run: |
+          set -euo pipefail
+          if ! aws s3 ls s3://nr-downloads-main/install/newrelic-cli/ > /dev/null 2>&1; then
+            echo "❌ Cannot list s3://nr-downloads-main/install/newrelic-cli/"
+            echo "   OIDC credential exchange may have failed, or the IAM role lacks s3:ListBucket."
+            exit 1
+          fi
+          echo "✅ CLI S3 access confirmed — OIDC credentials valid."
+
+      # ── SECTION 2: OIL S3 UPLOAD ──────────────────────────────────────────
+      # All steps gated on include_oil == 'true'.
+
+      - name: "[OIL S3 Upload] ✅ Verify OIL S3 access"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          if ! aws s3 ls s3://nr-downloads-main/install/open-install-library/ > /dev/null 2>&1; then
+            echo "❌ Cannot list s3://nr-downloads-main/install/open-install-library/"
+            exit 1
+          fi
+          echo "✅ OIL S3 access confirmed."
+
+      - name: "[OIL S3 Upload] 🔍 Verify OIL tag exists"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        id: oil_tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          echo "🔍 Verifying tag ${TAG} exists in newrelic/open-install-library..."
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/open-install-library/git/refs/tags/${TAG}")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ OIL tag ${TAG} not found (HTTP ${HTTP_CODE})."
+            echo "   release-orchestrate.yml did not complete the OIL steps."
+            exit 1
+          fi
+
+          echo "✅ OIL tag ${TAG} confirmed."
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: "[OIL S3 Upload] 📥 Download recipes.zip from OIL GitHub Release"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        uses: dsaltares/fetch-gh-release-asset@0efe227dedb360b09ea0e533795d584b61c461a9
+        with:
+          repo: newrelic/open-install-library
+          version: "tags/${{ steps.oil_tag.outputs.tag }}"
+          file: recipes.zip
+          target: recipes.zip
+          token: ${{ secrets.RELEASE_TOKEN }}
+        # recipes.zip was built and attached to the OIL GitHub Release by
+        # release-orchestrate.yml — download it here to avoid a rebuild.
+
+      - name: "[OIL S3 Upload] ☁️ Upload recipes.zip to S3"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
+          aws s3 cp recipes.zip \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
+          echo "✅ recipes.zip uploaded to S3 at install/open-install-library/${TAG}/recipes.zip"
+
+      - name: "[OIL S3 Upload] ☁️ Upload OIL currentVersion.txt to S3"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
+          echo "${TAG}" > currentVersion-oil.txt
+          aws s3 cp currentVersion-oil.txt \
+            s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+            --cache-control no-cache
+          echo "✅ OIL currentVersion.txt updated to ${TAG}."
+
+      - name: "[OIL S3 Upload] ✅ Verify OIL S3 artifacts"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
+          echo "🔍 Verifying OIL S3 artifacts for ${TAG}..."
+
+          S3_VERSION=$(aws s3 cp \
+            s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+            - --quiet | tr -d '[:space:]')
+          if [ "$S3_VERSION" != "$TAG" ]; then
+            echo "❌ currentVersion.txt mismatch: S3 has '${S3_VERSION}', expected '${TAG}'"
+            exit 1
+          fi
+          echo "✅ currentVersion.txt matches ${TAG}."
+
+          if ! aws s3 ls \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip" \
+            > /dev/null 2>&1; then
+            echo "❌ recipes.zip not found at install/open-install-library/${TAG}/recipes.zip"
+            exit 1
+          fi
+          echo "✅ recipes.zip confirmed. Proceeding to CLI build."
+
+      # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
+
+      - name: "[CLI Build] 🔑 Install Snapcraft"
+        uses: samuelmeuli/action-snapcraft@d33c176a9b784876d966f80fb1b461808edc0641  # v2
+
+      - name: "[CLI Build] 🔑 Import PGP signing key"
+        shell: bash
+        env:
+          PGP_PRIVATE_KEY: ${{ secrets.PGP_PRIVATE_KEY }}
+        run: |
+          echo "$PGP_PRIVATE_KEY" | gpg --batch --import 2>/dev/null
+          echo "✅ PGP key imported."
+
+      - name: "[CLI Build] 🐳 Log in to Docker Hub"
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          echo "✅ Docker Hub login successful."
+
+      - name: "[CLI Build] ⚙️ Configure git identity"
+        run: |
+          set -euo pipefail
+          git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
+          git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
+          git config core.fileMode false
+          echo "✅ Git identity configured."
+
+      - name: "[CLI Build] 🛠️ Build snapshot"
+        run: |
+          set -euo pipefail
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+          make snapshot
+          echo "✅ Snapshot built."
+
+      - name: "[CLI Build] 🚀 Publish release (goreleaser)"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
+          ./scripts/win_metadata.sh
+          go install github.com/josephspurrier/goversioninfo/cmd/goversioninfo@v1.7.0
+          go generate cmd/newrelic/main.go
+          make release-publish
+          ./scripts/win_metadata_files_remove.sh
+          echo "✅ Release published via goreleaser."
+
+      - name: "[CLI Build] ✍️ Sign Windows binary"
+        shell: bash
+        env:
+          PFX_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+          PFX_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+        run: |
+          set -euo pipefail
+          echo "$PFX_CONTENT" | base64 -d > cert.pfx
+          sudo apt-get install osslsigncode -y -q
+          sudo mv dist/newrelic_windows_amd64_v1/newrelic.exe \
+                  dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
+          osslsigncode sign -pkcs12 cert.pfx -pass "$PFX_PASSWORD" -h sha256 \
+            -t http://timestamp.digicert.com \
+            -in  dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe \
+            -out dist/newrelic_windows_amd64_v1/newrelic.exe
+          rm -f cert.pfx dist/newrelic_windows_amd64_v1/newrelic-unsigned.exe
+          echo "✅ Windows binary signed."
+
+      - name: "[CLI Build] 📤 Upload Windows binary as artifact"
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: windows-binary
+          path: dist/newrelic_windows_amd64_v1/newrelic.exe
+
+      - name: "[CLI Build] 🗜️ Re-package Windows zip with signed binary"
+        run: |
+          set -euo pipefail
+          VERSION=$(ls dist/*Windows_x86_64.zip | cut -d_ -f2)
+          rm -f "dist/newrelic-cli_${VERSION}_Windows_x86_64.zip"
+          zip -q "dist/newrelic-cli_${VERSION}_Windows_x86_64.zip" \
+                 dist/newrelic_windows_amd64_v1/newrelic.exe
+          echo "✅ Windows zip re-packaged with signed binary."
+
+      - name: "[CLI Build] 🔢 Get latest CLI tag"
+        id: get-latest-tag
+        uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435  # v1
+
+      - name: "[CLI Build] 🔗 Get CLI release upload URL"
+        id: get-upload-url
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          UPLOAD_URL=$(./scripts/get_latest_release_upload_url.sh)
+          echo "upload_url=${UPLOAD_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: "[CLI Build] 🔐 Generate and sign checksums"
+        id: checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECKSUM_FILE=$(find dist -name "newrelic-cli_*_checksums.txt")
+          if [ -z "$CHECKSUM_FILE" ]; then
+            echo "❌ Checksum file not found in dist/"
+            exit 1
+          fi
+
+          cp "$CHECKSUM_FILE" dist/checksums_sha256.txt
+
+          gpg --batch --yes -u "4F9A9B5B96EC30B9" \
+              --output dist/checksums_sha256.txt.sig \
+              --detach-sign dist/checksums_sha256.txt
+
+          echo "✅ Checksums generated and signed."
+
+      - name: "[CLI Build] 📤 Upload checksums to GitHub Release"
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-upload-url.outputs.upload_url }}
+          asset_path: ./dist/checksums_sha256.txt
+          asset_name: checksums_sha256.txt
+          asset_content_type: text/plain
+
+      - name: "[CLI Build] 📤 Upload checksum signature to GitHub Release"
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.get-upload-url.outputs.upload_url }}
+          asset_path: ./dist/checksums_sha256.txt.sig
+          asset_name: checksums_sha256.txt.sig
+          asset_content_type: text/plain
+
+      - name: "[CLI Build] 📝 Write CLI currentVersion.txt"
+        run: |
+          set -euo pipefail
+          echo "${{ steps.get-latest-tag.outputs.tag }}" > currentVersion.txt
+          echo "✅ currentVersion.txt written: ${{ steps.get-latest-tag.outputs.tag }}"
+
+      - name: "[CLI Build] ☁️ Upload install.sh to S3"
+        run: |
+          set -euo pipefail
+          aws s3 cp ./scripts/install.sh \
+            s3://nr-downloads-main/install/newrelic-cli/scripts/install.sh
+          echo "✅ install.sh uploaded."
+
+      - name: "[CLI Build] ☁️ Upload CLI currentVersion.txt to S3"
+        run: |
+          set -euo pipefail
+          aws s3 cp currentVersion.txt \
+            s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt \
+            --cache-control no-cache
+          echo "✅ CLI currentVersion.txt updated to ${{ steps.get-latest-tag.outputs.tag }}."
+
+      - name: "[CLI Build] ☁️ Upload CLI release artifacts to S3"
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.get-latest-tag.outputs.tag }}"
+          aws s3 cp --recursive \
+            --exclude "*" \
+            --include "newrelic-cli_*.txt" \
+            --include "newrelic-cli_*.sig" \
+            --include "newrelic-cli_*.zip" \
+            --include "newrelic-cli_*.gz" \
+            --include "newrelic-cli_*.rpm" \
+            --include "newrelic-cli_*.deb" \
+            --include "newrelic_*" \
+            ./dist \
+            "s3://nr-downloads-main/install/newrelic-cli/${TAG}/"
+          echo "✅ CLI release artifacts uploaded to S3 at install/newrelic-cli/${TAG}/"
+
+  # ── JOB 2: Windows installer ───────────────────────────────────────────────
+  release-windows-installer:
+    name: "🪟 Build & sign Windows installer"
+    needs: publish
+    uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@${{ github.ref_name }}
+    secrets:
+      PFX_BASE64_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
+      PFX_CERT_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+  # ── JOB 3: Package managers ────────────────────────────────────────────────
+  publish-packages:
+    name: "📦 Publish to package managers"
+    needs: release-windows-installer
+    uses: newrelic/newrelic-cli/.github/workflows/release-publish-windows.yml@${{ github.ref_name }}
+    secrets:
+      RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}
+      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_V2 }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}

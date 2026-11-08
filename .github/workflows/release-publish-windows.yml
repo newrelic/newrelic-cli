@@ -1,6 +1,11 @@
 name: Release - Homebrew
 
-permissions: write-all
+# id-token: write is required so this called workflow can obtain its own
+# OIDC token for the AWS credential exchange. The caller (release-publish.yml)
+# must grant id-token: write at workflow level for this to propagate here.
+permissions:
+  contents: write
+  id-token: write
 
 on:
   workflow_call:
@@ -10,10 +15,6 @@ on:
       DEV_TOOLKIT_TOKEN:
         required: true
       CHOCOLATEY_API_KEY:
-        required: true
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
         required: true
       AWS_ROLE_ARN:
         required: true
@@ -56,26 +57,11 @@ jobs:
         run: |
           sudo snap install aws-cli --classic
 
-      - name: Write AWS config 1
-        uses: DamianReeves/write-file-action@v1.3
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
         with:
-          path: /home/runner/.aws/credentials
-          contents:  |
-            [virtuoso_user]
-            aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          write-mode: overwrite
-
-      - name: Write AWS config 2
-        uses: DamianReeves/write-file-action@v1.3
-        with:
-          path: /home/runner/.aws/config
-          contents:  |
-            [profile virtuoso]
-            role_arn = ${{ secrets.AWS_ROLE_ARN }}
-            region = ${{ secrets.AWS_DEFAULT_REGION }}
-            source_profile = virtuoso_user
-          write-mode: overwrite
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       - name: Get latest tag
         id: get-latest-tag
@@ -93,12 +79,12 @@ jobs:
       - name: Upload Windows install script to AWS S3
         id: upload-install-script-windows
         run: |
-          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1 --profile virtuoso
+          aws s3 cp ./scripts/install.ps1 s3://nr-downloads-main/install/newrelic-cli/scripts/install.ps1
 
       - name: Upload Windows MSI
         id: upload-windows-msi
         run: |
-          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi --profile virtuoso
+          aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi
 
       - name: Create currentVersion.txt
         id: create-current-version
@@ -110,7 +96,7 @@ jobs:
       - name: Upload currentVersion.txt
         id: upload-current-version
         run: |
-          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --profile virtuoso --cache-control no-cache
+          aws s3 cp currentVersion.txt s3://nr-downloads-main/install/newrelic-cli/currentVersion.txt --cache-control no-cache
 
       - name: Upload chocolatey package
         shell: bash
@@ -118,8 +104,3 @@ jobs:
         run: make chocolatey-publish
         env:
           CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-
-      - name: Cleanup configs
-        run: |
-          rm -rf /home/runner/.aws/credentials
-          rm -rf /home/runner/.aws/config

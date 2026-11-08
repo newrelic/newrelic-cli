@@ -1,0 +1,496 @@
+name: "🎼 Release: Orchestrate (OIL → CLI)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKFLOW: release-orchestrate.yml
+#
+# Single entry point for all releases. Steps in order:
+#   1. (Optional) OIL GitHub Release, recipes.zip, release marker commit, OIL tag
+#   2. CLI snapshot build, docs regeneration, CHANGELOG commit, CLI tag push
+#
+# The CLI tag push triggers release-publish.yml, which handles all S3 uploads
+# via a single OIDC credential exchange.
+#
+# How include_oil is passed to release-publish.yml:
+#   The CLI tag annotation encodes `include_oil=true/false`. This is atomic
+#   with the tag, immutable once pushed, and avoids TOCTOU races that shared
+#   repository variables would have if two releases ran concurrently.
+#
+# Security controls:
+#   • Manual trigger only (workflow_dispatch) — no automated scheduling.
+#   • Gated by the "production" GitHub Environment (required reviewers, no
+#     self-review, protected branches only).
+#   • Protected v* tag ruleset: only the service account (RELEASE_TOKEN) and
+#     documented bypass members can push v* tags.
+#   • No AWS credentials — all S3 work is in release-publish.yml via OIDC.
+#   • Pre-flight checks run before any irreversible git change.
+#
+# Re-entrancy:
+#   If the workflow fails after pushing the CLI CHANGELOG but before pushing
+#   the CLI tag, a re-run will generate a second CHANGELOG commit. This is
+#   harmless — git-chglog is idempotent and goreleaser reads the tag, not HEAD.
+#   The OIL pre-flight guard prevents double OIL tag creation.
+#
+# Disaster recovery:
+#   If the workflow fails after the OIL tag is pushed but before the CLI tag
+#   is pushed, the rollback step attempts to delete the OIL tag and release.
+#   If rollback also fails, manual steps are printed to the log.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_oil:
+        description: 'Include Open Install Library release (uncheck for CLI-only releases)'
+        type: boolean
+        default: true
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  orchestrate:
+    name: "🎼 Orchestrate release"
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: write
+
+    steps:
+
+      # ── SECTION 0: GUARD ──────────────────────────────────────────────────
+
+      - name: "[Guard] 🛡️ Verify branch is main"
+        run: |
+          set -euo pipefail
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "❌ This workflow must be triggered from main."
+            echo "   Current ref: ${{ github.ref }}"
+            exit 1
+          fi
+          echo "✅ Running from main — proceeding."
+
+      # ── SECTION 1: SETUP ──────────────────────────────────────────────────
+
+      - name: "[Setup] ⚙️ Set up Go"
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
+        with:
+          go-version: 1.26.x
+
+      - name: "[Setup] 📦 Add GOBIN to PATH"
+        shell: bash
+        run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: "[Setup] 🔍 Checkout CLI (full history)"
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: "[Setup] 🔧 Install release tooling"
+        run: |
+          set -euo pipefail
+          go install github.com/caarlos0/svu@v3.4.4
+          go install github.com/x-motemen/gobump/cmd/gobump@v0.3.0
+          go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.4
+          go install github.com/client9/misspell/cmd/misspell@v0.3.4
+          echo "✅ Release tooling installed."
+
+      - name: "[Setup] 🔢 Calculate next CLI version"
+        id: version
+        run: |
+          set -euo pipefail
+          GOBIN=$(go env GOPATH)/bin
+          VER_CURR=$(${GOBIN}/svu current)
+          VER_NEXT=$(${GOBIN}/svu next)
+
+          if [ "${VER_CURR}" = "${VER_NEXT}" ]; then
+            VER_NEXT=$(${GOBIN}/svu patch)
+          fi
+
+          echo "📌 Current : ${VER_CURR}"
+          echo "🚀 Next    : ${VER_NEXT}"
+          echo "cli_version=${VER_NEXT}" >> "$GITHUB_OUTPUT"
+
+      # ── SECTION 2: PRE-FLIGHT ─────────────────────────────────────────────
+      # All checks must pass before any irreversible change is made.
+
+      - name: "[Pre-flight] ✈️ Verify PGP signing key"
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.PGP_PRIVATE_KEY }}" | gpg --batch --import 2>/dev/null
+          if ! gpg --list-secret-keys "4F9A9B5B96EC30B9" > /dev/null 2>&1; then
+            echo "❌ PGP signing key 4F9A9B5B96EC30B9 not found."
+            echo "   Artifacts cannot be signed in release-publish.yml."
+            echo "   Aborting before any git changes."
+            exit 1
+          fi
+          echo "✅ PGP signing key verified."
+
+      - name: "[Pre-flight] ✈️ Verify Docker credentials"
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+          echo "✅ Docker credentials valid."
+
+      - name: "[Pre-flight] ✈️ Verify OIL tag does not exist"
+        if: inputs.include_oil == true
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          echo "🔍 Checking if tag ${TAG} already exists in newrelic/open-install-library..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/open-install-library/git/refs/tags/${TAG}")
+
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "❌ Tag ${TAG} already exists in open-install-library."
+            echo "   Delete the existing tag and release first, or use include_oil=false."
+            exit 1
+          fi
+          echo "✅ Tag ${TAG} does not exist in open-install-library — safe to proceed."
+
+      # ── SECTION 3: OIL RELEASE ────────────────────────────────────────────
+      # All steps in this section are gated on inputs.include_oil == true.
+      # Order is critical: release marker commit → push → tag (not before push).
+
+      - name: "[OIL Release] 🔍 Checkout OIL main"
+        if: inputs.include_oil == true
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
+        with:
+          repository: newrelic/open-install-library
+          path: .oil
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: "[OIL Release] 📋 Get OIL release changes"
+        if: inputs.include_oil == true
+        id: oil_changes
+        run: |
+          set -euo pipefail
+          PREV_TAG=$(git -C .oil describe --abbrev=0 --tags 2>/dev/null || true)
+          if [ -z "$PREV_TAG" ]; then
+            echo "ℹ️  No previous tags found in OIL — release body will be empty."
+            echo "release_body=" >> "$GITHUB_OUTPUT"
+          else
+            BODY=$(git -C .oil log --no-merges --pretty=format:'%s' "${PREV_TAG}...HEAD" || true)
+            echo "📋 Changes since ${PREV_TAG}:"
+            echo "$BODY"
+            {
+              echo "release_body<<EOF"
+              echo "$BODY"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "[OIL Release] 🏷️ Create OIL GitHub Release (draft)"
+        if: inputs.include_oil == true
+        id: oil_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAG: ${{ steps.version.outputs.cli_version }}
+          RELEASE_BODY: ${{ steps.oil_changes.outputs.release_body }}
+        run: |
+          set -euo pipefail
+          echo "🏷️ Creating draft GitHub Release for ${TAG} in open-install-library..."
+
+          # Draft=true so an incomplete release is obviously incomplete if the
+          # workflow fails before the publish step.
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/newrelic/open-install-library/releases" \
+            -d "$(jq -n \
+              --arg tag  "${TAG}" \
+              --arg name "Release ${TAG}" \
+              --arg body "${RELEASE_BODY}" \
+              '{tag_name: $tag, name: $name, body: $body, draft: true, prerelease: false}')")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "❌ Failed to create OIL GitHub Release (HTTP ${HTTP_CODE})."
+            echo "   Response: $BODY"
+            exit 1
+          fi
+
+          RELEASE_ID=$(echo "$BODY" | jq -r '.id')
+          UPLOAD_URL=$(echo "$BODY" | jq -r '.upload_url' | sed 's/{?name,label}//')
+
+          echo "✅ Draft release created. ID: ${RELEASE_ID}"
+          echo "release_id=${RELEASE_ID}" >> "$GITHUB_OUTPUT"
+          echo "upload_url=${UPLOAD_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: "[OIL Release] 📦 Write OIL version.txt"
+        if: inputs.include_oil == true
+        run: |
+          set -euo pipefail
+          echo "${{ steps.version.outputs.cli_version }}" > .oil/recipes/version.txt
+          echo "✅ version.txt written: ${{ steps.version.outputs.cli_version }}"
+
+      - name: "[OIL Release] 🗜️ Zip OIL recipes"
+        if: inputs.include_oil == true
+        run: |
+          set -euo pipefail
+          cd .oil
+          zip -r "$GITHUB_WORKSPACE/recipes.zip" recipes/
+          echo "✅ recipes.zip created at $GITHUB_WORKSPACE/recipes.zip"
+          ls -lh "$GITHUB_WORKSPACE/recipes.zip"
+
+      - name: "[OIL Release] 📤 Upload recipes.zip to OIL GitHub Release"
+        if: inputs.include_oil == true
+        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        with:
+          upload_url: ${{ steps.oil_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/recipes.zip
+          asset_name: recipes.zip
+          asset_content_type: application/octet-stream
+
+      - name: "[OIL Release] ⚙️ Configure git identity for OIL"
+        if: inputs.include_oil == true
+        run: |
+          set -euo pipefail
+          git -C .oil config user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
+          git -C .oil config user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
+          echo "✅ Git identity configured for OIL."
+
+      - name: "[OIL Release] 📝 Commit OIL release marker to main"
+        if: inputs.include_oil == true
+        env:
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          RELEASE_DATE=$(date -u +'%-d %B %Y')
+          PREV=$(git -C .oil tag --list 'v*' --sort=-v:refname | grep -v "^${TAG}$" | head -1 || true)
+
+          {
+            printf 'chore(release): OIL %s, %s\n\n' "$TAG" "$RELEASE_DATE"
+            if [ -n "$PREV" ]; then
+              printf 'Changes since %s:\n\n' "$PREV"
+              git -C .oil log \
+                --no-merges \
+                --invert-grep \
+                --extended-regexp \
+                --grep='^chore\(release\): (OIL|Open Install Library Release) v[0-9]' \
+                --pretty=format:'- %s (%h)' \
+                "${PREV}..HEAD" || true
+              printf '\n\n'
+            fi
+            printf 'Release: https://github.com/newrelic/open-install-library/releases/tag/%s\n\n' "$TAG"
+            printf '[skip ci]\n'
+          } > /tmp/oil-commit-msg.txt
+
+          echo "----- OIL commit message preview -----"
+          cat /tmp/oil-commit-msg.txt
+          echo "---------------------------------------"
+
+          git -C .oil commit --allow-empty -F /tmp/oil-commit-msg.txt
+
+          # Push with rebase-retry on race
+          if ! git -C .oil push origin main; then
+            echo "⚠️  Push rejected — rebasing and retrying..."
+            git -C .oil pull --rebase origin main
+            git -C .oil push origin main
+          fi
+          echo "✅ OIL release marker committed and pushed to main."
+
+      - name: "[OIL Release] 🏷️ Push OIL tag"
+        if: inputs.include_oil == true
+        env:
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          # OIL's release.yml is retired — this tag is a version marker only.
+          # All S3 uploads happen in release-publish.yml via OIDC.
+          git -C .oil tag -a "${TAG}" -m "Release ${TAG}"
+          git -C .oil push origin "${TAG}"
+          echo "✅ OIL tag ${TAG} pushed."
+
+      - name: "[OIL Release] ✅ Publish OIL GitHub Release"
+        if: inputs.include_oil == true
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          RELEASE_ID: ${{ steps.oil_release.outputs.release_id }}
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          echo "📢 Publishing OIL GitHub Release ${TAG} (ID: ${RELEASE_ID})..."
+
+          # Tag must exist before publishing — it was pushed in the previous step.
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X PATCH \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/newrelic/open-install-library/releases/${RELEASE_ID}" \
+            -d '{"draft": false}')
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Failed to publish OIL GitHub Release (HTTP ${HTTP_CODE})."
+            echo "   Response: $BODY"
+            exit 1
+          fi
+          echo "✅ OIL GitHub Release published: https://github.com/newrelic/open-install-library/releases/tag/${TAG}"
+
+      # ── SECTION 4: CLI RELEASE ────────────────────────────────────────────
+      # Order is critical: snapshot → docs commit → CHANGELOG commit → push → tag.
+      # CHANGELOG must be on main before the tag is pushed so goreleaser sees it.
+
+      - name: "[CLI Release] ⚙️ Configure git identity"
+        run: |
+          set -euo pipefail
+          git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
+          git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
+          echo "✅ Git identity configured for CLI."
+
+      - name: "[CLI Release] 🛠️ Build CLI snapshot binary"
+        run: |
+          set -euo pipefail
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
+          make snapshot
+          echo "✅ Snapshot binary built."
+
+      - name: "[CLI Release] 📄 Regenerate CLI docs"
+        run: |
+          set -euo pipefail
+          NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
+          if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
+            rm -rf docs/cli/*
+            mkdir -p docs/cli
+            bin/${NATIVE_OS}/newrelic documentation \
+              --outputDir docs/cli/ --format markdown
+            git add docs/cli/*
+            git commit --no-verify \
+              -m "chore(docs): regenerate CLI docs for ${{ steps.version.outputs.cli_version }}"
+            echo "✅ CLI docs regenerated and committed."
+          else
+            echo "ℹ️  No snapshot binary found at bin/${NATIVE_OS}/newrelic — skipping doc regeneration."
+          fi
+
+      - name: "[CLI Release] 📝 Update CLI CHANGELOG"
+        run: |
+          set -euo pipefail
+          GOBIN=$(go env GOPATH)/bin
+          ${GOBIN}/git-chglog \
+            --next-tag ${{ steps.version.outputs.cli_version }} \
+            -o CHANGELOG.md --sort semver
+          ${GOBIN}/misspell -source text -w CHANGELOG.md
+          git add CHANGELOG.md
+          git commit --no-verify \
+            -m "chore(changelog): update CHANGELOG for ${{ steps.version.outputs.cli_version }}"
+          echo "✅ CHANGELOG updated and committed."
+
+      - name: "[CLI Release] ⬆️ Push CLI preparatory commits"
+        run: |
+          set -euo pipefail
+          git push --no-verify origin HEAD:main
+          echo "✅ Preparatory commits pushed to CLI main."
+
+      - name: "[CLI Release] 🏷️ Push CLI tag (triggers release-publish.yml)"
+        env:
+          VERSION: ${{ steps.version.outputs.cli_version }}
+          INCLUDE_OIL: ${{ inputs.include_oil }}
+        run: |
+          set -euo pipefail
+          # The tag annotation encodes include_oil so release-publish.yml can read
+          # it without shared mutable state. See top-of-file comment for rationale.
+          git tag -a "${VERSION}" -m "$(printf 'Release %s\n\ninclude_oil=%s' "${VERSION}" "${INCLUDE_OIL}")"
+          git push --no-verify origin HEAD:main --tags
+          echo ""
+          echo "✅ CLI tag ${VERSION} pushed (include_oil=${INCLUDE_OIL})."
+          echo "🚀 release-publish.yml will now trigger automatically."
+          echo "   Track it at: https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
+
+      # ── SECTION 5: ROLLBACK ───────────────────────────────────────────────
+      # Runs only if the workflow failed AND include_oil was true.
+      # Deletes the OIL tag and release so the workflow can be re-run cleanly.
+      # CLI preparatory commits (docs, CHANGELOG) are left on main — re-running
+      # the workflow will generate a second idempotent commit, which is harmless.
+
+      - name: "[Rollback] 🔙 Clean up OIL tag and release on failure"
+        if: failure() && inputs.include_oil == true
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAG: ${{ steps.version.outputs.cli_version }}
+          RELEASE_ID: ${{ steps.oil_release.outputs.release_id }}
+        run: |
+          echo "⚠️  Workflow failed — attempting OIL rollback for tag ${TAG}..."
+          ROLLBACK_FAILED=false
+
+          # 1. Delete the OIL tag (if it exists)
+          TAG_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/open-install-library/git/refs/tags/${TAG}")
+
+          if [ "$TAG_CHECK" = "200" ]; then
+            echo "🗑️  Deleting OIL tag ${TAG}..."
+            DEL_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X DELETE \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/newrelic/open-install-library/git/refs/tags/${TAG}")
+            if [ "$DEL_CODE" = "204" ]; then
+              echo "✅ OIL tag ${TAG} deleted."
+            else
+              echo "❌ Failed to delete OIL tag (HTTP ${DEL_CODE}). Manual cleanup required."
+              ROLLBACK_FAILED=true
+            fi
+          else
+            echo "ℹ️  OIL tag ${TAG} does not exist — nothing to delete."
+          fi
+
+          # 2. Delete the OIL GitHub Release (if release_id is set)
+          if [ -n "${RELEASE_ID}" ] && [ "${RELEASE_ID}" != "" ]; then
+            echo "🗑️  Deleting OIL GitHub Release (ID: ${RELEASE_ID})..."
+            DEL_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X DELETE \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/newrelic/open-install-library/releases/${RELEASE_ID}")
+            if [ "$DEL_CODE" = "204" ]; then
+              echo "✅ OIL GitHub Release deleted."
+            else
+              echo "⚠️  Could not delete OIL GitHub Release (HTTP ${DEL_CODE})."
+              echo "   Attempting to set it back to draft..."
+              PATCH_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+                -X PATCH \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Content-Type: application/json" \
+                "https://api.github.com/repos/newrelic/open-install-library/releases/${RELEASE_ID}" \
+                -d '{"draft": true}')
+              if [ "$PATCH_CODE" = "200" ]; then
+                echo "✅ OIL GitHub Release set back to draft."
+              else
+                echo "❌ Could not revert to draft either (HTTP ${PATCH_CODE}). Manual cleanup required."
+                ROLLBACK_FAILED=true
+              fi
+            fi
+          else
+            echo "ℹ️  No OIL release ID available — release may not have been created yet."
+          fi
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          if [ "$ROLLBACK_FAILED" = "true" ]; then
+            echo "❌ ROLLBACK INCOMPLETE — manual steps required:"
+            echo ""
+            echo "   1. Delete OIL tag (if it exists):"
+            echo "      git push origin :refs/tags/${TAG}   (in open-install-library)"
+            echo "      OR via: https://github.com/newrelic/open-install-library/releases"
+            echo ""
+            echo "   2. Delete or unpublish the OIL GitHub Release:"
+            echo "      https://github.com/newrelic/open-install-library/releases"
+            echo ""
+            echo "   3. Once cleaned up, re-run this workflow from scratch."
+          else
+            echo "✅ Rollback complete. The workflow can be re-run safely."
+          fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
