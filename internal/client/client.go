@@ -137,7 +137,7 @@ func FetchAllLicenseKeys(ctx context.Context, client *newrelic.NewRelic, account
 }
 
 func searchForPreferredLicenseKey(ctx context.Context, client *newrelic.NewRelic, accountID int) (string, error) {
-	log.Debugf("NEW_RELIC_LICENSE_KEY not set; searching for a license key to use for account %d", accountID)
+	log.Debugf("no license key configured; searching for a license key to use for account %d", accountID)
 
 	// Try to find the preferred key by name directly — avoids fetching all keys on
 	// accounts with many ingest keys.
