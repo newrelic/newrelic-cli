@@ -25,7 +25,7 @@ const (
 )
 
 type ConfigValidator struct {
-	client            *newrelic.NewRelic
+	client *newrelic.NewRelic
 	*validation.PollingNRQLValidator
 	PostRetryDelaySec int
 	PostMaxRetries    int
