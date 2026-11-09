@@ -1,5 +1,10 @@
+<a name="v0.115.9"></a>
+## [v0.115.9] - 2026-11-09
+### Bug Fixes
+- **install:** fix license key lookup and validation for accounts with >1,000 ingest keys ([#1918](https://github.com/newrelic/newrelic-cli/issues/1918))
+
 <a name="v0.115.8"></a>
-## [v0.115.8] - 2026-10-29
+## [v0.115.8] - 2026-11-05
 <a name="v0.115.7"></a>
 ## [v0.115.7] - 2026-10-29
 ### Bug Fixes
@@ -2950,7 +2955,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.8...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.9...HEAD
+[v0.115.9]: https://github.com/newrelic/newrelic-cli/compare/v0.115.8...v0.115.9
 [v0.115.8]: https://github.com/newrelic/newrelic-cli/compare/v0.115.7...v0.115.8
 [v0.115.7]: https://github.com/newrelic/newrelic-cli/compare/v0.115.6...v0.115.7
 [v0.115.6]: https://github.com/newrelic/newrelic-cli/compare/v0.115.5...v0.115.6
