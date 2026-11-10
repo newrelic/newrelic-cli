@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
         with:
           ref: main
           fetch-depth: 0
@@ -65,10 +65,10 @@ jobs:
 
       - name: Get latest tag
         id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@v1
+        uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435  # v1
 
       - name: Fetch Github Release Asset - NewRelicCLIInstaller.msi
-        uses: dsaltares/fetch-gh-release-asset@0.06
+        uses: dsaltares/fetch-gh-release-asset@0efe227dedb360b09ea0e533795d584b61c461a9  # 0.06
         with:
           repo: "newrelic/newrelic-cli"
           version: "tags/${{ steps.get-latest-tag.outputs.tag }}"
@@ -88,7 +88,7 @@ jobs:
 
       - name: Create currentVersion.txt
         id: create-current-version
-        uses: "finnp/create-file-action@master"
+        uses: "finnp/create-file-action@ba7436058fbdd9579be2f36fcfb1b0ed1e692ab8"  # master
         env:
           FILE_NAME: "currentVersion.txt"
           FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"

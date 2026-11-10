@@ -408,3 +408,12 @@ jobs:
       CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
       AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN_V2 }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+  # ── JOB 4: Docker snapshot (newrelic/cli:latest) ───────────────────────────
+  snapshot:
+    name: "🐳 Push newrelic/cli:latest Docker image"
+    needs: publish
+    uses: newrelic/newrelic-cli/.github/workflows/snapshot.yml@main
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
