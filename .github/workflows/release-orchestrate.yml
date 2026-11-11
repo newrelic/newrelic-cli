@@ -71,6 +71,7 @@ jobs:
     environment: production
     permissions:
       contents: write
+      id-token: write    # required for OIDC credential exchange (OIL S3 upload)
 
     steps:
 
@@ -401,6 +402,62 @@ jobs:
           fi
           echo "✅ OIL GitHub Release published: https://github.com/newrelic/open-install-library/releases/tag/${TAG}"
 
+      # ── OIL S3 UPLOAD ─────────────────────────────────────────────────────
+      # Must happen BEFORE the CLI tag is pushed. The CLI build (make recipes)
+      # reads currentVersion.txt from S3 to decide which recipes.zip to embed.
+      # If this block fails the rollback step will delete the OIL tag and release,
+      # leaving a clean slate for a re-run.
+
+      - name: "Release OIL: Configure AWS Credentials (OIDC)"
+        if: inputs.include_oil == true
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN_V2 }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: "Release OIL: Upload recipes.zip to S3"
+        if: inputs.include_oil == true
+        env:
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          aws s3 cp "$GITHUB_WORKSPACE/recipes.zip" \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
+          echo "✅ recipes.zip uploaded to S3 at install/open-install-library/${TAG}/recipes.zip"
+
+      - name: "Release OIL: Upload currentVersion.txt to S3"
+        if: inputs.include_oil == true
+        env:
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          echo "${TAG}" > /tmp/currentVersion-oil.txt
+          aws s3 cp /tmp/currentVersion-oil.txt \
+            s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+            --cache-control no-cache
+          echo "✅ OIL currentVersion.txt updated to ${TAG}."
+
+      - name: "Release OIL: Verify S3 Artifacts"
+        if: inputs.include_oil == true
+        env:
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set -euo pipefail
+          S3_VERSION=$(aws s3 cp \
+            s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+            - --quiet | tr -d '[:space:]')
+          if [ "$S3_VERSION" != "$TAG" ]; then
+            echo "❌ currentVersion.txt mismatch: S3 has '${S3_VERSION}', expected '${TAG}'"
+            exit 1
+          fi
+          if ! aws s3 ls \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip" \
+            > /dev/null 2>&1; then
+            echo "❌ recipes.zip not found at install/open-install-library/${TAG}/recipes.zip"
+            exit 1
+          fi
+          echo "✅ OIL S3 artifacts verified — CLI build may now proceed."
+
       # ── SECTION 4: CLI RELEASE ────────────────────────────────────────────
       # Order is critical: snapshot → docs commit → CHANGELOG commit → push → tag.
       # CHANGELOG must be on main before the tag is pushed so goreleaser sees it.
@@ -473,11 +530,12 @@ jobs:
 
       # ── SECTION 5: ROLLBACK ───────────────────────────────────────────────
       # Runs only if the workflow failed AND include_oil was true.
-      # Deletes the OIL tag and release so the workflow can be re-run cleanly.
+      # Cleans up: OIL tag, OIL GitHub Release, OIL S3 artifacts.
       # CLI preparatory commits (docs, CHANGELOG) are left on main — re-running
-      # the workflow will generate a second idempotent commit, which is harmless.
+      # the workflow will regenerate them idempotently, which is harmless.
+      # The CLI tag is never pushed if this section runs (it's pushed after S3).
 
-      - name: "Rollback: Delete OIL Tag and Release"
+      - name: "Rollback: Delete OIL Tag, Release and S3 Artifacts"
         if: failure() && inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -537,6 +595,33 @@ jobs:
             echo "ℹ️  No OIL release ID available — release may not have been created yet."
           fi
 
+          # 3. Revert OIL S3 artifacts (best-effort — AWS credentials may not be set
+          #    if the OIDC step itself failed, so suppress errors)
+          echo "🗑️  Attempting to revert OIL S3 artifacts for ${TAG}..."
+          PREV_VERSION=$(aws s3 cp \
+            s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+            - --quiet 2>/dev/null | tr -d '[:space:]' || true)
+
+          if [ "${PREV_VERSION}" = "${TAG}" ]; then
+            # currentVersion.txt was already updated to this tag — we need to find
+            # and restore the previous version. Since we don't store it, we can only
+            # delete the recipes.zip for this tag and leave currentVersion.txt stale.
+            # Flag this for manual resolution.
+            echo "⚠️  currentVersion.txt on S3 already points to ${TAG}."
+            echo "   Manual step required: restore currentVersion.txt to the previous version."
+            ROLLBACK_FAILED=true
+          fi
+
+          # Delete the versioned recipes.zip regardless (idempotent)
+          if aws s3 ls "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip" \
+              > /dev/null 2>&1; then
+            aws s3 rm "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip" \
+              2>/dev/null && echo "✅ Deleted S3 recipes.zip for ${TAG}." \
+              || echo "⚠️  Could not delete S3 recipes.zip — may need manual cleanup."
+          else
+            echo "ℹ️  No S3 recipes.zip found for ${TAG} — already clean."
+          fi
+
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           if [ "$ROLLBACK_FAILED" = "true" ]; then
@@ -549,7 +634,11 @@ jobs:
             echo "   2. Delete or unpublish the OIL GitHub Release:"
             echo "      https://github.com/newrelic/open-install-library/releases"
             echo ""
-            echo "   3. Once cleaned up, re-run this workflow from scratch."
+            echo "   3. Restore OIL S3 currentVersion.txt to the previous version:"
+            echo "      aws s3 cp - s3://nr-downloads-main/install/open-install-library/currentVersion.txt \\"
+            echo "        --cache-control no-cache <<< '<previous-version>'"
+            echo ""
+            echo "   4. Once cleaned up, re-run this workflow from scratch."
           else
             echo "✅ Rollback complete. The workflow can be re-run safely."
           fi
