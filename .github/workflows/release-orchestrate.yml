@@ -74,7 +74,7 @@ jobs:
 
       # ── SECTION 0: GUARD ──────────────────────────────────────────────────
 
-      - name: Guard: Verify Branch Is Main
+      - name: "Guard: Verify Branch Is Main"
         run: |
           set -euo pipefail
           if [ "${{ github.ref }}" != "refs/heads/main" ]; then
@@ -86,22 +86,22 @@ jobs:
 
       # ── SECTION 1: SETUP ──────────────────────────────────────────────────
 
-      - name: Setup: Install Go
+      - name: "Setup: Install Go"
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff  # v5
         with:
           go-version: 1.26.x
 
-      - name: Setup: Add GOBIN to PATH
+      - name: "Setup: Add GOBIN to PATH"
         shell: bash
         run: echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
-      - name: Setup: Checkout CLI
+      - name: "Setup: Checkout CLI"
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
         with:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Setup: Install Release Tooling
+      - name: "Setup: Install Release Tooling"
         run: |
           set -euo pipefail
           go install github.com/caarlos0/svu@latest
@@ -110,7 +110,7 @@ jobs:
           go install github.com/client9/misspell/cmd/misspell@v0.3.4
           echo "✅ Release tooling installed."
 
-      - name: Setup: Calculate Next Version
+      - name: "Setup: Calculate Next Version"
         id: version
         run: |
           set -euo pipefail
@@ -129,7 +129,7 @@ jobs:
       # ── SECTION 2: PRE-FLIGHT ─────────────────────────────────────────────
       # All checks must pass before any irreversible change is made.
 
-      - name: Pre-flight: Verify PGP Signing Key
+      - name: "Pre-flight: Verify PGP Signing Key"
         run: |
           set -euo pipefail
           echo "${{ secrets.PGP_PRIVATE_KEY }}" | gpg --batch --import 2>/dev/null
@@ -141,14 +141,14 @@ jobs:
           fi
           echo "✅ PGP signing key verified."
 
-      - name: Pre-flight: Verify Docker Credentials
+      - name: "Pre-flight: Verify Docker Credentials"
         run: |
           set -euo pipefail
           echo "${{ secrets.DOCKER_PASSWORD }}" | \
             docker login --username "${{ secrets.DOCKER_USERNAME }}" --password-stdin
           echo "✅ Docker credentials valid."
 
-      - name: Pre-flight: Verify OIL Tag Does Not Exist
+      - name: "Pre-flight: Verify OIL Tag Does Not Exist"
         if: inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -171,7 +171,7 @@ jobs:
       # All steps in this section are gated on inputs.include_oil == true.
       # Order is critical: release marker commit → push → tag (not before push).
 
-      - name: Release OIL: Checkout OIL Main Branch
+      - name: "Release OIL: Checkout OIL Main Branch"
         if: inputs.include_oil == true
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
         with:
@@ -180,7 +180,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: Release OIL: Get Changes Since Last Tag
+      - name: "Release OIL: Get Changes Since Last Tag"
         if: inputs.include_oil == true
         id: oil_changes
         run: |
@@ -200,7 +200,7 @@ jobs:
             } >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Release OIL: Create GitHub Release (Draft)
+      - name: "Release OIL: Create GitHub Release (Draft)"
         if: inputs.include_oil == true
         id: oil_release
         env:
@@ -240,14 +240,14 @@ jobs:
           echo "release_id=${RELEASE_ID}" >> "$GITHUB_OUTPUT"
           echo "upload_url=${UPLOAD_URL}" >> "$GITHUB_OUTPUT"
 
-      - name: Release OIL: Write version.txt
+      - name: "Release OIL: Write version.txt"
         if: inputs.include_oil == true
         run: |
           set -euo pipefail
           echo "${{ steps.version.outputs.cli_version }}" > .oil/recipes/version.txt
           echo "✅ version.txt written: ${{ steps.version.outputs.cli_version }}"
 
-      - name: Release OIL: Zip Recipes
+      - name: "Release OIL: Zip Recipes"
         if: inputs.include_oil == true
         run: |
           set -euo pipefail
@@ -256,7 +256,7 @@ jobs:
           echo "✅ recipes.zip created at $GITHUB_WORKSPACE/recipes.zip"
           ls -lh "$GITHUB_WORKSPACE/recipes.zip"
 
-      - name: Release OIL: Upload recipes.zip to GitHub Release
+      - name: "Release OIL: Upload recipes.zip to GitHub Release"
         if: inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -276,7 +276,7 @@ jobs:
           fi
           echo "✅ recipes.zip uploaded to OIL GitHub Release."
 
-      - name: Release OIL: Verify recipes.zip Upload
+      - name: "Release OIL: Verify recipes.zip Upload"
         if: inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -311,7 +311,7 @@ jobs:
           fi
           echo "✅ Asset verified — uploaded ${AGE}s ago"
 
-      - name: Release OIL: Configure Git Identity
+      - name: "Release OIL: Configure Git Identity"
         if: inputs.include_oil == true
         run: |
           set -euo pipefail
@@ -319,7 +319,7 @@ jobs:
           git -C .oil config user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
           echo "✅ Git identity configured for OIL."
 
-      - name: Release OIL: Commit Release Marker to Main
+      - name: "Release OIL: Commit Release Marker to Main"
         if: inputs.include_oil == true
         env:
           TAG: ${{ steps.version.outputs.cli_version }}
@@ -359,7 +359,7 @@ jobs:
           fi
           echo "✅ OIL release marker committed and pushed to main."
 
-      - name: Release OIL: Push Tag
+      - name: "Release OIL: Push Tag"
         if: inputs.include_oil == true
         env:
           TAG: ${{ steps.version.outputs.cli_version }}
@@ -371,7 +371,7 @@ jobs:
           git -C .oil push origin "${TAG}"
           echo "✅ OIL tag ${TAG} pushed."
 
-      - name: Release OIL: Publish GitHub Release
+      - name: "Release OIL: Publish GitHub Release"
         if: inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
@@ -403,14 +403,14 @@ jobs:
       # Order is critical: snapshot → docs commit → CHANGELOG commit → push → tag.
       # CHANGELOG must be on main before the tag is pushed so goreleaser sees it.
 
-      - name: Release CLI: Configure Git Identity
+      - name: "Release CLI: Configure Git Identity"
         run: |
           set -euo pipefail
           git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
           git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
           echo "✅ Git identity configured for CLI."
 
-      - name: Release CLI: Build Snapshot Binary
+      - name: "Release CLI: Build Snapshot Binary"
         run: |
           set -euo pipefail
           mkdir -p $HOME/.cache/snapcraft/download
@@ -418,7 +418,7 @@ jobs:
           make snapshot
           echo "✅ Snapshot binary built."
 
-      - name: Release CLI: Regenerate Docs
+      - name: "Release CLI: Regenerate Docs"
         run: |
           set -euo pipefail
           NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
@@ -435,7 +435,7 @@ jobs:
             echo "ℹ️  No snapshot binary found at bin/${NATIVE_OS}/newrelic — skipping doc regeneration."
           fi
 
-      - name: Release CLI: Update CHANGELOG
+      - name: "Release CLI: Update CHANGELOG"
         run: |
           set -euo pipefail
           GOBIN=$(go env GOPATH)/bin
@@ -448,13 +448,13 @@ jobs:
             -m "chore(changelog): update CHANGELOG for ${{ steps.version.outputs.cli_version }}"
           echo "✅ CHANGELOG updated and committed."
 
-      - name: Release CLI: Push Preparatory Commits
+      - name: "Release CLI: Push Preparatory Commits"
         run: |
           set -euo pipefail
           git push --no-verify origin HEAD:main
           echo "✅ Preparatory commits pushed to CLI main."
 
-      - name: Release CLI: Push Tag
+      - name: "Release CLI: Push Tag"
         env:
           VERSION: ${{ steps.version.outputs.cli_version }}
           INCLUDE_OIL: ${{ inputs.include_oil }}
@@ -475,7 +475,7 @@ jobs:
       # CLI preparatory commits (docs, CHANGELOG) are left on main — re-running
       # the workflow will generate a second idempotent commit, which is harmless.
 
-      - name: Rollback: Delete OIL Tag and Release
+      - name: "Rollback: Delete OIL Tag and Release"
         if: failure() && inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
