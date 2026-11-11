@@ -49,8 +49,22 @@ permissions:
   contents: read
 
 jobs:
+  # ── PRE-FLIGHT TEST GATE ───────────────────────────────────────────────────
+  # Mirrors the test job that preceded Release in the old release.yml.
+  # The orchestrate job will not start until all three suites pass.
+  test:
+    name: "🧪 Run tests before release"
+    uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
+    secrets:
+      NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      NEW_RELIC_ADMIN_API_KEY: ${{ secrets.NEW_RELIC_ADMIN_API_KEY }}
+      NEW_RELIC_API_KEY: ${{ secrets.NEW_RELIC_API_KEY }}
+      NEW_RELIC_LICENSE_KEY: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+      NEW_RELIC_REGION: ${{ secrets.NEW_RELIC_REGION }}
+
   orchestrate:
     name: "🎼 Orchestrate release"
+    needs: test
     runs-on: ubuntu-latest
     environment: production
     permissions:
