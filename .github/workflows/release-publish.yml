@@ -204,8 +204,20 @@ jobs:
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
-      - name: "Publish CLI: Install Snapcraft"
+      - name: "Publish CLI: Install Snapcraft (via snap)"
+        id: snapcraft-snap
+        continue-on-error: true
         uses: samuelmeuli/action-snapcraft@d33c176a9b784876d966f80fb1b461808edc0641  # v2
+
+      - name: "Publish CLI: Install Snapcraft (pip fallback)"
+        if: steps.snapcraft-snap.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          echo "⚠️  snap store unreachable — falling back to pip install snapcraft"
+          sudo apt-get install -y -q python3-pip
+          sudo pip3 install snapcraft
+          snapcraft --version
+          echo "✅ snapcraft installed via pip fallback."
 
       - name: "Publish CLI: Import PGP Signing Key"
         shell: bash
