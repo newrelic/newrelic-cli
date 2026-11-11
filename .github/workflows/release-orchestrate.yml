@@ -403,8 +403,11 @@ jobs:
           echo "✅ OIL GitHub Release published: https://github.com/newrelic/open-install-library/releases/tag/${TAG}"
 
       # ── SECTION 4: CLI RELEASE ────────────────────────────────────────────
-      # Order is critical: snapshot → docs commit → CHANGELOG commit → push → tag.
+      # Order: CHANGELOG commit → push → tag.
       # CHANGELOG must be on main before the tag is pushed so goreleaser sees it.
+      # Note: make snapshot / docs regen are NOT run here. The binary build
+      # happens in release-publish.yml (triggered by the tag push), after OIL
+      # is already on S3, ensuring the released binary embeds the correct recipes.
 
       - name: "Release CLI: Configure Git Identity"
         run: |
@@ -412,31 +415,6 @@ jobs:
           git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
           git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
           echo "✅ Git identity configured for CLI."
-
-      - name: "Release CLI: Build Snapshot Binary"
-        run: |
-          set -euo pipefail
-          mkdir -p $HOME/.cache/snapcraft/download
-          mkdir -p $HOME/.cache/snapcraft/stage-packages
-          make snapshot
-          echo "✅ Snapshot binary built."
-
-      - name: "Release CLI: Regenerate Docs"
-        run: |
-          set -euo pipefail
-          NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
-          if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
-            rm -rf docs/cli/*
-            mkdir -p docs/cli
-            bin/${NATIVE_OS}/newrelic documentation \
-              --outputDir docs/cli/ --format markdown
-            git add docs/cli/*
-            git commit --no-verify \
-              -m "chore(docs): regenerate CLI docs for ${{ steps.version.outputs.cli_version }}"
-            echo "✅ CLI docs regenerated and committed."
-          else
-            echo "ℹ️  No snapshot binary found at bin/${NATIVE_OS}/newrelic — skipping doc regeneration."
-          fi
 
       - name: "Release CLI: Update CHANGELOG"
         run: |
@@ -473,13 +451,14 @@ jobs:
           echo "   Track it at: https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
 
       # ── SECTION 5: ROLLBACK ───────────────────────────────────────────────
-      # Runs only if the workflow failed AND include_oil was true.
-      # Cleans up: OIL tag, OIL GitHub Release.
-      # S3 is NOT touched by this workflow — OIL S3 upload is done by
-      # release-publish.yml under a tag-scoped OIDC token. If publish fails
-      # after S3 upload, re-running the same tag is safe (s3 cp is idempotent).
-      # CLI preparatory commits (docs, CHANGELOG) are left on main — re-running
-      # the workflow will regenerate them idempotently.
+      # Two rollback steps:
+      #   a) OIL rollback  — gated on failure + include_oil. Deletes OIL tag and
+      #      GitHub Release so the workflow can be re-run cleanly. S3 is NOT
+      #      touched here — OIL S3 upload lives in release-publish.yml and is
+      #      idempotent on re-run.
+      #   b) CLI DR guide  — always runs on failure. Prints exact revert commands
+      #      for any CLI main commits (CHANGELOG) that may have been pushed before
+      #      the failure, so an operator can fully abort the release if needed.
 
       - name: "Rollback: Delete OIL Tag and Release"
         if: failure() && inputs.include_oil == true
@@ -544,17 +523,42 @@ jobs:
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           if [ "$ROLLBACK_FAILED" = "true" ]; then
-            echo "❌ ROLLBACK INCOMPLETE — manual steps required:"
+            echo "❌ OIL ROLLBACK INCOMPLETE — manual steps required:"
             echo ""
             echo "   1. Delete OIL tag (if it exists):"
-            echo "      git push origin :refs/tags/${TAG}   (in open-install-library)"
+            echo "      gh api repos/newrelic/open-install-library/git/refs/tags/${TAG} -X DELETE"
             echo "      OR via: https://github.com/newrelic/open-install-library/releases"
             echo ""
             echo "   2. Delete or unpublish the OIL GitHub Release:"
             echo "      https://github.com/newrelic/open-install-library/releases"
-            echo ""
-            echo "   3. Once cleaned up, re-run this workflow from scratch."
           else
-            echo "✅ Rollback complete. The workflow can be re-run safely."
+            echo "✅ OIL rollback complete."
           fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: "Rollback: Print CLI Disaster Recovery Guide"
+        if: failure()
+        env:
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📋 CLI DISASTER RECOVERY — run these if you want to fully abort"
+          echo "   the release and restore CLI main to its pre-release state."
+          echo ""
+          echo "   The workflow may have pushed a CHANGELOG commit to CLI main"
+          echo "   before failing. Check with:"
+          echo "      git log origin/main --oneline -5"
+          echo ""
+          echo "   If you see 'chore(changelog): update CHANGELOG for ${TAG}',"
+          echo "   revert it with:"
+          echo "      COMMIT=\$(git log origin/main --oneline | grep 'update CHANGELOG for ${TAG}' | awk '{print \$1}')"
+          echo "      git revert --no-edit \$COMMIT"
+          echo "      git push origin HEAD:main"
+          echo ""
+          echo "   If the CLI tag ${TAG} was pushed, delete it with:"
+          echo "      gh api repos/newrelic/newrelic-cli/git/refs/tags/${TAG} -X DELETE"
+          echo ""
+          echo "   To re-run the release cleanly after cleanup:"
+          echo "      Trigger release-orchestrate.yml from the GitHub Actions UI."
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
