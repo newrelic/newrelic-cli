@@ -21,7 +21,7 @@ name: "Release: Orchestrate (OIL → CLI)"
 #     self-review, protected branches only).
 #   • Protected v* tag ruleset: only the service account (RELEASE_TOKEN) and
 #     documented bypass members can push v* tags.
-#   • No AWS credentials — all S3 work is in release-publish.yml via OIDC.
+#   • OIL S3 upload uses a short-lived OIDC token (15 min), no stored keys.
 #   • Pre-flight checks run before any irreversible git change.
 #
 # Re-entrancy:
@@ -596,20 +596,34 @@ jobs:
           fi
 
           # 3. Revert OIL S3 artifacts (best-effort — AWS credentials may not be set
-          #    if the OIDC step itself failed, so suppress errors)
+          #    if the OIDC step itself failed, so all aws commands suppress errors)
           echo "🗑️  Attempting to revert OIL S3 artifacts for ${TAG}..."
-          PREV_VERSION=$(aws s3 cp \
+          CURRENT_S3=$(aws s3 cp \
             s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
             - --quiet 2>/dev/null | tr -d '[:space:]' || true)
 
-          if [ "${PREV_VERSION}" = "${TAG}" ]; then
-            # currentVersion.txt was already updated to this tag — we need to find
-            # and restore the previous version. Since we don't store it, we can only
-            # delete the recipes.zip for this tag and leave currentVersion.txt stale.
-            # Flag this for manual resolution.
-            echo "⚠️  currentVersion.txt on S3 already points to ${TAG}."
-            echo "   Manual step required: restore currentVersion.txt to the previous version."
-            ROLLBACK_FAILED=true
+          if [ "${CURRENT_S3}" = "${TAG}" ]; then
+            # currentVersion.txt was updated to this tag — restore the previous tag.
+            # The previous tag is the most recent v* tag in OIL before ${TAG}.
+            PREV_TAG=""
+            if [ -d ".oil" ]; then
+              PREV_TAG=$(git -C .oil tag --list 'v*' --sort=-v:refname \
+                | grep -v "^${TAG}$" | head -1 || true)
+            fi
+            if [ -n "${PREV_TAG}" ]; then
+              echo "${PREV_TAG}" > /tmp/prev-currentVersion.txt
+              aws s3 cp /tmp/prev-currentVersion.txt \
+                s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+                --cache-control no-cache 2>/dev/null \
+                && echo "✅ Restored currentVersion.txt to ${PREV_TAG}." \
+                || { echo "❌ Could not restore currentVersion.txt. Manual step required."; ROLLBACK_FAILED=true; }
+            else
+              echo "⚠️  Could not determine previous OIL version — cannot restore currentVersion.txt."
+              echo "   Manual step required: restore currentVersion.txt to the previous version."
+              ROLLBACK_FAILED=true
+            fi
+          else
+            echo "ℹ️  currentVersion.txt on S3 is '${CURRENT_S3}' (not ${TAG}) — no restore needed."
           fi
 
           # Delete the versioned recipes.zip regardless (idempotent)
