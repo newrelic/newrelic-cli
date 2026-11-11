@@ -1,16 +1,27 @@
-name: Release (OIL --> CLI)
+# ─────────────────────────────────────────────────────────────────────────────
+# RETIRED — this workflow is no longer active.
+#
+# OIL + CLI releases are now orchestrated entirely by:
+#   newrelic/newrelic-cli/.github/workflows/release-orchestrate.yml  (Orchestrate)
+#   newrelic/newrelic-cli/.github/workflows/release-publish.yml      (Publish)
+#
+# This file is kept for historical reference and may be deleted once the new
+# pipeline is confirmed stable end-to-end.
+# ─────────────────────────────────────────────────────────────────────────────
 
-on:
-  workflow_dispatch:
-    inputs:
-      version_tag:
-        description: 'OIL Version Tag to create (e.g., v0.73.1):'
-        required: true
-        type: string
-      version_tag_confirm:
-        description: 'Confirm the OIL Version Tag to create (Must match above):'
-        required: true
-        type: string
+name: "⚠️ Release OIL→CLI (RETIRED — see release-orchestrate.yml)"
+
+# on:   ← trigger intentionally disabled; see comment above
+#   workflow_dispatch:
+#     inputs:
+#       version_tag:
+#         description: 'OIL Version Tag to create (e.g., v0.73.1):'
+#         required: true
+#         type: string
+#       version_tag_confirm:
+#         description: 'Confirm the OIL Version Tag to create (Must match above):'
+#         required: true
+#         type: string
 
 permissions:
   actions: write
@@ -193,16 +204,16 @@ jobs:
         run: |
           echo "🚀 All S3 checks passed. Triggering CLI release workflow..."
           
-          gh workflow run release.yml \
+          gh workflow run release-prepare.yml \
             --repo ${{ github.repository }} \
             --ref main
-          
+
           echo "⏳ Waiting 10 seconds for the run to appear in the API..."
           sleep 10
-          
+
           RUN_URL=$(gh run list \
             --repo ${{ github.repository }} \
-            --workflow release.yml \
+            --workflow release-prepare.yml \
             --branch main \
             --limit 1 \
             --json url \

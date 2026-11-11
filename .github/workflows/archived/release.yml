@@ -1,4 +1,15 @@
-name: Release
+name: "⚠️ Release (DEPRECATED — use release-orchestrate.yml)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DEPRECATED: This workflow uses long-lived IAM credentials.
+#
+# Use the new split workflows instead:
+#   • release-orchestrate.yml — Orchestrate: version bump, CHANGELOG, tag creation
+#   • release-publish.yml     — Publish: OIDC-gated build, sign & publish (auto-triggered)
+#
+# This file is kept for historical reference and may be deleted once the new
+# pipeline is confirmed stable end-to-end.
+# ─────────────────────────────────────────────────────────────────────────────
 
 permissions: write-all
 
