@@ -479,7 +479,7 @@ jobs:
   release-windows-installer:
     name: "Publish: Windows Installer"
     needs: publish
-    uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@${{ github.ref_name }}
+    uses: newrelic/newrelic-cli/.github/workflows/release-windows-installer.yml@main
     secrets:
       PFX_BASE64_CONTENT: ${{ secrets.PFX_BASE64_CONTENT }}
       PFX_CERT_PASSWORD: ${{ secrets.PFX_CERT_PASSWORD }}
@@ -489,7 +489,7 @@ jobs:
   publish-packages:
     name: "Publish: Package Managers"
     needs: release-windows-installer
-    uses: newrelic/newrelic-cli/.github/workflows/release-publish-windows.yml@${{ github.ref_name }}
+    uses: newrelic/newrelic-cli/.github/workflows/release-publish-windows.yml@main
     secrets:
       RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
       DEV_TOOLKIT_TOKEN: ${{ secrets.DEV_TOOLKIT_TOKEN }}

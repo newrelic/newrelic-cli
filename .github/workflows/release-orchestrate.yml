@@ -54,6 +54,7 @@ jobs:
   # The orchestrate job will not start until all three suites pass.
   test:
     name: "Pre-Release: Test Suite"
+    if: github.ref == 'refs/heads/main'
     uses: newrelic/newrelic-cli/.github/workflows/test.yml@main
     secrets:
       NEW_RELIC_ACCOUNT_ID: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
@@ -64,6 +65,7 @@ jobs:
 
   orchestrate:
     name: "Orchestrate Release"
+    if: github.ref == 'refs/heads/main'
     needs: test
     runs-on: ubuntu-latest
     environment: production
