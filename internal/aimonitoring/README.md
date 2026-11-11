@@ -112,11 +112,11 @@ internal/aimonitoring/
 ├── command.go                       # Root command
 ├── command_events.go                # events command
 ├── command_application.go           # application search command
-├── command_dataset.go               # dataset search command
+├── command_dataset_search.go        # dataset search command
 ├── command_test.go
 ├── command_events_test.go
 ├── command_application_test.go
-└── command_dataset_test.go
+└── command_dataset_search_test.go
 ```
 
 ## Additional Resources
