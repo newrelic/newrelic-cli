@@ -6,8 +6,8 @@ name: "Release: Publish (Build, Sign & Upload)"
 # Triggered automatically when a protected v* tag is pushed — which only
 # happens as the final step of release-orchestrate.yml.
 #
-# This workflow handles ALL CLI publishing:
-#   • OIL S3 pre-check (upload was done by orchestrate before tag push)
+# This workflow handles ALL publishing:
+#   • OIL S3 upload (recipes.zip + currentVersion.txt) — if include_oil=true
 #   • CLI build, sign, and GitHub Release
 #   • CLI S3 upload (install.sh, install.ps1, artifacts, currentVersion.txt)
 #   • Windows installer build and signing (called workflow)
@@ -117,34 +117,90 @@ jobs:
           fi
           echo "✅ CLI S3 access confirmed — OIDC credentials valid."
 
-      # ── SECTION 2: OIL S3 PRE-CHECK ──────────────────────────────────────
-      # OIL S3 upload was completed by release-orchestrate.yml before the CLI
-      # tag was pushed. Verify it here before building so a stale S3 state
-      # causes an early, obvious failure rather than a silent wrong embed.
+      # ── SECTION 2: OIL S3 UPLOAD ──────────────────────────────────────────
+      # All steps gated on include_oil == 'true'.
+      # This runs BEFORE make snapshot / make release-publish. Both call
+      # `make recipes`, which reads currentVersion.txt from S3 to decide
+      # which recipes.zip to embed into the CLI binary. Uploading here —
+      # within the same job, before the build steps — guarantees the CLI
+      # binary embeds the correct OIL version.
+      # OIDC works here because this workflow is triggered by a v* tag push,
+      # so github.ref is refs/tags/v*, matching the trust policy sub-claim.
+      # Re-entrancy: all aws s3 cp calls overwrite existing objects, so
+      # re-running a failed publish from the same tag is always safe.
 
-      - name: "Verify OIL: S3 Artifacts Present"
+      - name: "Publish OIL: Verify OIL Tag Exists"
         if: steps.tag_meta.outputs.include_oil == 'true'
+        id: oil_tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
           TAG="${GITHUB_REF_NAME}"
-          echo "🔍 Verifying OIL S3 artifacts for ${TAG} (uploaded by orchestrate)..."
+          echo "🔍 Verifying tag ${TAG} exists in newrelic/open-install-library..."
+
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/open-install-library/git/refs/tags/${TAG}")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ OIL tag ${TAG} not found (HTTP ${HTTP_CODE})."
+            echo "   release-orchestrate.yml did not complete the OIL steps."
+            exit 1
+          fi
+          echo "✅ OIL tag ${TAG} confirmed."
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: "Publish OIL: Download recipes.zip From GitHub Release"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        uses: dsaltares/fetch-gh-release-asset@0efe227dedb360b09ea0e533795d584b61c461a9
+        with:
+          repo: newrelic/open-install-library
+          version: "tags/${{ steps.oil_tag.outputs.tag }}"
+          file: recipes.zip
+          target: recipes.zip
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: "Publish OIL: Upload recipes.zip to S3"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
+          aws s3 cp recipes.zip \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
+          echo "✅ recipes.zip uploaded to s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
+
+      - name: "Publish OIL: Upload currentVersion.txt to S3"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
+          echo "${TAG}" > currentVersion-oil.txt
+          aws s3 cp currentVersion-oil.txt \
+            s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
+            --cache-control no-cache
+          echo "✅ OIL currentVersion.txt updated to ${TAG}."
+
+      - name: "Publish OIL: Verify S3 Artifacts"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
 
           S3_VERSION=$(aws s3 cp \
             s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
             - --quiet | tr -d '[:space:]')
           if [ "$S3_VERSION" != "$TAG" ]; then
-            echo "❌ currentVersion.txt on S3 is '${S3_VERSION}', expected '${TAG}'."
-            echo "   release-orchestrate.yml may not have completed the OIL S3 upload."
+            echo "❌ currentVersion.txt mismatch: S3 has '${S3_VERSION}', expected '${TAG}'"
             exit 1
           fi
-
           if ! aws s3 ls \
             "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip" \
             > /dev/null 2>&1; then
-            echo "❌ recipes.zip not found at install/open-install-library/${TAG}/recipes.zip"
+            echo "❌ recipes.zip not found at s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
             exit 1
           fi
-          echo "✅ OIL S3 artifacts confirmed — CLI build will embed ${TAG} recipes."
+          echo "✅ OIL S3 verified — make recipes will embed ${TAG} when the CLI build runs."
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
