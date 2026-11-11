@@ -22,6 +22,10 @@ type InstallerContext struct {
 	// LocalRecipes is the path to a local recipe directory from which to load recipes.
 	LocalRecipes string
 	deployedBy   string
+
+	// Backup configuration
+	SkipBackup     bool
+	BackupLocation string
 }
 
 func (i *InstallerContext) RecipePathsProvided() bool {
