@@ -48,7 +48,7 @@ on:
 # Per GitHub Actions rules, the caller's top-level permissions cap what called
 # workflows can receive — a job-level grant alone is insufficient for callees.
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 jobs:

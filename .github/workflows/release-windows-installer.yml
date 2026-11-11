@@ -1,6 +1,7 @@
 name: Release - Windows Installer
 
-permissions: write-all
+permissions:
+  contents: write
 
 on:
   workflow_call:
@@ -81,20 +82,33 @@ jobs:
         run: |
           Remove-Item -Path $env:PFX_PATH;
 
-      - name: Get latest release upload URL
+      - name: "Get Release Upload URL"
         id: get-latest-release-upload-url
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        run: echo "::set-output name=upload_url::$(./scripts/get_latest_release_upload_url.sh)"
+        run: |
+          UPLOAD_URL=$(./scripts/get_latest_release_upload_url.sh)
+          echo "upload_url=${UPLOAD_URL}" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Windows installer
+      - name: "Upload Windows Installer"
         id: upload-windows-installer
-        uses: actions/upload-release-asset@v1
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
-          asset_path: .\build\package\msi\NewRelicCLIInstaller\bin\x64\Release\NewRelicCLIInstaller.msi
-          asset_name: NewRelicCLIInstaller.msi
-          asset_content_type: application/octet-stream
+          UPLOAD_URL: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+        run: |
+          set -euo pipefail
+          MSI_PATH="./build/package/msi/NewRelicCLIInstaller/bin/x64/Release/NewRelicCLIInstaller.msi"
+          HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            "${UPLOAD_URL}?name=NewRelicCLIInstaller.msi" \
+            --data-binary @"${MSI_PATH}")
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "❌ Upload failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/upload-response.json
+            exit 1
+          fi
+          echo "✅ NewRelicCLIInstaller.msi uploaded."
