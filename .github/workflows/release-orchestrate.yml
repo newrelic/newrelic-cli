@@ -536,29 +536,64 @@ jobs:
           fi
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-      - name: "Rollback: Print CLI Disaster Recovery Guide"
+      - name: "Rollback: Revert CLI Preparatory Commits"
         if: failure()
         env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           TAG: ${{ steps.version.outputs.cli_version }}
         run: |
-          echo ""
+          set +e  # best-effort — don't mask the original failure
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-          echo "📋 CLI DISASTER RECOVERY — run these if you want to fully abort"
-          echo "   the release and restore CLI main to its pre-release state."
+          echo "⚠️  CLI rollback — reverting any preparatory commits pushed to main..."
+          REVERT_FAILED=false
+
+          # 1. Delete CLI tag if it was already pushed
+          CLI_TAG_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${TAG}")
+          if [ "$CLI_TAG_CHECK" = "200" ]; then
+            echo "🗑️  Deleting CLI tag ${TAG}..."
+            DEL_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X DELETE \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${TAG}")
+            if [ "$DEL_CODE" = "204" ]; then
+              echo "✅ CLI tag ${TAG} deleted."
+            else
+              echo "❌ Failed to delete CLI tag (HTTP ${DEL_CODE})."
+              REVERT_FAILED=true
+            fi
+          else
+            echo "ℹ️  CLI tag ${TAG} does not exist — nothing to delete."
+          fi
+
+          # 2. Revert CHANGELOG commit if it was pushed to main
+          git fetch origin main
+          CHANGELOG_SHA=$(git log origin/main --oneline | \
+            grep "chore(changelog): update CHANGELOG for ${TAG}" | \
+            awk '{print $1}' || true)
+
+          if [ -n "${CHANGELOG_SHA}" ]; then
+            echo "🗑️  Reverting CHANGELOG commit ${CHANGELOG_SHA} from main..."
+            git checkout origin/main
+            git revert --no-edit "${CHANGELOG_SHA}"
+            if git push --no-verify origin HEAD:main; then
+              echo "✅ CHANGELOG commit reverted on main."
+            else
+              echo "❌ Failed to push revert commit."
+              REVERT_FAILED=true
+            fi
+          else
+            echo "ℹ️  No CHANGELOG commit for ${TAG} found on main — nothing to revert."
+          fi
+
           echo ""
-          echo "   The workflow may have pushed a CHANGELOG commit to CLI main"
-          echo "   before failing. Check with:"
-          echo "      git log origin/main --oneline -5"
-          echo ""
-          echo "   If you see 'chore(changelog): update CHANGELOG for ${TAG}',"
-          echo "   revert it with:"
-          echo "      COMMIT=\$(git log origin/main --oneline | grep 'update CHANGELOG for ${TAG}' | awk '{print \$1}')"
-          echo "      git revert --no-edit \$COMMIT"
-          echo "      git push origin HEAD:main"
-          echo ""
-          echo "   If the CLI tag ${TAG} was pushed, delete it with:"
-          echo "      gh api repos/newrelic/newrelic-cli/git/refs/tags/${TAG} -X DELETE"
-          echo ""
-          echo "   To re-run the release cleanly after cleanup:"
-          echo "      Trigger release-orchestrate.yml from the GitHub Actions UI."
+          if [ "$REVERT_FAILED" = "true" ]; then
+            echo "❌ CLI ROLLBACK INCOMPLETE — finish manually:"
+            echo "   Delete tag : gh api repos/${{ github.repository }}/git/refs/tags/${TAG} -X DELETE"
+            echo "   Revert log : git revert \$(git log origin/main --oneline | grep 'CHANGELOG for ${TAG}' | awk '{print \$1}')"
+            echo "               git push origin HEAD:main"
+          else
+            echo "✅ CLI rollback complete. Re-trigger release-orchestrate.yml to retry."
+          fi
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
