@@ -1,5 +1,14 @@
+<a name="v0.115.11"></a>
+## [v0.115.11] - 2026-11-11
+### Bug Fixes
+- **release:** gate jobs on main; fix invalid expression in uses ([#1923](https://github.com/newrelic/newrelic-cli/issues/1923))
+- **release:** quote step names containing colons ([#1922](https://github.com/newrelic/newrelic-cli/issues/1922))
+- **release:** replace upload-release-asset action with curl ([#1921](https://github.com/newrelic/newrelic-cli/issues/1921))
+- **release:** revert svu to [@latest](https://github.com/latest) matching old scripts/release.sh ([#1920](https://github.com/newrelic/newrelic-cli/issues/1920))
+- **release:** replace IAM credentials with OIDC; split into orchestrate/publish workflows ([#1919](https://github.com/newrelic/newrelic-cli/issues/1919))
+
 <a name="v0.115.10"></a>
-## [v0.115.10] - 2026-11-09
+## [v0.115.10] - 2026-11-10
 <a name="v0.115.9"></a>
 ## [v0.115.9] - 2026-11-09
 ### Bug Fixes
@@ -2957,7 +2966,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.10...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.11...HEAD
+[v0.115.11]: https://github.com/newrelic/newrelic-cli/compare/v0.115.10...v0.115.11
 [v0.115.10]: https://github.com/newrelic/newrelic-cli/compare/v0.115.9...v0.115.10
 [v0.115.9]: https://github.com/newrelic/newrelic-cli/compare/v0.115.8...v0.115.9
 [v0.115.8]: https://github.com/newrelic/newrelic-cli/compare/v0.115.7...v0.115.8
