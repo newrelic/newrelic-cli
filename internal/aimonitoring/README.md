@@ -118,6 +118,7 @@ internal/aimonitoring/
 ├── command_events.go                # events command
 ├── command_application.go           # application search command
 ├── command_dataset_search.go        # dataset search command
+├── entity_search.go                 # paginated EntityManagement entitySearch helper
 ├── command_test.go
 ├── command_events_test.go
 ├── command_application_test.go

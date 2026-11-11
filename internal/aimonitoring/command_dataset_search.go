@@ -12,8 +12,6 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/utils"
 )
 
-const maxDatasetSearchPages = 1000
-
 const datasetSearchQuery = `query($cursor: String) {
   actor {
     entityManagement {
@@ -83,42 +81,10 @@ type dataset struct {
 	Tags            []datasetTag `json:"tags"`
 }
 
-type datasetSearchResponse struct {
-	Actor struct {
-		EntityManagement struct {
-			EntitySearch struct {
-				Entities   []dataset `json:"entities"`
-				NextCursor string    `json:"nextCursor"`
-			} `json:"entitySearch"`
-		} `json:"entityManagement"`
-	} `json:"actor"`
-}
-
-// searchDatasets fetches every page of type='AIM_DATASET' entities, following
-// nextCursor until the API reports no more pages, then applies the name filter
-// against the full accumulated set. The API only supports filtering by type, so name
-// filtering has to happen client-side - which only works correctly if every page has
-// been fetched first. It returns an empty (non-nil) slice, logging why, when nothing
-// is found.
 func searchDatasets(name string) ([]dataset, error) {
-	var allDatasets []dataset
-
-	var cursor *string
-	for range maxDatasetSearchPages {
-		var resp datasetSearchResponse
-		vars := map[string]interface{}{"cursor": cursor}
-		if err := client.NRClient.NerdGraph.QueryWithResponseAndContext(utils.SignalCtx, datasetSearchQuery, vars, &resp); err != nil {
-			return nil, fmt.Errorf("failed to search datasets: %w", err)
-		}
-
-		search := resp.Actor.EntityManagement.EntitySearch
-		allDatasets = append(allDatasets, search.Entities...)
-
-		if search.NextCursor == "" {
-			break
-		}
-		nextCursor := search.NextCursor
-		cursor = &nextCursor
+	allDatasets, err := fetchAllEntities[dataset](datasetSearchQuery)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search datasets: %w", err)
 	}
 
 	lowerName := strings.ToLower(name)
