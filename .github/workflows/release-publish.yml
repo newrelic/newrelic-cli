@@ -81,6 +81,7 @@ jobs:
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
         with:
           fetch-depth: 0
+          fetch-tags: true
           token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: "Setup: Read include_oil From Tag"
@@ -204,20 +205,24 @@ jobs:
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
-      - name: "Publish CLI: Install Snapcraft (via snap)"
-        id: snapcraft-snap
-        continue-on-error: true
-        uses: samuelmeuli/action-snapcraft@d33c176a9b784876d966f80fb1b461808edc0641  # v2
-
-      - name: "Publish CLI: Install Snapcraft (pip fallback)"
-        if: steps.snapcraft-snap.outcome == 'failure'
+      - name: "Publish CLI: Install Snapcraft"
         run: |
           set -euo pipefail
-          echo "⚠️  snap store unreachable — falling back to pip install snapcraft"
-          sudo apt-get install -y -q python3-pip
-          sudo pip3 install snapcraft
-          snapcraft --version
-          echo "✅ snapcraft installed via pip fallback."
+          MAX=10
+          DELAY=30
+          for i in $(seq 1 $MAX); do
+            echo "Attempt ${i}/${MAX}: sudo snap install snapcraft --classic --channel stable"
+            if sudo snap install snapcraft --classic --channel stable; then
+              echo "✅ snapcraft installed."
+              exit 0
+            fi
+            if [ "$i" -lt "$MAX" ]; then
+              echo "⚠️  snap store unreachable — retrying in ${DELAY}s..."
+              sleep $DELAY
+            fi
+          done
+          echo "❌ snapcraft install failed after ${MAX} attempts."
+          exit 1
 
       - name: "Publish CLI: Import PGP Signing Key"
         shell: bash
