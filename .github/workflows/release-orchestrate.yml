@@ -258,14 +258,23 @@ jobs:
 
       - name: "[OIL Release] 📤 Upload recipes.zip to OIL GitHub Release"
         if: inputs.include_oil == true
-        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.oil_release.outputs.upload_url }}
-          asset_path: ${{ github.workspace }}/recipes.zip
-          asset_name: recipes.zip
-          asset_content_type: application/octet-stream
+          UPLOAD_URL: ${{ steps.oil_release.outputs.upload_url }}
+        run: |
+          set -euo pipefail
+          HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            "${UPLOAD_URL}?name=recipes.zip" \
+            --data-binary @"${{ github.workspace }}/recipes.zip")
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "❌ Upload failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/upload-response.json
+            exit 1
+          fi
+          echo "✅ recipes.zip uploaded to OIL GitHub Release."
 
       - name: "[OIL Release] ⚙️ Configure git identity for OIL"
         if: inputs.include_oil == true

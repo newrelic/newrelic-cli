@@ -330,24 +330,42 @@ jobs:
           echo "✅ Checksums generated and signed."
 
       - name: "[CLI Build] 📤 Upload checksums to GitHub Release"
-        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.get-upload-url.outputs.upload_url }}
-          asset_path: ./dist/checksums_sha256.txt
-          asset_name: checksums_sha256.txt
-          asset_content_type: text/plain
+          UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
+        run: |
+          set -euo pipefail
+          HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: text/plain" \
+            "${UPLOAD_URL}?name=checksums_sha256.txt" \
+            --data-binary @./dist/checksums_sha256.txt)
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "❌ Upload failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/upload-response.json
+            exit 1
+          fi
+          echo "✅ checksums_sha256.txt uploaded."
 
       - name: "[CLI Build] 📤 Upload checksum signature to GitHub Release"
-        uses: actions/upload-release-asset@e8f9f06c4b078e705bd2ea027f0926603fc9b4d5  # v1
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.get-upload-url.outputs.upload_url }}
-          asset_path: ./dist/checksums_sha256.txt.sig
-          asset_name: checksums_sha256.txt.sig
-          asset_content_type: text/plain
+          UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
+        run: |
+          set -euo pipefail
+          HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: text/plain" \
+            "${UPLOAD_URL}?name=checksums_sha256.txt.sig" \
+            --data-binary @./dist/checksums_sha256.txt.sig)
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "❌ Upload failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/upload-response.json
+            exit 1
+          fi
+          echo "✅ checksums_sha256.txt.sig uploaded."
 
       - name: "[CLI Build] 📝 Write CLI currentVersion.txt"
         run: |
