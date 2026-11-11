@@ -21,7 +21,8 @@ name: "Release: Orchestrate (OIL → CLI)"
 #     self-review, protected branches only).
 #   • Protected v* tag ruleset: only the service account (RELEASE_TOKEN) and
 #     documented bypass members can push v* tags.
-#   • No AWS credentials — all S3 work is in release-publish.yml via OIDC.
+#   • No AWS credentials in this workflow — all S3 work is in release-publish.yml
+#     via OIDC, which requires a tag ref (refs/tags/v*) as the sub-claim.
 #   • Pre-flight checks run before any irreversible git change.
 #
 # Re-entrancy:
@@ -402,8 +403,11 @@ jobs:
           echo "✅ OIL GitHub Release published: https://github.com/newrelic/open-install-library/releases/tag/${TAG}"
 
       # ── SECTION 4: CLI RELEASE ────────────────────────────────────────────
-      # Order is critical: snapshot → docs commit → CHANGELOG commit → push → tag.
+      # Order: CHANGELOG commit → push → tag.
       # CHANGELOG must be on main before the tag is pushed so goreleaser sees it.
+      # Note: make snapshot / docs regen are NOT run here. The binary build
+      # happens in release-publish.yml (triggered by the tag push), after OIL
+      # is already on S3, ensuring the released binary embeds the correct recipes.
 
       - name: "Release CLI: Configure Git Identity"
         run: |
@@ -411,31 +415,6 @@ jobs:
           git config --global user.name  "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_USERNAME }}"
           git config --global user.email "${{ secrets.NEW_RELIC_GITHUB_SERVICE_ACCOUNT_EMAIL }}"
           echo "✅ Git identity configured for CLI."
-
-      - name: "Release CLI: Build Snapshot Binary"
-        run: |
-          set -euo pipefail
-          mkdir -p $HOME/.cache/snapcraft/download
-          mkdir -p $HOME/.cache/snapcraft/stage-packages
-          make snapshot
-          echo "✅ Snapshot binary built."
-
-      - name: "Release CLI: Regenerate Docs"
-        run: |
-          set -euo pipefail
-          NATIVE_OS=$(go version | awk -F '[ /]' '{print $4}')
-          if [ -x "bin/${NATIVE_OS}/newrelic" ]; then
-            rm -rf docs/cli/*
-            mkdir -p docs/cli
-            bin/${NATIVE_OS}/newrelic documentation \
-              --outputDir docs/cli/ --format markdown
-            git add docs/cli/*
-            git commit --no-verify \
-              -m "chore(docs): regenerate CLI docs for ${{ steps.version.outputs.cli_version }}"
-            echo "✅ CLI docs regenerated and committed."
-          else
-            echo "ℹ️  No snapshot binary found at bin/${NATIVE_OS}/newrelic — skipping doc regeneration."
-          fi
 
       - name: "Release CLI: Update CHANGELOG"
         run: |
@@ -472,10 +451,14 @@ jobs:
           echo "   Track it at: https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
 
       # ── SECTION 5: ROLLBACK ───────────────────────────────────────────────
-      # Runs only if the workflow failed AND include_oil was true.
-      # Deletes the OIL tag and release so the workflow can be re-run cleanly.
-      # CLI preparatory commits (docs, CHANGELOG) are left on main — re-running
-      # the workflow will generate a second idempotent commit, which is harmless.
+      # Two rollback steps:
+      #   a) OIL rollback  — gated on failure + include_oil. Deletes OIL tag and
+      #      GitHub Release so the workflow can be re-run cleanly. S3 is NOT
+      #      touched here — OIL S3 upload lives in release-publish.yml and is
+      #      idempotent on re-run.
+      #   b) CLI DR guide  — always runs on failure. Prints exact revert commands
+      #      for any CLI main commits (CHANGELOG) that may have been pushed before
+      #      the failure, so an operator can fully abort the release if needed.
 
       - name: "Rollback: Delete OIL Tag and Release"
         if: failure() && inputs.include_oil == true
@@ -540,17 +523,77 @@ jobs:
           echo ""
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           if [ "$ROLLBACK_FAILED" = "true" ]; then
-            echo "❌ ROLLBACK INCOMPLETE — manual steps required:"
+            echo "❌ OIL ROLLBACK INCOMPLETE — manual steps required:"
             echo ""
             echo "   1. Delete OIL tag (if it exists):"
-            echo "      git push origin :refs/tags/${TAG}   (in open-install-library)"
+            echo "      gh api repos/newrelic/open-install-library/git/refs/tags/${TAG} -X DELETE"
             echo "      OR via: https://github.com/newrelic/open-install-library/releases"
             echo ""
             echo "   2. Delete or unpublish the OIL GitHub Release:"
             echo "      https://github.com/newrelic/open-install-library/releases"
-            echo ""
-            echo "   3. Once cleaned up, re-run this workflow from scratch."
           else
-            echo "✅ Rollback complete. The workflow can be re-run safely."
+            echo "✅ OIL rollback complete."
+          fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+      - name: "Rollback: Revert CLI Preparatory Commits"
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          TAG: ${{ steps.version.outputs.cli_version }}
+        run: |
+          set +e  # best-effort — don't mask the original failure
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "⚠️  CLI rollback — reverting any preparatory commits pushed to main..."
+          REVERT_FAILED=false
+
+          # 1. Delete CLI tag if it was already pushed
+          CLI_TAG_CHECK=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${TAG}")
+          if [ "$CLI_TAG_CHECK" = "200" ]; then
+            echo "🗑️  Deleting CLI tag ${TAG}..."
+            DEL_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              -X DELETE \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/${{ github.repository }}/git/refs/tags/${TAG}")
+            if [ "$DEL_CODE" = "204" ]; then
+              echo "✅ CLI tag ${TAG} deleted."
+            else
+              echo "❌ Failed to delete CLI tag (HTTP ${DEL_CODE})."
+              REVERT_FAILED=true
+            fi
+          else
+            echo "ℹ️  CLI tag ${TAG} does not exist — nothing to delete."
+          fi
+
+          # 2. Revert CHANGELOG commit if it was pushed to main
+          git fetch origin main
+          CHANGELOG_SHA=$(git log origin/main --oneline | \
+            grep "chore(changelog): update CHANGELOG for ${TAG}" | \
+            awk '{print $1}' || true)
+
+          if [ -n "${CHANGELOG_SHA}" ]; then
+            echo "🗑️  Reverting CHANGELOG commit ${CHANGELOG_SHA} from main..."
+            git checkout origin/main
+            git revert --no-edit "${CHANGELOG_SHA}"
+            if git push --no-verify origin HEAD:main; then
+              echo "✅ CHANGELOG commit reverted on main."
+            else
+              echo "❌ Failed to push revert commit."
+              REVERT_FAILED=true
+            fi
+          else
+            echo "ℹ️  No CHANGELOG commit for ${TAG} found on main — nothing to revert."
+          fi
+
+          echo ""
+          if [ "$REVERT_FAILED" = "true" ]; then
+            echo "❌ CLI ROLLBACK INCOMPLETE — finish manually:"
+            echo "   Delete tag : gh api repos/${{ github.repository }}/git/refs/tags/${TAG} -X DELETE"
+            echo "   Revert log : git revert \$(git log origin/main --oneline | grep 'CHANGELOG for ${TAG}' | awk '{print \$1}')"
+            echo "               git push origin HEAD:main"
+          else
+            echo "✅ CLI rollback complete. Re-trigger release-orchestrate.yml to retry."
           fi
           echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
