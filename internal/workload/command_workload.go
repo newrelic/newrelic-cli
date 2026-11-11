@@ -22,6 +22,7 @@ var (
 	entitySearchQueries []string
 	scopeAccountIDs     []int
 	guid                string
+	createDescription   string
 )
 
 var cmdGet = &cobra.Command{
@@ -93,7 +94,8 @@ you also have access to.
 		accountID := configAPI.RequireActiveProfileAccountID()
 
 		createInput := workloads.WorkloadCreateInput{
-			Name: name,
+			Name:        name,
+			Description: createDescription,
 		}
 
 		if len(entityGUIDs) > 0 {
@@ -223,6 +225,7 @@ func init() {
 	// Create
 	Command.AddCommand(cmdCreate)
 	cmdCreate.Flags().StringVarP(&name, "name", "n", "", "the name of the workload")
+	cmdCreate.Flags().StringVarP(&createDescription, "description", "d", "", "the description of the workload")
 	cmdCreate.Flags().StringSliceVarP(&entityGUIDs, "entityGuid", "e", []string{}, "the list of entity Guids composing the workload")
 	cmdCreate.Flags().StringSliceVarP(&entitySearchQueries, "entitySearchQuery", "q", []string{}, "a list of search queries, combined using an OR operator")
 	cmdCreate.Flags().IntSliceVarP(&scopeAccountIDs, "scopeAccountIds", "s", []int{}, "accounts that will be used to get entities from")
