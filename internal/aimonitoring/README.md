@@ -64,7 +64,12 @@ newrelic aimonitoring dataset search --name "My Dataset"
   {
     "id": "MTIzfEFJTXxEQVRBU0VUfDE",
     "name": "My Dataset",
-    "variables": ["input"]
+    "description": "Customer support prompts",
+    "variables": ["input"],
+    "latestVersion": 2,
+    "latestVersionId": "MTIzfEFJTXxEQVRBU0VUX1ZFUlNJT058Mg",
+    "mode": "SINGLE_TURN",
+    "tags": [{"key": "env", "values": ["prod"]}]
   }
 ]
 ```

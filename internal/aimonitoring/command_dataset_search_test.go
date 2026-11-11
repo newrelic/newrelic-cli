@@ -52,9 +52,14 @@ func (p datasetSearchPage) body() string {
 	ents := make([]map[string]interface{}, 0, len(p.datasetNames))
 	for _, name := range p.datasetNames {
 		ents = append(ents, map[string]interface{}{
-			"id":        name + "-id",
-			"name":      name,
-			"variables": []string{"input"},
+			"id":              name + "-id",
+			"name":            name,
+			"description":     name + " description",
+			"variables":       []string{"input"},
+			"latestVersion":   2,
+			"latestVersionId": name + "-version-id",
+			"mode":            "SINGLE_TURN",
+			"tags":            []map[string]interface{}{{"key": "env", "values": []string{"prod"}}},
 		})
 	}
 
@@ -133,9 +138,14 @@ func TestSearchDatasets_MatchIgnoresCase(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, got, 1)
 	assert.Equal(t, dataset{
-		ID:        "Target Dataset-id",
-		Name:      "Target Dataset",
-		Variables: []string{"input"},
+		ID:              "Target Dataset-id",
+		Name:            "Target Dataset",
+		Description:     "Target Dataset description",
+		Variables:       []string{"input"},
+		LatestVersion:   2,
+		LatestVersionID: "Target Dataset-version-id",
+		Mode:            "SINGLE_TURN",
+		Tags:            []datasetTag{{Key: "env", Values: []string{"prod"}}},
 	}, got[0])
 }
 

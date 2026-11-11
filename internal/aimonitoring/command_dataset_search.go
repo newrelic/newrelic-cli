@@ -22,7 +22,15 @@ const datasetSearchQuery = `query($cursor: String) {
           id
           name
           ... on EntityManagementAimDatasetEntity {
+            description
             variables
+            latestVersion
+            latestVersionId
+            mode
+            tags {
+              key
+              values
+            }
           }
         }
         nextCursor
@@ -59,10 +67,20 @@ ignoring case.
 	},
 }
 
+type datasetTag struct {
+	Key    string   `json:"key"`
+	Values []string `json:"values"`
+}
+
 type dataset struct {
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	Variables []string `json:"variables"`
+	ID              string       `json:"id"`
+	Name            string       `json:"name"`
+	Description     string       `json:"description"`
+	Variables       []string     `json:"variables"`
+	LatestVersion   int          `json:"latestVersion"`
+	LatestVersionID string       `json:"latestVersionId"`
+	Mode            string       `json:"mode"`
+	Tags            []datasetTag `json:"tags"`
 }
 
 type datasetSearchResponse struct {
