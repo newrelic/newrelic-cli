@@ -1,4 +1,5 @@
 name: "Release: Publish (Build, Sign & Upload)"
+run-name: "Release: Publish ${{ github.ref_name }}"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # WORKFLOW: release-publish.yml
@@ -83,10 +84,46 @@ jobs:
 
       - name: "Setup: Read include_oil From Tag"
         id: tag_meta
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
-          # Defaults to false for manually pushed tags without the annotation.
-          RAW=$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME" || true)
+          # Read the annotated tag message via the GitHub API rather than git.
+          #
+          # Why not git? On push: tags: triggered workflows, the runner pre-populates
+          # the tag ref (a pointer to a commit SHA) but does NOT fetch the annotated
+          # tag object (the blob that holds the message). git tag -l --format='%(contents)'
+          # reads from the tag object — so it returns empty even with fetch-tags: true,
+          # because fetch --tags pulls refs but the object itself may not transfer
+          # depending on the git transport. The GitHub API always returns the tag object
+          # directly from GitHub's database, bypassing git entirely. It is authoritative.
+          #
+          # For annotated tags: GET /git/refs/tags/{tag} returns object.type="tag"
+          # and object.sha = the tag object SHA (not the commit SHA).
+          # GET /git/tags/{tag_obj_sha} then returns the full tag including .message.
+          #
+          # For lightweight tags (no annotation): object.type="commit", and
+          # GET /git/tags/{commit_sha} returns 404. The || true on RAW handles this
+          # gracefully — RAW stays empty, VALUE stays empty, defaults to false.
+          TAG="${GITHUB_REF_NAME}"
+
+          REF_RESPONSE=$(curl -sf \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" || true)
+
+          TAG_OBJ_SHA=$(echo "$REF_RESPONSE" | jq -r '.object.sha // ""')
+          TAG_OBJ_TYPE=$(echo "$REF_RESPONSE" | jq -r '.object.type // ""')
+
+          RAW=""
+          if [ "$TAG_OBJ_TYPE" = "tag" ] && [ -n "$TAG_OBJ_SHA" ]; then
+            RAW=$(curl -sf \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/git/tags/${TAG_OBJ_SHA}" \
+              | jq -r '.message // ""' || true)
+          fi
+
           VALUE=$(echo "$RAW" | grep 'include_oil=' | cut -d= -f2 | tr -d '[:space:]' || true)
 
           if [ "$VALUE" != "true" ] && [ "$VALUE" != "false" ]; then
@@ -225,11 +262,27 @@ jobs:
           git config core.fileMode false
           echo "✅ Git identity configured."
 
-      - name: "Publish CLI: Build Snapshot"
+      - name: "Publish CLI: Validate Build (Snapshot)"
         run: |
           set -euo pipefail
+          # Runs goreleaser with --snapshot --skip=publish --clean.
+          # This builds every binary target (linux/mac/windows/arm/etc) and
+          # validates the full goreleaser config and recipe embed — but publishes
+          # nothing. Any compile error, goreleaser config mistake, or recipe fetch
+          # failure surfaces here and stops the workflow before goreleaser release
+          # creates a live GitHub Release.
+          #
+          # Why this matters: goreleaser v2 creates GitHub Releases as non-draft
+          # (publicly visible) immediately. If goreleaser release fails mid-upload,
+          # users see a partial release until it is manually cleaned up. This step
+          # acts as a hard gate: if the build is broken, we fail fast before any
+          # public artifact is created.
+          #
+          # The output of this step is intentionally discarded — make release-publish
+          # (next step) runs its own clean + rebuild from scratch. The value is
+          # validation, not artifact reuse.
           make snapshot
-          echo "✅ Snapshot built."
+          echo "✅ Build validated — no compile errors, goreleaser config is valid."
 
       - name: "Publish CLI: Run Goreleaser"
         shell: bash
