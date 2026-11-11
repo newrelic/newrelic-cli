@@ -61,9 +61,6 @@ jobs:
       contents: write    # create GitHub Release + upload assets
       id-token: write    # obtain OIDC token to assume AWS role
 
-    env:
-      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-
     steps:
 
       # ── SECTION 1: SETUP & OIDC ───────────────────────────────────────────
@@ -205,25 +202,6 @@ jobs:
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
-      - name: "Publish CLI: Install Snapcraft"
-        run: |
-          set -euo pipefail
-          MAX=10
-          DELAY=30
-          for i in $(seq 1 $MAX); do
-            echo "Attempt ${i}/${MAX}: sudo snap install snapcraft --classic --channel stable"
-            if sudo snap install snapcraft --classic --channel stable; then
-              echo "✅ snapcraft installed."
-              exit 0
-            fi
-            if [ "$i" -lt "$MAX" ]; then
-              echo "⚠️  snap store unreachable — retrying in ${DELAY}s..."
-              sleep $DELAY
-            fi
-          done
-          echo "❌ snapcraft install failed after ${MAX} attempts."
-          exit 1
-
       - name: "Publish CLI: Import PGP Signing Key"
         shell: bash
         env:
@@ -250,8 +228,6 @@ jobs:
       - name: "Publish CLI: Build Snapshot"
         run: |
           set -euo pipefail
-          mkdir -p $HOME/.cache/snapcraft/download
-          mkdir -p $HOME/.cache/snapcraft/stage-packages
           make snapshot
           echo "✅ Snapshot built."
 
@@ -261,8 +237,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
         run: |
           set -euo pipefail
           chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
