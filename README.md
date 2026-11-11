@@ -55,6 +55,16 @@ page.
 
 The latest New Relic CLI documentation is available in the repository's [docs](https://github.com/newrelic/newrelic-cli/blob/main/docs/cli/newrelic.md) directory.
 
+### Guided Install: Scope and Usage
+
+The `newrelic install` command provides automated installation of New Relic agents and integrations.
+
+**Important:** This command is designed for **initial installations on new hosts**. When run on a system with existing New Relic agents, it will reset configurations to defaults as part of ensuring a clean installation.
+
+For upgrading existing agents while preserving custom configurations, use the [manual upgrade procedures](https://docs.newrelic.com/docs/infrastructure/install-infrastructure-agent/update-or-uninstall/update-infrastructure-agent/) documented for each agent type.
+
+See the [Install Guide](docs/INSTALL_GUIDE.md) for detailed information about when to use guided install versus manual upgrades.
+
 ## Installation & Upgrades
 
 Installation options are available for various platforms. If you're running an older version of the CLI you can use these commands to update to the latest version.
@@ -321,9 +331,8 @@ New Relic hosts and moderates an online forum where you can interact with New Re
 - [Roadmap](https://newrelic.github.io/developer-toolkit/roadmap/) - As part of the Developer Toolkit, the roadmap for this project follows the same RFC process
 - [Issues or Enhancement Requests](https://github.com/newrelic/newrelic-cli/issues) - Issues and enhancement requests can be submitted in the Issues tab of this repository. Please search for and review the existing open issues before submitting a new issue.
 - [Contributors Guide](CONTRIBUTING.md) - Contributions are welcome (and if you submit a Enhancement Request, expect to be invited to contribute it yourself :grin:).
-- [Community discussion board](https://discuss.newrelic.com/c/build-on-new-relic/developer-toolkit) - Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub.
 
-Please do not report issues with the CLI to New Relic Global Technical Support. Instead, visit the [`Explorers Hub`](https://discuss.newrelic.com/c/build-on-new-relic) for troubleshooting and best-practices.
+Please do not report issues with the CLI to New Relic Global Technical Support. Instead, submit issues and questions through [GitHub Issues](https://github.com/newrelic/newrelic-cli/issues) for community support and troubleshooting.
 
 ## Issues / Enhancement Requests
 
