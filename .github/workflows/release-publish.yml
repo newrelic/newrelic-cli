@@ -239,6 +239,14 @@ jobs:
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
+      - name: "Publish CLI: Clean OIL Temp Files"
+        run: |
+          # recipes.zip and currentVersion-oil.txt are written to the repo root
+          # by the OIL S3 upload steps above. goreleaser's dirty-tree check treats
+          # any untracked file as a hard error, so remove them before the build.
+          rm -f recipes.zip currentVersion-oil.txt
+          echo "✅ OIL temp files removed."
+
       - name: "Publish CLI: Import PGP Signing Key"
         shell: bash
         env:
