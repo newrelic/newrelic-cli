@@ -18,6 +18,8 @@ export NEW_RELIC_ACCOUNT_ID="your-account-id"
   - `--tags` — only show apps with a matching tag (e.g. `aiEnabledApp:true`)
   - `--name` — look up one specific app by name
   - `--since` — how far back to look (default `7 days ago`)
+- **`newrelic aimonitoring dataset search`** — list the AI Monitoring datasets you have access to
+  - `--name` — only show datasets whose name contains this value (case-insensitive)
 
 ## Command Reference
 
@@ -45,6 +47,27 @@ newrelic aimonitoring application search --tags aiEnabledApp:true --name checkou
 ```
 
 > `--tags` filters the entities *resolved from* the AI Monitoring NRDB query (tags live on the entity, not on the LLM events themselves). `--name` is applied as part of the underlying NRQL query, since `appName` is reported directly on the LLM events.
+
+### `aimonitoring dataset search` - Find AI Monitoring datasets
+
+Lists every `AIM_DATASET` entity the user has access to, following `nextCursor` so every page is returned. The entity search API only filters by type, so `--name` is applied client-side as a case-insensitive partial match: any dataset whose name contains the given value is returned.
+
+**Flags:** `--name` (optional, omit to list every dataset).
+
+```bash
+newrelic aimonitoring dataset search --name "My Dataset"
+```
+
+**Response:**
+```json
+[
+  {
+    "id": "MTIzfEFJTXxEQVRBU0VUfDE",
+    "name": "My Dataset",
+    "variables": ["input"]
+  }
+]
+```
 
 ### `aimonitoring events` - Query AI Monitoring telemetry
 
@@ -89,9 +112,11 @@ internal/aimonitoring/
 ├── command.go                       # Root command
 ├── command_events.go                # events command
 ├── command_application.go           # application search command
+├── command_dataset.go               # dataset search command
 ├── command_test.go
 ├── command_events_test.go
-└── command_application_test.go
+├── command_application_test.go
+└── command_dataset_test.go
 ```
 
 ## Additional Resources
