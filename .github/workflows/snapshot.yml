@@ -1,6 +1,7 @@
 name: Snapshot
 
-permissions: write-all
+permissions:
+  contents: read
 
 on:
   workflow_call:
