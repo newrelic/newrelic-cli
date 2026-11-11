@@ -37,7 +37,6 @@ include build/lint.mk
 include build/package.mk
 include build/recipes.mk
 include build/release.mk
-include build/snapcraft.mk
 include build/test.mk
 include build/tools.mk
 include build/util.mk

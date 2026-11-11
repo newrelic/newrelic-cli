@@ -61,9 +61,6 @@ jobs:
       contents: write    # create GitHub Release + upload assets
       id-token: write    # obtain OIDC token to assume AWS role
 
-    env:
-      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
-
     steps:
 
       # ── SECTION 1: SETUP & OIDC ───────────────────────────────────────────
@@ -81,6 +78,7 @@ jobs:
         uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26  # v3
         with:
           fetch-depth: 0
+          fetch-tags: true
           token: ${{ secrets.RELEASE_TOKEN }}
 
       - name: "Setup: Read include_oil From Tag"
@@ -204,9 +202,6 @@ jobs:
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
-      - name: "Publish CLI: Install Snapcraft"
-        uses: samuelmeuli/action-snapcraft@d33c176a9b784876d966f80fb1b461808edc0641  # v2
-
       - name: "Publish CLI: Import PGP Signing Key"
         shell: bash
         env:
@@ -233,8 +228,6 @@ jobs:
       - name: "Publish CLI: Build Snapshot"
         run: |
           set -euo pipefail
-          mkdir -p $HOME/.cache/snapcraft/download
-          mkdir -p $HOME/.cache/snapcraft/stage-packages
           make snapshot
           echo "✅ Snapshot built."
 
@@ -244,8 +237,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          SNAPCRAFT_TOKEN: ${{ secrets.SNAPCRAFT_TOKEN }}
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_TOKEN }}
         run: |
           set -euo pipefail
           chmod +x scripts/win_metadata.sh scripts/win_metadata_files_remove.sh
