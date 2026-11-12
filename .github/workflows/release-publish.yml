@@ -361,8 +361,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
-          UPLOAD_URL=$(./scripts/get_latest_release_upload_url.sh)
+          # The GitHub API returns upload_url as a RFC 6570 URI template, e.g.:
+          #   https://uploads.github.com/.../assets{?name,label}
+          # curl does not expand URI templates — it sends the braces literally,
+          # producing a malformed path like /assets?name?name=foo or /assetslabel?name=foo.
+          # Strip the template suffix here so all downstream upload steps get a clean base URL.
+          RAW_URL=$(./scripts/get_latest_release_upload_url.sh)
+          UPLOAD_URL="${RAW_URL%\{*}"
           echo "upload_url=${UPLOAD_URL}" >> "$GITHUB_OUTPUT"
+          echo "✅ Upload URL: ${UPLOAD_URL}"
 
       - name: "Publish CLI: Generate and Sign Checksums"
         id: checksums
