@@ -439,6 +439,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.cli_version }}
           INCLUDE_OIL: ${{ inputs.include_oil }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
           # The tag annotation encodes include_oil so release-publish.yml can read
@@ -448,7 +449,31 @@ jobs:
           echo ""
           echo "✅ CLI tag ${VERSION} pushed (include_oil=${INCLUDE_OIL})."
           echo "🚀 release-publish.yml will now trigger automatically."
-          echo "   Track it at: https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
+          echo ""
+          echo "⏳ Waiting for release-publish.yml run to register..."
+          PUBLISH_URL=""
+          for i in $(seq 1 12); do
+            sleep 5
+            PUBLISH_URL=$(curl -sf \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?event=push&per_page=10" \
+              | jq -r --arg tag "refs/tags/${VERSION}" \
+                '.workflow_runs[]
+                 | select(.head_branch == $tag and (.name | test("Publish")))
+                 | .html_url' \
+              | head -1 || true)
+            if [ -n "$PUBLISH_URL" ]; then
+              break
+            fi
+          done
+          if [ -n "$PUBLISH_URL" ]; then
+            echo "✅ Publish run detected:"
+            echo "   ${PUBLISH_URL}"
+          else
+            echo "ℹ️  Publish run not yet visible — track it at:"
+            echo "   https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
+          fi
 
       # ── SECTION 5: ROLLBACK ───────────────────────────────────────────────
       # Two rollback steps:
