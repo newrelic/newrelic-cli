@@ -55,7 +55,7 @@ jobs:
 
       - name: Install aws cli
         run: |
-          sudo snap install aws-cli --classic
+          sudo apt-get install -y awscli
 
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
@@ -65,7 +65,12 @@ jobs:
 
       - name: Get latest tag
         id: get-latest-tag
-        uses: actions-ecosystem/action-get-latest-tag@b7c32daec3395a9616f88548363a42652b22d435  # v1
+        run: |
+          # action-get-latest-tag runs git fetch --tags internally which rejects
+          # the tag ref already present on push: tags: runners ("would clobber existing tag").
+          # This is a called workflow triggered after a tag push — GITHUB_REF_NAME
+          # is the triggering tag, available via the caller's context.
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Fetch Github Release Asset - NewRelicCLIInstaller.msi
         uses: dsaltares/fetch-gh-release-asset@0efe227dedb360b09ea0e533795d584b61c461a9  # 0.06
@@ -88,10 +93,8 @@ jobs:
 
       - name: Create currentVersion.txt
         id: create-current-version
-        uses: "finnp/create-file-action@ba7436058fbdd9579be2f36fcfb1b0ed1e692ab8"  # master
-        env:
-          FILE_NAME: "currentVersion.txt"
-          FILE_DATA: "${{ steps.get-latest-tag.outputs.tag }}"
+        run: |
+          echo "${{ steps.get-latest-tag.outputs.tag }}" > currentVersion.txt
 
       - name: Upload currentVersion.txt
         id: upload-current-version

@@ -88,7 +88,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
-          UPLOAD_URL=$(./scripts/get_latest_release_upload_url.sh)
+          # Strip the RFC 6570 URI template suffix {?name,label} that GitHub returns.
+          # curl sends braces literally → malformed URL → HTTP 400.
+          RAW_URL=$(./scripts/get_latest_release_upload_url.sh)
+          UPLOAD_URL="${RAW_URL%\{*}"
           echo "upload_url=${UPLOAD_URL}" >> "$GITHUB_OUTPUT"
 
       - name: "Upload Windows Installer"
