@@ -170,6 +170,40 @@ jobs:
           fi
           echo "✅ Tag ${TAG} does not exist in open-install-library — safe to proceed."
 
+      - name: "Pre-flight: Verify OIL S3 State (CLI-only release)"
+        if: inputs.include_oil != true
+        run: |
+          set -euo pipefail
+          # CLI-only release: no OIL update will happen. The CLI binary will embed
+          # whatever OIL version S3 currently points to. Verify that version is
+          # valid and reachable before any irreversible git changes are made.
+          # This also catches a stale currentVersion.txt left by a failed prior run.
+          OIL_VERSION=$(curl -sf \
+            "https://s3.us-east-1.amazonaws.com/nr-downloads-main/install/open-install-library/currentVersion.txt" \
+            | tr -d '[:space:]')
+
+          if [ -z "$OIL_VERSION" ]; then
+            echo "❌ Could not read OIL currentVersion.txt from S3."
+            echo "   S3 may be unreachable, or the file is empty."
+            exit 1
+          fi
+
+          ZIP_URL="https://s3.us-east-1.amazonaws.com/nr-downloads-main/install/open-install-library/${OIL_VERSION}/recipes.zip"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --head "${ZIP_URL}")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ recipes.zip not found for OIL ${OIL_VERSION} (HTTP ${HTTP_CODE})."
+            echo "   URL checked: ${ZIP_URL}"
+            echo "   currentVersion.txt may be stale from a failed release."
+            echo "   Fix S3 manually or run a full release with include_oil=true."
+            exit 1
+          fi
+
+          echo "ℹ️  CLI-only release — OIL will NOT be updated."
+          echo "   The CLI binary will embed OIL version: ${OIL_VERSION}"
+          echo "   recipes.zip confirmed reachable at S3."
+          echo "   If this is not the intended OIL version, cancel now and run with include_oil=true."
+
       # ── SECTION 3: OIL RELEASE ────────────────────────────────────────────
       # All steps in this section are gated on inputs.include_oil == true.
       # Order is critical: release marker commit → push → tag (not before push).
