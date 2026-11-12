@@ -107,7 +107,7 @@ jobs:
       - name: "Setup: Install Release Tooling"
         run: |
           set -euo pipefail
-          go install github.com/caarlos0/svu@latest
+          go install github.com/caarlos0/svu@v3.4.4
           go install github.com/x-motemen/gobump/cmd/gobump@v0.3.0
           go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.4
           go install github.com/client9/misspell/cmd/misspell@v0.3.4

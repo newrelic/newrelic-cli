@@ -18,10 +18,31 @@ $version = $null
 try {
     $version = $WebClient.DownloadString("https://download.newrelic.com/install/newrelic-cli/currentVersion.txt").Trim();
     $WebClient.DownloadFile("https://download.newrelic.com/install/newrelic-cli/${version}/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi");
+    $WebClient.DownloadFile("https://download.newrelic.com/install/newrelic-cli/${version}/checksums_sha256.txt", "$env:TEMP\checksums_sha256.txt");
 } catch {
     Write-Output "`nCould not download the New Relic CLI installer.`n`nCheck your firewall settings. If you are using a proxy, make sure that you are able to access https://download.newrelic.com and that you have set the HTTPS_PROXY environment variable with your full proxy URL.`n"
     throw
 }
+
+$checksumContent = Get-Content "$env:TEMP\checksums_sha256.txt"
+$expectedHash = $null
+foreach ($line in $checksumContent) {
+    if ($line -match "NewRelicCLIInstaller\.msi") {
+        $expectedHash = ($line -split '\s+')[0].Trim()
+        break
+    }
+}
+
+if (-not $expectedHash) {
+    throw "Could not find checksum for NewRelicCLIInstaller.msi in checksums_sha256.txt. The release may be incomplete."
+}
+
+$actualHash = (Get-FileHash "$env:TEMP\NewRelicCLIInstaller.msi" -Algorithm SHA256).Hash.ToLower()
+if ($actualHash -ne $expectedHash.ToLower()) {
+    throw "Checksum mismatch - aborting installation.`nExpected : $expectedHash`nActual   : $actualHash`nThe downloaded file may have been tampered with."
+}
+
+Write-Output "Checksum verified: $actualHash"
 
 try {
 function Find-UninstallGuids {

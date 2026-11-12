@@ -85,7 +85,7 @@ jobs:
       - name: "Setup: Read include_oil From Tag"
         id: tag_meta
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # Read the annotated tag message via the GitHub API rather than git.
@@ -205,6 +205,18 @@ jobs:
             "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
           echo "✅ recipes.zip uploaded to s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
 
+      - name: "Publish OIL: Generate and Upload recipes.zip.sha256 to S3"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.oil_tag.outputs.tag }}"
+          sha256sum recipes.zip | awk '{print $1}' > recipes.zip.sha256
+          COMPUTED=$(cat recipes.zip.sha256)
+          echo "🔑 recipes.zip SHA-256: ${COMPUTED}"
+          aws s3 cp recipes.zip.sha256 \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256"
+          echo "✅ recipes.zip.sha256 uploaded to s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256"
+
       - name: "Publish OIL: Upload currentVersion.txt to S3"
         if: steps.tag_meta.outputs.include_oil == 'true'
         run: |
@@ -235,16 +247,31 @@ jobs:
             echo "❌ recipes.zip not found at s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
             exit 1
           fi
+          if ! aws s3 ls \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256" \
+            > /dev/null 2>&1; then
+            echo "❌ recipes.zip.sha256 not found — hash file missing alongside recipes.zip"
+            exit 1
+          fi
+          S3_HASH=$(aws s3 cp \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256" \
+            - --quiet | tr -d '[:space:]')
+          LOCAL_HASH=$(cat recipes.zip.sha256 | tr -d '[:space:]')
+          if [ "$S3_HASH" != "$LOCAL_HASH" ]; then
+            echo "❌ recipes.zip.sha256 on S3 (${S3_HASH}) does not match local (${LOCAL_HASH})"
+            exit 1
+          fi
           echo "✅ OIL S3 verified — make recipes will embed ${TAG} when the CLI build runs."
+          echo "   recipes.zip SHA-256: ${S3_HASH}"
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
       - name: "Publish CLI: Clean OIL Temp Files"
         run: |
-          # recipes.zip and currentVersion-oil.txt are written to the repo root
-          # by the OIL S3 upload steps above. goreleaser's dirty-tree check treats
-          # any untracked file as a hard error, so remove them before the build.
-          rm -f recipes.zip currentVersion-oil.txt
+          # recipes.zip, recipes.zip.sha256, and currentVersion-oil.txt are written
+          # to the repo root by the OIL S3 upload steps above. goreleaser's
+          # dirty-tree check treats any untracked file as a hard error.
+          rm -f recipes.zip recipes.zip.sha256 currentVersion-oil.txt
           echo "✅ OIL temp files removed."
 
       - name: "Publish CLI: Import PGP Signing Key"
@@ -295,7 +322,10 @@ jobs:
       - name: "Publish CLI: Run Goreleaser"
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          # GITHUB_TOKEN (run-scoped, OIDC-backed) is used for GitHub Release
+          # creation and asset uploads — satisfies Req 3 (no standing credentials).
+          # RELEASE_TOKEN (PAT) is NOT passed here; goreleaser uses GITHUB_TOKEN.
+          GITHUB_TOKEN: ${{ github.token }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
@@ -358,7 +388,7 @@ jobs:
         id: get-upload-url
         shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # The GitHub API returns upload_url as a RFC 6570 URI template, e.g.:
@@ -392,7 +422,7 @@ jobs:
 
       - name: "Publish CLI: Upload Checksums to GitHub Release"
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
         run: |
           set -euo pipefail
@@ -413,7 +443,7 @@ jobs:
 
       - name: "Publish CLI: Verify Checksums Upload"
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
         run: |
           set -euo pipefail
@@ -448,7 +478,7 @@ jobs:
 
       - name: "Publish CLI: Upload Checksum Signature to GitHub Release"
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
         run: |
           set -euo pipefail
@@ -467,7 +497,7 @@ jobs:
 
       - name: "Publish CLI: Verify Checksum Signature Upload"
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
         run: |
           set -euo pipefail
