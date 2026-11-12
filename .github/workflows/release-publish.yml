@@ -389,10 +389,12 @@ jobs:
           UPLOAD_URL: ${{ steps.get-upload-url.outputs.upload_url }}
         run: |
           set -euo pipefail
+          # GitHub's upload API requires application/octet-stream, not text/plain.
+          # Using text/plain returns HTTP 400 "Multipart form data required".
           HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: token ${GITHUB_TOKEN}" \
-            -H "Content-Type: text/plain" \
+            -H "Content-Type: application/octet-stream" \
             "${UPLOAD_URL}?name=checksums_sha256.txt" \
             --data-binary @./dist/checksums_sha256.txt)
           if [ "$HTTP_CODE" != "201" ]; then
@@ -446,7 +448,7 @@ jobs:
           HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: token ${GITHUB_TOKEN}" \
-            -H "Content-Type: text/plain" \
+            -H "Content-Type: application/octet-stream" \
             "${UPLOAD_URL}?name=checksums_sha256.txt.sig" \
             --data-binary @./dist/checksums_sha256.txt.sig)
           if [ "$HTTP_CODE" != "201" ]; then
