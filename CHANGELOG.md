@@ -1,3 +1,8 @@
+<a name="v0.116.0"></a>
+## [v0.116.0] - 2026-11-12
+### Features
+- **release:** print publish workflow run URL at end of orchestrate ([#1937](https://github.com/newrelic/newrelic-cli/issues/1937))
+
 <a name="v0.115.11"></a>
 ## [v0.115.11] - 2026-11-12
 ### Bug Fixes
@@ -2978,7 +2983,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.115.11...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.116.0...HEAD
+[v0.116.0]: https://github.com/newrelic/newrelic-cli/compare/v0.115.11...v0.116.0
 [v0.115.11]: https://github.com/newrelic/newrelic-cli/compare/v0.115.10...v0.115.11
 [v0.115.10]: https://github.com/newrelic/newrelic-cli/compare/v0.115.9...v0.115.10
 [v0.115.9]: https://github.com/newrelic/newrelic-cli/compare/v0.115.8...v0.115.9
