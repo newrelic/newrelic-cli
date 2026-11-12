@@ -53,10 +53,6 @@ jobs:
 
           echo '::set-output name=NEW_RELIC_CLI_VERSION::${latestTag}'
 
-      - name: Install aws cli
-        run: |
-          sudo apt-get install -y awscli
-
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a  # v4
         with:
