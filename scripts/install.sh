@@ -88,9 +88,33 @@ function error {
 trap error ERR
 
 RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+CHECKSUM_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/checksums_sha256.txt"
 
-# Download & unpack the release tarball.
-curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
+# Download tarball and checksums separately so we can verify before unpacking.
+curl -sL --retry 3 "${RELEASE_URL}" -o newrelic-cli.tar.gz
+curl -sL --retry 3 "${CHECKSUM_URL}" -o checksums_sha256.txt
+
+TARBALL_NAME="newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+EXPECTED_HASH=$(grep "${TARBALL_NAME}" checksums_sha256.txt | awk '{print $1}')
+
+if [ -z "$EXPECTED_HASH" ]; then
+    echo "❌ Could not find checksum for ${TARBALL_NAME} in checksums_sha256.txt"
+    echo "   The release may be incomplete or the checksum file may be corrupt."
+    exit 1
+fi
+
+ACTUAL_HASH=$(sha256sum newrelic-cli.tar.gz | awk '{print $1}')
+
+if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+    echo "❌ Checksum mismatch — aborting installation."
+    echo "   Expected : ${EXPECTED_HASH}"
+    echo "   Actual   : ${ACTUAL_HASH}"
+    echo "   The downloaded file may have been tampered with."
+    exit 1
+fi
+
+echo "✅ Checksum verified: ${ACTUAL_HASH}"
+tar -xzf newrelic-cli.tar.gz
 
 if [ "$UID" != "0" ]; then
     echo "Installing to $DESTDIR using sudo"
