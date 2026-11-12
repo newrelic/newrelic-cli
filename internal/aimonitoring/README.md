@@ -20,6 +20,12 @@ export NEW_RELIC_ACCOUNT_ID="your-account-id"
   - `--since` — how far back to look (default `7 days ago`)
 - **`newrelic aimonitoring dataset search`** — list the AI Monitoring datasets you have access to
   - `--name` — only show datasets whose name contains this value (case-insensitive)
+- **`newrelic aimonitoring dataset delete`** — permanently delete a dataset and all of its versions
+  - `--id` — the dataset to delete (required)
+  - `--yes` — skip the confirmation prompt
+- **`newrelic aimonitoring dataset delete-version`** — permanently delete one version of a dataset
+  - `--id`, `--version-id` — the dataset and the version to delete (both required)
+  - `--yes` — skip the confirmation prompt
 
 ## Command Reference
 
@@ -74,6 +80,28 @@ newrelic aimonitoring dataset search --name "My Dataset"
 ]
 ```
 
+### `aimonitoring dataset delete` / `delete-version` - Delete datasets and dataset versions
+
+`delete` permanently deletes a dataset together with every one of its versions. `delete-version` permanently deletes a single version; **if it is the only version left, the dataset itself is deleted too**. Neither can be undone.
+
+Both commands ask for confirmation first, defaulting to No. When no terminal is available (scripts, CI, AI assistants) the prompt cannot be answered, so the command exits with an error and nothing is deleted — pass `--yes` to delete without prompting.
+
+```bash
+newrelic aimonitoring dataset delete --id <datasetId>
+newrelic aimonitoring dataset delete-version --id <datasetId> --version-id <versionId>
+
+# non-interactive
+newrelic aimonitoring dataset delete --id <datasetId> --yes
+```
+
+**Response:**
+```json
+{"datasetId": "MTIzfEFJTXxEQVRBU0VUfDE"}
+```
+```json
+{"versionId": "MTIzfEFJTXxEQVRBU0VUX1ZFUlNJT058Mg"}
+```
+
 ### `aimonitoring events` - Query AI Monitoring telemetry
 
 Runs a NRQL `SELECT` against one of the NRDB event types reported for AI Monitoring, selected via `--type`:
@@ -118,11 +146,16 @@ internal/aimonitoring/
 ├── command_events.go                # events command
 ├── command_application.go           # application search command
 ├── command_dataset_search.go        # dataset search command
+├── command_dataset_delete.go        # dataset delete command
+├── command_dataset_delete_version.go # dataset delete-version command
+├── helpers.go                       # shared helpers (confirmation prompt)
 ├── entity_search.go                 # paginated EntityManagement entitySearch helper
 ├── command_test.go
 ├── command_events_test.go
 ├── command_application_test.go
-└── command_dataset_search_test.go
+├── command_dataset_search_test.go
+├── command_dataset_delete_test.go
+└── command_dataset_delete_version_test.go
 ```
 
 ## Additional Resources
