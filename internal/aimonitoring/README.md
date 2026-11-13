@@ -26,6 +26,8 @@ export NEW_RELIC_ACCOUNT_ID="your-account-id"
 - **`newrelic aimonitoring dataset delete-version`** — permanently delete one version of a dataset
   - `--id`, `--version-id` — the dataset and the version to delete (both required)
   - `--yes` — skip the confirmation prompt
+- **`newrelic aimonitoring dataset-version list`** — list every version of a dataset
+  - `--dataset-id` — the dataset to list versions for (required, get it from `dataset search`)
 
 ## Command Reference
 
@@ -41,9 +43,13 @@ newrelic aimonitoring application search --since "7 days ago" --tags aiEnabledAp
 ```
 
 **Response:**
+
 ```json
 [
-  {"name": "checkout-service", "entityGuid": "MTIzfEFQTXxBUFBMSUNBVElPTnwxMjM"}
+  {
+    "name": "checkout-service",
+    "entityGuid": "MTIzfEFQTXxBUFBMSUNBVElPTnwxMjM"
+  }
 ]
 ```
 
@@ -52,7 +58,7 @@ newrelic aimonitoring application search --since "7 days ago" --tags aiEnabledAp
 newrelic aimonitoring application search --tags aiEnabledApp:true --name checkout-service
 ```
 
-> `--tags` filters the entities *resolved from* the AI Monitoring NRDB query (tags live on the entity, not on the LLM events themselves). `--name` is applied as part of the underlying NRQL query, since `appName` is reported directly on the LLM events.
+> `--tags` filters the entities _resolved from_ the AI Monitoring NRDB query (tags live on the entity, not on the LLM events themselves). `--name` is applied as part of the underlying NRQL query, since `appName` is reported directly on the LLM events.
 
 ### `aimonitoring dataset search` - Find AI Monitoring datasets
 
@@ -65,6 +71,7 @@ newrelic aimonitoring dataset search --name "My Dataset"
 ```
 
 **Response:**
+
 ```json
 [
   {
@@ -75,7 +82,34 @@ newrelic aimonitoring dataset search --name "My Dataset"
     "latestVersion": 2,
     "latestVersionId": "MTIzfEFJTXxEQVRBU0VUX1ZFUlNJT058Mg",
     "mode": "SINGLE_TURN",
-    "tags": [{"key": "env", "values": ["prod"]}]
+    "tags": [{ "key": "env", "values": ["prod"] }]
+  }
+]
+```
+
+### `aimonitoring dataset-version list` - List the versions of a dataset
+
+Lists every `AIM_DATASET_VERSION` entity whose parent `aimDataset` is the given dataset ID.
+
+**Flags:** `--dataset-id` (required).
+
+```bash
+newrelic aimonitoring dataset-version list --dataset-id "MTIzfEFJTXxVRBU0VUfDE"
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": "MTIzfEFJTXxEQVRBU0VUX1NJT058MQ",
+    "name": "My Dataset v1",
+    "aimDataset": "MTIzfEFJTXxEQVRBU0VUfDE",
+    "version": 1,
+    "recordCount": 69,
+    "variables": ["input"],
+    "createdAt": 1793815928536,
+    "updatedAt": 1793815928713
   }
 ]
 ```
@@ -95,27 +129,29 @@ newrelic aimonitoring dataset delete --id <datasetId> --yes
 ```
 
 **Response:**
+
 ```json
-{"datasetId": "MTIzfEFJTXxEQVRBU0VUfDE"}
+{ "datasetId": "MTIzfEFJTXxEQVRBU0VUfDE" }
 ```
+
 ```json
-{"versionId": "MTIzfEFJTXxEQVRBU0VUX1ZFUlNJT058Mg"}
+{ "versionId": "MTIzfEFJTXxEQVRBU0VUX1ZFUlNJT058Mg" }
 ```
 
 ### `aimonitoring events` - Query AI Monitoring telemetry
 
 Runs a NRQL `SELECT` against one of the NRDB event types reported for AI Monitoring, selected via `--type`:
 
-| `--type`                      | NRDB event                 |
-|-------------------------------|-----------------------------|
-| `summary` (default, **major**) | `LlmChatCompletionSummary`  |
-| `message` (**major**)        | `LlmChatCompletionMessage`  |
-| `embedding`                   | `LlmEmbedding`              |
-| `feedback`                    | `LlmFeedbackMessage`        |
-| `tool`                        | `LlmTool`                   |
-| `agent`                       | `LlmAgent`                  |
-| `vectorsearch`                | `LlmVectorSearch`           |
-| `vectorsearchresult`          | `LlmVectorSearchResult`     |
+| `--type`                       | NRDB event                 |
+| ------------------------------ | -------------------------- |
+| `summary` (default, **major**) | `LlmChatCompletionSummary` |
+| `message` (**major**)          | `LlmChatCompletionMessage` |
+| `embedding`                    | `LlmEmbedding`             |
+| `feedback`                     | `LlmFeedbackMessage`       |
+| `tool`                         | `LlmTool`                  |
+| `agent`                        | `LlmAgent`                 |
+| `vectorsearch`                 | `LlmVectorSearch`          |
+| `vectorsearchresult`           | `LlmVectorSearchResult`    |
 
 **Other flags:** `--select` (NRQL `SELECT` clause, default `*`), `--where` (optional NRQL `WHERE` clause), `--since` (default `1 day ago`), `--limit`.
 
@@ -149,13 +185,15 @@ internal/aimonitoring/
 ├── command_dataset_delete.go        # dataset delete command
 ├── command_dataset_delete_version.go # dataset delete-version command
 ├── helpers.go                       # shared helpers (confirmation prompt)
+├── command_dataset_version_list.go  # dataset-version list command
 ├── entity_search.go                 # paginated EntityManagement entitySearch helper
 ├── command_test.go
 ├── command_events_test.go
 ├── command_application_test.go
 ├── command_dataset_search_test.go
 ├── command_dataset_delete_test.go
-└── command_dataset_delete_version_test.go
+├── command_dataset_delete_version_test.go
+└── command_dataset_version_list_test.go
 ```
 
 ## Additional Resources
