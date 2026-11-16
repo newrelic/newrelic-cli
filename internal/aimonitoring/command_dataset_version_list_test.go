@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
@@ -33,31 +34,35 @@ func TestAIMonitoringDatasetVersionList(t *testing.T) {
 	testcobra.CheckCobraRequiredFlags(t, cmdDatasetVersionList, []string{"dataset-id"})
 }
 
-// versionEntity builds one entity as returned by actor.entitySearch, with its fields carried as tags.
+// versionEntity builds one AIM_DATASET_VERSION entity as returned by entityManagement.entitySearch.
 func versionEntity(datasetID string, version int) map[string]interface{} {
-	tag := func(key string, values ...string) map[string]interface{} {
-		return map[string]interface{}{"key": key, "values": values}
-	}
 	return map[string]interface{}{
-		"guid": fmt.Sprintf("%s-v%d", datasetID, version),
-		"name": fmt.Sprintf("%s v%d", datasetID, version),
-		"tags": []map[string]interface{}{
-			tag("aimDataset", datasetID),
-			tag("version", fmt.Sprint(version)),
-			tag("recordCount", "10"),
-			tag("variables", "input", "context"),
-			tag("metadata.createdAt", "1793815928536"),
-			tag("metadata.updatedAt", "1793815928713"),
-		},
+		"id":          fmt.Sprintf("%s-v%d", datasetID, version),
+		"name":        fmt.Sprintf("%s v%d", datasetID, version),
+		"aimDataset":  datasetID,
+		"version":     version,
+		"message":     "commit",
+		"recordCount": 10,
+		"variables":   []string{"input", "context"},
+		"metadata":    map[string]interface{}{"createdAt": 1793815928536, "updatedAt": 1793815928713},
 	}
 }
 
-func versionSearchBody(entities []map[string]interface{}, nextCursor string) string {
+type versionSearchPage struct {
+	entities   []map[string]interface{}
+	nextCursor string
+	statusCode int
+}
+
+func (p versionSearchPage) body() string {
+	if p.statusCode != 0 {
+		return `{"errors":[{"message":"internal error"}]}`
+	}
 	body, _ := json.Marshal(map[string]interface{}{
 		"data": map[string]interface{}{
 			"actor": map[string]interface{}{
-				"entitySearch": map[string]interface{}{
-					"results": map[string]interface{}{"entities": entities, "nextCursor": nextCursor},
+				"entityManagement": map[string]interface{}{
+					"entitySearch": map[string]interface{}{"entities": p.entities, "nextCursor": p.nextCursor},
 				},
 			},
 		},
@@ -65,104 +70,87 @@ func versionSearchBody(entities []map[string]interface{}, nextCursor string) str
 	return string(body)
 }
 
-// capturedRequest is what the test server saw for one entitySearch call.
-type capturedRequest struct {
-	header http.Header
-	body   []byte
-}
-
-// stubVersionSearch points newRelicHTTPClient at a test server that serves the given bodies in order,
-// one per call, using the real aimTransport. Returns the requests received, in order.
-func stubVersionSearch(t *testing.T, status int, bodies ...string) *[]capturedRequest {
+// stubVersionSearch points client.NRClient at a test server that serves the given pages in order,
+// one per entitySearch call. Returns the raw request bodies received, in order.
+func stubVersionSearch(t *testing.T, pages ...versionSearchPage) *[][]byte {
 	t.Helper()
 
-	var requests []capturedRequest
+	var requests [][]byte
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf, err := io.ReadAll(r.Body)
 		require.NoError(t, err)
-		requests = append(requests, capturedRequest{header: r.Header, body: buf})
+		requests = append(requests, buf)
 
-		if len(requests) > len(bodies) {
+		if len(requests) > len(pages) {
 			t.Fatalf("unexpected extra entitySearch call (call #%d)", len(requests))
+		}
+		page := pages[len(requests)-1]
+		status := page.statusCode
+		if status == 0 {
+			status = http.StatusOK
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(status)
-		_, writeErr := w.Write([]byte(bodies[len(requests)-1]))
+		_, writeErr := w.Write([]byte(page.body()))
 		require.NoError(t, writeErr)
 	}))
 	t.Cleanup(server.Close)
 
 	tc := testhelpers.NewTestConfig(t, server)
-	tc.HTTPTransport = aimTransport{}
 
-	original := newRelicHTTPClient
-	newRelicHTTPClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc)}
-	t.Cleanup(func() { newRelicHTTPClient = original })
+	original := client.NRClient
+	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc)}
+	t.Cleanup(func() { client.NRClient = original })
 
 	return &requests
 }
 
-func requestVariables(t *testing.T, r capturedRequest) map[string]interface{} {
-	t.Helper()
-	var req struct {
-		Variables map[string]interface{} `json:"variables"`
-	}
-	require.NoError(t, json.Unmarshal(r.body, &req))
-	return req.Variables
-}
-
-func TestListDatasetVersions_PagesSortsAndSendsCapabilityHeader(t *testing.T) {
-	requests := stubVersionSearch(t, http.StatusOK,
-		versionSearchBody([]map[string]interface{}{versionEntity("ds-1", 2)}, "cursor-page-2"),
-		versionSearchBody([]map[string]interface{}{versionEntity("ds-1", 1)}, ""),
+func TestListDatasetVersions_FiltersByDatasetAcrossPagesAndSorts(t *testing.T) {
+	requests := stubVersionSearch(t,
+		versionSearchPage{entities: []map[string]interface{}{versionEntity("ds-1", 2), versionEntity("ds-2", 1)}, nextCursor: "cursor-page-2"},
+		versionSearchPage{entities: []map[string]interface{}{versionEntity("ds-1", 1)}},
 	)
 
 	got, err := listDatasetVersions("ds-1")
 	require.NoError(t, err)
 	require.Len(t, got, 2)
-	assert.Equal(t, datasetVersion{
+
+	want := datasetVersion{
 		ID:          "ds-1-v1",
 		Name:        "ds-1 v1",
 		AimDataset:  "ds-1",
-		Version:     new(int64(1)),
-		RecordCount: new(int64(10)),
+		Version:     1,
+		Message:     new("commit"),
+		RecordCount: new(10),
 		Variables:   []string{"input", "context"},
-		CreatedAt:   new(int64(1793815928536)),
-		UpdatedAt:   new(int64(1793815928713)),
-	}, got[0])
-	assert.Equal(t, int64(2), *got[1].Version)
+	}
+	want.Metadata.CreatedAt = new(int64(1793815928536))
+	want.Metadata.UpdatedAt = new(int64(1793815928713))
+	assert.Equal(t, want, got[0])
+	assert.Equal(t, 2, got[1].Version)
 
 	require.Len(t, *requests, 2)
-	for _, r := range *requests {
-		assert.Equal(t, "AI_MONITORING", r.header.Get("X-Query-Source-Capability-Id"))
-	}
-	first := requestVariables(t, (*requests)[0])
-	assert.Equal(t, "type = 'AIM_DATASET_VERSION' AND tags.aimDataset = 'ds-1'", first["query"])
-	assert.Nil(t, first["cursor"])
-	assert.Equal(t, "cursor-page-2", requestVariables(t, (*requests)[1])["cursor"])
+	assert.Equal(t, "cursor-page-2", datasetRequestCursor(t, (*requests)[1]))
 }
 
-func TestListDatasetVersions_MissingTagsLeftEmptyAndSortLast(t *testing.T) {
-	stubVersionSearch(t, http.StatusOK, versionSearchBody([]map[string]interface{}{
-		{"guid": "no-tags", "name": "no tags", "tags": []map[string]interface{}{}},
-		{"guid": "ds-1-v7", "name": "v7", "tags": []map[string]interface{}{{"key": "version", "values": []string{"7"}}}},
-	}, ""))
+func TestListDatasetVersions_OmitsUnsetFields(t *testing.T) {
+	stubVersionSearch(t, versionSearchPage{entities: []map[string]interface{}{{
+		"id": "ds-1-v7", "name": "v7", "aimDataset": "ds-1", "version": 7,
+		"message": nil, "recordCount": nil, "variables": nil, "metadata": map[string]interface{}{},
+	}}})
 
 	got, err := listDatasetVersions("ds-1")
 	require.NoError(t, err)
-	assert.Equal(t, []datasetVersion{
-		{ID: "ds-1-v7", Name: "v7", Version: new(int64(7))},
-		{ID: "no-tags", Name: "no tags"},
-	}, got)
+	require.Len(t, got, 1)
 
-	out, err := json.Marshal(got[1])
+	out, err := json.Marshal(got[0])
 	require.NoError(t, err)
-	assert.JSONEq(t, `{"id": "no-tags", "name": "no tags"}`, string(out))
+	assert.JSONEq(t, `{"id": "ds-1-v7", "name": "v7", "aimDataset": "ds-1", "version": 7, "metadata": {}}`, string(out))
 }
 
 func TestListDatasetVersions_NoMatch(t *testing.T) {
 	logs := captureLogOutput(t)
-	stubVersionSearch(t, http.StatusOK, versionSearchBody([]map[string]interface{}{}, ""))
+	stubVersionSearch(t, versionSearchPage{entities: []map[string]interface{}{versionEntity("ds-2", 1)}})
 
 	got, err := listDatasetVersions("ds-1")
 	require.NoError(t, err)
@@ -170,13 +158,11 @@ func TestListDatasetVersions_NoMatch(t *testing.T) {
 	assert.Contains(t, logs.String(), "no versions were found for AI Monitoring dataset ds-1")
 }
 
-func TestListDatasetVersions_RejectsQuoteInID(t *testing.T) {
-	_, err := listDatasetVersions("ds-1' OR type = 'AIM_DATASET")
-	assert.Error(t, err)
-}
-
-func TestListDatasetVersions_ErrorPropagates(t *testing.T) {
-	stubVersionSearch(t, http.StatusBadRequest, `{"errors":[{"message":"internal error"}]}`)
+func TestListDatasetVersions_ErrorOnLaterPagePropagates(t *testing.T) {
+	stubVersionSearch(t,
+		versionSearchPage{entities: []map[string]interface{}{versionEntity("ds-1", 1)}, nextCursor: "cursor-page-2"},
+		versionSearchPage{statusCode: http.StatusBadRequest},
+	)
 
 	got, err := listDatasetVersions("ds-1")
 	assert.Error(t, err)
