@@ -115,3 +115,26 @@ jobs:
             exit 1
           fi
           echo "✅ NewRelicCLIInstaller.msi uploaded."
+
+      - name: "Generate and upload MSI SHA-256 to GitHub Release"
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          UPLOAD_URL: ${{ steps.get-latest-release-upload-url.outputs.upload_url }}
+        run: |
+          set -euo pipefail
+          MSI_PATH="./build/package/msi/NewRelicCLIInstaller/bin/x64/Release/NewRelicCLIInstaller.msi"
+          sha256sum "${MSI_PATH}" | awk '{print $1}' > NewRelicCLIInstaller.msi.sha256
+          echo "MSI SHA-256: $(cat NewRelicCLIInstaller.msi.sha256)"
+          HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: text/plain" \
+            "${UPLOAD_URL}?name=NewRelicCLIInstaller.msi.sha256" \
+            --data-binary @NewRelicCLIInstaller.msi.sha256)
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "❌ Upload failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/upload-response.json
+            exit 1
+          fi
+          echo "✅ NewRelicCLIInstaller.msi.sha256 uploaded to GitHub Release."
