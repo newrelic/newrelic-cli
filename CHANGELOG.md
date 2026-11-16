@@ -1,3 +1,13 @@
+<a name="v0.116.2"></a>
+## [v0.116.2] - 2026-11-16
+### Bug Fixes
+- Revert GPG signature verification and recipes integrity check ([#1943](https://github.com/newrelic/newrelic-cli/issues/1943)) ([#1946](https://github.com/newrelic/newrelic-cli/issues/1946))
+
+<a name="v0.116.1"></a>
+## [v0.116.1] - 2026-11-16
+### Bug Fixes
+- **security:** GPG signature verification and recipes integrity check ([#1943](https://github.com/newrelic/newrelic-cli/issues/1943))
+
 <a name="v0.116.0"></a>
 ## [v0.116.0] - 2026-11-12
 ### Features
@@ -2983,7 +2993,9 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.116.0...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.116.2...HEAD
+[v0.116.2]: https://github.com/newrelic/newrelic-cli/compare/v0.116.1...v0.116.2
+[v0.116.1]: https://github.com/newrelic/newrelic-cli/compare/v0.116.0...v0.116.1
 [v0.116.0]: https://github.com/newrelic/newrelic-cli/compare/v0.115.11...v0.116.0
 [v0.115.11]: https://github.com/newrelic/newrelic-cli/compare/v0.115.10...v0.115.11
 [v0.115.10]: https://github.com/newrelic/newrelic-cli/compare/v0.115.9...v0.115.10
