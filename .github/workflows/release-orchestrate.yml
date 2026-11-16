@@ -293,17 +293,13 @@ jobs:
           echo "✅ recipes.zip created at $GITHUB_WORKSPACE/recipes.zip"
           ls -lh "$GITHUB_WORKSPACE/recipes.zip"
 
-      - name: "Release OIL: Upload recipes.zip and recipes.zip.sha256 to GitHub Release"
+      - name: "Release OIL: Upload recipes.zip to GitHub Release"
         if: inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           UPLOAD_URL: ${{ steps.oil_release.outputs.upload_url }}
         run: |
           set -euo pipefail
-          sha256sum "${{ github.workspace }}/recipes.zip" | awk '{print $1}' \
-            > "${{ github.workspace }}/recipes.zip.sha256"
-          echo "🔑 recipes.zip SHA-256: $(cat ${{ github.workspace }}/recipes.zip.sha256)"
-
           HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: token ${GITHUB_TOKEN}" \
@@ -311,52 +307,46 @@ jobs:
             "${UPLOAD_URL}?name=recipes.zip" \
             --data-binary @"${{ github.workspace }}/recipes.zip")
           if [ "$HTTP_CODE" != "201" ]; then
-            echo "❌ recipes.zip upload failed (HTTP ${HTTP_CODE}):"
+            echo "❌ Upload failed (HTTP ${HTTP_CODE}):"
             cat /tmp/upload-response.json
             exit 1
           fi
           echo "✅ recipes.zip uploaded to OIL GitHub Release."
 
-          HTTP_CODE=$(curl -s -o /tmp/upload-response.json -w "%{http_code}" \
-            -X POST \
-            -H "Authorization: token ${GITHUB_TOKEN}" \
-            -H "Content-Type: text/plain" \
-            "${UPLOAD_URL}?name=recipes.zip.sha256" \
-            --data-binary @"${{ github.workspace }}/recipes.zip.sha256")
-          if [ "$HTTP_CODE" != "201" ]; then
-            echo "❌ recipes.zip.sha256 upload failed (HTTP ${HTTP_CODE}):"
-            cat /tmp/upload-response.json
-            exit 1
-          fi
-          echo "✅ recipes.zip.sha256 uploaded to OIL GitHub Release."
-
-      - name: "Release OIL: Verify recipes.zip and recipes.zip.sha256 Upload"
+      - name: "Release OIL: Verify recipes.zip Upload"
         if: inputs.include_oil == true
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           RELEASE_ID: ${{ steps.oil_release.outputs.release_id }}
         run: |
           set -euo pipefail
+          ASSET_NAME="recipes.zip"
+
           ASSETS=$(curl -s \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             "https://api.github.com/repos/newrelic/open-install-library/releases/${RELEASE_ID}/assets")
 
-          for ASSET_NAME in recipes.zip recipes.zip.sha256; do
-            CREATED_AT=$(echo "$ASSETS" | jq -r --arg name "$ASSET_NAME" \
-              '.[] | select(.name == $name) | .created_at')
-            if [ -z "$CREATED_AT" ] || [ "$CREATED_AT" = "null" ]; then
-              echo "❌ Asset '${ASSET_NAME}' not found in release ${RELEASE_ID}"
-              exit 1
-            fi
-            NOW=$(date -u +%s)
-            UPLOADED_AT=$(date -u -d "${CREATED_AT}" +%s)
-            AGE=$(( NOW - UPLOADED_AT ))
-            if [ "$AGE" -ge 120 ]; then
-              echo "❌ ${ASSET_NAME} age ${AGE}s >= 120s — stale asset, not the one just uploaded"
-              exit 1
-            fi
-            echo "✅ ${ASSET_NAME} verified — uploaded ${AGE}s ago"
-          done
+          CREATED_AT=$(echo "$ASSETS" | jq -r --arg name "$ASSET_NAME" \
+            '.[] | select(.name == $name) | .created_at')
+
+          if [ -z "$CREATED_AT" ] || [ "$CREATED_AT" = "null" ]; then
+            echo "❌ Asset '${ASSET_NAME}' not found in release ${RELEASE_ID}"
+            exit 1
+          fi
+
+          NOW=$(date -u +%s)
+          UPLOADED_AT=$(date -u -d "${CREATED_AT}" +%s)
+          AGE=$(( NOW - UPLOADED_AT ))
+
+          echo "Asset   : ${ASSET_NAME}"
+          echo "Uploaded: ${CREATED_AT}"
+          echo "Age     : ${AGE}s"
+
+          if [ "$AGE" -ge 120 ]; then
+            echo "❌ Asset age ${AGE}s >= 120s — this is a stale asset, not the one just uploaded"
+            exit 1
+          fi
+          echo "✅ Asset verified — uploaded ${AGE}s ago"
 
       - name: "Release OIL: Configure Git Identity"
         if: inputs.include_oil == true
