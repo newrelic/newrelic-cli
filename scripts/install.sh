@@ -93,23 +93,22 @@ RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${TA
 CHECKSUM_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${CHECKSUMS_NAME}"
 CHECKSUM_SIG_URL="${CHECKSUM_URL}.sig"
 
-# sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
-_sha256() {
-    if command -v sha256sum > /dev/null 2>&1; then
-        sha256sum "$1" | awk '{print $1}'
-    elif command -v shasum > /dev/null 2>&1; then
-        shasum -a 256 "$1" | awk '{print $1}'
-    else
-        echo ""
-    fi
-}
-
 # verify_integrity: best-effort SHA-256 + GPG check; never affects installation.
-# Runs in a subshell so any internal exit/error is fully contained.
-# The || true at the call site provides an additional layer of isolation
-# against set -o errexit propagation.
+# Subshell () fully contains any exit/error; || true at call site guards set -o errexit.
 verify_integrity() (
-    NR_GPG_FINGERPRINT="4F9A9B5B96EC30B9"
+    # sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
+    _sha256() {
+        if command -v sha256sum > /dev/null 2>&1; then
+            sha256sum "$1" | awk '{print $1}'
+        elif command -v shasum > /dev/null 2>&1; then
+            shasum -a 256 "$1" | awk '{print $1}'
+        else
+            echo ""
+        fi
+    }
+
+    # GPG key embedded inline — no keyserver dependency, works in air-gapped/firewalled environments.
+    # NR GPG key fingerprint: 4F9A9B5B96EC30B9 (expires 2027-04-28)
     NR_PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGgPxpQBEADYHbpyxZQjZibqbc53GC6BSDR0jo93FICwv6Jj4uc8ikjzcBSP
@@ -154,8 +153,8 @@ lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
     if command -v gpg > /dev/null 2>&1; then
         if curl -sLf --retry 3 "${CHECKSUM_SIG_URL}" -o "${CHECKSUMS_NAME}.sig" 2>/dev/null; then
             GPG_TMPDIR=$(mktemp -d)
-            echo "${NR_PUBLIC_KEY}" | gpg --homedir "${GPG_TMPDIR}" --batch --import > /dev/null 2>&1 && \
-                gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1
+            echo "${NR_PUBLIC_KEY}" | gpg --homedir "${GPG_TMPDIR}" --batch --import > /dev/null 2>&1
+            gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1
             rm -rf "${GPG_TMPDIR}"
         fi
     fi
