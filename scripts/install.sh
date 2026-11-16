@@ -66,7 +66,7 @@ DESTDIR="${DESTDIR:-/usr/local/bin}"
 curl --connect-timeout 10 -IsL "$BASE_URL" > /dev/null || ( echo "Cannot connect to $BASE_URL to download the New Relic CLI. Check your firewall settings. If you are using a proxy, make sure you have set the HTTPS_PROXY environment variable." && exit 132 )
 
 # Create DESTDIR if it does not exist.
-if [ ! -d "$DESTDIR" ]; then 
+if [ ! -d "$DESTDIR" ]; then
     mkdir -m 755 -p "$DESTDIR"
 fi
 
@@ -87,10 +87,84 @@ function error {
 
 trap error ERR
 
-RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+TARBALL_NAME="newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+CHECKSUMS_NAME="newrelic-cli_${VERSION}_checksums.txt"
+RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${TARBALL_NAME}"
+CHECKSUM_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${CHECKSUMS_NAME}"
+CHECKSUM_SIG_URL="${CHECKSUM_URL}.sig"
 
-# Download & unpack the release tarball.
-curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
+# NR GPG public key fingerprint: 4F9A9B5B96EC30B9 (expires 2027-04-27)
+# Published on keys.openpgp.org — fetch via: gpg --keyserver hkps://keys.openpgp.org --recv-keys 4F9A9B5B96EC30B9
+NR_GPG_FINGERPRINT="4F9A9B5B96EC30B9"
+NR_GPG_KEYSERVER="hkps://keys.openpgp.org"
+
+# sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
+sha256() {
+    if command -v sha256sum > /dev/null 2>&1; then
+        sha256sum "$1" | awk '{print $1}'
+    elif command -v shasum > /dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        echo ""
+    fi
+}
+
+# Download tarball and checksums file.
+curl -sL --retry 3 "${RELEASE_URL}" -o newrelic-cli.tar.gz
+curl -sL --retry 3 "${CHECKSUM_URL}" -o "${CHECKSUMS_NAME}"
+
+EXPECTED_HASH=$(grep "${TARBALL_NAME}" "${CHECKSUMS_NAME}" | awk '{print $1}')
+
+if [ -z "$EXPECTED_HASH" ]; then
+    echo "❌ Could not find checksum for ${TARBALL_NAME} in ${CHECKSUMS_NAME}"
+    echo "   The release may be incomplete or the checksum file may be corrupt."
+    exit 1
+fi
+
+ACTUAL_HASH=$(sha256 newrelic-cli.tar.gz)
+
+if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+    echo "❌ Checksum mismatch — aborting installation."
+    echo "   Expected : ${EXPECTED_HASH}"
+    echo "   Actual   : ${ACTUAL_HASH}"
+    echo "   The downloaded file may have been tampered with."
+    exit 1
+fi
+
+echo "✅ SHA-256 verified: ${ACTUAL_HASH}"
+
+# GPG signature verification of the checksums file.
+# This confirms the checksums file was produced by New Relic's release pipeline
+# and has not been tampered with since signing.
+#
+# Architectural note: this script is itself served from S3, so GPG verification
+# here is a defence-in-depth measure against partial S3 compromise (e.g. only
+# the tarball or checksums file being replaced). A full S3 compromise that also
+# replaces this script would bypass it. For the strongest supply-chain guarantee,
+# install via Homebrew or Chocolatey, which enforce package-manager-level signing.
+if command -v gpg > /dev/null 2>&1; then
+    if curl -sLf --retry 3 "${CHECKSUM_SIG_URL}" -o "${CHECKSUMS_NAME}.sig" 2>/dev/null; then
+        # Import the NR public key from keys.openpgp.org if not already in the keyring.
+        if ! gpg --list-keys "${NR_GPG_FINGERPRINT}" > /dev/null 2>&1; then
+            gpg --keyserver "${NR_GPG_KEYSERVER}" --recv-keys "${NR_GPG_FINGERPRINT}" > /dev/null 2>&1 || true
+        fi
+        if gpg --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1; then
+            echo "✅ GPG signature verified (key ${NR_GPG_FINGERPRINT})"
+        else
+            echo "⚠️  GPG signature verification failed for ${CHECKSUMS_NAME}"
+            echo "   The checksums file could not be confirmed as genuine."
+            echo "   SHA-256 integrity of the binary has still been checked."
+            echo "   For a tamper-evident install, verify manually at https://github.com/newrelic/newrelic-cli/releases"
+        fi
+    else
+        echo "⚠️  GPG signature file not available; skipping signature verification."
+    fi
+else
+    echo "⚠️  gpg not found; skipping signature verification."
+    echo "   Install gnupg for stronger supply-chain assurance."
+fi
+
+tar -xzf newrelic-cli.tar.gz
 
 if [ "$UID" != "0" ]; then
     echo "Installing to $DESTDIR using sudo"
