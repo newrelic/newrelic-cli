@@ -41,7 +41,7 @@ const (
 )
 
 // NewClient initializes the New Relic client.
-func NewClient(profileName string, configOptions ...newrelic.ConfigOption) (*newrelic.NewRelic, error) {
+func NewClient(profileName string) (*newrelic.NewRelic, error) {
 	apiKey := configAPI.GetProfileString(profileName, config.APIKey)
 	licenseKey := configAPI.GetProfileString(profileName, config.LicenseKey)
 
@@ -63,7 +63,6 @@ func NewClient(profileName string, configOptions ...newrelic.ConfigOption) (*new
 		newrelic.ConfigUserAgent(userAgent),
 		newrelic.ConfigServiceName(serviceName),
 	}
-	cfgOpts = append(cfgOpts, configOptions...)
 
 	nrClient, err := newrelic.New(cfgOpts...)
 	if err != nil {

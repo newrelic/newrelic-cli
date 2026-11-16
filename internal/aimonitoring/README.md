@@ -89,7 +89,7 @@ newrelic aimonitoring dataset search --name "My Dataset"
 
 ### `aimonitoring dataset-version list` - List the versions of a dataset
 
-Lists every `AIM_DATASET_VERSION` entity whose parent `aimDataset` is the given dataset ID.
+Lists every version of the given dataset, ordered by version number.
 
 **Flags:** `--dataset-id` (required).
 
@@ -106,10 +106,10 @@ newrelic aimonitoring dataset-version list --dataset-id "MTIzfEFJTXxVRBU0VUfDE"
     "name": "My Dataset v1",
     "aimDataset": "MTIzfEFJTXxEQVRBU0VUfDE",
     "version": 1,
+    "message": "initial import",
     "recordCount": 69,
     "variables": ["input"],
-    "createdAt": 1793815928536,
-    "updatedAt": 1793815928713
+    "metadata": { "createdAt": 1793815928536, "updatedAt": 1793815928713 }
   }
 ]
 ```

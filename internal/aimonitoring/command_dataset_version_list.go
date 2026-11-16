@@ -3,32 +3,33 @@ package aimonitoring
 import (
 	"cmp"
 	"fmt"
-	"math"
-	"net/http"
 	"slices"
-	"strconv"
-	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"github.com/newrelic/newrelic-cli/internal/client"
-	configAPI "github.com/newrelic/newrelic-cli/internal/config/api"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
-	"github.com/newrelic/newrelic-client-go/v2/newrelic"
 )
 
-const datasetVersionSearchQuery = `query($query: String!, $cursor: String) {
+const datasetVersionSearchQuery = `query($cursor: String) {
   actor {
-    entitySearch(query: $query) {
-      results(cursor: $cursor) {
+    entityManagement {
+      entitySearch(query: "type = 'AIM_DATASET_VERSION'", cursor: $cursor) {
         entities {
-          guid
+          id
           name
-          tags {
-            key
-            values
+          ... on EntityManagementAimDatasetVersionEntity {
+            aimDataset
+            version
+            message
+            recordCount
+            variables
+            metadata {
+              createdAt
+              updatedAt
+            }
           }
         }
         nextCursor
@@ -38,29 +39,6 @@ const datasetVersionSearchQuery = `query($query: String!, $cursor: String) {
 }`
 
 var datasetID string
-
-var newRelicHTTPClient *newrelic.NewRelic
-
-// Add the X-Query-Source-Capability-Id: AI_MONITORING header to every request. Without it,
-// entity search silently returns no AIM_DATASET_VERSION entities.
-type aimTransport struct{}
-
-func (aimTransport) RoundTrip(r *http.Request) (*http.Response, error) {
-	r = r.Clone(r.Context())
-	r.Header.Set("X-Query-Source-Capability-Id", "AI_MONITORING")
-	return http.DefaultTransport.RoundTrip(r)
-}
-
-func getNewRelicHTTPClient() (*newrelic.NewRelic, error) {
-	if newRelicHTTPClient == nil {
-		c, err := client.NewClient(configAPI.GetActiveProfileName(), newrelic.ConfigHTTPTransport(aimTransport{}))
-		if err != nil {
-			return nil, err
-		}
-		newRelicHTTPClient = c
-	}
-	return newRelicHTTPClient, nil
-}
 
 var cmdDatasetVersion = &cobra.Command{
 	Use:     "dataset-version",
@@ -88,112 +66,40 @@ find a dataset ID.
 	},
 }
 
-// Fields other than ID and Name come from tags, none of which are guaranteed
-// to be present, so missing ones are omitted from the output.
+// Nullable fields in the schema are omitted from the output when unset.
 type datasetVersion struct {
 	ID          string   `json:"id"`
 	Name        string   `json:"name"`
-	AimDataset  string   `json:"aimDataset,omitempty"`
-	Version     *int64   `json:"version,omitempty"`
-	RecordCount *int64   `json:"recordCount,omitempty"`
+	AimDataset  string   `json:"aimDataset"`
+	Version     int      `json:"version"`
+	Message     *string  `json:"message,omitempty"`
+	RecordCount *int     `json:"recordCount,omitempty"`
 	Variables   []string `json:"variables,omitempty"`
-	CreatedAt   *int64   `json:"createdAt,omitempty"`
-	UpdatedAt   *int64   `json:"updatedAt,omitempty"`
-}
-
-type datasetVersionSearchResponse struct {
-	Actor struct {
-		EntitySearch struct {
-			Results struct {
-				Entities []struct {
-					GUID string       `json:"guid"`
-					Name string       `json:"name"`
-					Tags []datasetTag `json:"tags"`
-				} `json:"entities"`
-				NextCursor string `json:"nextCursor"`
-			} `json:"results"`
-		} `json:"entitySearch"`
-	} `json:"actor"`
+	Metadata    struct {
+		CreatedAt *int64 `json:"createdAt,omitempty"`
+		UpdatedAt *int64 `json:"updatedAt,omitempty"`
+	} `json:"metadata"`
 }
 
 func listDatasetVersions(id string) ([]datasetVersion, error) {
-	if id == "" || strings.ContainsAny(id, `'\`) {
-		return nil, fmt.Errorf("invalid dataset ID %q", id)
-	}
-
-	nrClient, err := getNewRelicHTTPClient()
+	allVersions, err := fetchAllEntities[datasetVersion](datasetVersionSearchQuery)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to list dataset versions: %w", err)
 	}
 
-	vars := map[string]interface{}{
-		"query":  fmt.Sprintf("type = 'AIM_DATASET_VERSION' AND tags.aimDataset = '%s'", id),
-		"cursor": nil,
+	matched := make([]datasetVersion, 0, len(allVersions))
+	for _, v := range allVersions {
+		if v.AimDataset == id {
+			matched = append(matched, v)
+		}
 	}
+	slices.SortFunc(matched, func(a, b datasetVersion) int { return cmp.Compare(a.Version, b.Version) })
 
-	versions := []datasetVersion{}
-	for range maxEntitySearchPages {
-		var resp datasetVersionSearchResponse
-		if err := nrClient.NerdGraph.QueryWithResponseAndContext(utils.SignalCtx, datasetVersionSearchQuery, vars, &resp); err != nil {
-			return nil, fmt.Errorf("failed to list dataset versions: %w", err)
-		}
-
-		results := resp.Actor.EntitySearch.Results
-		for _, e := range results.Entities {
-			tags := entityTags{}
-			for _, t := range e.Tags {
-				tags[t.Key] = t.Values
-			}
-
-			versions = append(versions, datasetVersion{
-				ID:          e.GUID,
-				Name:        e.Name,
-				AimDataset:  tags.first("aimDataset"),
-				Version:     tags.number("version"),
-				RecordCount: tags.number("recordCount"),
-				Variables:   tags["variables"],
-				CreatedAt:   tags.number("metadata.createdAt"),
-				UpdatedAt:   tags.number("metadata.updatedAt"),
-			})
-		}
-
-		if results.NextCursor == "" {
-			break
-		}
-		vars["cursor"] = results.NextCursor
-	}
-	// Versions without a version number sort last.
-	sortKey := func(v datasetVersion) int64 {
-		if v.Version == nil {
-			return math.MaxInt64
-		}
-		return *v.Version
-	}
-	slices.SortFunc(versions, func(a, b datasetVersion) int { return cmp.Compare(sortKey(a), sortKey(b)) })
-
-	if len(versions) == 0 {
+	if len(matched) == 0 {
 		log.Infof("no versions were found for AI Monitoring dataset %s", id)
 	}
 
-	return versions, nil
-}
-
-type entityTags map[string][]string
-
-func (t entityTags) first(key string) string {
-	if len(t[key]) == 0 {
-		return ""
-	}
-	return t[key][0]
-}
-
-// number returns nil for a missing or non-numeric value.
-func (t entityTags) number(key string) *int64 {
-	n, err := strconv.ParseInt(t.first(key), 10, 64)
-	if err != nil {
-		return nil
-	}
-	return &n
+	return matched, nil
 }
 
 func init() {
