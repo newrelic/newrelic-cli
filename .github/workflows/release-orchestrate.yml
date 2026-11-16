@@ -170,6 +170,40 @@ jobs:
           fi
           echo "✅ Tag ${TAG} does not exist in open-install-library — safe to proceed."
 
+      - name: "Pre-flight: Verify OIL S3 State (CLI-only release)"
+        if: inputs.include_oil != true
+        run: |
+          set -euo pipefail
+          # CLI-only release: no OIL update will happen. The CLI binary will embed
+          # whatever OIL version S3 currently points to. Verify that version is
+          # valid and reachable before any irreversible git changes are made.
+          # This also catches a stale currentVersion.txt left by a failed prior run.
+          OIL_VERSION=$(curl -sf \
+            "https://s3.us-east-1.amazonaws.com/nr-downloads-main/install/open-install-library/currentVersion.txt" \
+            | tr -d '[:space:]')
+
+          if [ -z "$OIL_VERSION" ]; then
+            echo "❌ Could not read OIL currentVersion.txt from S3."
+            echo "   S3 may be unreachable, or the file is empty."
+            exit 1
+          fi
+
+          ZIP_URL="https://s3.us-east-1.amazonaws.com/nr-downloads-main/install/open-install-library/${OIL_VERSION}/recipes.zip"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --head "${ZIP_URL}")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ recipes.zip not found for OIL ${OIL_VERSION} (HTTP ${HTTP_CODE})."
+            echo "   URL checked: ${ZIP_URL}"
+            echo "   currentVersion.txt may be stale from a failed release."
+            echo "   Fix S3 manually or run a full release with include_oil=true."
+            exit 1
+          fi
+
+          echo "ℹ️  CLI-only release — OIL will NOT be updated."
+          echo "   The CLI binary will embed OIL version: ${OIL_VERSION}"
+          echo "   recipes.zip confirmed reachable at S3."
+          echo "   If this is not the intended OIL version, cancel now and run with include_oil=true."
+
       # ── SECTION 3: OIL RELEASE ────────────────────────────────────────────
       # All steps in this section are gated on inputs.include_oil == true.
       # Order is critical: release marker commit → push → tag (not before push).
@@ -439,6 +473,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.cli_version }}
           INCLUDE_OIL: ${{ inputs.include_oil }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
           # The tag annotation encodes include_oil so release-publish.yml can read
@@ -448,7 +483,31 @@ jobs:
           echo ""
           echo "✅ CLI tag ${VERSION} pushed (include_oil=${INCLUDE_OIL})."
           echo "🚀 release-publish.yml will now trigger automatically."
-          echo "   Track it at: https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
+          echo ""
+          echo "⏳ Waiting for release-publish.yml run to register..."
+          PUBLISH_URL=""
+          for i in $(seq 1 12); do
+            sleep 5
+            PUBLISH_URL=$(curl -sf \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?event=push&per_page=10" \
+              | jq -r --arg tag "refs/tags/${VERSION}" \
+                '.workflow_runs[]
+                 | select(.head_branch == $tag and (.name | test("Publish")))
+                 | .html_url' \
+              | head -1 || true)
+            if [ -n "$PUBLISH_URL" ]; then
+              break
+            fi
+          done
+          if [ -n "$PUBLISH_URL" ]; then
+            echo "✅ Publish run detected:"
+            echo "   ${PUBLISH_URL}"
+          else
+            echo "ℹ️  Publish run not yet visible — track it at:"
+            echo "   https://github.com/${{ github.repository }}/actions/workflows/release-publish.yml"
+          fi
 
       # ── SECTION 5: ROLLBACK ───────────────────────────────────────────────
       # Two rollback steps:
