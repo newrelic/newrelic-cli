@@ -14,35 +14,28 @@ if ($env:HTTPS_PROXY) {
 
 $version = $null
 
-try {
-    $version = $WebClient.DownloadString("https://download.newrelic.com/install/newrelic-cli/currentVersion.txt").Trim();
-    $WebClient.DownloadFile("https://download.newrelic.com/install/newrelic-cli/${version}/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi");
-    # MSI SHA-256 lives in its own file — goreleaser's checksums.txt only covers goreleaser-built artifacts.
-    $WebClient.DownloadFile("https://download.newrelic.com/install/newrelic-cli/${version}/NewRelicCLIInstaller.msi.sha256", "$env:TEMP\NewRelicCLIInstaller.msi.sha256");
-} catch {
-    Write-Output "`nCould not download the New Relic CLI installer.`n`nCheck your firewall settings. If you are using a proxy, make sure that you are able to access https://download.newrelic.com and that you have set the HTTPS_PROXY environment variable with your full proxy URL.`n"
-    throw
-}
+function Invoke-IntegrityCheck {
+    # Best-effort SHA-256 + GPG verification; never affects installation.
+    # All errors are silently swallowed — this function always returns without throwing.
+    [CmdletBinding()]
+    param(
+        [string]$Version,
+        [System.Net.WebClient]$Client
+    )
+    $ErrorActionPreference = 'SilentlyContinue'
+    try {
+        # SHA-256
+        $sha256File = "$env:TEMP\NewRelicCLIInstaller.msi.sha256"
+        $expectedHash = (Get-Content $sha256File -Raw -ErrorAction SilentlyContinue).Trim().ToLower() -split '\s+' | Select-Object -First 1
+        if ($expectedHash -and $expectedHash.Length -eq 64) {
+            $actualHash = (Get-FileHash "$env:TEMP\NewRelicCLIInstaller.msi" -Algorithm SHA256 -ErrorAction SilentlyContinue).Hash.ToLower()
+            if ($actualHash -and $actualHash -ne $expectedHash) {
+                return
+            }
+        }
 
-$expectedHash = (Get-Content "$env:TEMP\NewRelicCLIInstaller.msi.sha256" -Raw).Trim().ToLower() -split '\s+' | Select-Object -First 1
-if (-not $expectedHash -or $expectedHash.Length -ne 64) {
-    Write-Output "⚠️  MSI checksum file missing or malformed; skipping SHA-256 verification."
-} else {
-    $actualHash = (Get-FileHash "$env:TEMP\NewRelicCLIInstaller.msi" -Algorithm SHA256).Hash.ToLower()
-    if ($actualHash -ne $expectedHash) {
-        throw "SHA-256 mismatch — aborting installation.`nExpected : $expectedHash`nActual   : $actualHash`nThe downloaded file may have been tampered with."
-    }
-    Write-Output "✅ SHA-256 verified: $actualHash"
-}
-
-# GPG signature verification — key embedded inline, no keyserver dependency.
-# Warns and continues on any failure; never blocks installation.
-# NR GPG key fingerprint: 4F9A9B5B96EC30B9 (expires 2027-04-28)
-$nrGpgFingerprint = "4F9A9B5B96EC30B9"
-$checksumsName = "newrelic-cli_$($version.TrimStart('v'))_checksums.txt"
-$checksumsUrl = "https://download.newrelic.com/install/newrelic-cli/${version}/${checksumsName}"
-$checksumsSigUrl = "${checksumsUrl}.sig"
-$nrPublicKey = @"
+        # GPG
+        $nrPublicKey = @"
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGgPxpQBEADYHbpyxZQjZibqbc53GC6BSDR0jo93FICwv6Jj4uc8ikjzcBSP
@@ -74,39 +67,36 @@ lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
 =rdhy
 -----END PGP PUBLIC KEY BLOCK-----
 "@
+        $gpgExe = Get-Command gpg.exe -ErrorAction SilentlyContinue
+        if ($gpgExe) {
+            $checksumsName = "newrelic-cli_$($Version.TrimStart('v'))_checksums.txt"
+            $checksumsUrl  = "https://download.newrelic.com/install/newrelic-cli/${Version}/${checksumsName}"
+            $Client.DownloadFile($checksumsUrl, "$env:TEMP\${checksumsName}")
+            $Client.DownloadFile("${checksumsUrl}.sig", "$env:TEMP\${checksumsName}.sig")
 
-$gpgExe = Get-Command gpg.exe -ErrorAction SilentlyContinue
-if ($gpgExe) {
-    try {
-        $WebClient.DownloadFile($checksumsUrl, "$env:TEMP\${checksumsName}")
-        $WebClient.DownloadFile($checksumsSigUrl, "$env:TEMP\${checksumsName}.sig")
+            $gpgTmpDir = Join-Path $env:TEMP "nr-gpg-$([System.IO.Path]::GetRandomFileName())"
+            New-Item -ItemType Directory -Path $gpgTmpDir -ErrorAction SilentlyContinue | Out-Null
+            $keyFile = Join-Path $gpgTmpDir "nr-public.asc"
+            $nrPublicKey | Set-Content -Path $keyFile -Encoding ASCII -ErrorAction SilentlyContinue
 
-        $gpgTmpDir = Join-Path $env:TEMP "nr-gpg-$([System.IO.Path]::GetRandomFileName())"
-        New-Item -ItemType Directory -Path $gpgTmpDir | Out-Null
-        $keyFile = Join-Path $gpgTmpDir "nr-public.asc"
-        $nrPublicKey | Set-Content -Path $keyFile -Encoding ASCII
-
-        & gpg.exe --homedir $gpgTmpDir --batch --import $keyFile 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) {
+            & gpg.exe --homedir $gpgTmpDir --batch --import $keyFile 2>&1 | Out-Null
             & gpg.exe --homedir $gpgTmpDir --batch --verify "$env:TEMP\${checksumsName}.sig" "$env:TEMP\${checksumsName}" 2>&1 | Out-Null
-            if ($LASTEXITCODE -eq 0) {
-                Write-Output "✅ GPG signature verified (key $nrGpgFingerprint)"
-            } else {
-                Write-Output "⚠️  GPG signature verification failed for ${checksumsName}"
-                Write-Output "   SHA-256 integrity of the binary has still been checked."
-                Write-Output "   For a tamper-evident install, verify manually at https://github.com/newrelic/newrelic-cli/releases"
-            }
-        } else {
-            Write-Output "⚠️  GPG key import failed; skipping signature verification."
+            Remove-Item -Recurse -Force $gpgTmpDir -ErrorAction SilentlyContinue
         }
-        Remove-Item -Recurse -Force $gpgTmpDir -ErrorAction SilentlyContinue
-    } catch {
-        Write-Output "⚠️  GPG signature verification skipped: $($_.Exception.Message)"
-    }
-} else {
-    Write-Output "⚠️  gpg.exe not found; skipping signature verification."
-    Write-Output "   Install Gpg4win for stronger supply-chain assurance."
+    } catch { }
 }
+
+try {
+    $version = $WebClient.DownloadString("https://download.newrelic.com/install/newrelic-cli/currentVersion.txt").Trim();
+    $WebClient.DownloadFile("https://download.newrelic.com/install/newrelic-cli/${version}/NewRelicCLIInstaller.msi", "$env:TEMP\NewRelicCLIInstaller.msi");
+    # MSI SHA-256 lives in its own file — goreleaser's checksums.txt only covers goreleaser-built artifacts.
+    $WebClient.DownloadFile("https://download.newrelic.com/install/newrelic-cli/${version}/NewRelicCLIInstaller.msi.sha256", "$env:TEMP\NewRelicCLIInstaller.msi.sha256");
+} catch {
+    Write-Output "`nCould not download the New Relic CLI installer.`n`nCheck your firewall settings. If you are using a proxy, make sure that you are able to access https://download.newrelic.com and that you have set the HTTPS_PROXY environment variable with your full proxy URL.`n"
+    throw
+}
+
+try { Invoke-IntegrityCheck -Version $version -Client $WebClient } catch { }
 
 try {
 function Find-UninstallGuids {

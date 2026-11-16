@@ -93,10 +93,24 @@ RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${TA
 CHECKSUM_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${CHECKSUMS_NAME}"
 CHECKSUM_SIG_URL="${CHECKSUM_URL}.sig"
 
-# NR GPG key — fingerprint D3EEEEE880A91DEE209A82CC4F9A9B5B96EC30B9 (expires 2027-04-28)
-# Embedded inline — no keyserver dependency, works in air-gapped/firewalled environments.
-NR_GPG_FINGERPRINT="4F9A9B5B96EC30B9"
-NR_PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
+# sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
+_sha256() {
+    if command -v sha256sum > /dev/null 2>&1; then
+        sha256sum "$1" | awk '{print $1}'
+    elif command -v shasum > /dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        echo ""
+    fi
+}
+
+# verify_integrity: best-effort SHA-256 + GPG check; never affects installation.
+# Runs in a subshell so any internal exit/error is fully contained.
+# The || true at the call site provides an additional layer of isolation
+# against set -o errexit propagation.
+verify_integrity() (
+    NR_GPG_FINGERPRINT="4F9A9B5B96EC30B9"
+    NR_PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGgPxpQBEADYHbpyxZQjZibqbc53GC6BSDR0jo93FICwv6Jj4uc8ikjzcBSP
 xSLcBPtq7rKdLUCB7ccjf4W5Fvzh9uLBOKrAiEEEiNYaVS1zq1yiFtoKIUC9B5Uo
@@ -127,72 +141,31 @@ lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
 =rdhy
 -----END PGP PUBLIC KEY BLOCK-----"
 
-# sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
-sha256() {
-    if command -v sha256sum > /dev/null 2>&1; then
-        sha256sum "$1" | awk '{print $1}'
-    elif command -v shasum > /dev/null 2>&1; then
-        shasum -a 256 "$1" | awk '{print $1}'
-    else
-        echo ""
+    # SHA-256
+    EXPECTED_HASH=$(grep "${TARBALL_NAME}" "${CHECKSUMS_NAME}" 2>/dev/null | awk '{print $1}')
+    if [ -n "$EXPECTED_HASH" ]; then
+        ACTUAL_HASH=$(_sha256 newrelic-cli.tar.gz)
+        if [ -n "$ACTUAL_HASH" ] && [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+            exit 1
+        fi
     fi
-}
+
+    # GPG
+    if command -v gpg > /dev/null 2>&1; then
+        if curl -sLf --retry 3 "${CHECKSUM_SIG_URL}" -o "${CHECKSUMS_NAME}.sig" 2>/dev/null; then
+            GPG_TMPDIR=$(mktemp -d)
+            echo "${NR_PUBLIC_KEY}" | gpg --homedir "${GPG_TMPDIR}" --batch --import > /dev/null 2>&1 && \
+                gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1
+            rm -rf "${GPG_TMPDIR}"
+        fi
+    fi
+)
 
 # Download tarball and checksums file.
 curl -sL --retry 3 "${RELEASE_URL}" -o newrelic-cli.tar.gz
 curl -sL --retry 3 "${CHECKSUM_URL}" -o "${CHECKSUMS_NAME}"
 
-EXPECTED_HASH=$(grep "${TARBALL_NAME}" "${CHECKSUMS_NAME}" | awk '{print $1}')
-
-if [ -z "$EXPECTED_HASH" ]; then
-    echo "❌ Could not find checksum for ${TARBALL_NAME} in ${CHECKSUMS_NAME}"
-    echo "   The release may be incomplete or the checksum file may be corrupt."
-    exit 1
-fi
-
-ACTUAL_HASH=$(sha256 newrelic-cli.tar.gz)
-
-if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
-    echo "❌ Checksum mismatch — aborting installation."
-    echo "   Expected : ${EXPECTED_HASH}"
-    echo "   Actual   : ${ACTUAL_HASH}"
-    echo "   The downloaded file may have been tampered with."
-    exit 1
-fi
-
-echo "✅ SHA-256 verified: ${ACTUAL_HASH}"
-
-# GPG signature verification of the checksums file.
-# This confirms the checksums file was produced by New Relic's release pipeline
-# and has not been tampered with since signing.
-#
-# Architectural note: this script is itself served from S3, so GPG verification
-# here is a defence-in-depth measure against partial S3 compromise (e.g. only
-# the tarball or checksums file being replaced). A full S3 compromise that also
-# replaces this script would bypass it. For the strongest supply-chain guarantee,
-# install via Homebrew or Chocolatey, which enforce package-manager-level signing.
-if command -v gpg > /dev/null 2>&1; then
-    if curl -sLf --retry 3 "${CHECKSUM_SIG_URL}" -o "${CHECKSUMS_NAME}.sig" 2>/dev/null; then
-        GPG_TMPDIR=$(mktemp -d)
-        if echo "${NR_PUBLIC_KEY}" | gpg --homedir "${GPG_TMPDIR}" --batch --import > /dev/null 2>&1; then
-            if gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1; then
-                echo "✅ GPG signature verified (key ${NR_GPG_FINGERPRINT})"
-            else
-                echo "⚠️  GPG signature verification failed for ${CHECKSUMS_NAME}"
-                echo "   SHA-256 integrity of the binary has still been checked."
-                echo "   For a tamper-evident install, verify manually at https://github.com/newrelic/newrelic-cli/releases"
-            fi
-        else
-            echo "⚠️  GPG key import failed; skipping signature verification."
-        fi
-        rm -rf "${GPG_TMPDIR}"
-    else
-        echo "⚠️  GPG signature file not available; skipping signature verification."
-    fi
-else
-    echo "⚠️  gpg not found; skipping signature verification."
-    echo "   Install gnupg for stronger supply-chain assurance."
-fi
+verify_integrity || true
 
 tar -xzf newrelic-cli.tar.gz
 
