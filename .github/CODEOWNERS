@@ -1,0 +1,18 @@
+# CODEOWNERS — newrelic/newrelic-cli
+#
+# Per-path ownership. GitHub auto-requests review from the listed team(s)
+# when a PR touches files under that path.
+#
+# Pair with "Require review from Code Owners" in branch protection to make
+# this a platform-enforced control rather than a routing hint.
+
+# Default: Virtuoso owns everything not matched by a more specific rule below.
+*                                   @newrelic/virtuoso
+
+# AI Monitoring command and its internals — owned by AIM.
+internal/aimonitoring/              @newrelic/aim
+docs/command-reference/aimonitor*   @newrelic/aim
+
+# Fleet Control command and its internals — owned by FLEET.
+internal/fleetcontrol/              @newrelic/fleet
+docs/command-reference/fleetcontrol* @newrelic/fleet
