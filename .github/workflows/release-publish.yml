@@ -402,7 +402,7 @@ jobs:
           #   (d) Rename the temp asset to the canonical zip name
           #   (e) Patch checksums.txt on disk: replace unsigned hash with signed hash
           #   (f) Verify the patch explicitly — fail if the hash is wrong
-          #   (g) Replace goreleaser-named checksums asset on GitHub Release (best-effort)
+          #   (g) Replace goreleaser-named checksums asset on GitHub Release — MANDATORY
           #
           # After this step:
           #   "Generate and Sign Checksums" reads the patched checksums.txt and GPG-signs it
@@ -500,33 +500,53 @@ jobs:
           fi
           echo "checksums.txt patched: ${PATCHED}"
 
-          # (g) Replace goreleaser-named checksums asset on GitHub Release (best-effort)
+          # (g) Replace goreleaser-named checksums asset on GitHub Release.
+          # MANDATORY — NOT best-effort. The monitor checks byte-identity of
+          # checksums.txt between GitHub Release and S3 (check D1). If this
+          # step is skipped or fails, GH has the unsigned hash and S3 has the
+          # signed hash, causing D1 to fire on every subsequent monitor run.
           CHECKSUM_ASSET_NAME=$(basename "$CHECKSUM_FILE")
           OLD_CHK_ID=$(echo "$ASSETS" | jq -r --arg n "$CHECKSUM_ASSET_NAME" \
             '.[] | select(.name == $n) | .id')
-          if [ -n "$OLD_CHK_ID" ] && [ "$OLD_CHK_ID" != "null" ]; then
-            HTTP_CODE=$(curl -s -o /tmp/chk-temp.json -w "%{http_code}" \
-              -X POST \
-              -H "Authorization: token ${GITHUB_TOKEN}" \
-              -H "Content-Type: application/octet-stream" \
-              "${UPLOAD_URL}?name=${CHECKSUM_ASSET_NAME}.new-signed" \
-              --data-binary @"${CHECKSUM_FILE}")
-            if [ "$HTTP_CODE" = "201" ]; then
-              NEW_CHK_ID=$(jq -r '.id' /tmp/chk-temp.json)
-              curl -sf -X DELETE \
-                -H "Authorization: token ${GITHUB_TOKEN}" \
-                "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${OLD_CHK_ID}" \
-                > /dev/null
-              curl -sf -X PATCH \
-                -H "Authorization: token ${GITHUB_TOKEN}" \
-                -H "Content-Type: application/json" \
-                "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${NEW_CHK_ID}" \
-                -d '{"name":"'"${CHECKSUM_ASSET_NAME}"'"}' > /dev/null
-              echo "Goreleaser checksums asset replaced on GitHub Release"
-            else
-              echo "Warning: goreleaser checksums asset replacement failed (HTTP ${HTTP_CODE}) — non-fatal"
-            fi
+          if [ -z "$OLD_CHK_ID" ] || [ "$OLD_CHK_ID" = "null" ]; then
+            echo "ERROR: goreleaser checksums asset ${CHECKSUM_ASSET_NAME} not found on release"
+            exit 1
           fi
+          HTTP_CODE=$(curl -s -o /tmp/chk-temp.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            "${UPLOAD_URL}?name=${CHECKSUM_ASSET_NAME}.new-signed" \
+            --data-binary @"${CHECKSUM_FILE}")
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "ERROR: temp upload of patched checksums failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/chk-temp.json
+            exit 1
+          fi
+          NEW_CHK_ID=$(jq -r '.id' /tmp/chk-temp.json)
+          echo "Patched checksums temp uploaded id=${NEW_CHK_ID}"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X DELETE \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${OLD_CHK_ID}")
+          if [ "$HTTP_CODE" != "204" ]; then
+            echo "ERROR: DELETE old checksums failed (HTTP ${HTTP_CODE})"
+            echo "Temp ${CHECKSUM_ASSET_NAME}.new-signed (id=${NEW_CHK_ID}) still present"
+            exit 1
+          fi
+          HTTP_CODE=$(curl -s -o /tmp/chk-rename.json -w "%{http_code}" \
+            -X PATCH \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${NEW_CHK_ID}" \
+            -d '{"name":"'"${CHECKSUM_ASSET_NAME}"'"}')
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: rename patched checksums failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/chk-rename.json
+            echo "Asset exists as ${CHECKSUM_ASSET_NAME}.new-signed (id=${NEW_CHK_ID}) — manual rename needed"
+            exit 1
+          fi
+          echo "Goreleaser checksums asset replaced on GitHub Release: ${CHECKSUM_ASSET_NAME}"
 
       - name: "Publish CLI: Get Latest Tag"
         id: get-latest-tag
