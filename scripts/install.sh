@@ -95,7 +95,11 @@ CHECKSUM_SIG_URL="${CHECKSUM_URL}.sig"
 
 # verify_integrity: best-effort SHA-256 + GPG check; never affects installation.
 # Subshell () fully contains any exit/error; || true at call site guards set -o errexit.
+# Set NR_VERBOSE=1 to print verification results; default is silent.
 verify_integrity() (
+    NR_VERBOSE="${NR_VERBOSE:-0}"
+    _log() { [ "$NR_VERBOSE" = "1" ] && echo "$1" || true; }
+
     # sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
     _sha256() {
         if command -v sha256sum > /dev/null 2>&1; then
@@ -145,8 +149,12 @@ lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
     if [ -n "$EXPECTED_HASH" ]; then
         ACTUAL_HASH=$(_sha256 newrelic-cli.tar.gz)
         if [ -n "$ACTUAL_HASH" ] && [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+            _log "sha256 mismatch: expected ${EXPECTED_HASH}, got ${ACTUAL_HASH}"
             exit 1
         fi
+        _log "sha256 ok: ${ACTUAL_HASH}"
+    else
+        _log "sha256 skipped: checksum entry not found"
     fi
 
     # GPG
@@ -154,9 +162,17 @@ lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
         if curl -sLf --retry 3 "${CHECKSUM_SIG_URL}" -o "${CHECKSUMS_NAME}.sig" 2>/dev/null; then
             GPG_TMPDIR=$(mktemp -d)
             echo "${NR_PUBLIC_KEY}" | gpg --homedir "${GPG_TMPDIR}" --batch --import > /dev/null 2>&1
-            gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1
+            if gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1; then
+                _log "gpg ok: signature verified (key 4F9A9B5B96EC30B9)"
+            else
+                _log "gpg skipped: signature verification failed"
+            fi
             rm -rf "${GPG_TMPDIR}"
+        else
+            _log "gpg skipped: signature file not available"
         fi
+    else
+        _log "gpg skipped: gpg not installed"
     fi
 )
 

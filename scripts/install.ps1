@@ -23,10 +23,13 @@ try {
 }
 
 function Invoke-IntegrityCheck {
+    # Set $env:NR_VERBOSE=1 before running to print verification results; default is silent.
     param(
         [string]$Version,
         [System.Net.WebClient]$Client
     )
+    $verbose = $env:NR_VERBOSE -eq '1'
+    $log = { param($msg) if ($verbose) { Write-Output $msg } }
     try {
         # SHA-256: MSI checksum lives in its own file — goreleaser's checksums.txt
         # only covers goreleaser-built artifacts, not the MSI.
@@ -35,8 +38,12 @@ function Invoke-IntegrityCheck {
         if ($expectedHash -and $expectedHash.Length -eq 64) {
             $actualHash = (Get-FileHash "$env:TEMP\NewRelicCLIInstaller.msi" -Algorithm SHA256).Hash.ToLower()
             if ($actualHash -and $actualHash -ne $expectedHash) {
+                & $log "sha256 mismatch: expected $expectedHash, got $actualHash"
                 return
             }
+            & $log "sha256 ok: $actualHash"
+        } else {
+            & $log "sha256 skipped: checksum file missing or malformed"
         }
 
         # GPG: key embedded inline — no keyserver dependency, works in air-gapped/firewalled environments.
@@ -85,9 +92,16 @@ lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
             $keyFile = Join-Path $gpgTmpDir "nr-public.asc"
             $nrPublicKey | Set-Content -Path $keyFile -Encoding ASCII
 
-            & gpg.exe --homedir $gpgTmpDir --batch --import $keyFile 2>&1 | Out-Null
-            & gpg.exe --homedir $gpgTmpDir --batch --verify "$env:TEMP\${checksumsName}.sig" "$env:TEMP\${checksumsName}" 2>&1 | Out-Null
+            $null = & gpg.exe --homedir $gpgTmpDir --batch --import $keyFile 2>&1
+            $null = & gpg.exe --homedir $gpgTmpDir --batch --verify "$env:TEMP\${checksumsName}.sig" "$env:TEMP\${checksumsName}" 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                & $log "gpg ok: signature verified (key 4F9A9B5B96EC30B9)"
+            } else {
+                & $log "gpg skipped: signature verification failed"
+            }
             Remove-Item -Recurse -Force $gpgTmpDir
+        } else {
+            & $log "gpg skipped: gpg.exe not installed"
         }
     } catch { }
 }
