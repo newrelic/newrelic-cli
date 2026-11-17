@@ -1,3 +1,8 @@
+<a name="v0.116.4"></a>
+## [v0.116.4] - 2026-11-17
+### Bug Fixes
+- **release:** replace unsigned Windows zip, re-sign checksums after Authenticode sign ([#1948](https://github.com/newrelic/newrelic-cli/issues/1948))
+
 <a name="v0.116.3"></a>
 ## [v0.116.3] - 2026-11-17
 ### Bug Fixes
@@ -2998,7 +3003,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.116.3...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.116.4...HEAD
+[v0.116.4]: https://github.com/newrelic/newrelic-cli/compare/v0.116.3...v0.116.4
 [v0.116.3]: https://github.com/newrelic/newrelic-cli/compare/v0.116.2...v0.116.3
 [v0.116.2]: https://github.com/newrelic/newrelic-cli/compare/v0.116.1...v0.116.2
 [v0.116.1]: https://github.com/newrelic/newrelic-cli/compare/v0.116.0...v0.116.1
