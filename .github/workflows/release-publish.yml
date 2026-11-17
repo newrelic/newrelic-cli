@@ -377,6 +377,18 @@ jobs:
                  dist/newrelic_windows_amd64_v1/newrelic.exe
           echo "✅ Windows zip re-packaged with signed binary."
 
+      - name: "Publish CLI: Generate Windows Zip SHA-256 Sidecar"
+        run: |
+          set -euo pipefail
+          # The repackaged zip (Authenticode-signed .exe) has a different SHA-256 than what
+          # goreleaser recorded in checksums.txt (unsigned .exe). Generate a dedicated sidecar
+          # so S3 consumers can verify the exact file they download without relying on
+          # checksums.txt, which covers the GitHub Release copy. This is the S3-authoritative
+          # digest; checksums.txt remains the GitHub Release-authoritative one.
+          ZIP=$(ls dist/newrelic-cli_*_Windows_x86_64.zip)
+          sha256sum "$ZIP" | awk '{print $1}' > "${ZIP}.sha256"
+          echo "✅ Windows zip SHA-256 sidecar: $(cat ${ZIP}.sha256)"
+
       - name: "Publish CLI: Get Latest Tag"
         id: get-latest-tag
         run: |
@@ -566,6 +578,7 @@ jobs:
             --include "newrelic-cli_*.txt" \
             --include "newrelic-cli_*.sig" \
             --include "newrelic-cli_*.zip" \
+            --include "newrelic-cli_*.zip.sha256" \
             --include "newrelic-cli_*.gz" \
             --include "newrelic-cli_*.rpm" \
             --include "newrelic-cli_*.deb" \
