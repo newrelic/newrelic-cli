@@ -377,17 +377,101 @@ jobs:
                  dist/newrelic_windows_amd64_v1/newrelic.exe
           echo "✅ Windows zip re-packaged with signed binary."
 
-      - name: "Publish CLI: Generate Windows Zip SHA-256 Sidecar"
+
+      - name: "Publish CLI: Replace Unsigned Windows Zip on GitHub Release and Patch Checksums"
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
-          # The repackaged zip (Authenticode-signed .exe) has a different SHA-256 than what
-          # goreleaser recorded in checksums.txt (unsigned .exe). Generate a dedicated sidecar
-          # so S3 consumers can verify the exact file they download without relying on
-          # checksums.txt, which covers the GitHub Release copy. This is the S3-authoritative
-          # digest; checksums.txt remains the GitHub Release-authoritative one.
+          # goreleaser uploaded the UNSIGNED zip to the GitHub Release.
+          # After Authenticode signing and repackaging, dist/ now contains the
+          # SIGNED zip. We must:
+          #   (a) delete the unsigned zip asset from GitHub Release and upload
+          #       the signed one in its place, so GitHub Release users get the
+          #       Authenticode-signed binary (same as S3) and avoid SmartScreen
+          #       warnings.
+          #   (b) patch goreleaser's checksums.txt on disk to replace the
+          #       unsigned zip's hash with the signed zip's hash, so the
+          #       downstream "Generate and Sign Checksums" step GPG-signs the
+          #       correct manifest.
+
           ZIP=$(ls dist/newrelic-cli_*_Windows_x86_64.zip)
-          sha256sum "$ZIP" | awk '{print $1}' > "${ZIP}.sha256"
-          echo "✅ Windows zip SHA-256 sidecar: $(cat ${ZIP}.sha256)"
+          ZIP_NAME=$(basename "$ZIP")
+          SIGNED_HASH=$(sha256sum "$ZIP" | awk '{print $1}')
+          echo "Signed zip : ${ZIP_NAME}"
+          echo "Signed hash: ${SIGNED_HASH}"
+
+          RELEASE_ID=$(curl -sf \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/latest" \
+            | jq -r '.id')
+
+          ASSETS=$(curl -sf \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/${RELEASE_ID}/assets")
+
+          # (a) Replace the zip asset on GitHub Release
+          ASSET_ID=$(echo "$ASSETS" | jq -r --arg name "$ZIP_NAME" '.[] | select(.name == $name) | .id')
+          if [ -z "$ASSET_ID" ] || [ "$ASSET_ID" = "null" ]; then
+            echo "Asset ${ZIP_NAME} not found on GitHub Release ${RELEASE_ID}"
+            exit 1
+          fi
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X DELETE \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${ASSET_ID}")
+          if [ "$HTTP_CODE" != "204" ]; then
+            echo "DELETE unsigned zip failed (HTTP ${HTTP_CODE})"
+            exit 1
+          fi
+          echo "Unsigned zip deleted from GitHub Release (id=${ASSET_ID})"
+          RAW_URL=$(./scripts/get_latest_release_upload_url.sh)
+          UPLOAD_URL="${RAW_URL%\{*}"
+          HTTP_CODE=$(curl -s -o /tmp/zip-upload.json -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            "${UPLOAD_URL}?name=${ZIP_NAME}" \
+            --data-binary @"${ZIP}")
+          if [ "$HTTP_CODE" != "201" ]; then
+            echo "Upload signed zip failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/zip-upload.json
+            exit 1
+          fi
+          echo "Signed zip uploaded to GitHub Release"
+
+          # (b) Patch goreleaser's checksums.txt on disk so downstream GPG-sign
+          #     step uses the signed zip's hash.
+          CHECKSUM_FILE=$(find dist -name "newrelic-cli_*_checksums.txt")
+          if [ -z "$CHECKSUM_FILE" ]; then
+            echo "Checksum file not found in dist/"
+            exit 1
+          fi
+          sed -i "s|.*  ${ZIP_NAME}|${SIGNED_HASH}  ${ZIP_NAME}|" "$CHECKSUM_FILE"
+          echo "checksums.txt patched: $(grep "${ZIP_NAME}" "$CHECKSUM_FILE")"
+
+          # Replace the goreleaser-named checksums asset on GitHub Release too
+          CHECKSUM_ASSET_NAME=$(basename "$CHECKSUM_FILE")
+          OLD_CHK_ID=$(echo "$ASSETS" | jq -r --arg name "$CHECKSUM_ASSET_NAME" '.[] | select(.name == $name) | .id')
+          if [ -n "$OLD_CHK_ID" ] && [ "$OLD_CHK_ID" != "null" ]; then
+            curl -sf -X DELETE \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${OLD_CHK_ID}" \
+              > /dev/null
+            echo "Old goreleaser checksums asset deleted (id=${OLD_CHK_ID})"
+            HTTP_CODE=$(curl -s -o /tmp/chk-upload.json -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: token ${GITHUB_TOKEN}" \
+              -H "Content-Type: application/octet-stream" \
+              "${UPLOAD_URL}?name=${CHECKSUM_ASSET_NAME}" \
+              --data-binary @"${CHECKSUM_FILE}")
+            if [ "$HTTP_CODE" != "201" ]; then
+              echo "Re-upload goreleaser checksums failed (HTTP ${HTTP_CODE}):"
+              cat /tmp/chk-upload.json
+              exit 1
+            fi
+            echo "Goreleaser checksums asset replaced on GitHub Release"
+          fi
 
       - name: "Publish CLI: Get Latest Tag"
         id: get-latest-tag
@@ -578,7 +662,6 @@ jobs:
             --include "newrelic-cli_*.txt" \
             --include "newrelic-cli_*.sig" \
             --include "newrelic-cli_*.zip" \
-            --include "newrelic-cli_*.zip.sha256" \
             --include "newrelic-cli_*.gz" \
             --include "newrelic-cli_*.rpm" \
             --include "newrelic-cli_*.deb" \
