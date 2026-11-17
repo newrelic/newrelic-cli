@@ -377,27 +377,45 @@ jobs:
                  dist/newrelic_windows_amd64_v1/newrelic.exe
           echo "✅ Windows zip re-packaged with signed binary."
 
-
-      - name: "Publish CLI: Replace Unsigned Windows Zip on GitHub Release and Patch Checksums"
+      - name: "Publish CLI: Replace Windows Zip on GitHub Release with Signed Version"
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
-          # goreleaser uploaded the UNSIGNED zip to the GitHub Release.
-          # After Authenticode signing and repackaging, dist/ now contains the
-          # SIGNED zip. We must:
-          #   (a) delete the unsigned zip asset from GitHub Release and upload
-          #       the signed one in its place, so GitHub Release users get the
-          #       Authenticode-signed binary (same as S3) and avoid SmartScreen
-          #       warnings.
-          #   (b) patch goreleaser's checksums.txt on disk to replace the
-          #       unsigned zip's hash with the signed zip's hash, so the
-          #       downstream "Generate and Sign Checksums" step GPG-signs the
-          #       correct manifest.
+          # WHY THIS STEP EXISTS
+          # --------------------
+          # goreleaser builds newrelic.exe unsigned, zips it, hashes it into
+          # checksums.txt, and uploads everything to the GitHub Release.
+          # Then osslsigncode embeds an Authenticode signature into the exe bytes
+          # (changing them), and "Repackage Windows Zip" re-zips with the signed exe
+          # producing a new zip with a different SHA-256.
+          # "Upload Release Artifacts to S3" uploads THAT signed zip to S3.
+          #
+          # Without this step:
+          #   GitHub Release zip = unsigned exe  (hash matches checksums.txt)
+          #   S3 zip             = signed exe    (hash DOES NOT match checksums.txt)
+          #
+          # This step fixes both surfaces atomically:
+          #   (a) Upload signed zip under a temp name  — release never has zero zips
+          #   (b) Verify the upload before deleting anything
+          #   (c) Delete the unsigned zip asset
+          #   (d) Rename the temp asset to the canonical zip name
+          #   (e) Patch checksums.txt on disk: replace unsigned hash with signed hash
+          #   (f) Verify the patch explicitly — fail if the hash is wrong
+          #   (g) Replace goreleaser-named checksums asset on GitHub Release (best-effort)
+          #
+          # After this step:
+          #   "Generate and Sign Checksums" reads the patched checksums.txt and GPG-signs it
+          #   "Upload Release Artifacts to S3" uploads signed zip + patched checksums to S3
+          #   => GitHub Release and S3 both have the Authenticode-signed zip
+          #   => Both have checksums.txt entries that match that zip
+          #   => One GPG-signed manifest covers the correct hash everywhere
 
           ZIP=$(ls dist/newrelic-cli_*_Windows_x86_64.zip)
           ZIP_NAME=$(basename "$ZIP")
           SIGNED_HASH=$(sha256sum "$ZIP" | awk '{print $1}')
+          TEMP_NAME="${ZIP_NAME}.new-signed"
+
           echo "Signed zip : ${ZIP_NAME}"
           echo "Signed hash: ${SIGNED_HASH}"
 
@@ -405,72 +423,109 @@ jobs:
             -H "Authorization: token ${GITHUB_TOKEN}" \
             "https://api.github.com/repos/newrelic/newrelic-cli/releases/latest" \
             | jq -r '.id')
+          echo "Release ID: ${RELEASE_ID}"
 
           ASSETS=$(curl -sf \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             "https://api.github.com/repos/newrelic/newrelic-cli/releases/${RELEASE_ID}/assets")
 
-          # (a) Replace the zip asset on GitHub Release
-          ASSET_ID=$(echo "$ASSETS" | jq -r --arg name "$ZIP_NAME" '.[] | select(.name == $name) | .id')
-          if [ -z "$ASSET_ID" ] || [ "$ASSET_ID" = "null" ]; then
-            echo "Asset ${ZIP_NAME} not found on GitHub Release ${RELEASE_ID}"
+          UNSIGNED_ASSET_ID=$(echo "$ASSETS" | jq -r --arg n "$ZIP_NAME" \
+            '.[] | select(.name == $n) | .id')
+          if [ -z "$UNSIGNED_ASSET_ID" ] || [ "$UNSIGNED_ASSET_ID" = "null" ]; then
+            echo "ERROR: asset ${ZIP_NAME} not found on release ${RELEASE_ID}"
             exit 1
           fi
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X DELETE \
-            -H "Authorization: token ${GITHUB_TOKEN}" \
-            "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${ASSET_ID}")
-          if [ "$HTTP_CODE" != "204" ]; then
-            echo "DELETE unsigned zip failed (HTTP ${HTTP_CODE})"
-            exit 1
-          fi
-          echo "Unsigned zip deleted from GitHub Release (id=${ASSET_ID})"
+          echo "Unsigned zip asset id: ${UNSIGNED_ASSET_ID}"
+
+          # (a)+(b) Upload signed zip under temp name; verify 201 before touching anything
           RAW_URL=$(./scripts/get_latest_release_upload_url.sh)
           UPLOAD_URL="${RAW_URL%\{*}"
-          HTTP_CODE=$(curl -s -o /tmp/zip-upload.json -w "%{http_code}" \
+
+          HTTP_CODE=$(curl -s -o /tmp/zip-temp.json -w "%{http_code}" \
             -X POST \
             -H "Authorization: token ${GITHUB_TOKEN}" \
             -H "Content-Type: application/octet-stream" \
-            "${UPLOAD_URL}?name=${ZIP_NAME}" \
+            "${UPLOAD_URL}?name=${TEMP_NAME}" \
             --data-binary @"${ZIP}")
           if [ "$HTTP_CODE" != "201" ]; then
-            echo "Upload signed zip failed (HTTP ${HTTP_CODE}):"
-            cat /tmp/zip-upload.json
+            echo "ERROR: temp upload failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/zip-temp.json
             exit 1
           fi
-          echo "Signed zip uploaded to GitHub Release"
+          TEMP_ASSET_ID=$(jq -r '.id' /tmp/zip-temp.json)
+          echo "Temp asset uploaded id=${TEMP_ASSET_ID} — release has both zip assets now"
 
-          # (b) Patch goreleaser's checksums.txt on disk so downstream GPG-sign
-          #     step uses the signed zip's hash.
+          # (c) Delete unsigned zip — signed zip already exists as temp, so release is intact
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X DELETE \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${UNSIGNED_ASSET_ID}")
+          if [ "$HTTP_CODE" != "204" ]; then
+            echo "ERROR: DELETE unsigned zip failed (HTTP ${HTTP_CODE})"
+            echo "Temp asset ${TEMP_NAME} (id=${TEMP_ASSET_ID}) still present — release not broken"
+            exit 1
+          fi
+          echo "Unsigned zip deleted id=${UNSIGNED_ASSET_ID}"
+
+          # (d) Rename temp asset to canonical zip name
+          HTTP_CODE=$(curl -s -o /tmp/rename.json -w "%{http_code}" \
+            -X PATCH \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${TEMP_ASSET_ID}" \
+            -d '{"name":"'"${ZIP_NAME}"'"}')
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: rename failed (HTTP ${HTTP_CODE}):"
+            cat /tmp/rename.json
+            echo "Asset still present as ${TEMP_NAME} (id=${TEMP_ASSET_ID}) — manual rename needed"
+            exit 1
+          fi
+          echo "Renamed to ${ZIP_NAME} on GitHub Release"
+
+          # (e)+(f) Patch checksums.txt on disk; verify before and after
           CHECKSUM_FILE=$(find dist -name "newrelic-cli_*_checksums.txt")
           if [ -z "$CHECKSUM_FILE" ]; then
-            echo "Checksum file not found in dist/"
+            echo "ERROR: checksums.txt not found in dist/"
+            exit 1
+          fi
+          if ! grep -qF "  ${ZIP_NAME}" "$CHECKSUM_FILE"; then
+            echo "ERROR: ${ZIP_NAME} line not found in ${CHECKSUM_FILE}"
             exit 1
           fi
           sed -i "s|.*  ${ZIP_NAME}|${SIGNED_HASH}  ${ZIP_NAME}|" "$CHECKSUM_FILE"
-          echo "checksums.txt patched: $(grep "${ZIP_NAME}" "$CHECKSUM_FILE")"
+          PATCHED=$(grep -F "  ${ZIP_NAME}" "$CHECKSUM_FILE")
+          if [ "$(echo "$PATCHED" | awk '{print $1}')" != "$SIGNED_HASH" ]; then
+            echo "ERROR: checksums.txt patch failed — expected ${SIGNED_HASH}, got: ${PATCHED}"
+            exit 1
+          fi
+          echo "checksums.txt patched: ${PATCHED}"
 
-          # Replace the goreleaser-named checksums asset on GitHub Release too
+          # (g) Replace goreleaser-named checksums asset on GitHub Release (best-effort)
           CHECKSUM_ASSET_NAME=$(basename "$CHECKSUM_FILE")
-          OLD_CHK_ID=$(echo "$ASSETS" | jq -r --arg name "$CHECKSUM_ASSET_NAME" '.[] | select(.name == $name) | .id')
+          OLD_CHK_ID=$(echo "$ASSETS" | jq -r --arg n "$CHECKSUM_ASSET_NAME" \
+            '.[] | select(.name == $n) | .id')
           if [ -n "$OLD_CHK_ID" ] && [ "$OLD_CHK_ID" != "null" ]; then
-            curl -sf -X DELETE \
-              -H "Authorization: token ${GITHUB_TOKEN}" \
-              "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${OLD_CHK_ID}" \
-              > /dev/null
-            echo "Old goreleaser checksums asset deleted (id=${OLD_CHK_ID})"
-            HTTP_CODE=$(curl -s -o /tmp/chk-upload.json -w "%{http_code}" \
+            HTTP_CODE=$(curl -s -o /tmp/chk-temp.json -w "%{http_code}" \
               -X POST \
               -H "Authorization: token ${GITHUB_TOKEN}" \
               -H "Content-Type: application/octet-stream" \
-              "${UPLOAD_URL}?name=${CHECKSUM_ASSET_NAME}" \
+              "${UPLOAD_URL}?name=${CHECKSUM_ASSET_NAME}.new-signed" \
               --data-binary @"${CHECKSUM_FILE}")
-            if [ "$HTTP_CODE" != "201" ]; then
-              echo "Re-upload goreleaser checksums failed (HTTP ${HTTP_CODE}):"
-              cat /tmp/chk-upload.json
-              exit 1
+            if [ "$HTTP_CODE" = "201" ]; then
+              NEW_CHK_ID=$(jq -r '.id' /tmp/chk-temp.json)
+              curl -sf -X DELETE \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${OLD_CHK_ID}" \
+                > /dev/null
+              curl -sf -X PATCH \
+                -H "Authorization: token ${GITHUB_TOKEN}" \
+                -H "Content-Type: application/json" \
+                "https://api.github.com/repos/newrelic/newrelic-cli/releases/assets/${NEW_CHK_ID}" \
+                -d '{"name":"'"${CHECKSUM_ASSET_NAME}"'"}' > /dev/null
+              echo "Goreleaser checksums asset replaced on GitHub Release"
+            else
+              echo "Warning: goreleaser checksums asset replacement failed (HTTP ${HTTP_CODE}) — non-fatal"
             fi
-            echo "Goreleaser checksums asset replaced on GitHub Release"
           fi
 
       - name: "Publish CLI: Get Latest Tag"
