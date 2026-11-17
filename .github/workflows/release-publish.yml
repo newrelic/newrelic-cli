@@ -196,14 +196,27 @@ jobs:
           target: recipes.zip
           token: ${{ secrets.RELEASE_TOKEN }}
 
-      - name: "Publish OIL: Upload recipes.zip to S3"
+      - name: "Publish OIL: Download recipes.zip.sha256 From GitHub Release"
+        if: steps.tag_meta.outputs.include_oil == 'true'
+        uses: dsaltares/fetch-gh-release-asset@0efe227dedb360b09ea0e533795d584b61c461a9
+        with:
+          repo: newrelic/open-install-library
+          version: "tags/${{ steps.oil_tag.outputs.tag }}"
+          file: recipes.zip.sha256
+          target: recipes.zip.sha256
+          token: ${{ secrets.RELEASE_TOKEN }}
+
+      - name: "Publish OIL: Upload recipes.zip and recipes.zip.sha256 to S3"
         if: steps.tag_meta.outputs.include_oil == 'true'
         run: |
           set -euo pipefail
           TAG="${{ steps.oil_tag.outputs.tag }}"
           aws s3 cp recipes.zip \
             "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
-          echo "✅ recipes.zip uploaded to s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
+          echo "✅ recipes.zip uploaded to S3"
+          aws s3 cp recipes.zip.sha256 \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256"
+          echo "✅ recipes.zip.sha256 uploaded to S3"
 
       - name: "Publish OIL: Upload currentVersion.txt to S3"
         if: steps.tag_meta.outputs.include_oil == 'true'
@@ -216,12 +229,15 @@ jobs:
             --cache-control no-cache
           echo "✅ OIL currentVersion.txt updated to ${TAG}."
 
-      - name: "Publish OIL: Verify S3 Artifacts"
+      - name: "Publish OIL: Verify S3 and GitHub Release Artifacts"
         if: steps.tag_meta.outputs.include_oil == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         run: |
           set -euo pipefail
           TAG="${{ steps.oil_tag.outputs.tag }}"
 
+          # Verify currentVersion.txt on S3
           S3_VERSION=$(aws s3 cp \
             s3://nr-downloads-main/install/open-install-library/currentVersion.txt \
             - --quiet | tr -d '[:space:]')
@@ -229,22 +245,42 @@ jobs:
             echo "❌ currentVersion.txt mismatch: S3 has '${S3_VERSION}', expected '${TAG}'"
             exit 1
           fi
+
+          # Verify recipes.zip on S3
           if ! aws s3 ls \
             "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip" \
             > /dev/null 2>&1; then
-            echo "❌ recipes.zip not found at s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip"
+            echo "❌ recipes.zip not found on S3"
             exit 1
           fi
-          echo "✅ OIL S3 verified — make recipes will embed ${TAG} when the CLI build runs."
+
+          # Verify recipes.zip.sha256 on S3 matches what orchestrate uploaded to GitHub Release
+          if ! aws s3 ls \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256" \
+            > /dev/null 2>&1; then
+            echo "❌ recipes.zip.sha256 not found on S3"
+            exit 1
+          fi
+          S3_HASH=$(aws s3 cp \
+            "s3://nr-downloads-main/install/open-install-library/${TAG}/recipes.zip.sha256" \
+            - --quiet | tr -d '[:space:]')
+          GH_HASH=$(cat recipes.zip.sha256 | tr -d '[:space:]')
+          if [ "$S3_HASH" != "$GH_HASH" ]; then
+            echo "❌ S3 hash (${S3_HASH}) != GitHub Release hash (${GH_HASH})"
+            exit 1
+          fi
+
+          echo "✅ OIL artifacts verified — S3 and GitHub Release are in sync."
+          echo "   recipes.zip SHA-256: ${S3_HASH}"
 
       # ── SECTION 3: CLI BUILD & PUBLISH ────────────────────────────────────
 
       - name: "Publish CLI: Clean OIL Temp Files"
         run: |
-          # recipes.zip and currentVersion-oil.txt are written to the repo root
-          # by the OIL S3 upload steps above. goreleaser's dirty-tree check treats
-          # any untracked file as a hard error, so remove them before the build.
-          rm -f recipes.zip currentVersion-oil.txt
+          # recipes.zip, recipes.zip.sha256, and currentVersion-oil.txt are written
+          # to the repo root by the OIL S3 upload steps above. goreleaser's
+          # dirty-tree check treats any untracked file as a hard error.
+          rm -f recipes.zip recipes.zip.sha256 currentVersion-oil.txt
           echo "✅ OIL temp files removed."
 
       - name: "Publish CLI: Import PGP Signing Key"

@@ -87,6 +87,21 @@ jobs:
         run: |
           aws s3 cp NewRelicCLIInstaller.msi s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi
 
+      - name: Generate and upload MSI SHA-256
+        run: |
+          sha256sum NewRelicCLIInstaller.msi | awk '{print $1}' > NewRelicCLIInstaller.msi.sha256
+          echo "MSI SHA-256: $(cat NewRelicCLIInstaller.msi.sha256)"
+          aws s3 cp NewRelicCLIInstaller.msi.sha256 s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi.sha256
+          echo "✅ NewRelicCLIInstaller.msi.sha256 uploaded to S3."
+
+      - name: Verify MSI SHA-256 on S3
+        run: |
+          if ! aws s3 ls "s3://nr-downloads-main/install/newrelic-cli/${{ steps.get-latest-tag.outputs.tag }}/NewRelicCLIInstaller.msi.sha256" > /dev/null 2>&1; then
+            echo "❌ NewRelicCLIInstaller.msi.sha256 not found on S3"
+            exit 1
+          fi
+          echo "✅ NewRelicCLIInstaller.msi.sha256 verified on S3."
+
       - name: Create currentVersion.txt
         id: create-current-version
         run: |

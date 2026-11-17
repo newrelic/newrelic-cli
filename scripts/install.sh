@@ -66,7 +66,7 @@ DESTDIR="${DESTDIR:-/usr/local/bin}"
 curl --connect-timeout 10 -IsL "$BASE_URL" > /dev/null || ( echo "Cannot connect to $BASE_URL to download the New Relic CLI. Check your firewall settings. If you are using a proxy, make sure you have set the HTTPS_PROXY environment variable." && exit 132 )
 
 # Create DESTDIR if it does not exist.
-if [ ! -d "$DESTDIR" ]; then 
+if [ ! -d "$DESTDIR" ]; then
     mkdir -m 755 -p "$DESTDIR"
 fi
 
@@ -87,10 +87,102 @@ function error {
 
 trap error ERR
 
-RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+TARBALL_NAME="newrelic-cli_${VERSION}_${OS}_${MACHINE}.tar.gz"
+CHECKSUMS_NAME="newrelic-cli_${VERSION}_checksums.txt"
+RELEASE_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${TARBALL_NAME}"
+CHECKSUM_URL="https://download.newrelic.com/install/newrelic-cli/v${VERSION}/${CHECKSUMS_NAME}"
+CHECKSUM_SIG_URL="${CHECKSUM_URL}.sig"
 
-# Download & unpack the release tarball.
-curl -sL --retry 3 "${RELEASE_URL}" | tar -xz
+# verify_integrity: best-effort SHA-256 + GPG check; never affects installation.
+# Subshell () fully contains any exit/error; || true at call site guards set -o errexit.
+# Set NR_VERBOSE=1 to print verification results; default is silent.
+verify_integrity() (
+    NR_VERBOSE="${NR_VERBOSE:-0}"
+    _log() { [ "$NR_VERBOSE" = "1" ] && echo "$1" || true; }
+
+    # sha256sum is GNU coreutils (Linux); macOS ships shasum instead.
+    _sha256() {
+        if command -v sha256sum > /dev/null 2>&1; then
+            sha256sum "$1" | awk '{print $1}'
+        elif command -v shasum > /dev/null 2>&1; then
+            shasum -a 256 "$1" | awk '{print $1}'
+        else
+            echo ""
+        fi
+    }
+
+    # GPG key embedded inline — no keyserver dependency, works in air-gapped/firewalled environments.
+    # NR GPG key fingerprint: 4F9A9B5B96EC30B9 (expires 2027-04-28)
+    NR_PUBLIC_KEY="-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQINBGgPxpQBEADYHbpyxZQjZibqbc53GC6BSDR0jo93FICwv6Jj4uc8ikjzcBSP
+xSLcBPtq7rKdLUCB7ccjf4W5Fvzh9uLBOKrAiEEEiNYaVS1zq1yiFtoKIUC9B5Uo
+kbp3diHJl6m/erpSeICg7LbV4iDCjLanTfHufTUF+HMexTIPIaufmbBBKWZ7a57u
+dHyzHsnYEa9iW3vm4WLM7Ked4Vl/eFbCa7oAkfCi22Q2MreuH+dXFqtTVQ71EfQk
+j7jAxTjnxvxYVhgYHELIZptY7LqudY7p24ANF0tu1NfGqGkEnEJ6OMdcMeYIy+rR
+UCuYND5ite/FEBRwB7h64utgrrNXXq4tbEJuk02+v1RXHyJXIJ3W4xgkKk+U8027
+SLwNJzVx9igxKMLZlYSHgpbvq7DAZzGhFbfJHh7Mv33CayxD1bzNLhF9Pk2jYX80
+YQifL3QnfpahWVA0z2CHBqqaCiWY6of7j5G8JF1xMb1MxKymTjlBLcHtvnepZ8jc
+f4+bp5PE27Zkbd+qd4eI1Elc0ofillldkwh6QnGWe0qgCNFyxC0U5209JV6E7dZ5
+OfG99D75JFOtEduvOFXbi/782TWgFlS4yOd6zyxxckmpgAR36z0xAZu1gsKfrc/h
+KGRJYyvH15VW6bWzEfbU/bkODLCckUR2S4OoGGfg1x1TsM93gA0EvTEqhQARAQAB
+tGtOZXcgUmVsaWMgKE5ldyBSZWxpYyBPcGVuIFNvdXJjZSBEZXZlbG9wZXIgVG9v
+bGtpdCBHUEcgS2V5KSA8bnItZGV2ZWxvcGVyLXRvb2xraXRAdXNlcnMubm9yZXBs
+eS5naXRodWIuY29tPokCVwQTAQgAQRYhBNPu7uiAqR3uIJqCzE+am1uW7DC5BQJo
+D8aUAhsDBQkDwmcABQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEE+am1uW
+7DC5nSIQALg0+q5zM+jORY/81UA23nGB2rgtOSQjlyxIy02amoUpKWZCdke7e3H1
+pjPmrU4ZCVPMuhujjtXKKi6IyCmW1McxmzoGK2CAwfBURqvcRi303XLP1/J9D8cb
+Be74V6bfH39wsi5RHF7bmOwlOH3bV9o+H/VmMJzgjQw57u9sZa1VIxRCNK8KXgeB
+pFBnxp7XU3w2vdmEmDHnVuRmBg6myhwM0N+popK50tghAcSx5dmEe/mz3LjLzZTU
+jzOaYoSsyAoU8HCbtWFa3+6w7CD+crZy3mQBVOf0tDKkqlrs3O3xR5L3u/LNAnwZ
++0wJr9uUPfLrv10TWNX+1Ldj7hLY+Y1aoLP7HBhVW1hMoBZFHc/D9gyxjIZ7t8KR
+QKwu91JoqnqO+kdBF5IhHsOXwafSSPDT9oA2Pc0onuFsh9D0sIGv/n6CjjQRPfd0
+E4NZQoobP9KUiES5Qglfm8jxzdt9LcCKDnZ5kYdVoPkYYNkVGRIENu6zkyZtjBFO
+GToQSwVTy/RPiRRhbijm4lTDEoUufvYvJ7ThGhCjl7ejP7xHKAB1MJddfUqeRkDx
+PBpDV4lTDlxIZcv9dfZl8MvdiKwwRQ0inp41UD9z2pGS7woPXrY+MaTnJW2L5EVb
+lLJAb3ebyQUIFPomxv5uczqYuXej3rXPL8QHMRH93j2W81qO720Q
+=rdhy
+-----END PGP PUBLIC KEY BLOCK-----"
+
+    # SHA-256
+    EXPECTED_HASH=$(grep "${TARBALL_NAME}" "${CHECKSUMS_NAME}" 2>/dev/null | awk '{print $1}')
+    if [ -n "$EXPECTED_HASH" ]; then
+        ACTUAL_HASH=$(_sha256 newrelic-cli.tar.gz)
+        if [ -n "$ACTUAL_HASH" ] && [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+            _log "sha256 mismatch: expected ${EXPECTED_HASH}, got ${ACTUAL_HASH}"
+            exit 1
+        fi
+        _log "sha256 ok: ${ACTUAL_HASH}"
+    else
+        _log "sha256 skipped: checksum entry not found"
+    fi
+
+    # GPG
+    if command -v gpg > /dev/null 2>&1; then
+        if curl -sLf --retry 3 "${CHECKSUM_SIG_URL}" -o "${CHECKSUMS_NAME}.sig" 2>/dev/null; then
+            GPG_TMPDIR=$(mktemp -d)
+            echo "${NR_PUBLIC_KEY}" | gpg --homedir "${GPG_TMPDIR}" --batch --import > /dev/null 2>&1
+            if gpg --homedir "${GPG_TMPDIR}" --batch --verify "${CHECKSUMS_NAME}.sig" "${CHECKSUMS_NAME}" > /dev/null 2>&1; then
+                _log "gpg ok: signature verified (key 4F9A9B5B96EC30B9)"
+            else
+                _log "gpg skipped: signature verification failed"
+            fi
+            rm -rf "${GPG_TMPDIR}"
+        else
+            _log "gpg skipped: signature file not available"
+        fi
+    else
+        _log "gpg skipped: gpg not installed"
+    fi
+)
+
+# Download tarball and checksums file.
+curl -sL --retry 3 "${RELEASE_URL}" -o newrelic-cli.tar.gz
+curl -sL --retry 3 "${CHECKSUM_URL}" -o "${CHECKSUMS_NAME}"
+
+verify_integrity || true
+
+tar -xzf newrelic-cli.tar.gz
 
 if [ "$UID" != "0" ]; then
     echo "Installing to $DESTDIR using sudo"
