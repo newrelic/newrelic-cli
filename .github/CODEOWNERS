@@ -9,9 +9,9 @@
 # Default: Virtuoso owns everything not matched by a more specific rule below.
 *                                   @newrelic/virtuoso
 
-# AI Monitoring command and its internals — owned by AIM.
-internal/aimonitoring/              @newrelic/aim
-docs/command-reference/aimonitor*   @newrelic/aim
+# AI Monitoring command and its internals — owned by AIM and AIM-USA.
+internal/aimonitoring/              @newrelic/aim @newrelic/aim-usa
+docs/command-reference/aimonitor*   @newrelic/aim @newrelic/aim-usa
 
 # Fleet Control command and its internals — owned by FLEET.
 internal/fleetcontrol/              @newrelic/fleet
