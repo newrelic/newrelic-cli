@@ -9,13 +9,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 )
-
-const datasetDeleteVersionMutation = `mutation($input: AimDatasetDeleteVersionInput!) {
-  aimDatasetDeleteVersion(version: $input) {
-    versionId
-  }
-}`
 
 var (
 	versionDeleteDatasetID string
@@ -49,30 +44,20 @@ which is required when no terminal is available.
 	},
 }
 
-type datasetDeleteVersionResult struct {
-	VersionID string `json:"versionId"`
-}
-
-type datasetDeleteVersionResponse struct {
-	AimDatasetDeleteVersion datasetDeleteVersionResult `json:"aimDatasetDeleteVersion"`
-}
-
-func deleteDatasetVersion(datasetID, versionID string, assumeYes bool) (*datasetDeleteVersionResult, error) {
+func deleteDatasetVersion(datasetID, versionID string, assumeYes bool) (*aimonitoring.AimDatasetDeleteVersionResult, error) {
 	msg := fmt.Sprintf("Permanently delete version %s of dataset %s? If it is the only version left, the dataset is deleted too. This cannot be undone.", versionID, datasetID)
 	confirmed, err := confirmAction(assumeYes, msg)
 	if err != nil || !confirmed {
 		return nil, err
 	}
 
-	var resp datasetDeleteVersionResponse
-	vars := map[string]interface{}{
-		"input": map[string]interface{}{"datasetId": datasetID, "versionId": versionID},
-	}
-	if err := client.NRClient.NerdGraph.QueryWithResponseAndContext(utils.SignalCtx, datasetDeleteVersionMutation, vars, &resp); err != nil {
+	input := aimonitoring.AimDatasetDeleteVersionInput{DatasetId: datasetID, VersionId: versionID}
+	result, err := client.NRClient.AIMonitoring.AimDatasetDeleteVersionWithContext(utils.SignalCtx, input)
+	if err != nil {
 		return nil, fmt.Errorf("failed to delete dataset version: %w", err)
 	}
 
-	return &resp.AimDatasetDeleteVersion, nil
+	return result, nil
 }
 
 func init() {

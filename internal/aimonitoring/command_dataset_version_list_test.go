@@ -16,6 +16,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/testhelpers"
 )
@@ -37,6 +38,7 @@ func TestAIMonitoringDatasetVersionList(t *testing.T) {
 // versionEntity builds one AIM_DATASET_VERSION entity as returned by entityManagement.entitySearch.
 func versionEntity(datasetID string, version int) map[string]interface{} {
 	return map[string]interface{}{
+		"__typename":  "EntityManagementAimDatasetVersionEntity",
 		"id":          fmt.Sprintf("%s-v%d", datasetID, version),
 		"name":        fmt.Sprintf("%s v%d", datasetID, version),
 		"aimDataset":  datasetID,
@@ -99,7 +101,7 @@ func stubVersionSearch(t *testing.T, pages ...versionSearchPage) *[][]byte {
 	tc := testhelpers.NewTestConfig(t, server)
 
 	original := client.NRClient
-	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc)}
+	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc), AIMonitoring: aimonitoring.New(tc)}
 	t.Cleanup(func() { client.NRClient = original })
 
 	return &requests
@@ -130,12 +132,14 @@ func TestListDatasetVersions_FiltersByDatasetAcrossPagesAndSorts(t *testing.T) {
 	assert.Equal(t, 2, got[1].Version)
 
 	require.Len(t, *requests, 2)
-	assert.Equal(t, "cursor-page-2", datasetRequestCursor(t, (*requests)[1]))
+	assert.Equal(t, "type = 'AIM_DATASET_VERSION'", requestVariable(t, (*requests)[0], "query"))
+	assert.Equal(t, "cursor-page-2", requestVariable(t, (*requests)[1], "cursor"))
 }
 
 func TestListDatasetVersions_OmitsUnsetFields(t *testing.T) {
 	stubVersionSearch(t, versionSearchPage{entities: []map[string]interface{}{{
-		"id": "ds-1-v7", "name": "v7", "aimDataset": "ds-1", "version": 7,
+		"__typename": "EntityManagementAimDatasetVersionEntity",
+		"id":         "ds-1-v7", "name": "v7", "aimDataset": "ds-1", "version": 7,
 		"message": nil, "recordCount": nil, "variables": nil, "metadata": map[string]interface{}{},
 	}}})
 

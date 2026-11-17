@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 )
 
 const testVersionID = "MTE4NTkwOTh8TkdFUHxBSU1fREFUQVNFVF9WRVJTSU9OfDE"
@@ -34,7 +35,7 @@ func TestDeleteDatasetVersion_Confirmed(t *testing.T) {
 
 	got, err := deleteDatasetVersion(testDatasetID, testVersionID, false)
 	require.NoError(t, err)
-	assert.Equal(t, &datasetDeleteVersionResult{VersionID: testVersionID}, got)
+	assert.Equal(t, &aimonitoring.AimDatasetDeleteVersionResult{VersionId: testVersionID}, got)
 
 	require.Len(t, *prompts, 1)
 	assert.Contains(t, (*prompts)[0], testVersionID)
@@ -42,7 +43,7 @@ func TestDeleteDatasetVersion_Confirmed(t *testing.T) {
 	assert.Contains(t, (*prompts)[0], "only version left")
 
 	require.Len(t, *requests, 1)
-	assert.Equal(t, map[string]interface{}{"datasetId": testDatasetID, "versionId": testVersionID}, requestInput(t, (*requests)[0]))
+	assert.Equal(t, map[string]interface{}{"datasetId": testDatasetID, "versionId": testVersionID}, requestInput(t, (*requests)[0], "version"))
 }
 
 func TestDeleteDatasetVersion_DeclinedMakesNoRequest(t *testing.T) {
@@ -71,7 +72,7 @@ func TestDeleteDatasetVersion_AssumeYes(t *testing.T) {
 
 	got, err := deleteDatasetVersion(testDatasetID, testVersionID, true)
 	require.NoError(t, err)
-	assert.Equal(t, &datasetDeleteVersionResult{VersionID: testVersionID}, got)
+	assert.Equal(t, &aimonitoring.AimDatasetDeleteVersionResult{VersionId: testVersionID}, got)
 	assert.Empty(t, *prompts)
 	assert.Len(t, *requests, 1)
 }

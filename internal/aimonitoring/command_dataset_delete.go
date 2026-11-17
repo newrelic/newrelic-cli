@@ -9,13 +9,8 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 )
-
-const datasetDeleteMutation = `mutation($input: AimDatasetDeleteInput!) {
-  aimDatasetDelete(dataset: $input) {
-    datasetId
-  }
-}`
 
 var (
 	datasetDeleteID  string
@@ -47,30 +42,19 @@ This cannot be undone. You are asked to confirm before anything is deleted; pass
 	},
 }
 
-type datasetDeleteResult struct {
-	DatasetID string `json:"datasetId"`
-}
-
-type datasetDeleteResponse struct {
-	AimDatasetDelete datasetDeleteResult `json:"aimDatasetDelete"`
-}
-
-func deleteDataset(datasetID string, assumeYes bool) (*datasetDeleteResult, error) {
+func deleteDataset(datasetID string, assumeYes bool) (*aimonitoring.AimDatasetDeleteResult, error) {
 	msg := fmt.Sprintf("Permanently delete dataset %s and all of its versions? This cannot be undone.", datasetID)
 	confirmed, err := confirmAction(assumeYes, msg)
 	if err != nil || !confirmed {
 		return nil, err
 	}
 
-	var resp datasetDeleteResponse
-	vars := map[string]interface{}{
-		"input": map[string]interface{}{"datasetId": datasetID},
-	}
-	if err := client.NRClient.NerdGraph.QueryWithResponseAndContext(utils.SignalCtx, datasetDeleteMutation, vars, &resp); err != nil {
+	result, err := client.NRClient.AIMonitoring.AimDatasetDeleteWithContext(utils.SignalCtx, aimonitoring.AimDatasetDeleteInput{DatasetId: datasetID})
+	if err != nil {
 		return nil, fmt.Errorf("failed to delete dataset: %w", err)
 	}
 
-	return &resp.AimDatasetDelete, nil
+	return result, nil
 }
 
 func init() {

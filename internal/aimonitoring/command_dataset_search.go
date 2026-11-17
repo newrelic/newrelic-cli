@@ -10,32 +10,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 )
 
-const datasetSearchQuery = `query($cursor: String) {
-  actor {
-    entityManagement {
-      entitySearch(query: "type = 'AIM_DATASET'", cursor: $cursor) {
-        entities {
-          id
-          name
-          ... on EntityManagementAimDatasetEntity {
-            description
-            variables
-            latestVersion
-            latestVersionId
-            mode
-            tags {
-              key
-              values
-            }
-          }
-        }
-        nextCursor
-      }
-    }
-  }
-}`
+const datasetSearchQuery = "type = 'AIM_DATASET'"
 
 var datasetName string
 
@@ -65,24 +43,19 @@ ignoring case.
 	},
 }
 
-type datasetTag struct {
-	Key    string   `json:"key"`
-	Values []string `json:"values"`
-}
-
 type dataset struct {
-	ID              string       `json:"id"`
-	Name            string       `json:"name"`
-	Description     string       `json:"description"`
-	Variables       []string     `json:"variables"`
-	LatestVersion   int          `json:"latestVersion"`
-	LatestVersionID string       `json:"latestVersionId"`
-	Mode            string       `json:"mode"`
-	Tags            []datasetTag `json:"tags"`
+	ID              string                             `json:"id"`
+	Name            string                             `json:"name"`
+	Description     string                             `json:"description"`
+	Variables       []string                           `json:"variables"`
+	LatestVersion   int                                `json:"latestVersion"`
+	LatestVersionID string                             `json:"latestVersionId"`
+	Mode            string                             `json:"mode"`
+	Tags            []aimonitoring.EntityManagementTag `json:"tags"`
 }
 
 func searchDatasets(name string) ([]dataset, error) {
-	allDatasets, err := fetchAllEntities[dataset](datasetSearchQuery)
+	allDatasets, err := fetchAllEntities[*aimonitoring.EntityManagementAimDatasetEntity](datasetSearchQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search datasets: %w", err)
 	}
@@ -91,7 +64,16 @@ func searchDatasets(name string) ([]dataset, error) {
 	matched := make([]dataset, 0, len(allDatasets))
 	for _, d := range allDatasets {
 		if strings.Contains(strings.ToLower(d.Name), lowerName) {
-			matched = append(matched, d)
+			matched = append(matched, dataset{
+				ID:              d.ID,
+				Name:            d.Name,
+				Description:     d.Description,
+				Variables:       d.Variables,
+				LatestVersion:   d.LatestVersion,
+				LatestVersionID: d.LatestVersionId,
+				Mode:            string(d.Mode),
+				Tags:            d.Tags,
+			})
 		}
 	}
 

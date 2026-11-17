@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"fmt"
 	"slices"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -11,32 +12,10 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/output"
 	"github.com/newrelic/newrelic-cli/internal/utils"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 )
 
-const datasetVersionSearchQuery = `query($cursor: String) {
-  actor {
-    entityManagement {
-      entitySearch(query: "type = 'AIM_DATASET_VERSION'", cursor: $cursor) {
-        entities {
-          id
-          name
-          ... on EntityManagementAimDatasetVersionEntity {
-            aimDataset
-            version
-            message
-            recordCount
-            variables
-            metadata {
-              createdAt
-              updatedAt
-            }
-          }
-        }
-        nextCursor
-      }
-    }
-  }
-}`
+const datasetVersionSearchQuery = "type = 'AIM_DATASET_VERSION'"
 
 var datasetID string
 
@@ -82,7 +61,7 @@ type datasetVersion struct {
 }
 
 func listDatasetVersions(id string) ([]datasetVersion, error) {
-	allVersions, err := fetchAllEntities[datasetVersion](datasetVersionSearchQuery)
+	allVersions, err := fetchAllEntities[*aimonitoring.EntityManagementAimDatasetVersionEntity](datasetVersionSearchQuery)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list dataset versions: %w", err)
 	}
@@ -90,7 +69,7 @@ func listDatasetVersions(id string) ([]datasetVersion, error) {
 	matched := make([]datasetVersion, 0, len(allVersions))
 	for _, v := range allVersions {
 		if v.AimDataset == id {
-			matched = append(matched, v)
+			matched = append(matched, toDatasetVersion(v))
 		}
 	}
 	slices.SortFunc(matched, func(a, b datasetVersion) int { return cmp.Compare(a.Version, b.Version) })
@@ -100,6 +79,35 @@ func listDatasetVersions(id string) ([]datasetVersion, error) {
 	}
 
 	return matched, nil
+}
+
+// The client decodes null as the zero value, so zero values are treated as unset.
+// ponytail: a real recordCount of 0 is omitted too; needs a *int in client-go to tell them apart.
+func toDatasetVersion(v *aimonitoring.EntityManagementAimDatasetVersionEntity) datasetVersion {
+	out := datasetVersion{
+		ID:         v.ID,
+		Name:       v.Name,
+		AimDataset: v.AimDataset,
+		Version:    v.Version,
+		Variables:  v.Variables,
+	}
+	if v.Message != "" {
+		out.Message = &v.Message
+	}
+	if v.RecordCount != 0 {
+		out.RecordCount = &v.RecordCount
+	}
+	out.Metadata.CreatedAt = epochMillis(time.Time(v.Metadata.CreatedAt))
+	out.Metadata.UpdatedAt = epochMillis(time.Time(v.Metadata.UpdatedAt))
+	return out
+}
+
+func epochMillis(t time.Time) *int64 {
+	if t.IsZero() {
+		return nil
+	}
+	ms := t.UnixMilli()
+	return &ms
 }
 
 func init() {

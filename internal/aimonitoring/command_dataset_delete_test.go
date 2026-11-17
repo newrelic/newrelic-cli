@@ -16,6 +16,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/testhelpers"
 )
@@ -51,7 +52,7 @@ func stubNerdGraph(t *testing.T, statusCode int, body string) *[][]byte {
 	tc := testhelpers.NewTestConfig(t, server)
 
 	original := client.NRClient
-	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc)}
+	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc), AIMonitoring: aimonitoring.New(tc)}
 	t.Cleanup(func() { client.NRClient = original })
 
 	return &requests
@@ -73,16 +74,14 @@ func stubPromptConfirm(t *testing.T, confirmed bool, err error) *[]string {
 	return &prompts
 }
 
-// requestInput pulls the "input" GraphQL variable out of a captured request body.
-func requestInput(t *testing.T, body []byte) map[string]interface{} {
+// requestInput pulls the named GraphQL variable out of a captured request body.
+func requestInput(t *testing.T, body []byte, name string) map[string]interface{} {
 	t.Helper()
 	var req struct {
-		Variables struct {
-			Input map[string]interface{} `json:"input"`
-		} `json:"variables"`
+		Variables map[string]map[string]interface{} `json:"variables"`
 	}
 	require.NoError(t, json.Unmarshal(body, &req))
-	return req.Variables.Input
+	return req.Variables[name]
 }
 
 func graphQLDataBody(data map[string]interface{}) string {
@@ -136,13 +135,13 @@ func TestDeleteDataset_Confirmed(t *testing.T) {
 
 	got, err := deleteDataset(testDatasetID, false)
 	require.NoError(t, err)
-	assert.Equal(t, &datasetDeleteResult{DatasetID: testDatasetID}, got)
+	assert.Equal(t, &aimonitoring.AimDatasetDeleteResult{DatasetId: testDatasetID}, got)
 
 	require.Len(t, *prompts, 1)
 	assert.Contains(t, (*prompts)[0], testDatasetID)
 
 	require.Len(t, *requests, 1)
-	assert.Equal(t, map[string]interface{}{"datasetId": testDatasetID}, requestInput(t, (*requests)[0]))
+	assert.Equal(t, map[string]interface{}{"datasetId": testDatasetID}, requestInput(t, (*requests)[0], "dataset"))
 }
 
 func TestDeleteDataset_DeclinedMakesNoRequest(t *testing.T) {
@@ -171,7 +170,7 @@ func TestDeleteDataset_AssumeYes(t *testing.T) {
 
 	got, err := deleteDataset(testDatasetID, true)
 	require.NoError(t, err)
-	assert.Equal(t, &datasetDeleteResult{DatasetID: testDatasetID}, got)
+	assert.Equal(t, &aimonitoring.AimDatasetDeleteResult{DatasetId: testDatasetID}, got)
 	assert.Empty(t, *prompts)
 	assert.Len(t, *requests, 1)
 }

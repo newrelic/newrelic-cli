@@ -15,6 +15,7 @@ import (
 	"github.com/newrelic/newrelic-cli/internal/client"
 	"github.com/newrelic/newrelic-cli/internal/testcobra"
 	"github.com/newrelic/newrelic-client-go/v2/newrelic"
+	"github.com/newrelic/newrelic-client-go/v2/pkg/aimonitoring"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/nerdgraph"
 	"github.com/newrelic/newrelic-client-go/v2/pkg/testhelpers"
 )
@@ -52,6 +53,7 @@ func (p datasetSearchPage) body() string {
 	ents := make([]map[string]interface{}, 0, len(p.datasetNames))
 	for _, name := range p.datasetNames {
 		ents = append(ents, map[string]interface{}{
+			"__typename":      "EntityManagementAimDatasetEntity",
 			"id":              name + "-id",
 			"name":            name,
 			"description":     name + " description",
@@ -78,15 +80,15 @@ func (p datasetSearchPage) body() string {
 	return string(respBody)
 }
 
-// datasetRequestCursor pulls the "cursor" GraphQL variable out of a captured request body,
+// requestVariable pulls the named GraphQL variable out of a captured request body,
 // so tests can assert the CLI actually forwards nextCursor back on the next call.
-func datasetRequestCursor(t *testing.T, body []byte) interface{} {
+func requestVariable(t *testing.T, body []byte, name string) interface{} {
 	t.Helper()
 	var req struct {
 		Variables map[string]interface{} `json:"variables"`
 	}
 	require.NoError(t, json.Unmarshal(body, &req))
-	return req.Variables["cursor"]
+	return req.Variables[name]
 }
 
 // stubDatasetSearch points client.NRClient.NerdGraph at a test server that serves
@@ -123,19 +125,20 @@ func stubDatasetSearch(t *testing.T, pages []datasetSearchPage) *[][]byte {
 	tc := testhelpers.NewTestConfig(t, server)
 
 	original := client.NRClient
-	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc)}
+	client.NRClient = &newrelic.NewRelic{NerdGraph: nerdgraph.New(tc), AIMonitoring: aimonitoring.New(tc)}
 	t.Cleanup(func() { client.NRClient = original })
 
 	return &requests
 }
 
 func TestSearchDatasets_MatchIgnoresCase(t *testing.T) {
-	stubDatasetSearch(t, []datasetSearchPage{
+	requests := stubDatasetSearch(t, []datasetSearchPage{
 		{datasetNames: []string{"Alpha Dataset", "Target Dataset"}},
 	})
 
 	got, err := searchDatasets("target dataset")
 	require.NoError(t, err)
+	assert.Equal(t, "type = 'AIM_DATASET'", requestVariable(t, (*requests)[0], "query"))
 	require.Len(t, got, 1)
 	assert.Equal(t, dataset{
 		ID:              "Target Dataset-id",
@@ -145,7 +148,7 @@ func TestSearchDatasets_MatchIgnoresCase(t *testing.T) {
 		LatestVersion:   2,
 		LatestVersionID: "Target Dataset-version-id",
 		Mode:            "SINGLE_TURN",
-		Tags:            []datasetTag{{Key: "env", Values: []string{"prod"}}},
+		Tags:            []aimonitoring.EntityManagementTag{{Key: "env", Values: []string{"prod"}}},
 	}, got[0])
 }
 
@@ -176,8 +179,8 @@ func TestSearchDatasets_MatchOnSecondPage(t *testing.T) {
 	assert.Equal(t, "target", got[0].Name)
 
 	require.Len(t, *requests, 2, "expected exactly two entitySearch calls (one per page)")
-	assert.Nil(t, datasetRequestCursor(t, (*requests)[0]), "first call should not send a cursor")
-	assert.Equal(t, "cursor-page-2", datasetRequestCursor(t, (*requests)[1]),
+	assert.Nil(t, requestVariable(t, (*requests)[0], "cursor"), "first call should not send a cursor")
+	assert.Equal(t, "cursor-page-2", requestVariable(t, (*requests)[1], "cursor"),
 		"second call should forward the nextCursor returned by the first")
 }
 
