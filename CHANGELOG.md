@@ -1,3 +1,11 @@
+<a name="v0.117.0"></a>
+## [v0.117.0] - 2026-11-19
+### Documentation Updates
+- add .github/PUBLISHING.md — published asset inventory ([#1949](https://github.com/newrelic/newrelic-cli/issues/1949))
+
+### Features
+- **aimonitoring:** add support for dataset search, version list, dataset delete, version delete via CLI ([#1950](https://github.com/newrelic/newrelic-cli/issues/1950))
+
 <a name="v0.116.4"></a>
 ## [v0.116.4] - 2026-11-17
 ### Bug Fixes
@@ -3003,7 +3011,8 @@
 - **profile:** Add listing of profiles to command
 - **profile:** Enable reading of profiles and use Region/APIKey from default profile
 
-[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.116.4...HEAD
+[Unreleased]: https://github.com/newrelic/newrelic-cli/compare/v0.117.0...HEAD
+[v0.117.0]: https://github.com/newrelic/newrelic-cli/compare/v0.116.4...v0.117.0
 [v0.116.4]: https://github.com/newrelic/newrelic-cli/compare/v0.116.3...v0.116.4
 [v0.116.3]: https://github.com/newrelic/newrelic-cli/compare/v0.116.2...v0.116.3
 [v0.116.2]: https://github.com/newrelic/newrelic-cli/compare/v0.116.1...v0.116.2
