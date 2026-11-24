@@ -20,6 +20,9 @@ export NEW_RELIC_ACCOUNT_ID="your-account-id"
   - `--since` — how far back to look (default `7 days ago`)
 - **`newrelic aimonitoring dataset search`** — list the AI Monitoring datasets you have access to
   - `--name` — only show datasets whose name contains this value (case-insensitive)
+- **`newrelic aimonitoring dataset create-json`** — create a dataset in the current account from a JSON file of records
+  - `--name`, `--mode` (`TEXT`, `SINGLE_TURN` or `MULTI_TURN`), `--file` — the dataset name, record mode and records file (all required)
+  - `--description` — a description of the dataset's purpose
 - **`newrelic aimonitoring dataset delete`** — permanently delete a dataset and all of its versions
   - `--id` — the dataset to delete (required)
   - `--yes` — skip the confirmation prompt
@@ -85,6 +88,29 @@ newrelic aimonitoring dataset search --name "My Dataset"
     "tags": [{ "key": "env", "values": ["prod"] }]
   }
 ]
+```
+
+### `aimonitoring dataset create-json` - Create a dataset from a JSON file
+
+Creates a dataset scoped to the current account (`NEW_RELIC_ACCOUNT_ID` / `--accountId`). `--file` must contain a JSON array of records; each record needs an `input` and may have `expected`, `context` and `additionalFields` (an object). For `TEXT`, `input` is a string; for `SINGLE_TURN` and `MULTI_TURN` it is an array of turns, each an object of template variables. Unknown fields are rejected so typos fail before anything is sent.
+
+**Flags:** `--name`, `--mode`, `--file` (required), `--description` (optional).
+
+```json
+[{ "input": "What is New Relic?", "expected": "An observability platform" }]
+```
+
+```bash
+newrelic aimonitoring dataset create-json --name "My Dataset" --mode TEXT --file records.json
+```
+
+**Response:**
+
+```json
+{
+  "datasetId": "MTIzfEFJTXxEQVRBU0VUfDE",
+  "versionId": "MTIzfEFJTXxEQVRBU0VUX1ZFUlNJT058MQ"
+}
 ```
 
 ### `aimonitoring dataset-version list` - List the versions of a dataset
@@ -182,6 +208,7 @@ internal/aimonitoring/
 ├── command_events.go                # events command
 ├── command_application.go           # application search command
 ├── command_dataset_search.go        # dataset search command
+├── command_dataset_create_json.go   # dataset create-json command
 ├── command_dataset_delete.go        # dataset delete command
 ├── command_dataset_delete_version.go # dataset delete-version command
 ├── helpers.go                       # shared helpers (confirmation prompt)
@@ -191,6 +218,7 @@ internal/aimonitoring/
 ├── command_events_test.go
 ├── command_application_test.go
 ├── command_dataset_search_test.go
+├── command_dataset_create_json_test.go
 ├── command_dataset_delete_test.go
 ├── command_dataset_delete_version_test.go
 └── command_dataset_version_list_test.go
