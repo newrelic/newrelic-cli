@@ -26,6 +26,10 @@ export NEW_RELIC_ACCOUNT_ID="your-account-id"
 - **`newrelic aimonitoring dataset delete-version`** — permanently delete one version of a dataset
   - `--id`, `--version-id` — the dataset and the version to delete (both required)
   - `--yes` — skip the confirmation prompt
+- **`newrelic aimonitoring dataset records`** — get the records of a dataset version
+  - `--id`, `--version-id` — the dataset and the version to read (both required)
+  - `--record-ids` — only return these record IDs, comma-separated
+  - `--limit` — the maximum number of records to return (default `0`, every record)
 - **`newrelic aimonitoring dataset-version list`** — list every version of a dataset
   - `--dataset-id` — the dataset to list versions for (required, get it from `dataset search`)
 
@@ -114,6 +118,32 @@ newrelic aimonitoring dataset-version list --dataset-id "MTIzfEFJTXxVRBU0VUfDE"
 ]
 ```
 
+### `aimonitoring dataset records` - Get the records of a dataset version
+
+Returns the records of the given dataset version, following `nextCursor` so every page is returned. The records API has no limit argument, so `--limit` is applied client-side: paging stops once enough records have been fetched.
+
+**Flags:** `--id`, `--version-id` (required, get the version ID from `dataset-version list`), `--record-ids`, `--limit` (optional).
+
+```bash
+newrelic aimonitoring dataset records --id <datasetId> --version-id <versionId>
+newrelic aimonitoring dataset records --id <datasetId> --version-id <versionId> --record-ids 1,2,3
+newrelic aimonitoring dataset records --id <datasetId> --version-id <versionId> --limit 10
+```
+
+**Response:**
+
+```json
+[
+  {
+    "id": 1,
+    "input": { "question": "What is New Relic?" },
+    "expected": "An observability platform.",
+    "context": "product FAQ",
+    "additionalFields": { "source": "csv" }
+  }
+]
+```
+
 ### `aimonitoring dataset delete` / `delete-version` - Delete datasets and dataset versions
 
 `delete` permanently deletes a dataset together with every one of its versions. `delete-version` permanently deletes a single version; **if it is the only version left, the dataset itself is deleted too**. Neither can be undone.
@@ -184,6 +214,7 @@ internal/aimonitoring/
 ├── command_dataset_search.go        # dataset search command
 ├── command_dataset_delete.go        # dataset delete command
 ├── command_dataset_delete_version.go # dataset delete-version command
+├── command_dataset_records.go       # dataset records command
 ├── helpers.go                       # shared helpers (confirmation prompt)
 ├── command_dataset_version_list.go  # dataset-version list command
 ├── entity_search.go                 # paginated EntityManagement entitySearch helper
@@ -193,6 +224,7 @@ internal/aimonitoring/
 ├── command_dataset_search_test.go
 ├── command_dataset_delete_test.go
 ├── command_dataset_delete_version_test.go
+├── command_dataset_records_test.go
 └── command_dataset_version_list_test.go
 ```
 
