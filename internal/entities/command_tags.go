@@ -106,10 +106,10 @@ The create command adds tag:value pairs to the given entity.
 		tags, err := assembleTagsInput(entityTags)
 		utils.LogIfFatal(err)
 
-		_, err = client.NRClient.Entities.TaggingAddTagsToEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID), tags)
+		result, err := client.NRClient.Entities.TaggingAddTagsToEntityWithContext(utils.SignalCtx, common.EntityGUID(entityGUID), tags)
 		utils.LogIfFatal(err)
 
-		log.Info("success")
+		utils.LogIfFatal(output.Print(result))
 	},
 }
 
