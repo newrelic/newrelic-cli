@@ -205,8 +205,8 @@ jobs:
 
       - name: Pull Deployer image
         run: |
-          docker pull newrelic/deployer:v1.0.8-6-g4c807c9
-          docker images newrelic/deployer:v1.0.8-6-g4c807c9
+          docker pull newrelic/deployer:latest
+          docker images newrelic/deployer:latest
 
       - name: Run deployer
         id: deployerRun
@@ -219,7 +219,7 @@ jobs:
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby newrelic/deployer:v1.0.8-6-g4c807c9 main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -l debug
+            --entrypoint ruby newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -l debug
           echo ::set-output name=exit_status::$?
 
       - name: Teardown any previous deployment
@@ -234,7 +234,7 @@ jobs:
             -v ${{ github.workspace }}/open-install-library/test/:/mnt/deployer/test/\
             -v ${{ github.workspace }}/bin/:/mnt/deployer/bin/\
             -v ${{ github.workspace }}/dist/:/mnt/deployer/dist/\
-            --entrypoint ruby newrelic/deployer:v1.0.8-6-g4c807c9 main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -t
+            --entrypoint ruby newrelic/deployer:latest main.rb -c configs/gitusdkrnrcli${{ github.run_id }}.json -d test/definitions/smoke/$testDefinitionFile -t
           echo ::set-output name=exit_status::$?
 
       - name: Report any error
