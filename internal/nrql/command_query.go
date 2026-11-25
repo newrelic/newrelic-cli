@@ -1,6 +1,9 @@
 package nrql
 
 import (
+	"errors"
+	"os"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -29,6 +32,19 @@ issue the query against.
 	PreRun:  client.RequireClient,
 	Run: func(cmd *cobra.Command, args []string) {
 		accountID := configAPI.RequireActiveProfileAccountID()
+
+		_, err := os.Stat(query)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Fatal(err)
+		} else if err == nil {
+			// query points to a file/file descriptor
+			fileBytes, readErr := os.ReadFile(query)
+			if readErr != nil {
+				log.Fatal(readErr)
+			}
+			query = string(fileBytes)
+		}
+
 		result, err := client.NRClient.Nrdb.QueryWithContext(utils.SignalCtx, accountID, nrdb.NRQL(query))
 		if err != nil {
 			log.Fatal(err)
