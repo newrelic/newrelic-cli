@@ -20,11 +20,12 @@ import (
 )
 
 var (
-	assumeYes    bool
-	localRecipes string
-	recipeNames  []string
-	recipePaths  []string
-	tags         []string
+	assumeYes      bool
+	localRecipes   string
+	preserveConfig bool
+	recipeNames    []string
+	recipePaths    []string
+	tags           []string
 )
 
 // processRecipeNames validates, extracts recipe names, and sets environment variables.
@@ -90,6 +91,8 @@ var Command = &cobra.Command{
 			log.Fatal(detailErr)
 		}
 
+		setPreserveConfigEnv(preserveConfig)
+
 		i := NewRecipeInstaller(ic)
 
 		//// Do not install both infra and agent controls simultaneously: install only the 'agent-control' if targeted.
@@ -144,6 +147,12 @@ func init() {
 	Command.Flags().BoolVarP(&assumeYes, "assumeYes", "y", false, "use \"yes\" for all questions during install")
 	Command.Flags().StringVarP(&localRecipes, "localRecipes", "", "", "a path to local recipes to load instead of service other fetching")
 	Command.Flags().StringSliceVarP(&tags, "tag", "", []string{}, "the tags to add during install, can be multiple. Example: --tag tag1:test,tag2:test")
+
+	// preserveConfig is intentionally undocumented (NR-629140). It lets GTS tell a customer to skip
+	// the infra agent recipes' normal config overwrite on upgrade. Not surfaced via --help or docs
+	// until there's enough adoption signal to consider making it a supported, documented option.
+	Command.Flags().BoolVarP(&preserveConfig, "preserveConfig", "", false, "")
+	_ = Command.Flags().MarkHidden("preserveConfig")
 }
 
 func validateProfile() *types.DetailError {
@@ -212,6 +221,20 @@ func checkNetwork() error {
 	}
 
 	return err
+}
+
+// setPreserveConfigEnv propagates the --preserveConfig flag to the infra agent recipes via
+// NEW_RELIC_PRESERVE_CONFIG. Recipes already read this through the existing varsFromInput()
+// mechanism (open-install-library#1215), so this is the only CLI-side change needed (NR-629140).
+// No-op when preserveConfig is false, matching the recipes' own default-off behavior.
+func setPreserveConfigEnv(preserveConfig bool) {
+	if !preserveConfig {
+		return
+	}
+
+	if err := os.Setenv("NEW_RELIC_PRESERVE_CONFIG", "true"); err != nil {
+		log.Debug("failed to set NEW_RELIC_PRESERVE_CONFIG environment variable: ", err)
+	}
 }
 
 // Attempt to fetch and set a license key through 3 methods:

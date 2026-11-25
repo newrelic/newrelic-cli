@@ -89,6 +89,20 @@ func TestFetchLicenseKey(t *testing.T) {
 	assert.Equal(t, expect, actual)
 }
 
+func TestSetPreserveConfigEnv(t *testing.T) {
+	defer os.Unsetenv("NEW_RELIC_PRESERVE_CONFIG")
+
+	// false is a no-op — must not set the environment variable at all.
+	os.Unsetenv("NEW_RELIC_PRESERVE_CONFIG")
+	setPreserveConfigEnv(false)
+	_, isSet := os.LookupEnv("NEW_RELIC_PRESERVE_CONFIG")
+	assert.False(t, isSet)
+
+	// true sets the environment variable the recipes read via varsFromInput().
+	setPreserveConfigEnv(true)
+	assert.Equal(t, "true", os.Getenv("NEW_RELIC_PRESERVE_CONFIG"))
+}
+
 func initSegmentMockServer() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
